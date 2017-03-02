@@ -1,0 +1,24 @@
+/**
+ * jp.co.future.uroborosql.parameter.ParameterTest
+ */
+SELECT
+	*
+FROM
+	(
+		SELECT
+			'123'	AS	TARGET_STR
+		FROM
+			SYSIBM.SYSDUMMY1
+		UNION ALL
+		SELECT
+			'456'	AS	TARGET_STR
+		FROM
+			SYSIBM.SYSDUMMY1
+		UNION ALL
+		SELECT
+			'789'	AS	TARGET_STR
+		FROM
+			SYSIBM.SYSDUMMY1
+	)	TBL
+WHERE
+	TBL.TARGET_STR	=	/*targetStr*/''

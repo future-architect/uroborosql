@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+	<!-- logを標準出力に出力 -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- ターゲットを標準出力へ -->
+		<Target>System.out</Target>
+		<!-- パターンレイアウト -->
+		<encoder>
+			<pattern>[%-5p] %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="AuditLogTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
+		level="DEBUG">
+		<appender-ref ref="AuditLogTest" />
+	</logger>
+
+	<!-- ログ出力に関する設定 -->
+	<root>
+		<!-- 出力するレベルを設定 -->
+		<level value="INFO" />
+
+		<!-- アペンダを設定 -->
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

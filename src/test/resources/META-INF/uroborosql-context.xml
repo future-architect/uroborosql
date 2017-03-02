@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+	<context:annotation-config />
+
+	<!-- SQL実行FW定義 -->
+	<bean id="sqlAgentFactory" class="jp.co.future.uroborosql.SqlAgentFactoryImpl">
+		<description>
+			SqlAgentクラスのファクトリ
+			このクラスからConnectionサプライヤとSQL管理クラスを設定してSqlAgentクラスが生成されます。
+		</description>
+		<property name="connectionSupplier" ref="connectionSupplier" />
+		<property name="sqlManager" ref="sqlManager" />
+		<property name="sqlFilterManager" ref="sqlFilterManager" />
+		<property name="fetchSize">
+			<description>PreparedStatementに設定するfetchSizeを指定する。-1の場合はJDBCのデフォルト値が使用される
+			</description>
+			<value>1000</value>
+		</property>
+		<property name="queryTimeout">
+			<description>SQL実行時のタイムアウト時間（ms）を設定する。-1の場合はタイムアウトなし</description>
+			<value>-1</value>
+		</property>
+		<property name="removeTerminator">
+			<description>SQLの文末にある終端文字（;）を削除するかどうかを指定する。</description>
+			<value>true</value>
+		</property>
+		<property name="sqlRetryCodeList">
+			<description>SQLのリトライ実行を行う、SQLExceptionのエラーコードを指定</description>
+			<list>
+				<!-- リソース・ビジー、NOWAITが指定されていました。 -->
+				<value>54</value>
+				<!-- リソース待機の間にデッドロックが検出されました。 -->
+				<value>60</value>
+				<!-- リソース・ビジー -->
+				<value>30006</value>
+			</list>
+		</property>
+		<property name="defaultMaxRetryCount">
+			<description>SQLエラー時の最大リトライ回数（デフォルト値）</description>
+			<value>0</value>
+		</property>
+		<property name="defaultSqlRetryWaitTime">
+			<description>SQLリトライ時の待機時間(ms)（デフォルト値）</description>
+			<value>0</value>
+		</property>
+	</bean>
+
+	<bean id="connectionSupplier" class="jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl">
+		<description>
+			Connection提供クラスです。
+		</description>
+		<constructor-arg>
+			<value>driver</value>
+		</constructor-arg>
+		<constructor-arg>
+			<value>url</value>
+		</constructor-arg>
+		<constructor-arg>
+			<value>user</value>
+		</constructor-arg>
+		<constructor-arg>
+			<value>password</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="sqlManager" class="jp.co.future.uroborosql.store.SqlManagerImpl" init-method="initialize">
+		<description>
+			SQL管理クラス。
+			外部ファイルから読み込んだSQL文をキー名称と共に管理し、Agentに対して提供します。
+		</description>
+		<!-- 省略可(デフォルト値使用) -->
+		<property name="loadPath">
+			<description>SQLをロードするパス。クラスパス上からの相対パスとなる</description>
+			<value>sql</value>
+		</property>
+		<property name="fileExtension">
+			<description>SQLファイル拡張子</description>
+			<value>.sql</value>
+		</property>
+		<property name="sqlLoader" ref="sqlLoader">
+			<description>SQLローダークラス</description>
+		</property>
+
+		<property name="cache">
+			<description>SQLをキャッシュするかどうか</description>
+			<value>true</value>
+		</property>
+	</bean>
+
+	<bean id="sqlFilterManager" class="jp.co.future.uroborosql.filter.SqlFilterManagerImpl" init-method="initialize"
+		destroy-method="dispose">
+		<description>
+			SQLに対するフィルター処理を管理クラス。
+			バインドパラメータやResultSetに対してフィルターを定義することで、SQLのバインドパラメータや取得結果を加工することができます
+		</description>
+
+		<property name="filters">
+			<description>
+				SQLフィルターの指定。複数指定可（listで指定）
+				jp.co.future.uroborosql.filter.SqlFilterインタフェースを実装したクラスを指定
+			</description>
+			<list>
+				<ref bean="secretColumnSqlFilter" />
+				<ref bean="debugSqlFilter" />
+				<ref bean="oracleJdbcSqlFilter" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="debugSqlFilter" class="jp.co.future.uroborosql.filter.DebugSqlFilter" init-method="initialize">
+		<description>デバッグログを出力するSqlFilter</description>
+	</bean>
+
+	<bean id="oracleJdbcSqlFilter" class="jp.co.future.uroborosql.filter.OracleJdbcSqlFilter" init-method="initialize">
+		<description>OracleJDBCを使用する場合にOracle独自機能を適用するためのフィルター</description>
+		<property name="clientIdentifierDelimiter">
+			<description>複数の値をつなげる際に使用するデリミタ。デフォルトは"":"</description>
+			<value>:</value>
+		</property>
+		<property name="clientIdentifierKeys">
+			<description>CLIENT_IDENTIFIERに登録する値を生成するためにSqlContextから取得するパラメータのキー。複数指定可能
+			</description>
+			<list>
+				<value>pgmCd</value>
+				<value>userId</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="secretColumnSqlFilter" class="jp.co.future.uroborosql.filter.SecretColumnSqlFilter" init-method="initialize">
+		<description>カラム単位で暗号化を行うためのフィルター</description>
+		<property name="transformationType">
+			<description>暗号化に私用する変換名</description>
+			<value>AES/ECB/PKCS5Padding</value>
+		</property>
+		<property name="keyStoreFilePath">
+			<description>Java暗号鍵を格納するキーストアのパス</description>
+			<value>/user/home/cert/cert.jceks</value>
+		</property>
+		<property name="storePassword">
+			<description>キーストアにアクセスするためのパスワード</description>
+			<value>[password]</value>
+		</property>
+		<property name="alias">
+			<description>キーストアに格納したキーのエイリアス名</description>
+			<value>[alias]</value>
+		</property>
+		<property name="charset">
+			<description>暗号化時に使用するキャラクタセット</description>
+			<value>UTF-8</value>
+		</property>
+		<property name="cryptColumnNames">
+			<description>暗号化対象カラム名。複数指定可（listで指定)</description>
+			<list>
+				<value>CREDIT_NO</value>
+				<value>CREDIT_NAME</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="sqlContextFactory" class="jp.co.future.uroborosql.context.SqlContextFactoryImpl" init-method="initialize">
+		<description>
+			SqlContextインタフェースの実態を生成するファクトリです。
+			このクラスからSqlContextを生成します。
+		</description>
+		<property name="constantClassNames">
+			<description>定数として登録する定数クラスのFQDN名。複数指定可（listとして指定）</description>
+			<list>
+				<value>jp.co.sample.xxx.constants.TypeConsts</value>
+				<value>jp.co.sample.xxx.constants.KeyConsts</value>
+			</list>
+		</property>
+		<property name="constParamPrefix">
+			<description>
+				定数をOGNL式で使用する際につけるプレフィックス。
+				ここで指定したプレフィックス＋定数フィールド名で参照できる。
+				指定した値は大文字に変換される
+			</description>
+			<value>CLS_</value>
+		</property>
+		<property name="sqlFilterManager" ref="sqlFilterManager">
+			<description>SQL実行時に適用されるフィルターを管理するクラス</description>
+		</property>
+		<property name="autoBindParameterCreators">
+			<description>
+				定数以外でOGNL式に自動的にバインドされるパラメータを生成するファクトリクラスを指定。
+				jp.co.future.uroborosql.AutoBindParameterCreatorインタフェースを実装したクラスを指定する
+				複数指定可（listで指定）
+			</description>
+			<list>
+			</list>
+		</property>
+	</bean>
+
+</beans>

@@ -1,0 +1,1105 @@
+package jp.co.future.uroborosql;
+
+import static org.junit.Assert.*;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.SqlContextFactory;
+import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.test.TestEnum1;
+import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
+import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
+import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
+import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.node.BindVariableNode;
+import jp.co.future.uroborosql.node.IfNode;
+import jp.co.future.uroborosql.node.Node;
+import jp.co.future.uroborosql.node.SqlNode;
+import jp.co.future.uroborosql.parser.ContextTransformer;
+import jp.co.future.uroborosql.parser.SqlParser;
+import jp.co.future.uroborosql.parser.SqlParserImpl;
+import jp.co.future.uroborosql.utils.StringFunction;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+public class SqlParserTest {
+	private static final String DB_NAME = "sptestdb";
+
+	private SqlContextFactory sqlContextFactory;
+
+	@SuppressWarnings("deprecation")
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		Connection conn = DriverManager
+				.getConnection("jdbc:derby:target/db/" + DB_NAME + ";create=true;user=test;password=test");
+		SQLWarning warning = conn.getWarnings();
+		conn.setAutoCommit(false);
+		if (warning == null) {
+			// テーブル作成
+			Statement stmt = conn.createStatement();
+			stmt.execute("create table TEST( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
+
+			PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)");
+			pstmt.setInt(1, 1);
+			pstmt.setString(2, "aaa");
+			pstmt.setInt(3, 10);
+			pstmt.setDate(4, new java.sql.Date(100, 0, 1));
+			pstmt.addBatch();
+
+			pstmt.setInt(1, 2);
+			pstmt.setString(2, "あああ");
+			pstmt.setInt(3, 20);
+			pstmt.setDate(4, new java.sql.Date(100, 1, 1));
+			pstmt.addBatch();
+
+			pstmt.setInt(1, 3);
+			pstmt.setString(2, "1111");
+			pstmt.setInt(3, 3000);
+			pstmt.setDate(4, new java.sql.Date(100, 2, 1));
+			pstmt.addBatch();
+
+			pstmt.executeBatch();
+			conn.commit();
+
+			stmt.close();
+			pstmt.close();
+		}
+		conn.close();
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+		try {
+			DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";shutdown=true");
+			throw new SQLException("切断されなかった！");
+		} catch (SQLException se) {
+			if ("08006".equals(se.getSQLState())) {
+				// 正常にシャットダウンされた
+			} else {
+				// シャットダウン失敗
+				throw se;
+			}
+		}
+	}
+
+	@Before
+	public void setUp() throws Exception {
+		sqlContextFactory = new SqlContextFactoryImpl();
+		((SqlContextFactoryImpl) sqlContextFactory).setSqlFilterManager(new SqlFilterManagerImpl());
+
+		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
+
+		sqlContextFactory.initialize();
+	}
+
+	private void sqlAssertion(final String original, final String expected) {
+		SqlParser parser = new SqlParserImpl(original);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		String transformed = ctx.getExecutableSql().trim().replaceAll("\\s+", " ");
+		assertEquals("結果が一致しません。", expected, transformed);
+	}
+
+	// IF FALSE ELIF (TRUE) ELSE
+	@Test
+	public void testElif() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "2=2";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELIF FALSE ELSE
+	@Test
+	public void testElif2() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF FALSE ELIF (TRUE) ELSE
+	@Test
+	public void testElif3() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 --ELSE 3=3/*END*/";
+		String sql2 = "4=4";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF FALSE ELSE
+	@Test
+	public void testElif4() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "3=3";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
+	@Test
+	public void testElif4_1() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF (TRUE)
+	@Test
+	public void testElif5() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2/*END*/";
+		String sql2 = "2=2";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELSE (TRUE)
+	@Test
+	public void testElif6() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	@Test
+	public void testElif7() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4/*END*/";
+		String sql2 = "4=4";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF FALSE
+	@Test
+	public void testElif8() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2/*END*/";
+		String sql2 = "";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE)
+	//  IF (TRUE)
+	//  ELIF FALSE
+	//  ELIF FALSE
+	// ELSE
+	@Test
+	public void testElif_nest1() throws Exception {
+		String sql = "/*IF true*/1=1 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "1=1 and 11=11";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE)
+	// IF FALSE
+	// ELIF (TRUE)
+	// ELIF FALSE
+	// ELSE
+	@Test
+	public void testElif_nest2() throws Exception {
+		String sql = "/*IF true*/1=1 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql2 = "1=1 and 22=22";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE
+	// ELIF (TRUE)
+	// IF (TRUE)
+	// ELIF FALSE
+	// ELSE
+	@Test
+	public void testElif_nest3() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ --ELSE 3=3/*END*/";
+		String sql2 = "2=2 and 11=11";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE
+	// ELIF (TRUE)
+	// IF FALSE
+	// ELIF (TRUE)
+	// ELSE
+	@Test
+	public void testElif_nest4() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ --ELSE 3=3/*END*/";
+		String sql2 = "2=2 and 22=22";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE
+	// ELIF FALSE
+	// ELSE
+	// IF (TRUE)
+	// ELIF FALSE
+	@Test
+	public void testElif_nest5() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*//*END*/";
+		String sql2 = "3=3 and 11=11";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE
+	// ELIF FALSE
+	// ELSE
+	// IF FALSE
+	// ELIF (TRUE)
+	@Test
+	public void testElif_nest6() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2  --ELSE 3=3 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*//*END*/";
+		String sql2 = "3=3 and 22=22";
+		sqlAssertion(sql, sql2);
+	}
+
+	// BEGIN IF FALSE ELIF FALSE END
+	@Test
+	public void testBeginElif() throws Exception {
+		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 /*END*//*END*/";
+		String sql2 = "";
+		sqlAssertion(sql, sql2);
+	}
+
+	// BEGIN IF (TRUE) ELIF FALSE END
+	@Test
+	public void testBeginElif2() throws Exception {
+		String sql = "/*BEGIN*//*IF true*/1=1 /*ELIF false*/2=2 /*END*//*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// BEGIN IF FALSE ELIF (TRUE) END
+	@Test
+	public void testBeginElif3() throws Exception {
+		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF true*/2=2 /*END*//*END*/";
+		String sql2 = "2=2";
+		sqlAssertion(sql, sql2);
+	}
+
+	// BEGIN IF FALSE ELIF FALSE ELSE END
+	@Test
+	public void testBeginElif4() throws Exception {
+		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*//*END*/";
+		String sql2 = "3=3";
+		sqlAssertion(sql, sql2);
+	}
+
+	// BEGIN IF FALSE ELIF FALSE ELSE END
+	@Test
+	public void testBeginElif5() throws Exception {
+		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 /*ELSE*/ 3=3/*END*//*END*/";
+		String sql2 = "3=3";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF (TRUE) ELSE
+	@Test
+	public void testElifWithNewElse() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
+		String sql2 = "2=2";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELIF FALSE ELSE
+	@Test
+	public void testElifWithNewElse2() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF FALSE ELIF (TRUE) ELSE
+	@Test
+	public void testElifWithNewElse3() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 /*ELSE*/ 3=3/*END*/";
+		String sql2 = "4=4";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELIF FALSE ELSE
+	@Test
+	public void testElifWithNewElse4() throws Exception {
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELSE*/ 3=3/*END*/";
+		String sql2 = "3=3";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
+	@Test
+	public void testElifWithNewElse4_1() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
+	@Test
+	public void testElifWithNewElse4_2() throws Exception {
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/3=3/*END*/";
+		String sql2 = "1=1";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF -- COMMENT ELSE 2
+	@Test
+	public void testIFELSECOMMENT_2() throws Exception {
+		String sql = "/*IF false*/1=1 -- comment /*ELIF true*/2=2 /*ELSE*/3=3/*END*/";
+		String sql2 = "2=2";
+		sqlAssertion(sql, sql2);
+	}
+
+	@Test
+	public void testParse() throws Exception {
+		String sql = "SELECT * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("1", sql, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParseNormalComment() throws Exception {
+		String sql = "SELECT /* empの全件検索 */ * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("1", sql, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParseLineComment() throws Exception {
+		String sql = "SELECT -- empの全件検索  * FROM emp WHERE job = /*job*/'CLERK'";
+		String sql2 = "SELECT -- empの全件検索  * FROM emp WHERE job = ?/*job*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("job", "CLERK");
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("1", sql2, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParseHintComment() throws Exception {
+		String sql = "SELECT /*+ FIRST_ROWS */ * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("1", sql, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParseEndSemicolon() throws Exception {
+		testParseEndSemicolon(";");
+		testParseEndSemicolon(";\t");
+		testParseEndSemicolon("; ");
+	}
+
+	private void testParseEndSemicolon(final String endChar) {
+		String sql = "SELECT * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql + endChar);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("1", sql, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testCommentEndNotFound() throws Exception {
+		String sql = "SELECT * FROM emp/*hoge";
+		SqlParser parser = new SqlParserImpl(sql);
+		try {
+			parser.parse();
+			fail("1");
+		} catch (TokenNotClosedRuntimeException ex) {
+			System.out.println(ex);
+		}
+	}
+
+	@Test
+	public void testParseBindVariable() throws Exception {
+		String sql = "SELECT * FROM emp WHERE job = /*job*/'CLERK' AND deptno = /*deptno*/20";
+		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
+		String sql3 = "SELECT * FROM emp WHERE job = ";
+		String sql4 = " AND deptno = ";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		String job = "CLERK";
+		Integer deptno = new Integer(20);
+		ctx.param("job", job);
+		ctx.param("deptno", deptno);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", job, vars[0]);
+		assertEquals("4", deptno, vars[1]);
+		assertEquals("5", 4, root.getChildSize());
+		SqlNode sqlNode = (SqlNode) root.getChild(0);
+		assertEquals("6", sql3, sqlNode.getSql());
+		BindVariableNode varNode = (BindVariableNode) root.getChild(1);
+		assertEquals("7", "job", varNode.getExpression());
+		SqlNode sqlNode2 = (SqlNode) root.getChild(2);
+		assertEquals("8", sql4, sqlNode2.getSql());
+		BindVariableNode varNode2 = (BindVariableNode) root.getChild(3);
+		assertEquals("9", "deptno", varNode2.getExpression());
+	}
+
+	@Test
+	public void testParseBindVariable2() throws Exception {
+		String sql = "SELECT * FROM emp WHERE job = /* job*/'CLERK'"; // コメントの先頭が空白ならコメントとして扱う
+		String sql2 = "SELECT * FROM emp WHERE job = /* job*/'CLERK'";
+		String sql3 = "SELECT * FROM emp WHERE job = ";
+		String sql4 = "/* job*/";
+		String sql5 = "'CLERK'";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals("2", 3, root.getChildSize());
+		SqlNode sqlNode = (SqlNode) root.getChild(0);
+		assertEquals("3", sql3, sqlNode.getSql());
+		SqlNode sqlNode2 = (SqlNode) root.getChild(1);
+		assertEquals("4", sql4, sqlNode2.getSql());
+		SqlNode sqlNode3 = (SqlNode) root.getChild(2);
+		assertEquals("5", sql5, sqlNode3.getSql());
+	}
+
+	@Test
+	public void testParseWhiteSpace() throws Exception {
+		String sql = "SELECT * FROM emp WHERE empno = /*empno*/1 AND 1 = 1";
+		String sql2 = "SELECT * FROM emp WHERE empno = ?/*empno*/ AND 1 = 1";
+		String sql3 = " AND 1 = 1";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		Integer empno = new Integer(7788);
+		ctx.param("empno", empno);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		SqlNode sqlNode = (SqlNode) root.getChild(2);
+		assertEquals("2", sql3, sqlNode.getSql());
+	}
+
+	@Test
+	public void testParseIf() throws Exception {
+		String sql = "SELECT * FROM emp/*IF job != null*/ WHERE job = /*job*/'CLERK'/*END*/";
+		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
+		String sql3 = "SELECT * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		String job = "CLERK";
+		ctx.param("job", job);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 1, vars.length);
+		assertEquals("3", job, vars[0]);
+		assertEquals("4", 2, root.getChildSize());
+		SqlNode sqlNode = (SqlNode) root.getChild(0);
+		assertEquals("5", sql3, sqlNode.getSql());
+		IfNode ifNode = (IfNode) root.getChild(1);
+		assertEquals("6", "job != null", ifNode.getExpression());
+		assertEquals("7", 2, ifNode.getChildSize());
+		SqlNode sqlNode2 = (SqlNode) ifNode.getChild(0);
+		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
+		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
+		assertEquals("9", "job", varNode.getExpression());
+		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		root.accept(ctx2);
+		System.out.println(ctx2.getExecutableSql());
+		assertEquals("10", sql3, ctx2.getExecutableSql());
+	}
+
+	@Test
+	public void testParseIf2() throws Exception {
+		String sql = "/*IF aaa != null*/aaa/*IF bbb != null*/bbb/*END*//*END*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("1", "", ctx.getExecutableSql());
+		ctx.param("aaa", null);
+		ctx.param("bbb", "hoge");
+		root.accept(ctx);
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("2", "", ctx.getExecutableSql());
+		ctx.param("aaa", "hoge");
+		root.accept(ctx);
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("3", "aaabbb", ctx.getExecutableSql());
+		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		ctx2.param("aaa", "hoge");
+		ctx2.param("bbb", null);
+		root.accept(ctx2);
+		System.out.println("[" + ctx2.getExecutableSql() + "]");
+		assertEquals("4", "aaa", ctx2.getExecutableSql());
+	}
+
+	@Test
+	public void testParseIf3() throws Exception {
+		String sql = "SELECT * FROM emp/*IF emp != null && emp.job != null*/ WHERE job = /*emp.job*/'CLERK'/*END*/";
+		String sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/";
+		String sql3 = "SELECT * FROM emp";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		Emp emp = new Emp();
+		emp.setJob("CLERK");
+		ctx.param("emp", emp);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 1, vars.length);
+		assertEquals("3", emp.getJob(), vars[0]);
+		assertEquals("4", 2, root.getChildSize());
+		SqlNode sqlNode = (SqlNode) root.getChild(0);
+		assertEquals("5", sql3, sqlNode.getSql());
+		IfNode ifNode = (IfNode) root.getChild(1);
+		assertEquals("6", "emp != null && emp.job != null", ifNode.getExpression());
+		assertEquals("7", 2, ifNode.getChildSize());
+		SqlNode sqlNode2 = (SqlNode) ifNode.getChild(0);
+		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
+		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
+		assertEquals("9", "emp.job", varNode.getExpression());
+		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		root.accept(ctx2);
+		System.out.println(ctx2.getExecutableSql());
+		assertEquals("10", sql3, ctx2.getExecutableSql());
+	}
+
+	@Test
+	public void testParseElse() throws Exception {
+		String sql = "SELECT * FROM emp WHERE /*IF job != null*/job = /*job*/'CLERK'-- ELSE job is null/*END*/";
+		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
+		String sql3 = "SELECT * FROM emp WHERE job is null";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		String job = "CLERK";
+		ctx.param("job", job);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("1", sql2, ctx.getExecutableSql());
+
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 1, vars.length);
+		assertEquals("3", job, vars[0]);
+		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		root.accept(ctx2);
+		System.out.println("[" + ctx2.getExecutableSql() + "]");
+		assertEquals("4", sql3, ctx2.getExecutableSql());
+	}
+
+	@Test
+	public void testParseElse2() throws Exception {
+		String sql = "/*IF false*/aaa--ELSE bbb = /*bbb*/123/*END*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		Integer bbb = new Integer(123);
+		ctx.param("bbb", bbb);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("1", "bbb = ?/*bbb*/", ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 1, vars.length);
+		assertEquals("3", bbb, vars[0]);
+	}
+
+	@Test
+	public void testParseElse3() throws Exception {
+		String sql = "/*IF false*/aaa--ELSE bbb/*IF false*/ccc--ELSE ddd/*END*//*END*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("1", "bbbddd", ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testElse4() throws Exception {
+		String sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF false*/aaa-- ELSE AND deptno = 10/*END*//*END*/";
+		String sql2 = "SELECT * FROM emp WHERE deptno = 10";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testBegin() throws Exception {
+		String sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF job != null*/job = /*job*/'CLERK'/*END*//*IF deptno != null*/ AND deptno = /*deptno*/20/*END*//*END*/";
+		String sql2 = "SELECT * FROM emp";
+		String sql3 = "SELECT * FROM emp WHERE job = ?/*job*/";
+		String sql4 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
+		String sql5 = "SELECT * FROM emp WHERE deptno = ?/*deptno*/";
+		SqlParser parser = new SqlParserImpl(sql);
+
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		List<String> bNames = ctx.getBindNames();
+		assertEquals(0, bNames.size());
+
+		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		ctx2.param("job", "CLERK");
+		ctx2.param("deptno", null);
+		root.accept(ctx2);
+		System.out.println(ctx2.getExecutableSql());
+		assertEquals("2", sql3, ctx2.getExecutableSql());
+		List<String> bNames2 = ctx2.getBindNames();
+		assertEquals(1, bNames2.size());
+
+		SqlContext ctx3 = sqlContextFactory.createSqlContext();
+		ctx3.param("job", "CLERK");
+		ctx3.param("deptno", new Integer(20));
+		root.accept(ctx3);
+		System.out.println(ctx3.getExecutableSql());
+		assertEquals("3", sql4, ctx3.getExecutableSql());
+		List<String> bNames3 = ctx3.getBindNames();
+		assertEquals(2, bNames3.size());
+
+		SqlContext ctx4 = sqlContextFactory.createSqlContext();
+		ctx4.param("deptno", new Integer(20));
+		ctx4.param("job", null);
+		root.accept(ctx4);
+		System.out.println(ctx4.getExecutableSql());
+		assertEquals("4", sql5, ctx4.getExecutableSql());
+		List<String> bNames4 = ctx4.getBindNames();
+		assertEquals(1, bNames4.size());
+	}
+
+	@Test
+	public void testBeginAnd() throws Exception {
+		String sql = "/*BEGIN*/WHERE /*IF true*/aaa BETWEEN /*bbb*/111 AND /*ccc*/123/*END*//*END*/";
+		String sql2 = "WHERE aaa BETWEEN ?/*bbb*/ AND ?/*ccc*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("bbb", "111");
+		ctx.param("ccc", "222");
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println("[" + ctx.getExecutableSql() + "]");
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		List<String> bNames = ctx.getBindNames();
+		assertEquals(2, bNames.size());
+		assertEquals("bbb", bNames.get(0));
+		assertEquals("ccc", bNames.get(1));
+	}
+
+	@Test
+	public void testIn() throws Exception {
+		String sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
+		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		List<Integer> deptnoList = new ArrayList<Integer>();
+		deptnoList.add(new Integer(10));
+		deptnoList.add(new Integer(20));
+		ctx.param("deptnoList", deptnoList);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", new Integer(10), vars[0]);
+		assertEquals("4", new Integer(20), vars[1]);
+	}
+
+	@Test
+	public void testIn2() throws Exception {
+		String sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
+		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		int[] deptnoArray = { 10, 20 };
+		ctx.param("deptnoList", deptnoArray);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", new Integer(10), vars[0]);
+		assertEquals("4", new Integer(20), vars[1]);
+	}
+
+	@Test
+	public void testIn3() throws Exception {
+		String sql = "SELECT * FROM emp WHERE ename IN /*enames*/('SCOTT','MARY') AND job IN /*jobs*/('ANALYST', 'FREE')";
+		String sql2 = "SELECT * FROM emp WHERE ename IN (?, ?)/*enames*/ AND job IN (?, ?)/*jobs*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		String[] enames = { "SCOTT", "MARY" };
+		String[] jobs = { "ANALYST", "FREE" };
+		ctx.param("enames", enames);
+		ctx.param("jobs", jobs);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 4, vars.length);
+		assertEquals("3", "SCOTT", vars[0]);
+		assertEquals("4", "MARY", vars[1]);
+		assertEquals("5", "ANALYST", vars[2]);
+		assertEquals("6", "FREE", vars[3]);
+	}
+
+	@Test
+	public void testParseBindVariable3() throws Exception {
+		String sql = "BETWEEN sal ? AND ?";
+		String sql2 = "BETWEEN sal ?/*$1*/ AND ?/*$2*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("$1", new Integer(0));
+		ctx.param("$2", new Integer(1000));
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", new Integer(0), vars[0]);
+		assertEquals("4", new Integer(1000), vars[1]);
+	}
+
+	@Test
+	public void testParseBindVariable4() throws Exception {
+		String sql = "SELECT * FROM emp WHERE job = /*emp.job*/'CLERK' AND deptno = /*emp.deptno*/20";
+		String sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/ AND deptno = ?/*emp.deptno*/";
+		String sql3 = "SELECT * FROM emp WHERE job = ";
+		String sql4 = " AND deptno = ";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		Emp emp = new Emp();
+		emp.setJob("CLERK");
+		emp.setDeptno(new Integer(20));
+		ctx.param("emp", emp);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		Node root = transformer.getRoot();
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", emp.getJob(), vars[0]);
+		assertEquals("4", emp.getDeptno(), vars[1]);
+		assertEquals("5", 4, root.getChildSize());
+		SqlNode sqlNode = (SqlNode) root.getChild(0);
+		assertEquals("6", sql3, sqlNode.getSql());
+		BindVariableNode varNode = (BindVariableNode) root.getChild(1);
+		assertEquals("7", "emp.job", varNode.getExpression());
+		SqlNode sqlNode2 = (SqlNode) root.getChild(2);
+		assertEquals("8", sql4, sqlNode2.getSql());
+		BindVariableNode varNode2 = (BindVariableNode) root.getChild(3);
+		assertEquals("9", "emp.deptno", varNode2.getExpression());
+	}
+
+	@Test
+	public void testEndNotFound() throws Exception {
+		String sql = "/*BEGIN*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		try {
+			parser.parse();
+			fail("1");
+		} catch (EndCommentNotFoundRuntimeException ex) {
+			System.out.println(ex);
+		}
+	}
+
+	@Test
+	public void testEndParent() throws Exception {
+		String sql = "INSERT INTO ITEM (ID, NUM) VALUES (/*id*/1, /*num*/20)";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("id", new Integer(0));
+		ctx.param("num", new Integer(1));
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", true, ctx.getExecutableSql().endsWith(")"));
+	}
+
+	@Test
+	public void testEmbeddedValue() throws Exception {
+		String sql = "xx /*#aaa*/ xx";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("aaa", new Integer(0));
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", "xx '0'/*#aaa*/ xx", ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testEmbeddedValue2() throws Exception {
+		String sql = "/*$emp.deptno*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		Emp emp = new Emp();
+		emp.setDeptno(new Integer(0));
+		ctx.param("emp", emp);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", "0/*$emp.deptno*/", ctx.getExecutableSql());
+	}
+
+	/**
+	 * 埋め込み変数のエスケープ処理テスト（SQLインジェクション対策）
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testEmbeddedValue3() throws Exception {
+		String sql = "xx /*#aaa*/ xx";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("aaa", "bb'bb");
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", "xx 'bb''bb'/*#aaa*/ xx", ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testStringFunction1() throws Exception {
+		String sql = "/*IF SF.isEmpty(val1)*/1=1 /*ELIF SF.containsAny(val2, val3)*/2=2 --ELSE 3=3/*END*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("val1", null);
+		ctx.param("val2", "aaabbbccc");
+		ctx.param("val3", "ab");
+
+		String sql2 = "1=1 ";
+		ctx.param(StringFunction.SHORT_NAME, new StringFunction());
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParamMissMatch1() throws Exception {
+		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
+		conn.setAutoCommit(false);
+
+		PreparedStatement st = null;
+
+		try {
+			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
+			SqlParser parser = new SqlParserImpl(sql);
+			SqlContext ctx = sqlContextFactory.createSqlContext();
+			ctx.param("val1", "1");
+			ctx.param("val3", "20");
+
+			ContextTransformer transformer = parser.parse();
+			transformer.transform(ctx);
+
+			st = conn.prepareStatement(ctx.getExecutableSql());
+			ctx.bindParams(st);
+			fail("テスト失敗");
+		} catch (ParameterNotFoundRuntimeException ex) {
+			String msg = ex.getMessage();
+			assertEquals("1", "パラメータ [val2] がバインドされていません。", msg);
+		} catch (Exception ex) {
+			fail("期待しない例外. ex=" + ex.getMessage());
+		} finally {
+			if (st != null) {
+				st.close();
+			}
+			conn.close();
+		}
+	}
+
+	@Test
+	public void testParamMissMatch2() throws Exception {
+		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
+		conn.setAutoCommit(false);
+
+		PreparedStatement st = null;
+
+		try {
+			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
+			SqlParser parser = new SqlParserImpl(sql);
+			SqlContext ctx = sqlContextFactory.createSqlContext();
+			ctx.param("val1", "1");
+
+			ContextTransformer transformer = parser.parse();
+			transformer.transform(ctx);
+
+			st = conn.prepareStatement(ctx.getExecutableSql());
+			ctx.bindParams(st);
+			fail("テスト失敗");
+		} catch (ParameterNotFoundRuntimeException ex) {
+			String msg = ex.getMessage();
+			assertEquals("1", "パラメータ [val2, val3] がバインドされていません。", msg);
+		} catch (Exception ex) {
+			fail("期待しない例外. ex=" + ex.getMessage());
+		} finally {
+			if (st != null) {
+				st.close();
+			}
+			conn.close();
+		}
+	}
+
+	@Test
+	public void testParamMissMatch3() throws Exception {
+		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
+		conn.setAutoCommit(false);
+
+		PreparedStatement st = null;
+
+		try {
+			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
+			SqlParser parser = new SqlParserImpl(sql);
+			SqlContext ctx = sqlContextFactory.createSqlContext();
+			ctx.param("val1", "1");
+			ctx.param("val2", "aa");
+			ctx.param("val3", "20");
+
+			ContextTransformer transformer = parser.parse();
+			transformer.transform(ctx);
+
+			st = conn.prepareStatement(ctx.getExecutableSql());
+			ctx.bindParams(st);
+		} catch (Exception ex) {
+			fail("期待しない例外. ex=" + ex.getMessage());
+		} finally {
+			if (st != null) {
+				st.close();
+			}
+			conn.close();
+		}
+	}
+
+	@Test
+	public void testELSECOMMENT1() throws Exception {
+		String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT1.sql")),
+				StandardCharsets.UTF_8);
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("param1", "1");
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		String sql2 = new String(
+				Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT1.sql_expected")),
+				StandardCharsets.UTF_8);
+		String sql3 = ctx.getExecutableSql();
+		System.out.println(sql3);
+		assertEquals(sql2, sql3);
+	}
+
+	@Test
+	public void testELSECOMMENT2() throws Exception {
+		String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT2.sql")),
+				StandardCharsets.UTF_8);
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("param1", "2");
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		String sql2 = new String(
+				Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT2.sql_expected")),
+				StandardCharsets.UTF_8);
+		String sql3 = ctx.getExecutableSql();
+		System.out.println(sql3);
+		assertEquals(sql2, sql3);
+	}
+
+	@Test
+	public void testParseNodeDecrare() throws Exception {
+		String sql = "DECLARE /* _SQL_IDENTIFIER_ */	/*IF projectStage != \"dev\"*/	PRAGMA AUTONOMOUS_TRANSACTION;	/*END*/BEGIN	SELECT 'aaa' as AAA FROM DUAL;END;";
+
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("projectStage", "ci");
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.format("%s\r\n", ctx.getExecutableSql());
+	}
+
+	// IF FALSE ELIF (TRUE) ELSE
+	@Test
+	public void testParseNode() throws Exception {
+		String sql = "aaa /*IF purCd != null*/1=1/*END*/ bbb";
+
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa  bbb", ctx.getExecutableSql());
+	}
+
+	// IF ENUM EQ
+	@Test
+	public void testParseEnumEq1() throws Exception {
+		String sql = "aaa /*IF CLS_TEST_ENUM1_A eq bindEnum*/1=1/*END*/ bbb";
+
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("bindEnum", TestEnum1.A);
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa 1=1 bbb", ctx.getExecutableSql());
+	}
+
+	// IF ENUM ==
+	@Test
+	public void testParseEnumEq2() throws Exception {
+		String sql = "aaa /*IF CLS_TEST_ENUM1_A == bindEnum*/1=1/*END*/ bbb";
+
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("bindEnum", TestEnum1.A);
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa 1=1 bbb", ctx.getExecutableSql());
+	}
+
+}

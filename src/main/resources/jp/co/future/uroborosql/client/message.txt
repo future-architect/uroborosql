@@ -1,0 +1,15 @@
+${name} SQL REPL ver.${version}
+
+Commands :
+	query	: execute query from loaded sql file.
+		ex1) query [sql file path]<Enter> : インタラクティブモード。SQLファイルにパラメータが含まれる場合は設定する値を問い合わせる。
+		ex2) query [sql file path] param1=val1 param2=val2 ...<Enter> : 一括実行モード。指定したパラメータでSQLを実行する。
+	update	: execute update from loaded sql file.
+		ex1) update [sql file path]<Enter> : インタラクティブモード。SQLファイルにパラメータが含まれる場合は設定する値を問い合わせる。
+		ex2) update [sql file path] param1=val1 param2=val2 ...<Enter> : 一括実行モード。指定したパラメータでSQLを実行する。
+	list	: list loaded sql files.
+	driver	: list loaded drivers.
+	reload	: reload sql files.
+	help	: show this message.
+	quit	: quit SQL REPL.
+
