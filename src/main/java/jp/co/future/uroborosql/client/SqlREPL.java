@@ -167,7 +167,14 @@ public class SqlREPL {
 				StringBuffer sb = new StringBuffer();
 				while (m.find()) {
 					String key = m.group(1);
-					m.appendReplacement(sb, System.getenv(key).replace("\\", "/"));
+					String val = System.getProperty(key, null);
+					if (val == null) {
+						val = System.getenv(key);
+					}
+					if (val == null) {
+						throw new IllegalArgumentException("key=" + key + " is not found.");
+					}
+					m.appendReplacement(sb, val.replace("\\", "/"));
 				}
 				m.appendTail(sb);
 
