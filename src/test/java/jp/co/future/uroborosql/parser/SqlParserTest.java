@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql;
+package jp.co.future.uroborosql.parser;
 
 import static org.junit.Assert.*;
 
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
@@ -27,9 +28,6 @@ import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.SqlNode;
-import jp.co.future.uroborosql.parser.ContextTransformer;
-import jp.co.future.uroborosql.parser.SqlParser;
-import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringFunction;
 
 import org.junit.AfterClass;
@@ -45,8 +43,8 @@ public class SqlParserTest {
 	@SuppressWarnings("deprecation")
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Connection conn = DriverManager
-				.getConnection("jdbc:derby:target/db/" + DB_NAME + ";create=true;user=test;password=test");
+		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
+				+ ";create=true;user=test;password=test");
 		SQLWarning warning = conn.getWarnings();
 		conn.setAutoCommit(false);
 		if (warning == null) {
@@ -830,6 +828,40 @@ public class SqlParserTest {
 		assertEquals("8", sql4, sqlNode2.getSql());
 		BindVariableNode varNode2 = (BindVariableNode) root.getChild(3);
 		assertEquals("9", "emp.deptno", varNode2.getExpression());
+	}
+
+	@Test
+	public void testParseBindVariable5() throws Exception {
+		String sql = "/*(count + 1)*/";
+		String sql2 = "?/*(count + 1)*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param("count", 3);
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 1, vars.length);
+		assertEquals("3", 4, vars[0]);
+	}
+
+	@Test
+	public void testParseBindVariable6() throws Exception {
+		String sql = "SELECT * FROM EMP WHERE ENAME IN /*SF.split(enames, ',')*/()";
+		String sql2 = "SELECT * FROM EMP WHERE ENAME IN (?, ?)/*SF.split(enames, ',')*/";
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		ctx.param(StringFunction.SHORT_NAME, new StringFunction());
+		ctx.param("enames", "SCOTT,MARY");
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		System.out.println(ctx.getExecutableSql());
+		assertEquals("1", sql2, ctx.getExecutableSql());
+		Object[] vars = ctx.getBindVariables();
+		assertEquals("2", 2, vars.length);
+		assertEquals("3", "SCOTT", vars[0]);
+		assertEquals("4", "MARY", vars[1]);
 	}
 
 	@Test

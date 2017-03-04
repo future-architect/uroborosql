@@ -275,8 +275,10 @@ public class SqlParserImpl implements SqlParser {
 	 * @return 解析対象の場合は<code>true</code>
 	 */
 	private static boolean isTargetComment(final String comment) {
-		return comment != null && comment.length() > 0
-				&& (Character.isJavaIdentifierStart(comment.charAt(0)) || '#' == comment.charAt(0));
+		return comment != null
+				&& comment.length() > 0
+				&& (Character.isJavaIdentifierStart(comment.charAt(0)) || '#' == comment.charAt(0) || '(' == comment
+						.charAt(0));
 	}
 
 	/**

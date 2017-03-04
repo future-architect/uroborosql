@@ -253,6 +253,69 @@ public class StringFunction {
 	}
 
 	/**
+	 * 文字列を空白で区切って配列に格納します。
+	 * "空白"の判定には {@link Character#isWhitespace(char)} を使用します。
+	 * {@code null} が入力された場合は {@code null} を返します
+	 *
+	 * <pre>
+	 * split(null)       = null
+	 * split("")         = []
+	 * split("abc def")  = ["abc", "def"]
+	 * split("abc  def") = ["abc", "def"]
+	 * split(" abc ")    = ["abc"]
+	 * </pre>
+	 *
+	 * @param str  変換元文字列 または {@code null}
+	 * @return 空白で区切った文字列配列
+	 */
+	public String[] split(final String str) {
+		return StringUtils.split(str);
+	}
+
+	/**
+	 * 文字列を指定した区切り文字で区切って配列に格納します。
+	 * {@code null} が入力された場合は {@code null} を返します
+	 *
+	 * <pre>
+	 * split(null, *)         = null
+	 * split("", *)           = []
+	 * split("a.b.c", '.')    = ["a", "b", "c"]
+	 * split("a..b.c", '.')   = ["a", "b", "c"]
+	 * split("a:b:c", '.')    = ["a:b:c"]
+	 * split("a b c", ' ')    = ["a", "b", "c"]
+	 * </pre>
+	 *
+	 * @param str 変換元文字列 または {@code null}
+	 * @param separatorChar 区切り文字
+	 * @return 区切り文字で区切った文字列配列
+	 */
+	public String[] split(final String str, final char separatorChar) {
+		return StringUtils.split(str, separatorChar);
+	}
+
+	/**
+	 * 文字列を指定した区切り文字で区切って配列に格納します。
+	 * {@code null} が入力された場合は {@code null} を返します
+	 *
+	 * <pre>
+	 * split(null, *, *)            = null
+	 * split("", *, *)              = []
+	 * split("ab cd ef", null, 0)   = ["ab", "cd", "ef"]
+	 * split("ab   cd ef", null, 0) = ["ab", "cd", "ef"]
+	 * split("ab:cd:ef", ":", 0)    = ["ab", "cd", "ef"]
+	 * split("ab:cd:ef", ":", 2)    = ["ab", "cd:ef"]
+	 * </pre>
+	 *
+	 * @param str 変換元文字列 または {@code null}
+	 * @param separatorChars 区切り文字
+	 * @param max 作成する配列の最大値。最大値を超える場合は最後の要素に残りのすべての文字列が入る
+	 * @return 区切り文字で区切った文字列配列
+	 */
+	public String[] split(final String str, final String separatorChars, final int max) {
+		return StringUtils.split(str, separatorChars, max);
+	}
+
+	/**
 	 * 文字列の先頭文字を大文字にする
 	 *
 	 * <pre>

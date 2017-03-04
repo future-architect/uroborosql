@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql;
+package jp.co.future.uroborosql.store;
 
 import jp.co.future.uroborosql.store.SqlLoaderImpl;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
