@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import jp.co.future.uroborosql.utils.ConvertUtils;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 検索結果の1行をMap型に変換する変換器
@@ -15,7 +15,7 @@ import jp.co.future.uroborosql.utils.ConvertUtils;
  *
  */
 public class MapResultSetConverter implements ResultSetConverter<Map<String, Object>> {
-	private boolean toCamel = false;
+	private CaseFormat caseFormat = CaseFormat.SnakeCase;
 
 	public MapResultSetConverter() {
 	}
@@ -23,10 +23,10 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	/**
 	 * コンストラクタ
 	 *
-	 * @param toCamel 変換するMapのキーをCamelCase（先頭小文字）に変換する
+	 * @param caseFormat 変換するMapのキーの書式
 	 */
-	public MapResultSetConverter(final boolean toCamel) {
-		this.toCamel = toCamel;
+	public MapResultSetConverter(final CaseFormat caseFormat) {
+		this.caseFormat = caseFormat;
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 		int columnCount = rsmd.getColumnCount();
 		Map<String, Object> record = new LinkedHashMap<>(columnCount);
 		for (int i = 1; i <= columnCount; i++) {
-			record.put(toCamel ? ConvertUtils.toCamel(rsmd.getColumnLabel(i)) : rsmd.getColumnLabel(i), rs.getObject(i));
+			record.put(caseFormat.convert(rsmd.getColumnLabel(i)), rs.getObject(i));
 		}
 		return record;
 	}

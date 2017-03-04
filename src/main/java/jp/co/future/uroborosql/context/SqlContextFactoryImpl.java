@@ -29,7 +29,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.ConvertUtils;
+import jp.co.future.uroborosql.utils.CaseFormat;
 import ognl.OgnlRuntime;
 
 import org.slf4j.Logger;
@@ -116,8 +116,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	protected void makeConstParamMap(final Map<String, Parameter> paramMap, final Class<?> targetClass) {
 		try {
-			String fieldPrefix = targetClass.isMemberClass() ? ConvertUtils.toSnake(targetClass.getSimpleName()) + "_"
-					: "";
+			String fieldPrefix = targetClass.isMemberClass() ? CaseFormat.SnakeCase
+					.convert(targetClass.getSimpleName()) + "_" : "";
 			// 指定されたクラス直下の定数フィールドを追加
 			Field[] fields = targetClass.getFields();
 			for (Field field : fields) {
@@ -158,7 +158,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
-		String fieldPrefix = ConvertUtils.toSnake(targetClass.getName().substring(packageName.length() + 1)) + "_";
+		String fieldPrefix = CaseFormat.SnakeCase.convert(targetClass.getName().substring(packageName.length() + 1))
+				+ "_";
 
 		Enum<?>[] enumValues = targetClass.getEnumConstants();
 

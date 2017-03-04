@@ -12,6 +12,7 @@ import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.tx.TransactionManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * SQL実行クラスインタフェース
@@ -47,11 +48,11 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * 結果をList<Map<String, Object>>に変換して返却する。
 	 *
 	 * @param sqlContext SqlContext
-	 * @param toCamel MapのキーをSNAKE式からCamel式に変換するかどうか。変換する場合<code>true</code>
+	 * @param caseFormat Mapのキー文字列の変換書式
 	 * @return 検索結果の各行のキーと値をMapに詰めたList
 	 * @throws SQLException SQL例外
 	 */
-	List<Map<String, Object>> query(final SqlContext sqlContext, final boolean toCamel) throws SQLException;
+	List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat) throws SQLException;
 
 	/**
 	 * DB更新処理。<br />

@@ -22,6 +22,7 @@ import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
@@ -199,11 +200,12 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, boolean)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
-	public List<Map<String, Object>> query(final SqlContext sqlContext, final boolean toCamel) throws SQLException {
-		Stream<Map<String, Object>> stream = query(sqlContext, new MapResultSetConverter(toCamel));
+	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
+			throws SQLException {
+		Stream<Map<String, Object>> stream = query(sqlContext, new MapResultSetConverter(caseFormat));
 		List<Map<String, Object>> ans = new ArrayList<>();
 		stream.forEachOrdered(m -> ans.add(m));
 		return ans;

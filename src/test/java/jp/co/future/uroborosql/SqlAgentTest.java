@@ -28,6 +28,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dbunit.Assertion;
@@ -244,7 +245,7 @@ public class SqlAgentTest {
 
 		try (SqlAgent agent = config.createAgent()) {
 			List<Map<String, Object>> ans = agent.query("example/select").paramList("product_id", 0, 1, 2, 3)
-					.collect(false);
+					.collect();
 			assertEquals("結果の件数が一致しません。", 2, ans.size());
 			Map<String, Object> map = ans.get(0);
 			assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
@@ -309,14 +310,14 @@ public class SqlAgentTest {
 			Stream<Map<String, Object>> stream = agent.query("example/select").paramList("product_id", 0, 1).stream();
 
 			stream.forEach((m) -> {
-				assertTrue(m.containsKey("productId"));
-				assertTrue(m.containsKey("productName"));
-				assertTrue(m.containsKey("productKanaName"));
-				assertTrue(m.containsKey("janCode"));
-				assertTrue(m.containsKey("productDescription"));
-				assertTrue(m.containsKey("insDatetime"));
-				assertTrue(m.containsKey("updDatetime"));
-				assertTrue(m.containsKey("versionNo"));
+				assertTrue(m.containsKey("PRODUCT_ID"));
+				assertTrue(m.containsKey("PRODUCT_NAME"));
+				assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+				assertTrue(m.containsKey("JAN_CODE"));
+				assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+				assertTrue(m.containsKey("INS_DATETIME"));
+				assertTrue(m.containsKey("UPD_DATETIME"));
+				assertTrue(m.containsKey("VERSION_NO"));
 			});
 		}
 	}
@@ -335,7 +336,7 @@ public class SqlAgentTest {
 			SqlContext ctx = agent.contextFrom("example/select");
 			ctx.paramList("product_id", 0, 1);
 
-			List<Map<String, Object>> ans = agent.query(ctx, true);
+			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CamelCase);
 			ans.forEach((m) -> {
 				assertTrue(m.containsKey("productId"));
 				assertTrue(m.containsKey("productName"));
@@ -352,7 +353,7 @@ public class SqlAgentTest {
 			SqlContext ctx = agent.contextFrom("example/select");
 			ctx.paramList("product_id", 0, 1);
 
-			List<Map<String, Object>> ans = agent.query(ctx, false);
+			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.SnakeCase);
 			ans.forEach((m) -> {
 				assertTrue(m.containsKey("PRODUCT_ID"));
 				assertTrue(m.containsKey("PRODUCT_NAME"));

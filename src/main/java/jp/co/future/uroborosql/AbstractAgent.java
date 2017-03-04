@@ -32,6 +32,7 @@ import jp.co.future.uroborosql.tx.LocalTransactionManager;
 import jp.co.future.uroborosql.tx.SQLRunnable;
 import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
 
 import org.apache.commons.lang3.StringUtils;
@@ -790,7 +791,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		 */
 		@Override
 		public Stream<Map<String, Object>> stream() throws SQLException {
-			return stream(new MapResultSetConverter(true));
+			return stream(new MapResultSetConverter());
 		}
 
 		/**
@@ -820,17 +821,17 @@ public abstract class AbstractAgent implements SqlAgent {
 		 */
 		@Override
 		public Map<String, Object> first() throws DataNotFoundException, SQLException {
-			return first(true);
+			return first(CaseFormat.SnakeCase);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlQuery#first(boolean)
+		 * @see jp.co.future.uroborosql.fluent.SqlQuery#first(jp.co.future.uroborosql.utils.CaseFormat)
 		 */
 		@Override
-		public Map<String, Object> first(final boolean toCamel) throws DataNotFoundException, SQLException {
-			List<Map<String, Object>> ans = collect(toCamel);
+		public Map<String, Object> first(final CaseFormat caseFormat) throws DataNotFoundException, SQLException {
+			List<Map<String, Object>> ans = collect(caseFormat);
 			if (ans.isEmpty()) {
 				throw new DataNotFoundException("query result is empty.");
 			}
@@ -840,11 +841,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect(boolean)
+		 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect(jp.co.future.uroborosql.utils.CaseFormat)
 		 */
 		@Override
-		public List<Map<String, Object>> collect(final boolean toCamel) throws SQLException {
-			return agent.query(context, toCamel);
+		public List<Map<String, Object>> collect(final CaseFormat caseFormat) throws SQLException {
+			return agent.query(context, caseFormat);
 		}
 
 		/**
@@ -854,7 +855,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		 */
 		@Override
 		public List<Map<String, Object>> collect() throws SQLException {
-			return collect(true);
+			return collect(CaseFormat.SnakeCase);
 		}
 	}
 
