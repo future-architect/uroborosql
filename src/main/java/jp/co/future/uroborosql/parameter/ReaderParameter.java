@@ -11,7 +11,7 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
  * ストリームパラメータオブジェクト。<br>
  * ストリームパラメータ情報を保持する。<br>
  *
- * @author miyahara
+ * @author H.Sugimoto
  */
 public class ReaderParameter extends Parameter {
 
