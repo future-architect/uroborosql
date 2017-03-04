@@ -233,7 +233,10 @@ public class SqlLoaderImpl implements SqlLoader {
 	 */
 	@Override
 	public String load(final String filePath) {
-		String targetFilePath = getFilePath(trimSqlExtension(filePath));
+		if (StringUtils.isEmpty(filePath)) {
+			throw new IllegalArgumentException("ファイルパスが正しくありません。filePath=" + filePath);
+		}
+		String targetFilePath = getFilePath(trimSqlExtension(filePath.replace(".", PATH_SEPARATOR)));
 		String sql = null;
 
 		URL resource = Thread.currentThread().getContextClassLoader().getResource(targetFilePath);

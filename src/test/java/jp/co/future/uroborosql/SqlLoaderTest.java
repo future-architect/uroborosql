@@ -19,7 +19,17 @@ public class SqlLoaderTest extends TestCase {
 
 	public void testLoadFile() throws Exception {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
-		String sql = sqlLoader.load("example/example");
+		String sql = sqlLoader.load("example.example");
 		assertEquals("select * from product where product_id = :product_id" + System.lineSeparator(), sql);
+	}
+
+	public void testLoadFileNull() throws Exception {
+		SqlLoader sqlLoader = new SqlLoaderImpl();
+		try {
+			sqlLoader.load(null);
+			fail();
+		} catch (IllegalArgumentException ex) {
+			// OK
+		}
 	}
 }
