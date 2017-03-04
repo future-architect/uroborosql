@@ -9,6 +9,8 @@ import ognl.Node;
 import ognl.Ognl;
 import ognl.OgnlException;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +157,11 @@ public class IfNode extends ContainerNode {
 			ASTProperty prop = (ASTProperty) node;
 			if (!StringFunction.SHORT_NAME.equals(prop.toString())) {
 				try {
-					builder.append(prop).append(":[").append(Ognl.getValue(prop, transformContext)).append("],");
+					Object value = Ognl.getValue(prop, transformContext);
+					builder.append(prop)
+							.append(":[")
+							.append(value == null ? null : ToStringBuilder.reflectionToString(value,
+									ToStringStyle.SIMPLE_STYLE)).append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
 					ex.printStackTrace();
