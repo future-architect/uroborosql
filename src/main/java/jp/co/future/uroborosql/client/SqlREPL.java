@@ -254,6 +254,7 @@ public class SqlREPL {
 
 		switch (command) {
 		case "QUIT":
+		case "EXIT":
 			System.out.println("SQL REPL end.");
 			return false;
 
@@ -272,7 +273,7 @@ public class SqlREPL {
 			List<String> pathList = config.getSqlManager().getSqlPathList();
 			int numSize = String.valueOf(pathList.size()).length();
 			for (String key : pathList) {
-				System.out.printf("%0" + numSize + "d : %s%n", ++sqlCount, key.replace(".", "/"));
+				System.out.printf("%0" + numSize + "d : %s%n", ++sqlCount, key);
 			}
 
 			return true;
