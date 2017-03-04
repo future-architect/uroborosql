@@ -244,6 +244,17 @@ encoding/<project>=UTF-8
 		</dependency>
 	</dependencies>
 
+	<distributionManagement>
+		<repository>
+			<id>ossrh-release</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<id>ossrh-snapshot</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<properties>
 		<java.version>1.8</java.version>
 
