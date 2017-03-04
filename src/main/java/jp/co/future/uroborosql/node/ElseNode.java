@@ -25,5 +25,17 @@ public class ElseNode extends ContainerNode {
 	public void accept(final TransformContext transformContext) {
 		super.accept(transformContext);
 		transformContext.setEnabled(true);
+		state = CoverageState.PASSED;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.ContainerNode#passed(java.lang.StringBuilder)
+	 */
+	@Override
+	public void passed(final StringBuilder builder) {
+		builder.append(state);
+		super.passed(builder);
 	}
 }

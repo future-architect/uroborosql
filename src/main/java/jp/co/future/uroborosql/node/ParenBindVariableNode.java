@@ -3,11 +3,8 @@ package jp.co.future.uroborosql.node;
 import java.lang.reflect.Array;
 import java.util.List;
 
-import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.parser.TransformContext;
-import ognl.Ognl;
-import ognl.OgnlException;
 
 /**
  * カッコつきバインド変数を表すノード
@@ -15,30 +12,10 @@ import ognl.OgnlException;
  *
  * @author H.Sugimoto
  */
-public class ParenBindVariableNode extends AbstractNode {
-
-	/** 評価式 */
-	private final String expression;
-
-	/** 解析ずみ評価式 */
-	private Object parsedExpression;
+public class ParenBindVariableNode extends ExpressionNode {
 
 	public ParenBindVariableNode(final String expression) {
-		this.expression = expression;
-		try {
-			parsedExpression = Ognl.parseExpression(expression);
-		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("コメントの解析に失敗しました。[" + expression + "]", ex);
-		}
-	}
-
-	/**
-	 * 評価式の取得
-	 *
-	 * @return 評価式
-	 */
-	public String getExpression() {
-		return expression;
+		super(expression);
 	}
 
 	/**
@@ -49,12 +26,7 @@ public class ParenBindVariableNode extends AbstractNode {
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void accept(final TransformContext transformContext) {
-		Object var = null;
-		try {
-			var = Ognl.getValue(parsedExpression, transformContext);
-		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("値が取得できませんでした。[" + expression + "]", ex);
-		}
+		Object var = eval(transformContext);
 
 		if (var == null) {
 			throw new ParameterNotFoundRuntimeException("パラメータが設定されていません。[" + expression + "]");
@@ -65,6 +37,7 @@ public class ParenBindVariableNode extends AbstractNode {
 		} else {
 			bindArray(transformContext, new Object[] { var });
 		}
+		state = CoverageState.PASSED;
 	}
 
 	/**

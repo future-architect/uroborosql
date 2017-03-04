@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -13,10 +12,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
  *
  * @author H.Sugimoto
  */
-public class EmbeddedValueNode extends AbstractNode {
-	/** 評価式 */
-	private final String expression;
-
+public class EmbeddedValueNode extends ExpressionNode {
 	/** シングルクォートで囲むかどうか */
 	private final boolean wrap;
 
@@ -36,17 +32,8 @@ public class EmbeddedValueNode extends AbstractNode {
 	 * @param wrap シングルクォートで囲むかどうか
 	 */
 	public EmbeddedValueNode(final String expression, final boolean wrap) {
-		this.expression = expression;
+		super(expression);
 		this.wrap = wrap;
-	}
-
-	/**
-	 * 評価式の取得
-	 *
-	 * @return 評価式
-	 */
-	public String getExpression() {
-		return expression;
 	}
 
 	/**
@@ -56,22 +43,20 @@ public class EmbeddedValueNode extends AbstractNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Parameter parameter = transformContext.getParam(expression);
-		Object value = null;
-		if (parameter != null) {
-			value = parameter.getValue();
-		}
+		Object value = eval(transformContext);
 
 		if (value != null) {
 			if (wrap) {
-				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#").addSqlPart(expression)
-						.addSqlPart("*/");
+				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#")
+						.addSqlPart(expression).addSqlPart("*/");
 			} else {
-				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression).addSqlPart("*/");
+				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression)
+						.addSqlPart("*/");
 			}
 		} else {
 			transformContext.addSqlPart(null);
 		}
+		state = CoverageState.PASSED;
 	}
 
 	/**

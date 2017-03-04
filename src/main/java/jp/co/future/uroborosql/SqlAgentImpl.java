@@ -562,6 +562,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		} else {
 			connection = getConnection();
 		}
+		closePreparedStatement();
 		preparedStatement = getSqlFilterManager().doPreparedStatement(
 				sqlContext,
 				connection.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
@@ -587,6 +588,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		} else {
 			connection = getConnection();
 		}
+		closeCallableStatement();
 		callableStatement = getSqlFilterManager().doCallableStatement(sqlContext,
 				connection.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
 						sqlContext.getResultSetConcurrency()));
@@ -619,18 +621,41 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public void close() throws SQLException {
-		if (preparedStatement != null) {
-			LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", preparedStatement,
-					preparedStatement.hashCode());
-			preparedStatement.close();
-			preparedStatement = null;
-		}
-		if (callableStatement != null) {
-			LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", callableStatement,
-					callableStatement.hashCode());
-			callableStatement.close();
-			callableStatement = null;
-		}
+		closePreparedStatement();
+		closeCallableStatement();
 		transactionManager.close();
 	}
+
+	/**
+	 * PreparedStatementのクローズ
+	 *
+	 * @throws SQLException SQL例外
+	 */
+	private void closePreparedStatement() throws SQLException {
+		if (preparedStatement != null) {
+			if (!preparedStatement.isClosed()) {
+				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", preparedStatement,
+						preparedStatement.hashCode());
+				preparedStatement.close();
+			}
+			preparedStatement = null;
+		}
+	}
+
+	/**
+	 * CallableStatementのクローズ
+	 *
+	 * @throws SQLException SQL例外
+	 */
+	private void closeCallableStatement() throws SQLException {
+		if (callableStatement != null) {
+			if (!callableStatement.isClosed()) {
+				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", callableStatement,
+						callableStatement.hashCode());
+				callableStatement.close();
+			}
+			callableStatement = null;
+		}
+	}
+
 }

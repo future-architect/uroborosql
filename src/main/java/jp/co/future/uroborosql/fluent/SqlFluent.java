@@ -155,5 +155,4 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T characterStreamParam(String paramName, Reader value, int len);
-
 }

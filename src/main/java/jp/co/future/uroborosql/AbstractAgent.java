@@ -2,6 +2,7 @@ package jp.co.future.uroborosql;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +36,10 @@ import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +51,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractAgent implements SqlAgent {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractAgent.class);
+
+	/** SQLカバレッジ用ロガー */
+	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(AbstractAgent.class.getPackage().getName()
+			+ ".coverage");
 
 	/** 文字列用関数(OGNLで利用) */
 	protected static final StringFunction STRING_FUNCTION = new StringFunction();
@@ -106,38 +114,26 @@ public abstract class AbstractAgent implements SqlAgent {
 		this.sqlFilterManager = sqlFilterManager;
 
 		// デフォルトプロパティ設定
-		if (defaultProps
-				.containsKey(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR)) {
-			removeTerminator = Boolean.parseBoolean(defaultProps
-					.get(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR));
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR)) {
+			removeTerminator = Boolean.parseBoolean(defaultProps.get(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
-			fetchSize = Integer.parseInt(defaultProps
-					.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
+			fetchSize = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
-			queryTimeout = Integer.parseInt(defaultProps
-					.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
+			queryTimeout = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
-			sqlRetryCodes = Collections.unmodifiableList(Arrays
-					.asList(defaultProps.get(
-							SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(
-							",")));
+			sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(defaultProps.get(
+					SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
-		if (defaultProps
-				.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
-			maxRetryCount = Integer.parseInt(defaultProps
-					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
+			maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
 		}
-		if (defaultProps
-				.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			retryWaitTime = Integer
-					.parseInt(defaultProps
-							.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
+			retryWaitTime = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
 		}
-		if (defaultProps
-				.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
 			keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
 		}
 	}
@@ -191,11 +187,9 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (StringUtils.isEmpty(originalSql) && getSqlManager() != null) {
 			originalSql = getSqlManager().getSql(sqlContext.getSqlName());
 			if (StringUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("指定されたSQLファイル["
-						+ sqlContext.getSqlName() + "]が見つかりません。");
+				throw new UroborosqlRuntimeException("指定されたSQLファイル[" + sqlContext.getSqlName() + "]が見つかりません。");
 			}
-			originalSql = getSqlFilterManager().doTransformSql(sqlContext,
-					originalSql);
+			originalSql = getSqlFilterManager().doTransformSql(sqlContext, originalSql);
 			sqlContext.setSql(originalSql);
 		}
 
@@ -214,14 +208,70 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
-			SqlParser sqlParser = new SqlParserImpl(originalSql,
-					isRemoveTerminator());
+			SqlParser sqlParser = new SqlParserImpl(originalSql, isRemoveTerminator());
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
+			if (COVERAGE_LOG.isTraceEnabled()) {
+				// SQLカバレッジ用のログを出力する
+				COVERAGE_LOG.trace(ToStringBuilder.reflectionToString(new CoverageData(sqlContext.getSqlName(),
+						originalSql, contextTransformer.getPassedRoute()), ToStringStyle.JSON_STYLE));
+			}
 		}
 
-		LOG.trace("変換前SQL[{}]", sqlContext.getSql());
-		LOG.debug("実行時SQL[{}]", sqlContext.getExecutableSql());
+		LOG.trace("変換前SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
+		LOG.debug("実行時SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(), System.lineSeparator());
+	}
+
+	/**
+	 * カバレッジログ出力用データクラス
+	 *
+	 * @author H.Sugimoto
+	 */
+	private static final class CoverageData {
+		@SuppressWarnings("unused")
+		private final String sqlName;
+		@SuppressWarnings("unused")
+		private final String md5;
+		@SuppressWarnings("unused")
+		private final String passRoute;
+
+		/**
+		 * @param sqlName SQL名
+		 * @param md5 SQLのMD5
+		 * @param coverage
+		 */
+		private CoverageData(final String sqlName, final String originalSql, final String passRoute) {
+			super();
+			this.sqlName = StringEscapeUtils.escapeJson(sqlName);
+			this.md5 = makeMd5(originalSql);
+			this.passRoute = passRoute;
+		}
+
+		/**
+		 * MD5文字列の生成
+		 * @param original 生成元文字列
+		 * @return MD5文字列
+		 */
+		private String makeMd5(final String original) {
+			MessageDigest digest = null;
+			try {
+				digest = MessageDigest.getInstance("MD5");
+				byte[] hash = digest.digest(original.getBytes("UTF-8"));
+				StringBuilder builder = new StringBuilder();
+				for (byte element : hash) {
+					if ((0xff & element) < 0x10) {
+						builder.append("0" + Integer.toHexString((0xff & element)));
+					} else {
+						builder.append(Integer.toHexString((0xff & element)));
+					}
+				}
+				return builder.toString();
+			} catch (Exception ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
+			}
+			return "";
+		}
+
 	}
 
 	/**
@@ -232,8 +282,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @throws SQLException
 	 *             SQL例外
 	 */
-	protected void applyProperties(final PreparedStatement preparedStatement)
-			throws SQLException {
+	protected void applyProperties(final PreparedStatement preparedStatement) throws SQLException {
 		// フェッチサイズ指定
 		if (getFetchSize() >= 0) {
 			preparedStatement.setFetchSize(getFetchSize());
@@ -255,8 +304,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @throws SQLException
 	 *             SQL例外
 	 */
-	protected abstract void handleException(SqlContext sqlContext,
-			SQLException ex) throws SQLException;
+	protected abstract void handleException(SqlContext sqlContext, SQLException ex) throws SQLException;
 
 	/**
 	 * {@inheritDoc}
@@ -867,6 +915,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	private final class SqlUpdateImpl implements SqlUpdate {
 		private SqlAgent agent = null;
 		private SqlContext context = null;
+		/** バッチ処理を行うかどうか */
+		boolean batch = false;
 
 		/**
 		 * コンストラクタ
@@ -1047,12 +1097,41 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#addBatch()
+		 */
+		@Override
+		public SqlUpdate addBatch() {
+			context.addBatch();
+			batch = true;
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlUpdate#count()
 		 */
 		@Override
 		public int count() throws SQLException {
+			if (batch) {
+				throw new IllegalStateException("すでにaddBatch()でパラメータが設定されているため、batch()を呼び出してください");
+			}
 			return agent.update(context);
 		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batch()
+		 */
+		@Override
+		public int[] batch() throws SQLException {
+			if (!batch) {
+				addBatch();
+			}
+			return agent.batch(context);
+		}
+
 	}
 
 }

@@ -3,10 +3,14 @@ package jp.co.future.uroborosql.filter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,20 +64,16 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
-		LOG.debug("UserName:{}", userName);
-		LOG.debug("FuncId:{}", funcId);
-		LOG.debug("SQL-ID:{}, SQL-NAME:{}", sqlContext.getSqlId(), sqlContext.getSqlName());
-		LOG.debug("SQL:{}", sqlContext.getExecutableSql());
-		if (rowCount >= 0) {
-			LOG.debug("RowCount:{}", rowCount);
-		}
+
+		LOG.debug(ToStringBuilder.reflectionToString(
+				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+						.getExecutableSql(), rowCount), ToStringStyle.JSON_STYLE));
 
 		return resultSet;
 	}
 
 	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int result) {
+	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
 		String userName = getParam(sqlContext, USER_NAME_KEY);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -85,19 +85,17 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
-		LOG.debug("UserName:{}", userName);
-		LOG.debug("FuncId:{}", funcId);
-		LOG.debug("SQL-ID:{}, SQL-NAME:{}", sqlContext.getSqlId(), sqlContext.getSqlName());
-		LOG.debug("SQL:{}", sqlContext.getExecutableSql());
-		LOG.debug("RowCount:{}", result);
+
+		LOG.debug(ToStringBuilder.reflectionToString(
+				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+						.getExecutableSql(), result), ToStringStyle.JSON_STYLE));
 
 		return result;
 
 	}
 
 	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int[] result) {
+	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
 		String userName = getParam(sqlContext, USER_NAME_KEY);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -109,17 +107,17 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
-		LOG.debug("UserName:{}", userName);
-		LOG.debug("FuncId:{}", funcId);
-		LOG.debug("SQL-ID:{}, SQL-NAME:{}", sqlContext.getSqlId(), sqlContext.getSqlName());
-		LOG.debug("SQL:{}", sqlContext.getExecutableSql());
+		int rowCount = -1;
 		if (LOG.isDebugEnabled()) {
 			try {
-				LOG.debug("RowCount:{}", preparedStatement.getUpdateCount());
+				rowCount = preparedStatement.getUpdateCount();
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
 		}
+		LOG.debug(ToStringBuilder.reflectionToString(
+				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+						.getExecutableSql(), rowCount), ToStringStyle.JSON_STYLE));
 
 		return result;
 	}
@@ -137,6 +135,48 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			return null;
 		} else {
 			return String.valueOf(param.getValue());
+		}
+	}
+
+	/**
+	 * 監査用データ
+	 *
+	 * @author H.Sugimoto
+	 */
+	private static final class AuditData {
+		/** SQL文中の改行文字除去用正規表現 */
+		private static final Pattern PAT = Pattern.compile("(?m)(\r\n|\r|\n)");
+
+		@SuppressWarnings("unused")
+		private final String userName;
+		@SuppressWarnings("unused")
+		private final String funcId;
+		@SuppressWarnings("unused")
+		private final String sqlId;
+		@SuppressWarnings("unused")
+		private final String sqlName;
+		@SuppressWarnings("unused")
+		private final String sql;
+		@SuppressWarnings("unused")
+		private final int rowCount;
+
+		/**
+		 * @param userName ユーザ名
+		 * @param funcId 機能I
+		 * @param sqlId SQL-ID
+		 * @param sqlName SQL名
+		 * @param sql SQL文
+		 * @param rowCount
+		 */
+		private AuditData(final String userName, final String funcId, final String sqlId, final String sqlName,
+				final String sql, final int rowCount) {
+			super();
+			this.userName = StringEscapeUtils.escapeJson(userName);
+			this.funcId = StringEscapeUtils.escapeJson(funcId);
+			this.sqlId = StringEscapeUtils.escapeJson(sqlId);
+			this.sqlName = StringEscapeUtils.escapeJson(sqlName);
+			this.sql = StringEscapeUtils.escapeJson(PAT.matcher(sql).replaceAll(" "));
+			this.rowCount = rowCount;
 		}
 	}
 }

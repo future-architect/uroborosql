@@ -43,9 +43,8 @@ public class SqlAgentSampleTest {
 		String user = "test";
 		String password = user;
 
-		try (Connection conn = DriverManager
-				.getConnection(String.format("%s;create=true;user=%s;password=%s", url, user,
-						password))) {
+		try (Connection conn = DriverManager.getConnection(String.format("%s;create=true;user=%s;password=%s", url,
+				user, password))) {
 			SQLWarning warning = conn.getWarnings();
 			conn.setAutoCommit(false);
 			if (warning == null) {
@@ -100,7 +99,7 @@ public class SqlAgentSampleTest {
 
 	@Test
 	public void sqlQueryTestNoParam() throws Exception {
-		List<Map<String, Object>> actual = app.query("example.select_test");
+		List<Map<String, Object>> actual = app.query("example/select_test");
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row1);
@@ -114,7 +113,7 @@ public class SqlAgentSampleTest {
 	public void sqlQueryTestWithId() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", 1);
-		List<Map<String, Object>> actual = app.query("example.select_test", params);
+		List<Map<String, Object>> actual = app.query("example/select_test", params);
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row1);
@@ -126,7 +125,7 @@ public class SqlAgentSampleTest {
 	public void sqlQueryTestWithName() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("name", "あああ");
-		List<Map<String, Object>> actual = app.query("example.select_test", params);
+		List<Map<String, Object>> actual = app.query("example/select_test", params);
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row2);

@@ -39,4 +39,16 @@ public class ContextTransformer {
 		return root;
 	}
 
+	/**
+	 * 変換したSQLで評価された分岐を表す文字列を取得する
+	 *
+	 * @return 評価結果を表す文字列
+	 */
+	public String getPassedRoute() {
+		StringBuilder builder = new StringBuilder();
+		root.passed(builder);
+		// 分岐がない場合、全ルートをパスした意味で1を返す
+		return builder.length() > 0 ? builder.toString() : "1";
+	}
+
 }

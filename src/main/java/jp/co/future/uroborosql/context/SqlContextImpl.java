@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -38,6 +40,10 @@ import org.slf4j.LoggerFactory;
  * @author H.Sugimoto
  */
 public class SqlContextImpl implements SqlContext {
+	/** where句の直後にくるANDやORを除外するための正規表現 */
+	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
+			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND|OR)");
+
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(SqlContextImpl.class);
 
@@ -49,6 +55,9 @@ public class SqlContextImpl implements SqlContext {
 
 	/** 変換後のSQL文 */
 	private final StringBuilder executableSql = new StringBuilder();
+
+	/** 変換後のSQL文字列をキャッシュしたもの。 */
+	private String executableSqlCache = "";
 
 	/** SQL文の識別子 */
 	private String sqlId;
@@ -131,7 +140,26 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public String getExecutableSql() {
-		return executableSql.toString();
+		if (StringUtils.isEmpty(executableSqlCache)) {
+			if (executableSql.length() > 0) {
+				// where句の直後に来るANDやORの除去
+				StringBuffer buff = new StringBuffer();
+				if (executableSql.indexOf("WHERE") >= 0 || executableSql.indexOf("where") >= 0) {
+					Matcher whereMatcher = WHERE_CLAUSE_PATTERN.matcher(executableSql);
+					while (whereMatcher.find()) {
+						String whereClause = whereMatcher.group(1);
+						whereMatcher.appendReplacement(buff, whereClause);
+					}
+					whereMatcher.appendTail(buff);
+					executableSqlCache = buff.toString();
+				} else {
+					executableSqlCache = executableSql.toString();
+				}
+				// 空行の除去
+				executableSqlCache = executableSqlCache.replaceAll("(?m)^\\s*(\\r\\n|\\r|\\n)", "");
+			}
+		}
+		return executableSqlCache;
 	}
 
 	/**
@@ -541,10 +569,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @return バインドパラメータ配列
 	 */
 	public Parameter[] getBindParameters() {
-		return bindNames.stream()
-				.map(this::getParam)
-				.filter(Objects::nonNull)
-				.toArray(Parameter[]::new);
+		return bindNames.stream().map(this::getParam).filter(Objects::nonNull).toArray(Parameter[]::new);
 	}
 
 	/**
@@ -599,8 +624,7 @@ public class SqlContextImpl implements SqlContext {
 		for (Parameter parameter : bindParameters) {
 			if (parameter instanceof OutParameter) {
 				String key = parameter.getParameterName();
-				out.put(key,
-						getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));
+				out.put(key, getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));
 			}
 			parameterIndex++;
 		}

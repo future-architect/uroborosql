@@ -31,4 +31,16 @@ public class BeginNode extends ContainerNode {
 			transformContext.addBindVariables(childCtx.getBindVariables());
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#passed(java.lang.StringBuilder)
+	 */
+	@Override
+	public void passed(final StringBuilder builder) {
+		builder.append(state);
+		super.passed(builder);
+	}
+
 }

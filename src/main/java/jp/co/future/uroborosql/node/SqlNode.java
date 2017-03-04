@@ -13,12 +13,6 @@ public class SqlNode extends AbstractNode {
 	private final String sqlPart;
 
 	/**
-	 * 保持しているSQLが適用対象となった場合に<code>true</code>となる.
-	 * SQL文のカバレッジ取得に利用
-	 */
-	private boolean passed = false;
-
-	/**
 	 * コンストラクタ
 	 *
 	 * @param sqlPart SQL文
@@ -37,15 +31,6 @@ public class SqlNode extends AbstractNode {
 	}
 
 	/**
-	 * このノードが有効になっているかどうか
-	 *
-	 * @return 有効になっている場合<code>true</code>
-	 */
-	public boolean isPassed() {
-		return passed;
-	}
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.node.Node#accept(jp.co.future.uroborosql.parser.TransformContext)
@@ -53,7 +38,7 @@ public class SqlNode extends AbstractNode {
 	@Override
 	public void accept(final TransformContext transformContext) {
 		transformContext.addSqlPart(sqlPart);
-		passed = true;
+		state = CoverageState.PASSED;
 	}
 
 }

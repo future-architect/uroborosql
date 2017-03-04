@@ -14,6 +14,12 @@ public abstract class AbstractNode implements Node {
 	private final List<Node> children = new ArrayList<>();
 
 	/**
+	 * 保持しているSQLが適用対象となった場合に<code>PASSED</code>となる.
+	 * SQL文のカバレッジ取得に利用
+	 */
+	protected CoverageState state = CoverageState.FAILED;
+
+	/**
 	 * コンストラクタ
 	 */
 	public AbstractNode() {
@@ -48,5 +54,15 @@ public abstract class AbstractNode implements Node {
 	@Override
 	public void addChild(final Node node) {
 		children.add(node);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#passed(java.lang.StringBuilder)
+	 */
+	@Override
+	public void passed(final StringBuilder builder) {
+		// do nothing
 	}
 }

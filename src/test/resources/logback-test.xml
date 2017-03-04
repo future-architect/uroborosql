@@ -17,8 +17,21 @@
 	</appender>
 
 	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
-		level="DEBUG">
+		level="DEBUG" additivity="false">
 		<appender-ref ref="AuditLogTest" />
+	</logger>
+
+	<appender name="CoverageLog" class="ch.qos.logback.core.FileAppender">
+		<file>target/coverage.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="jp.co.future.uroborosql.coverage" level="TRACE"
+		additivity="false">
+		<appender-ref ref="CoverageLog" />
 	</logger>
 
 	<!-- ログ出力に関する設定 -->

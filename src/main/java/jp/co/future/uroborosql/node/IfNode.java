@@ -3,8 +3,8 @@ package jp.co.future.uroborosql.node;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parser.TransformContext;
+import jp.co.future.uroborosql.utils.StringFunction;
 import ognl.ASTProperty;
-import ognl.ExpressionSyntaxException;
 import ognl.Node;
 import ognl.Ognl;
 import ognl.OgnlException;
@@ -24,9 +24,6 @@ public class IfNode extends ContainerNode {
 	/** 評価式 */
 	private final String expression;
 
-	/** 解析ずみ評価式 */
-	private Object parsedExpression;
-
 	/** ELSE句 */
 	private ElseNode elseNode;
 
@@ -40,11 +37,6 @@ public class IfNode extends ContainerNode {
 	 */
 	public IfNode(final String expression) {
 		this.expression = expression;
-		try {
-			parsedExpression = Ognl.parseExpression(expression);
-		} catch (OgnlException e) {
-			throw new OgnlRuntimeException("コメントの解析に失敗しました。[" + expression + "]", e);
-		}
 	}
 
 	/**
@@ -95,10 +87,10 @@ public class IfNode extends ContainerNode {
 	@Override
 	public void accept(final TransformContext transformContext) {
 		Object result = null;
+		Node parsedExpression = null;
 		try {
+			parsedExpression = (Node) Ognl.parseExpression(expression);
 			result = Ognl.getValue(parsedExpression, transformContext);
-		} catch (ExpressionSyntaxException ex) {
-			throw new OgnlRuntimeException("コメントの解析に失敗しました。[" + expression + "]", ex);
 		} catch (OgnlException ex) {
 			throw new OgnlRuntimeException("値が取得できませんでした。[" + expression + "]", ex);
 		}
@@ -110,9 +102,8 @@ public class IfNode extends ContainerNode {
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					Node node = (Node) parsedExpression;
 					StringBuilder builder = new StringBuilder();
-					dumpNode(node, transformContext, builder);
+					dumpNode(parsedExpression, transformContext, builder);
 
 					LOG.debug("評価式：[{}], 判定結果：[{}], パラメータ：[{}]", expression, resultValue, builder.length() == 0 ? ""
 							: builder.substring(0, builder.length() - 1));
@@ -121,6 +112,7 @@ public class IfNode extends ContainerNode {
 			if (resultValue) {
 				super.accept(transformContext);
 				transformContext.setEnabled(true);
+				state = CoverageState.PASSED;
 			} else if (elseIfNode != null) {
 				elseIfNode.accept(transformContext);
 			} else if (elseNode != null) {
@@ -129,7 +121,23 @@ public class IfNode extends ContainerNode {
 		} else {
 			throw new IllegalBoolExpressionRuntimeException(expression);
 		}
+	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.ContainerNode#passed(java.lang.StringBuilder)
+	 */
+	@Override
+	public void passed(final StringBuilder builder) {
+		builder.append(state);
+		super.passed(builder);
+		if (elseIfNode != null) {
+			elseIfNode.passed(builder);
+		}
+		if (elseNode != null) {
+			elseNode.passed(builder);
+		}
 	}
 
 	/**
@@ -145,11 +153,13 @@ public class IfNode extends ContainerNode {
 		}
 		if (node instanceof ASTProperty) {
 			ASTProperty prop = (ASTProperty) node;
-			try {
-				builder.append(prop).append(":[").append(Ognl.getValue(prop, transformContext)).append("],");
-			} catch (OgnlException ex) {
-				// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
-				ex.printStackTrace();
+			if (!StringFunction.SHORT_NAME.equals(prop.toString())) {
+				try {
+					builder.append(prop).append(":[").append(Ognl.getValue(prop, transformContext)).append("],");
+				} catch (OgnlException ex) {
+					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
+					ex.printStackTrace();
+				}
 			}
 		} else {
 			int childCount = node.jjtGetNumChildren();

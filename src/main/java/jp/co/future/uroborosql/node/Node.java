@@ -8,6 +8,26 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  */
 public interface Node {
+	/**
+	 * カバレッジの状態を表現する列挙体
+	 */
+	enum CoverageState {
+		/** 通過 */
+		PASSED(1),
+		/** 未通過 */
+		FAILED(0);
+
+		private final int val;
+
+		private CoverageState(final int val) {
+			this.val = val;
+		}
+
+		@Override
+		public String toString() {
+			return String.valueOf(val);
+		}
+	}
 
 	/**
 	 * 子ノード数取得
@@ -37,5 +57,12 @@ public interface Node {
 	 * @param transformContext Transformコンテキスト
 	 */
 	void accept(TransformContext transformContext);
+
+	/**
+	 * このノードが有効になっているかどうか。結果は引数のbuilderにCoverageState(PASSED/FAILED)をappendする。
+	 *
+	 * @param builder 結果を追記するbuilder
+	 */
+	void passed(StringBuilder builder);
 
 }

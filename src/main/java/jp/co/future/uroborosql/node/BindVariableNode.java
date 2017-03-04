@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -8,25 +7,14 @@ import jp.co.future.uroborosql.parser.TransformContext;
  *
  * @author H.Sugimoto
  */
-public class BindVariableNode extends AbstractNode {
-
-	/** 評価式 */
-	private final String expression;
+public class BindVariableNode extends ExpressionNode {
 
 	/**
 	 * コンストラクタ
 	 * @param expression 評価式
 	 */
 	public BindVariableNode(final String expression) {
-		this.expression = expression;
-	}
-
-	/**
-	 * 評価式の取得
-	 * @return 評価式
-	 */
-	public String getExpression() {
-		return expression;
+		super(expression);
 	}
 
 	/**
@@ -36,14 +24,11 @@ public class BindVariableNode extends AbstractNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Parameter parameter = transformContext.getParam(expression);
-		Object value = null;
-		if (parameter != null) {
-			value = parameter.getValue();
-		}
+		Object value = eval(transformContext);
 
 		transformContext.addSqlPart("?/*").addSqlPart(expression).addSqlPart("*/");
 		transformContext.addBindName(expression);
 		transformContext.addBindVariable(value);
+		state = CoverageState.PASSED;
 	}
 }

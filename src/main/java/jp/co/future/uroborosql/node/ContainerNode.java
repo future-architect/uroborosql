@@ -28,4 +28,17 @@ public class ContainerNode extends AbstractNode {
 			getChild(i).accept(transformContext);
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.AbstractNode#passed(java.lang.StringBuilder)
+	 */
+	@Override
+	public void passed(final StringBuilder builder) {
+		int childSize = getChildSize();
+		for (int i = 0; i < childSize; ++i) {
+			getChild(i).passed(builder);
+		}
+	}
 }
