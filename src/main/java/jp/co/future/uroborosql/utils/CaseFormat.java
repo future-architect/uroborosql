@@ -64,6 +64,7 @@ public enum CaseFormat {
 		 *
 		 * <pre>
 		 * 	convert("snake")    ⇒	"SNAKE"
+		 * 	convert("SNAKE")    ⇒	"SNAKE"
 		 * 	convert("toSnake")  ⇒	"TO_SNAKE"
 		 * 	convert("")         ⇒	""
 		 * 	convert(null)       ⇒	""
@@ -79,12 +80,12 @@ public enum CaseFormat {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
-			if (original.contains("_")) {
-				return original.trim().toUpperCase();
+			String str = original.trim();
+			if (str.contains("_") || str.toUpperCase().equals(str)) {
+				return str.toUpperCase();
 			}
 
 			StringBuilder builder = new StringBuilder();
-			String str = original.trim();
 			for (int i = 0; i < str.length(); i++) {
 				char ch = str.charAt(i);
 				if ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9') {

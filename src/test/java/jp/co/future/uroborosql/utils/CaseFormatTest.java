@@ -22,6 +22,7 @@ public class CaseFormatTest {
 		assertEquals("CONVERT_TO_SNAKE", CaseFormat.SnakeCase.convert("ConvertToSnake"));
 		assertEquals("CONVERT_TO_SNAKE", CaseFormat.SnakeCase.convert("convert_to_snake"));
 		assertEquals("CONVERT_TO_SNAKE", CaseFormat.SnakeCase.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.SnakeCase.convert("SNAKE"));
 		assertEquals("TO_SNAKE", CaseFormat.SnakeCase.convert("toSnake"));
 		assertEquals("", CaseFormat.SnakeCase.convert(null));
 		assertEquals("", CaseFormat.SnakeCase.convert(""));
