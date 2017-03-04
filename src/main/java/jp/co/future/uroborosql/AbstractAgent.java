@@ -724,8 +724,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
 		 */
 		@Override
-		public SqlQuery characterStreamParam(final String parameterName, final Reader value, final int len) {
-			context.characterStreamParam(parameterName, value, len);
+		public SqlQuery characterStreamParam(final String paramName, final Reader value, final int len) {
+			context.characterStreamParam(paramName, value, len);
 			return this;
 		}
 
@@ -735,8 +735,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
 		 */
 		@Override
-		public SqlQuery characterStreamParam(final String parameterName, final Reader value) {
-			context.characterStreamParam(parameterName, value);
+		public SqlQuery characterStreamParam(final String paramName, final Reader value) {
+			context.characterStreamParam(paramName, value);
 			return this;
 		}
 
@@ -984,8 +984,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
 		 */
 		@Override
-		public SqlUpdate characterStreamParam(final String parameterName, final Reader value, final int len) {
-			context.characterStreamParam(parameterName, value, len);
+		public SqlUpdate characterStreamParam(final String paramName, final Reader value, final int len) {
+			context.characterStreamParam(paramName, value, len);
 			return this;
 		}
 
@@ -995,8 +995,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
 		 */
 		@Override
-		public SqlUpdate characterStreamParam(final String parameterName, final Reader value) {
-			context.characterStreamParam(parameterName, value);
+		public SqlUpdate characterStreamParam(final String paramName, final Reader value) {
+			context.characterStreamParam(paramName, value);
 			return this;
 		}
 

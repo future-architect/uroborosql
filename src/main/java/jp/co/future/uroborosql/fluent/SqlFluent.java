@@ -35,7 +35,7 @@ public interface SqlFluent<T> {
 	/**
 	 * パラメータ配列の追加<br>
 	 *
-	 * @param parameterKey
+	 * @param paramName パラメータ名
 	 * @param value 配列として追加する
 	 * @return T
 	 */
@@ -144,7 +144,7 @@ public interface SqlFluent<T> {
 	 * @param value リーダー型の値
 	 * @return T
 	 */
-	T characterStreamParam(String parameterName, Reader value);
+	T characterStreamParam(String paramName, Reader value);
 
 	/**
 	 * ストリームパラメータ追加<br>
@@ -154,6 +154,6 @@ public interface SqlFluent<T> {
 	 * @param len リーダーの長さ
 	 * @return T
 	 */
-	T characterStreamParam(String parameterName, Reader value, int len);
+	T characterStreamParam(String paramName, Reader value, int len);
 
 }

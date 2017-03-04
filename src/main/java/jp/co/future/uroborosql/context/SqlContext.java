@@ -36,7 +36,7 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	/**
 	 * SQL名取得
 	 *
-	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
+	 * @return SQLファイルのルートからの相対パス（ファイル拡張子なし）
 	 */
 	String getSqlName();
 
@@ -129,7 +129,7 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号
-	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
+	 * @param type {@link java.sql.Types}で表されるSQLの型
 	 */
 	void addDefineColumnType(int column, int type);
 

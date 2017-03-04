@@ -27,7 +27,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param driver JDBCドライバークラス
 	 * @param url JDBCURL
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
@@ -39,7 +38,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param driver JDBCドライバークラス
 	 * @param url JDBCURL
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
@@ -53,7 +51,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param driver JDBCドライバークラス
 	 * @param url JDBCURL
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
@@ -178,8 +175,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 * @see Connection#TRANSACTION_REPEATABLE_READ
 	 * @see Connection#TRANSACTION_SERIALIZABLE
 	 *
-	 * @param readOnly
-	 *            readOnlyを指定する場合は<code>true</code>
+	 * @param transactionIsolation transactionIsolationオプション
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
 		if (Connection.TRANSACTION_READ_UNCOMMITTED == transactionIsolation

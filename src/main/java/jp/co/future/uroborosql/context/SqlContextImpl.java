@@ -424,8 +424,8 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.context.SqlContext#characterStreamParam(java.lang.String, java.io.Reader)
 	 */
 	@Override
-	public SqlContext characterStreamParam(final String parameterName, final Reader value) {
-		return param(new ReaderParameter(parameterName, value));
+	public SqlContext characterStreamParam(final String paramName, final Reader value) {
+		return param(new ReaderParameter(paramName, value));
 	}
 
 	/**
@@ -434,8 +434,8 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.context.SqlContext#characterStreamParam(java.lang.String, java.io.Reader, int)
 	 */
 	@Override
-	public SqlContext characterStreamParam(final String parameterName, final Reader value, final int len) {
-		return param(new ReaderParameter(parameterName, value, len));
+	public SqlContext characterStreamParam(final String paramName, final Reader value, final int len) {
+		return param(new ReaderParameter(paramName, value, len));
 	}
 
 	/**
