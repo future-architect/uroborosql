@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.store;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -10,9 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author H.Sugimoto
  */
 public interface SqlLoader {
-	/** パッケージセパレータ */
-	static final String PACKAGE_SEPARATOR = ".";
-
 	/** パスセパレータ */
 	static final String PATH_SEPARATOR = "/";
 
@@ -26,20 +21,16 @@ public interface SqlLoader {
 	 * SQL読み込み<br>
 	 *
 	 * @return ファイル名とSQL文字列を格納したMap
-	 * @throws IOException ファイルが読み込めなかった場合
-	 * @throws URISyntaxException リソースアクセスできなかった場合
 	 */
-	ConcurrentHashMap<String, String> load() throws IOException, URISyntaxException;
+	ConcurrentHashMap<String, String> load();
 
 	/**
 	 * SQL読み込み<br>
 	 *
 	 * @param filePath 読み込むSQLファイルのパス。ルートパスからの相対パスを指定
 	 * @return SQL文字列
-	 * @throws IOException ファイルが読み込めなかった場合
-	 * @throws URISyntaxException リソースアクセスできなかった場合
 	 */
-	String load(String filePath) throws IOException, URISyntaxException;
+	String load(String filePath);
 
 	/**
 	 * SQLが存在するかどうかを判定する

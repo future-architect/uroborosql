@@ -269,20 +269,6 @@ public class SqlParserImpl implements SqlParser {
 	}
 
 	/**
-	 * ELSE判定
-	 *
-	 * @return
-	 */
-	protected boolean isElseMode() {
-		for (int i = 0; i < nodeStack.size(); ++i) {
-			if (nodeStack.get(i) instanceof ElseNode) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * 解析対象コメント判定
 	 *
 	 * @param comment

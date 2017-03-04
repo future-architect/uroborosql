@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.config;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 
 import jp.co.future.uroborosql.SqlAgent;
@@ -37,11 +35,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 *
 	 * @param connectionSupplier コネクションサプライヤ
 	 * @param loadPath SQLファイルの読み込みルートパス
-	 * @throws IOException ファイルが読み込めなかった場合
-	 * @throws URISyntaxException リソースアクセスできなかった場合
 	 */
-	private DefaultSqlConfig(final ConnectionSupplier connectionSupplier, final String loadPath) throws IOException,
-			URISyntaxException {
+	private DefaultSqlConfig(final ConnectionSupplier connectionSupplier, final String loadPath) {
 		super();
 		this.connectionSupplier = connectionSupplier;
 
@@ -54,7 +49,7 @@ public class DefaultSqlConfig implements SqlConfig {
 
 	}
 
-	private void initialize() throws IOException, URISyntaxException {
+	private void initialize() {
 		sqlManager.initialize();
 		sqlContextFactory.setSqlFilterManager(sqlFilterManager);
 		sqlContextFactory.initialize();
@@ -65,10 +60,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 *
 	 * @param conn DBコネクション
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
-	public static SqlConfig getConfig(final Connection conn)
-			throws Exception {
+	public static SqlConfig getConfig(final Connection conn) {
 		return new DefaultSqlConfig(new DefaultConnectionSupplierImpl(conn), null);
 	}
 
@@ -78,10 +71,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param conn DBコネクション
 	 * @param loadPath SQLファイルの読み込みルートパス
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
-	public static SqlConfig getConfig(final Connection conn, final String loadPath)
-			throws Exception {
+	public static SqlConfig getConfig(final Connection conn, final String loadPath) {
 		return new DefaultSqlConfig(new DefaultConnectionSupplierImpl(conn), loadPath);
 	}
 
@@ -92,10 +83,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param user JDBC接続ユーザ
 	 * @param password JDBC接続パスワード
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
-	public static SqlConfig getConfig(final String url, final String user, final String password)
-			throws Exception {
+	public static SqlConfig getConfig(final String url, final String user, final String password) {
 		return getConfig(url, user, password, null, false, false, null);
 	}
 
@@ -107,10 +96,9 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param password JDBC接続パスワード
 	 * @param schema JDBCスキーマ名
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
 	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema) throws Exception {
+			final String schema) {
 		return getConfig(url, user, password, schema, false, false, null);
 	}
 
@@ -123,10 +111,9 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param schema JDBCスキーマ名
 	 * @param loadPath SQLファイルの読み込みルートパス
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
 	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema, final String loadPath) throws Exception {
+			final String schema, final String loadPath) {
 		return getConfig(url, user, password, schema, false, false, loadPath);
 	}
 
@@ -140,11 +127,10 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param autoCommit 自動コミットするかどうか. 自動コミットの場合<code>true</code>
 	 * @param readOnly 参照のみかどうか. 参照のみの場合<code>true</code>
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
 	public static SqlConfig getConfig(final String url, final String user, final String password,
 			final String schema,
-			final boolean autoCommit, final boolean readOnly) throws Exception {
+			final boolean autoCommit, final boolean readOnly) {
 		return new DefaultSqlConfig(new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit, readOnly),
 				null);
 	}
@@ -160,11 +146,10 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param readOnly 参照のみかどうか. 参照のみの場合<code>true</code>
 	 * @param loadPath SQLファイルの読み込みルートパス
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
 	public static SqlConfig getConfig(final String url, final String user, final String password,
 			final String schema,
-			final boolean autoCommit, final boolean readOnly, final String loadPath) throws Exception {
+			final boolean autoCommit, final boolean readOnly, final String loadPath) {
 		return new DefaultSqlConfig(new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit, readOnly),
 				loadPath);
 	}
@@ -174,9 +159,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 *
 	 * @param dataSourceName データソース名
 	 * @return SqlConfigオブジェクト
-	 * @throws Exception
 	 */
-	public static SqlConfig getConfig(final String dataSourceName) throws Exception {
+	public static SqlConfig getConfig(final String dataSourceName) {
 		DataSourceConnectionSupplierImpl connectionSupplier = new DataSourceConnectionSupplierImpl(dataSourceName);
 		return new DefaultSqlConfig(connectionSupplier, null);
 	}

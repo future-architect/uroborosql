@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.store;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,7 +65,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()
 	 */
 	@Override
-	public void initialize() throws IOException, URISyntaxException {
+	public void initialize() {
 		if (cache) {
 			sqlMap = sqlLoader.load();
 		}
@@ -81,14 +79,9 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public String getSql(final String sqlPath) {
 		if (!cache) {
-			try {
-				return sqlLoader.load(sqlPath);
-			} catch (IOException | URISyntaxException ex) {
-				ex.printStackTrace();
-				return null;
-			}
+			return sqlLoader.load(sqlPath);
 		} else {
-			return sqlMap.get(sqlPath.replaceAll("/", "."));
+			return sqlMap.get(sqlPath.replace(".", "/"));
 		}
 	}
 

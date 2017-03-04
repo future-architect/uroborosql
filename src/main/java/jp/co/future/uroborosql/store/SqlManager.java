@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.store;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -13,11 +11,8 @@ public interface SqlManager {
 
 	/**
 	 * 初期化<br>
-	 *
-	 * @throws URISyntaxException リソースへのアクセスに失敗した場合
-	 * @throws IOException IO例外
 	 */
-	void initialize() throws IOException, URISyntaxException;
+	void initialize();
 
 	/**
 	 * SQL文取得<br>

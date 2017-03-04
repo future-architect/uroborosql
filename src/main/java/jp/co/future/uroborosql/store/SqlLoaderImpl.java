@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.JarURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -113,25 +114,29 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @see jp.co.future.uroborosql.store.SqlLoader#load()
 	 */
 	@Override
-	public ConcurrentHashMap<String, String> load() throws IOException, URISyntaxException {
-		Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(loadPath);
+	public ConcurrentHashMap<String, String> load() {
 		ConcurrentHashMap<String, String> loadedSqlMap = new ConcurrentHashMap<>();
-		while (resources.hasMoreElements()) {
-			URL resource = resources.nextElement();
-			File rootDir = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.toString()));
+		try {
+			Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(loadPath);
+			while (resources.hasMoreElements()) {
+				URL resource = resources.nextElement();
+				File rootDir = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.toString()));
 
-			if (!rootDir.exists() || !rootDir.isDirectory()) {
-				if ("jar".equalsIgnoreCase(resource.getProtocol())) {
-					putAllIfAbsent(loadedSqlMap, load((JarURLConnection) resource.openConnection(), loadPath));
+				if (!rootDir.exists() || !rootDir.isDirectory()) {
+					if ("jar".equalsIgnoreCase(resource.getProtocol())) {
+						putAllIfAbsent(loadedSqlMap, load((JarURLConnection) resource.openConnection(), loadPath));
+						continue;
+					}
+
+					LOG.warn("ディレクトリでは無いので無視します[{}]", rootDir.getAbsolutePath());
 					continue;
 				}
 
-				LOG.warn("ディレクトリでは無いので無視します[{}]", rootDir.getAbsolutePath());
-				continue;
+				LOG.debug("SQL定義ファイルの読み込みを開始します[{}]", rootDir.getAbsolutePath());
+				putAllIfAbsent(loadedSqlMap, load(new StringBuilder(), rootDir));
 			}
-
-			LOG.debug("SQL定義ファイルの読み込みを開始します[{}]", rootDir.getAbsolutePath());
-			putAllIfAbsent(loadedSqlMap, load(new StringBuilder(), rootDir));
+		} catch (IOException e) {
+			throw new UroborosqlRuntimeException("SQL定義ファイルの読み込みに失敗しました", e);
 		}
 
 		if (loadedSqlMap.isEmpty()) {
@@ -162,7 +167,6 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @param jarUrlConnection Jarファイル内のURLコレクション
 	 * @param loadPath ロードパス
 	 * @return SQL識別子をキーとしたSQL文のMap
-	 * @throws IOException ファイルアクセスに失敗した場合
 	 */
 	private ConcurrentHashMap<String, String> load(final JarURLConnection jarUrlConnection, final String loadPath)
 			throws IOException {
@@ -177,11 +181,10 @@ public class SqlLoaderImpl implements SqlLoader {
 			if (fileName.startsWith(loadPath) && fileName.toLowerCase().endsWith(fileExtension)) {
 				String sql = trimSlash(read(new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry)))));
 				fileName = fileName.substring(loadPath.length() + 1, fileName.length() - 4);
-				String sqlName = fileName.replaceAll(PATH_SEPARATOR, PACKAGE_SEPARATOR);
-				sqlMap.put(sqlName, sql);
+				sqlMap.put(fileName, sql);
 
 				LOG.trace("SQL定義ファイル[{}]を読み込みました", fileName);
-				LOG.trace("SQL定義を追加します[{}],[{}]", sqlName, sql);
+				LOG.trace("SQL定義を追加します[{}],[{}]", fileName, sql);
 			}
 		}
 		return sqlMap;
@@ -229,23 +232,25 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @see jp.co.future.uroborosql.store.SqlLoader#load(java.lang.String)
 	 */
 	@Override
-	public String load(final String filePath) throws IOException, URISyntaxException {
-		String targetFilePath = getFilePath(trimSqlExtension(filePath).replace(PACKAGE_SEPARATOR, PATH_SEPARATOR));
+	public String load(final String filePath) {
+		String targetFilePath = getFilePath(trimSqlExtension(filePath));
 		String sql = null;
 
 		URL resource = Thread.currentThread().getContextClassLoader().getResource(targetFilePath);
 
-		if (resource != null) {
-			InputStream is = resource.openStream();
-			sql = trimSlash(read(new BufferedReader(new InputStreamReader(is))));
+		try (InputStream is = resource.openStream()) {
+			if (resource != null) {
+				sql = trimSlash(read(new BufferedReader(new InputStreamReader(is))));
 
-			LOG.debug("SQL定義ファイル[{}]を読み込みました", targetFilePath);
+				LOG.debug("SQL定義ファイル[{}]を読み込みました", targetFilePath);
+			}
+		} catch (IOException e) {
+			throw new UroborosqlRuntimeException("SQL定義ファイル[" + targetFilePath + "]の読み込みに失敗しました", e);
 		}
 
 		if (sql == null) {
-			throw new IOException("SQL定義ファイル[" + targetFilePath + "]が見つかりません");
+			throw new UroborosqlRuntimeException("SQL定義ファイル[" + targetFilePath + "]が見つかりません");
 		}
-
 		return sql;
 	}
 
@@ -280,7 +285,7 @@ public class SqlLoaderImpl implements SqlLoader {
 		if (packageName.length() == 0) {
 			return trimSqlExtension(filePath);
 		} else {
-			return new StringBuilder(packageName).append(PACKAGE_SEPARATOR).append(trimSqlExtension(filePath))
+			return new StringBuilder(packageName).append(PATH_SEPARATOR).append(trimSqlExtension(filePath))
 					.toString();
 		}
 	}
@@ -306,7 +311,7 @@ public class SqlLoaderImpl implements SqlLoader {
 		if (packageName.length() == 0) {
 			return new StringBuilder(dir.getName());
 		} else {
-			return new StringBuilder(packageName).append(PACKAGE_SEPARATOR).append(dir.getName());
+			return new StringBuilder(packageName).append(PATH_SEPARATOR).append(dir.getName());
 		}
 	}
 
