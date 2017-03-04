@@ -37,8 +37,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 *
 	 * @param connectionSupplier コネクションサプライヤ
 	 * @param loadPath SQLファイルの読み込みルートパス
-	 * @throws IOException
-	 * @throws URISyntaxException
+	 * @throws IOException ファイルが読み込めなかった場合
+	 * @throws URISyntaxException リソースアクセスできなかった場合
 	 */
 	private DefaultSqlConfig(final ConnectionSupplier connectionSupplier, final String loadPath) throws IOException,
 			URISyntaxException {

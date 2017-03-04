@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 
 	/**
-	 * クエリ実行処理。<br />
+	 * クエリ実行処理。
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 * @return SQL実行結果のResultSet
@@ -33,9 +33,10 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	ResultSet query(SqlContext sqlContext) throws SQLException;
 
 	/**
-	 * クエリ実行処理。<br />
+	 * クエリ実行処理。
 	 * 結果をStreamとして返却する。
 	 *
+	 * @param <T> Streamの型
 	 * @param sqlContext SqlContext
 	 * @param converter ResultSetの各行を変換するための変換器
 	 * @return 検索結果を順次取得するStream
@@ -44,8 +45,8 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	<T> Stream<T> query(SqlContext sqlContext, ResultSetConverter<T> converter) throws SQLException;
 
 	/**
-	 * クエリ実行処理。<br />
-	 * 結果をList<Map<String, Object>>に変換して返却する。
+	 * クエリ実行処理。
+	 * 結果を{@literal List<Map<String, Object>>}に変換して返却する。
 	 *
 	 * @param sqlContext SqlContext
 	 * @param caseFormat Mapのキー文字列の変換書式
@@ -55,7 +56,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat) throws SQLException;
 
 	/**
-	 * DB更新処理。<br />
+	 * DB更新処理。
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 * @return SQL実行結果
@@ -66,13 +67,14 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
 	 * バッチ処理実行。
 	 *
+	 * @param sqlContext SQLコンテキスト
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
 	int[] batch(SqlContext sqlContext) throws SQLException;
 
 	/**
-	 * ストアドプロシージャ実行処理。<br />
+	 * ストアドプロシージャ実行処理。
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 * @return ストアドプロシージャ実行結果
@@ -149,7 +151,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
 	 *
 	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
-	 * @throws UnsupportedOperationException. この操作を提供しない場合
+	 * @throws UnsupportedOperationException この操作を提供しない場合
 	 */
 	@Override
 	void rollback() throws SQLException;

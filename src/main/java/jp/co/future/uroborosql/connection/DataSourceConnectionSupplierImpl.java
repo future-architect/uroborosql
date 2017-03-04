@@ -38,6 +38,8 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
 	/**
 	 * コンストラクタ。
+     *
+	 * @param dataSourceName 取得するコネクションのデータソース名
 	 */
 	public DataSourceConnectionSupplierImpl(final String dataSourceName) {
 		this.dataSourceName = dataSourceName;
@@ -193,8 +195,8 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @see Connection#TRANSACTION_REPEATABLE_READ
 	 * @see Connection#TRANSACTION_SERIALIZABLE
 	 *
-	 * @param readOnly
-	 *            readOnlyを指定する場合は<code>true</code>
+	 * @param transactionIsolation transactionIsolationオプション
+	 *
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
 		if (Connection.TRANSACTION_READ_UNCOMMITTED == transactionIsolation
@@ -210,7 +212,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDataSourceName(String)}
-	 * で指定したデータソースに対するtransactionIsolationオプションの指定
+	 * で指定したデータソースに対するtransactionIsolationオプションの取得
 	 *
 	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */
