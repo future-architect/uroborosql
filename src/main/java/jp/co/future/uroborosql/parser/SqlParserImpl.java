@@ -244,7 +244,7 @@ public class SqlParserImpl implements SqlParser {
 	/**
 	 * ノードPOP
 	 *
-	 * @return
+	 * @return Nodeオブジェクト
 	 */
 	protected Node pop() {
 		return nodeStack.pop();
@@ -253,7 +253,7 @@ public class SqlParserImpl implements SqlParser {
 	/**
 	 * ノードPEEK
 	 *
-	 * @return
+	 * @return Nodeオブジェクト
 	 */
 	protected Node peek() {
 		return nodeStack.peek();
@@ -262,7 +262,7 @@ public class SqlParserImpl implements SqlParser {
 	/**
 	 * ノードPUSH
 	 *
-	 * @param node
+	 * @return Nodeオブジェクト
 	 */
 	protected void push(final Node node) {
 		nodeStack.push(node);
@@ -286,7 +286,7 @@ public class SqlParserImpl implements SqlParser {
 	 * 解析対象コメント判定
 	 *
 	 * @param comment
-	 * @return
+	 * @return 解析対象の場合は<code>true</code>
 	 */
 	private static boolean isTargetComment(final String comment) {
 		return comment != null && comment.length() > 0
@@ -297,7 +297,7 @@ public class SqlParserImpl implements SqlParser {
 	 * IFコメント判定
 	 *
 	 * @param comment
-	 * @return
+	 * @return IFコメントの場合は<code>true</code>
 	 */
 	private static boolean isIfComment(final String comment) {
 		return comment.startsWith("IF");
@@ -307,7 +307,7 @@ public class SqlParserImpl implements SqlParser {
 	 * ELSEIFコメント判定
 	 *
 	 * @param comment
-	 * @return
+	 * @return ELSEIFコメントの場合は<code>true</code>
 	 */
 	private static boolean isElIfComment(final String comment) {
 		return comment.startsWith("ELIF");
@@ -317,7 +317,7 @@ public class SqlParserImpl implements SqlParser {
 	 * ELSEコメント判定
 	 *
 	 * @param comment
-	 * @return
+	 * @return ELSEコメントの場合は<code>true</code>
 	 */
 	private static boolean isElseComment(final String comment) {
 		return comment.startsWith("ELSE");
@@ -327,7 +327,7 @@ public class SqlParserImpl implements SqlParser {
 	 * BEGINコメント判定
 	 *
 	 * @param content
-	 * @return
+	 * @return BEGINコメントの場合は<code>true</code>
 	 */
 	private static boolean isBeginComment(final String content) {
 		return content != null && "BEGIN".equals(content);
@@ -337,7 +337,7 @@ public class SqlParserImpl implements SqlParser {
 	 * ENDコメント判定
 	 *
 	 * @param content
-	 * @return
+	 * @return ENDコメントの場合は<code>true</code>
 	 */
 	private static boolean isEndComment(final String content) {
 		return content != null && "END".equals(content);

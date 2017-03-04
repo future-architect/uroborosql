@@ -36,7 +36,7 @@ public final class BindParameterMapperManager {
 
 	/**
 	 * コピーコンストラクタ
-	 * @param parameterMapperManager
+	 * @param parameterMapperManager コピー元のパラメータ変換クラス
 	 */
 	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
 		mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);

@@ -38,7 +38,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果のリスト. MapのキーはSnakeCaseに変換される.
 	 * @throws SQLException SQL例外
 	 *
-	 * @see SqlAgent#query(SqlContext, boolean)
+	 * @see SqlAgent#query(String)
 	 */
 	List<Map<String, Object>> collect() throws SQLException;
 
@@ -49,7 +49,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果のリスト
 	 * @throws SQLException SQL例外
 	 *
-	 * @see SqlAgent#query(SqlContext, boolean)
+	 * @see SqlAgent#query(String)
 	 */
 	List<Map<String, Object>> collect(CaseFormat caseFormat) throws SQLException;
 
@@ -75,6 +75,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果をStreamとして取得（終端処理）
 	 *
+	 * @param <T> Streamの型
 	 * @param converter ResultSetの各行を変換するための変換器
 	 * @return 検索結果を順次取得するStream
 	 * @throws SQLException SQL例外

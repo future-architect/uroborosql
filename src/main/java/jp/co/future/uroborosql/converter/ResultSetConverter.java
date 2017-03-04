@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * 検索結果を<T>で指定された型に変換するためのインタフェース
+ * 検索結果を{@literal <T>}で指定された型に変換するためのインタフェース
  *
  * @author H.Sugimoto
  *

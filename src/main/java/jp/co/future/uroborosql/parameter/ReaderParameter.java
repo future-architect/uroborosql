@@ -29,7 +29,7 @@ public class ReaderParameter extends Parameter {
 	 * コンストラクタ。
 	 *
 	 * @param parameterName パラメータ名
-	 * @param stream ストリーム
+	 * @param reader ストリーム
 	 */
 	public ReaderParameter(final String parameterName, final Reader reader) {
 		this(parameterName, reader, -1);
@@ -39,7 +39,7 @@ public class ReaderParameter extends Parameter {
 	 * コンストラクタ。
 	 *
 	 * @param parameterName パラメータ名
-	 * @param stream ストリーム
+	 * @param reader ストリーム
 	 * @param len ストリーム長
 	 */
 	public ReaderParameter(final String parameterName, final Reader reader, final int len) {

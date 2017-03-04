@@ -179,7 +179,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 *
 	 * パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doParameterFilter(jp.co.future.uroborosql.parameter.Parameter)
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doParameter(jp.co.future.uroborosql.parameter.Parameter)
 	 */
 	@Override
 	public Parameter doParameter(final Parameter parameter) {
@@ -378,6 +378,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 * 変換の名前を取得する
 	 * 標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。
 	 * 初期値は<code>AES/ECB/PKCS5Padding</code>
+     *
+	 * @return 変換の名前
 	 */
 	public String getTransformationType() {
 		return transformationType;

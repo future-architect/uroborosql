@@ -200,13 +200,13 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	/**
 	 * 指定したバイト数で文字列をカットする
 	 *
-	 * @param obj
-	 * @param capacity
+	 * @param obj 対象オブジェクト
+	 * @param capacity カットするバイト数
 	 * @return String
 	 * @throws CharacterCodingException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String getSubstringByte(final Object obj, final int capacity) throws CharacterCodingException,
+	private String getSubstringByte(final Object obj, final int capacity) throws CharacterCodingException,
 			UnsupportedEncodingException {
 
 		String str = obj == null ? "null" : obj.toString();
