@@ -262,7 +262,7 @@ public class SqlParserImpl implements SqlParser {
 	/**
 	 * ノードPUSH
 	 *
-	 * @return Nodeオブジェクト
+	 * @param node Nodeオブジェクト
 	 */
 	protected void push(final Node node) {
 		nodeStack.push(node);

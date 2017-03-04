@@ -5,7 +5,7 @@ import org.apache.commons.lang3.text.WordUtils;
 
 /**
  * OGNL式内で{@link StringUtils}
- * の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br/>
+ * の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br>
  *
  * 利用する際はstatic final なフィールドに格納するなどして複数のインスタンスを生成しないようにすること
  *
@@ -81,7 +81,7 @@ public class StringFunction {
 	 * StringUtils.trim("    abc    ") = "abc"
 	 * </pre>
 	 *
-	 * @param strトリムする文字列
+	 * @param str トリムする文字列
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は<code>null</code>
 	 */
 	public String trim(final String str) {
@@ -100,7 +100,7 @@ public class StringFunction {
 	 * StringUtils.trimToEmpty("    abc    ") = "abc"
 	 * </pre>
 	 *
-	 * @param strトリムする文字列
+	 * @param str トリムする文字列
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は空文字となる
 	 */
 	public String trimToEmpty(final String str) {

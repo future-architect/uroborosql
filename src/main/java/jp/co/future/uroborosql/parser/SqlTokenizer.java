@@ -8,7 +8,8 @@ package jp.co.future.uroborosql.parser;
 public interface SqlTokenizer {
 	/**
 	 * 現在地取得
-	 * @return
+	 *
+	 * @return 現在地
 	 */
 	int getPosition();
 

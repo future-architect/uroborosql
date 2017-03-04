@@ -115,7 +115,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * SQL読み込みクラス設定
 	 *
-	 * @param sqlLoader
+	 * @param sqlLoader SqlLoaderオブジェクト
 	 */
 	public void setSqlLoader(final SqlLoader sqlLoader) {
 		this.sqlLoader = sqlLoader;
@@ -124,7 +124,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * SQLファイルロードパス取得<br>
 	 *
-	 * @return
+	 * @return SQLファイルロードパス
 	 */
 	public String getLoadPath() {
 		return sqlLoader.getLoadPath();
@@ -133,7 +133,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * SQLファイルロードパス設定<br>
 	 *
-	 * @param loadPath
+	 * @param loadPath SQLファイルロードパス
 	 */
 	public void setLoadPath(final String loadPath) {
 		sqlLoader.setLoadPath(loadPath);
@@ -142,7 +142,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * SQLファイル拡張子取得<br>
 	 *
-	 * @return
+	 * @return SQLファイル拡張子
 	 */
 	public String getFileExtension() {
 		return sqlLoader.getFileExtension();
@@ -151,7 +151,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * SQLファイル拡張子設定<br>
 	 *
-	 * @param fileExtension
+	 * @param fileExtension SQLファイル拡張子
 	 */
 	public void setFileExtension(final String fileExtension) {
 		sqlLoader.setFileExtension(fileExtension);
