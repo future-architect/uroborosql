@@ -46,6 +46,8 @@ import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -197,8 +199,7 @@ public class SqlREPL {
 		});
 
 		config = DefaultSqlConfig.getConfig(p("db.url", ""), p("db.user", ""), p("db.password", ""),
-				p("db.schema", null),
-				p("sql.loadPath", "sql"));
+				p("db.schema", null), p("sql.loadPath", "sql"));
 
 		config.getSqlFilterManager().addSqlFilter(new DumpResultSqlFilter());
 	}
@@ -216,9 +217,8 @@ public class SqlREPL {
 	private void listen() {
 		try (Scanner scanner = new Scanner(System.in)) {
 			System.out.print("> ");
-			String line;
-			while (scanner.hasNext()) { // ユーザの一行入力を待つ
-				line = scanner.nextLine();
+			while (true) { // ユーザの一行入力を待つ
+				String line = scanner.nextLine();
 				try {
 					if (!commands(line, scanner)) {
 						break;
@@ -308,9 +308,10 @@ public class SqlREPL {
 						ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 						try (ResultSet rs = agent.query(ctx)) {
+							System.out.println("query sql[" + sqlName + "] end.");
+						} finally {
 							agent.rollback();
 						}
-						System.out.println("query sql[" + sqlName + "] end.");
 					}
 				} else {
 					System.out.println("SQL not found. sql=" + sqlName);
@@ -327,8 +328,13 @@ public class SqlREPL {
 						SqlContext ctx = agent.contextFrom(sqlName.replaceAll("\\.", "/"));
 						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
 						setSqlParams(scanner, ctx, params);
-						int ans = agent.update(ctx);
-						System.out.println("update sql[" + sqlName + "] end. row count=" + ans);
+						try {
+							int ans = agent.update(ctx);
+							agent.commit();
+							System.out.println("update sql[" + sqlName + "] end. row count=" + ans);
+						} catch (SQLException ex) {
+							agent.rollback();
+						}
 					}
 				} else {
 					System.out.println("SQL not found. sql=" + sqlName);
@@ -389,16 +395,39 @@ public class SqlREPL {
 	 * @param val パラメータ値
 	 */
 	private void setParam(final SqlContext ctx, final String key, final String val) {
-		if ("[NULL]".equalsIgnoreCase(val)) {
-			ctx.param(key, null);
-		} else if ("[EMPTY]".equalsIgnoreCase(val)) {
-			ctx.param(key, "");
-		} else if (val.startsWith("[") && val.endsWith("]")) {
+		if (val.startsWith("[") && val.endsWith("]")) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
 			String[] parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
-			ctx.paramList(key, (Object[]) parts);
+			Object[] vals = new Object[parts.length];
+			for (int i = 0; i < parts.length; i++) {
+				vals[i] = convertSingleValue(parts[i]);
+			}
+			ctx.paramList(key, vals);
 		} else {
-			ctx.param(key, val);
+			if (StringUtils.isNotBlank(val)) {
+				ctx.param(key, convertSingleValue(val));
+			}
+		}
+	}
+
+	/**
+	 * パラメータで渡された単独の値を型変換する
+	 * @param val 値の文字列
+	 * @return 変換後オブジェクト
+	 */
+	private Object convertSingleValue(final String val) {
+		if ("[NULL]".equalsIgnoreCase(val)) {
+			return null;
+		} else if ("[EMPTY]".equalsIgnoreCase(val)) {
+			return "";
+		} else if (Boolean.TRUE.toString().equalsIgnoreCase(val)) {
+			return Boolean.TRUE;
+		} else if (Boolean.FALSE.toString().equalsIgnoreCase(val)) {
+			return Boolean.FALSE;
+		} else if (NumberUtils.isDigits(val)) {
+			return NumberUtils.toInt(val);
+		} else {
+			return val;
 		}
 	}
 
@@ -478,8 +507,7 @@ public class SqlREPL {
 	private void showMessage() {
 		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + "/message.txt";
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream(messageFilePath)))) {
+				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
 			reader.lines().forEach(s -> System.out.println(s));
 		} catch (IOException ex) {
 			ex.printStackTrace();
