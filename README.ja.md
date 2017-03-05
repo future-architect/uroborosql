@@ -5,13 +5,11 @@ uroboroSQL
 
 <img src="https://future-architect.github.io/uroborosql-doc//images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
 
-UroboroSQL is a simple SQL execution library that can use 2-way-SQL compatible with Java8.
+uroboroSQLは、Java8対応の2Way-SQLが利用可能なシンプルなSQL実行ライブラリです。
 
-UroboroSQL mainly adopts SQL-centered design concept. It is not an idea of ​​assembling SQL thoughtfully focusing on Java, but an idea of ​​supplementing Java with missing SQL.
+uroboroSQLは主にSQL中心の設計コンセプトを採用しています。Javaを中心に考えてSQLを組み立てるという思想ではなく、SQLに足りないところをJavaで補うという思想です。
 
-As know-how cultivated in the enterprise, we are enhancing functions such as partition value support, retry, filter customization and so on. It also features a function from a quality viewpoint that makes coverage available for 2Way-SQL.
-
-for Japanese, [README.ja.md](https://github.com/future-architect/uroborosql/blob/master/README.ja.md)
+エンタープライズで培われたノウハウとして、区分値サポート、リトライ、フィルターによるカスタマイズなどの機能を充実させています。また、2Way-SQLに対して、カバレッジを取れるようにするという、品質視点での機能があるのも特徴です。
 
 Installation
 ------------
@@ -40,7 +38,7 @@ Documentation
 Requirement
 -----------
 
-- Java 1.8 or later.
+-	Java 1.8 or later.
 
 Quick start
 -----------
@@ -49,17 +47,17 @@ Quick start
 /* department/select_department.sql */
 
 SELECT /* _SQL_ID_ */
-  DEPT.DEPT_NO  AS  DEPT_NO
-, DEPT.DEPT_NAME  AS  DEPT_NAME
+	DEPT.DEPT_NO	AS	DEPT_NO
+,	DEPT.DEPT_NAME	AS	DEPT_NAME
 FROM
-  DEPARTMENT  DEPT
+	DEPARTMENT	DEPT
 WHERE
-  1       = 1
+	1				=	1
 /*IF SF.isNotEmpty(dept_no)*/
-AND DEPT.DEPT_NO  = /*dept_no*/1
+AND	DEPT.DEPT_NO	=	/*dept_no*/1
 /*END*/
 /*IF SF.isNotEmpty(dept_name)*/
-AND DEPT.DEPT_NAME  = /*dept_name*/'sample'
+AND	DEPT.DEPT_NAME	=	/*dept_name*/'sample'
 /*END*/
 
 ```
@@ -70,13 +68,13 @@ AND DEPT.DEPT_NAME  = /*dept_name*/'sample'
 INSERT
 /* _SQL_ID_ */
 INTO
-  DEPARTMENT
+	DEPARTMENT
 (
-  DEPT_NO
-, DEPT_NAME
+	DEPT_NO
+,	DEPT_NAME
 ) VALUES (
-  /*dept_no*/1
-, /*dept_name*/'sample'
+	/*dept_no*/1
+,	/*dept_name*/'sample'
 )
 ```
 
