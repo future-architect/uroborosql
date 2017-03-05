@@ -653,8 +653,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @author H.Sugimoto
 	 */
 	private final class SqlQueryImpl implements SqlQuery {
-		private SqlAgent agent = null;
-		private SqlContext context = null;
+		private final SqlAgent agent;
+		private final SqlContext context;
 
 		/**
 		 * コンストラクタ
@@ -913,8 +913,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @author H.Sugimoto
 	 */
 	private final class SqlUpdateImpl implements SqlUpdate {
-		private SqlAgent agent = null;
-		private SqlContext context = null;
+		private final SqlAgent agent;
+		private final SqlContext context;
 		/** バッチ処理を行うかどうか */
 		boolean batch = false;
 

@@ -98,7 +98,7 @@ public class SqlContextImpl implements SqlContext {
 	/** 変更可能性(デフォルト値：カーソルはデータの読み出ししかサポートしません。) */
 	private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
-	/** 変更可能性(デフォルト値：カーソルはデータの読み出ししかサポートしません。) */
+	/** DBエイリアス名 */
 	private String dbAlias = null;
 
 	/** コンテキスト属性情報 */
@@ -120,7 +120,20 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	private SqlContextImpl(final SqlContextImpl parent) {
 		enabled = false;
+		sqlId = parent.sqlId;
+		sqlName = parent.sqlName;
+		maxRetryCount = parent.maxRetryCount;
+		retryWaitTime = parent.retryWaitTime;
 		parameterMap = parent.parameterMap;
+		constParameterMap = parent.constParameterMap;
+		sqlFilterManager = parent.sqlFilterManager;
+		batchParameters.addAll(parent.batchParameters);
+		defineColumnTypeMap.putAll(parent.defineColumnTypeMap);
+		resultSetType = parent.resultSetType;
+		resultSetConcurrency = parent.resultSetConcurrency;
+		dbAlias = parent.dbAlias;
+		contextAttributes.putAll(parent.contextAttributes);
+		parameterMapperManager = parent.parameterMapperManager;
 	}
 
 	/**
