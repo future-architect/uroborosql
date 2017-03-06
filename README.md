@@ -21,7 +21,7 @@ Installation
 ```xml
 <dependency>
     <groupId>jp.co.future</groupId>
-    <artifactId>uroborosql/artifactId>
+    <artifactId>uroborosql</artifactId>
     <version>0.1.0</version>
 </dependency>
 ```
