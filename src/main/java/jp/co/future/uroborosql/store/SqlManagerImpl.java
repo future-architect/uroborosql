@@ -92,7 +92,11 @@ public class SqlManagerImpl implements SqlManager {
 	 */
 	@Override
 	public boolean existSql(final String sqlPath) {
-		return sqlLoader.existSql(sqlPath);
+		if (!cache) {
+			return sqlLoader.existSql(sqlPath);
+		} else {
+			return sqlMap.get(sqlPath.replace(".", "/")) != null;
+		}
 	}
 
 	/**
