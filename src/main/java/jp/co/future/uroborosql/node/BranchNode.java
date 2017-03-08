@@ -36,6 +36,7 @@ public class BranchNode extends ContainerNode {
 	 * @param bool 分岐結果
 	 */
 	protected void passState(boolean bool) {
+		pass();
 		this.state = bool ? BranchCoverageState.TRUE : BranchCoverageState.FALSE;
 	}
 

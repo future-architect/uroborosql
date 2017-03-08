@@ -46,6 +46,9 @@ public class BeginNode extends BranchNode {
 	@Override
 	public void passed(final PassedRoute passed) {
 		passed.appendBranchState(getPosition(), this.getState());
+		if (isPassed()) {
+			passed.appendHitRange(getPosition(), getPosition() + 1);
+		}
 		super.passed(passed);
 	}
 
