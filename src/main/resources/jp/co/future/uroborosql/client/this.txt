@@ -10,7 +10,7 @@ uroboroSQL will argue.
 Do not underestimate SQL.
 SQLを過小評価するな。
 
-You are disqualified programmer at the time you write hard to read SQL
+You are disqualified programmer at the time you write hard to read SQL.
 読みにくいSQLを書いた時点で君はプログラマ失格だ。
 
 Do not neglect SQL and your own performance tuning.

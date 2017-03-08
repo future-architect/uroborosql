@@ -5,13 +5,13 @@ uroboroSQL
 
 <img src="https://future-architect.github.io/uroborosql-doc//images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
 
-UroboroSQL is a simple SQL execution library that can use 2-way-SQL compatible with Java8.
+UroboroSQL is a simple SQL execution library that can utilize 2-way-SQL compatible with Java 8.
 
-UroboroSQL mainly adopts SQL-centered design concept. It is not an idea of ​​assembling SQL thoughtfully focusing on Java, but an idea of ​​supplementing Java with missing SQL.
+UroboroSQL mainly adopts a SQL-centered design concept. The concept does not focus on Java to assemble SQL, but is based on an idea of making up for weaknesses of SQL with Java.
 
-As know-how cultivated in the enterprise, we are enhancing functions such as partition value support, retry, filter customization and so on. It also features a function from a quality viewpoint that makes coverage available for 2Way-SQL.
+From the knowhow acquired through our business, we have enhanced UroboroSQL with functions like partition value support, retrying, filtering customization, and so on. Also, for quality assurance purposes, it features a coverage analysis function available for 2-way-SQL.
 
-for Japanese, [README.ja.md](https://github.com/future-architect/uroborosql/blob/master/README.ja.md)
+for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/blob/master/README.ja.md)
 
 Installation
 ------------
