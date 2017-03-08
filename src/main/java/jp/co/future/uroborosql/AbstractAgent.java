@@ -61,6 +61,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
+	/** カバレッジハンドラ */
 	private static CoverageHandler coverageHandler;
 
 	/** SQL設定管理クラス */
@@ -230,16 +231,34 @@ public abstract class AbstractAgent implements SqlAgent {
 		LOG.debug("実行時SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(), System.lineSeparator());
 	}
 
+	/**
+	 * カバレッジハンドラの取得<br>
+	 *
+	 * <pre>
+	 * sysytem property "sql.coverage" に "true" が指定することで Jenkins Cobertura プラグイン で集計することができるレポートファイルを出力します。
+	 * 詳しくは {@link CoberturaCoverageHandler} を参照してください。
+	 * </pre>
+	 *
+	 * <pre>
+	 * sysytem property "sql.coverage" に {@link CoverageHandler} を実装したクラス名を指定することで カバレッジ情報を独自に収集することが可能です。
+	 * </pre>
+	 *
+	 * @return カバレッジハンドラ
+	 */
 	private static CoverageHandler getCoverageHandler() {
 		if (coverageHandler != null) {
 			return coverageHandler;
 		}
 		String coverage = System.getProperty("sql.coverage");
 		if (StringUtils.isNotEmpty(coverage) && !coverage.equalsIgnoreCase("false")) {
-			try {
-				coverageHandler = (CoverageHandler) Class.forName(coverage).newInstance();
-			} catch (Exception e) {
+			if (coverage.equalsIgnoreCase("true")) {
 				coverageHandler = new CoberturaCoverageHandler();
+			} else {
+				try {
+					coverageHandler = (CoverageHandler) Class.forName(coverage).newInstance();
+				} catch (Exception e) {
+					//ignore
+				}
 			}
 		}
 		return coverageHandler;

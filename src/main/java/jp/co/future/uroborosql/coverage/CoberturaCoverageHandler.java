@@ -34,7 +34,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Coberturaカバレッジレポート出力ハンドラ
+ * Coberturaカバレッジレポート出力ハンドラ<br>
+ * Jenkins Cobertura プラグイン で集計することができるレポートファイルを出力します。
+ *
+ * <pre>
+ * デフォルトコンストラクタで生成される場合、レポートファイルの出力先は以下のように決定されます。
+ *
+ * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+ * 指定の無い場合、デフォルトで "./target/coverage/sql-clover.xml" に xmlレポートを出力します。
+ * </pre>
  *
  * @author ota
  */
@@ -44,20 +52,20 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	/**
 	 * カバレッジ数値 line branch セット
 	 */
-	private static class CoverageTotalPack {
-		private final CoverageTotal line = new CoverageTotal();
-		private final CoverageTotal branch = new CoverageTotal();
+	private static class CoverageSummaryTotal {
+		private final CoverageSummary line = new CoverageSummary();
+		private final CoverageSummary branch = new CoverageSummary();
 
-		private void add(CoverageTotalPack pack) {
-			this.line.add(pack.line);
-			this.branch.add(pack.branch);
+		private void add(CoverageSummaryTotal total) {
+			this.line.add(total.line);
+			this.branch.add(total.branch);
 		}
 	}
 
 	/**
 	 * カバレッジ数値
 	 */
-	private static class CoverageTotal {
+	private static class CoverageSummary {
 		private int valid;
 		private int covered;
 
@@ -68,12 +76,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return (double) covered / (double) valid;
 		}
 
-		private void add(CoverageTotal o) {
+		private void add(CoverageSummary o) {
 			this.valid += o.valid;
 			this.covered += o.covered;
 		}
 	}
 
+	/**
+	 * ポイントブランチ情報
+	 */
 	private static class PointBranch {
 		@SuppressWarnings("unused")
 		private final int point;
@@ -86,8 +97,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private void add(BranchCoverageState state) {
 			status.add(state);
 		}
+
+		private int coveredSize() {
+			return BranchCoverageState.getCoveredSize(status);
+		}
 	}
 
+	/**
+	 * 行ブランチ情報
+	 */
 	private static class LineBranch {
 		@SuppressWarnings("unused")
 		private final int rowIndxx;
@@ -109,7 +127,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 		private int coveredSize() {
 			return branches.values().stream()
-					.mapToInt(p -> BranchCoverageState.getCoveredSize(p.status))
+					.mapToInt(p -> p.coveredSize())
 					.sum();
 		}
 	}
@@ -117,21 +135,23 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	/**
 	 * SQL別カバレッジ元情報
 	 */
-	private static class CoverageInfo {
+	private static class SqlCoverage {
 		private final String name;
-		private final String sql;
 		private final String md5;
-		private final Map<Integer, LineBranch> rowBranches = new HashMap<>();
+		/** 各行範囲 */
 		private final List<LineRange> lineRanges;
-		private final int[] hits;
 
-		private CoverageInfo(String name, String sql, String md5, Path sourcesDirPath) throws IOException {
+		/** 各行ブランチカバレッジ情報 */
+		private final Map<Integer, LineBranch> lineBranches = new HashMap<>();
+		/** 各行通過回数 */
+		private final int[] hitLines;
+
+		private SqlCoverage(String name, String sql, String md5, Path sourcesDirPath) throws IOException {
 			this.name = name;
-			this.sql = sql;
 			this.md5 = md5;
 			this.lineRanges = CoverageHandler.buildLineRanges(sql);
-			this.hits = new int[this.lineRanges.size()];
-			writeSqlSource(sourcesDirPath);
+			this.hitLines = new int[this.lineRanges.size()];
+			writeSqlSource(sourcesDirPath, sql);
 		}
 
 		/**
@@ -139,29 +159,37 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		 *
 		 * @param passRoute カバレッジ情報
 		 */
-		private void append(PassedRoute passRoute) {
+		private void accept(PassedRoute passRoute) {
+			//各行の通過情報を集計
 			for (LineRange range : lineRanges) {
 				if (passRoute.isHit(range)) {
-					hits[range.getLineIndex()]++;
+					hitLines[range.getLineIndex()]++;
 				}
 			}
+			//各行のブランチ情報を集計
 			passRoute.getBranchStatus().forEach((idx, state) -> {
-				LineBranch lineBranch = rowBranches.computeIfAbsent(toRow(idx), k -> new LineBranch(k));
+				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(idx), k -> new LineBranch(k));
 				lineBranch.add(idx, state);
 			});
 		}
 
 		private int toRow(int idx) {
-			for (int i = 0; i < lineRanges.size(); i++) {
-				Range range = lineRanges.get(i);
+			for (LineRange range : lineRanges) {
 				if (range.contains(idx)) {
-					return i;
+					return range.getLineIndex();
 				}
 			}
 			return -1;
 		}
 
-		private void writeSqlSource(Path sourcesDirPath) throws IOException {
+		/**
+		 * SQL ファイル書き込み
+		 *
+		 * @param sourcesDirPath ディレクトリ
+		 * @param sql SQL
+		 * @throws IOException IOエラー
+		 */
+		private void writeSqlSource(Path sourcesDirPath, String sql) throws IOException {
 			Path path = sourcesDirPath.resolve(name);
 			Files.createDirectories(path.getParent());
 			Files.write(path, sql.getBytes(StandardCharsets.UTF_8));
@@ -173,25 +201,26 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class PackageSummary {
 		private final String packagePath;
-		private final List<CoverageInfo> coverageInfos = new ArrayList<>();
+		private final List<SqlCoverage> coverageInfos = new ArrayList<>();
 
-		public PackageSummary(String packagePath) {
+		private PackageSummary(String packagePath) {
 			this.packagePath = packagePath;
-		}
-
-		public String getPackagePath() {
-			return packagePath;
 		}
 	}
 
-	private final Map<String, CoverageInfo> map = new ConcurrentHashMap<>();
+	private final Map<String, SqlCoverage> coverages = new ConcurrentHashMap<>();
 	private final Path reportPath;
 	private final Path sourcesDirPath;
 
 	private long lastWriteTime;
 
 	/**
-	 * コンストラクタ
+	 * コンストラクタ<br>
+	 *
+	 * <pre>
+	 * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+	 * 指定の無い場合、デフォルトで "./target/coverage/sql-clover.xml" に xmlレポートを出力します。
+	 * </pre>
 	 */
 	public CoberturaCoverageHandler() {
 		String s = System.getProperty("sql.coverage.file");
@@ -222,19 +251,21 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return;
 		}
 
-		CoverageInfo info = map.get(coverageData.getSqlName());
-		if (info == null || !info.md5.equals(coverageData.getMd5())) {
+		SqlCoverage sqlCoverage = coverages.get(coverageData.getSqlName());
+		if (sqlCoverage == null
+				//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
+				|| !sqlCoverage.md5.equals(coverageData.getMd5())) {
 			try {
-				info = new CoverageInfo(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
+				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath);
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 				return;
 			}
-			map.put(coverageData.getSqlName(), info);
+			coverages.put(coverageData.getSqlName(), sqlCoverage);
 		}
 
-		info.append(coverageData.getPassRoute());
+		sqlCoverage.accept(coverageData.getPassRoute());
 
 		//リアルタイムな書き込みは10秒に1回とする
 		if (lastWriteTime + 10000 < System.currentTimeMillis()) {
@@ -282,14 +313,14 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		coverage.appendChild(packages);
 
 		//packages内のrenderとカバレッジ集計
-		CoverageTotalPack total = renderPackages(document, packages, packageNodes);
+		CoverageSummaryTotal total = renderPackages(document, packages, packageNodes);
 
-		CoverageTotal lines = total.line;
+		CoverageSummary lines = total.line;
 		coverage.setAttribute("lines-valid", String.valueOf(lines.valid));
 		coverage.setAttribute("lines-covered", String.valueOf(lines.covered));
 		coverage.setAttribute("lines-rate", String.valueOf(lines.getRate()));
 
-		CoverageTotal branches = total.branch;
+		CoverageSummary branches = total.branch;
 		coverage.setAttribute("branches-valid", String.valueOf(branches.valid));
 		coverage.setAttribute("branches-covered", String.valueOf(branches.covered));
 		coverage.setAttribute("branches-rate", String.valueOf(branches.getRate()));
@@ -305,31 +336,32 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private List<PackageSummary> summaryPackages() {
 		Map<String, PackageSummary> summaries = new HashMap<>();
 
-		map.forEach((name, c) -> {
+		coverages.forEach((name, c) -> {
 			Path p = Paths.get(name).getParent();
 			String pkg = p != null ? p.toString().replace(File.separatorChar, '.') : "_root_";
 			PackageSummary summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
 			summary.coverageInfos.add(c);
 		});
 		return summaries.values().stream()
-				.sorted(Comparator.comparing(PackageSummary::getPackagePath))
+				.sorted(Comparator.comparing(p -> p.packagePath))
 				.collect(Collectors.toList());
 
 	}
 
-	private CoverageTotalPack renderPackages(Document document, Element packages, List<PackageSummary> packageNodes) {
-		CoverageTotalPack allTotal = new CoverageTotalPack();
+	private CoverageSummaryTotal renderPackages(Document document, Element packages,
+			List<PackageSummary> packageNodes) {
+		CoverageSummaryTotal allTotal = new CoverageSummaryTotal();
 		for (PackageSummary packageNode : packageNodes) {
 
-			CoverageTotalPack total = new CoverageTotalPack();
+			CoverageSummaryTotal total = new CoverageSummaryTotal();
 			Element packageElm = document.createElement("package");
-			packageElm.setAttribute("name", packageNode.getPackagePath());
+			packageElm.setAttribute("name", packageNode.packagePath);
 			packages.appendChild(packageElm);
 
 			Element classes = document.createElement("classes");
 			packageElm.appendChild(classes);
 
-			for (CoverageInfo coverageInfo : packageNode.coverageInfos) {
+			for (SqlCoverage coverageInfo : packageNode.coverageInfos) {
 				//class内のrenderとカバレッジ集計
 				total.add(renderClass(document, classes, coverageInfo));
 			}
@@ -342,9 +374,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		return allTotal;
 	}
 
-	private CoverageTotalPack renderClass(Document document, Element classes, CoverageInfo coverageInfo) {
+	private CoverageSummaryTotal renderClass(Document document, Element classes, SqlCoverage coverageInfo) {
 
-		CoverageTotalPack total = new CoverageTotalPack();
+		CoverageSummaryTotal total = new CoverageSummaryTotal();
 
 		Element classElm = document.createElement("class");
 		classElm.setAttribute("name", coverageInfo.name);
@@ -357,10 +389,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Element lines = document.createElement("lines");
 		classElm.appendChild(lines);
 
-		total.line.valid = coverageInfo.hits.length;
-		for (int i = 0; i < coverageInfo.hits.length; i++) {
+		total.line.valid = coverageInfo.hitLines.length;
+		for (int i = 0; i < coverageInfo.hitLines.length; i++) {
 			int no = i + 1;
-			int hit = coverageInfo.hits[i];
+			int hit = coverageInfo.hitLines[i];
 			if (hit > 0) {
 				total.line.covered++;
 			}
@@ -369,13 +401,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			lines.appendChild(line);
 			line.setAttribute("number", String.valueOf(no));
 			line.setAttribute("hits", String.valueOf(hit));
-			LineBranch lineBranch = coverageInfo.rowBranches.get(i);
+			LineBranch lineBranch = coverageInfo.lineBranches.get(i);
 			if (lineBranch != null) {
 				int size = lineBranch.branchSize();
 				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
 				line.setAttribute("condition-coverage",
-						covered * 100 / 2 + "% (" + covered + "/" + size + ")");
+						covered * 100 / size + "% (" + covered + "/" + size + ")");
 				total.branch.valid += size;
 				total.branch.covered += covered;
 
