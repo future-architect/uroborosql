@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,9 +48,12 @@ public class CoberturaCoverageHandlerTest {
 		Path path = Paths.get("target", "coverage", "test-sql-clover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
-		Field field = AbstractAgent.class.getDeclaredField("coverageHandler");
+		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
-		field.set(null, null);
+		@SuppressWarnings("unchecked")
+		AtomicReference<CoberturaCoverageHandler> ref = (AtomicReference<CoberturaCoverageHandler>) field.get(null);
+		CoberturaCoverageHandler before = ref.get();
+		ref.set(null);
 		System.setProperty("sql.coverage", "true");
 		System.setProperty("sql.coverage.file", "target/coverage/test-sql-clover.xml");
 		try (SqlAgent agent = config.createAgent()) {
@@ -60,13 +64,9 @@ public class CoberturaCoverageHandlerTest {
 
 		}
 
-		//確実に書き込みをする
-		CoberturaCoverageHandler coverageHandler = (CoberturaCoverageHandler) field.get(null);
-		coverageHandler.write();
-
 		assertThat(Files.exists(path), is(true));
 
-		field.set(null, null);
+		ref.set(before);
 		System.clearProperty("sql.coverage.file");
 	}
 
