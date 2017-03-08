@@ -20,7 +20,7 @@ import ognl.OgnlException;
  *
  * @author H.Sugimoto
  */
-public class IfNode extends ContainerNode {
+public class IfNode extends BranchNode {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(IfNode.class);
 
@@ -32,8 +32,6 @@ public class IfNode extends ContainerNode {
 
 	/** ELSEIF句 */
 	private IfNode elseIfNode;
-
-	private boolean accepted = false;
 
 	/**
 	 * コンストラクタ
@@ -116,16 +114,15 @@ public class IfNode extends ContainerNode {
 							: builder.substring(0, builder.length() - 1));
 				}
 			}
+			passState(resultValue);
 			if (resultValue) {
 				super.accept(transformContext);
 				transformContext.setEnabled(true);
-				pass();
 			} else if (elseIfNode != null) {
 				elseIfNode.accept(transformContext);
 			} else if (elseNode != null) {
 				elseNode.accept(transformContext);
 			}
-			accepted = true;
 		} else {
 			throw new IllegalBoolExpressionRuntimeException(expression);
 		}
@@ -138,8 +135,8 @@ public class IfNode extends ContainerNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		passed.append(getPosition(), getState());
-		if (accepted) {
+		passed.appendBranchState(getPosition(), getState());
+		if (isPassed()) {
 			passed.appendHitRange(getPosition(), getPosition() + 1);
 		}
 		super.passed(passed);

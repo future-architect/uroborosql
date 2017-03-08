@@ -3,7 +3,6 @@ package jp.co.future.uroborosql.node;
 import java.util.ArrayList;
 import java.util.List;
 
-import jp.co.future.uroborosql.coverage.CoverageState;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 
 /**
@@ -20,9 +19,9 @@ public abstract class AbstractNode implements Node {
 	private final int position;
 
 	/**
-	 * 保持しているSQLが適用対象となった場合に<code>PASSED</code>となる. SQL文のカバレッジ取得に利用
+	 * 保持しているSQLが適用対象となった場合に<code>true</code>となる. SQL文のカバレッジ取得に利用
 	 */
-	private CoverageState state = CoverageState.FAILED;
+	private boolean passed = false;
 
 	/**
 	 * コンストラクタ
@@ -84,10 +83,11 @@ public abstract class AbstractNode implements Node {
 	}
 
 	protected void pass() {
-		this.state = CoverageState.PASSED;
+		passed = true;
 	}
 
-	protected CoverageState getState() {
-		return state;
+	protected boolean isPassed() {
+		return passed;
 	}
+
 }

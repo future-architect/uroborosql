@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @author ota
  */
 public class PassedRoute {
-	private final Map<Integer, CoverageState> passed = new HashMap<>();
+	private final Map<Integer, BranchCoverageState> passed = new HashMap<>();
 	private final List<Range> hits = new ArrayList<>();
 
 	/**
@@ -22,7 +22,7 @@ public class PassedRoute {
 	 * @param position 分岐出現ポジション（文字index）
 	 * @param state カバレッジ状態
 	 */
-	public void append(int position, CoverageState state) {
+	public void appendBranchState(int position, BranchCoverageState state) {
 		this.passed.put(position, state);
 	}
 
@@ -41,7 +41,7 @@ public class PassedRoute {
 	 *
 	 * @return 分岐情報
 	 */
-	public Map<Integer, CoverageState> getPassed() {
+	public Map<Integer, BranchCoverageState> getBranchStatus() {
 		return passed;
 	}
 

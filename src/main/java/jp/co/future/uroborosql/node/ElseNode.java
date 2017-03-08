@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.coverage.CoverageState;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
@@ -29,7 +28,6 @@ public class ElseNode extends ContainerNode {
 	public void accept(final TransformContext transformContext) {
 		super.accept(transformContext);
 		transformContext.setEnabled(true);
-		pass();
 	}
 
 	/**
@@ -39,8 +37,7 @@ public class ElseNode extends ContainerNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		passed.append(getPosition(), getState());
-		if (getState() == CoverageState.PASSED) {
+		if (isPassed()) {
 			passed.appendHitRange(getPosition(), getPosition() + 3);
 		}
 		super.passed(passed);

@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.coverage.CoverageState;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
@@ -52,7 +51,7 @@ public class SqlNode extends AbstractNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		if (getState() == CoverageState.PASSED) {
+		if (isPassed()) {
 			passed.appendHitRange(getPosition(), getPosition() + sqlPart.length() - 1);
 		}
 		super.passed(passed);

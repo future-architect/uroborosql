@@ -30,6 +30,7 @@ public class ContainerNode extends AbstractNode {
 		for (int i = 0; i < size; i++) {
 			getChild(i).accept(transformContext);
 		}
+		pass();
 	}
 
 	/**

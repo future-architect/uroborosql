@@ -8,7 +8,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
  *
  * @author H.Sugimoto
  */
-public class BeginNode extends ContainerNode {
+public class BeginNode extends BranchNode {
 
 	/**
 	 * コンストラクタ
@@ -32,6 +32,9 @@ public class BeginNode extends ContainerNode {
 			transformContext.addSqlPart(childCtx.getExecutableSql());
 			transformContext.addBindNames(childCtx.getBindNames());
 			transformContext.addBindVariables(childCtx.getBindVariables());
+			passState(true);
+		} else {
+			passState(false);
 		}
 	}
 
@@ -42,7 +45,7 @@ public class BeginNode extends ContainerNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		passed.append(getPosition(), this.getState());
+		passed.appendBranchState(getPosition(), this.getState());
 		super.passed(passed);
 	}
 

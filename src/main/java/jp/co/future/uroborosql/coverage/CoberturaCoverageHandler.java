@@ -77,13 +77,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private static class PointBranch {
 		@SuppressWarnings("unused")
 		private final int point;
-		private final Set<CoverageState> status = EnumSet.noneOf(CoverageState.class);
+		private final Set<BranchCoverageState> status = EnumSet.noneOf(BranchCoverageState.class);
 
 		private PointBranch(int point) {
 			this.point = point;
 		}
 
-		private void add(CoverageState state) {
+		private void add(BranchCoverageState state) {
 			status.add(state);
 		}
 	}
@@ -97,7 +97,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			this.rowIndxx = rowIndxx;
 		}
 
-		private void add(Integer idx, CoverageState state) {
+		private void add(Integer idx, BranchCoverageState state) {
 			PointBranch branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
 
 			branch.add(state);
@@ -109,7 +109,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 		private int coveredSize() {
 			return branches.values().stream()
-					.mapToInt(p -> p.status.size())
+					.mapToInt(p -> BranchCoverageState.getCoveredSize(p.status))
 					.sum();
 		}
 	}
@@ -145,7 +145,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 					hits[range.getLineIndex()]++;
 				}
 			}
-			passRoute.getPassed().forEach((idx, state) -> {
+			passRoute.getBranchStatus().forEach((idx, state) -> {
 				LineBranch lineBranch = rowBranches.computeIfAbsent(toRow(idx), k -> new LineBranch(k));
 				lineBranch.add(idx, state);
 			});
@@ -372,7 +372,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			LineBranch lineBranch = coverageInfo.rowBranches.get(i);
 			if (lineBranch != null) {
 				int size = lineBranch.branchSize();
-				int covered = hit > 0 ? lineBranch.coveredSize() : 0;//そもそ通過していない場合は0
+				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
 				line.setAttribute("condition-coverage",
 						covered * 100 / 2 + "% (" + covered + "/" + size + ")");
