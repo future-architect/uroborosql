@@ -43,17 +43,16 @@ public class AuditLogSqlFilterTest {
 	public static void setUpBeforeClass() throws Exception {
 
 		// DBが作成されていない場合にテーブルを作成する
-		try (Connection conn = DriverManager
-				.getConnection("jdbc:derby:target/db/" + DB_NAME + ";create=true;user=test;password=test")) {
+		try (Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
+				+ ";create=true;user=test;password=test")) {
 			SQLWarning warning = conn.getWarnings();
 			conn.setAutoCommit(false);
 			if (warning == null) {
 				// テーブル作成
 				try (Statement stmt = conn.createStatement()) {
 
-					String[] sqls = new String(
-							Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
-							StandardCharsets.UTF_8).split(";");
+					String[] sqls = new String(Files.readAllBytes(Paths
+							.get("src/test/resources/sql/ddl/create_tables.sql")), StandardCharsets.UTF_8).split(";");
 					for (String sql : sqls) {
 						if (StringUtils.isNotBlank(sql)) {
 							stmt.execute(sql);
@@ -85,8 +84,7 @@ public class AuditLogSqlFilterTest {
 	@Before
 	public void setUp() throws Exception {
 		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=false",
-				"test", "test"));
+				+ ";create=false", "test", "test"));
 
 		SqlFilterManager sqlFilterManager;
 
@@ -120,15 +118,16 @@ public class AuditLogSqlFilterTest {
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteQuery.xls")));
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/select").paramList("product_id", new BigDecimal("0"),
-						new BigDecimal("2")).param("_userName", "testUserName").param("_funcId", "testFunction")
-						.setSqlId("111");
+				SqlContext ctx = agent.contextFrom("example/select")
+						.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+						.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 				ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 				agent.query(ctx);
@@ -143,9 +142,10 @@ public class AuditLogSqlFilterTest {
 	@Test
 	public void testExecuteUpdateFilter() throws Exception {
 		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.CLEAN_INSERT.execute(databaseConnection, new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteUpdate.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				databaseConnection,
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteUpdate.xls")));
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
 				SqlContext ctx = agent.contextFrom("example/selectinsert").setSqlId("222")
@@ -165,34 +165,24 @@ public class AuditLogSqlFilterTest {
 	@Test
 	public void testExecuteBatchFilter() throws Exception {
 		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.TRUNCATE_TABLE.execute(databaseConnection, new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteBatch.xls")));
+		DatabaseOperation.TRUNCATE_TABLE.execute(
+				databaseConnection,
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteBatch.xls")));
 
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/batchinsert")
-						.setSqlId("333")
+				SqlContext ctx = agent.contextFrom("example/batchinsert").setSqlId("333")
 						.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
-						.param("product_kana_name", "ショウヒンメイイチ")
-						.param("jan_code", "1234567890123")
-						.param("product_description", "1番目の商品")
-						.param("ins_datetime", currentDatetime)
-						.param("upd_datetime", currentDatetime)
-						.param("version_no", new BigDecimal(0))
-						.addBatch()
-						.param("product_id", new BigDecimal(2))
-						.param("product_name", "商品名2")
-						.param("product_kana_name", "ショウヒンメイニ")
-						.param("jan_code", "1234567890124")
-						.param("product_description", "2番目の商品")
-						.param("ins_datetime", currentDatetime)
-						.param("upd_datetime", currentDatetime)
-						.param("version_no", new BigDecimal(0))
-						.param("_userName", "testUserName")
-						.param("_funcId", "testFunction")
-						.addBatch();
+						.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
+						.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
+						.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
+						.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
+						.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
+						.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
+						.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0))
+						.param("_userName", "testUserName").param("_funcId", "testFunction").addBatch();
 
 				agent.batch(ctx);
 			}

@@ -122,19 +122,19 @@ public class BindParameterMapperManagerTest {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-				new Class<?>[] { interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
-					if (getOriginal.equals(method)) {
-						return o;
-					}
+		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
+			if (getOriginal.equals(method)) {
+				return o;
+			}
 
-					for (int i = 0; i < args.length; i++) {
-						if (args[i] instanceof ProxyContainer) {
-							args[i] = ((ProxyContainer) args[i]).getOriginal();
-						}
-					}
-					return method.invoke(o, args);
-				});
+			for (int i = 0; i < args.length; i++) {
+				if (args[i] instanceof ProxyContainer) {
+					args[i] = ((ProxyContainer) args[i]).getOriginal();
+				}
+			}
+			return method.invoke(o, args);
+		});
 		return proxyInstance;
 	}
 }

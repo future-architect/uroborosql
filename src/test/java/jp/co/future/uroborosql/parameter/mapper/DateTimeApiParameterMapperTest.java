@@ -44,9 +44,10 @@ public class DateTimeApiParameterMapperTest {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper();
 		assertThat(mapper.toJdbc(OffsetDateTime.from(createDateTime("2000/01/01 10:10:10.010")), null, null),
 				instanceOf(java.sql.Timestamp.class));
-		assertThat(mapper.toJdbc(OffsetDateTime.from(createDateTime("2000/01/01 10:10:10.010"))
-				.withOffsetSameInstant(ZoneOffset.ofHours(0)), null, null),
-				is(createTimestamp("2000/01/01 10:10:10.010")));
+		assertThat(
+				mapper.toJdbc(
+						OffsetDateTime.from(createDateTime("2000/01/01 10:10:10.010")).withOffsetSameInstant(
+								ZoneOffset.ofHours(0)), null, null), is(createTimestamp("2000/01/01 10:10:10.010")));
 	}
 
 	@Test
@@ -54,9 +55,8 @@ public class DateTimeApiParameterMapperTest {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper();
 		assertThat(mapper.toJdbc(createDateTime("2000/01/01 10:10:10.010"), null, null),
 				instanceOf(java.sql.Timestamp.class));
-		assertThat(mapper
-				.toJdbc(createDateTime("2000/01/01 10:10:10.010").withZoneSameInstant(ZoneId.of("Europe/Monaco")),
-						null, null),
+		assertThat(mapper.toJdbc(
+				createDateTime("2000/01/01 10:10:10.010").withZoneSameInstant(ZoneId.of("Europe/Monaco")), null, null),
 				is(createTimestamp("2000/01/01 10:10:10.010")));
 	}
 
@@ -225,26 +225,24 @@ public class DateTimeApiParameterMapperTest {
 	}
 
 	private java.sql.Timestamp createTimestamp(final String s) throws ParseException {
-		Date date = DateUtils.parseDate(s,
-				new String[] { "yyyy/MM/dd HH:mm:ss.SSS", "yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd" });
+		Date date = DateUtils.parseDate(s, new String[] { "yyyy/MM/dd HH:mm:ss.SSS", "yyyy/MM/dd HH:mm:ss",
+				"yyyy/MM/dd" });
 		return new java.sql.Timestamp(date.getTime());
 	}
 
 	private java.sql.Time createTime(final String s) throws ParseException {
-		Date date = DateUtils.parseDate(s,
-				new String[] { "HH:mm:ss.SSS", "HH:mm:ss" });
+		Date date = DateUtils.parseDate(s, new String[] { "HH:mm:ss.SSS", "HH:mm:ss" });
 		return new java.sql.Time(date.getTime());
 	}
 
 	private java.sql.Date createDate(final String s) throws ParseException {
-		Date date = DateUtils.parseDate(s,
-				new String[] { "yyyy/MM/dd" });
+		Date date = DateUtils.parseDate(s, new String[] { "yyyy/MM/dd" });
 		return new java.sql.Date(date.getTime());
 	}
 
 	private ZonedDateTime createDateTime(final String s) throws ParseException {
-		Date date = DateUtils.parseDate(s,
-				new String[] { "yyyy/MM/dd HH:mm:ss.SSS", "yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd" });
+		Date date = DateUtils.parseDate(s, new String[] { "yyyy/MM/dd HH:mm:ss.SSS", "yyyy/MM/dd HH:mm:ss",
+				"yyyy/MM/dd" });
 		return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
 	}
 

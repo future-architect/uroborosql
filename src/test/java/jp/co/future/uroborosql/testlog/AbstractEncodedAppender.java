@@ -115,8 +115,6 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 		super.stop();
 	}
 
-
-
 	private void subAppend(E event) {
 		if (event instanceof DeferredProcessingAware) {
 			((DeferredProcessingAware) event).prepareForDeferredProcessing();
