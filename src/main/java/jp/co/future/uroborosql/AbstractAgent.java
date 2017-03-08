@@ -235,7 +235,7 @@ public abstract class AbstractAgent implements SqlAgent {
 			return coverageHandler;
 		}
 		String coverage = System.getProperty("sql.coverage");
-		if (StringUtils.isNotEmpty(coverage)) {
+		if (StringUtils.isNotEmpty(coverage) && !coverage.equalsIgnoreCase("false")) {
 			try {
 				coverageHandler = (CoverageHandler) Class.forName(coverage).newInstance();
 			} catch (Exception e) {

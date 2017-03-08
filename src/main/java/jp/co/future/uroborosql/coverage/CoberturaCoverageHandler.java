@@ -28,6 +28,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,6 +39,8 @@ import org.w3c.dom.Element;
  * @author ota
  */
 public class CoberturaCoverageHandler implements CoverageHandler {
+	protected static final Logger LOG = LoggerFactory.getLogger(CoberturaCoverageHandler.class);
+
 	/**
 	 * カバレッジ数値 line branch セット
 	 */
@@ -70,6 +74,46 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 	}
 
+	private static class PointBranch {
+		@SuppressWarnings("unused")
+		private final int point;
+		private final Set<CoverageState> status = EnumSet.noneOf(CoverageState.class);
+
+		private PointBranch(int point) {
+			this.point = point;
+		}
+
+		private void add(CoverageState state) {
+			status.add(state);
+		}
+	}
+
+	private static class LineBranch {
+		@SuppressWarnings("unused")
+		private final int rowIndxx;
+		private final Map<Integer, PointBranch> branches = new HashMap<>();
+
+		private LineBranch(int rowIndxx) {
+			this.rowIndxx = rowIndxx;
+		}
+
+		private void add(Integer idx, CoverageState state) {
+			PointBranch branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
+
+			branch.add(state);
+		}
+
+		private int branchSize() {
+			return branches.size() * 2;
+		}
+
+		private int coveredSize() {
+			return branches.values().stream()
+					.mapToInt(p -> p.status.size())
+					.sum();
+		}
+	}
+
 	/**
 	 * SQL別カバレッジ元情報
 	 */
@@ -77,7 +121,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final String name;
 		private final String sql;
 		private final String md5;
-		private final Map<Integer, Set<CoverageState>> rowStatus = new HashMap<>();
+		private final Map<Integer, LineBranch> rowBranches = new HashMap<>();
 		private final List<LineRange> lineRanges;
 		private final int[] hits;
 
@@ -102,7 +146,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				}
 			}
 			passRoute.getPassed().forEach((idx, state) -> {
-				rowStatus.computeIfAbsent(toRow(idx), k -> EnumSet.noneOf(CoverageState.class)).add(state);
+				LineBranch lineBranch = rowBranches.computeIfAbsent(toRow(idx), k -> new LineBranch(k));
+				lineBranch.add(idx, state);
 			});
 		}
 
@@ -183,7 +228,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				info = new CoverageInfo(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath);
 			} catch (IOException e) {
-				//ignore
+				LOG.error(e.getMessage(), e);
 				return;
 			}
 			map.put(coverageData.getSqlName(), info);
@@ -197,7 +242,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				write();
 				lastWriteTime = System.currentTimeMillis();
 			} catch (Exception e) {
-				// ignore
+				LOG.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -208,12 +253,12 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			try {
 				write();
 			} catch (Exception e) {
-				// ignore
+				LOG.error(e.getMessage(), e);
 			}
 		}));
 	}
 
-	private void write() throws IOException, ParserConfigurationException, TransformerException {
+	void write() throws IOException, ParserConfigurationException, TransformerException {
 		List<PackageSummary> packageNodes = summaryPackages();
 
 		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance()
@@ -312,10 +357,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Element lines = document.createElement("lines");
 		classElm.appendChild(lines);
 
+		total.line.valid = coverageInfo.hits.length;
 		for (int i = 0; i < coverageInfo.hits.length; i++) {
 			int no = i + 1;
 			int hit = coverageInfo.hits[i];
-			total.line.valid++;
 			if (hit > 0) {
 				total.line.covered++;
 			}
@@ -324,15 +369,16 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			lines.appendChild(line);
 			line.setAttribute("number", String.valueOf(no));
 			line.setAttribute("hits", String.valueOf(hit));
-			Set<CoverageState> coverageStates = coverageInfo.rowStatus.get(i);
-			if (coverageStates != null) {
-				total.branch.valid++;
+			LineBranch lineBranch = coverageInfo.rowBranches.get(i);
+			if (lineBranch != null) {
+				int size = lineBranch.branchSize();
+				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
 				line.setAttribute("condition-coverage",
-						coverageStates.size() * 100 / 2 + "% (" + coverageStates.size() + "/2)");
-				if (coverageStates.size() >= 2) {
-					total.branch.covered++;
-				}
+						covered * 100 / 2 + "% (" + covered + "/" + size + ")");
+				total.branch.valid += size;
+				total.branch.covered += covered;
+
 			} else {
 				line.setAttribute("branch", "false");
 			}
