@@ -140,7 +140,7 @@ public class SqlREPL {
 	 * @throws Exception 実行時例外
 	 */
 	private void execute() throws Exception {
-		showMessage();
+		showMessage("/message.txt");
 		showProps();
 
 		initialize();
@@ -291,9 +291,14 @@ public class SqlREPL {
 
 		case "HELP":
 			System.out.println("HELP:");
-			showMessage();
+			showMessage("/message.txt");
 
 			return true;
+
+        case "THIS":
+            showMessage("/this.txt");
+
+            return true;
 
 		case "QUERY":
 			if (parts.length >= 2) {
@@ -502,10 +507,10 @@ public class SqlREPL {
 	}
 
 	/**
-	 * ヘルプメッセージの表示
+	 * メッセージの表示
 	 */
-	private void showMessage() {
-		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + "/message.txt";
+	private void showMessage(String path) {
+		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
 			reader.lines().forEach(s -> System.out.println(s));
