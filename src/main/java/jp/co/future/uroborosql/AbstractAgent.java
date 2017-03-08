@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +11,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -19,9 +20,12 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.coverage.CoverageData;
+import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -36,10 +40,7 @@ import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,14 +54,17 @@ public abstract class AbstractAgent implements SqlAgent {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractAgent.class);
 
 	/** SQLカバレッジ用ロガー */
-	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(AbstractAgent.class.getPackage().getName()
-			+ ".coverage");
+	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
+			+ "sql.coverage");
 
 	/** 文字列用関数(OGNLで利用) */
 	protected static final StringFunction STRING_FUNCTION = new StringFunction();
 
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
+
+	/** カバレッジハンドラ */
+	private static AtomicReference<CoverageHandler> coverageHandlerRef;
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -95,17 +99,38 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** SQLを特定するための一意なIDに置換するためのキー */
 	private String keySqlId = "_SQL_ID_";
 
+	static {
+		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
+		// クラス名が指定されている場合はそのクラス名を指定
+		String sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
+		if (sqlCoverageClassName == null || Boolean.FALSE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
+			sqlCoverageClassName = null;
+		} else if (Boolean.TRUE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
+			// trueの場合は、デフォルト値を設定
+			sqlCoverageClassName = AbstractAgent.class.getPackage().getName() + ".coverage.CoberturaCoverageHandler";
+		}
+
+		CoverageHandler handler = null;
+		if (sqlCoverageClassName != null) {
+			try {
+				handler = (CoverageHandler) Class.forName(sqlCoverageClassName).newInstance();
+			} catch (Exception ex) {
+				LOG.warn("CoverageHandlerクラスの生成に失敗しました。クラス名：{}, 原因：{}", sqlCoverageClassName, ex.getMessage());
+			}
+		}
+
+		if (handler != null) {
+			coverageHandlerRef = new AtomicReference<>(handler);
+		}
+	}
+
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param connectionSupplier
-	 *            コネクション供給クラス
-	 * @param sqlManager
-	 *            SQL管理クラス
-	 * @param sqlFilterManager
-	 *            SQLフィルタ管理クラス
-	 * @param defaultProps
-	 *            デフォルト値プロパティ
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param defaultProps デフォルト値プロパティ
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
@@ -179,8 +204,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * SqlContextの設定内容を元にSQLを構築する
 	 *
-	 * @param sqlContext
-	 *            SQLコンテキスト
+	 * @param sqlContext SQLコンテキスト
 	 */
 	protected void transformContext(final SqlContext sqlContext) {
 		String originalSql = sqlContext.getSql();
@@ -211,10 +235,14 @@ public abstract class AbstractAgent implements SqlAgent {
 			SqlParser sqlParser = new SqlParserImpl(originalSql, isRemoveTerminator());
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
-			if (COVERAGE_LOG.isTraceEnabled()) {
+
+			if (coverageHandlerRef != null) {
 				// SQLカバレッジ用のログを出力する
-				COVERAGE_LOG.trace(ToStringBuilder.reflectionToString(new CoverageData(sqlContext.getSqlName(),
-						originalSql, contextTransformer.getPassedRoute()), ToStringStyle.JSON_STYLE));
+				CoverageData coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+						contextTransformer.getPassedRoute());
+				COVERAGE_LOG.trace("{}", coverageData);
+
+				coverageHandlerRef.get().accept(coverageData);
 			}
 		}
 
@@ -223,64 +251,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * カバレッジログ出力用データクラス
-	 *
-	 * @author H.Sugimoto
-	 */
-	private static final class CoverageData {
-		@SuppressWarnings("unused")
-		private final String sqlName;
-		@SuppressWarnings("unused")
-		private final String md5;
-		@SuppressWarnings("unused")
-		private final String passRoute;
-
-		/**
-		 * @param sqlName SQL名
-		 * @param md5 SQLのMD5
-		 * @param coverage
-		 */
-		private CoverageData(final String sqlName, final String originalSql, final String passRoute) {
-			super();
-			this.sqlName = StringEscapeUtils.escapeJson(sqlName);
-			this.md5 = makeMd5(originalSql);
-			this.passRoute = passRoute;
-		}
-
-		/**
-		 * MD5文字列の生成
-		 * @param original 生成元文字列
-		 * @return MD5文字列
-		 */
-		private String makeMd5(final String original) {
-			MessageDigest digest = null;
-			try {
-				digest = MessageDigest.getInstance("MD5");
-				byte[] hash = digest.digest(original.getBytes("UTF-8"));
-				StringBuilder builder = new StringBuilder();
-				for (byte element : hash) {
-					if ((0xff & element) < 0x10) {
-						builder.append("0" + Integer.toHexString((0xff & element)));
-					} else {
-						builder.append(Integer.toHexString((0xff & element)));
-					}
-				}
-				return builder.toString();
-			} catch (Exception ex) {
-				COVERAGE_LOG.error(ex.getMessage(), ex);
-			}
-			return "";
-		}
-
-	}
-
-	/**
 	 * フェッチサイズとクエリタイムアウトをPreparedStatementに設定する
 	 *
-	 * @param preparedStatement
-	 *            PreparedStatement
-	 * @throws SQLException
-	 *             SQL例外
+	 * @param preparedStatement PreparedStatement
+	 * @throws SQLException SQL例外
 	 */
 	protected void applyProperties(final PreparedStatement preparedStatement) throws SQLException {
 		// フェッチサイズ指定
@@ -297,12 +271,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * 例外発生時ハンドラー
 	 *
-	 * @param sqlContext
-	 *            SQLコンテキスト
-	 * @param ex
-	 *            SQL例外
-	 * @throws SQLException
-	 *             SQL例外
+	 * @param sqlContext SQLコンテキスト
+	 * @param ex SQL例外
+	 * @throws SQLException SQL例外
 	 */
 	protected abstract void handleException(SqlContext sqlContext, SQLException ex) throws SQLException;
 
@@ -312,12 +283,14 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#close()
 	 */
 	@Override
-	public abstract void close() throws SQLException;
+	public void close() throws SQLException {
+		if (coverageHandlerRef != null && coverageHandlerRef.get() != null) {
+			coverageHandlerRef.get().onSqlAgentClose();
+		}
+	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * {@link #close()} を呼び出す
+	 * {@inheritDoc} {@link #close()} を呼び出す
 	 *
 	 * @see java.lang.Object#finalize()
 	 */
@@ -518,16 +491,48 @@ public abstract class AbstractAgent implements SqlAgent {
 		return new SqlQueryImpl(this, context);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#update(java.lang.String)
+	 */
 	@Override
 	public SqlUpdate update(final String sqlName) {
 		SqlContext context = contextFrom(sqlName);
 		return new SqlUpdateImpl(this, context);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#updateWith(java.lang.String)
+	 */
 	@Override
 	public SqlUpdate updateWith(final String sql) {
 		SqlContext context = contextWith(sql);
 		return new SqlUpdateImpl(this, context);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#proc(java.lang.String)
+	 */
+	@Override
+	public Procedure proc(final String sqlName) {
+		SqlContext context = contextFrom(sqlName);
+		return new ProcedureImpl(this, context);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#procWith(java.lang.String)
+	 */
+	@Override
+	public Procedure procWith(final String sql) {
+		SqlContext context = contextWith(sql);
+		return new ProcedureImpl(this, context);
 	}
 
 	/**
@@ -602,8 +607,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * SQL実行をリトライするSQLエラーコードのリスト を設定します
 	 *
-	 * @param sqlRetryCodes
-	 *            SQL実行をリトライするSQLエラーコードのリスト
+	 * @param sqlRetryCodes SQL実行をリトライするSQLエラーコードのリスト
 	 */
 	public void setSqlRetryCodes(final List<String> sqlRetryCodes) {
 		this.sqlRetryCodes = sqlRetryCodes;
@@ -621,8 +625,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * 最大リトライ回数 を設定します
 	 *
-	 * @param maxRetryCount
-	 *            最大リトライ回数
+	 * @param maxRetryCount 最大リトライ回数
 	 */
 	public void setMaxRetryCount(final int maxRetryCount) {
 		this.maxRetryCount = maxRetryCount;
@@ -640,8 +643,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * リトライタイムアウト時間(ms) を設定します
 	 *
-	 * @param retryWaitTime
-	 *            リトライタイムアウト時間(ms)
+	 * @param retryWaitTime リトライタイムアウト時間(ms)
 	 */
 	public void setRetryWaitTime(final int retryWaitTime) {
 		this.retryWaitTime = retryWaitTime;
@@ -758,7 +760,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
+		 *      java.sql.SQLType)
 		 */
 		@Override
 		public SqlQuery inOutParam(final String paramName, final Object value, final SQLType sqlType) {
@@ -879,11 +882,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 */
 		@Override
 		public Map<String, Object> first(final CaseFormat caseFormat) throws DataNotFoundException, SQLException {
-			List<Map<String, Object>> ans = collect(caseFormat);
-			if (ans.isEmpty()) {
-				throw new DataNotFoundException("query result is empty.");
-			}
-			return ans.get(0);
+			Optional<Map<String, Object>> first = stream(new MapResultSetConverter(caseFormat)).findFirst();
+			return first.orElseThrow(() -> new DataNotFoundException("query result is empty."));
 		}
 
 		/**
@@ -905,6 +905,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		public List<Map<String, Object>> collect() throws SQLException {
 			return collect(CaseFormat.SnakeCase);
 		}
+
 	}
 
 	/**
@@ -1020,7 +1021,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
+		 *      java.sql.SQLType)
 		 */
 		@Override
 		public SqlUpdate inOutParam(final String paramName, final Object value, final SQLType sqlType) {
@@ -1097,7 +1099,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#addBatch()
+		 * @see jp.co.future.uroborosql.fluent.SqlUpdate#addBatch()
 		 */
 		@Override
 		public SqlUpdate addBatch() {
@@ -1132,6 +1134,203 @@ public abstract class AbstractAgent implements SqlAgent {
 			return agent.batch(context);
 		}
 
+	}
+
+	/**
+	 * Procedure実装
+	 *
+	 * @author H.Sugimoto
+	 */
+	private final class ProcedureImpl implements Procedure {
+		private final SqlAgent agent;
+		private final SqlContext context;
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param agent SqlAgent
+		 * @param context SqlContext
+		 */
+		private ProcedureImpl(final SqlAgent agent, final SqlContext context) {
+			this.agent = agent;
+			this.context = context;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
+		 */
+		@Override
+		public Procedure paramList(final String paramName, final Object... value) {
+			context.paramList(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
+		 */
+		@Override
+		public Procedure param(final String paramName, final Object value, final int sqlType) {
+			context.param(paramName, value, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 */
+		@Override
+		public Procedure param(final String paramName, final Object value, final SQLType sqlType) {
+			context.param(paramName, value, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
+		 */
+		@Override
+		public Procedure param(final String paramName, final Object value) {
+			context.param(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
+		 */
+		@Override
+		public Procedure param(final Parameter param) {
+			context.param(param);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
+		 */
+		@Override
+		public Procedure outParam(final String paramName, final int sqlType) {
+			context.outParam(paramName, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
+		 */
+		@Override
+		public Procedure outParam(final String paramName, final SQLType sqlType) {
+			context.outParam(paramName, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
+		 */
+		@Override
+		public Procedure inOutParam(final String paramName, final Object value, final int sqlType) {
+			context.inOutParam(paramName, value, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
+		 *      java.sql.SQLType)
+		 */
+		@Override
+		public Procedure inOutParam(final String paramName, final Object value, final SQLType sqlType) {
+			context.inOutParam(paramName, value, sqlType);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
+		 */
+		@Override
+		public Procedure characterStreamParam(final String paramName, final Reader value, final int len) {
+			context.characterStreamParam(paramName, value, len);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
+		 */
+		@Override
+		public Procedure characterStreamParam(final String paramName, final Reader value) {
+			context.characterStreamParam(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
+		 */
+		@Override
+		public Procedure binaryStreamParam(final String paramName, final InputStream value, final int len) {
+			context.binaryStreamParam(paramName, value, len);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
+		 */
+		@Override
+		public Procedure binaryStreamParam(final String paramName, final InputStream value) {
+			context.binaryStreamParam(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
+		 */
+		@Override
+		public Procedure asciiStreamParam(final String paramName, final InputStream value, final int len) {
+			context.asciiStreamParam(paramName, value, len);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
+		 */
+		@Override
+		public Procedure asciiStreamParam(final String paramName, final InputStream value) {
+			context.asciiStreamParam(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.Procedure#call()
+		 */
+		@Override
+		public Map<String, Object> call() throws SQLException {
+			return agent.procedure(context);
+		}
 	}
 
 }

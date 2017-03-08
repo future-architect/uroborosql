@@ -19,20 +19,24 @@ public class EmbeddedValueNode extends ExpressionNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param position 開始位置
 	 * @param expression 評価式
+	 * @param tokenValue トークン上の値
 	 */
-	public EmbeddedValueNode(final String expression) {
-		this(expression, false);
+	public EmbeddedValueNode(final int position, final String expression, final String tokenValue) {
+		this(position, expression, false, tokenValue);
 	}
 
 	/**
 	 * コンストラクタ
 	 *
+	 * @param position 開始位置
 	 * @param expression 評価式
 	 * @param wrap シングルクォートで囲むかどうか
+	 * @param tokenValue トークン上の値
 	 */
-	public EmbeddedValueNode(final String expression, final boolean wrap) {
-		super(expression);
+	public EmbeddedValueNode(final int position, final String expression, final boolean wrap, final String tokenValue) {
+		super(position, expression, tokenValue);
 		this.wrap = wrap;
 	}
 
@@ -47,20 +51,20 @@ public class EmbeddedValueNode extends ExpressionNode {
 
 		if (value != null) {
 			if (wrap) {
-				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#")
-						.addSqlPart(expression).addSqlPart("*/");
-			} else {
-				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression)
+				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#").addSqlPart(expression)
 						.addSqlPart("*/");
+			} else {
+				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression).addSqlPart("*/");
 			}
 		} else {
 			transformContext.addSqlPart(null);
 		}
-		state = CoverageState.PASSED;
+		pass();
 	}
 
 	/**
 	 * 値の中の"'"を"''"に置換します
+	 *
 	 * @param obj 値
 	 * @return 値を文字列に変換後、"'"を"''"に置換した文字列
 	 */

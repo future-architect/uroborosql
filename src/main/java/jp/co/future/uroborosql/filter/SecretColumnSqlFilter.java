@@ -378,7 +378,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 * 変換の名前を取得する
 	 * 標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。
 	 * 初期値は<code>AES/ECB/PKCS5Padding</code>
-     *
+	 *
 	 * @return 変換の名前
 	 */
 	public String getTransformationType() {

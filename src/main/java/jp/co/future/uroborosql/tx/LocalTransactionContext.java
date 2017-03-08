@@ -106,8 +106,7 @@ class LocalTransactionContext implements AutoCloseable {
 
 		int pos = savepointNames.lastIndexOf(savepointName);
 		if (pos > -1) {
-			List<String> subList = savepointNames.subList(pos,
-					savepointNames.size());
+			List<String> subList = savepointNames.subList(pos, savepointNames.size());
 			for (String name : subList) {
 				savepointMap.remove(name);
 			}

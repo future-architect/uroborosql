@@ -105,8 +105,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doPreparedStatement(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement)
 	 */
 	@Override
-	public PreparedStatement doPreparedStatement(final SqlContext sqlContext,
-			final PreparedStatement preparedStatement)
+	public PreparedStatement doPreparedStatement(final SqlContext sqlContext, final PreparedStatement preparedStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return preparedStatement;
@@ -124,8 +123,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doCallableStatement(jp.co.future.uroborosql.context.SqlContext, java.sql.CallableStatement)
 	 */
 	@Override
-	public CallableStatement doCallableStatement(final SqlContext sqlContext,
-			final CallableStatement callableStatement)
+	public CallableStatement doCallableStatement(final SqlContext sqlContext, final CallableStatement callableStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return callableStatement;
@@ -161,8 +159,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int result) {
+	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
@@ -179,8 +176,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int[] result) {
+	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
 		if (getFilters().isEmpty()) {
 			return result;
 		}

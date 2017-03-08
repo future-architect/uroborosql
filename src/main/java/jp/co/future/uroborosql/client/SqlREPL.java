@@ -295,10 +295,10 @@ public class SqlREPL {
 
 			return true;
 
-        case "THIS":
-            showMessage("/this.txt");
+		case "THIS":
+			showMessage("/this.txt");
 
-            return true;
+			return true;
 
 		case "QUERY":
 			if (parts.length >= 2) {

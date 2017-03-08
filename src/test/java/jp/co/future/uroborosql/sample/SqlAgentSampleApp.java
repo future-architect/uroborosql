@@ -70,8 +70,7 @@ public class SqlAgentSampleApp {
 	 * @return
 	 * @throws SQLException SQL例外
 	 */
-	public List<Map<String, Object>> query(final String sqlName, final Map<String, Object> params)
-			throws SQLException {
+	public List<Map<String, Object>> query(final String sqlName, final Map<String, Object> params) throws SQLException {
 
 		List<Map<String, Object>> ans = new ArrayList<>();
 

@@ -51,17 +51,16 @@ public class SqlAgentTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		// DBが作成されていない場合にテーブルを作成する
-		try (Connection conn = DriverManager
-				.getConnection("jdbc:derby:target/db/" + DB_NAME + ";create=true;user=test;password=test")) {
+		try (Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
+				+ ";create=true;user=test;password=test")) {
 			SQLWarning warning = conn.getWarnings();
 			conn.setAutoCommit(false);
 			if (warning == null) {
 				// テーブル作成
 				try (Statement stmt = conn.createStatement()) {
 
-					String[] sqls = new String(
-							Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
-							StandardCharsets.UTF_8).split(";");
+					String[] sqls = new String(Files.readAllBytes(Paths
+							.get("src/test/resources/sql/ddl/create_tables.sql")), StandardCharsets.UTF_8).split(";");
 					for (String sql : sqls) {
 						if (StringUtils.isNotBlank(sql)) {
 							stmt.execute(sql);
@@ -94,8 +93,7 @@ public class SqlAgentTest {
 	@Before
 	public void setUp() throws Exception {
 		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=false;",
-				"test", "test"));
+				+ ";create=false;", "test", "test"));
 	}
 
 	@After
@@ -127,16 +125,16 @@ public class SqlAgentTest {
 	@Test
 	public void testQuery() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			List<BigDecimal> productIdList = new ArrayList<>();
 			productIdList.add(new BigDecimal("0"));
 			productIdList.add(new BigDecimal("2"));
-			SqlContext ctx = agent.contextFrom("example/select")
-					.param("product_id", productIdList)
+			SqlContext ctx = agent.contextFrom("example/select").param("product_id", productIdList)
 					.setSqlId("test_sql_id");
 
 			ResultSet rs = agent.query(ctx);
@@ -157,9 +155,10 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryFilter() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		SqlFilterManager manager = config.getSqlFilterManager();
 		WrapContextSqlFilter filter = new WrapContextSqlFilter("",
@@ -171,8 +170,8 @@ public class SqlAgentTest {
 		try (SqlAgent agent = config.createAgent()) {
 
 			SqlContext ctx = agent.contextFrom("example/select")
-					.paramList("product_id", new BigDecimal("0"), new BigDecimal("1"))
-					.param("startRowIndex", 0).param("maxRowCount", 1);
+					.paramList("product_id", new BigDecimal("0"), new BigDecimal("1")).param("startRowIndex", 0)
+					.param("maxRowCount", 1);
 
 			ResultSet rs = agent.query(ctx);
 			assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -192,13 +191,13 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryArray() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
-			SqlContext ctx = agent.contextFrom("example/select")
-					.paramList("product_id", 0, 1, 2, 3);
+			SqlContext ctx = agent.contextFrom("example/select").paramList("product_id", 0, 1, 2, 3);
 
 			ResultSet rs = agent.query(ctx);
 			assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -217,9 +216,10 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryFluentArray() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			ResultSet rs = agent.query("example/select").paramList("product_id", 0, 1, 2, 3).resultSet();
@@ -239,15 +239,36 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryFluentCollect() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
-			List<Map<String, Object>> ans = agent.query("example/select").paramList("product_id", 0, 1, 2, 3)
-					.collect();
+			List<Map<String, Object>> ans = agent.query("example/select").paramList("product_id", 0, 1, 2, 3).collect();
 			assertEquals("結果の件数が一致しません。", 2, ans.size());
 			Map<String, Object> map = ans.get(0);
+			assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
+			assertEquals("商品名0", map.get("PRODUCT_NAME"));
+			assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
+			assertEquals("1234567890123", map.get("JAN_CODE"));
+			assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		}
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirst() throws Exception {
+		// 事前条件
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+
+		try (SqlAgent agent = config.createAgent()) {
+			Map<String, Object> map = agent.query("example/select").paramList("product_id", 0, 1, 2, 3).first();
 			assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 			assertEquals("商品名0", map.get("PRODUCT_NAME"));
 			assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
@@ -262,9 +283,10 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryLamda() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			SqlContext ctx = agent.contextFrom("example/select");
@@ -302,9 +324,10 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryFluentLamda() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			Stream<Map<String, Object>> stream = agent.query("example/select").paramList("product_id", 0, 1).stream();
@@ -328,9 +351,10 @@ public class SqlAgentTest {
 	@Test
 	public void testQueryMapResuletSetConverter() throws Exception {
 		// 事前条件
-		DatabaseOperation.CLEAN_INSERT.execute(getDatabeseConnection(), new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			SqlContext ctx = agent.contextFrom("example/select");
@@ -374,9 +398,10 @@ public class SqlAgentTest {
 	public void testExecuteUpdate() throws Exception {
 		// 事前条件
 		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.CLEAN_INSERT.execute(databaseConnection, new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteUpdate.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				databaseConnection,
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteUpdate.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			SqlContext ctx = agent.contextFrom("example/selectinsert")
@@ -408,9 +433,10 @@ public class SqlAgentTest {
 	public void testUpdateFluent() throws Exception {
 		// 事前条件
 		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.CLEAN_INSERT.execute(databaseConnection, new XlsDataSet(Thread.currentThread()
-				.getContextClassLoader()
-				.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteUpdate.xls")));
+		DatabaseOperation.CLEAN_INSERT.execute(
+				databaseConnection,
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteUpdate.xls")));
 
 		try (SqlAgent agent = config.createAgent()) {
 			int updateCount = agent.update("example/selectinsert")
@@ -446,24 +472,15 @@ public class SqlAgentTest {
 		try (SqlAgent agent = config.createAgent()) {
 			Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
-			SqlContext ctx = agent.contextFrom("example/batchinsert")
-					.param("product_id", new BigDecimal(1))
-					.param("product_name", "商品名1")
-					.param("product_kana_name", "ショウヒンメイイチ")
-					.param("jan_code", "1234567890123")
-					.param("product_description", "1番目の商品")
-					.param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0))
-					.addBatch()
-					.param("product_id", new BigDecimal(2))
-					.param("product_name", "商品名2")
-					.param("product_kana_name", "ショウヒンメイニ")
-					.param("jan_code", "1234567890124")
-					.param("product_description", "2番目の商品")
-					.param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime)
-					.param("version_no", new BigDecimal(0))
-					.addBatch();
+			SqlContext ctx = agent.contextFrom("example/batchinsert").param("product_id", new BigDecimal(1))
+					.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
+					.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
+					.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0)).addBatch().param("product_id", new BigDecimal(2))
+					.param("product_name", "商品名2").param("product_kana_name", "ショウヒンメイニ")
+					.param("jan_code", "1234567890124").param("product_description", "2番目の商品")
+					.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0)).addBatch();
 
 			int[] count = agent.batch(ctx);
 			assertEquals("データの登録件数が不正です。", 2, count.length);
@@ -497,24 +514,14 @@ public class SqlAgentTest {
 		// 処理実行
 		try (SqlAgent agent = config.createAgent()) {
 			Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
-			SqlContext ctx = agent.contextFrom("example/batchinsert")
-					.param("product_id", new BigDecimal(1))
-					.param("product_name", null)
-					.param("product_kana_name", null)
-					.param("jan_code", "1234567890123")
-					.param("product_description", "1番目の商品")
-					.param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0))
-					.addBatch()
-					.param("product_id", new BigDecimal(2))
-					.param("product_name", "商品名2")
-					.param("product_kana_name", "ショウヒンメイニ")
-					.param("jan_code", "1234567890124")
-					.param("product_description", "2番目の商品")
-					.param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime)
-					.param("version_no", new BigDecimal(0))
-					.addBatch();
+			SqlContext ctx = agent.contextFrom("example/batchinsert").param("product_id", new BigDecimal(1))
+					.param("product_name", null).param("product_kana_name", null).param("jan_code", "1234567890123")
+					.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
+					.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
+					.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
+					.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 			int[] count = agent.batch(ctx);
 			assertEquals("データの登録件数が不正です。", 2, count.length);

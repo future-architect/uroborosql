@@ -56,8 +56,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @param defaultProps 初期化用プロパティ
 	 */
 	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager,
-			final Map<String, String> defaultProps) {
+			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
 		super(connectionSupplier, sqlManager, sqlFilterManager, defaultProps);
 		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean.parseBoolean(defaultProps
@@ -151,8 +150,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL検索前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL検索前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -160,8 +158,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL検索後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL検索後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -171,28 +168,28 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, jp.co.future.uroborosql.converter.ResultSetConverter)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		ResultSet rs = query(sqlContext);
 
-		Stream<T> stream = StreamSupport.stream(
-				new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED) {
-
-					@Override
-					public boolean tryAdvance(final Consumer<? super T> action) {
-						try {
-							if (!rs.next()) {
-								return false;
-							}
-							action.accept(converter.createRecord(rs));
-							return true;
-						} catch (Exception ex) {
-							return false;
-						}
+		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
+				Spliterator.ORDERED) {
+			@Override
+			public boolean tryAdvance(final Consumer<? super T> action) {
+				try {
+					if (!rs.next()) {
+						return false;
 					}
-				}, false);
+					action.accept(converter.createRecord(rs));
+					return true;
+				} catch (Exception ex) {
+					return false;
+				}
+			}
+		}, false);
 
 		return stream;
 	}
@@ -200,7 +197,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, jp.co.future.uroborosql.utils.CaseFormat)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 *      jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
@@ -294,8 +292,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL更新前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL更新前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -303,8 +300,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL更新後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL更新後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -395,8 +391,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQLバッチ前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQLバッチ前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -404,8 +399,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQLバッチ処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQLバッチ処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -454,8 +448,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					getSqlFilterManager().doProcedure(sqlContext, callableStatement,
-							callableStatement.execute());
+					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					break;
 				} catch (SQLException ex) {
@@ -497,8 +490,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * ストプロ実行前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * ストプロ実行前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -507,8 +499,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * ストプロ実行後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * ストプロ実行後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -518,7 +509,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.SqlContext, java.sql.SQLException)
+	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.SqlContext,
+	 *      java.sql.SQLException)
 	 */
 	@Override
 	protected void handleException(final SqlContext sqlContext, final SQLException ex) throws SQLException {
@@ -589,7 +581,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			connection = getConnection();
 		}
 		closeCallableStatement();
-		callableStatement = getSqlFilterManager().doCallableStatement(sqlContext,
+		callableStatement = getSqlFilterManager().doCallableStatement(
+				sqlContext,
 				connection.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
 						sqlContext.getResultSetConcurrency()));
 
@@ -609,8 +602,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * 例外発生時のログ出力を行うかどうかを設定します。
 	 *
-	 * @param outputExceptionLog
-	 *            例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
+	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
 	 */
 	protected void setOutputExceptionLog(final boolean outputExceptionLog) {
 		this.outputExceptionLog = outputExceptionLog;
@@ -624,6 +616,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		closePreparedStatement();
 		closeCallableStatement();
 		transactionManager.close();
+		super.close();
 	}
 
 	/**

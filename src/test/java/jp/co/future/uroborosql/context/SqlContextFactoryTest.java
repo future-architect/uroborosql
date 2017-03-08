@@ -40,8 +40,7 @@ public class SqlContextFactoryTest {
 		sqlContextFactory.initialize();
 
 		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
-		Set<String> set = constParameterMap.entrySet().stream()
-				.map(e -> e.getKey() + "=" + e.getValue().getValue())
+		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
 		assertThat(set, is(new HashSet<>(Arrays.asList("CLS_INT=1", "CLS_STRING=AAA"))));
@@ -55,20 +54,15 @@ public class SqlContextFactoryTest {
 		sqlContextFactory.initialize();
 
 		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
-		Set<String> set = constParameterMap.entrySet().stream()
-				.map(e -> e.getKey() + "=" + e.getValue().getValue())
+		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
-		assertThat(set, is(new HashSet<>(Arrays.asList(
-				"CLS_TEST_ENUM1_A=A",
-				"CLS_TEST_ENUM1_B=B",
-				"CLS_TEST_ENUM1_C=C",
-				"CLS_PACKTEST_TEST_ENUM2_D=D",
-				"CLS_PACKTEST_TEST_ENUM2_E=E",
-				"CLS_PACKTEST_TEST_ENUM2_F=F",
-				"CLS_PACKTEST_TEST_ENUM2_INNER_G=G",
-				"CLS_PACKTEST_TEST_ENUM2_INNER_H=H",
-				"CLS_PACKTEST_TEST_ENUM2_INNER_I=I"))));
+		assertThat(
+				set,
+				is(new HashSet<>(Arrays.asList("CLS_TEST_ENUM1_A=A", "CLS_TEST_ENUM1_B=B", "CLS_TEST_ENUM1_C=C",
+						"CLS_PACKTEST_TEST_ENUM2_D=D", "CLS_PACKTEST_TEST_ENUM2_E=E", "CLS_PACKTEST_TEST_ENUM2_F=F",
+						"CLS_PACKTEST_TEST_ENUM2_INNER_G=G", "CLS_PACKTEST_TEST_ENUM2_INNER_H=H",
+						"CLS_PACKTEST_TEST_ENUM2_INNER_I=I"))));
 
 		for (Parameter parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));
@@ -83,16 +77,13 @@ public class SqlContextFactoryTest {
 		sqlContextFactory.initialize();
 
 		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
-		Set<String> set = constParameterMap.entrySet().stream()
-				.map(e -> e.getKey() + "=" + e.getValue().getValue())
+		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
-		assertThat(set, is(new HashSet<>(Arrays.asList(
-				"CLS_LEVEL_ERROR=ERROR",
-				"CLS_LEVEL_DEBUG=DEBUG",
-				"CLS_LEVEL_WARN=WARN",
-				"CLS_LEVEL_TRACE=TRACE",
-				"CLS_LEVEL_INFO=INFO"))));
+		assertThat(
+				set,
+				is(new HashSet<>(Arrays.asList("CLS_LEVEL_ERROR=ERROR", "CLS_LEVEL_DEBUG=DEBUG", "CLS_LEVEL_WARN=WARN",
+						"CLS_LEVEL_TRACE=TRACE", "CLS_LEVEL_INFO=INFO"))));
 		for (Parameter parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));
 		}

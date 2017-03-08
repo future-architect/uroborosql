@@ -144,8 +144,7 @@ public class Parameter {
 				parameterLog(parameterIndex);
 				parameterIndex++;
 			}
-		} else if (value != null && value.getClass().isArray()
-				&& !parameterMapperManager.existsArrayMapper(value)//マッピング対象のArrayはここで処理しない
+		} else if (value != null && value.getClass().isArray() && !parameterMapperManager.existsArrayMapper(value)//マッピング対象のArrayはここで処理しない
 		) {
 			int length = Array.getLength(value);
 			for (int i = 0; i < length; i++) {
@@ -245,9 +244,7 @@ public class Parameter {
 	 * @throws SQLException SQL例外
 	 */
 	private void setParameterObject(final PreparedStatement preparedStatement, final int parameterIndex,
-			final Object param,
-			final BindParameterMapperManager parameterMapperManager)
-			throws SQLException {
+			final Object param, final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		//JDBCの受け付ける型に変換
 		Object jdbcParam = parameterMapperManager.toJdbc(param, preparedStatement.getConnection());
 		if (Objects.equals(sqlType, SQL_TYPE_NOT_SET)) {

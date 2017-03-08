@@ -565,8 +565,7 @@ public class SecretResultSet implements ResultSet {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getObject(final String columnLabel, final Class<T> type)
-			throws SQLException {
+	public <T> T getObject(final String columnLabel, final Class<T> type) throws SQLException {
 		T val = wrapped.getObject(columnLabel, type);
 		if (cryptColumnNames.contains(columnLabel.toUpperCase()) && val instanceof String) {
 			return (T) decode(val);

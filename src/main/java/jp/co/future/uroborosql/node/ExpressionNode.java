@@ -1,12 +1,13 @@
 package jp.co.future.uroborosql.node;
 
+import org.apache.commons.lang3.StringUtils;
+
+import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 import ognl.Ognl;
 import ognl.OgnlException;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 値の評価を行うノードの親クラス
@@ -17,13 +18,20 @@ public abstract class ExpressionNode extends AbstractNode {
 	/** 評価式 */
 	protected final String expression;
 
+	/** トークン上の値 */
+	private final String tokenValue;
+
 	/**
 	 * 評価を行うノード
 	 *
+	 * @param position 開始位置
 	 * @param expression 評価式
+	 * @param tokenValue トークン上の値
 	 */
-	protected ExpressionNode(final String expression) {
+	protected ExpressionNode(final int position, final String expression, final String tokenValue) {
+		super(position);
 		this.expression = expression;
+		this.tokenValue = tokenValue;
 	}
 
 	/**
@@ -79,9 +87,32 @@ public abstract class ExpressionNode extends AbstractNode {
 
 	/**
 	 * 評価式の取得
+	 *
 	 * @return 評価式
 	 */
 	public final String getExpression() {
 		return expression;
+	}
+
+	/**
+	 * トークン上の値の取得
+	 *
+	 * @return トークン上の値
+	 */
+	public String getTokenValue() {
+		return tokenValue;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#passed(PassedRoute)
+	 */
+	@Override
+	public void passed(final PassedRoute passed) {
+		if (isPassed()) {
+			passed.appendHitRange(getPosition(), getPosition() + expression.length() - 1);
+		}
+		super.passed(passed);
 	}
 }

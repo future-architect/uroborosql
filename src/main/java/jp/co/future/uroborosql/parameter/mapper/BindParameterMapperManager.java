@@ -16,16 +16,10 @@ public final class BindParameterMapperManager {
 	private final List<BindParameterMapper<?>> mappers;
 
 	/** デフォルトMapper */
-	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = {
-			new DateParameterMapper(),
-			new DateTimeApiParameterMapper(),
-			new BigIntegerParameterMapper(),
-			new EnumParameterMapper(),
-			new OptionalParameterMapper(),
-			new OptionalIntParameterMapper(),
-			new OptionalLongParameterMapper(),
-			new OptionalDoubleParameterMapper(),
-	};
+	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = { new DateParameterMapper(),
+			new DateTimeApiParameterMapper(), new BigIntegerParameterMapper(), new EnumParameterMapper(),
+			new OptionalParameterMapper(), new OptionalIntParameterMapper(), new OptionalLongParameterMapper(),
+			new OptionalDoubleParameterMapper(), };
 
 	/**
 	 * コンストラクタ
@@ -79,25 +73,15 @@ public final class BindParameterMapperManager {
 			}
 		}
 
-		if (object instanceof Boolean
-				|| object instanceof Byte
-				|| object instanceof Short
-				|| object instanceof Integer
-				|| object instanceof Long
-				|| object instanceof Float
-				|| object instanceof Double
-				|| object instanceof BigDecimal
-				|| object instanceof String
+		if (object instanceof Boolean || object instanceof Byte || object instanceof Short || object instanceof Integer
+				|| object instanceof Long || object instanceof Float || object instanceof Double
+				|| object instanceof BigDecimal || object instanceof String
 
 				|| object instanceof byte[]
 
-				|| object instanceof java.sql.Date
-				|| object instanceof java.sql.Time
-				|| object instanceof java.sql.Timestamp
-				|| object instanceof java.sql.Array
-				|| object instanceof java.sql.Ref
-				|| object instanceof java.sql.Blob
-				|| object instanceof java.sql.Clob
+				|| object instanceof java.sql.Date || object instanceof java.sql.Time
+				|| object instanceof java.sql.Timestamp || object instanceof java.sql.Array
+				|| object instanceof java.sql.Ref || object instanceof java.sql.Blob || object instanceof java.sql.Clob
 				|| object instanceof java.sql.SQLXML
 
 				|| object instanceof java.sql.Struct) {

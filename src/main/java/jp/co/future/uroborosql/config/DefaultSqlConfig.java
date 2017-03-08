@@ -97,8 +97,7 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param schema JDBCスキーマ名
 	 * @return SqlConfigオブジェクト
 	 */
-	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema) {
+	public static SqlConfig getConfig(final String url, final String user, final String password, final String schema) {
 		return getConfig(url, user, password, schema, false, false, null);
 	}
 
@@ -112,8 +111,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param loadPath SQLファイルの読み込みルートパス
 	 * @return SqlConfigオブジェクト
 	 */
-	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema, final String loadPath) {
+	public static SqlConfig getConfig(final String url, final String user, final String password, final String schema,
+			final String loadPath) {
 		return getConfig(url, user, password, schema, false, false, loadPath);
 	}
 
@@ -128,8 +127,7 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param readOnly 参照のみかどうか. 参照のみの場合<code>true</code>
 	 * @return SqlConfigオブジェクト
 	 */
-	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema,
+	public static SqlConfig getConfig(final String url, final String user, final String password, final String schema,
 			final boolean autoCommit, final boolean readOnly) {
 		return new DefaultSqlConfig(new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit, readOnly),
 				null);
@@ -147,8 +145,7 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @param loadPath SQLファイルの読み込みルートパス
 	 * @return SqlConfigオブジェクト
 	 */
-	public static SqlConfig getConfig(final String url, final String user, final String password,
-			final String schema,
+	public static SqlConfig getConfig(final String url, final String user, final String password, final String schema,
 			final boolean autoCommit, final boolean readOnly, final String loadPath) {
 		return new DefaultSqlConfig(new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit, readOnly),
 				loadPath);

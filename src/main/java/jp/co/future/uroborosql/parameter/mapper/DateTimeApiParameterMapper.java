@@ -31,29 +31,21 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	/**
 	 * 標準時間フィールド群
 	 */
-	private static final ChronoField[] STANDARD_TARGET = {
-			ChronoField.MILLI_OF_SECOND,
-			ChronoField.SECOND_OF_MINUTE,
-			ChronoField.MINUTE_OF_HOUR,
-			ChronoField.HOUR_OF_DAY,
-			ChronoField.DAY_OF_MONTH,
-			ChronoField.MONTH_OF_YEAR,
-			ChronoField.YEAR,
-	};
+	private static final ChronoField[] STANDARD_TARGET = { ChronoField.MILLI_OF_SECOND, ChronoField.SECOND_OF_MINUTE,
+			ChronoField.MINUTE_OF_HOUR, ChronoField.HOUR_OF_DAY, ChronoField.DAY_OF_MONTH, ChronoField.MONTH_OF_YEAR,
+			ChronoField.YEAR, };
 
 	/**
 	 * 日付対象時間フィールド群
 	 */
 	private static final ChronoField[] DATE_TARGET = Arrays.stream(ChronoField.values())
-			.filter(ChronoField::isDateBased)
-			.toArray(ChronoField[]::new);
+			.filter(ChronoField::isDateBased).toArray(ChronoField[]::new);
 
 	/**
 	 * 時間対象時間フィールド群
 	 */
 	private static final ChronoField[] TIME_TARGET = Arrays.stream(ChronoField.values())
-			.filter(ChronoField::isTimeBased)
-			.toArray(ChronoField[]::new);
+			.filter(ChronoField::isTimeBased).toArray(ChronoField[]::new);
 
 	/**
 	 * {@inheritDoc}
@@ -136,10 +128,8 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 		}
 
 		if (isCastTarget(original)) {
-			boolean incDate = Arrays.stream(DATE_TARGET)
-					.anyMatch(original::isSupported);
-			boolean incTime = Arrays.stream(TIME_TARGET)
-					.anyMatch(original::isSupported);
+			boolean incDate = Arrays.stream(DATE_TARGET).anyMatch(original::isSupported);
+			boolean incTime = Arrays.stream(TIME_TARGET).anyMatch(original::isSupported);
 			if (incDate && incTime) {
 				return new java.sql.Timestamp(toTime(original));
 			} else if (incDate) {
@@ -158,8 +148,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	 * @return キャスト可能な場合は<code>true</code>
 	 */
 	private boolean isCastTarget(final TemporalAccessor temporalAccessor) {
-		return Arrays.stream(STANDARD_TARGET)
-				.anyMatch(temporalAccessor::isSupported);
+		return Arrays.stream(STANDARD_TARGET).anyMatch(temporalAccessor::isSupported);
 	}
 
 	/**
@@ -194,10 +183,8 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	 * @param def 設定値
 	 */
 	private void setField(final Calendar calendar, final int field, final TemporalAccessor temporalAccessor,
-			final ChronoField chronoField,
-			final int offset,
-			final int def) {
-		calendar.set(field,
-				temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) + offset : def);
+			final ChronoField chronoField, final int offset, final int def) {
+		calendar.set(field, temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) + offset
+				: def);
 	}
 }

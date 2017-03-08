@@ -38,7 +38,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
 	/**
 	 * コンストラクタ。
-     *
+	 *
 	 * @param dataSourceName 取得するコネクションのデータソース名
 	 */
 	public DataSourceConnectionSupplierImpl(final String dataSourceName) {
