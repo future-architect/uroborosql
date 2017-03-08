@@ -71,7 +71,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
-						<argLine>${jacocoArgs}</argLine>
+						<argLine>-Dsql.coverage=true ${jacocoArgs}</argLine>
 					</configuration>
 				</plugin>
 				<plugin>
