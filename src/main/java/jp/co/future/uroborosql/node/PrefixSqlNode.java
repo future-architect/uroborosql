@@ -3,8 +3,7 @@ package jp.co.future.uroborosql.node;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
- * SQL文を表すノード.
- * 前にAND または ORがある場合に利用される
+ * SQL文を表すノード. 前にAND または ORがある場合に利用される
  *
  * @author H.Sugimoto
  */
@@ -16,11 +15,12 @@ public class PrefixSqlNode extends SqlNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param position 開始位置
 	 * @param prefix プレフィックス
 	 * @param sqlPart SQL文
 	 */
-	public PrefixSqlNode(final String prefix, final String sqlPart) {
-		super(sqlPart);
+	public PrefixSqlNode(final int position, final String prefix, final String sqlPart) {
+		super(position, sqlPart);
 		this.prefix = prefix;
 	}
 

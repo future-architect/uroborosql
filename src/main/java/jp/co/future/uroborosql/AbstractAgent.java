@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,13 +11,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.coverage.CoberturaCoverageHandler;
+import jp.co.future.uroborosql.coverage.CoverageData;
+import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -35,13 +42,6 @@ import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SqlAgentの抽象親クラス
@@ -61,6 +61,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
+
+	/** カバレッジハンドラ */
+	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -98,14 +101,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param connectionSupplier
-	 *            コネクション供給クラス
-	 * @param sqlManager
-	 *            SQL管理クラス
-	 * @param sqlFilterManager
-	 *            SQLフィルタ管理クラス
-	 * @param defaultProps
-	 *            デフォルト値プロパティ
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param defaultProps デフォルト値プロパティ
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
@@ -179,8 +178,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * SqlContextの設定内容を元にSQLを構築する
 	 *
-	 * @param sqlContext
-	 *            SQLコンテキスト
+	 * @param sqlContext SQLコンテキスト
 	 */
 	protected void transformContext(final SqlContext sqlContext) {
 		String originalSql = sqlContext.getSql();
@@ -211,10 +209,22 @@ public abstract class AbstractAgent implements SqlAgent {
 			SqlParser sqlParser = new SqlParserImpl(originalSql, isRemoveTerminator());
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
+
+			CoverageData coverageData = null;
 			if (COVERAGE_LOG.isTraceEnabled()) {
 				// SQLカバレッジ用のログを出力する
-				COVERAGE_LOG.trace(ToStringBuilder.reflectionToString(new CoverageData(sqlContext.getSqlName(),
-						originalSql, contextTransformer.getPassedRoute()), ToStringStyle.JSON_STYLE));
+				coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+						contextTransformer.getPassedRoute());
+				COVERAGE_LOG.trace(coverageData.toJSON());
+			}
+
+			CoverageHandler coverageHandler = getCoverageHandler();
+			if (coverageHandler != null) {
+				if (coverageData == null) {
+					coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+							contextTransformer.getPassedRoute());
+				}
+				coverageHandler.accept(coverageData);
 			}
 		}
 
@@ -223,64 +233,47 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * カバレッジログ出力用データクラス
+	 * カバレッジハンドラの取得<br>
 	 *
-	 * @author H.Sugimoto
+	 * <pre>
+	 * sysytem property "sql.coverage" に "true" が指定することで Jenkins Cobertura プラグイン で集計することができるレポートファイルを出力します。
+	 * 詳しくは {@link CoberturaCoverageHandler} を参照してください。
+	 * </pre>
+	 *
+	 * <pre>
+	 * sysytem property "sql.coverage" に {@link CoverageHandler} を実装したクラス名を指定することで カバレッジ情報を独自に収集することが可能です。
+	 * </pre>
+	 *
+	 * @return カバレッジハンドラ
 	 */
-	private static final class CoverageData {
-		@SuppressWarnings("unused")
-		private final String sqlName;
-		@SuppressWarnings("unused")
-		private final String md5;
-		@SuppressWarnings("unused")
-		private final String passRoute;
-
-		/**
-		 * @param sqlName SQL名
-		 * @param md5 SQLのMD5
-		 * @param coverage
-		 */
-		private CoverageData(final String sqlName, final String originalSql, final String passRoute) {
-			super();
-			this.sqlName = StringEscapeUtils.escapeJson(sqlName);
-			this.md5 = makeMd5(originalSql);
-			this.passRoute = passRoute;
-		}
-
-		/**
-		 * MD5文字列の生成
-		 * @param original 生成元文字列
-		 * @return MD5文字列
-		 */
-		private String makeMd5(final String original) {
-			MessageDigest digest = null;
-			try {
-				digest = MessageDigest.getInstance("MD5");
-				byte[] hash = digest.digest(original.getBytes("UTF-8"));
-				StringBuilder builder = new StringBuilder();
-				for (byte element : hash) {
-					if ((0xff & element) < 0x10) {
-						builder.append("0" + Integer.toHexString((0xff & element)));
-					} else {
-						builder.append(Integer.toHexString((0xff & element)));
-					}
-				}
-				return builder.toString();
-			} catch (Exception ex) {
-				COVERAGE_LOG.error(ex.getMessage(), ex);
+	private static CoverageHandler getCoverageHandler() {
+		return coverageHandlerRef.updateAndGet(handler -> {
+			if (handler != null) {
+				return handler;
 			}
-			return "";
-		}
+			String coverage = System.getProperty("sql.coverage");
+			if (StringUtils.isEmpty(coverage) || coverage.equalsIgnoreCase("false")) {
+				return null;
+			}
+			if (coverage.equalsIgnoreCase("true")) {
+				return new CoberturaCoverageHandler();
+			} else {
+				try {
+					return (CoverageHandler) Class.forName(coverage).newInstance();
+				} catch (Exception e) {
+					//ignore
+				}
+			}
+			return null;
+		});
 
 	}
 
 	/**
 	 * フェッチサイズとクエリタイムアウトをPreparedStatementに設定する
 	 *
-	 * @param preparedStatement
-	 *            PreparedStatement
-	 * @throws SQLException
-	 *             SQL例外
+	 * @param preparedStatement PreparedStatement
+	 * @throws SQLException SQL例外
 	 */
 	protected void applyProperties(final PreparedStatement preparedStatement) throws SQLException {
 		// フェッチサイズ指定
@@ -297,12 +290,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * 例外発生時ハンドラー
 	 *
-	 * @param sqlContext
-	 *            SQLコンテキスト
-	 * @param ex
-	 *            SQL例外
-	 * @throws SQLException
-	 *             SQL例外
+	 * @param sqlContext SQLコンテキスト
+	 * @param ex SQL例外
+	 * @throws SQLException SQL例外
 	 */
 	protected abstract void handleException(SqlContext sqlContext, SQLException ex) throws SQLException;
 
@@ -312,12 +302,14 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#close()
 	 */
 	@Override
-	public abstract void close() throws SQLException;
+	public void close() throws SQLException {
+		if (coverageHandlerRef.get() != null) {
+			coverageHandlerRef.get().onSqlAgentClose();
+		}
+	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * {@link #close()} を呼び出す
+	 * {@inheritDoc} {@link #close()} を呼び出す
 	 *
 	 * @see java.lang.Object#finalize()
 	 */
@@ -602,8 +594,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * SQL実行をリトライするSQLエラーコードのリスト を設定します
 	 *
-	 * @param sqlRetryCodes
-	 *            SQL実行をリトライするSQLエラーコードのリスト
+	 * @param sqlRetryCodes SQL実行をリトライするSQLエラーコードのリスト
 	 */
 	public void setSqlRetryCodes(final List<String> sqlRetryCodes) {
 		this.sqlRetryCodes = sqlRetryCodes;
@@ -621,8 +612,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * 最大リトライ回数 を設定します
 	 *
-	 * @param maxRetryCount
-	 *            最大リトライ回数
+	 * @param maxRetryCount 最大リトライ回数
 	 */
 	public void setMaxRetryCount(final int maxRetryCount) {
 		this.maxRetryCount = maxRetryCount;
@@ -640,8 +630,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * リトライタイムアウト時間(ms) を設定します
 	 *
-	 * @param retryWaitTime
-	 *            リトライタイムアウト時間(ms)
+	 * @param retryWaitTime リトライタイムアウト時間(ms)
 	 */
 	public void setRetryWaitTime(final int retryWaitTime) {
 		this.retryWaitTime = retryWaitTime;
@@ -758,7 +747,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
+		 *      java.sql.SQLType)
 		 */
 		@Override
 		public SqlQuery inOutParam(final String paramName, final Object value, final SQLType sqlType) {
@@ -1020,7 +1010,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
+		 *      java.sql.SQLType)
 		 */
 		@Override
 		public SqlUpdate inOutParam(final String paramName, final Object value, final SQLType sqlType) {
@@ -1097,7 +1088,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#addBatch()
+		 * @see jp.co.future.uroborosql.fluent.SqlUpdate#addBatch()
 		 */
 		@Override
 		public SqlUpdate addBatch() {

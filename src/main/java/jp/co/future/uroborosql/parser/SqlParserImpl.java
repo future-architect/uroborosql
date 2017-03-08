@@ -3,6 +3,8 @@ package jp.co.future.uroborosql.parser;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.IfConditionNotFoundRuntimeException;
 import jp.co.future.uroborosql.node.BeginNode;
@@ -15,8 +17,6 @@ import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.node.PrefixSqlNode;
 import jp.co.future.uroborosql.node.SqlNode;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * SQL解析処理実装クラス
@@ -32,6 +32,8 @@ public class SqlParserImpl implements SqlParser {
 
 	/** 終端文字削除用の正規表現 */
 	private static final Pattern PATTERN = Pattern.compile(";$");
+
+	private int position;
 
 	/**
 	 * コンストラクタ
@@ -63,7 +65,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	@Override
 	public ContextTransformer parse() {
-		push(new ContainerNode());
+		push(new ContainerNode(0));
 		while (TokenType.EOF != tokenizer.next()) {
 			parseToken();
 		}
@@ -104,13 +106,14 @@ public class SqlParserImpl implements SqlParser {
 			String token = st.skipToken();
 			st.skipWhitespace();
 			if ("AND".equalsIgnoreCase(token) || "OR".equalsIgnoreCase(token)) {
-				node.addChild(new PrefixSqlNode(st.getBefore(), st.getAfter()));
+				node.addChild(new PrefixSqlNode(this.position, st.getBefore(), st.getAfter()));
 			} else {
-				node.addChild(new SqlNode(sql));
+				node.addChild(new SqlNode(this.position, sql));
 			}
 		} else {
-			node.addChild(new SqlNode(sql));
+			node.addChild(new SqlNode(this.position, sql));
 		}
+		this.position = this.tokenizer.getPosition();
 	}
 
 	/**
@@ -142,7 +145,8 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseNormalComment() {
 		String comment = tokenizer.getToken();
-		SqlNode node = new SqlNode("/*" + comment + "*/");
+		SqlNode node = new SqlNode(this.position, "/*" + comment + "*/");
+		this.position = this.tokenizer.getPosition();
 		peek().addChild(node);
 	}
 
@@ -154,7 +158,8 @@ public class SqlParserImpl implements SqlParser {
 		if (StringUtils.isEmpty(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode ifNode = new IfNode(condition);
+		IfNode ifNode = new IfNode(this.position, condition);
+		this.position = this.tokenizer.getPosition();
 		peek().addChild(ifNode);
 		push(ifNode);
 		parseEnd();
@@ -168,7 +173,8 @@ public class SqlParserImpl implements SqlParser {
 		if (StringUtils.isEmpty(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode elifNode = new IfNode(condition);
+		IfNode elifNode = new IfNode(this.position, condition);
+		this.position = this.tokenizer.getPosition();
 		IfNode ifNode = (IfNode) pop();
 		ifNode.setElseIfNode(elifNode);
 		push(elifNode);
@@ -180,7 +186,8 @@ public class SqlParserImpl implements SqlParser {
 	 * BEGIN文解析
 	 */
 	protected void parseBegin() {
-		BeginNode beginNode = new BeginNode();
+		BeginNode beginNode = new BeginNode(this.position);
+		this.position = this.tokenizer.getPosition();
 		peek().addChild(beginNode);
 		push(beginNode);
 		parseEnd();
@@ -210,7 +217,8 @@ public class SqlParserImpl implements SqlParser {
 			return;
 		}
 		IfNode ifNode = (IfNode) pop();
-		ElseNode elseNode = new ElseNode();
+		ElseNode elseNode = new ElseNode(this.position);
+		this.position = this.tokenizer.getPosition();
 		ifNode.setElseNode(elseNode);
 		push(elseNode);
 		tokenizer.skipWhitespace();
@@ -223,14 +231,15 @@ public class SqlParserImpl implements SqlParser {
 		String expr = tokenizer.getToken();
 		String s = tokenizer.skipToken();
 		if (s.startsWith("(") && s.endsWith(")")) {
-			peek().addChild(new ParenBindVariableNode(expr));
+			peek().addChild(new ParenBindVariableNode(this.position, expr, s));
 		} else if (expr.startsWith("#")) {
-			peek().addChild(new EmbeddedValueNode(expr.substring(1), true));
+			peek().addChild(new EmbeddedValueNode(this.position, expr.substring(1), true, s));
 		} else if (expr.startsWith("$")) {
-			peek().addChild(new EmbeddedValueNode(expr.substring(1)));
+			peek().addChild(new EmbeddedValueNode(this.position, expr.substring(1), s));
 		} else {
-			peek().addChild(new BindVariableNode(expr));
+			peek().addChild(new BindVariableNode(this.position, expr, s));
 		}
+		this.position = this.tokenizer.getPosition();
 	}
 
 	/**
@@ -238,7 +247,8 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseBindVariable() {
 		String expr = tokenizer.getToken();
-		peek().addChild(new BindVariableNode(expr));
+		peek().addChild(new BindVariableNode(this.position, expr, null));
+		this.position = this.tokenizer.getPosition();
 	}
 
 	/**

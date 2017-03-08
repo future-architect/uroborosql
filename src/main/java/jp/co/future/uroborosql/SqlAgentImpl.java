@@ -14,6 +14,11 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
@@ -23,11 +28,6 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 /**
  * SQL実行用クラス。
@@ -151,8 +151,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL検索前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL検索前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -160,8 +159,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL検索後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL検索後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -171,7 +169,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, jp.co.future.uroborosql.converter.ResultSetConverter)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
@@ -200,7 +199,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext, jp.co.future.uroborosql.utils.CaseFormat)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 *      jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
@@ -294,8 +294,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL更新前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL更新前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -303,8 +302,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQL更新後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQL更新後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -395,8 +393,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQLバッチ前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQLバッチ前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -404,8 +401,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * SQLバッチ処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * SQLバッチ処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -497,8 +493,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * ストプロ実行前処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * ストプロ実行前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -507,8 +502,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * ストプロ実行後処理
-	 * 拡張ポイント。子クラスでオーバーライドする
+	 * ストプロ実行後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
@@ -518,7 +512,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.SqlContext, java.sql.SQLException)
+	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.SqlContext,
+	 *      java.sql.SQLException)
 	 */
 	@Override
 	protected void handleException(final SqlContext sqlContext, final SQLException ex) throws SQLException {
@@ -609,8 +604,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * 例外発生時のログ出力を行うかどうかを設定します。
 	 *
-	 * @param outputExceptionLog
-	 *            例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
+	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
 	 */
 	protected void setOutputExceptionLog(final boolean outputExceptionLog) {
 		this.outputExceptionLog = outputExceptionLog;
@@ -624,6 +618,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		closePreparedStatement();
 		closeCallableStatement();
 		transactionManager.close();
+		super.close();
 	}
 
 	/**

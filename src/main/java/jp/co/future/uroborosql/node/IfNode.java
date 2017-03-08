@@ -1,5 +1,11 @@
 package jp.co.future.uroborosql.node;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parser.TransformContext;
@@ -9,17 +15,12 @@ import ognl.Node;
 import ognl.Ognl;
 import ognl.OgnlException;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * IF句を表すノード
  *
  * @author H.Sugimoto
  */
-public class IfNode extends ContainerNode {
+public class IfNode extends BranchNode {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(IfNode.class);
 
@@ -35,9 +36,11 @@ public class IfNode extends ContainerNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param position 開始位置
 	 * @param expression 評価式
 	 */
-	public IfNode(final String expression) {
+	public IfNode(final int position, final String expression) {
+		super(position);
 		this.expression = expression;
 	}
 
@@ -111,10 +114,10 @@ public class IfNode extends ContainerNode {
 							: builder.substring(0, builder.length() - 1));
 				}
 			}
+			passState(resultValue);
 			if (resultValue) {
 				super.accept(transformContext);
 				transformContext.setEnabled(true);
-				state = CoverageState.PASSED;
 			} else if (elseIfNode != null) {
 				elseIfNode.accept(transformContext);
 			} else if (elseNode != null) {
@@ -128,17 +131,20 @@ public class IfNode extends ContainerNode {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.node.ContainerNode#passed(java.lang.StringBuilder)
+	 * @see jp.co.future.uroborosql.node.ContainerNode#passed(PassedRoute)
 	 */
 	@Override
-	public void passed(final StringBuilder builder) {
-		builder.append(state);
-		super.passed(builder);
+	public void passed(final PassedRoute passed) {
+		passed.appendBranchState(getPosition(), getState());
+		if (isPassed()) {
+			passed.appendHitRange(getPosition(), getPosition() + 1);
+		}
+		super.passed(passed);
 		if (elseIfNode != null) {
-			elseIfNode.passed(builder);
+			elseIfNode.passed(passed);
 		}
 		if (elseNode != null) {
-			elseNode.passed(builder);
+			elseNode.passed(passed);
 		}
 	}
 
@@ -161,7 +167,8 @@ public class IfNode extends ContainerNode {
 					builder.append(prop)
 							.append(":[")
 							.append(value == null ? null : ToStringBuilder.reflectionToString(value,
-									ToStringStyle.SIMPLE_STYLE)).append("],");
+									ToStringStyle.SIMPLE_STYLE))
+							.append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
 					ex.printStackTrace();

@@ -7,15 +7,14 @@ import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
- * カッコつきバインド変数を表すノード
- * （IN句で使用）
+ * カッコつきバインド変数を表すノード （IN句で使用）
  *
  * @author H.Sugimoto
  */
 public class ParenBindVariableNode extends ExpressionNode {
 
-	public ParenBindVariableNode(final String expression) {
-		super(expression);
+	public ParenBindVariableNode(final int position, final String expression, final String tokenValue) {
+		super(position, expression, tokenValue);
 	}
 
 	/**
@@ -37,7 +36,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 		} else {
 			bindArray(transformContext, new Object[] { var });
 		}
-		state = CoverageState.PASSED;
+		pass();
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql.node;
 
+import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -11,9 +12,11 @@ public class ContainerNode extends AbstractNode {
 
 	/**
 	 * コンストラクタ
+	 *
+	 * @param position 開始位置
 	 */
-	public ContainerNode() {
-		// do nothing
+	public ContainerNode(int position) {
+		super(position);
 	}
 
 	/**
@@ -27,18 +30,19 @@ public class ContainerNode extends AbstractNode {
 		for (int i = 0; i < size; i++) {
 			getChild(i).accept(transformContext);
 		}
+		pass();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.node.AbstractNode#passed(java.lang.StringBuilder)
+	 * @see jp.co.future.uroborosql.node.AbstractNode#passed(PassedRoute)
 	 */
 	@Override
-	public void passed(final StringBuilder builder) {
+	public void passed(final PassedRoute passed) {
 		int childSize = getChildSize();
 		for (int i = 0; i < childSize; ++i) {
-			getChild(i).passed(builder);
+			getChild(i).passed(passed);
 		}
 	}
 }
