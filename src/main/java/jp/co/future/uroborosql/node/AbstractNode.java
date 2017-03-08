@@ -3,6 +3,9 @@ package jp.co.future.uroborosql.node;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.future.uroborosql.coverage.CoverageState;
+import jp.co.future.uroborosql.coverage.PassedRoute;
+
 /**
  * SQLノードの抽象親クラス
  *
@@ -13,17 +16,21 @@ public abstract class AbstractNode implements Node {
 	/** 子ノード */
 	private final List<Node> children = new ArrayList<>();
 
+	/** ポジション */
+	private final int position;
+
 	/**
-	 * 保持しているSQLが適用対象となった場合に<code>PASSED</code>となる.
-	 * SQL文のカバレッジ取得に利用
+	 * 保持しているSQLが適用対象となった場合に<code>PASSED</code>となる. SQL文のカバレッジ取得に利用
 	 */
-	protected CoverageState state = CoverageState.FAILED;
+	private CoverageState state = CoverageState.FAILED;
 
 	/**
 	 * コンストラクタ
+	 *
+	 * @param position 開始位置
 	 */
-	public AbstractNode() {
-		// do nothing
+	public AbstractNode(int position) {
+		this.position = position;
 	}
 
 	/**
@@ -59,10 +66,28 @@ public abstract class AbstractNode implements Node {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.node.Node#passed(java.lang.StringBuilder)
+	 * @see jp.co.future.uroborosql.node.Node#passed(PassedRoute)
 	 */
 	@Override
-	public void passed(final StringBuilder builder) {
+	public void passed(final PassedRoute passed) {
 		// do nothing
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#getPosition()
+	 */
+	@Override
+	public int getPosition() {
+		return this.position;
+	}
+
+	protected void pass() {
+		this.state = CoverageState.PASSED;
+	}
+
+	protected CoverageState getState() {
+		return state;
 	}
 }

@@ -1,5 +1,7 @@
 package jp.co.future.uroborosql.node;
 
+import jp.co.future.uroborosql.coverage.CoverageState;
+import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -15,9 +17,11 @@ public class SqlNode extends AbstractNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param startPosition 開始位置
 	 * @param sqlPart SQL文
 	 */
-	public SqlNode(final String sqlPart) {
+	public SqlNode(final int startPosition, final String sqlPart) {
+		super(startPosition);
 		this.sqlPart = sqlPart;
 	}
 
@@ -38,7 +42,19 @@ public class SqlNode extends AbstractNode {
 	@Override
 	public void accept(final TransformContext transformContext) {
 		transformContext.addSqlPart(sqlPart);
-		state = CoverageState.PASSED;
+		pass();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#passed(PassedRoute)
+	 */
+	@Override
+	public void passed(final PassedRoute passed) {
+		if (getState() == CoverageState.PASSED) {
+			passed.appendHitRange(getPosition(), getPosition() + sqlPart.length() - 1);
+		}
+		super.passed(passed);
+	}
 }

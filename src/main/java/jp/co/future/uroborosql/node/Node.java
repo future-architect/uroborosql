@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql.node;
 
+import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -8,26 +9,6 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  */
 public interface Node {
-	/**
-	 * カバレッジの状態を表現する列挙体
-	 */
-	enum CoverageState {
-		/** 通過 */
-		PASSED(1),
-		/** 未通過 */
-		FAILED(0);
-
-		private final int val;
-
-		private CoverageState(final int val) {
-			this.val = val;
-		}
-
-		@Override
-		public String toString() {
-			return String.valueOf(val);
-		}
-	}
 
 	/**
 	 * 子ノード数取得
@@ -61,8 +42,15 @@ public interface Node {
 	/**
 	 * このノードが有効になっているかどうか。結果は引数のbuilderにCoverageState(PASSED/FAILED)をappendする。
 	 *
-	 * @param builder 結果を追記するbuilder
+	 * @param passed 結果を保持するObject
 	 */
-	void passed(StringBuilder builder);
+	void passed(PassedRoute passed);
+
+	/**
+	 * 開始位置取得
+	 *
+	 * @return 開始位置
+	 */
+	int getPosition();
 
 }
