@@ -46,7 +46,9 @@ public class CoberturaCoverageHandlerTest {
 		//カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandler");
 		field.setAccessible(true);
-		field.set(null, null);
+		if (!(field.get(null) instanceof CoberturaCoverageHandler)) {
+			field.set(null, null);
+		}
 		System.setProperty("sql.coverage", "true");
 		try (SqlAgent agent = config.createAgent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
