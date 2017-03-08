@@ -109,10 +109,12 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		CoverageHandler handler = null;
-		try {
-			handler = (CoverageHandler) Class.forName(sqlCoverageClassName).newInstance();
-		} catch (Exception ex) {
-			LOG.warn("CoverageHandlerクラスの生成に失敗しました。クラス名：{}, 原因：{}", sqlCoverageClassName, ex.getMessage());
+		if (sqlCoverageClassName != null) {
+			try {
+				handler = (CoverageHandler) Class.forName(sqlCoverageClassName).newInstance();
+			} catch (Exception ex) {
+				LOG.warn("CoverageHandlerクラスの生成に失敗しました。クラス名：{}, 原因：{}", sqlCoverageClassName, ex.getMessage());
+			}
 		}
 
 		if (handler != null) {
