@@ -40,7 +40,7 @@ public interface Node {
 	void accept(TransformContext transformContext);
 
 	/**
-	 * このノードが有効になっているかどうか。結果は引数のbuilderにCoverageState(PASSED/FAILED)をappendする。
+	 * カバレッジ情報を収集する。
 	 *
 	 * @param passed 結果を保持するObject
 	 */
