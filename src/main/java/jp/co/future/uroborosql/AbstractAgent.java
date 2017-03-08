@@ -14,16 +14,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
-import jp.co.future.uroborosql.coverage.CoberturaCoverageHandler;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -43,6 +38,10 @@ import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * SqlAgentの抽象親クラス
  *
@@ -53,8 +52,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractAgent.class);
 
 	/** SQLカバレッジ用ロガー */
-	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(AbstractAgent.class.getPackage().getName()
-			+ ".coverage");
+	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
+			+ "sql.coverage");
 
 	/** 文字列用関数(OGNLで利用) */
 	protected static final StringFunction STRING_FUNCTION = new StringFunction();
@@ -63,7 +62,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
-	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
+	private static AtomicReference<CoverageHandler> coverageHandlerRef;
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -97,6 +96,29 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** SQLを特定するための一意なIDに置換するためのキー */
 	private String keySqlId = "_SQL_ID_";
+
+	static {
+		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
+		// クラス名が指定されている場合はそのクラス名を指定
+		String sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
+		if (sqlCoverageClassName == null || Boolean.FALSE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
+			sqlCoverageClassName = null;
+		} else if (Boolean.TRUE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
+			// trueの場合は、デフォルト値を設定
+			sqlCoverageClassName = AbstractAgent.class.getPackage().getName() + ".coverage.CoberturaCoverageHandler";
+		}
+
+		CoverageHandler handler = null;
+		try {
+			handler = (CoverageHandler) Class.forName(sqlCoverageClassName).newInstance();
+		} catch (Exception ex) {
+			LOG.warn("CoverageHandlerクラスの生成に失敗しました。クラス名：{}, 原因：{}", sqlCoverageClassName, ex.getMessage());
+		}
+
+		if (handler != null) {
+			coverageHandlerRef = new AtomicReference<>(handler);
+		}
+	}
 
 	/**
 	 * コンストラクタ。
@@ -210,63 +232,18 @@ public abstract class AbstractAgent implements SqlAgent {
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 
-			CoverageData coverageData = null;
-			if (COVERAGE_LOG.isTraceEnabled()) {
+			if (coverageHandlerRef != null) {
 				// SQLカバレッジ用のログを出力する
-				coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+				CoverageData coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
 						contextTransformer.getPassedRoute());
-				COVERAGE_LOG.trace(coverageData.toJSON());
-			}
+				COVERAGE_LOG.trace("{}", coverageData);
 
-			CoverageHandler coverageHandler = getCoverageHandler();
-			if (coverageHandler != null) {
-				if (coverageData == null) {
-					coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
-							contextTransformer.getPassedRoute());
-				}
-				coverageHandler.accept(coverageData);
+				coverageHandlerRef.get().accept(coverageData);
 			}
 		}
 
 		LOG.trace("変換前SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
 		LOG.debug("実行時SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(), System.lineSeparator());
-	}
-
-	/**
-	 * カバレッジハンドラの取得<br>
-	 *
-	 * <pre>
-	 * sysytem property "sql.coverage" に "true" が指定することで Jenkins Cobertura プラグイン で集計することができるレポートファイルを出力します。
-	 * 詳しくは {@link CoberturaCoverageHandler} を参照してください。
-	 * </pre>
-	 *
-	 * <pre>
-	 * sysytem property "sql.coverage" に {@link CoverageHandler} を実装したクラス名を指定することで カバレッジ情報を独自に収集することが可能です。
-	 * </pre>
-	 *
-	 * @return カバレッジハンドラ
-	 */
-	private static CoverageHandler getCoverageHandler() {
-		return coverageHandlerRef.updateAndGet(handler -> {
-			if (handler != null) {
-				return handler;
-			}
-			String coverage = System.getProperty("sql.coverage");
-			if (StringUtils.isEmpty(coverage) || coverage.equalsIgnoreCase("false")) {
-				return null;
-			}
-			if (coverage.equalsIgnoreCase("true")) {
-				return new CoberturaCoverageHandler();
-			} else {
-				try {
-					return (CoverageHandler) Class.forName(coverage).newInstance();
-				} catch (Exception e) {
-					//ignore
-				}
-			}
-			return null;
-		});
-
 	}
 
 	/**
@@ -303,7 +280,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public void close() throws SQLException {
-		if (coverageHandlerRef.get() != null) {
+		if (coverageHandlerRef != null && coverageHandlerRef.get() != null) {
 			coverageHandlerRef.get().onSqlAgentClose();
 		}
 	}

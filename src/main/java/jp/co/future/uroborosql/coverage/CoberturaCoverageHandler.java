@@ -27,6 +27,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jp.co.future.uroborosql.SqlAgent;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +58,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final CoverageSummary line = new CoverageSummary();
 		private final CoverageSummary branch = new CoverageSummary();
 
-		private void add(CoverageSummaryTotal total) {
+		private void add(final CoverageSummaryTotal total) {
 			this.line.add(total.line);
 			this.branch.add(total.branch);
 		}
@@ -76,7 +78,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return (double) covered / (double) valid;
 		}
 
-		private void add(CoverageSummary o) {
+		private void add(final CoverageSummary o) {
 			this.valid += o.valid;
 			this.covered += o.covered;
 		}
@@ -90,11 +92,11 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final int point;
 		private final Set<BranchCoverageState> status = EnumSet.noneOf(BranchCoverageState.class);
 
-		private PointBranch(int point) {
+		private PointBranch(final int point) {
 			this.point = point;
 		}
 
-		private void add(BranchCoverageState state) {
+		private void add(final BranchCoverageState state) {
 			status.add(state);
 		}
 
@@ -111,11 +113,11 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final int rowIndxx;
 		private final Map<Integer, PointBranch> branches = new HashMap<>();
 
-		private LineBranch(int rowIndxx) {
+		private LineBranch(final int rowIndxx) {
 			this.rowIndxx = rowIndxx;
 		}
 
-		private void add(Integer idx, BranchCoverageState state) {
+		private void add(final Integer idx, final BranchCoverageState state) {
 			PointBranch branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
 
 			branch.add(state);
@@ -126,9 +128,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 
 		private int coveredSize() {
-			return branches.values().stream()
-					.mapToInt(p -> p.coveredSize())
-					.sum();
+			return branches.values().stream().mapToInt(p -> p.coveredSize()).sum();
 		}
 	}
 
@@ -146,7 +146,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		/** 各行通過回数 */
 		private final int[] hitLines;
 
-		private SqlCoverage(String name, String sql, String md5, Path sourcesDirPath) throws IOException {
+		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath)
+				throws IOException {
 			this.name = name;
 			this.md5 = md5;
 			this.lineRanges = CoverageHandler.buildLineRanges(sql);
@@ -159,7 +160,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		 *
 		 * @param passRoute カバレッジ情報
 		 */
-		private void accept(PassedRoute passRoute) {
+		private void accept(final PassedRoute passRoute) {
 			//各行の通過情報を集計
 			for (LineRange range : lineRanges) {
 				if (passRoute.isHit(range)) {
@@ -173,7 +174,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			});
 		}
 
-		private int toRow(int idx) {
+		private int toRow(final int idx) {
 			for (LineRange range : lineRanges) {
 				if (range.contains(idx)) {
 					return range.getLineIndex();
@@ -189,7 +190,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		 * @param sql SQL
 		 * @throws IOException IOエラー
 		 */
-		private void writeSqlSource(Path sourcesDirPath, String sql) throws IOException {
+		private void writeSqlSource(final Path sourcesDirPath, final String sql) throws IOException {
 			Path path = sourcesDirPath.resolve(name);
 			Files.createDirectories(path.getParent());
 			Files.write(path, sql.getBytes(StandardCharsets.UTF_8));
@@ -203,7 +204,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final String packagePath;
 		private final List<SqlCoverage> coverageInfos = new ArrayList<>();
 
-		private PackageSummary(String packagePath) {
+		private PackageSummary(final String packagePath) {
 			this.packagePath = packagePath;
 		}
 	}
@@ -217,12 +218,12 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * コンストラクタ<br>
 	 *
 	 * <pre>
-	 * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+	 * sysytem property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
 	 * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
 	 * </pre>
 	 */
 	public CoberturaCoverageHandler() {
-		String s = System.getProperty("sql.coverage.file");
+		String s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
 		if (StringUtils.isNotEmpty(s)) {
 			this.reportPath = Paths.get(s);
 		} else {
@@ -237,14 +238,14 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 *
 	 * @param reportPath レポートファイルPATH
 	 */
-	public CoberturaCoverageHandler(Path reportPath) {
+	public CoberturaCoverageHandler(final Path reportPath) {
 		this.reportPath = reportPath;
 		this.sourcesDirPath = this.reportPath.toAbsolutePath().getParent().resolve("sqls");
 		init();
 	}
 
 	@Override
-	public synchronized void accept(CoverageData coverageData) {
+	public synchronized void accept(final CoverageData coverageData) {
 		if (StringUtils.isEmpty(coverageData.getSqlName())) {
 			//SQL名の設定されていないSQLは集約しない
 			return;
@@ -252,7 +253,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 		SqlCoverage sqlCoverage = coverages.get(coverageData.getSqlName());
 		if (sqlCoverage == null
-				//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
+		//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
 				|| !sqlCoverage.md5.equals(coverageData.getMd5())) {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
@@ -295,8 +296,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 		List<PackageSummary> packageNodes = summaryPackages();
 
-		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance()
-				.newDocumentBuilder();
+		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		Document document = documentBuilder.newDocument();
 
 		Element coverage = document.createElement("coverage");
@@ -348,14 +348,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			PackageSummary summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
 			summary.coverageInfos.add(c);
 		});
-		return summaries.values().stream()
-				.sorted(Comparator.comparing(p -> p.packagePath))
+		return summaries.values().stream().sorted(Comparator.comparing(p -> p.packagePath))
 				.collect(Collectors.toList());
 
 	}
 
-	private CoverageSummaryTotal renderPackages(Document document, Element packages,
-			List<PackageSummary> packageNodes) {
+	private CoverageSummaryTotal renderPackages(final Document document, final Element packages,
+			final List<PackageSummary> packageNodes) {
 		CoverageSummaryTotal allTotal = new CoverageSummaryTotal();
 		for (PackageSummary packageNode : packageNodes) {
 
@@ -380,7 +379,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		return allTotal;
 	}
 
-	private CoverageSummaryTotal renderClass(Document document, Element classes, SqlCoverage coverageInfo) {
+	private CoverageSummaryTotal renderClass(final Document document, final Element classes,
+			final SqlCoverage coverageInfo) {
 
 		CoverageSummaryTotal total = new CoverageSummaryTotal();
 
@@ -412,8 +412,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				int size = lineBranch.branchSize();
 				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
-				line.setAttribute("condition-coverage",
-						covered * 100 / size + "% (" + covered + "/" + size + ")");
+				line.setAttribute("condition-coverage", covered * 100 / size + "% (" + covered + "/" + size + ")");
 				total.branch.valid += size;
 				total.branch.covered += covered;
 
@@ -435,14 +434,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * @throws IOException IOエラー
 	 * @throws TransformerException XML書き込みエラー
 	 */
-	private void write(Document document) throws IOException, TransformerException {
-		TransformerFactory transformerFactory = TransformerFactory
-				.newInstance();
+	private void write(final Document document) throws IOException, TransformerException {
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-		transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,
-				"http://cobertura.sourceforge.net/xml/coverage-04.dtd");
+		transformer
+				.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://cobertura.sourceforge.net/xml/coverage-04.dtd");
 		try (BufferedWriter bufferedWriter = Files.newBufferedWriter(this.reportPath)) {
 			transformer.transform(new DOMSource(document), new StreamResult(bufferedWriter));
 		}

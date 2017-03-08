@@ -2,6 +2,8 @@ package jp.co.future.uroborosql.coverage;
 
 /**
  * Range情報
+ *
+ * @author ota
  */
 public class Range {
 	private final int start;
@@ -53,7 +55,7 @@ public class Range {
 
 	/**
 	 * 交差判定
-	 * 
+	 *
 	 * @param range 判定Range
 	 * @return 交差
 	 */
@@ -69,8 +71,7 @@ public class Range {
 			return false;
 		} else {
 			final Range range = (Range) obj;
-			return start == range.start &&
-					end == range.end;
+			return start == range.start && end == range.end;
 		}
 	}
 

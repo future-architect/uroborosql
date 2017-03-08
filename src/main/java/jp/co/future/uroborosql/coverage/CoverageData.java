@@ -2,20 +2,20 @@ package jp.co.future.uroborosql.coverage;
 
 import java.security.MessageDigest;
 
+import jp.co.future.uroborosql.SqlAgent;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.AbstractAgent;
-
 /**
  * カバレッジログ出力用データクラス
  *
- * @author H.Sugimoto
+ * @author ota
  */
 public class CoverageData {
-	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(AbstractAgent.class.getPackage().getName()
-			+ ".coverage");
+	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
+			+ ".sql.coverage");
 	private final String sqlName;
 	private final String sql;
 	private final String md5;
@@ -68,10 +68,8 @@ public class CoverageData {
 	 * @return JSON
 	 */
 	public String toJSON() {
-		return "{\"sqlName\":" + StringEscapeUtils.escapeJson(sqlName)
-				+ ",\"md5\":" + md5
-				+ ",\"passRoute\":" + passRoute
-				+ "}";
+		return "{\"sqlName\":" + StringEscapeUtils.escapeJson(sqlName) + ",\"md5\":" + md5 + ",\"passRoute\":"
+				+ passRoute + "}";
 	}
 
 	/**
@@ -108,6 +106,18 @@ public class CoverageData {
 	 */
 	public PassedRoute getPassRoute() {
 		return passRoute;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * JSON化文字列を返す
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return toJSON();
 	}
 
 }

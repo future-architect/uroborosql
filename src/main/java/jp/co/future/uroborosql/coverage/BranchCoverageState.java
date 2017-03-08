@@ -4,6 +4,8 @@ import java.util.Set;
 
 /**
  * カバレッジの状態を表現する列挙体
+ *
+ * @author ota
  */
 public enum BranchCoverageState {
 	/** 条件true */
@@ -26,11 +28,11 @@ public enum BranchCoverageState {
 
 	/**
 	 * カバーサイズの取得
-	 * 
+	 *
 	 * @param status Set
 	 * @return カバーサイズ
 	 */
-	public static int getCoveredSize(Set<BranchCoverageState> status) {
+	public static int getCoveredSize(final Set<BranchCoverageState> status) {
 		int size = 0;
 		if (status.contains(TRUE)) {
 			size++;

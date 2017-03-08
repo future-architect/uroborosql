@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.tx.TransactionManager;
@@ -22,6 +23,12 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
+	/**
+	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。
+	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを
+	 * 利用してカバレッジの収集を行う。
+	 */
+	final String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
 
 	/**
 	 * クエリ実行処理。

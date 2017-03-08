@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -9,15 +9,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CoberturaCoverageHandlerTest {
 	private static final String DB_NAME = "coberturatestdb";
@@ -51,11 +51,16 @@ public class CoberturaCoverageHandlerTest {
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
-		AtomicReference<CoberturaCoverageHandler> ref = (AtomicReference<CoberturaCoverageHandler>) field.get(null);
-		CoberturaCoverageHandler before = ref.get();
-		ref.set(null);
-		System.setProperty("sql.coverage", "true");
-		System.setProperty("sql.coverage.file", "target/coverage/test-sql-cover.xml");
+		AtomicReference<CoverageHandler> ref = (AtomicReference<CoverageHandler>) field.get(null);
+		if (ref == null) {
+			ref = new AtomicReference<CoverageHandler>(new CoberturaCoverageHandler());
+			field.set(null, ref);
+		}
+
+		System.setProperty(SqlAgent.KEY_SQL_COVERAGE, "true");
+		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".file", "target/coverage/test-sql-cover.xml");
+		CoverageHandler before = ref.get();
+		ref.set(new CoberturaCoverageHandler());
 		try (SqlAgent agent = config.createAgent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 
