@@ -211,8 +211,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private final Map<String, SqlCoverage> coverages = new ConcurrentHashMap<>();
 	private final Path reportPath;
 	private final Path sourcesDirPath;
-
-	private long lastWriteTime;
+	private boolean updated = true;
 
 	/**
 	 * コンストラクタ<br>
@@ -266,15 +265,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 
 		sqlCoverage.accept(coverageData.getPassRoute());
+		updated = true;
+	}
 
-		//リアルタイムな書き込みは10秒に1回とする
-		if (lastWriteTime + 10000 < System.currentTimeMillis()) {
-			try {
-				write();
-				lastWriteTime = System.currentTimeMillis();
-			} catch (Exception e) {
-				LOG.error(e.getMessage(), e);
-			}
+	@Override
+	public synchronized void onSqlAgentClose() {
+		try {
+			write();
+		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
 		}
 	}
 
@@ -289,7 +288,11 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}));
 	}
 
-	void write() throws IOException, ParserConfigurationException, TransformerException {
+	synchronized void write() throws IOException, ParserConfigurationException, TransformerException {
+		if (!updated) {//更新が無い場合は書き込みしない
+			return;
+		}
+
 		List<PackageSummary> packageNodes = summaryPackages();
 
 		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance()
@@ -326,6 +329,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		coverage.setAttribute("branches-rate", String.valueOf(branches.getRate()));
 
 		write(document);
+
+		//書込が終了したので「更新なし」にする
+		updated = false;
 	}
 
 	/**

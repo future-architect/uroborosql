@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +63,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
-	private static CoverageHandler coverageHandler;
+	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -246,22 +247,26 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return カバレッジハンドラ
 	 */
 	private static CoverageHandler getCoverageHandler() {
-		if (coverageHandler != null) {
-			return coverageHandler;
-		}
-		String coverage = System.getProperty("sql.coverage");
-		if (StringUtils.isNotEmpty(coverage) && !coverage.equalsIgnoreCase("false")) {
+		return coverageHandlerRef.updateAndGet(handler -> {
+			if (handler != null) {
+				return handler;
+			}
+			String coverage = System.getProperty("sql.coverage");
+			if (StringUtils.isEmpty(coverage) || coverage.equalsIgnoreCase("false")) {
+				return null;
+			}
 			if (coverage.equalsIgnoreCase("true")) {
-				coverageHandler = new CoberturaCoverageHandler();
+				return new CoberturaCoverageHandler();
 			} else {
 				try {
-					coverageHandler = (CoverageHandler) Class.forName(coverage).newInstance();
+					return (CoverageHandler) Class.forName(coverage).newInstance();
 				} catch (Exception e) {
 					//ignore
 				}
 			}
-		}
-		return coverageHandler;
+			return null;
+		});
+
 	}
 
 	/**
@@ -297,7 +302,11 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#close()
 	 */
 	@Override
-	public abstract void close() throws SQLException;
+	public void close() throws SQLException {
+		if (coverageHandlerRef.get() != null) {
+			coverageHandlerRef.get().onSqlAgentClose();
+		}
+	}
 
 	/**
 	 * {@inheritDoc} {@link #close()} を呼び出す

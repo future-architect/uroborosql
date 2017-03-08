@@ -18,9 +18,15 @@ public interface CoverageHandler {
 	void accept(CoverageData coverageData);
 
 	/**
+	 * {@link jp.co.future.uroborosql.SqlAgent SqlAgent}のcloseのタイミングでcallされるメソッド
+	 */
+	default void onSqlAgentClose() {
+	}
+
+	/**
 	 * 各行のchar index範囲を取得
 	 *
-	 * @param sql
+	 * @param sql SQL
 	 * @return 各行のRange
 	 */
 	static List<LineRange> buildLineRanges(String sql) {
