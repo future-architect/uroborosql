@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.After;
@@ -43,13 +44,14 @@ public class CoberturaCoverageHandlerTest {
 
 	@Test
 	public void testReport() throws Exception {
+		Path path = Paths.get("target", "coverage", "test-sql-clover.xml");
+		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandler");
 		field.setAccessible(true);
-		if (!(field.get(null) instanceof CoberturaCoverageHandler)) {
-			field.set(null, null);
-		}
+		field.set(null, null);
 		System.setProperty("sql.coverage", "true");
+		System.setProperty("sql.coverage.file", "target/coverage/test-sql-clover.xml");
 		try (SqlAgent agent = config.createAgent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 
@@ -62,7 +64,10 @@ public class CoberturaCoverageHandlerTest {
 		CoberturaCoverageHandler coverageHandler = (CoberturaCoverageHandler) field.get(null);
 		coverageHandler.write();
 
-		assertThat(Files.exists(Paths.get("target", "coverage", "sql-clover.xml")), is(true));
+		assertThat(Files.exists(path), is(true));
+
+		field.set(null, null);
+		System.clearProperty("sql.coverage.file");
 	}
 
 }
