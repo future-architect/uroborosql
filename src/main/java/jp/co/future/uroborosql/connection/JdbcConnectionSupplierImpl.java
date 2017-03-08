@@ -43,8 +43,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param password 接続パスワード
 	 * @param schema JDBCスキーマ名
 	 */
-	public JdbcConnectionSupplierImpl(final String url, final String user, final String password,
-			final String schema) {
+	public JdbcConnectionSupplierImpl(final String url, final String user, final String password, final String schema) {
 		this(url, user, password, schema, false, false);
 	}
 
@@ -58,8 +57,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param autoCommit 自動コミットするかどうか
 	 * @param readOnly 参照のみかどうか
 	 */
-	public JdbcConnectionSupplierImpl(final String url, final String user, final String password,
-			final String schema,
+	public JdbcConnectionSupplierImpl(final String url, final String user, final String password, final String schema,
 			final boolean autoCommit, final boolean readOnly) {
 		props.put(PROPS_JDBC_URL, url);
 		props.put(PROPS_JDBC_USER, user);

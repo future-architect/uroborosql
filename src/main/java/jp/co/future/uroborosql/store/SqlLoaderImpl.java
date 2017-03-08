@@ -288,8 +288,7 @@ public class SqlLoaderImpl implements SqlLoader {
 		if (packageName.length() == 0) {
 			return trimSqlExtension(filePath);
 		} else {
-			return new StringBuilder(packageName).append(PATH_SEPARATOR).append(trimSqlExtension(filePath))
-					.toString();
+			return new StringBuilder(packageName).append(PATH_SEPARATOR).append(trimSqlExtension(filePath)).toString();
 		}
 	}
 

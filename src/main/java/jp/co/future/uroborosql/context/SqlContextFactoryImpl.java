@@ -393,14 +393,12 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private static Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
 		Set<Class<?>> classes = new HashSet<>();
 		try (Stream<Path> stream = Files.walk(dir)) {
-			stream
-					.filter(entry -> entry.getFileName().toString().endsWith(".class"))
-					.forEach(file -> {
-						StringJoiner joiner = new StringJoiner(".", packageName + ".", "");
-						dir.relativize(file).forEach(p -> joiner.add(p.toString()));
-						String className = joiner.toString().replaceAll(".class$", "");
-						loadEnum(className).ifPresent(classes::add);
-					});
+			stream.filter(entry -> entry.getFileName().toString().endsWith(".class")).forEach(file -> {
+				StringJoiner joiner = new StringJoiner(".", packageName + ".", "");
+				dir.relativize(file).forEach(p -> joiner.add(p.toString()));
+				String className = joiner.toString().replaceAll(".class$", "");
+				loadEnum(className).ifPresent(classes::add);
+			});
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
 		}
@@ -420,10 +418,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName, final JarFile jarFile) {
 		String resourceName = packageName.replace('.', '/');
 		Set<Class<?>> classes = new HashSet<>();
-		Collections.list(jarFile.entries()).stream()
-				.map(JarEntry::getName)
-				.filter(name -> name.startsWith(resourceName))
-				.filter(name -> name.endsWith(".class"))
+		Collections.list(jarFile.entries()).stream().map(JarEntry::getName)
+				.filter(name -> name.startsWith(resourceName)).filter(name -> name.endsWith(".class"))
 				.map(name -> name.replace('/', '.').replaceAll(".class$", ""))
 				.forEach(className -> loadEnum(className).ifPresent(classes::add));
 

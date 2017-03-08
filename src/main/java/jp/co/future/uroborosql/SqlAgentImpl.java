@@ -14,11 +14,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
@@ -28,6 +23,11 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
+
+import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * SQL実行用クラス。
@@ -56,8 +56,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @param defaultProps 初期化用プロパティ
 	 */
 	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager,
-			final Map<String, String> defaultProps) {
+			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
 		super(connectionSupplier, sqlManager, sqlFilterManager, defaultProps);
 		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean.parseBoolean(defaultProps
@@ -176,22 +175,21 @@ public class SqlAgentImpl extends AbstractAgent {
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		ResultSet rs = query(sqlContext);
 
-		Stream<T> stream = StreamSupport.stream(
-				new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED) {
-
-					@Override
-					public boolean tryAdvance(final Consumer<? super T> action) {
-						try {
-							if (!rs.next()) {
-								return false;
-							}
-							action.accept(converter.createRecord(rs));
-							return true;
-						} catch (Exception ex) {
-							return false;
-						}
+		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
+				Spliterator.ORDERED) {
+			@Override
+			public boolean tryAdvance(final Consumer<? super T> action) {
+				try {
+					if (!rs.next()) {
+						return false;
 					}
-				}, false);
+					action.accept(converter.createRecord(rs));
+					return true;
+				} catch (Exception ex) {
+					return false;
+				}
+			}
+		}, false);
 
 		return stream;
 	}
@@ -450,8 +448,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					getSqlFilterManager().doProcedure(sqlContext, callableStatement,
-							callableStatement.execute());
+					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					break;
 				} catch (SQLException ex) {
@@ -584,7 +581,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			connection = getConnection();
 		}
 		closeCallableStatement();
-		callableStatement = getSqlFilterManager().doCallableStatement(sqlContext,
+		callableStatement = getSqlFilterManager().doCallableStatement(
+				sqlContext,
 				connection.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
 						sqlContext.getResultSetConcurrency()));
 

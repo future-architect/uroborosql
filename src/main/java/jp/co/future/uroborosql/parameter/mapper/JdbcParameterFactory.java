@@ -45,7 +45,7 @@ public final class JdbcParameterFactory {
 	 * {@link java.sql.Connection#createBlob()}のラッパー
 	 *
 	 * @param conn コネクション
-     * @return Blobインタフェースを実装しているオブジェクト
+	 * @return Blobインタフェースを実装しているオブジェクト
 	 *
 	 * @see java.sql.Connection#createBlob()
 	 */
@@ -78,7 +78,7 @@ public final class JdbcParameterFactory {
 	 *
 	 * @param conn コネクション
 	 * @return NClobインタフェースを実装しているオブジェクト
-     *
+	 *
 	 * @see java.sql.Connection#createNClob()
 	 */
 	public static NClob createNClob(final Connection conn) {
@@ -111,7 +111,7 @@ public final class JdbcParameterFactory {
 	 * @param conn コネクション
 	 * @param typeName このStructオブジェクトがマッピングされるSQL構造化型のSQL型名。typeNameは、このデータベースに定義されたユーザー定義型の名前。これは、Struct.getSQLTypeNameで返される値。
 	 * @param attributes 返されるオブジェクトを生成する属性
-     * @return 指定されたSQL型にマッピングされ、かつ指定された属性で生成されるStructオブジェクト
+	 * @return 指定されたSQL型にマッピングされ、かつ指定された属性で生成されるStructオブジェクト
 	 *
 	 * @see java.sql.Connection#createStruct(String, Object[])
 	 */

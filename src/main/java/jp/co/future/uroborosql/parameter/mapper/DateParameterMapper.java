@@ -28,8 +28,7 @@ public class DateParameterMapper implements BindParameterMapper<Date> {
 	@Override
 	public Object toJdbc(final Date original, final Connection connection,
 			final BindParameterMapperManager parameterMapperManager) {
-		if (original instanceof java.sql.Date
-				|| original instanceof java.sql.Timestamp
+		if (original instanceof java.sql.Date || original instanceof java.sql.Timestamp
 				|| original instanceof java.sql.Time) {
 			return original;
 		}

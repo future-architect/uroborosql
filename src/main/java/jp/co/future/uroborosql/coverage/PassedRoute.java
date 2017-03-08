@@ -77,9 +77,7 @@ public class PassedRoute {
 
 	@Override
 	public String toString() {
-		return this.passed.entrySet().stream()
-				.sorted(Comparator.comparingInt(e -> e.getKey()))
-				.map(e -> e.getKey() + ":" + e.getValue())
-				.collect(Collectors.joining(",", "{", "}"));
+		return this.passed.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getKey()))
+				.map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",", "{", "}"));
 	}
 }

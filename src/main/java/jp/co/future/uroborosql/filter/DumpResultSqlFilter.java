@@ -42,15 +42,13 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	@Override
-	public PreparedStatement doPreparedStatement(final SqlContext sqlContext,
-			final PreparedStatement preparedStatement)
+	public PreparedStatement doPreparedStatement(final SqlContext sqlContext, final PreparedStatement preparedStatement)
 			throws SQLException {
 		return preparedStatement;
 	}
 
 	@Override
-	public CallableStatement doCallableStatement(final SqlContext sqlContext,
-			final CallableStatement callableStatement)
+	public CallableStatement doCallableStatement(final SqlContext sqlContext, final CallableStatement callableStatement)
 			throws SQLException {
 		return callableStatement;
 	}
@@ -214,8 +212,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			return str;
 		}
 
-		CharsetEncoder ce = Charset.forName("Shift-JIS").newEncoder()
-				.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
+		CharsetEncoder ce = Charset.forName("Shift-JIS").newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+				.onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
 		if (capacity >= ce.maxBytesPerChar() * str.length()) {
 			return str;
 		}
@@ -240,14 +238,12 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int result) {
+	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
 		return result;
 	}
 
 	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final int[] result) {
+	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
 		return result;
 	}
 

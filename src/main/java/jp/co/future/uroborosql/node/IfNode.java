@@ -167,8 +167,7 @@ public class IfNode extends BranchNode {
 					builder.append(prop)
 							.append(":[")
 							.append(value == null ? null : ToStringBuilder.reflectionToString(value,
-									ToStringStyle.SIMPLE_STYLE))
-							.append("],");
+									ToStringStyle.SIMPLE_STYLE)).append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
 					ex.printStackTrace();

@@ -51,11 +51,10 @@ public class EmbeddedValueNode extends ExpressionNode {
 
 		if (value != null) {
 			if (wrap) {
-				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#")
-						.addSqlPart(expression).addSqlPart("*/");
-			} else {
-				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression)
+				transformContext.addSqlPart("'").addSqlPart(escapeSql(value)).addSqlPart("'/*#").addSqlPart(expression)
 						.addSqlPart("*/");
+			} else {
+				transformContext.addSqlPart(escapeSql(value)).addSqlPart("/*$").addSqlPart(expression).addSqlPart("*/");
 			}
 		} else {
 			transformContext.addSqlPart(null);

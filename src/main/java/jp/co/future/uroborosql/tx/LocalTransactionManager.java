@@ -147,8 +147,8 @@ public class LocalTransactionManager implements TransactionManager {
 		LocalTransactionContext txContext = currentTxContext();
 		try {
 			if (txContext == null) {
-				return unmanagedConnection != null ? unmanagedConnection
-						: (unmanagedConnection = connectionSupplier.getConnection());
+				return unmanagedConnection != null ? unmanagedConnection : (unmanagedConnection = connectionSupplier
+						.getConnection());
 			} else {
 				return txContext.getConnection();
 			}
@@ -168,8 +168,8 @@ public class LocalTransactionManager implements TransactionManager {
 		LocalTransactionContext txContext = currentTxContext();
 		try {
 			if (txContext == null) {
-				return unmanagedConnection != null ? unmanagedConnection
-						: (unmanagedConnection = connectionSupplier.getConnection(alias));
+				return unmanagedConnection != null ? unmanagedConnection : (unmanagedConnection = connectionSupplier
+						.getConnection(alias));
 			}
 			return txContext.getConnection(alias);
 		} catch (SQLException ex) {
