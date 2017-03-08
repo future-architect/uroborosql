@@ -257,6 +257,27 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirst() throws Exception {
+		// 事前条件
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+
+		try (SqlAgent agent = config.createAgent()) {
+			Map<String, Object> map = agent.query("example/select").paramList("product_id", 0, 1, 2, 3).first();
+			assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
+			assertEquals("商品名0", map.get("PRODUCT_NAME"));
+			assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
+			assertEquals("1234567890123", map.get("JAN_CODE"));
+			assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		}
+	}
+
+	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test

@@ -10,6 +10,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.tx.TransactionManager;
@@ -231,5 +232,21 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SqlUpdate
 	 */
 	SqlUpdate updateWith(String sql);
+
+	/**
+	 * Procedureの実行（Fluent API）
+	 *
+	 * @param sqlName 実行するSQLファイル名
+	 * @return Procedure
+	 */
+	Procedure proc(String sqlName);
+
+	/**
+	 * Procedureの実行（Fluent API）
+	 *
+	 * @param sql 実行するSQL文
+	 * @return Procedure
+	 */
+	Procedure procWith(String sql);
 
 }
