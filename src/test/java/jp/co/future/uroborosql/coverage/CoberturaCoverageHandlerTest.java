@@ -40,12 +40,12 @@ public class CoberturaCoverageHandlerTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
 	public void testReport() throws Exception {
-		Path path = Paths.get("target", "coverage", "test-sql-clover.xml");
+		Path path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
@@ -55,7 +55,7 @@ public class CoberturaCoverageHandlerTest {
 		CoberturaCoverageHandler before = ref.get();
 		ref.set(null);
 		System.setProperty("sql.coverage", "true");
-		System.setProperty("sql.coverage.file", "target/coverage/test-sql-clover.xml");
+		System.setProperty("sql.coverage.file", "target/coverage/test-sql-cover.xml");
 		try (SqlAgent agent = config.createAgent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 

@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
  * デフォルトコンストラクタで生成される場合、レポートファイルの出力先は以下のように決定されます。
  *
  * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
- * 指定の無い場合、デフォルトで "./target/coverage/sql-clover.xml" に xmlレポートを出力します。
+ * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
  * </pre>
  *
  * @author ota
@@ -218,7 +218,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 *
 	 * <pre>
 	 * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
-	 * 指定の無い場合、デフォルトで "./target/coverage/sql-clover.xml" に xmlレポートを出力します。
+	 * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
 	 * </pre>
 	 */
 	public CoberturaCoverageHandler() {
@@ -226,7 +226,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		if (StringUtils.isNotEmpty(s)) {
 			this.reportPath = Paths.get(s);
 		} else {
-			this.reportPath = Paths.get("target", "coverage", "sql-clover.xml");
+			this.reportPath = Paths.get("target", "coverage", "sql-cover.xml");
 		}
 		this.sourcesDirPath = this.reportPath.toAbsolutePath().getParent().resolve("sqls");
 		init();
