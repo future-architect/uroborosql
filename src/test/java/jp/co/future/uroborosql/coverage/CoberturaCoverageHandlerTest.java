@@ -6,7 +6,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.ResultSet;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,9 +49,11 @@ public class CoberturaCoverageHandlerTest {
 		field.set(null, null);
 		System.setProperty("sql.coverage", "true");
 		try (SqlAgent agent = config.createAgent()) {
-			try (ResultSet rs = agent.query("example/select_test").paramList("product_id", 0, 1, 2, 3).resultSet()) {
+			agent.query("example/select_test").param("id", "A001").collect();
 
-			}
+			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test02").collect();
+
 		}
 
 		//確実に書き込みをする

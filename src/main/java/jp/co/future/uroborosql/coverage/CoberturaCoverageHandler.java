@@ -372,7 +372,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			LineBranch lineBranch = coverageInfo.rowBranches.get(i);
 			if (lineBranch != null) {
 				int size = lineBranch.branchSize();
-				int covered = lineBranch.coveredSize();
+				int covered = hit > 0 ? lineBranch.coveredSize() : 0;//そもそ通過していない場合は0
 				line.setAttribute("branch", "true");
 				line.setAttribute("condition-coverage",
 						covered * 100 / 2 + "% (" + covered + "/" + size + ")");
