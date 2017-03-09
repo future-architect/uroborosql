@@ -63,6 +63,16 @@ public class Range {
 		return Math.max(this.start, range.start) <= Math.min(this.end, range.end);
 	}
 
+	/**
+	 * 内包判定
+	 *
+	 * @param range 判定Range
+	 * @return 内包
+	 */
+	public boolean include(Range range) {
+		return start <= range.start && range.end <= end;
+	}
+
 	@Override
 	public boolean equals(final Object obj) {
 		if (obj == this) {

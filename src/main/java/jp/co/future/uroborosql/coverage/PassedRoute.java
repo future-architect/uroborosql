@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class PassedRoute {
 	private final Map<Integer, BranchCoverageState> passed = new HashMap<>();
 	private final List<Range> hits = new ArrayList<>();
+	private Ranges ranges;
 
 	/**
 	 * 分岐情報追加
@@ -35,6 +37,7 @@ public class PassedRoute {
 	 */
 	public void appendHitRange(int start, int end) {
 		hits.add(new Range(start, end));
+		ranges = null;//キャッシュをクリア
 	}
 
 	/**
@@ -48,11 +51,11 @@ public class PassedRoute {
 
 	/**
 	 * 通過情報取得
-	 * 
+	 *
 	 * @return 通過情報
 	 */
-	public List<Range> getHitRanges() {
-		return Collections.unmodifiableList(hits);
+	public Collection<Range> getHitRanges() {
+		return Collections.unmodifiableCollection(getRanges());
 	}
 
 	/**
@@ -62,7 +65,7 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(int index) {
-		for (Range range : hits) {
+		for (Range range : getRanges()) {
 			if (range.contains(index)) {
 				return true;
 			}
@@ -77,7 +80,7 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(Range target) {
-		for (Range range : hits) {
+		for (Range range : getRanges()) {
 			if (range.intersection(target)) {
 				return true;
 			}
@@ -89,5 +92,12 @@ public class PassedRoute {
 	public String toString() {
 		return this.passed.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getKey()))
 				.map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",", "{", "}"));
+	}
+
+	private Ranges getRanges() {
+		if (ranges == null) {
+			ranges = new Ranges(hits);
+		}
+		return ranges;
 	}
 }
