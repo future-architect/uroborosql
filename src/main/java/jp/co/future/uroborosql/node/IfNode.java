@@ -40,8 +40,8 @@ public class IfNode extends BranchNode {
 	 * @param expression 評価式
 	 */
 	public IfNode(final int position, final String expression) {
-		super(position);
-		this.expression = expression;
+		super(position, expression.length() + 6);
+		this.expression = expression.trim();
 	}
 
 	/**
@@ -136,9 +136,6 @@ public class IfNode extends BranchNode {
 	@Override
 	public void passed(final PassedRoute passed) {
 		passed.appendBranchState(getPosition(), getState());
-		if (isPassed()) {
-			passed.appendHitRange(getPosition(), getPosition() + 1);
-		}
 		super.passed(passed);
 		if (elseIfNode != null) {
 			elseIfNode.passed(passed);
@@ -167,7 +164,8 @@ public class IfNode extends BranchNode {
 					builder.append(prop)
 							.append(":[")
 							.append(value == null ? null : ToStringBuilder.reflectionToString(value,
-									ToStringStyle.SIMPLE_STYLE)).append("],");
+									ToStringStyle.SIMPLE_STYLE))
+							.append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
 					ex.printStackTrace();

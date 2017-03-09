@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,15 @@ public class PassedRoute {
 	 */
 	public Map<Integer, BranchCoverageState> getBranchStatus() {
 		return passed;
+	}
+
+	/**
+	 * 通過情報取得
+	 * 
+	 * @return 通過情報
+	 */
+	public List<Range> getHitRanges() {
+		return Collections.unmodifiableList(hits);
 	}
 
 	/**

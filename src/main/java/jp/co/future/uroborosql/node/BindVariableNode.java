@@ -17,7 +17,7 @@ public class BindVariableNode extends ExpressionNode {
 	 * @param tokenValue トークン上の値
 	 */
 	public BindVariableNode(final int position, final String expression, final String tokenValue) {
-		super(position, expression, tokenValue);
+		super(position, 0, expression, tokenValue);
 	}
 
 	/**

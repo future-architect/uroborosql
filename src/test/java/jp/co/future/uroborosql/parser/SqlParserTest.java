@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.parser;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +15,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.context.SqlContext;
@@ -29,11 +35,6 @@ import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.SqlNode;
 import jp.co.future.uroborosql.utils.StringFunction;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class SqlParserTest {
 	private static final String DB_NAME = "sptestdb";
@@ -118,7 +119,7 @@ public class SqlParserTest {
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
 	public void testElif() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "2=2";
 		sqlAssertion(sql, sql2);
 	}
@@ -126,7 +127,7 @@ public class SqlParserTest {
 	// IF (TRUE) ELIF FALSE ELSE
 	@Test
 	public void testElif2() throws Exception {
-		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "1=1";
 		sqlAssertion(sql, sql2);
 	}
@@ -134,7 +135,7 @@ public class SqlParserTest {
 	// IF FALSE ELIF FALSE ELIF (TRUE) ELSE
 	@Test
 	public void testElif3() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 --ELSE 3=3/*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 --ELSE\n 3=3/*END*/";
 		String sql2 = "4=4";
 		sqlAssertion(sql, sql2);
 	}
@@ -142,7 +143,7 @@ public class SqlParserTest {
 	// IF FALSE ELIF FALSE ELSE
 	@Test
 	public void testElif4() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "3=3";
 		sqlAssertion(sql, sql2);
 	}
@@ -150,7 +151,7 @@ public class SqlParserTest {
 	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
 	@Test
 	public void testElif4_1() throws Exception {
-		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "1=1";
 		sqlAssertion(sql, sql2);
 	}
@@ -193,7 +194,7 @@ public class SqlParserTest {
 	// ELSE
 	@Test
 	public void testElif_nest1() throws Exception {
-		String sql = "/*IF true*/1=1 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF true*/1=1 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "1=1 and 11=11";
 		sqlAssertion(sql, sql2);
 	}
@@ -205,7 +206,7 @@ public class SqlParserTest {
 	// ELSE
 	@Test
 	public void testElif_nest2() throws Exception {
-		String sql = "/*IF true*/1=1 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF true*/1=1 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE\n 3=3/*END*/";
 		String sql2 = "1=1 and 22=22";
 		sqlAssertion(sql, sql2);
 	}
@@ -217,7 +218,7 @@ public class SqlParserTest {
 	// ELSE
 	@Test
 	public void testElif_nest3() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ --ELSE 3=3/*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ --ELSE\n 3=3/*END*/";
 		String sql2 = "2=2 and 11=11";
 		sqlAssertion(sql, sql2);
 	}
@@ -229,7 +230,7 @@ public class SqlParserTest {
 	// ELSE
 	@Test
 	public void testElif_nest4() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ --ELSE 3=3/*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ --ELSE\n 3=3/*END*/";
 		String sql2 = "2=2 and 22=22";
 		sqlAssertion(sql, sql2);
 	}
@@ -241,7 +242,7 @@ public class SqlParserTest {
 	// ELIF FALSE
 	@Test
 	public void testElif_nest5() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*//*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE\n 3=3 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*//*END*/";
 		String sql2 = "3=3 and 11=11";
 		sqlAssertion(sql, sql2);
 	}
@@ -253,7 +254,7 @@ public class SqlParserTest {
 	// ELIF (TRUE)
 	@Test
 	public void testElif_nest6() throws Exception {
-		String sql = "/*IF false*/1=1 /*ELIF false*/2=2  --ELSE 3=3 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*//*END*/";
+		String sql = "/*IF false*/1=1 /*ELIF false*/2=2  --ELSE\n 3=3 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*//*END*/";
 		String sql2 = "3=3 and 22=22";
 		sqlAssertion(sql, sql2);
 	}
@@ -285,7 +286,7 @@ public class SqlParserTest {
 	// BEGIN IF FALSE ELIF FALSE ELSE END
 	@Test
 	public void testBeginElif4() throws Exception {
-		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*//*END*/";
+		String sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 --ELSE\n 3=3/*END*//*END*/";
 		String sql2 = "3=3";
 		sqlAssertion(sql, sql2);
 	}
@@ -594,7 +595,7 @@ public class SqlParserTest {
 
 	@Test
 	public void testParseElse() throws Exception {
-		String sql = "SELECT * FROM emp WHERE /*IF job != null*/job = /*job*/'CLERK'-- ELSE job is null/*END*/";
+		String sql = "SELECT * FROM emp WHERE /*IF job != null*/job = /*job*/'CLERK'-- ELSE\n job is null/*END*/";
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		String sql3 = "SELECT * FROM emp WHERE job is null";
 		SqlParser parser = new SqlParserImpl(sql);
@@ -618,7 +619,7 @@ public class SqlParserTest {
 
 	@Test
 	public void testParseElse2() throws Exception {
-		String sql = "/*IF false*/aaa--ELSE bbb = /*bbb*/123/*END*/";
+		String sql = "/*IF false*/aaa--ELSE\n bbb = /*bbb*/123/*END*/";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
 		Integer bbb = new Integer(123);
@@ -634,7 +635,7 @@ public class SqlParserTest {
 
 	@Test
 	public void testParseElse3() throws Exception {
-		String sql = "/*IF false*/aaa--ELSE bbb/*IF false*/ccc--ELSE ddd/*END*//*END*/";
+		String sql = "/*IF false*/aaa--ELSE\n bbb/*IF false*/ccc--ELSE\n ddd/*END*//*END*/";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
 		ContextTransformer transformer = parser.parse();
@@ -645,7 +646,7 @@ public class SqlParserTest {
 
 	@Test
 	public void testElse4() throws Exception {
-		String sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF false*/aaa-- ELSE AND deptno = 10/*END*//*END*/";
+		String sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF false*/aaa-- ELSE\n AND deptno = 10/*END*//*END*/";
 		String sql2 = "SELECT * FROM emp WHERE deptno = 10";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
@@ -725,7 +726,7 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
-		List<Integer> deptnoList = new ArrayList<Integer>();
+		List<Integer> deptnoList = new ArrayList<>();
 		deptnoList.add(new Integer(10));
 		deptnoList.add(new Integer(20));
 		ctx.param("deptnoList", deptnoList);
@@ -934,7 +935,7 @@ public class SqlParserTest {
 
 	@Test
 	public void testStringFunction1() throws Exception {
-		String sql = "/*IF SF.isEmpty(val1)*/1=1 /*ELIF SF.containsAny(val2, val3)*/2=2 --ELSE 3=3/*END*/";
+		String sql = "/*IF SF.isEmpty(val1)*/1=1 /*ELIF SF.containsAny(val2, val3)*/2=2 --ELSE\n 3=3/*END*/";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
 		ctx.param("val1", null);
