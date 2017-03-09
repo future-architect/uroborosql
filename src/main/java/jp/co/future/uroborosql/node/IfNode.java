@@ -135,7 +135,7 @@ public class IfNode extends BranchNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		passed.appendBranchState(getPosition(), getState());
+		passed.appendBranchState(getPosition(), getPosition() + getLength() - 1, getState());
 		super.passed(passed);
 		if (elseIfNode != null) {
 			elseIfNode.passed(passed);
