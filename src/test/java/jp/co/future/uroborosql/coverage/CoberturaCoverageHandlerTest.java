@@ -20,8 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class CoberturaCoverageHandlerTest {
-	private static final String DB_NAME = "coberturatestdb";
-
 	/**
 	 * SQL管理クラス
 	 */
@@ -29,8 +27,7 @@ public class CoberturaCoverageHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		String url = "jdbc:h2:file:./target/db/" + DB_NAME;
-		config = DefaultSqlConfig.getConfig(url, "test", "test");
+		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:coberturatestdb;DB_CLOSE_DELAY=-1;", "test", "test");
 
 		try (SqlAgent agent = config.createAgent()) {
 
@@ -52,10 +49,6 @@ public class CoberturaCoverageHandlerTest {
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		AtomicReference<CoverageHandler> ref = (AtomicReference<CoverageHandler>) field.get(null);
-		if (ref == null) {
-			ref = new AtomicReference<CoverageHandler>(new CoberturaCoverageHandler());
-			field.set(null, ref);
-		}
 
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE, "true");
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".file", "target/coverage/test-sql-cover.xml");
@@ -72,7 +65,7 @@ public class CoberturaCoverageHandlerTest {
 		assertThat(Files.exists(path), is(true));
 
 		ref.set(before);
-		System.clearProperty("sql.coverage.file");
+		System.clearProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
 	}
 
 }

@@ -42,7 +42,7 @@ import org.w3c.dom.Element;
  * <pre>
  * デフォルトコンストラクタで生成される場合、レポートファイルの出力先は以下のように決定されます。
  *
- * sysytem property "sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+ * sysytem property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
  * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
  * </pre>
  *

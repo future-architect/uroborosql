@@ -64,7 +64,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
-	private static AtomicReference<CoverageHandler> coverageHandlerRef;
+	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<CoverageHandler>();
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -120,7 +120,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		if (handler != null) {
-			coverageHandlerRef = new AtomicReference<>(handler);
+			coverageHandlerRef.set(handler);
 		}
 	}
 
@@ -236,7 +236,7 @@ public abstract class AbstractAgent implements SqlAgent {
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 
-			if (coverageHandlerRef != null) {
+			if (coverageHandlerRef.get() != null) {
 				// SQLカバレッジ用のログを出力する
 				CoverageData coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
 						contextTransformer.getPassedRoute());
@@ -284,7 +284,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public void close() throws SQLException {
-		if (coverageHandlerRef != null && coverageHandlerRef.get() != null) {
+		if (coverageHandlerRef.get() != null) {
 			coverageHandlerRef.get().onSqlAgentClose();
 		}
 	}
