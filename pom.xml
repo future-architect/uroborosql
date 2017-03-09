@@ -188,25 +188,6 @@ encoding/<project>=UTF-8
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<configuration>
-					<workingDirectory>${basedir}</workingDirectory>
-					<mainClass>jp.co.future.uroborosql.client.SqlREPL</mainClass>
-					<arguments>
-						<argument>REPL/repl.properties</argument>
-					</arguments>
-				</configuration>
-				<executions>
-					<execution>
-						<id>repl</id>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
@@ -227,21 +208,70 @@ encoding/<project>=UTF-8
 					<localCheckout>true</localCheckout>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>REPL</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<defaultGoal>process-classes</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>repl</id>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<workingDirectory>${basedir}</workingDirectory>
+									<mainClass>jp.co.future.uroborosql.client.SqlREPL</mainClass>
+									<arguments>
+										<argument>REPL/repl.properties</argument>
+									</arguments>
+								</configuration>
+								<phase>process-classes</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<dependencies>
 		<dependency>
