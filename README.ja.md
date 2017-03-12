@@ -19,7 +19,7 @@ Installation
 ```xml
 <dependency>
     <groupId>jp.co.future</groupId>
-    <artifactId>uroborosql/artifactId>
+    <artifactId>uroborosql</artifactId>
     <version>0.1.0</version>
 </dependency>
 ```
@@ -98,6 +98,16 @@ Sample application
 ------------------
 
 https://github.com/future-architect/uroborosql-sample
+
+SQL Formatter
+-------------
+
+<img src="https://github.com/future-architect/uroboroSQL-formatter/raw/master/image/uroboroSQLformatter_logo.png" style="max-width: 500px;" alt="uroboroSQL" />
+
+開発で便利なSQL formatterも用意しています。
+
+- https://github.com/future-architect/uroboroSQL-formatter
+- https://github.com/future-architect/Sublime-uroboroSQL-formatter
 
 License
 -------

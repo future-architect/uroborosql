@@ -101,6 +101,16 @@ Sample application
 
 https://github.com/future-architect/uroborosql-sample
 
+SQL Formatter
+-------------
+
+<img src="https://github.com/future-architect/uroboroSQL-formatter/raw/master/image/uroboroSQLformatter_logo.png" style="max-width: 500px;" alt="uroboroSQL" />
+
+We also prepare a SQL formatter useful for development.
+
+- https://github.com/future-architect/uroboroSQL-formatter
+- https://github.com/future-architect/Sublime-uroboroSQL-formatter
+
 License
 -------
 
