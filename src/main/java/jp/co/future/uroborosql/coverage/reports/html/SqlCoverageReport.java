@@ -127,10 +127,9 @@ class SqlCoverageReport {
 				.mapToObj(i -> {
 					if (!isTargetLine(i)) {
 						return "<span class=\"cline no-target\">&nbsp;</span>";
-					} else if (hitLines[i] > 0) {
-						return "<span class=\"cline cline-yes\">" + hitLines[i] + "×</span>";
 					} else {
-						return "<span class=\"cline cline-no\">&nbsp;</span>";
+						String className = hitLines[i] > 0 ? "cline-yes" : "cline-no";
+						return "<span class=\"cline " + className + "\">" + hitLines[i] + "×</span>";
 					}
 				})
 				.collect(Collectors.joining("\n")));
@@ -264,8 +263,12 @@ class SqlCoverageReport {
 		writer.append("    <meta charset=\"utf-8\" />");
 		writer.append("    <style type=\"text/css\">");
 
+		writer.append("pre.coverage-source {font: 12px/1.4 Consolas, \"Liberation Mono\", Menlo, Courier, monospace;}");
 		writer.append("table.coverage {border-collapse: collapse;margin: 10px 0 0 0;padding: 0;}");
-		writer.append("span.cline {width: 100%;display: inline-block;}");
+
+		writer.append("td.line-no {text-align: right;padding: 0 5px 0 20px;color: rgba(0,0,0,0.5);}");
+		writer.append("td.line-coverage {text-align: right;padding-right: 10px;min-width: 20px;}");
+		writer.append("span.cline {width: 100%;display: inline-block;padding: 0 5px;box-sizing: border-box;}");
 		writer.append("span.cline.cline-no {background: #F6C6CE;}");
 		writer.append("span.cline.cline-yes {background: rgb(230,245,208);}");
 		writer.append("span.cline.no-target {background: #eaeaea;}");
@@ -308,7 +311,7 @@ class SqlCoverageReport {
 	}
 
 	private void writeTablePrefix(BufferedWriter writer) throws IOException {
-		writer.append("    <pre>");
+		writer.append("    <pre class=\"coverage-source\">");
 		writer.append("        <table class=\"coverage\">");
 		writer.append("            <tr>");
 	}
