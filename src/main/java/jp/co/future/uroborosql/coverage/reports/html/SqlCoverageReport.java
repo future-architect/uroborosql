@@ -51,9 +51,7 @@ class SqlCoverageReport {
 		this.sql = sql;
 		this.md5 = md5;
 		this.lineRanges = CoverageHandler.parseLineRanges(sql);
-		this.sqlLineCount = lineRanges.stream()
-				.mapToInt(LineRange::getLineIndex)
-				.max().orElse(0) + 1;
+		this.sqlLineCount = CoverageHandler.getLineRanges(sql).size();
 		this.hitLines = new int[this.sqlLineCount];
 	}
 
@@ -289,23 +287,23 @@ class SqlCoverageReport {
 
 		writer.append("<div class=\"header\">");
 		writer.append("    <h1>").append(StringEscapeUtils.escapeHtml4(this.name)).append("</h1>");
-		if (lineCount > 0) {
-			writer.append("    <div class=\"summary\">");
-			writer.append("      <strong>").append(String.valueOf(lineCovered * 100 / lineCount)).append("% </strong>");
-			writer.append("      <span>Lines</span>");
-			writer.append("      <span class=\"fraction\">").append(String.valueOf(lineCovered)).append("/")
-					.append(String.valueOf(lineCount)).append("</span>");
-			writer.append("    </div>");
-		}
-		if (branchesCount > 0) {
-			writer.append("    <div class=\"summary\">");
-			writer.append("      <strong>").append(String.valueOf(branchesCovered * 100 / branchesCount))
-					.append("% </strong>");
-			writer.append("      <span>Branches</span>");
-			writer.append("      <span class=\"fraction\">").append(String.valueOf(branchesCovered)).append("/")
-					.append(String.valueOf(branchesCount)).append("</span>");
-			writer.append("    </div>");
-		}
+
+		writer.append("    <div class=\"summary\">");
+		writer.append("      <strong>").append(CoverageHandler.percentStr(lineCovered, lineCount))
+				.append("% </strong>");
+		writer.append("      <span>Lines</span>");
+		writer.append("      <span class=\"fraction\">").append(String.valueOf(lineCovered)).append("/")
+				.append(String.valueOf(lineCount)).append("</span>");
+		writer.append("    </div>");
+
+		writer.append("    <div class=\"summary\">");
+		writer.append("      <strong>").append(CoverageHandler.percentStr(branchesCovered, branchesCount))
+				.append("% </strong>");
+		writer.append("      <span>Branches</span>");
+		writer.append("      <span class=\"fraction\">").append(String.valueOf(branchesCovered)).append("/")
+				.append(String.valueOf(branchesCount)).append("</span>");
+		writer.append("    </div>");
+
 		writer.append("</div>");
 	}
 

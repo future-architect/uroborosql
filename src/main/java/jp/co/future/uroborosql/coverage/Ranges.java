@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql.coverage;
 
-import java.util.AbstractCollection;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -14,7 +14,7 @@ import java.util.ListIterator;
  *
  * @author ota
  */
-public class Ranges extends AbstractCollection<Range> {
+public class Ranges extends AbstractSet<Range> {
 
 	private final List<Range> ranges = new LinkedList<>();
 
@@ -26,7 +26,7 @@ public class Ranges extends AbstractCollection<Range> {
 
 	/**
 	 * コンストラクタ
-	 * 
+	 *
 	 * @param start 開始位置
 	 * @param end 終了位置
 	 */
@@ -112,6 +112,8 @@ public class Ranges extends AbstractCollection<Range> {
 			Range r = iterator.next();
 			if (r.equals(target)) {
 				iterator.remove();
+			} else if (target.include(r)) {
+				iterator.remove();
 			} else if (r.include(target)) {
 				if (r.getStart() < target.getStart()) {
 					newList.add(new Range(r.getStart(), target.getStart() - 1));
@@ -167,6 +169,11 @@ public class Ranges extends AbstractCollection<Range> {
 		addAll(newList);
 	}
 
+	@Override
+	public int size() {
+		return ranges.size();
+	}
+
 	private List<Range> getHasIntersections(Collection<Range> targetRanges, Range r) {
 		List<Range> ret = new ArrayList<>();
 		for (Range range : targetRanges) {
@@ -178,10 +185,4 @@ public class Ranges extends AbstractCollection<Range> {
 		}
 		return ret;
 	}
-
-	@Override
-	public int size() {
-		return ranges.size();
-	}
-
 }

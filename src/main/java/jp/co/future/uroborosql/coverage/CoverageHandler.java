@@ -30,7 +30,7 @@ public interface CoverageHandler {
 	 * @param sql SQL
 	 * @return 各行のRange
 	 */
-	static List<LineRange> buildLineRanges(String sql) {
+	static List<LineRange> getLineRanges(String sql) {
 		List<LineRange> ret = new ArrayList<>();
 		int start = 0;
 		int searchStart = 0;
@@ -56,7 +56,7 @@ public interface CoverageHandler {
 	 * @return 各行のRange
 	 */
 	static List<LineRange> parseLineRanges(String sql) {
-		List<LineRange> ret = buildLineRanges(sql);
+		List<LineRange> ret = getLineRanges(sql);
 		for (Iterator<LineRange> iterator = ret.iterator(); iterator.hasNext();) {
 			LineRange lineRange = iterator.next();
 			String line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
@@ -65,19 +65,41 @@ public interface CoverageHandler {
 				iterator.remove();
 			} else if (trimLine.equals("/*END*/") || trimLine.equals("/*ELSE*/")) {
 				iterator.remove();
-			} else if (isElseLineCommentOnly(trimLine)) {
-				iterator.remove();
+			} else {
+				if (trimLine.startsWith("--")) {
+					String comments = trimLine.substring(2);
+					if (comments.trim().equals("ELSE")) {
+						iterator.remove();
+					}
+				}
 			}
 
 		}
 		return ret;
 	}
 
-	static boolean isElseLineCommentOnly(String line) {
-		if (!line.startsWith("--")) {
-			return false;
+	/**
+	 * パーセント計算
+	 *
+	 * @param covered カバー数
+	 * @param valid 対象数
+	 * @return カバレッジ パーセント
+	 */
+	static int percent(int covered, int valid) {
+		if (valid == 0) {
+			return 100;
 		}
-		String comments = line.substring(2);
-		return comments.trim().equals("ELSE");
+		return covered * 100 / valid;
+	}
+
+	/**
+	 * パーセント計算
+	 *
+	 * @param covered カバー数
+	 * @param valid 対象数
+	 * @return カバレッジ パーセント（文字列）
+	 */
+	static String percentStr(int covered, int valid) {
+		return String.valueOf(percent(covered, valid));
 	}
 }

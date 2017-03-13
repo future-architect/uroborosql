@@ -104,7 +104,7 @@ public class Range implements Comparable<Range> {
 	public boolean equals(final Object obj) {
 		if (obj == this) {
 			return true;
-		} else if (obj == null || obj.getClass() != getClass()) {
+		} else if (!(obj instanceof Range)) {
 			return false;
 		} else {
 			final Range range = (Range) obj;
@@ -116,7 +116,6 @@ public class Range implements Comparable<Range> {
 	public int hashCode() {
 		int result = 0;
 		result = 17;
-		result = 37 * result + getClass().hashCode();
 		result = 37 * result + Integer.hashCode(start);
 		result = 37 * result + Integer.hashCode(end);
 		return result;

@@ -416,7 +416,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				int size = lineBranch.branchSize();
 				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
-				line.setAttribute("condition-coverage", covered * 100 / size + "% (" + covered + "/" + size + ")");
+				line.setAttribute("condition-coverage",
+						CoverageHandler.percentStr(covered, size) + "% (" + covered + "/" + size + ")");
 				total.branch.valid += size;
 				total.branch.covered += covered;
 
