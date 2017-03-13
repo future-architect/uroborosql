@@ -19,6 +19,7 @@ import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
 public class HtmlReportCoverageHandlerTest {
 	/**
@@ -63,8 +64,16 @@ public class HtmlReportCoverageHandlerTest {
 			agent.query("example/select_test").param("id", "A001").collect();
 
 			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test01").collect();
 			agent.query("covertest/test02").collect();
 			agent.query("covertest/test03").collect();
+		}
+		WrapContextSqlFilter filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
+				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
+		filter.initialize();
+		config.getSqlFilterManager().addSqlFilter(filter);
+		try (SqlAgent agent = config.createAgent()) {
+			agent.query("covertest/test01").param("id", 1).collect();
 
 		}
 

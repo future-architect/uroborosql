@@ -137,6 +137,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class SqlCoverage {
 		private final String name;
+		@SuppressWarnings("unused")
 		private final String md5;
 		/** 各行範囲 */
 		private final List<LineRange> lineRanges;
@@ -146,9 +147,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		/** 各行通過回数 */
 		private final int[] hitLines;
 
-		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath)
+		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath,
+				int hashIndex)
 				throws IOException {
-			this.name = name;
+			this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
 			this.md5 = md5;
 			this.lineRanges = CoverageHandler.parseLineRanges(sql);
 			this.hitLines = new int[lineRanges.stream()
@@ -211,7 +213,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 	}
 
-	private final Map<String, SqlCoverage> coverages = new ConcurrentHashMap<>();
+	private final Map<String, Map<String, SqlCoverage>> coverages = new ConcurrentHashMap<>();
 	private final Path reportPath;
 	private final Path sourcesDirPath;
 	private boolean updated = true;
@@ -253,18 +255,18 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return;
 		}
 
-		SqlCoverage sqlCoverage = coverages.get(coverageData.getSqlName());
-		if (sqlCoverage == null
-				//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
-				|| !sqlCoverage.md5.equals(coverageData.getMd5())) {
+		Map<String, SqlCoverage> map = coverages.computeIfAbsent(coverageData.getSqlName(),
+				k -> new ConcurrentHashMap<>());
+		SqlCoverage sqlCoverage = map.get(coverageData.getMd5());
+		if (sqlCoverage == null) {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
-						sourcesDirPath);
+						sourcesDirPath, map.size());
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 				return;
 			}
-			coverages.put(coverageData.getSqlName(), sqlCoverage);
+			map.put(coverageData.getMd5(), sqlCoverage);
 		}
 
 		sqlCoverage.accept(coverageData.getPassRoute());
@@ -348,7 +350,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			Path p = Paths.get(name).getParent();
 			String pkg = p != null ? p.toString().replace(File.separatorChar, '.') : "_root_";
 			PackageSummary summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
-			summary.coverageInfos.add(c);
+			summary.coverageInfos.addAll(c.values());
 		});
 		return summaries.values().stream().sorted(Comparator.comparing(p -> p.packagePath))
 				.collect(Collectors.toList());

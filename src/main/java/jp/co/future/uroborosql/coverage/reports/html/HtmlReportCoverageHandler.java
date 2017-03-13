@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 public class HtmlReportCoverageHandler implements CoverageHandler {
 	protected static final Logger LOG = LoggerFactory.getLogger(HtmlReportCoverageHandler.class);
 
-	private final Map<String, SqlCoverageReport> coverages = new ConcurrentHashMap<>();
+	private final Map<String, Map<String, SqlCoverageReport>> coverages = new ConcurrentHashMap<>();
 	private final Path reportDirPath;
 
 	/**
@@ -67,14 +68,13 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			//SQL名の設定されていないSQLは集約しない
 			return;
 		}
-
-		SqlCoverageReport sqlCoverage = coverages.get(coverageData.getSqlName());
-		if (sqlCoverage == null
-				//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
-				|| !sqlCoverage.getMd5().equals(coverageData.getMd5())) {
+		Map<String, SqlCoverageReport> map = coverages.computeIfAbsent(coverageData.getSqlName(),
+				k -> new ConcurrentHashMap<>());
+		SqlCoverageReport sqlCoverage = map.get(coverageData.getMd5());
+		if (sqlCoverage == null) {
 			sqlCoverage = new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
-					coverageData.getMd5(), this.reportDirPath);
-			coverages.put(coverageData.getSqlName(), sqlCoverage);
+					coverageData.getMd5(), this.reportDirPath, map.size());
+			map.put(coverageData.getMd5(), sqlCoverage);
 		}
 
 		sqlCoverage.accept(coverageData.getPassRoute());
@@ -82,7 +82,10 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 	@Override
 	public synchronized void onSqlAgentClose() {
-		coverages.values().forEach(SqlCoverageReport::writeHtml);
+		coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
+				.forEach(SqlCoverageReport::writeHtml);
 		writeHtml();
 	}
 
@@ -108,11 +111,14 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 	private void writeTable(BufferedWriter writer) throws IOException {
 		List<SqlCoverageReport> list = coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
 				.sorted(Comparator.comparing(SqlCoverageReport::getName))
 				.collect(Collectors.toList());
 		for (SqlCoverageReport sqlCoverageReport : list) {
 
-			String name = StringEscapeUtils.escapeHtml4(sqlCoverageReport.getName());
+			String htmlName = StringEscapeUtils.escapeHtml4(sqlCoverageReport.getName());
+			String linkName = sqlCoverageReport.getName();
 			int lineCount = sqlCoverageReport.getLineValidSize();
 			int lineCovered = sqlCoverageReport.getLineCoveredSize();
 
@@ -122,7 +128,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			int lineCoveredPer = lineCovered * 100 / lineCount;
 
 			writer.append("<tr>");
-			writer.append("   <td class=\"file\" ><a href=\"").append(name).append(".html\" >").append(name)
+			writer.append("   <td class=\"file\" ><a href=\"").append(linkName).append(".html\" >").append(htmlName)
 					.append("</a></th>");
 			writer.append(
 					"   <td class=\"pic\" ><div class=\"chart\"><div class=\"cover-fill\" style=\"width: ")
@@ -171,16 +177,24 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 	private void writeHeaderSection(BufferedWriter writer) throws IOException {
 		int lineCount = coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getLineValidSize)
 				.sum();
 		int lineCovered = coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getLineCoveredSize)
 				.sum();
 
 		int branchesCount = coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getBranchValidSize)
 				.sum();
 		int branchesCovered = coverages.values().stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getBranchCoveredSize)
 				.sum();
 

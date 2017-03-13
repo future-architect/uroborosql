@@ -45,9 +45,9 @@ class SqlCoverageReport {
 	/** 各通過範囲 */
 	private final Ranges passRanges = new Ranges();
 
-	SqlCoverageReport(String name, String sql, String md5, Path reportDirPath) {
-		this.name = name;
-		this.path = reportDirPath.resolve(name + ".html");
+	SqlCoverageReport(String name, String sql, String md5, Path reportDirPath, int hashIndex) {
+		this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
+		this.path = reportDirPath.resolve(this.name + ".html");
 		this.sql = sql;
 		this.md5 = md5;
 		this.lineRanges = CoverageHandler.parseLineRanges(sql);

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -9,15 +9,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
 public class CoberturaCoverageHandlerTest {
 	/**
@@ -59,6 +60,14 @@ public class CoberturaCoverageHandlerTest {
 
 			agent.query("covertest/test01").param("id", 1).collect();
 			agent.query("covertest/test02").collect();
+		}
+
+		WrapContextSqlFilter filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
+				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
+		filter.initialize();
+		config.getSqlFilterManager().addSqlFilter(filter);
+		try (SqlAgent agent = config.createAgent()) {
+			agent.query("covertest/test01").param("id", 1).collect();
 
 		}
 
