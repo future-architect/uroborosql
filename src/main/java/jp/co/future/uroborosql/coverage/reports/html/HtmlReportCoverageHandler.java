@@ -24,8 +24,11 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 
 /**
  * カバレッジレポート出力ハンドラ<br>
+ * htmlのカバレッジレポートを出力する
  *
  * <pre>
+ * sysytem property "uroborosql.sql.coverage" に "jp.co.future.uroborosql.coverage.reports.html.HtmlReportCoverageHandler" を指定することで
+ * 本機能を利用することができます。
  * </pre>
  *
  * @author ota
