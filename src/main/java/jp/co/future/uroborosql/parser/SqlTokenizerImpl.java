@@ -229,16 +229,8 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * ELSE文解析
 	 */
 	protected void parseElse() {
-		int crPos = sql.indexOf("\n", position);
-		String elseToken;
-		if (crPos >= 0) {
-			elseToken = sql.substring(position, crPos + 1);
-		} else {
-			elseToken = sql.substring(position, sql.length());
-		}
-		while (elseToken.endsWith("\n") || elseToken.endsWith("\r")) {
-			elseToken = elseToken.substring(0, elseToken.length() - 1);
-		}
+		int pos = sql.indexOf("ELSE", position) + 4;
+		String elseToken = sql.substring(position, pos);
 		token = elseToken;
 		nextTokenType = TokenType.SQL;
 		position = position + elseToken.length();
