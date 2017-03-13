@@ -20,7 +20,7 @@ public class PrefixSqlNode extends SqlNode {
 	 * @param sqlPart SQL文
 	 */
 	public PrefixSqlNode(final int position, final String prefix, final String sqlPart) {
-		super(position, sqlPart);
+		super(position, prefix.length(), sqlPart);
 		this.prefix = prefix;
 	}
 
@@ -36,5 +36,4 @@ public class PrefixSqlNode extends SqlNode {
 		}
 		super.accept(transformContext);
 	}
-
 }

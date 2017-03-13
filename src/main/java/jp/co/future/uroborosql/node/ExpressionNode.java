@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.node;
 
 import org.apache.commons.lang3.StringUtils;
 
-import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
@@ -25,11 +24,13 @@ public abstract class ExpressionNode extends AbstractNode {
 	 * 評価を行うノード
 	 *
 	 * @param position 開始位置
+	 * @param addLength 追加データ長
 	 * @param expression 評価式
 	 * @param tokenValue トークン上の値
 	 */
-	protected ExpressionNode(final int position, final String expression, final String tokenValue) {
-		super(position);
+	protected ExpressionNode(final int position, final int addLength, final String expression,
+			final String tokenValue) {
+		super(position, 2 + addLength + expression.length() + 2 + (tokenValue != null ? tokenValue.length() : 0));
 		this.expression = expression;
 		this.tokenValue = tokenValue;
 	}
@@ -101,18 +102,5 @@ public abstract class ExpressionNode extends AbstractNode {
 	 */
 	public String getTokenValue() {
 		return tokenValue;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.node.Node#passed(PassedRoute)
-	 */
-	@Override
-	public void passed(final PassedRoute passed) {
-		if (isPassed()) {
-			passed.appendHitRange(getPosition(), getPosition() + expression.length() - 1);
-		}
-		super.passed(passed);
 	}
 }

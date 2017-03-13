@@ -16,7 +16,7 @@ public class BeginNode extends BranchNode {
 	 * @param position 開始位置
 	 */
 	public BeginNode(int position) {
-		super(position);
+		super(position, 9);
 	}
 
 	/**
@@ -45,10 +45,7 @@ public class BeginNode extends BranchNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		passed.appendBranchState(getPosition(), this.getState());
-		if (isPassed()) {
-			passed.appendHitRange(getPosition(), getPosition() + 1);
-		}
+		passed.appendBranchState(getPosition(), getPosition() + getLength() - 1, this.getState());
 		super.passed(passed);
 	}
 

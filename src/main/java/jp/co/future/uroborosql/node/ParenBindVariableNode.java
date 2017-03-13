@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
 public class ParenBindVariableNode extends ExpressionNode {
 
 	public ParenBindVariableNode(final int position, final String expression, final String tokenValue) {
-		super(position, expression, tokenValue);
+		super(position, 0, expression, tokenValue);
 	}
 
 	/**

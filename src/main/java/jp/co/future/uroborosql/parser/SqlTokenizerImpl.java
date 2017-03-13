@@ -28,6 +28,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 
 	/**
 	 * コンストラクタ
+	 *
 	 * @param sql 解析対象SQL
 	 */
 	public SqlTokenizerImpl(final String sql) {
@@ -135,12 +136,10 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 		int lineCommentStartPos = sql.indexOf("--", position);
 		int bindVariableStartPos = sql.indexOf("?", position);
 		int elseCommentStartPos = -1;
-		int elseCommentLength = -1;
 		if (lineCommentStartPos >= 0) {
 			int skipPos = skipWhitespace(lineCommentStartPos + 2);
 			if (skipPos + 4 < sql.length() && "ELSE".equals(sql.substring(skipPos, skipPos + 4))) {
 				elseCommentStartPos = lineCommentStartPos;
-				elseCommentLength = skipPos + 4 - lineCommentStartPos;
 			}
 		}
 		int nextStartPos = getNextStartPos(commentStartPos, elseCommentStartPos, bindVariableStartPos);
@@ -158,7 +157,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 				position = commentStartPos + 2;
 			} else if (nextStartPos == elseCommentStartPos) {
 				nextTokenType = TokenType.ELSE;
-				position = elseCommentStartPos + elseCommentLength;
+				position = elseCommentStartPos + 2;
 			} else if (nextStartPos == bindVariableStartPos) {
 				nextTokenType = TokenType.BIND_VARIABLE;
 				position = bindVariableStartPos;
@@ -230,8 +229,11 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * ELSE文解析
 	 */
 	protected void parseElse() {
-		token = null;
+		int pos = sql.indexOf("ELSE", position) + 4;
+		String elseToken = sql.substring(position, pos);
+		token = elseToken;
 		nextTokenType = TokenType.SQL;
+		position = position + elseToken.length();
 		tokenType = TokenType.ELSE;
 	}
 
@@ -299,6 +301,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 
 	/**
 	 * ホワイトスペーススキップ
+	 *
 	 * @param position ポジション
 	 * @return 空白をスキップした位置
 	 */

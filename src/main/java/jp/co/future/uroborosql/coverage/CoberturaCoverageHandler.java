@@ -27,13 +27,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jp.co.future.uroborosql.SqlAgent;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import jp.co.future.uroborosql.SqlAgent;
 
 /**
  * Coberturaカバレッジレポート出力ハンドラ<br>
@@ -89,11 +89,11 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class PointBranch {
 		@SuppressWarnings("unused")
-		private final int point;
+		private final Range range;
 		private final Set<BranchCoverageState> status = EnumSet.noneOf(BranchCoverageState.class);
 
-		private PointBranch(final int point) {
-			this.point = point;
+		private PointBranch(final Range range) {
+			this.range = range;
 		}
 
 		private void add(final BranchCoverageState state) {
@@ -111,13 +111,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private static class LineBranch {
 		@SuppressWarnings("unused")
 		private final int rowIndxx;
-		private final Map<Integer, PointBranch> branches = new HashMap<>();
+		private final Map<Range, PointBranch> branches = new HashMap<>();
 
 		private LineBranch(final int rowIndxx) {
 			this.rowIndxx = rowIndxx;
 		}
 
-		private void add(final Integer idx, final BranchCoverageState state) {
+		private void add(final Range idx, final BranchCoverageState state) {
 			PointBranch branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
 
 			branch.add(state);
@@ -137,6 +137,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class SqlCoverage {
 		private final String name;
+		@SuppressWarnings("unused")
 		private final String md5;
 		/** 各行範囲 */
 		private final List<LineRange> lineRanges;
@@ -146,12 +147,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		/** 各行通過回数 */
 		private final int[] hitLines;
 
-		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath)
+		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath,
+				int hashIndex)
 				throws IOException {
-			this.name = name;
+			this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
 			this.md5 = md5;
-			this.lineRanges = CoverageHandler.buildLineRanges(sql);
-			this.hitLines = new int[this.lineRanges.size()];
+			this.lineRanges = CoverageHandler.parseLineRanges(sql);
+			this.hitLines = new int[lineRanges.stream()
+					.mapToInt(LineRange::getLineIndex)
+					.max().orElse(0) + 1];
 			writeSqlSource(sourcesDirPath, sql);
 		}
 
@@ -168,15 +172,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				}
 			}
 			//各行のブランチ情報を集計
-			passRoute.getBranchStatus().forEach((idx, state) -> {
-				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(idx), k -> new LineBranch(k));
-				lineBranch.add(idx, state);
+			passRoute.getRangeBranchStatus().forEach((range, state) -> {
+				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(range), k -> new LineBranch(k));
+				lineBranch.add(range, state);
 			});
 		}
 
-		private int toRow(final int idx) {
+		private int toRow(final Range target) {
 			for (LineRange range : lineRanges) {
-				if (range.contains(idx)) {
+				if (range.hasIntersection(target)) {
 					return range.getLineIndex();
 				}
 			}
@@ -209,7 +213,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 	}
 
-	private final Map<String, SqlCoverage> coverages = new ConcurrentHashMap<>();
+	private final Map<String, Map<String, SqlCoverage>> coverages = new ConcurrentHashMap<>();
 	private final Path reportPath;
 	private final Path sourcesDirPath;
 	private boolean updated = true;
@@ -251,18 +255,18 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return;
 		}
 
-		SqlCoverage sqlCoverage = coverages.get(coverageData.getSqlName());
-		if (sqlCoverage == null
-		//HASH値に変更があった場合、今までの情報を破棄して新しく集計しなおす
-				|| !sqlCoverage.md5.equals(coverageData.getMd5())) {
+		Map<String, SqlCoverage> map = coverages.computeIfAbsent(coverageData.getSqlName(),
+				k -> new ConcurrentHashMap<>());
+		SqlCoverage sqlCoverage = map.get(coverageData.getMd5());
+		if (sqlCoverage == null) {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
-						sourcesDirPath);
+						sourcesDirPath, map.size());
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 				return;
 			}
-			coverages.put(coverageData.getSqlName(), sqlCoverage);
+			map.put(coverageData.getMd5(), sqlCoverage);
 		}
 
 		sqlCoverage.accept(coverageData.getPassRoute());
@@ -346,7 +350,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			Path p = Paths.get(name).getParent();
 			String pkg = p != null ? p.toString().replace(File.separatorChar, '.') : "_root_";
 			PackageSummary summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
-			summary.coverageInfos.add(c);
+			summary.coverageInfos.addAll(c.values());
 		});
 		return summaries.values().stream().sorted(Comparator.comparing(p -> p.packagePath))
 				.collect(Collectors.toList());
@@ -395,10 +399,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Element lines = document.createElement("lines");
 		classElm.appendChild(lines);
 
-		total.line.valid = coverageInfo.hitLines.length;
-		for (int i = 0; i < coverageInfo.hitLines.length; i++) {
-			int no = i + 1;
-			int hit = coverageInfo.hitLines[i];
+		total.line.valid = coverageInfo.lineRanges.size();
+		for (LineRange range : coverageInfo.lineRanges) {
+			int no = range.getLineIndex() + 1;
+			int hit = coverageInfo.hitLines[range.getLineIndex()];
 			if (hit > 0) {
 				total.line.covered++;
 			}
@@ -407,12 +411,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			lines.appendChild(line);
 			line.setAttribute("number", String.valueOf(no));
 			line.setAttribute("hits", String.valueOf(hit));
-			LineBranch lineBranch = coverageInfo.lineBranches.get(i);
+			LineBranch lineBranch = coverageInfo.lineBranches.get(range.getLineIndex());
 			if (lineBranch != null) {
 				int size = lineBranch.branchSize();
 				int covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
-				line.setAttribute("condition-coverage", covered * 100 / size + "% (" + covered + "/" + size + ")");
+				line.setAttribute("condition-coverage",
+						CoverageHandler.percentStr(covered, size) + "% (" + covered + "/" + size + ")");
 				total.branch.valid += size;
 				total.branch.covered += covered;
 

@@ -53,4 +53,11 @@ public interface Node {
 	 */
 	int getPosition();
 
+	/**
+	 * データ長取得
+	 *
+	 * @return データ長
+	 */
+	int getLength();
+
 }

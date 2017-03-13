@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -16,11 +15,23 @@ public class SqlNode extends AbstractNode {
 	/**
 	 * コンストラクタ
 	 *
-	 * @param startPosition 開始位置
+	 * @param position 開始位置
 	 * @param sqlPart SQL文
 	 */
-	public SqlNode(final int startPosition, final String sqlPart) {
-		super(startPosition);
+	public SqlNode(final int position, final String sqlPart) {
+		super(position, sqlPart.length());
+		this.sqlPart = sqlPart;
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param position 開始位置
+	 * @param addLength 追加データ長
+	 * @param sqlPart SQL文
+	 */
+	public SqlNode(final int position, final int addLength, final String sqlPart) {
+		super(position, addLength + sqlPart.length());
 		this.sqlPart = sqlPart;
 	}
 
@@ -42,18 +53,5 @@ public class SqlNode extends AbstractNode {
 	public void accept(final TransformContext transformContext) {
 		transformContext.addSqlPart(sqlPart);
 		pass();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.node.Node#passed(PassedRoute)
-	 */
-	@Override
-	public void passed(final PassedRoute passed) {
-		if (isPassed()) {
-			passed.appendHitRange(getPosition(), getPosition() + sqlPart.length() - 1);
-		}
-		super.passed(passed);
 	}
 }
