@@ -129,7 +129,8 @@ class SqlCoverageReport {
 						return "<span class=\"cline no-target\">&nbsp;</span>";
 					} else {
 						String className = hitLines[i] > 0 ? "cline-yes" : "cline-no";
-						return "<span class=\"cline " + className + "\">" + hitLines[i] + "×</span>";
+						String text = hitLines[i] > 0 ? hitLines[i] + "<em>×</em>" : "<em>!</em>";
+						return "<span class=\"cline " + className + "\">" + text + "</span>";
 					}
 				})
 				.collect(Collectors.joining("\n")));
@@ -272,6 +273,8 @@ class SqlCoverageReport {
 		writer.append("span.cline.cline-no {background: #F6C6CE;}");
 		writer.append("span.cline.cline-yes {background: rgb(230,245,208);}");
 		writer.append("span.cline.no-target {background: #eaeaea;}");
+
+		writer.append("span.cline>em {opacity: 0.5;font-style: inherit;}");
 
 		writer.append(".not-covered {background: #F6C6CE;}");
 		writer.append(".not-covered-branch {background: yellow;}");
