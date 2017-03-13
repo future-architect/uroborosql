@@ -1,11 +1,16 @@
 package jp.co.future.uroborosql.coverage;
 
+import java.util.Comparator;
+
 /**
  * Range情報
  *
  * @author ota
  */
-public class Range {
+public class Range implements Comparable<Range> {
+	private static final Comparator<Range> COMPARATOR = Comparator.comparingInt(Range::getStart)
+			.thenComparingInt(Range::getEnd);
+
 	private final int start;
 	private final int end;
 
@@ -59,8 +64,20 @@ public class Range {
 	 * @param range 判定Range
 	 * @return 交差
 	 */
-	public boolean intersection(final Range range) {
+	public boolean hasIntersection(final Range range) {
 		return Math.max(this.start, range.start) <= Math.min(this.end, range.end);
+	}
+
+	/**
+	 * 共通部分を取り出す
+	 *
+	 * @param range 判定Range
+	 * @return {@link Range} 共通部が無い場合はnull
+	 */
+	public Range intersection(final Range range) {
+		int c0 = Math.max(this.start, range.start);
+		int c1 = Math.min(this.end, range.end);
+		return c0 <= c1 ? new Range(c0, c1) : null;
 	}
 
 	/**
@@ -71,6 +88,16 @@ public class Range {
 	 */
 	public boolean include(Range range) {
 		return start <= range.start && range.end <= end;
+	}
+
+	/**
+	 * 内包判定
+	 *
+	 * @param i 判定ポジション
+	 * @return 内包
+	 */
+	public boolean include(int i) {
+		return start <= i && i <= end;
 	}
 
 	@Override
@@ -98,6 +125,11 @@ public class Range {
 	@Override
 	public String toString() {
 		return "[" + start + ".." + end + "]";
+	}
+
+	@Override
+	public int compareTo(Range o) {
+		return COMPARATOR.compare(this, o);
 	}
 
 }

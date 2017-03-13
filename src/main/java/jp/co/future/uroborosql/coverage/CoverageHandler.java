@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -24,7 +25,7 @@ public interface CoverageHandler {
 	}
 
 	/**
-	 * 各行のchar index範囲を取得
+	 * 各行のindex範囲を取得
 	 *
 	 * @param sql SQL
 	 * @return 各行のRange
@@ -46,5 +47,37 @@ public interface CoverageHandler {
 			}
 		}
 		return ret;
+	}
+
+	/**
+	 * 各行のindex範囲を取得しカバレッジに不要な行を除外する
+	 *
+	 * @param sql SQL
+	 * @return 各行のRange
+	 */
+	static List<LineRange> parseLineRanges(String sql) {
+		List<LineRange> ret = buildLineRanges(sql);
+		for (Iterator<LineRange> iterator = ret.iterator(); iterator.hasNext();) {
+			LineRange lineRange = iterator.next();
+			String line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
+			String trimLine = line.trim();
+			if (trimLine.isEmpty()) {
+				iterator.remove();
+			} else if (trimLine.equals("/*END*/") || trimLine.equals("/*ELSE*/")) {
+				iterator.remove();
+			} else if (isElseLineCommentOnly(trimLine)) {
+				iterator.remove();
+			}
+
+		}
+		return ret;
+	}
+
+	static boolean isElseLineCommentOnly(String line) {
+		if (!line.startsWith("--")) {
+			return false;
+		}
+		String comments = line.substring(2);
+		return comments.trim().equals("ELSE");
 	}
 }

@@ -93,7 +93,7 @@ public class PassedRoute {
 	 */
 	public boolean isHit(Range target) {
 		for (Range range : getRanges()) {
-			if (range.intersection(target)) {
+			if (range.hasIntersection(target)) {
 				return true;
 			}
 		}
