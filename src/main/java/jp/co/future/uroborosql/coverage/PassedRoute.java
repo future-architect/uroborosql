@@ -1,6 +1,8 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -13,17 +15,19 @@ import java.util.stream.Collectors;
  * @author ota
  */
 public class PassedRoute {
-	private final Map<Integer, BranchCoverageState> passed = new HashMap<>();
+	private final Map<Range, BranchCoverageState> passed = new HashMap<>();
 	private final List<Range> hits = new ArrayList<>();
+	private Ranges ranges;
 
 	/**
 	 * 分岐情報追加
 	 *
-	 * @param position 分岐出現ポジション（文字index）
+	 * @param start 開始位置（文字index）
+	 * @param end 終了位置（文字index）
 	 * @param state カバレッジ状態
 	 */
-	public void appendBranchState(int position, BranchCoverageState state) {
-		this.passed.put(position, state);
+	public void appendBranchState(int start, int end, BranchCoverageState state) {
+		this.passed.put(new Range(start, end), state);
 	}
 
 	/**
@@ -34,6 +38,7 @@ public class PassedRoute {
 	 */
 	public void appendHitRange(int start, int end) {
 		hits.add(new Range(start, end));
+		ranges = null;//キャッシュをクリア
 	}
 
 	/**
@@ -42,7 +47,27 @@ public class PassedRoute {
 	 * @return 分岐情報
 	 */
 	public Map<Integer, BranchCoverageState> getBranchStatus() {
-		return passed;
+		Map<Integer, BranchCoverageState> map = new HashMap<>();
+		passed.forEach((r, s) -> map.put(r.getStart(), s));
+		return Collections.unmodifiableMap(map);
+	}
+
+	/**
+	 * 分岐情報取得
+	 *
+	 * @return 分岐情報
+	 */
+	public Map<Range, BranchCoverageState> getRangeBranchStatus() {
+		return Collections.unmodifiableMap(passed);
+	}
+
+	/**
+	 * 通過情報取得
+	 *
+	 * @return 通過情報
+	 */
+	public Collection<Range> getHitRanges() {
+		return Collections.unmodifiableCollection(getRanges());
 	}
 
 	/**
@@ -52,7 +77,7 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(int index) {
-		for (Range range : hits) {
+		for (Range range : getRanges()) {
 			if (range.contains(index)) {
 				return true;
 			}
@@ -67,8 +92,8 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(Range target) {
-		for (Range range : hits) {
-			if (range.intersection(target)) {
+		for (Range range : getRanges()) {
+			if (range.hasIntersection(target)) {
 				return true;
 			}
 		}
@@ -77,7 +102,14 @@ public class PassedRoute {
 
 	@Override
 	public String toString() {
-		return this.passed.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getKey()))
+		return getBranchStatus().entrySet().stream().sorted(Comparator.comparingInt(e -> e.getKey()))
 				.map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",", "{", "}"));
+	}
+
+	private Ranges getRanges() {
+		if (ranges == null) {
+			ranges = new Ranges(hits);
+		}
+		return ranges;
 	}
 }

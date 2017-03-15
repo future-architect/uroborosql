@@ -36,7 +36,7 @@ public class EmbeddedValueNode extends ExpressionNode {
 	 * @param tokenValue トークン上の値
 	 */
 	public EmbeddedValueNode(final int position, final String expression, final boolean wrap, final String tokenValue) {
-		super(position, expression, tokenValue);
+		super(position, 1, expression, tokenValue);
 		this.wrap = wrap;
 	}
 

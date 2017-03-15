@@ -17,6 +17,8 @@ public abstract class AbstractNode implements Node {
 
 	/** ポジション */
 	private final int position;
+	/** データ長 */
+	private final int length;
 
 	/**
 	 * 保持しているSQLが適用対象となった場合に<code>true</code>となる. SQL文のカバレッジ取得に利用
@@ -27,9 +29,11 @@ public abstract class AbstractNode implements Node {
 	 * コンストラクタ
 	 *
 	 * @param position 開始位置
+	 * @param length データ長
 	 */
-	public AbstractNode(int position) {
+	public AbstractNode(int position, int length) {
 		this.position = position;
+		this.length = length;
 	}
 
 	/**
@@ -69,7 +73,9 @@ public abstract class AbstractNode implements Node {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		// do nothing
+		if (isPassed() && length > 0) {
+			passed.appendHitRange(getPosition(), getPosition() + getLength() - 1);
+		}
 	}
 
 	/**
@@ -88,6 +94,16 @@ public abstract class AbstractNode implements Node {
 
 	protected boolean isPassed() {
 		return passed;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.node.Node#getLength()
+	 */
+	@Override
+	public int getLength() {
+		return length;
 	}
 
 }

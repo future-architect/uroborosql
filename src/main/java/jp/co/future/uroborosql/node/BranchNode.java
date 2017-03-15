@@ -19,9 +19,10 @@ public class BranchNode extends ContainerNode {
 	 * コンストラクタ
 	 *
 	 * @param position 開始位置
+	 * @param length データ長
 	 */
-	public BranchNode(int position) {
-		super(position);
+	public BranchNode(int position, int length) {
+		super(position, length);
 	}
 
 	@Override

@@ -14,9 +14,10 @@ public class ContainerNode extends AbstractNode {
 	 * コンストラクタ
 	 *
 	 * @param position 開始位置
+	 * @param length データ長
 	 */
-	public ContainerNode(int position) {
-		super(position);
+	public ContainerNode(int position, int length) {
+		super(position, length);
 	}
 
 	/**
@@ -44,5 +45,6 @@ public class ContainerNode extends AbstractNode {
 		for (int i = 0; i < childSize; ++i) {
 			getChild(i).passed(passed);
 		}
+		super.passed(passed);
 	}
 }

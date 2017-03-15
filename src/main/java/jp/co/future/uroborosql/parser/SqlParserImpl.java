@@ -65,7 +65,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	@Override
 	public ContextTransformer parse() {
-		push(new ContainerNode(0));
+		push(new ContainerNode(0, 0));
 		while (TokenType.EOF != tokenizer.next()) {
 			parseToken();
 		}
@@ -85,7 +85,7 @@ public class SqlParserImpl implements SqlParser {
 			parseComment();
 			break;
 		case ELSE:
-			parseElse();
+			parseElse(tokenizer.getToken().length());
 			break;
 		case BIND_VARIABLE:
 			parseBindVariable();
@@ -127,7 +127,7 @@ public class SqlParserImpl implements SqlParser {
 			} else if (isElIfComment(comment)) {
 				parseElIf();
 			} else if (isElseComment(comment)) {
-				parseElse();
+				parseElse(comment.length() + 4);
 			} else if (isBeginComment(comment)) {
 				parseBegin();
 			} else if (isEndComment(comment)) {
@@ -145,7 +145,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseNormalComment() {
 		String comment = tokenizer.getToken();
-		SqlNode node = new SqlNode(this.position, "/*" + comment + "*/");
+		SqlNode node = new SqlNode(Math.max(this.position - 2, 0), "/*" + comment + "*/");
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(node);
 	}
@@ -154,11 +154,11 @@ public class SqlParserImpl implements SqlParser {
 	 * IF文解析
 	 */
 	protected void parseIf() {
-		String condition = tokenizer.getToken().substring(2).trim();
-		if (StringUtils.isEmpty(condition)) {
+		String condition = tokenizer.getToken().substring(2);
+		if (StringUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode ifNode = new IfNode(this.position, condition);
+		IfNode ifNode = new IfNode(Math.max(this.position - 2, 0), condition);
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(ifNode);
 		push(ifNode);
@@ -169,11 +169,11 @@ public class SqlParserImpl implements SqlParser {
 	 * IF文解析
 	 */
 	protected void parseElIf() {
-		String condition = tokenizer.getToken().substring(4).trim();
-		if (StringUtils.isEmpty(condition)) {
+		String condition = tokenizer.getToken().substring(4);
+		if (StringUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode elifNode = new IfNode(this.position, condition);
+		IfNode elifNode = new IfNode(Math.max(this.position - 2, 0), condition);
 		this.position = this.tokenizer.getPosition();
 		IfNode ifNode = (IfNode) pop();
 		ifNode.setElseIfNode(elifNode);
@@ -186,7 +186,7 @@ public class SqlParserImpl implements SqlParser {
 	 * BEGIN文解析
 	 */
 	protected void parseBegin() {
-		BeginNode beginNode = new BeginNode(this.position);
+		BeginNode beginNode = new BeginNode(Math.max(this.position - 2, 0));
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(beginNode);
 		push(beginNode);
@@ -201,6 +201,7 @@ public class SqlParserImpl implements SqlParser {
 			if (tokenizer.getTokenType() == TokenType.COMMENT && isEndComment(tokenizer.getToken())) {
 
 				pop();
+				this.position = this.tokenizer.getPosition();
 				return;
 			}
 			parseToken();
@@ -210,14 +211,16 @@ public class SqlParserImpl implements SqlParser {
 
 	/**
 	 * ELSE文解析
+	 *
+	 * @param length ELSE文の長さ
 	 */
-	protected void parseElse() {
+	protected void parseElse(int length) {
 		Node parent = peek();
 		if (!(parent instanceof IfNode)) {
 			return;
 		}
 		IfNode ifNode = (IfNode) pop();
-		ElseNode elseNode = new ElseNode(this.position);
+		ElseNode elseNode = new ElseNode(Math.max(this.position - 2, 0), length);
 		this.position = this.tokenizer.getPosition();
 		ifNode.setElseNode(elseNode);
 		push(elseNode);
@@ -231,13 +234,13 @@ public class SqlParserImpl implements SqlParser {
 		String expr = tokenizer.getToken();
 		String s = tokenizer.skipToken();
 		if (s.startsWith("(") && s.endsWith(")")) {
-			peek().addChild(new ParenBindVariableNode(this.position, expr, s));
+			peek().addChild(new ParenBindVariableNode(Math.max(this.position - 2, 0), expr, s));
 		} else if (expr.startsWith("#")) {
-			peek().addChild(new EmbeddedValueNode(this.position, expr.substring(1), true, s));
+			peek().addChild(new EmbeddedValueNode(Math.max(this.position - 2, 0), expr.substring(1), true, s));
 		} else if (expr.startsWith("$")) {
-			peek().addChild(new EmbeddedValueNode(this.position, expr.substring(1), s));
+			peek().addChild(new EmbeddedValueNode(Math.max(this.position - 2, 0), expr.substring(1), s));
 		} else {
-			peek().addChild(new BindVariableNode(this.position, expr, s));
+			peek().addChild(new BindVariableNode(Math.max(this.position - 2, 0), expr, s));
 		}
 		this.position = this.tokenizer.getPosition();
 	}
