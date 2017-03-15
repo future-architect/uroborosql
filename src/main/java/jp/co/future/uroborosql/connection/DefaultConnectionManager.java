@@ -64,7 +64,7 @@ public class DefaultConnectionManager implements ConnectionManager {
 	@Override
 	public void close() throws SQLException {
 		if (conn != null) {
-			LOG.trace("コネクションをクローズします。conn[{}], hashCode[{}]", conn, conn.hashCode());
+			LOG.trace("Close connection. conn[{}], hashCode[{}]", conn, conn.hashCode());
 			conn.close();
 			conn = null;
 		}

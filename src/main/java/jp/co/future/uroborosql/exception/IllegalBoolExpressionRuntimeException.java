@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.exception;
 public class IllegalBoolExpressionRuntimeException extends RuntimeException {
 
 	public IllegalBoolExpressionRuntimeException(final String message) {
-		super("boolean型の値が取得できませんでした。[" + message + "]");
+		super("A boolean type value could not be obtained.[" + message + "]");
 	}
 
 }

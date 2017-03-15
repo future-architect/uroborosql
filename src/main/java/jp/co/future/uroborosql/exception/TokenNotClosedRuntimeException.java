@@ -8,7 +8,7 @@ package jp.co.future.uroborosql.exception;
 public class TokenNotClosedRuntimeException extends SqlParserRuntimeException {
 
 	public TokenNotClosedRuntimeException(final String message) {
-		super("コメントブロックが閉じられていません。[" + message + "]");
+		super("Comment block is not closed.[" + message + "]");
 	}
 
 }

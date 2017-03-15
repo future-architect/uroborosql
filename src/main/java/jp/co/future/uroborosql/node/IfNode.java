@@ -97,7 +97,7 @@ public class IfNode extends BranchNode {
 			parsedExpression = (Node) Ognl.parseExpression(expression);
 			result = Ognl.getValue(parsedExpression, transformContext);
 		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("値が取得できませんでした。[" + expression + "]", ex);
+			throw new OgnlRuntimeException("Value could not be obtained.[" + expression + "]", ex);
 		}
 
 		if (result instanceof Boolean) {
@@ -110,7 +110,7 @@ public class IfNode extends BranchNode {
 					StringBuilder builder = new StringBuilder();
 					dumpNode(parsedExpression, transformContext, builder);
 
-					LOG.debug("評価式：[{}], 判定結果：[{}], パラメータ：[{}]", expression, resultValue, builder.length() == 0 ? ""
+					LOG.debug("Evaluation Expression：[{}], Result：[{}], Parameter：[{}]", expression, resultValue, builder.length() == 0 ? ""
 							: builder.substring(0, builder.length() - 1));
 				}
 			}
