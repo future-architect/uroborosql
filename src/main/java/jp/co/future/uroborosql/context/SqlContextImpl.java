@@ -605,7 +605,7 @@ public class SqlContextImpl implements SqlContext {
 		if (!matchParams.containsAll(bindNames)) {
 			Set<String> missMatchParams = new LinkedHashSet<>(bindNames);
 			missMatchParams.removeAll(matchParams);
-			throw new ParameterNotFoundRuntimeException("パラメータ " + missMatchParams.toString() + " がバインドされていません。");
+			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not bound.");
 		}
 	}
 
@@ -621,7 +621,7 @@ public class SqlContextImpl implements SqlContext {
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
-		LOG.debug("{}件バッチ処理を追加しました。", batchParameters.size());
+		LOG.debug("{} items Added for batch process.", batchParameters.size());
 	}
 
 	/**
@@ -642,7 +642,7 @@ public class SqlContextImpl implements SqlContext {
 			parameterIndex++;
 		}
 
-		LOG.debug("ストアドプロシージャ出力パラメータ[{}]", out);
+		LOG.debug("Stored procedure out parameter[{}]", out);
 		return out;
 	}
 

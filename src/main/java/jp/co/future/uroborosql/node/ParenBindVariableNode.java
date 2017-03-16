@@ -28,7 +28,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 		Object var = eval(transformContext);
 
 		if (var == null) {
-			throw new ParameterNotFoundRuntimeException("パラメータが設定されていません。[" + expression + "]");
+			throw new ParameterNotFoundRuntimeException("Parameter is not set.[" + expression + "]");
 		} else if (var instanceof List) {
 			bindArray(transformContext, ((List) var).toArray());
 		} else if (var.getClass().isArray()) {
@@ -48,7 +48,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 	private void bindArray(final TransformContext transformContext, final Object values) {
 		int length = Array.getLength(values);
 		if (length == 0) {
-			throw new ParameterNotFoundRuntimeException("パラメータが設定されていません。[" + expression + "]");
+			throw new ParameterNotFoundRuntimeException("Parameter is not set.[" + expression + "]");
 		}
 
 		transformContext.addSqlPart("(?");

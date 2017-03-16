@@ -84,7 +84,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("SQLによる検索を実行します。");
+			LOG.debug("Execute search SQL.");
 			watch = new StopWatch();
 			watch.start();
 		}
@@ -116,7 +116,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("リトライ対象エラーコードをキャッチしました（%d回目）。%,3d ms 待機後再実施します。",
+								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -143,7 +143,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterQuery(sqlContext);
 			if (LOG.isDebugEnabled() && watch != null) {
 				watch.stop();
-				LOG.debug("SQL実行時間 [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -227,7 +227,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("SQLによる更新を実行します。");
+			LOG.debug("Execute update SQL.");
 			watch = new StopWatch();
 			watch.start();
 		}
@@ -259,7 +259,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("リトライ対象エラーコードをキャッチしました（%d回目）。%,3d ms 待機後再実施します。",
+                                LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -285,7 +285,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterUpdate(sqlContext);
 			if (LOG.isDebugEnabled() && watch != null) {
 				watch.stop();
-				LOG.debug("SQL実行時間 [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -325,7 +325,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("バッチ処理を実行します。");
+			LOG.debug("Execute batch process.");
 			watch = new StopWatch();
 			watch.start();
 		}
@@ -357,7 +357,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("リトライ対象エラーコードをキャッチしました（%d回目）。%,3d ms 待機後再実施します。",
+								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -384,7 +384,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterBatch(sqlContext);
 			if (LOG.isDebugEnabled() && watch != null) {
 				watch.stop();
-				LOG.debug("SQL実行時間 [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -426,7 +426,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("ストアドプロシージャを実行します。");
+			LOG.debug("Execute stored procedure.");
 			watch = new StopWatch();
 			watch.start();
 		}
@@ -456,7 +456,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("リトライ対象エラーコードをキャッチしました（%d回目）。%,3d ms 待機後再実施します。",
+								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -480,7 +480,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterProcedure(sqlContext);
 			if (LOG.isDebugEnabled() && watch != null) {
 				watch.stop();
-				LOG.debug("ストアドプロシージャ実行時間 [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+				LOG.debug("Stored procedure execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -522,13 +522,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		if (LOG.isErrorEnabled() && isOutputExceptionLog()) {
 			StringBuilder builder = new StringBuilder();
-			builder.append(System.lineSeparator()).append("SQLの実行で例外が発生しました。").append(System.lineSeparator());
-			builder.append("実行時SQL[").append(sqlContext.getExecutableSql()).append("]").append(System.lineSeparator());
+			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.").append(System.lineSeparator());
+			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]").append(System.lineSeparator());
 			if (sqlContext instanceof SqlContextImpl) {
 				Parameter[] bindParameters = ((SqlContextImpl) sqlContext).getBindParameters();
 				for (int i = 0; i < bindParameters.length; i++) {
 					Parameter parameter = getSqlFilterManager().doParameter(bindParameters[i]);
-					builder.append("パラメータを設定します。[INDEX[").append(i + 1).append("], ").append(parameter.toString())
+					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
 							.append("]").append(System.lineSeparator());
 				}
 			}
@@ -627,7 +627,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	private void closePreparedStatement() throws SQLException {
 		if (preparedStatement != null) {
 			if (!preparedStatement.isClosed()) {
-				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", preparedStatement,
+				LOG.trace("Close statement. preparedStatement[{}], hashCode[{}]", preparedStatement,
 						preparedStatement.hashCode());
 				preparedStatement.close();
 			}
@@ -643,7 +643,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	private void closeCallableStatement() throws SQLException {
 		if (callableStatement != null) {
 			if (!callableStatement.isClosed()) {
-				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", callableStatement,
+				LOG.trace("Close statement. callableStatement[{}], hashCode[{}]", callableStatement,
 						callableStatement.hashCode());
 				callableStatement.close();
 			}
