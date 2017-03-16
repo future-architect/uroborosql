@@ -45,7 +45,7 @@ public abstract class ExpressionNode extends AbstractNode {
 		try {
 			return Ognl.parseExpression(expression);
 		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("式の解析に失敗しました。[" + expression + "]", ex);
+			throw new OgnlRuntimeException("Failed to parse the expression.[" + expression + "]", ex);
 		}
 	}
 
@@ -74,7 +74,7 @@ public abstract class ExpressionNode extends AbstractNode {
 			try {
 				value = Ognl.getValue(getParsedExpression(expression), transformContext);
 			} catch (OgnlException ex) {
-				throw new OgnlRuntimeException("オブジェクトの取得に失敗しました。[" + expression + "]", ex);
+				throw new OgnlRuntimeException("Acquire an object failed.[" + expression + "]", ex);
 			}
 		} else {
 			// キーの指定の場合は高速化のため、直接DaoContextから取得

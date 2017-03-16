@@ -81,7 +81,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 			}
 			return connection;
 		} catch (SQLException ex) {
-			throw new UroborosqlRuntimeException("Connection[" + dsName + "]が取得できません。", ex);
+			throw new UroborosqlRuntimeException("Connection[" + dsName + "] can not be acquired.", ex);
 		}
 	}
 
@@ -96,7 +96,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 			Context context = new InitialContext();
 			return (DataSource) context.lookup(dsName);
 		} catch (NamingException ex) {
-			throw new UroborosqlRuntimeException("DataSource[" + dsName + "]が取得できません。", ex);
+			throw new UroborosqlRuntimeException("DataSource[" + dsName + "] can not be acquired.", ex);
 		}
 	}
 

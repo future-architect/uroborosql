@@ -106,7 +106,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	@Override
 	public Connection getConnection(final String alias) {
-		throw new UnsupportedOperationException("複数のDBコネクション提供には対応していません");
+		throw new UnsupportedOperationException("Multiple DB connections are not supported.");
 	}
 
 	/**

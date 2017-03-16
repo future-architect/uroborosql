@@ -86,7 +86,7 @@ public class ReaderParameter extends Parameter {
 	 */
 	@Override
 	public String toString() {
-		return "パラメータ名[" + parameterName + "], 値[" + reader.toString() + "], SQL型[" + sqlType + "]";
+		return "Parameter name[" + parameterName + "], Value[" + reader.toString() + "], SQL type[" + sqlType + "]";
 	}
 
 }

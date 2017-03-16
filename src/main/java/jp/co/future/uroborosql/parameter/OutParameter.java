@@ -88,6 +88,6 @@ public class OutParameter extends Parameter {
 	 */
 	@Override
 	public String toString() {
-		return "パラメータ名[" + parameterName + "], SQL型[" + sqlType + "]";
+		return "Parameter name[" + parameterName + "], SQL type[" + sqlType + "]";
 	}
 }
