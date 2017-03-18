@@ -392,6 +392,31 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentLamdaAndUpdate() throws Exception {
+		// 事前条件
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.query("example/select").paramList("product_id", 0, 1).stream().forEach((m) -> {
+				try {
+					agent.update("example/insert").paramMap(m).count();
+				} catch (Exception e) {
+					fail(e.getMessage());
+				}
+			});
+
+			List<Map<String, Object>> collect = agent.queryWith("select * from product_regist_work").collect();
+			assertEquals(2, collect.size());
+		}
+	}
+
+	/**
 	 * DB更新処理のテストケース。
 	 */
 	@Test

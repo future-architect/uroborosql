@@ -6,6 +6,7 @@ package jp.co.future.uroborosql.fluent;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
+import java.util.Map;
 
 import jp.co.future.uroborosql.parameter.Parameter;
 
@@ -40,6 +41,14 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T paramList(String paramName, Object... value);
+
+	/**
+	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>
+	 *
+	 * @param paramMap
+	 * @return T
+	 */
+	T paramMap(Map<String, Object> paramMap);
 
 	/**
 	 * 型指定のパラメータ追加<br>

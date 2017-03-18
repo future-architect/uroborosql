@@ -2,6 +2,7 @@ package jp.co.future.uroborosql;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -58,7 +59,7 @@ public abstract class AbstractAgent implements SqlAgent {
 			+ "sql.coverage");
 
 	/** 文字列用関数(OGNLで利用) */
-	protected static final StringFunction STRING_FUNCTION = new StringFunction();
+	protected static final StringFunction SF = new StringFunction();
 
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
@@ -134,7 +135,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
-		transactionManager = new LocalTransactionManager(connectionSupplier);
+		transactionManager = new LocalTransactionManager(connectionSupplier, sqlFilterManager);
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;
 
@@ -228,7 +229,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 		// ユーザファンクション登録
 		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
-			sqlContext.param(StringFunction.SHORT_NAME, STRING_FUNCTION);
+			sqlContext.param(StringFunction.SHORT_NAME, SF);
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
@@ -284,6 +285,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public void close() throws SQLException {
+		transactionManager.close();
 		if (coverageHandlerRef.get() != null) {
 			coverageHandlerRef.get().onSqlAgentClose();
 		}
@@ -650,6 +652,34 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
+	 * ステートメント初期化。
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return PreparedStatement
+	 * @throws SQLException SQL例外
+	 */
+	protected PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
+		PreparedStatement stmt = ((LocalTransactionManager) transactionManager).getPreparedStatement(sqlContext);
+		// プロパティ設定
+		applyProperties(stmt);
+		return stmt;
+	}
+
+	/**
+	 * Callableステートメント初期化
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return CallableStatement
+	 * @throws SQLException SQL例外
+	 */
+	protected CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
+		CallableStatement stmt = ((LocalTransactionManager) transactionManager).getCallableStatement(sqlContext);
+		// プロパティ設定
+		applyProperties(stmt);
+		return stmt;
+	}
+
+	/**
 	 * SqlQuery実装
 	 *
 	 * @author H.Sugimoto
@@ -677,6 +707,19 @@ public abstract class AbstractAgent implements SqlAgent {
 		@Override
 		public SqlQuery paramList(final String paramName, final Object... value) {
 			context.paramList(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 */
+		@Override
+		public SqlQuery paramMap(final Map<String, Object> paramMap) {
+			if (paramMap != null) {
+				paramMap.forEach((k, v) -> param(k, v));
+			}
 			return this;
 		}
 
@@ -944,6 +987,19 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 */
+		@Override
+		public SqlUpdate paramMap(final Map<String, Object> paramMap) {
+			if (paramMap != null) {
+				paramMap.forEach((k, v) -> param(k, v));
+			}
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 		 */
 		@Override
@@ -1164,6 +1220,19 @@ public abstract class AbstractAgent implements SqlAgent {
 		@Override
 		public Procedure paramList(final String paramName, final Object... value) {
 			context.paramList(paramName, value);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 */
+		@Override
+		public Procedure paramMap(final Map<String, Object> paramMap) {
+			if (paramMap != null) {
+				paramMap.forEach((k, v) -> param(k, v));
+			}
 			return this;
 		}
 

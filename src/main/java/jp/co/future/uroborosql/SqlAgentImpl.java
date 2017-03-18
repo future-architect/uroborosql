@@ -1,7 +1,6 @@
 package jp.co.future.uroborosql;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,12 +37,6 @@ public class SqlAgentImpl extends AbstractAgent {
 	/** ロガー */
 	protected static final Logger LOG = LoggerFactory.getLogger(SqlAgentImpl.class);
 
-	/** ステートメントオブジェクト */
-	protected PreparedStatement preparedStatement = null;
-
-	/** Callableステートメントオブジェクト */
-	protected CallableStatement callableStatement = null;
-
 	/** 例外発生時のログ出力を行うかどうか デフォルトは<code>true</code> */
 	private boolean outputExceptionLog = true;
 
@@ -77,10 +70,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		initializePreparedStatement(sqlContext);
+		PreparedStatement stmt = getPreparedStatement(sqlContext);
 
 		// INパラメータ設定
-		sqlContext.bindParams(preparedStatement);
+		sqlContext.bindParams(stmt);
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
@@ -107,8 +100,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					ResultSet rs = getSqlFilterManager().doQuery(sqlContext, preparedStatement,
-							preparedStatement.executeQuery());
+					ResultSet rs = getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery());
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return rs;
 				} catch (SQLException ex) {
@@ -181,11 +173,19 @@ public class SqlAgentImpl extends AbstractAgent {
 			public boolean tryAdvance(final Consumer<? super T> action) {
 				try {
 					if (!rs.next()) {
+						rs.close();
 						return false;
 					}
 					action.accept(converter.createRecord(rs));
 					return true;
 				} catch (Exception ex) {
+					try {
+						if (rs != null && !rs.isClosed()) {
+							rs.close();
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
 					return false;
 				}
 			}
@@ -220,10 +220,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		initializePreparedStatement(sqlContext);
+		PreparedStatement stmt = getPreparedStatement(sqlContext);
 
 		// INパラメータ設定
-		sqlContext.bindParams(preparedStatement);
+		sqlContext.bindParams(stmt);
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
@@ -250,8 +250,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					int result = getSqlFilterManager().doUpdate(sqlContext, preparedStatement,
-							preparedStatement.executeUpdate());
+					int result = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return result;
 				} catch (SQLException ex) {
@@ -318,10 +317,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		initializePreparedStatement(sqlContext);
+		PreparedStatement stmt = getPreparedStatement(sqlContext);
 
 		// INパラメータ設定
-		sqlContext.bindBatchParams(preparedStatement);
+		sqlContext.bindBatchParams(stmt);
 
 		StopWatch watch = null;
 		if (LOG.isDebugEnabled()) {
@@ -348,8 +347,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					int[] result = getSqlFilterManager().doBatch(sqlContext, preparedStatement,
-							preparedStatement.executeBatch());
+					int[] result = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return result;
 				} catch (SQLException ex) {
@@ -419,7 +417,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		initializeCallableStatement(sqlContext);
+		CallableStatement callableStatement = getCallableStatement(sqlContext);
 
 		// パラメータ設定
 		sqlContext.bindParams(callableStatement);
@@ -539,58 +537,6 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * ステートメント初期化。
-	 *
-	 * @param sqlContext SQLコンテキスト
-	 * @throws SQLException SQL例外
-	 */
-	private void initializePreparedStatement(final SqlContext sqlContext) throws SQLException {
-		Connection connection = null;
-		if (sqlContext.getDbAlias() != null) {
-			connection = getConnection(sqlContext.getDbAlias());
-			if (connection == null) {
-				throw new IllegalArgumentException(sqlContext.getDbAlias());
-			}
-		} else {
-			connection = getConnection();
-		}
-		closePreparedStatement();
-		preparedStatement = getSqlFilterManager().doPreparedStatement(
-				sqlContext,
-				connection.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
-						sqlContext.getResultSetConcurrency()));
-
-		// プロパティ設定
-		applyProperties(preparedStatement);
-	}
-
-	/**
-	 * Callableステートメント初期化
-	 *
-	 * @param sqlContext SQLコンテキスト
-	 * @throws SQLException SQL例外
-	 */
-	private void initializeCallableStatement(final SqlContext sqlContext) throws SQLException {
-		Connection connection = null;
-		if (sqlContext.getDbAlias() != null) {
-			connection = getConnection(sqlContext.getDbAlias());
-			if (connection == null) {
-				throw new IllegalArgumentException(sqlContext.getDbAlias());
-			}
-		} else {
-			connection = getConnection();
-		}
-		closeCallableStatement();
-		callableStatement = getSqlFilterManager().doCallableStatement(
-				sqlContext,
-				connection.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
-						sqlContext.getResultSetConcurrency()));
-
-		// プロパティ設定
-		applyProperties(callableStatement);
-	}
-
-	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。
 	 *
 	 * @return 例外発生時のログ出力を行うかどうか
@@ -607,48 +553,4 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected void setOutputExceptionLog(final boolean outputExceptionLog) {
 		this.outputExceptionLog = outputExceptionLog;
 	}
-
-	/**
-	 * @see jp.co.future.uroborosql.SqlAgent#close()
-	 */
-	@Override
-	public void close() throws SQLException {
-		closePreparedStatement();
-		closeCallableStatement();
-		transactionManager.close();
-		super.close();
-	}
-
-	/**
-	 * PreparedStatementのクローズ
-	 *
-	 * @throws SQLException SQL例外
-	 */
-	private void closePreparedStatement() throws SQLException {
-		if (preparedStatement != null) {
-			if (!preparedStatement.isClosed()) {
-				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", preparedStatement,
-						preparedStatement.hashCode());
-				preparedStatement.close();
-			}
-			preparedStatement = null;
-		}
-	}
-
-	/**
-	 * CallableStatementのクローズ
-	 *
-	 * @throws SQLException SQL例外
-	 */
-	private void closeCallableStatement() throws SQLException {
-		if (callableStatement != null) {
-			if (!callableStatement.isClosed()) {
-				LOG.trace("ステートメントをクローズします。preparedStatement[{}], hashCode[{}]", callableStatement,
-						callableStatement.hashCode());
-				callableStatement.close();
-			}
-			callableStatement = null;
-		}
-	}
-
 }
