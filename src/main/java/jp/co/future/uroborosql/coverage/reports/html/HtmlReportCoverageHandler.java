@@ -2,16 +2,21 @@ package jp.co.future.uroborosql.coverage.reports.html;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,12 +78,8 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		}
 		Map<String, SqlCoverageReport> map = coverages.computeIfAbsent(coverageData.getSqlName(),
 				k -> new ConcurrentHashMap<>());
-		SqlCoverageReport sqlCoverage = map.get(coverageData.getMd5());
-		if (sqlCoverage == null) {
-			sqlCoverage = new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
-					coverageData.getMd5(), this.reportDirPath, map.size());
-			map.put(coverageData.getMd5(), sqlCoverage);
-		}
+		SqlCoverageReport sqlCoverage = map.computeIfAbsent(coverageData.getMd5(), k -> new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
+				coverageData.getMd5(), this.reportDirPath, map.size()));
 
 		sqlCoverage.accept(coverageData.getPassRoute());
 	}
@@ -95,6 +96,17 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	private void writeHtml() {
 		try {
 			Files.createDirectories(this.reportDirPath);
+			// copy resources
+			String packagePath = this.getClass().getPackage().getName().replace(".", "/");
+			Stream.of("style.css", "jquery-3.2.0.min.js", "stupidtable.min.js", "highlight.pack.js", "sqlcov.js", "icon.png").forEach(filename -> {
+				try {
+					Files.copy(Paths.get(this.getClass().getClassLoader().getResource(packagePath + "/" + filename).toURI()),
+							Paths.get(this.reportDirPath + "/" + filename), StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException | URISyntaxException e) {
+					LOG.error(e.getMessage(), e);
+				}
+			});
+			// write report
 			try (BufferedWriter writer = Files.newBufferedWriter(this.reportDirPath.resolve("index.html"),
 					StandardCharsets.UTF_8)) {
 				writePrefix(writer);
@@ -131,52 +143,57 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			int lineCoveredPer = CoverageHandler.percent(lineCovered, lineCount);
 
 			writer.append("<tr>");
+			writer.newLine();
 			writer.append("   <td class=\"file\" ><a href=\"").append(linkName).append(".html\" >").append(htmlName)
-					.append("</a></th>");
+					.append("</a></td>");
+			writer.newLine();
 			writer.append(
 					"   <td class=\"pic\" ><div class=\"chart\"><div class=\"cover-fill\" style=\"width: ")
 					.append(String.valueOf(lineCoveredPer))
 					.append("%;\"></div><div class=\"cover-empty\" style=\"width:")
-					.append(String.valueOf(100 - lineCoveredPer)).append("%;\"></div></div></th>");
+					.append(String.valueOf(100 - lineCoveredPer)).append("%;\"></div></div></td>");
+			writer.newLine();
 			writer.append("   <td class=\"lines\">").append(String.valueOf(lineCoveredPer))
-					.append("%</th>");
+					.append("%</td>");
+			writer.newLine();
 			writer.append("   <td class=\"lines-raw\">").append(String.valueOf(lineCovered)).append("/")
-					.append(String.valueOf(lineCount)).append("</th>");
+					.append(String.valueOf(lineCount)).append("</td>");
+			writer.newLine();
 			writer.append("   <td class=\"branches\">")
 					.append(CoverageHandler.percentStr(branchesCovered, branchesCount))
-					.append("%</th>");
+					.append("%</td>");
+			writer.newLine();
 			writer.append("   <td class=\"branches-raw\">").append(String.valueOf(branchesCovered)).append("/")
-					.append(String.valueOf(branchesCount)).append("</th>");
+					.append(String.valueOf(branchesCount)).append("</td>");
+			writer.newLine();
 			writer.append("</tr>");
-
+			writer.newLine();
 		}
 	}
 
 	private void writePrefix(BufferedWriter writer) throws IOException {
-		writer.append("<!doctype html>");
+		writer.append("<!DOCTYPE html>");
+		writer.newLine();
 		writer.append("<html lang=\"en\">");
+		writer.newLine();
 		writer.append("<head>");
-		writer.append("    <title>uroboroSQL coverage report index</title>");
+		writer.newLine();
 		writer.append("    <meta charset=\"utf-8\" />");
-		writer.append("    <style type=\"text/css\">");
-
-		writer.append("table.coverage-summary {border-collapse: collapse;margin: 10px 0 0 0;padding: 0;width: 100%;}");
-		writer.append("table.coverage-summary td {border: 1px solid #bbb;padding: 10px;}");
-		writer.append("table.coverage-summary td.pic {min-width: 120px !important;}");
-		writer.append("table.coverage-summary td.lines,");
-		writer.append("table.coverage-summary td.lines-raw,");
-		writer.append("table.coverage-summary td.branches,");
-		writer.append("table.coverage-summary td.branches-raw {text-align: right;}");
-
-		writer.append(
-				"table.coverage-summary td.pic>.chart {width: 100%;border: 1px solid #555;height: 1em;display: inline-block;}");
-		writer.append("table.coverage-summary td.pic>.chart>div {display: inline-block;height: 100%;}");
-		writer.append("table.coverage-summary td.pic>.chart>.cover-fill {background: rgb(77,146,33);}");
-		writer.append("table.coverage-summary td.pic>.chart>.cover-empty {background: red;}");
-
-		writer.append("    </style>");
+		writer.newLine();
+		writer.append("    <title>uroboroSQL code coverage report</title>");
+		writer.newLine();
+		writer.append("    <link rel=\"stylesheet\" href=\"style.css\">");
+		writer.newLine();
+		writer.append("    <script src=\"jquery-3.2.0.min.js\"></script>");
+		writer.newLine();
+		writer.append("    <script src=\"stupidtable.min.js\"></script>");
+		writer.newLine();
+		writer.append("    <script>$(function(){ $(\"table.coverage-summary\").stupidtable(); });</script>");
+		writer.newLine();
 		writer.append("</head>");
+		writer.newLine();
 		writer.append("<body>");
+		writer.newLine();
 	}
 
 	private void writeHeaderSection(BufferedWriter writer) throws IOException {
@@ -202,48 +219,88 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				.mapToInt(SqlCoverageReport::getBranchCoveredSize)
 				.sum();
 
+		writer.append("<div class=\"global-header\">");
+		writer.newLine();
+		writer.append("    <img class=\"icon\" src=\"icon.png\" />");
+		writer.newLine();
+		writer.append("    <span class=\"title\">uroboroSQL coverage</span>");
+		writer.newLine();
+		writer.append("</div>");
+		writer.newLine();
+		writer.append("<h1>Code coverage report Summary</h1>");
+		writer.newLine();
 		writer.append("<div class=\"header\">");
-		writer.append("    <h1>Summary</h1>");
+		writer.newLine();
 		writer.append("    <div class=\"summary\">");
+		writer.newLine();
 		writer.append("      <strong>").append(CoverageHandler.percentStr(lineCovered, lineCount))
 				.append("% </strong>");
+		writer.newLine();
 		writer.append("      <span>Lines</span>");
+		writer.newLine();
 		writer.append("      <span class=\"fraction\">").append(String.valueOf(lineCovered)).append("/")
 				.append(String.valueOf(lineCount)).append("</span>");
+		writer.newLine();
 		writer.append("    </div>");
+		writer.newLine();
 		writer.append("    <div class=\"summary\">");
+		writer.newLine();
 		writer.append("      <strong>").append(CoverageHandler.percentStr(branchesCovered, branchesCount))
 				.append("% </strong>");
+		writer.newLine();
 		writer.append("      <span>Branches</span>");
+		writer.newLine();
 		writer.append("      <span class=\"fraction\">").append(String.valueOf(branchesCovered)).append("/")
 				.append(String.valueOf(branchesCount)).append("</span>");
+		writer.newLine();
 		writer.append("    </div>");
+		writer.newLine();
 		writer.append("</div>");
+		writer.newLine();
 	}
 
 	private void writeTablePrefix(BufferedWriter writer) throws IOException {
-		writer.append("    <pre>");
-		writer.append("        <table class=\"coverage-summary\">");
-
+		writer.append("<div class=\"inner\">");
+		writer.newLine();
+		writer.append("<table class=\"coverage-summary\">");
+		writer.newLine();
 		writer.append("<thead>");
+		writer.newLine();
 		writer.append("<tr>");
-		writer.append("   <th class=\"file\" >File</th>");
+		writer.newLine();
+		writer.append("   <th data-sort=\"string\" class=\"file sorting-asc\" >File</th>");
+		writer.newLine();
 		writer.append("   <th class=\"pic\" ></th>");
-		writer.append("   <th class=\"lines\" >Lines</th>");
+		writer.newLine();
+		writer.append("   <th data-sort=\"int\" class=\"lines\" >Lines</th>");
+		writer.newLine();
 		writer.append("   <th class=\"lines-raw\"></th>");
-		writer.append("   <th class=\"branches\" >Branches</th>");
+		writer.newLine();
+		writer.append("   <th data-sort=\"int\" class=\"branches\" >Branches</th>");
+		writer.newLine();
 		writer.append("   <th class=\"branches-raw\"></th>");
+		writer.newLine();
 		writer.append("</tr>");
+		writer.newLine();
 		writer.append("</thead>");
+		writer.newLine();
 		writer.append("<tbody>");
+		writer.newLine();
 
 	}
 
 	private void writeTableSuffix(BufferedWriter writer) throws IOException {
 		writer.append("</tbody>");
-		writer.append("        </table>");
-		writer.append("    </pre>");
-
+		writer.newLine();
+		writer.append("</table>");
+		writer.newLine();
+		writer.append("</div>");
+		writer.newLine();
+		writer.append("<div class=\"footer\">code coverage report generated by ")
+				.append("<a href=\"https://github.com/future-architect/uroborosql\" target=\"_blank\">uroboroSQL</a> at ")
+				.append(ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME))
+				.append(".</div>");
+		writer.newLine();
 	}
 
 	private void writeSuffix(BufferedWriter writer) throws IOException {

@@ -1,0 +1,307 @@
+html, body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Yu Gothic", YuGothic, "ヒラギノ角ゴ ProN W3", Hiragino Kaku Gothic ProN, Arial, "メイリオ", Meiryo, sans-serif;
+}
+
+pre, code {
+    margin: 0;
+}
+
+pre, code, span.cline {
+    font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
+    line-height: 1.2em;
+}
+
+h1 {
+    font-size: 1.8em;
+    word-break: break-all;
+    padding: 5px;
+}
+
+div.global-header {
+    background-color: #1e88e5;
+    padding: 3px;
+}
+
+div.global-header img.icon {
+    height: 20px;
+    vertical-align: middle;
+}
+
+div.global-header span {
+    color: #fff;
+}
+
+div.nav {
+    margin-left: 5px;
+}
+
+div.header {
+    border-bottom: 10px solid #1e88e5;
+    display: flex;
+    padding: 5px;
+}
+
+div.summary {
+    margin-right: 15px;
+}
+
+div.summary strong {
+    font-size: 28px;
+    font-style: italic;
+}
+
+div.summary span {
+    color: slategrey;
+}
+
+div.inner {
+    padding: 10px;
+}
+
+table.coverage-summary {
+    border-collapse: collapse;
+    margin: 20px 0 0 0;
+    padding: 0;
+    width: 100%;
+}
+
+table.coverage-summary th {
+    padding: 10px;
+    cursor: pointer;
+}
+th.sorting-asc::after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 5px 8px 5px;
+    border-color: transparent transparent #007bff transparent;
+    position: relative;
+    top: -12px;
+    margin-left: 2px;
+}
+
+th.sorting-desc::after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 5px 0 5px;
+    border-color: #007bff transparent transparent transparent;
+    position: relative;
+    top: 14px;
+    margin-left: 2px;
+}
+
+table.coverage-summary td {
+    border: 1px solid #bbb;
+    padding: 10px;
+}
+
+table.coverage-summary td.pic {
+    min-width: 120px !important;
+}
+
+table.coverage-summary td.lines,
+table.coverage-summary td.lines-raw,
+table.coverage-summary td.branches,
+table.coverage-summary td.branches-raw {
+    text-align: right;
+}
+
+table.coverage-summary td.pic > .chart {
+    width: 100%;
+    border: 1px solid #555;
+    height: 1.2em;
+    /*  display: inline-block; */
+}
+
+table.coverage-summary td.pic > .chart > div {
+    display: inline-block;
+    height: 100%;
+}
+
+table.coverage-summary td.pic > .chart > .cover-fill {
+    background: #66bb6a;
+}
+
+table.coverage-summary td.pic > .chart > .cover-empty {
+    /*  background: red; */
+}
+
+div.footer {
+    margin-top: 70px;
+    background-color: #e1f5fe;
+    padding: 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+table.coverage {
+    border-collapse: collapse;
+    margin: 10px 0 0 0;
+    padding: 0;
+    width: 100%;
+}
+
+td.line-no {
+    width: 50px;
+    text-align: right;
+    padding: 0 7px 0 5px;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 15px;
+    vertical-align: top;
+}
+
+td.line-coverage {
+    border-left: 1px solid darkgray;
+    border-right: 1px solid darkgray;
+    max-width: 80px;
+    text-align: right;
+    vertical-align: top;
+    width: 40px;
+}
+
+td.source {
+    font-size: 15px;
+    letter-spacing: 0.4px;
+    padding-left: 15px;
+    vertical-align: top;
+}
+
+span.cline {
+    width: 100%;
+    display: block;
+    padding: 0px 5px;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+span.cline.cline-no {
+    background: #F6C6CE;
+}
+
+span.cline.cline-yes {
+    background: rgb(230, 245, 208);
+}
+
+span.cline.no-target {
+    background: #eaeaea;
+}
+
+span.cline > em {
+    opacity: 0.5;
+    font-style: inherit;
+}
+
+.not-covered {
+    background: #F6C6CE;
+}
+
+.not-covered-branch {
+    background: yellow;
+}
+
+/*
+
+Intellij Idea-like styling (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+
+.hljs {
+    display: block;
+    overflow-x: auto;
+    /*padding: 0.5em;*/
+    color: #000;
+    background: #fff;
+}
+
+.hljs-subst,
+.hljs-title {
+    font-weight: normal;
+    color: #000;
+}
+
+.hljs-comment,
+.hljs-quote {
+    color: #808080;
+    font-style: italic;
+}
+
+.hljs-meta {
+    color: #808000;
+}
+
+.hljs-tag {
+    background: #efefef;
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-literal,
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-type,
+.hljs-selector-id,
+.hljs-selector-class {
+    font-weight: bold;
+    color: #000080;
+}
+
+.hljs-attribute,
+.hljs-number,
+.hljs-regexp,
+.hljs-link {
+    font-weight: bold;
+    color: #0000ff;
+}
+
+.hljs-number,
+.hljs-regexp,
+.hljs-link {
+    font-weight: normal;
+}
+
+.hljs-string {
+    color: #008000;
+    font-weight: bold;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-formula {
+    color: #000;
+    background: #d0eded;
+    font-style: italic;
+}
+
+.hljs-doctag {
+    text-decoration: underline;
+}
+
+.hljs-variable,
+.hljs-template-variable {
+    color: #660e7a;
+}
+
+.hljs-addition {
+    background: #baeeba;
+}
+
+.hljs-deletion {
+    background: #ffc8bd;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}
+
+.hljs-param {
+    color: mediumblue;
+    font-weight: bold;
+}
