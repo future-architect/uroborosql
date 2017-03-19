@@ -17,7 +17,7 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
  * @author ota
  */
 public class LocalTransactionManager implements TransactionManager {
-	/** コネクション共有クラス */
+	/** コネクション供給クラス */
 	private final ConnectionSupplier connectionSupplier;
 
 	/** SQLフィルタ管理クラス */
@@ -32,7 +32,8 @@ public class LocalTransactionManager implements TransactionManager {
 	/**
 	 * コンストラクタ
 	 *
-	 * @param connectionSupplier コネクションサプライヤ
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
 	 */
 	public LocalTransactionManager(final ConnectionSupplier connectionSupplier, final SqlFilterManager sqlFilterManager) {
 		this.connectionSupplier = connectionSupplier;

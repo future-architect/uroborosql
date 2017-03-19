@@ -91,8 +91,7 @@
 		</property>
 	</bean>
 
-	<bean id="sqlFilterManager" class="jp.co.future.uroborosql.filter.SqlFilterManagerImpl" init-method="initialize"
-		destroy-method="dispose">
+	<bean id="sqlFilterManager" class="jp.co.future.uroborosql.filter.SqlFilterManagerImpl" init-method="initialize">
 		<description>
 			SQLに対するフィルター処理を管理クラス。
 			バインドパラメータやResultSetに対してフィルターを定義することで、SQLのバインドパラメータや取得結果を加工することができます
@@ -106,29 +105,12 @@
 			<list>
 				<ref bean="secretColumnSqlFilter" />
 				<ref bean="debugSqlFilter" />
-				<ref bean="oracleJdbcSqlFilter" />
 			</list>
 		</property>
 	</bean>
 
 	<bean id="debugSqlFilter" class="jp.co.future.uroborosql.filter.DebugSqlFilter" init-method="initialize">
 		<description>デバッグログを出力するSqlFilter</description>
-	</bean>
-
-	<bean id="oracleJdbcSqlFilter" class="jp.co.future.uroborosql.filter.OracleJdbcSqlFilter" init-method="initialize">
-		<description>OracleJDBCを使用する場合にOracle独自機能を適用するためのフィルター</description>
-		<property name="clientIdentifierDelimiter">
-			<description>複数の値をつなげる際に使用するデリミタ。デフォルトは"":"</description>
-			<value>:</value>
-		</property>
-		<property name="clientIdentifierKeys">
-			<description>CLIENT_IDENTIFIERに登録する値を生成するためにSqlContextから取得するパラメータのキー。複数指定可能
-			</description>
-			<list>
-				<value>pgmCd</value>
-				<value>userId</value>
-			</list>
-		</property>
 	</bean>
 
 	<bean id="secretColumnSqlFilter" class="jp.co.future.uroborosql.filter.SecretColumnSqlFilter" init-method="initialize">

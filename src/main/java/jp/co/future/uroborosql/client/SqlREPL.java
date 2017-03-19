@@ -202,6 +202,8 @@ public class SqlREPL {
 				p("db.schema", null), p("sql.loadPath", "sql"));
 
 		config.getSqlFilterManager().addSqlFilter(new DumpResultSqlFilter());
+		config.getSqlFilterManager().initialize();
+
 	}
 
 	/**
@@ -509,7 +511,7 @@ public class SqlREPL {
 	/**
 	 * メッセージの表示
 	 */
-	private void showMessage(String path) {
+	private void showMessage(final String path) {
 		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {

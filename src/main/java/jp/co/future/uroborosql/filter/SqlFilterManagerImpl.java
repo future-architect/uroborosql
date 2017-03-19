@@ -35,17 +35,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 */
 	@Override
 	public void initialize() {
-		// do nothing
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#dispose()
-	 */
-	@Override
-	public void dispose() {
-		getFilters().forEach(filter -> filter.dispose());
+		filters.forEach(filter -> filter.initialize());
 	}
 
 	/**

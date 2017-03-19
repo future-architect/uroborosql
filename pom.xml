@@ -197,6 +197,7 @@ encoding/<project>=UTF-8
 					<maxmemory>512m</maxmemory>
 					<encoding>${src.encoding}</encoding>
 					<docencoding>${doc.encoding}</docencoding>
+					<locale>en_US</locale>
 				</configuration>
 			</plugin>
 			<plugin>

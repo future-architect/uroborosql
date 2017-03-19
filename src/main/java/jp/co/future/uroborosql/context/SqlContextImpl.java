@@ -354,7 +354,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */
 	@Override
 	public SqlContext paramMap(final Map<String, Object> paramMap) {
