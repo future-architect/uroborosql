@@ -8,7 +8,7 @@ package jp.co.future.uroborosql.exception;
 public class EndCommentNotFoundRuntimeException extends SqlParserRuntimeException {
 
 	public EndCommentNotFoundRuntimeException() {
-		super("ENDコメントが見つかりません。");
+		super("END Comment not found.");
 	}
 
 }

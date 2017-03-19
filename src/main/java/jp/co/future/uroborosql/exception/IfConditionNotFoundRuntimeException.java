@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.exception;
 public class IfConditionNotFoundRuntimeException extends RuntimeException {
 
 	public IfConditionNotFoundRuntimeException() {
-		super("IF条件が指定されていません。");
+		super("IF condition is not specified.");
 	}
 
 }

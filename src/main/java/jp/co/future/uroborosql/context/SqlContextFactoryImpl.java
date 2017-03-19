@@ -129,9 +129,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 						Parameter newValue = new Parameter(fieldName, field.get(null));
 						Parameter prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							LOG.warn("定数名が重複しています。定数名：{}, 古い値：{} が破棄されます。", fieldName, prevValue.getValue());
+							LOG.warn("Duplicate constant name. Constant name：{}, Old name：{} destroy.", fieldName, prevValue.getValue());
 						}
-						LOG.debug("定数[名前：{}, 値：{}] を定数パラメータとして追加しました。", fieldName, newValue.getValue());
+						LOG.debug("Constant [name：{}, value：{}] added to parameter.", fieldName, newValue.getValue());
 					}
 				}
 			}
@@ -169,9 +169,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 			Parameter newValue = new Parameter(fieldName, value);
 			Parameter prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				LOG.warn("Enum定数名が重複しています。定数名：{}, 古い値：{} が破棄されます。", fieldName, prevValue.getValue());
+				LOG.warn("Duplicate Enum name. Enum name：{}, Old name：{} destroy.", fieldName, prevValue.getValue());
 			}
-			LOG.debug("Enum定数[名前：{}, 値：{}] を定数パラメータとして追加しました。", fieldName, newValue.getValue());
+			LOG.debug("Enum [name：{}, value：{}] added to parameter.", fieldName, newValue.getValue());
 		}
 	}
 

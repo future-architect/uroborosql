@@ -94,7 +94,7 @@ public class Parameter {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					LOG.warn("プロパティにアクセスできないためサブパラメータ値にNULLを設定します。[{}]", subParameterName);
+					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]", subParameterName);
 				}
 			} else {
 				try {
@@ -102,7 +102,7 @@ public class Parameter {
 					field.setAccessible(true);
 					subValue = field.get(value);
 				} catch (Exception e) {
-					LOG.warn("プロパティにアクセスできないためサブパラメータ値にNULLを設定します。[{}]", subParameterName, e);
+					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]", subParameterName, e);
 				}
 			}
 		}
@@ -170,7 +170,7 @@ public class Parameter {
 	 */
 	protected void parameterLog(final int index) {
 		if (LOG.isDebugEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			LOG.debug("パラメータを設定します。[INDEX[{}], {}]", index, this);
+			LOG.debug("Set the parameter.[INDEX[{}], {}]", index, this);
 		}
 	}
 
@@ -199,9 +199,9 @@ public class Parameter {
 	 */
 	@Override
 	public String toString() {
-		return "パラメータ名[" + parameterName + "], 値[" + value + "], 型["
+		return "Parameter name[" + parameterName + "], Value[" + value + "], Class["
 				+ (value == null ? "NULL" : value.getClass().getSimpleName())
-				+ (Objects.equals(sqlType, SQL_TYPE_NOT_SET) ? "]" : "], SQL型[" + sqlType.getName() + "]");
+				+ (Objects.equals(sqlType, SQL_TYPE_NOT_SET) ? "]" : "], SQL type[" + sqlType.getName() + "]");
 	}
 
 	/**

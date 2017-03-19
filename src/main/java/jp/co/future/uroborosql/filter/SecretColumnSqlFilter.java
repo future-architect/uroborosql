@@ -108,28 +108,29 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		KeyStore store;
 		try {
 			if (StringUtils.isBlank(getKeyStoreFilePath())) {
-				LOG.error("KeyStoreファイルのパスが正しくありません。Path:{}", getKeyStoreFilePath());
+				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
 			File storeFile = new File(getKeyStoreFilePath());
 			if (!storeFile.exists()) {
-				LOG.error("KeyStoreファイルが見つかりません。Path:{}", getKeyStoreFilePath());
+				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
 			if (storeFile.isDirectory()) {
-				LOG.error("KeyStoreファイルのパスが正しくありません。Path:{}", getKeyStoreFilePath());
+				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
 			if (StringUtils.isBlank(getStorePassword())) {
-				LOG.error("KeyStoreにアクセスするためのパスワードが指定されていません。");
+				LOG.error("Invalid password for access KeyStore.");
 				setSkipFilter(true);
 				return;
 			}
 			if (StringUtils.isBlank(getAlias())) {
 				LOG.error("KeyStoreにアクセスするためのエイリアスが指定されていません。");
+				LOG.error("No alias for access KeyStore.");
 				setSkipFilter(true);
 				return;
 			}
@@ -150,7 +151,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			encryptCipher = Cipher.getInstance(transformationType);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 		} catch (Exception ex) {
-			LOG.error("秘密鍵の取得に失敗しました。原因：{}", ex.getMessage());
+			LOG.error("Failed to acquire secret key. Cause：{}", ex.getMessage());
 			setSkipFilter(true);
 			ex.printStackTrace();
 		}
@@ -313,7 +314,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
 			this.charset = StandardCharsets.UTF_8;
-			LOG.error("指定されたキャラクタセット:{} をCharsetに変換できませんでした。デフォルトキャラクタセット({})を設定します。", charset, this.charset);
+			LOG.error("The specified character set could not be converted to {}. Set the default character set({}).", charset, this.charset);
 		}
 	}
 

@@ -129,6 +129,6 @@ public class StreamParameter extends Parameter {
 	 */
 	@Override
 	public String toString() {
-		return "パラメータ名[" + parameterName + "], 値[" + stream.toString() + "], SQL型[" + sqlType + "]";
+		return "Parameter name[" + parameterName + "], Value[" + stream.toString() + "], SQL type[" + sqlType + "]";
 	}
 }

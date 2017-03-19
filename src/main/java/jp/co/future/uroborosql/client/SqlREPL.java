@@ -95,14 +95,14 @@ public class SqlREPL {
 		Path path = Paths.get(propFile);
 
 		if (!Files.exists(path)) {
-			throw new IllegalArgumentException("引数で指定されたプロパティファイルが見つかりません。");
+			throw new IllegalArgumentException("properties could not found.");
 		}
 
 		try {
 			SqlREPL repl = new SqlREPL(path);
 			repl.execute();
 		} catch (Exception ex) {
-			throw new IllegalStateException("REPLの実行でエラーが発生しました。", ex);
+			throw new IllegalStateException("Failed to REPL.。", ex);
 		}
 	}
 
@@ -118,7 +118,7 @@ public class SqlREPL {
 			InputStream is = Files.newInputStream(path);
 			props.load(new InputStreamReader(is, Charset.forName("UTF-8")));
 		} catch (IOException ex) {
-			throw new IllegalArgumentException("プロパティファイルの読み込みに失敗しました。", ex);
+			throw new IllegalArgumentException("Failed to load properties.", ex);
 		}
 		return props;
 	}
@@ -523,7 +523,7 @@ public class SqlREPL {
 	 * 現在読み込んでいるプロパティの情報を表示
 	 */
 	private void showProps() {
-		System.out.println("[プロパティ一覧]");
+		System.out.println("[Properties]");
 		props.forEach((key, value) -> {
 			System.out.println(key + "=" + value);
 		});
