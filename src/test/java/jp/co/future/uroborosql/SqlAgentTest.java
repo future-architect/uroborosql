@@ -281,7 +281,7 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryLamda() throws Exception {
+	public void testQueryLambda() throws Exception {
 		// 事前条件
 		DatabaseOperation.CLEAN_INSERT.execute(
 				getDatabeseConnection(),
@@ -322,7 +322,7 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLamda() throws Exception {
+	public void testQueryFluentLambda() throws Exception {
 		// 事前条件
 		DatabaseOperation.CLEAN_INSERT.execute(
 				getDatabeseConnection(),
@@ -395,7 +395,7 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLamdaAndUpdate() throws Exception {
+	public void testQueryFluentLambdaAndUpdate() throws Exception {
 		// 事前条件
 		DatabaseOperation.CLEAN_INSERT.execute(
 				getDatabeseConnection(),
