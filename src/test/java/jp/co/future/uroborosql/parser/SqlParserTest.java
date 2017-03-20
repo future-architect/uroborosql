@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,70 +29,11 @@ import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.SqlNode;
 import jp.co.future.uroborosql.utils.StringFunction;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SqlParserTest {
-	private static final String DB_NAME = "sptestdb";
-
 	private SqlContextFactory sqlContextFactory;
-
-	@SuppressWarnings("deprecation")
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=true;user=test;password=test");
-		SQLWarning warning = conn.getWarnings();
-		conn.setAutoCommit(false);
-		if (warning == null) {
-			// テーブル作成
-			Statement stmt = conn.createStatement();
-			stmt.execute("create table TEST( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
-
-			PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)");
-			pstmt.setInt(1, 1);
-			pstmt.setString(2, "aaa");
-			pstmt.setInt(3, 10);
-			pstmt.setDate(4, new java.sql.Date(100, 0, 1));
-			pstmt.addBatch();
-
-			pstmt.setInt(1, 2);
-			pstmt.setString(2, "あああ");
-			pstmt.setInt(3, 20);
-			pstmt.setDate(4, new java.sql.Date(100, 1, 1));
-			pstmt.addBatch();
-
-			pstmt.setInt(1, 3);
-			pstmt.setString(2, "1111");
-			pstmt.setInt(3, 3000);
-			pstmt.setDate(4, new java.sql.Date(100, 2, 1));
-			pstmt.addBatch();
-
-			pstmt.executeBatch();
-			conn.commit();
-
-			stmt.close();
-			pstmt.close();
-		}
-		conn.close();
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		try {
-			DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";shutdown=true");
-			throw new SQLException("切断されなかった！");
-		} catch (SQLException se) {
-			if ("08006".equals(se.getSQLState())) {
-				// 正常にシャットダウンされた
-			} else {
-				// シャットダウン失敗
-				throw se;
-			}
-		}
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -949,14 +889,43 @@ public class SqlParserTest {
 		assertEquals("1", sql2, ctx.getExecutableSql());
 	}
 
+	@SuppressWarnings("deprecation")
+	private void initData(final Connection conn) throws SQLException {
+		// テーブル作成
+		Statement stmt = conn.createStatement();
+		stmt.execute("create table TEST( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
+
+		PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)");
+		pstmt.setInt(1, 1);
+		pstmt.setString(2, "aaa");
+		pstmt.setInt(3, 10);
+		pstmt.setDate(4, new java.sql.Date(100, 0, 1));
+		pstmt.addBatch();
+
+		pstmt.setInt(1, 2);
+		pstmt.setString(2, "あああ");
+		pstmt.setInt(3, 20);
+		pstmt.setDate(4, new java.sql.Date(100, 1, 1));
+		pstmt.addBatch();
+
+		pstmt.setInt(1, 3);
+		pstmt.setString(2, "1111");
+		pstmt.setInt(3, 3000);
+		pstmt.setDate(4, new java.sql.Date(100, 2, 1));
+		pstmt.addBatch();
+
+		pstmt.executeBatch();
+		conn.commit();
+	}
+
 	@Test
 	public void testParamMissMatch1() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
-		conn.setAutoCommit(false);
-
+		;
 		PreparedStatement st = null;
 
-		try {
+		try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch1")) {
+			initData(conn);
+
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
 			SqlParser parser = new SqlParserImpl(sql);
 			SqlContext ctx = sqlContextFactory.createSqlContext();
@@ -974,22 +943,16 @@ public class SqlParserTest {
 			assertEquals("1", "Parameter [val2] is not bound.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
-		} finally {
-			if (st != null) {
-				st.close();
-			}
-			conn.close();
 		}
 	}
 
 	@Test
 	public void testParamMissMatch2() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
-		conn.setAutoCommit(false);
-
 		PreparedStatement st = null;
 
-		try {
+		try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch2")) {
+			initData(conn);
+
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
 			SqlParser parser = new SqlParserImpl(sql);
 			SqlContext ctx = sqlContextFactory.createSqlContext();
@@ -1006,22 +969,16 @@ public class SqlParserTest {
 			assertEquals("1", "Parameter [val2, val3] is not bound.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
-		} finally {
-			if (st != null) {
-				st.close();
-			}
-			conn.close();
 		}
 	}
 
 	@Test
 	public void testParamMissMatch3() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";user=test;password=test");
-		conn.setAutoCommit(false);
-
 		PreparedStatement st = null;
 
-		try {
+		try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch3")) {
+			initData(conn);
+
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
 			SqlParser parser = new SqlParserImpl(sql);
 			SqlContext ctx = sqlContextFactory.createSqlContext();
@@ -1036,11 +993,6 @@ public class SqlParserTest {
 			ctx.bindParams(st);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
-		} finally {
-			if (st != null) {
-				st.close();
-			}
-			conn.close();
 		}
 	}
 

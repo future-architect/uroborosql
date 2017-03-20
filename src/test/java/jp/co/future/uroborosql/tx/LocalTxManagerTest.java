@@ -3,16 +3,14 @@ package jp.co.future.uroborosql.tx;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 import org.junit.After;
@@ -20,9 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class LocalTxManagerTest {
-
-	private static final String DB_NAME = "agenttestdb";
-
 	/**
 	 * SQL管理クラス
 	 */
@@ -30,13 +25,9 @@ public class LocalTxManagerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		String url = "jdbc:h2:file:./target/db/" + DB_NAME;
-		config = DefaultSqlConfig.getConfig(url, "test", "test");
-
+		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:LocalTxManagerTest", null, null);
 		try (SqlAgent agent = config.createAgent()) {
-
-			SqlContext ctx = agent.contextWith("create table if not exists emp ( \n id VARCHAR(30) \n )");
-			agent.update(ctx);
+			agent.updateWith("create table if not exists emp ( \n id VARCHAR(30) \n )").count();
 
 			agent.required(() -> {
 				del(agent);
@@ -350,24 +341,15 @@ public class LocalTxManagerTest {
 	}
 
 	private void ins(final SqlAgent agent, final String id) throws SQLException {
-		SqlContext sqlContext = agent.contextWith("insert into emp (id) values (/*id*/'A')");
-		sqlContext.param("id", id);
-		agent.update(sqlContext);
+		agent.updateWith("insert into emp (id) values (/*id*/'A')").param("id", id).count();
 	}
 
 	private void del(final SqlAgent agent) throws SQLException {
-		SqlContext sqlContext = agent.contextWith("delete from emp");
-		agent.update(sqlContext);
+		agent.updateWith("delete from emp").count();
 	}
 
 	private List<String> select(final SqlAgent agent) throws SQLException {
-		SqlContext sqlContext = agent.contextWith("select id from emp order by id");
-		List<String> list = new ArrayList<>();
-		try (ResultSet rs = agent.query(sqlContext)) {
-			while (rs.next()) {
-				list.add(rs.getString(1));
-			}
-		}
-		return list;
+		return agent.queryWith("select id from emp order by id").stream().map(m -> m.get("ID").toString())
+				.collect(Collectors.toList());
 	}
 }

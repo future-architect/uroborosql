@@ -14,8 +14,6 @@ import java.sql.DriverManager;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
@@ -27,80 +25,35 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.dataset.excel.XlsDataSet;
+import org.dbunit.ext.h2.H2DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class AuditLogSqlFilterTest {
-	private static final String DB_NAME = "alftestdb";
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-
-		// DBが作成されていない場合にテーブルを作成する
-		try (Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=true;user=test;password=test")) {
-			SQLWarning warning = conn.getWarnings();
-			conn.setAutoCommit(false);
-			if (warning == null) {
-				// テーブル作成
-				try (Statement stmt = conn.createStatement()) {
-
-					String[] sqls = new String(Files.readAllBytes(Paths
-							.get("src/test/resources/sql/ddl/create_tables.sql")), StandardCharsets.UTF_8).split(";");
-					for (String sql : sqls) {
-						if (StringUtils.isNotBlank(sql)) {
-							stmt.execute(sql);
-						}
-					}
-					conn.commit();
-				}
-			}
-		}
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		try {
-			DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";shutdown=true");
-			throw new SQLException("切断されなかった！");
-		} catch (SQLException se) {
-			if ("08006".equals(se.getSQLState())) {
-				// 正常にシャットダウンされた
-			} else {
-				// シャットダウン失敗
-				throw se;
-			}
-		}
-	}
-
 	private SqlConfig config;
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=false", "test", "test"));
+		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:AuditLogSqlFilterTest"));
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		sqlFilterManager.initialize();
 
-		SqlFilterManager sqlFilterManager;
+		try (SqlAgent agent = config.createAgent()) {
 
-		sqlFilterManager = config.getSqlFilterManager();
-
-		AuditLogSqlFilter filter = new AuditLogSqlFilter();
-		filter.initialize();
-
-		sqlFilterManager.addSqlFilter(filter);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		Connection conn = config.getConnectionSupplier().getConnection();
-		conn.rollback();
-		conn.close();
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+					StandardCharsets.UTF_8).split(";");
+			for (String sql : sqls) {
+				if (StringUtils.isNotBlank(sql)) {
+					agent.updateWith(sql.trim()).count();
+				}
+			}
+			agent.commit();
+		}
 	}
 
 	/**
@@ -111,8 +64,9 @@ public class AuditLogSqlFilterTest {
 	 */
 	private DatabaseConnection getDatabeseConnection() throws Exception {
 		Connection conn = config.getConnectionSupplier().getConnection();
-		String schema = conn.getMetaData().getUserName();
-		DatabaseConnection databaseConnection = new DatabaseConnection(conn, schema);
+		DatabaseConnection databaseConnection = new DatabaseConnection(conn);
+		DatabaseConfig config = databaseConnection.getConfig();
+		config.setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new H2DataTypeFactory());
 		return databaseConnection;
 	}
 

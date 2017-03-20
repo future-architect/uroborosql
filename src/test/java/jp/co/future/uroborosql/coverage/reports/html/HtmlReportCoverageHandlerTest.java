@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage.reports.html;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -9,17 +9,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HtmlReportCoverageHandlerTest {
 	/**
@@ -29,12 +28,11 @@ public class HtmlReportCoverageHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:coberturatestdb;DB_CLOSE_DELAY=-1;", "test", "test");
+		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:HtmlReportCoverageHandlerTest", null, null);
 
 		try (SqlAgent agent = config.createAgent()) {
-
-			SqlContext ctx = agent.contextWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )");
-			agent.update(ctx);
+			agent.updateWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )").count();
+			agent.commit();
 		}
 	}
 
@@ -108,7 +106,8 @@ public class HtmlReportCoverageHandlerTest {
 			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch").collect();
 		}
 
-		assertThat(Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html")).size(), is(61));
+		assertThat(Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"))
+				.size(), is(61));
 
 		ref.set(before);
 		System.clearProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");
@@ -133,7 +132,9 @@ public class HtmlReportCoverageHandlerTest {
 			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch").collect();
 		}
 
-		assertThat(Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html")).size(), is(64));
+		assertThat(
+				Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"))
+						.size(), is(64));
 
 		ref.set(before);
 		System.clearProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");

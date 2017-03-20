@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -21,36 +20,15 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ParameterTest {
-	private static final String DB_NAME = "paramtestdb";
-
-	/**
-	 * コネクション
-	 */
-	private Connection connection;
-
 	private SqlConfig config;
 
 	@Before
 	public void setUp() throws Exception {
-		//メモリ上に作成
-		connection = DriverManager.getConnection("jdbc:derby:memory:target/db/" + DB_NAME + ";create=true");
-
-		connection.setAutoCommit(false);
-
-		config = DefaultSqlConfig.getConfig(connection);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		if (connection != null) {
-			connection.rollback();
-			connection.close();
-		}
+		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:ParameterTest", null, null);
 	}
 
 	@Test
