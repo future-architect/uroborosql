@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -30,23 +32,33 @@ class SqlCoverageReport {
 	private final String name;
 	private final String sql;
 	private final Path path;
+	private final Path reportDirPath;
 	private final String md5;
 	private boolean updated = true;
-	/** 各行範囲 */
+	/**
+	 * 各行範囲
+	 */
 	private final List<LineRange> lineRanges;
 	private final int sqlLineCount;
 
-	/** ブランチカバレッジ情報 */
+	/**
+	 * ブランチカバレッジ情報
+	 */
 	private final Map<Range, RangeBranch> branches = new HashMap<>();
 
-	/** 各行通過回数 */
+	/**
+	 * 各行通過回数
+	 */
 	private final int[] hitLines;
 
-	/** 各通過範囲 */
+	/**
+	 * 各通過範囲
+	 */
 	private final Ranges passRanges = new Ranges();
 
 	SqlCoverageReport(String name, String sql, String md5, Path reportDirPath, int hashIndex) {
 		this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
+		this.reportDirPath = reportDirPath;
 		this.path = reportDirPath.resolve(this.name + ".html");
 		this.sql = sql;
 		this.md5 = md5;
@@ -69,7 +81,7 @@ class SqlCoverageReport {
 		}
 		//各行のブランチ情報を集計
 		passRoute.getRangeBranchStatus().forEach((range, state) -> {
-			RangeBranch branch = branches.computeIfAbsent(range, k -> new RangeBranch(k));
+			RangeBranch branch = branches.computeIfAbsent(range, RangeBranch::new);
 			branch.add(state);
 		});
 
@@ -115,10 +127,17 @@ class SqlCoverageReport {
 
 	private void writeLineNoSection(BufferedWriter writer) throws IOException {
 		writer.append("<td class=\"line-no\">");
+		writer.newLine();
+		writer.append("<pre>");
+		writer.newLine();
 		writer.append(IntStream.rangeClosed(1, this.sqlLineCount)
 				.mapToObj(String::valueOf)
 				.collect(Collectors.joining("\n")));
+		writer.newLine();
+		writer.append("</pre>");
+		writer.newLine();
 		writer.append("</td>");
+		writer.newLine();
 	}
 
 	private void writeHitsSection(BufferedWriter writer) throws IOException {
@@ -145,6 +164,10 @@ class SqlCoverageReport {
 
 	private void writeSourceSection(BufferedWriter writer) throws IOException {
 		writer.append("<td class=\"source\">");
+		writer.newLine();
+		writer.append("<pre>");
+		writer.newLine();
+		writer.append("<code class=\"sql\">");
 
 		Ranges inactives = new Ranges(0, this.sql.length() - 1);
 		inactives.minus(lineRanges);
@@ -180,7 +203,11 @@ class SqlCoverageReport {
 		if (start < this.sql.length()) {
 			appendNotCovered(writer, start, this.sql.length());
 		}
+		writer.append("</code>");
+		writer.append("</pre>");
+		writer.newLine();
 		writer.append("</td>");
+		writer.newLine();
 	}
 
 	private int appendBranch(BufferedWriter writer, int start, RangeBranch branch) throws IOException {
@@ -195,7 +222,7 @@ class SqlCoverageReport {
 		String html = size <= covered
 				? buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1), "", "")
 				: buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1),
-						"<span class=\"not-covered-branch\" title=\"branch not covered\" >", "</span>");
+				"<span class=\"not-covered-branch\" title=\"branch not covered\" >", "</span>");
 		writer.append(html);
 		return range.getEnd() + 1;
 	}
@@ -257,32 +284,28 @@ class SqlCoverageReport {
 	}
 
 	private void writePrefix(BufferedWriter writer) throws IOException {
-		writer.append("<!doctype html>");
+		writer.append("<!DOCTYPE html>");
+		writer.newLine();
 		writer.append("<html lang=\"en\">");
+		writer.newLine();
 		writer.append("<head>");
-		writer.append("    <title>Code coverage report for ").append(this.name).append("</title>");
+		writer.newLine();
 		writer.append("    <meta charset=\"utf-8\" />");
-		writer.append("    <style type=\"text/css\">");
-
-		writer.append("pre.coverage-source {font: 12px/1.4 Consolas, \"Liberation Mono\", Menlo, Courier, monospace;}");
-		writer.append("table.coverage {border-collapse: collapse;margin: 10px 0 0 0;padding: 0;}");
-
-		writer.append("td.line-no {text-align: right;padding: 0 5px 0 20px;color: rgba(0,0,0,0.5);}");
-		writer.append("td.line-coverage {text-align: right;padding-right: 10px;min-width: 20px;}");
-		writer.append("span.cline {width: 100%;display: inline-block;padding: 0 5px;box-sizing: border-box;}");
-		writer.append("span.cline.cline-no {background: #F6C6CE;}");
-		writer.append("span.cline.cline-yes {background: rgb(230,245,208);}");
-		writer.append("span.cline.no-target {background: #eaeaea;}");
-
-		writer.append("span.cline>em {opacity: 0.5;font-style: inherit;}");
-
-		writer.append(".not-covered {background: #F6C6CE;}");
-		writer.append(".not-covered-branch {background: yellow;}");
-		writer.append(".source {vertical-align: top;}");
-
-		writer.append("    </style>");
+		writer.newLine();
+		writer.append("    <title>uroboroSQL code coverage report for ").append(this.name).append("</title>");
+		writer.newLine();
+		writer.append("    <link rel=\"stylesheet\" href=\"").append(getAssetPath()).append("/style.css\">");
+		writer.newLine();
+		writer.append("    <script src=\"").append(getAssetPath()).append("/jquery-3.2.0.min.js\"></script>");
+		writer.newLine();
+		writer.append("    <script src=\"").append(getAssetPath()).append("/highlight.pack.js\"></script>");
+		writer.newLine();
+		writer.append("    <script src=\"").append(getAssetPath()).append("/sqlcov.js\"></script>");
+		writer.newLine();
 		writer.append("</head>");
+		writer.newLine();
 		writer.append("<body>");
+		writer.newLine();
 	}
 
 	private void writeHeaderSection(BufferedWriter writer) throws IOException {
@@ -291,43 +314,78 @@ class SqlCoverageReport {
 		int branchesCount = getBranchValidSize();
 		int branchesCovered = getBranchCoveredSize();
 
+		writer.append("<div class=\"global-header\">");
+		writer.newLine();
+		writer.append("    <img class=\"icon\" src=\"").append(getAssetPath()).append("/icon.png\" />");
+		writer.newLine();
+		writer.append("    <span class=\"title\">uroboroSQL coverage</span>");
+		writer.newLine();
+		writer.append("</div>");
+		writer.newLine();
+		writer.append("<h1>").append(StringEscapeUtils.escapeHtml4(this.name)).append("</h1>");
+		writer.newLine();
+		writer.append("<div class=\"nav\">")
+				.append("<a href=\"").append(getAssetPath()).append("/index.html\">All Files</a>")
+				.append("</div>");
+		writer.newLine();
 		writer.append("<div class=\"header\">");
-		writer.append("    <h1>").append(StringEscapeUtils.escapeHtml4(this.name)).append("</h1>");
-
+		writer.newLine();
 		writer.append("    <div class=\"summary\">");
+		writer.newLine();
 		writer.append("      <strong>").append(CoverageHandler.percentStr(lineCovered, lineCount))
 				.append("% </strong>");
+		writer.newLine();
 		writer.append("      <span>Lines</span>");
+		writer.newLine();
 		writer.append("      <span class=\"fraction\">").append(String.valueOf(lineCovered)).append("/")
 				.append(String.valueOf(lineCount)).append("</span>");
+		writer.newLine();
 		writer.append("    </div>");
-
+		writer.newLine();
 		writer.append("    <div class=\"summary\">");
+		writer.newLine();
 		writer.append("      <strong>").append(CoverageHandler.percentStr(branchesCovered, branchesCount))
 				.append("% </strong>");
+		writer.newLine();
 		writer.append("      <span>Branches</span>");
+		writer.newLine();
 		writer.append("      <span class=\"fraction\">").append(String.valueOf(branchesCovered)).append("/")
 				.append(String.valueOf(branchesCount)).append("</span>");
+		writer.newLine();
 		writer.append("    </div>");
-
+		writer.newLine();
 		writer.append("</div>");
+		writer.newLine();
+	}
+
+	private String getAssetPath() {
+		return this.path.getParent().relativize(this.reportDirPath).toString();
 	}
 
 	private void writeTablePrefix(BufferedWriter writer) throws IOException {
-		writer.append("    <pre class=\"coverage-source\">");
-		writer.append("        <table class=\"coverage\">");
-		writer.append("            <tr>");
+		writer.append("<table class=\"coverage\">");
+		writer.newLine();
+		writer.append("<tr>");
+		writer.newLine();
 	}
 
 	private void writeTableSuffix(BufferedWriter writer) throws IOException {
-		writer.append("            </tr>");
-		writer.append("        </table>");
-		writer.append("    </pre>");
-
+		writer.append("</tr>");
+		writer.newLine();
+		writer.append("</table>");
+		writer.newLine();
 	}
 
 	private void writeSuffix(BufferedWriter writer) throws IOException {
+		writer.append("<div class=\"footer\">code coverage report generated by ")
+				.append("<a href=\"https://github.com/future-architect/uroborosql\" target=\"_blank\">uroboroSQL</a> at ")
+				.append(ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME))
+				.append(".</div>");
+		writer.newLine();
 		writer.append("</body>");
+		writer.newLine();
+		writer.append("</html>");
+		writer.newLine();
 	}
 
 	int getLineValidSize() {
