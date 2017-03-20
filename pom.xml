@@ -342,15 +342,6 @@ encoding/<project>=UTF-8
 				</exclusion>
 			</exclusions>
 		</dependency>
-<!--
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derby</artifactId>
-			<version>10.12.1.1</version>
-			<scope>test</scope>
-			<optional>true</optional>
-		</dependency>
- -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
