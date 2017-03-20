@@ -45,7 +45,7 @@ public interface SqlFluent<T> {
 	/**
 	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>
 	 *
-	 * @param paramMap パラメータのKeyValueセット
+	 * @param paramMap パラメータのKey-Valueセット
 	 * @return T
 	 */
 	T paramMap(Map<String, Object> paramMap);
