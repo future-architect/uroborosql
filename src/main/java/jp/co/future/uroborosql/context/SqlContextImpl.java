@@ -323,7 +323,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#param(jp.co.future.uroborosql.parameter.Parameter)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
 	 */
 	@Override
 	public SqlContext param(final Parameter parameter) {
@@ -334,7 +334,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#param(java.lang.String, java.lang.Object)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public SqlContext param(final String parameterName, final Object value) {
@@ -344,7 +344,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#paramList(String, Object...)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
 	 */
 	@Override
 	public SqlContext paramList(final String parameterName, final Object... value) {
@@ -354,7 +354,20 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#param(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
+	 */
+	@Override
+	public SqlContext paramMap(final Map<String, Object> paramMap) {
+		if (paramMap != null) {
+			paramMap.forEach((k, v) -> param(k, v));
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
 	public SqlContext param(final String parameterName, final Object value, final SQLType sqlType) {
@@ -364,7 +377,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#param(java.lang.String, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
 	public SqlContext param(final String parameterName, final Object value, final int sqlType) {
@@ -382,7 +395,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#outParam(java.lang.String, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
 	 */
 	@Override
 	public SqlContext outParam(final String parameterName, final SQLType sqlType) {
@@ -392,7 +405,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#outParam(java.lang.String, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
 	 */
 	@Override
 	public SqlContext outParam(final String parameterName, final int sqlType) {
@@ -402,7 +415,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
 	public SqlContext inOutParam(final String parameterName, final Object value, final SQLType sqlType) {
@@ -412,7 +425,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#inOutParam(java.lang.String, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
 	public SqlContext inOutParam(final String parameterName, final Object value, final int sqlType) {
@@ -422,7 +435,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#binaryStreamParam(java.lang.String, java.io.InputStream)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
 	 */
 	@Override
 	public SqlContext binaryStreamParam(final String parameterName, final InputStream value) {
@@ -432,7 +445,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#binaryStreamParam(java.lang.String, java.io.InputStream, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
 	public SqlContext binaryStreamParam(final String parameterName, final InputStream value, final int len) {
@@ -442,7 +455,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#asciiStreamParam(java.lang.String, java.io.InputStream)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
 	 */
 	@Override
 	public SqlContext asciiStreamParam(final String parameterName, final InputStream value) {
@@ -452,7 +465,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#asciiStreamParam(java.lang.String, java.io.InputStream, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
 	public SqlContext asciiStreamParam(final String parameterName, final InputStream value, final int len) {
@@ -462,7 +475,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#characterStreamParam(java.lang.String, java.io.Reader)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
 	 */
 	@Override
 	public SqlContext characterStreamParam(final String paramName, final Reader value) {
@@ -472,7 +485,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#characterStreamParam(java.lang.String, java.io.Reader, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
 	 */
 	@Override
 	public SqlContext characterStreamParam(final String paramName, final Reader value, final int len) {

@@ -281,7 +281,7 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryLamda() throws Exception {
+	public void testQueryLambda() throws Exception {
 		// 事前条件
 		DatabaseOperation.CLEAN_INSERT.execute(
 				getDatabeseConnection(),
@@ -322,7 +322,7 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLamda() throws Exception {
+	public void testQueryFluentLambda() throws Exception {
 		// 事前条件
 		DatabaseOperation.CLEAN_INSERT.execute(
 				getDatabeseConnection(),
@@ -388,6 +388,31 @@ public class SqlAgentTest {
 				assertTrue(m.containsKey("UPD_DATETIME"));
 				assertTrue(m.containsKey("VERSION_NO"));
 			});
+		}
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentLambdaAndUpdate() throws Exception {
+		// 事前条件
+		DatabaseOperation.CLEAN_INSERT.execute(
+				getDatabeseConnection(),
+				new XlsDataSet(Thread.currentThread().getContextClassLoader()
+						.getResourceAsStream("jp/co/future/uroborosql/sqlagent/setup/testExecuteQuery.xls")));
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.query("example/select").paramList("product_id", 0, 1).stream().forEach((m) -> {
+				try {
+					agent.update("example/insert").paramMap(m).count();
+				} catch (Exception e) {
+					fail(e.getMessage());
+				}
+			});
+
+			List<Map<String, Object>> collect = agent.queryWith("select * from product_regist_work").collect();
+			assertEquals(2, collect.size());
 		}
 	}
 

@@ -1,11 +1,15 @@
 package jp.co.future.uroborosql.tx;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 /**
  * ローカルトランザクションマネージャ
@@ -13,19 +17,28 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
  * @author ota
  */
 public class LocalTransactionManager implements TransactionManager {
+	/** コネクション供給クラス */
 	private final ConnectionSupplier connectionSupplier;
+
+	/** SQLフィルタ管理クラス */
+	private final SqlFilterManager sqlFilterManager;
+
 	/** トランザクションコンテキストのスタック */
 	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<LocalTransactionContext>();
 
-	private Connection unmanagedConnection = null;
+	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
+	private LocalTransactionContext unmanagedTransaction = null;
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param connectionSupplier コネクションサプライヤ
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
 	 */
-	public LocalTransactionManager(final ConnectionSupplier connectionSupplier) {
+	public LocalTransactionManager(final ConnectionSupplier connectionSupplier, final SqlFilterManager sqlFilterManager) {
 		this.connectionSupplier = connectionSupplier;
+		this.sqlFilterManager = sqlFilterManager;
+
 	}
 
 	/**
@@ -147,8 +160,9 @@ public class LocalTransactionManager implements TransactionManager {
 		LocalTransactionContext txContext = currentTxContext();
 		try {
 			if (txContext == null) {
-				return unmanagedConnection != null ? unmanagedConnection : (unmanagedConnection = connectionSupplier
-						.getConnection());
+				return unmanagedTransaction != null ? unmanagedTransaction.getConnection()
+						: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
+								.getConnection();
 			} else {
 				return txContext.getConnection();
 			}
@@ -168,13 +182,50 @@ public class LocalTransactionManager implements TransactionManager {
 		LocalTransactionContext txContext = currentTxContext();
 		try {
 			if (txContext == null) {
-				return unmanagedConnection != null ? unmanagedConnection : (unmanagedConnection = connectionSupplier
-						.getConnection(alias));
+				return unmanagedTransaction != null ? unmanagedTransaction.getConnection(alias)
+						: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
+								.getConnection(alias);
 			}
 			return txContext.getConnection(alias);
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			return null;
+		}
+	}
+
+	/**
+	 * ステートメント初期化。
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return PreparedStatement
+	 * @throws SQLException SQL例外
+	 */
+	public PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
+		LocalTransactionContext txContext = currentTxContext();
+		if (txContext == null) {
+			return unmanagedTransaction != null ? unmanagedTransaction.getPreparedStatement(sqlContext)
+					: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
+							.getPreparedStatement(sqlContext);
+		} else {
+			return txContext.getPreparedStatement(sqlContext);
+		}
+	}
+
+	/**
+	 * Callableステートメント初期化
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return CallableStatement
+	 * @throws SQLException SQL例外
+	 */
+	public CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
+		LocalTransactionContext txContext = currentTxContext();
+		if (txContext == null) {
+			return unmanagedTransaction != null ? unmanagedTransaction.getCallableStatement(sqlContext)
+					: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
+							.getCallableStatement(sqlContext);
+		} else {
+			return txContext.getCallableStatement(sqlContext);
 		}
 	}
 
@@ -246,7 +297,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) throws SQLException {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(connectionSupplier)) {
+		try (LocalTransactionContext txContext = new LocalTransactionContext(connectionSupplier, sqlFilterManager)) {
 			txCtxStack.push(txContext);
 			try {
 				R result = supplier.get();
@@ -292,8 +343,8 @@ public class LocalTransactionManager implements TransactionManager {
 	public void commit() throws SQLException {
 		LocalTransactionContext txContext = currentTxContext();
 		if (txContext == null) {
-			if (unmanagedConnection != null) {
-				unmanagedConnection.commit();
+			if (unmanagedTransaction != null) {
+				unmanagedTransaction.commit();
 			}
 		} else {
 			txContext.commit();
@@ -309,8 +360,8 @@ public class LocalTransactionManager implements TransactionManager {
 	public void rollback() throws SQLException {
 		LocalTransactionContext txContext = currentTxContext();
 		if (txContext == null) {
-			if (unmanagedConnection != null) {
-				unmanagedConnection.rollback();
+			if (unmanagedTransaction != null) {
+				unmanagedTransaction.rollback();
 			}
 		} else {
 			txContext.rollback();

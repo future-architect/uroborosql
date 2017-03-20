@@ -1,14 +1,20 @@
 package jp.co.future.uroborosql.tx;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 /**
  * ローカルトランザクションContext
@@ -26,8 +32,14 @@ class LocalTransactionContext implements AutoCloseable {
 	/** コネクション提供クラス */
 	private final ConnectionSupplier connectionSupplier;
 
+	/** SQLフィルタ管理クラス */
+	private final SqlFilterManager sqlFilterManager;
+
 	/** コネクション */
 	private Connection connection;
+
+	/** SQLステートメントのキャッシュ */
+	private final Deque<PreparedStatement> stmtQueue = new ConcurrentLinkedDeque<PreparedStatement>();
 
 	/** ロールバックフラグ */
 	private boolean rollbackOnly = false;
@@ -37,8 +49,9 @@ class LocalTransactionContext implements AutoCloseable {
 	 *
 	 * @param connectionSupplier コネクション提供クラス
 	 */
-	LocalTransactionContext(final ConnectionSupplier connectionSupplier) {
+	LocalTransactionContext(final ConnectionSupplier connectionSupplier, final SqlFilterManager sqlFilterManager) {
 		this.connectionSupplier = connectionSupplier;
+		this.sqlFilterManager = sqlFilterManager;
 	}
 
 	/**
@@ -68,6 +81,61 @@ class LocalTransactionContext implements AutoCloseable {
 			initSavepoints(connection);
 		}
 		return connection;
+	}
+
+	/**
+	 * ステートメント初期化。
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return PreparedStatement
+	 * @throws SQLException SQL例外
+	 */
+	PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
+		Connection conn = null;
+		if (sqlContext.getDbAlias() != null) {
+			conn = getConnection(sqlContext.getDbAlias());
+		} else {
+			conn = getConnection();
+		}
+
+		if (conn == null) {
+			throw new IllegalArgumentException(sqlContext.getDbAlias());
+		}
+
+		PreparedStatement stmt = sqlFilterManager.doPreparedStatement(
+				sqlContext,
+				conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
+						sqlContext.getResultSetConcurrency()));
+		stmtQueue.push(stmt);
+
+		return stmt;
+
+	}
+
+	/**
+	 * Callableステートメント初期化
+	 *
+	 * @param sqlContext SQLコンテキスト
+	 * @return CallableStatement
+	 * @throws SQLException SQL例外
+	 */
+	CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
+		Connection conn = null;
+		if (sqlContext.getDbAlias() != null) {
+			conn = getConnection(sqlContext.getDbAlias());
+		} else {
+			conn = getConnection();
+		}
+		if (conn == null) {
+			throw new IllegalArgumentException(sqlContext.getDbAlias());
+		}
+
+		CallableStatement stmt = sqlFilterManager.doCallableStatement(
+				sqlContext,
+				conn.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
+						sqlContext.getResultSetConcurrency()));
+		stmtQueue.push(stmt);
+		return stmt;
 	}
 
 	/**
@@ -181,6 +249,11 @@ class LocalTransactionContext implements AutoCloseable {
 	public void close() {
 		if (connection != null) {
 			try {
+				for (PreparedStatement stmt : stmtQueue) {
+					if (stmt != null && !stmt.isClosed()) {
+						stmt.close();
+					}
+				}
 				connection.close();
 			} catch (SQLException e) {
 				//nop
