@@ -160,24 +160,6 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#dispose()
-	 */
-	@Override
-	public void dispose() {
-		encryptCipher = null;
-		secretKey = null;
-		keyStoreFilePath = null;
-		storePassword = null;
-		alias = null;
-		if (cryptColumnNames != null) {
-			cryptColumnNames.clear();
-			cryptColumnNames = null;
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
 	 *
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doParameter(jp.co.future.uroborosql.parameter.Parameter)
@@ -314,7 +296,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
 			this.charset = StandardCharsets.UTF_8;
-			LOG.error("The specified character set could not be converted to {}. Set the default character set({}).", charset, this.charset);
+			LOG.error("The specified character set could not be converted to {}. Set the default character set({}).",
+					charset, this.charset);
 		}
 	}
 

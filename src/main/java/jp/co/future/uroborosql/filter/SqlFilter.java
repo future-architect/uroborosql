@@ -20,11 +20,6 @@ public interface SqlFilter {
 	void initialize();
 
 	/**
-	 * 終了メソッド
-	 */
-	void dispose();
-
-	/**
 	 * Parameterに対するフィルター処理を行う
 	 *
 	 * @param parameter 変換前パラメータ

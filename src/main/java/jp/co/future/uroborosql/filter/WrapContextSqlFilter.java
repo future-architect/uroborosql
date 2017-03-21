@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
  * SQL文字列の前後をWrapするSqlFilter
  *
  * @author H.Sugimoto
- * @since v1.0.0
  */
 public class WrapContextSqlFilter extends AbstractSqlFilter {
 
@@ -24,6 +23,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	/** Wrapを無視するSQLのパターン */
 	private String wrapIgnorePattern;
 
+	/** Wrapを無視するSQLの正規表現 */
 	private Pattern ignorePattern;
 
 	/**

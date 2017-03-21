@@ -28,15 +28,6 @@ public abstract class AbstractSqlFilter implements SqlFilter {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#dispose()
-	 */
-	@Override
-	public void dispose() {
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doParameter(jp.co.future.uroborosql.parameter.Parameter)
 	 */
 	@Override

@@ -8,7 +8,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -19,46 +18,45 @@ import java.util.List;
 import java.util.Map;
 
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * 実行結果をダンプ出力するSqlFilter
+ * 実行結果をダンプ出力するSqlFilter.<br>
+ *
+ * このSqlFilterを使用する際は、PreparedStatementを生成する際、ResultSetTypeに
+ * <code>ResultSet.TYPE_SCROLL_INSENSITIVE</code> または<code>ResultSet.TYPE_SCROLL_SENSITIVE</code>
+ * を指定してください。
  *
  * @author H.Sugimoto
  *
  */
 public class DumpResultSqlFilter extends AbstractSqlFilter {
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger(DumpResultSqlFilter.class);
+
+	/** 文字数計算用のエンコーディング */
+	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
+	/** 囲み用文字列 */
 	private static final String FRAME_STR = "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
+	/** 空白用文字列 */
 	private static final String SPACE_STR = "                                                                                                                                                                                                        ";
 
-	@Override
-	public Parameter doParameter(final Parameter parameter) {
-		return parameter;
-	}
-
-	@Override
-	public Object doOutParameter(final String key, final Object val) {
-		return val;
-	}
-
-	@Override
-	public PreparedStatement doPreparedStatement(final SqlContext sqlContext, final PreparedStatement preparedStatement)
-			throws SQLException {
-		return preparedStatement;
-	}
-
-	@Override
-	public CallableStatement doCallableStatement(final SqlContext sqlContext, final CallableStatement callableStatement)
-			throws SQLException {
-		return callableStatement;
-	}
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+	 */
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
-		displayResult(resultSet);
 		try {
-			resultSet.beforeFirst();
+			if (resultSet.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+				displayResult(resultSet);
+			} else {
+				LOG.warn("ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -97,7 +95,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				rows.add(data);
 			}
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(System.lineSeparator());
 			// ヘッダ部出力
 			builder.append("+");
 			for (String key : keys) {
@@ -140,7 +138,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				builder.append(FRAME_STR.substring(0, maxLengthList.get(key))).append("+");
 			}
 
-			System.out.println(builder.toString());
+			LOG.info(builder.toString());
 
 			// カーソルを先頭の前に戻す
 			rs.beforeFirst();
@@ -188,7 +186,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		}
 		String str = val.toString();
 		try {
-			int len = str.getBytes("Shift-JIS").length;
+			int len = str.getBytes(ENCODING_SHIFT_JIS).length;
 			return len <= 200 ? len : 200;
 		} catch (UnsupportedEncodingException ex) {
 			return 1;
@@ -212,8 +210,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			return str;
 		}
 
-		CharsetEncoder ce = Charset.forName("Shift-JIS").newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
-				.onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
+		CharsetEncoder ce = Charset.forName(ENCODING_SHIFT_JIS).newEncoder()
+				.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
 		if (capacity >= ce.maxBytesPerChar() * str.length()) {
 			return str;
 		}
@@ -236,15 +234,4 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		}
 		return cb.flip().toString();
 	}
-
-	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
-		return result;
-	}
-
-	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
-		return result;
-	}
-
 }
