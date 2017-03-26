@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.store;
 
-import jp.co.future.uroborosql.store.SqlLoaderImpl;
-import jp.co.future.uroborosql.store.SqlManagerImpl;
 import junit.framework.TestCase;
 
 public class SqlManagerTest extends TestCase {
@@ -10,7 +8,9 @@ public class SqlManagerTest extends TestCase {
 		sqlManagerImpl.setSqlLoader(new SqlLoaderImpl());
 		sqlManagerImpl.initialize();
 
-		String sql = sqlManagerImpl.getSql("example.example");
-		assertEquals("select * from product where product_id = :product_id" + System.lineSeparator(), sql);
+		String sql = sqlManagerImpl.getSql("example/select_product");
+		assertEquals(
+				"select /* _SQL_ID_ */ * from product where product_id in /*product_id*/(0, 2)"
+						+ System.lineSeparator(), sql);
 	}
 }

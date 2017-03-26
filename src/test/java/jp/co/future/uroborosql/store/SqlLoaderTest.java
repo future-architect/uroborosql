@@ -2,8 +2,6 @@ package jp.co.future.uroborosql.store;
 
 import java.util.Map;
 
-import jp.co.future.uroborosql.store.SqlLoader;
-import jp.co.future.uroborosql.store.SqlLoaderImpl;
 import junit.framework.TestCase;
 
 public class SqlLoaderTest extends TestCase {
@@ -13,14 +11,18 @@ public class SqlLoaderTest extends TestCase {
 		Map<String, String> sqls = sqlLoader.load();
 		assertNotNull(sqls);
 
-		String sql = sqls.get("example/example");
-		assertEquals("select * from product where product_id = :product_id" + System.lineSeparator(), sql);
+		String sql = sqls.get("example/select_product");
+		assertEquals(
+				"select /* _SQL_ID_ */ * from product where product_id in /*product_id*/(0, 2)"
+						+ System.lineSeparator(), sql);
 	}
 
 	public void testLoadFile() throws Exception {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
-		String sql = sqlLoader.load("example.example");
-		assertEquals("select * from product where product_id = :product_id" + System.lineSeparator(), sql);
+		String sql = sqlLoader.load("example/select_product");
+		assertEquals(
+				"select /* _SQL_ID_ */ * from product where product_id in /*product_id*/(0, 2)"
+						+ System.lineSeparator(), sql);
 	}
 
 	public void testLoadFileNull() throws Exception {
