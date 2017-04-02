@@ -11,6 +11,10 @@ UroboroSQL mainly adopts a SQL-centered design concept. The concept does not foc
 
 From the knowhow acquired through our business, we have enhanced UroboroSQL with functions like partition value support, retrying, filtering customization, and so on. Also, for quality assurance purposes, it features a coverage analysis function available for 2-way-SQL.
 
+There is also REPL which dramatically increases SQL development productivity.
+
+[![asciicast](https://asciinema.org/a/110293.png)](https://asciinema.org/a/110293)
+
 for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/blob/master/README.ja.md)
 
 Installation
