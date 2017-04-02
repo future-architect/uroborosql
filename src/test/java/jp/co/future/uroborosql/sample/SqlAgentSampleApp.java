@@ -11,7 +11,6 @@ import java.util.Map;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 
@@ -76,16 +75,8 @@ public class SqlAgentSampleApp {
 
 		// SqlAgent（SQL実行エンジン）を設定オブジェクトから取得
 		try (SqlAgent agent = config.createAgent()) {
-			// SQLファイル名や、SQLに渡すパラメータを管理するSqlContextを生成
-			SqlContext ctx = agent.contextFrom(sqlName);
-
-			// 生成したSqlContextに実行するSQLファイル名とバインドパラメータを設定
-			if (params != null) {
-				params.forEach((key, val) -> ctx.param(key, val));
-			}
-
 			// SQLの実行
-			try (ResultSet rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(sqlName).paramMap(params).resultSet()) {
 				// 実行結果はResultSetで返ってくるので、値を取得
 				List<String> headers = new ArrayList<>();
 				ResultSetMetaData rsmd = rs.getMetaData();

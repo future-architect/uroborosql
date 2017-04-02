@@ -1,0 +1,1 @@
+{"userName":"testUserName","funcId":"testFunction","sqlId":"111","sqlName":"example\/select_product","sql":"select \/* 111 *\/ * from product where product_id in (?, ?)\/*product_id*\/","rowCount":1}

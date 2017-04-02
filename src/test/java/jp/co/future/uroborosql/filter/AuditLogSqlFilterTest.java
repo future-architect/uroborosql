@@ -5,20 +5,22 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
@@ -27,105 +29,94 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dbunit.database.DatabaseConnection;
-import org.dbunit.dataset.excel.XlsDataSet;
-import org.dbunit.operation.DatabaseOperation;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class AuditLogSqlFilterTest {
-	private static final String DB_NAME = "alftestdb";
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-
-		// DBが作成されていない場合にテーブルを作成する
-		try (Connection conn = DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=true;user=test;password=test")) {
-			SQLWarning warning = conn.getWarnings();
-			conn.setAutoCommit(false);
-			if (warning == null) {
-				// テーブル作成
-				try (Statement stmt = conn.createStatement()) {
-
-					String[] sqls = new String(Files.readAllBytes(Paths
-							.get("src/test/resources/sql/ddl/create_tables.sql")), StandardCharsets.UTF_8).split(";");
-					for (String sql : sqls) {
-						if (StringUtils.isNotBlank(sql)) {
-							stmt.execute(sql);
-						}
-					}
-					conn.commit();
-				}
-			}
-		}
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		try {
-			DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME + ";shutdown=true");
-			throw new SQLException("切断されなかった！");
-		} catch (SQLException se) {
-			if ("08006".equals(se.getSQLState())) {
-				// 正常にシャットダウンされた
-			} else {
-				// シャットダウン失敗
-				throw se;
-			}
-		}
-	}
-
 	private SqlConfig config;
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:derby:target/db/" + DB_NAME
-				+ ";create=false", "test", "test"));
+		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:AuditLogSqlFilterTest"));
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		sqlFilterManager.initialize();
 
-		SqlFilterManager sqlFilterManager;
+		try (SqlAgent agent = config.createAgent()) {
 
-		sqlFilterManager = config.getSqlFilterManager();
-
-		AuditLogSqlFilter filter = new AuditLogSqlFilter();
-		filter.initialize();
-
-		sqlFilterManager.addSqlFilter(filter);
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+					StandardCharsets.UTF_8).split(";");
+			for (String sql : sqls) {
+				if (StringUtils.isNotBlank(sql)) {
+					agent.updateWith(sql.trim()).count();
+				}
+			}
+			agent.commit();
+		}
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		Connection conn = config.getConnectionSupplier().getConnection();
-		conn.rollback();
-		conn.close();
+	private List<Map<String, Object>> getDataFromFile(final Path path) {
+		List<Map<String, Object>> ans = new ArrayList<>();
+		try {
+			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
+				Map<String, Object> row = new LinkedHashMap<>();
+				String[] parts = line.split("\t");
+				for (String part : parts) {
+					String[] keyValue = part.split(":", 2);
+					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
+				}
+				ans.add(row);
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ans;
 	}
 
-	/**
-	 * dbUnit用Connection取得処理。<br>
-	 *
-	 * @return
-	 * @throws SQLException
-	 */
-	private DatabaseConnection getDatabeseConnection() throws Exception {
-		Connection conn = config.getConnectionSupplier().getConnection();
-		String schema = conn.getMetaData().getUserName();
-		DatabaseConnection databaseConnection = new DatabaseConnection(conn, schema);
-		return databaseConnection;
+	private void truncateTable(final Object... tables) {
+		try (SqlAgent agent = config.createAgent()) {
+			Arrays.asList(tables).stream().forEach(tbl -> {
+				try {
+					agent.updateWith("truncate table " + tbl.toString()).count();
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+				}
+			});
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+	}
+
+	private void cleanInsert(final Path path) {
+		List<Map<String, Object>> dataList = getDataFromFile(path);
+
+		try (SqlAgent agent = config.createAgent()) {
+			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
+					.forEach(tbl -> truncateTable(tbl));
+
+			dataList.stream().forEach(map -> {
+				try {
+					agent.update(map.get("sql").toString()).paramMap(map).count();
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+				}
+			});
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
 	}
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-		DatabaseOperation.CLEAN_INSERT.execute(
-				getDatabeseConnection(),
-				new XlsDataSet(Thread.currentThread().getContextClassLoader()
-						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteQuery.xls")));
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/select")
+				SqlContext ctx = agent.contextFrom("example/select_product")
 						.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
 						.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 				ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
@@ -135,20 +126,16 @@ public class AuditLogSqlFilterTest {
 		});
 
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/jp/co/future/uroborosql/auditlogsqlfilter/testExecuteQueryFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogSqlFilter", "testExecuteQueryFilter.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
 	@Test
 	public void testExecuteUpdateFilter() throws Exception {
-		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.CLEAN_INSERT.execute(
-				databaseConnection,
-				new XlsDataSet(Thread.currentThread().getContextClassLoader()
-						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteUpdate.xls")));
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/selectinsert").setSqlId("222")
+				SqlContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
 						.param("_userName", "testUserName").param("_funcId", "testFunction")
 						.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 						.param("jan_code", "1234567890123", Types.CHAR);
@@ -158,22 +145,17 @@ public class AuditLogSqlFilterTest {
 			}
 		});
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/jp/co/future/uroborosql/auditlogsqlfilter/testExecuteUpdateFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogSqlFilter", "testExecuteUpdateFilter.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
 	@Test
 	public void testExecuteBatchFilter() throws Exception {
-		DatabaseConnection databaseConnection = getDatabeseConnection();
-		DatabaseOperation.TRUNCATE_TABLE.execute(
-				databaseConnection,
-				new XlsDataSet(Thread.currentThread().getContextClassLoader()
-						.getResourceAsStream("jp/co/future/uroborosql/auditlogsqlfilter/setup/testExecuteBatch.xls")));
-
+		truncateTable("product");
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/batchinsert").setSqlId("333")
+				SqlContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
 						.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
 						.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
 						.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
@@ -188,13 +170,13 @@ public class AuditLogSqlFilterTest {
 			}
 		});
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/jp/co/future/uroborosql/auditlogsqlfilter/testExecuteBatchFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogSqlFilter", "testExecuteBatchFilter.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
 	public void assertFile(final String expectedFilePath, final String actualFilePath) throws IOException {
-		String expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), Charset.forName("UTF-8"));
-		String actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), Charset.forName("UTF-8"));
+		String expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
+		String actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
 
 		assertEquals(expected, actual);
 	}

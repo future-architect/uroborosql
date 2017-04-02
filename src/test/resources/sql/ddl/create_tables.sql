@@ -1,4 +1,4 @@
-create table PRODUCT (
+create table if not exists PRODUCT (
 	PRODUCT_ID			NUMERIC(10, 0),
 	PRODUCT_NAME		VARCHAR(100),
 	PRODUCT_KANA_NAME	VARCHAR(100),
@@ -11,7 +11,7 @@ create table PRODUCT (
 )
 ;
 
-create table PRODUCT_REGIST_WORK (
+create table if not exists PRODUCT_REGIST_WORK (
 	PRODUCT_NAME		VARCHAR(100),
 	PRODUCT_KANA_NAME	VARCHAR(100),
 	JAN_CODE			CHAR(13),

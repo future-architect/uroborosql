@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +27,6 @@ import org.junit.Test;
  * @version 2014/09/05 新規作成
  */
 public class SqlAgentSampleTest {
-	private static final String DB_NAME = "sasdb";
-
 	private static SqlAgentSampleApp app = null;
 
 	private static Map<String, Object> row1 = new LinkedHashMap<>();
@@ -39,42 +36,38 @@ public class SqlAgentSampleTest {
 	@SuppressWarnings("deprecation")
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:derby:target/db/" + DB_NAME;
-		String user = "test";
-		String password = user;
+		String url = "jdbc:h2:mem:SqlAgentSampleTest;DB_CLOSE_DELAY=-1";
+		String user = null;
+		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(String.format("%s;create=true;user=%s;password=%s", url,
-				user, password))) {
-			SQLWarning warning = conn.getWarnings();
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
-			if (warning == null) {
-				// テーブル作成
-				try (Statement stmt = conn.createStatement()) {
-					stmt.execute("create table test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
+			// テーブル作成
+			try (Statement stmt = conn.createStatement()) {
+				stmt.execute("create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
 
-					try (PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)")) {
-						pstmt.setInt(1, 1);
-						pstmt.setString(2, "aaa");
-						pstmt.setInt(3, 10);
-						pstmt.setDate(4, new java.sql.Date(100, 0, 1));
-						pstmt.addBatch();
+				try (PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)")) {
+					pstmt.setInt(1, 1);
+					pstmt.setString(2, "aaa");
+					pstmt.setInt(3, 10);
+					pstmt.setDate(4, new java.sql.Date(100, 0, 1));
+					pstmt.addBatch();
 
-						pstmt.setInt(1, 2);
-						pstmt.setString(2, "あああ");
-						pstmt.setInt(3, 20);
-						pstmt.setDate(4, new java.sql.Date(100, 1, 1));
-						pstmt.addBatch();
+					pstmt.setInt(1, 2);
+					pstmt.setString(2, "あああ");
+					pstmt.setInt(3, 20);
+					pstmt.setDate(4, new java.sql.Date(100, 1, 1));
+					pstmt.addBatch();
 
-						pstmt.setInt(1, 3);
-						pstmt.setString(2, "1111");
-						pstmt.setInt(3, 3000);
-						pstmt.setDate(4, new java.sql.Date(100, 2, 1));
-						pstmt.addBatch();
+					pstmt.setInt(1, 3);
+					pstmt.setString(2, "1111");
+					pstmt.setInt(3, 3000);
+					pstmt.setDate(4, new java.sql.Date(100, 2, 1));
+					pstmt.addBatch();
 
-						pstmt.executeBatch();
-						conn.commit();
+					pstmt.executeBatch();
 
-					}
+					conn.commit();
 				}
 			}
 		}
