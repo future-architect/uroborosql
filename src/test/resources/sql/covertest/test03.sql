@@ -10,6 +10,8 @@ WHERE
 /*IF SF.isNotEmpty(id) */
     /*IF id < 100 */
 AND T.ID    =   /*id*/0
+    /*ELIF id >= 100 */
+AND 1       =   1
     /*ELSE*/
 AND T.ID    =   100
     /*END*/
