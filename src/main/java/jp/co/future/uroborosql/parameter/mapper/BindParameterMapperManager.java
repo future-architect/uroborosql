@@ -2,11 +2,10 @@ package jp.co.future.uroborosql.parameter.mapper;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * パラメータ変換クラス<br>
@@ -27,9 +26,13 @@ public final class BindParameterMapperManager {
 	};
 
 	/** Serviceに登録されたMapper */
-	private static final List<BindParameterMapper<?>> LOADED_MAPPERS = StreamSupport.stream(
-			ServiceLoader.load(BindParameterMapper.class).spliterator(), false)
-			.collect(Collectors.toList());
+	private static final List<BindParameterMapper<?>> LOADED_MAPPERS = load();
+
+	private static List<BindParameterMapper<?>> load() {
+		List<BindParameterMapper<?>> list = new ArrayList<>();
+		ServiceLoader.load(BindParameterMapper.class).forEach(list::add);
+		return list;
+	}
 
 	/**
 	 * コンストラクタ

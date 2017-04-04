@@ -766,7 +766,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String,java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
 		 */
 		@Override
 		public SqlQuery param(final String paramName, final Object value, final SQLType sqlType) {

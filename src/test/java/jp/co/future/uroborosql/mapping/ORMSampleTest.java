@@ -20,7 +20,12 @@ import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.annotations.Domain;
+import jp.co.future.uroborosql.mapping.annotations.Table;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -180,6 +185,78 @@ public class ORMSampleTest {
 
 				TestEntity data = agent.getFromKey(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
+			});
+		}
+	}
+
+	// Doaminを定義
+	@Domain(valueType = String.class, toJdbcMethod = "getName")
+	public static class NameDomain {
+		private final String name;
+
+		public NameDomain(final String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	@Table(name = "TEST")
+	public static class DomainTestEntity {
+		private long id;
+		// 定義したDoaminを利用
+		private NameDomain name;
+
+		public DomainTestEntity() {
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	@Test
+	public void testDomain() throws Exception {
+		// Domainを定義したクラスを扱う
+		try (SqlAgent agent = config.createAgent()) {
+			agent.required(() -> {
+				// INSERT
+				DomainTestEntity test = new DomainTestEntity();
+				test.id = 1;
+				test.name = new NameDomain("name1");
+				agent.insert(test);
+
+				// SELECT
+				DomainTestEntity data = agent.getFromKey(DomainTestEntity.class, 1).orElse(null);
+				assertThat(data, is(test));
 			});
 		}
 	}

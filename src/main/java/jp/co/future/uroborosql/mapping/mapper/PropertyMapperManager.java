@@ -3,12 +3,11 @@ package jp.co.future.uroborosql.mapping.mapper;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
@@ -29,9 +28,13 @@ public final class PropertyMapperManager {
 	};
 
 	/** Serviceに登録されたMapper */
-	private static final List<PropertyMapper<?>> LOADED_MAPPERS = StreamSupport.stream(
-			ServiceLoader.load(PropertyMapper.class).spliterator(), false)
-			.collect(Collectors.toList());
+	private static final List<PropertyMapper<?>> LOADED_MAPPERS = load();
+
+	private static List<PropertyMapper<?>> load() {
+		List<PropertyMapper<?>> list = new ArrayList<>();
+		ServiceLoader.load(PropertyMapper.class).forEach(list::add);
+		return list;
+	}
 
 	/** プロパティMapperのリスト */
 	private final List<PropertyMapper<?>> mappers;
