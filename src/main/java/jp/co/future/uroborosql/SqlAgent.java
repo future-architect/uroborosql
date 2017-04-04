@@ -2,8 +2,10 @@ package jp.co.future.uroborosql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -20,13 +22,12 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * SQL実行クラスインタフェース
  *
  * @author H.Sugimoto
- *
  */
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
-	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。
-	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを
+	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。<br>
+	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを<br>
 	 * 利用してカバレッジの収集を行う。
 	 */
 	final String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
@@ -41,7 +42,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	ResultSet query(SqlContext sqlContext) throws SQLException;
 
 	/**
-	 * クエリ実行処理。
+	 * クエリ実行処理。<br>
 	 * 結果をStreamとして返却する。
 	 *
 	 * @param <T> Streamの型
@@ -53,7 +54,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	<T> Stream<T> query(SqlContext sqlContext, ResultSetConverter<T> converter) throws SQLException;
 
 	/**
-	 * クエリ実行処理。
+	 * クエリ実行処理。<br>
 	 * 結果を{@literal List<Map<String, Object>>}に変換して返却する。
 	 *
 	 * @param sqlContext SqlContext
@@ -94,7 +95,6 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * クローズ処理
 	 *
 	 * @see java.lang.AutoCloseable#close()
-	 *
 	 * @throws SQLException SQL例外
 	 */
 	@Override
@@ -143,8 +143,8 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	void setRemoveTerminator(boolean removeTerminator);
 
 	/**
-	 * トランザクションのコミット用API
-	 *
+	 * トランザクションのコミット用API<br>
+	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
 	 *
 	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
@@ -154,8 +154,8 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	void commit() throws SQLException;
 
 	/**
-	 * トランザクションのロールバック用API
-	 *
+	 * トランザクションのロールバック用API<br>
+	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
 	 *
 	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
@@ -248,5 +248,60 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return Procedure
 	 */
 	Procedure procWith(String sql);
+
+	/**
+	 * キーを指定したエンティティの1件取得を実行
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param keys キー
+	 * @param <E> エンティティ型
+	 * @return SQL実行結果
+	 */
+	<E> Optional<E> getFromKey(Class<? extends E> entityType, Object... keys);
+
+	/**
+	 * クエリを実行して エンティティ {@link Stream}を取得する
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param params パラメータ
+	 * @param <E> エンティティ型
+	 * @return SQL実行結果
+	 */
+	<E> Stream<E> query(Class<? extends E> entityType, Map<String, ?> params);
+
+	/**
+	 * クエリを実行して エンティティ {@link Stream}を取得する
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param <E> エンティティ型
+	 * @return SQL実行結果
+	 */
+	default <E> Stream<E> query(final Class<? extends E> entityType) {
+		return query(entityType, Collections.emptyMap());
+	}
+
+	/**
+	 * エンティティのINSERTを実行
+	 *
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	int insert(Object entity);
+
+	/**
+	 * エンティティのUPDATEを実行
+	 *
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	int update(Object entity);
+
+	/**
+	 * エンティティのDELETEを実行
+	 *
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	int delete(Object entity);
 
 }

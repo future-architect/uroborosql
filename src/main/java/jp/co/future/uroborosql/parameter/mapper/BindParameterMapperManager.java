@@ -3,7 +3,10 @@ package jp.co.future.uroborosql.parameter.mapper;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * パラメータ変換クラス<br>
@@ -19,17 +22,25 @@ public final class BindParameterMapperManager {
 	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = { new DateParameterMapper(),
 			new DateTimeApiParameterMapper(), new BigIntegerParameterMapper(), new EnumParameterMapper(),
 			new OptionalParameterMapper(), new OptionalIntParameterMapper(), new OptionalLongParameterMapper(),
-			new OptionalDoubleParameterMapper(), };
+			new OptionalDoubleParameterMapper(),
+			new DomainParameterMapper(),
+	};
+
+	/** Serviceに登録されたMapper */
+	private static final List<BindParameterMapper<?>> LOADED_MAPPERS = StreamSupport.stream(
+			ServiceLoader.load(BindParameterMapper.class).spliterator(), false)
+			.collect(Collectors.toList());
 
 	/**
 	 * コンストラクタ
 	 */
 	public BindParameterMapperManager() {
-		mappers = new CopyOnWriteArrayList<>();
+		mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
 	}
 
 	/**
 	 * コピーコンストラクタ
+	 *
 	 * @param parameterMapperManager コピー元のパラメータ変換クラス
 	 */
 	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
@@ -68,7 +79,7 @@ public final class BindParameterMapperManager {
 		}
 		for (@SuppressWarnings("rawtypes")
 		BindParameterMapper parameterMapper : mappers) {
-			if (parameterMapper.targetType().isInstance(object)) {
+			if (parameterMapper.canAccept(object)) {
 				return parameterMapper.toJdbc(object, connection, this);
 			}
 		}
@@ -90,7 +101,7 @@ public final class BindParameterMapperManager {
 
 		for (@SuppressWarnings("rawtypes")
 		BindParameterMapper parameterMapper : DEFAULT_MAPPERS) {
-			if (parameterMapper.targetType().isInstance(object)) {
+			if (parameterMapper.canAccept(object)) {
 				return parameterMapper.toJdbc(object, connection, this);
 			}
 		}
@@ -108,7 +119,7 @@ public final class BindParameterMapperManager {
 			return false;
 		}
 		for (BindParameterMapper<?> parameterMapper : mappers) {
-			if (parameterMapper.targetType().isInstance(object)) {
+			if (parameterMapper.canAccept(object)) {
 				return true;
 			}
 		}

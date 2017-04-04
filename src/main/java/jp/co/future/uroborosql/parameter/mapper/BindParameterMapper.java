@@ -18,6 +18,16 @@ public interface BindParameterMapper<T> {
 	Class<T> targetType();
 
 	/**
+	 * 変換可能な値であるかを検証
+	 *
+	 * @param object 変換対象の値
+	 * @return 変換可能な値
+	 */
+	default boolean canAccept(final Object object) {
+		return targetType().isInstance(object);
+	}
+
+	/**
 	 * JDBCが受け入れ可能な型に変換します
 	 *
 	 * @param original 変換対象データ

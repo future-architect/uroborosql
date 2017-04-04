@@ -29,6 +29,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
@@ -65,7 +67,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
-	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<CoverageHandler>();
+	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -78,6 +80,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** SqlFilter管理クラス */
 	private final SqlFilterManager sqlFilterManager;
+
+	/** ORM処理クラス */
+	private final EntityHandler<?> entityHandler;
 
 	/** 終端文字（;）を削除するかどうか。デフォルト値は<code>true</code> */
 	private boolean removeTerminator = true;
@@ -135,9 +140,24 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
+		this(connectionSupplier, sqlManager, sqlFilterManager, null, defaultProps);
+	}
+
+	/**
+	 * コンストラクタ。
+	 *
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param entityHandler ORM処理クラス
+	 * @param defaultProps デフォルト値プロパティ
+	 */
+	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler, final Map<String, String> defaultProps) {
 		transactionManager = new LocalTransactionManager(connectionSupplier, sqlFilterManager);
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;
+		this.entityHandler = entityHandler != null ? entityHandler : new DefaultEntityHandler();
 
 		// デフォルトプロパティ設定
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR)) {
@@ -200,6 +220,15 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public SqlFilterManager getSqlFilterManager() {
 		return sqlFilterManager;
+	}
+
+	/**
+	 * ORM処理クラス を取得します。
+	 *
+	 * @return ORM処理クラス
+	 */
+	protected EntityHandler<?> getEntityHandler() {
+		return entityHandler;
 	}
 
 	/**
@@ -713,7 +742,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
 		 */
 		@Override
 		public SqlQuery paramMap(final Map<String, Object> paramMap) {
@@ -737,7 +766,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String,java.lang.Object, java.sql.SQLType)
 		 */
 		@Override
 		public SqlQuery param(final String paramName, final Object value, final SQLType sqlType) {
@@ -987,7 +1016,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
 		 */
 		@Override
 		public SqlUpdate paramMap(final Map<String, Object> paramMap) {
@@ -1226,7 +1255,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map<String, Object>)
+		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
 		 */
 		@Override
 		public Procedure paramMap(final Map<String, Object> paramMap) {

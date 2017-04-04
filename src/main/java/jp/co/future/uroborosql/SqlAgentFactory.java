@@ -2,6 +2,7 @@ package jp.co.future.uroborosql;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 
 /**
@@ -14,43 +15,43 @@ public interface SqlAgentFactory {
 	final String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
 	/**
-	 * プロパティ：終端文字を削除するかどうか.
+	 * プロパティ：終端文字を削除するかどうか.<br>
 	 * デフォルトは<code>true</code>
 	 */
 	final String PROPS_KEY_REMOVE_TERMINATOR = "removeTerminator";
 
 	/**
-	 * プロパティ：SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード
+	 * プロパティ：SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
 
 	/**
-	 * プロパティ：SQL実行エラー時の最大リトライ回数デフォルト値
+	 * プロパティ：SQL実行エラー時の最大リトライ回数デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
 	final String PROPS_KEY_DEFAULT_MAX_RETRY_COUNT = "defaultMaxRetryCount";
 
 	/**
-	 * プロパティ：SQL実行リトライ時の待機時間(ms)デフォルト値
+	 * プロパティ：SQL実行リトライ時の待機時間(ms)デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
 	final String PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME = "defaultSqlRetryWaitTime";
 
 	/**
-	 * プロパティ：フェッチサイズ（数値）
+	 * プロパティ：フェッチサイズ（数値）<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_FETCH_SIZE = "fetchSize";
 
 	/**
-	 * プロパティ：クエリータイムアウト（ms）（数値）
+	 * プロパティ：クエリータイムアウト（ms）（数値）<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_QUERY_TIMEOUT = "queryTimeout";
 
 	/**
-	 * プロパティ：SQL_IDを置換するためのKEY文字列
+	 * プロパティ：SQL_IDを置換するためのKEY文字列<br>
 	 * デフォルトは "_SQL_ID_"
 	 */
 	final String PROPS_KEY_SQL_ID_KEY_NAME = "sqlIdKeyName";
@@ -82,4 +83,11 @@ public interface SqlAgentFactory {
 	 * @return コネクション供給クラス
 	 */
 	ConnectionSupplier getConnectionSupplier();
+
+	/**
+	 * ORM処理クラスを取得します。
+	 *
+	 * @return ORM処理クラス
+	 */
+	EntityHandler<?> getEntityHandler();
 }
