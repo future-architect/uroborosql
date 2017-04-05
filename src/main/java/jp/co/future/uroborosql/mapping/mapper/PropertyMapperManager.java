@@ -20,10 +20,11 @@ import jp.co.future.uroborosql.mapping.JavaType;
 public final class PropertyMapperManager {
 	/** デフォルトMapper */
 	private static final PropertyMapper<?>[] DEFAULT_MAPPERS = {
-			new DateTimeApiPropertyMapper(), new BigIntegerPropertyMapper(), new EnumPropertyMapper(),
+			new DateTimeApiPropertyMapper(), new BigIntegerPropertyMapper(),
 			new OptionalPropertyMapper(), new OptionalIntPropertyMapper(), new OptionalLongPropertyMapper(),
 			new OptionalDoublePropertyMapper(),
 			new DomainPropertyMapper(),
+			new EnumPropertyMapper(),// DomainPropertyMapper・DateTimeApiPropertyMapperより後に設定
 			// new ArrayPropertyMapper(), デフォルトでは利用しない
 	};
 

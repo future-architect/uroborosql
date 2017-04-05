@@ -19,10 +19,11 @@ public final class BindParameterMapperManager {
 
 	/** デフォルトMapper */
 	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = { new DateParameterMapper(),
-			new DateTimeApiParameterMapper(), new BigIntegerParameterMapper(), new EnumParameterMapper(),
+			new DateTimeApiParameterMapper(), new BigIntegerParameterMapper(),
 			new OptionalParameterMapper(), new OptionalIntParameterMapper(), new OptionalLongParameterMapper(),
 			new OptionalDoubleParameterMapper(),
 			new DomainParameterMapper(),
+			new EnumParameterMapper(),// DomainParameterMapper・DateTimeApiParameterMapperより後に設定
 	};
 
 	/** Serviceに登録されたMapper */

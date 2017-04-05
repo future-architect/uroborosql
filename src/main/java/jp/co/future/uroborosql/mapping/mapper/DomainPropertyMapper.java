@@ -1,6 +1,8 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -34,12 +36,29 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 				return null;
 			}
 		}
+		return toDomain(rawType, domain, value);
+
+	}
+
+	private Object toDomain(final Class<?> type, final Domain domain, final Object value) {
 		try {
-			if (StringUtils.isBlank(domain.factoryMethod())) {
-				return rawType.getConstructor(domain.valueType()).newInstance(value);
-			} else {
-				return rawType.getMethod(domain.factoryMethod(), domain.valueType()).invoke(null, value);
+			String methodName = domain.factoryMethod();
+			if (StringUtils.isBlank(methodName)) {
+				// default
+				if (!type.isEnum()) {
+					return type.getConstructor(domain.valueType()).newInstance(value);
+				} else {
+					// Enumの場合valueOfメソッドをcallする
+					methodName = "valueOf";
+				}
 			}
+			Method method = type.getMethod(methodName, domain.valueType());
+			if (!Modifier.isStatic(method.getModifiers())) {
+				throw new IllegalStateException("not static method. [" + type.getSimpleName() + "#" + methodName + "]");
+			} else if (!type.isAssignableFrom(method.getReturnType())) {
+				throw new IllegalStateException("unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
+			}
+			return method.invoke(null, value);
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException
 				| SecurityException e) {
 			throw new UroborosqlRuntimeException(e);

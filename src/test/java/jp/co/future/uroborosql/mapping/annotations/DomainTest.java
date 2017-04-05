@@ -6,6 +6,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Objects;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
@@ -214,6 +215,160 @@ public class DomainTest {
 				assertThat(data, is(test2));
 				data = agent.getFromKey(DomainTestEntity2.class, 3).orElse(null);
 				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Domain(valueType = String.class, factoryMethod = "of", toJdbcMethod = "getValue", nullable = true)
+	public static class NameDomain3 {
+		private final String name;
+
+		NameDomain3(final String name) {
+			this.name = name;
+		}
+
+		public static NameDomain3Impl of(final String name) {
+			return new NameDomain3Impl(name);
+		}
+
+		public static String getValue(final NameDomain3 nameDomain3) {
+			return nameDomain3.name;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(this.name);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (obj instanceof NameDomain3) {
+				return Objects.equals(this.name, ((NameDomain3) obj).name);
+			}
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	public static class NameDomain3Impl extends NameDomain3 {
+		NameDomain3Impl(final String name) {
+			super(name);
+		}
+	}
+
+	@Table(name = "TEST")
+	public static class DomainTestEntity3 {
+		private long id;
+		private NameDomain3 name;
+
+		public DomainTestEntity3() {
+		}
+
+		public DomainTestEntity3(final long id, final String name) {
+			this.id = id;
+			this.name = new NameDomain3(name) {
+				// 継承しても大丈夫
+			};
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	@Test
+	public void test3() throws Exception {
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.required(() -> {
+				DomainTestEntity3 test1 = new DomainTestEntity3(1, "name1");
+				agent.insert(test1);
+				DomainTestEntity3 test2 = new DomainTestEntity3(2, "name2");
+				agent.insert(test2);
+				DomainTestEntity3 test3 = new DomainTestEntity3(3, null);
+				agent.insert(test3);
+				DomainTestEntity3 data = agent.getFromKey(DomainTestEntity3.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.getFromKey(DomainTestEntity3.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.getFromKey(DomainTestEntity3.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Domain(valueType = String.class, toJdbcMethod = "name")
+	public static enum NameDomain4 {
+		NAME1, NAME2, NAME3,;
+	}
+
+	@Table(name = "TEST")
+	public static class DomainTestEntity4 {
+		private long id;
+		private NameDomain4 name;
+
+		public DomainTestEntity4() {
+		}
+
+		public DomainTestEntity4(final long id, final NameDomain4 name) {
+			this.id = id;
+			this.name = name;
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	@Test
+	public void test4() throws Exception {
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.required(() -> {
+				DomainTestEntity4 test1 = new DomainTestEntity4(1, NameDomain4.NAME1);
+				agent.insert(test1);
+				DomainTestEntity4 test2 = new DomainTestEntity4(2, NameDomain4.NAME2);
+				agent.insert(test2);
+				DomainTestEntity4 test3 = new DomainTestEntity4(3, null);
+				agent.insert(test3);
+				DomainTestEntity4 data = agent.getFromKey(DomainTestEntity4.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.getFromKey(DomainTestEntity4.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.getFromKey(DomainTestEntity4.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+				DomainTestEntity plainData = agent.getFromKey(DomainTestEntity.class, 1).orElse(null);
+				assertThat(plainData.name.getName(), is("NAME1"));
+				System.out.println(plainData.name.getName());
 
 			});
 		}
