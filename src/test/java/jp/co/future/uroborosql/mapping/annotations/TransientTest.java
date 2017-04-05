@@ -100,7 +100,7 @@ public class TransientTest {
 			agent.required(() -> {
 				TransientAnnoTestEntity test1 = new TransientAnnoTestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TransientAnnoTestEntity data = agent.getFromKey(TransientAnnoTestEntity.class, 1).orElse(null);
+				TransientAnnoTestEntity data = agent.find(TransientAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data.name, is(nullValue()));
 				assertThat(data.birthday, is(nullValue()));
 

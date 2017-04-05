@@ -124,11 +124,11 @@ public class DomainTest {
 				agent.insert(test2);
 				DomainTestEntity test3 = new DomainTestEntity(3, null);
 				agent.insert(test3);
-				DomainTestEntity data = agent.getFromKey(DomainTestEntity.class, 1).orElse(null);
+				DomainTestEntity data = agent.find(DomainTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(DomainTestEntity.class, 2).orElse(null);
+				data = agent.find(DomainTestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(DomainTestEntity.class, 3).orElse(null);
+				data = agent.find(DomainTestEntity.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});
@@ -209,11 +209,11 @@ public class DomainTest {
 				agent.insert(test2);
 				DomainTestEntity2 test3 = new DomainTestEntity2(3, null);
 				agent.insert(test3);
-				DomainTestEntity2 data = agent.getFromKey(DomainTestEntity2.class, 1).orElse(null);
+				DomainTestEntity2 data = agent.find(DomainTestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(DomainTestEntity2.class, 2).orElse(null);
+				data = agent.find(DomainTestEntity2.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(DomainTestEntity2.class, 3).orElse(null);
+				data = agent.find(DomainTestEntity2.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});
@@ -303,11 +303,11 @@ public class DomainTest {
 				agent.insert(test2);
 				DomainTestEntity3 test3 = new DomainTestEntity3(3, null);
 				agent.insert(test3);
-				DomainTestEntity3 data = agent.getFromKey(DomainTestEntity3.class, 1).orElse(null);
+				DomainTestEntity3 data = agent.find(DomainTestEntity3.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(DomainTestEntity3.class, 2).orElse(null);
+				data = agent.find(DomainTestEntity3.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(DomainTestEntity3.class, 3).orElse(null);
+				data = agent.find(DomainTestEntity3.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});
@@ -359,14 +359,14 @@ public class DomainTest {
 				agent.insert(test2);
 				DomainTestEntity4 test3 = new DomainTestEntity4(3, null);
 				agent.insert(test3);
-				DomainTestEntity4 data = agent.getFromKey(DomainTestEntity4.class, 1).orElse(null);
+				DomainTestEntity4 data = agent.find(DomainTestEntity4.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(DomainTestEntity4.class, 2).orElse(null);
+				data = agent.find(DomainTestEntity4.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(DomainTestEntity4.class, 3).orElse(null);
+				data = agent.find(DomainTestEntity4.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
-				DomainTestEntity plainData = agent.getFromKey(DomainTestEntity.class, 1).orElse(null);
+				DomainTestEntity plainData = agent.find(DomainTestEntity.class, 1).orElse(null);
 				assertThat(plainData.name.getName(), is("NAME1"));
 				System.out.println(plainData.name.getName());
 

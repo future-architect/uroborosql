@@ -105,11 +105,11 @@ public class ColumnTest {
 				agent.insert(test2);
 				ColumnAnnoTestEntity test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
-				ColumnAnnoTestEntity data = agent.getFromKey(ColumnAnnoTestEntity.class, 1).orElse(null);
+				ColumnAnnoTestEntity data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(ColumnAnnoTestEntity.class, 2).orElse(null);
+				data = agent.find(ColumnAnnoTestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(ColumnAnnoTestEntity.class, 3).orElse(null);
+				data = agent.find(ColumnAnnoTestEntity.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});

@@ -592,7 +592,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <E> Optional<E> getFromKey(final Class<? extends E> entityType, final Object... keys) {
+	public <E> Optional<E> find(final Class<? extends E> entityType, final Object... keys) {
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isAssignableFrom(entityType)) {

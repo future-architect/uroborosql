@@ -71,7 +71,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testGetFromKey() throws Exception {
+	public void testFind() throws Exception {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -88,7 +88,7 @@ public class ORMSampleTest {
 			});
 
 			// KEYを指定して取得
-			TestEntity data = agent.getFromKey(TestEntity.class, /* KEY */2).orElse(null);
+			TestEntity data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
 			assertThat(data.getName(), is("name2"));
 
 		}
@@ -137,7 +137,7 @@ public class ORMSampleTest {
 				test.setMemo(Optional.of("memo text"));
 				agent.insert(test);
 
-				TestEntity data = agent.getFromKey(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
@@ -160,7 +160,7 @@ public class ORMSampleTest {
 				test.setName("update!!");
 				agent.update(test);
 
-				TestEntity data = agent.getFromKey(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("update!!"));
 			});
@@ -183,7 +183,7 @@ public class ORMSampleTest {
 				// DELETE
 				agent.delete(test);
 
-				TestEntity data = agent.getFromKey(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
 		}
@@ -255,7 +255,7 @@ public class ORMSampleTest {
 				agent.insert(test);
 
 				// SELECT
-				DomainTestEntity data = agent.getFromKey(DomainTestEntity.class, 1).orElse(null);
+				DomainTestEntity data = agent.find(DomainTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 			});
 		}

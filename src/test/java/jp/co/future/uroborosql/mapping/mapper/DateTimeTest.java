@@ -204,8 +204,8 @@ public class DateTimeTest {
 			agent.required(() -> {
 				ZonedTestEntity test1 = new ZonedTestEntity(1);
 				agent.insert(test1);
-				ZonedTestEntity zoned = agent.getFromKey(ZonedTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.getFromKey(LocalTestEntity.class, 1).orElse(null);
+				ZonedTestEntity zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(zoned.datetimeValue, is(test1.datetimeValue));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
@@ -219,8 +219,8 @@ public class DateTimeTest {
 			agent.required(() -> {
 				OffsetTestEntity test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
-				OffsetTestEntity offset = agent.getFromKey(OffsetTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.getFromKey(LocalTestEntity.class, 1).orElse(null);
+				OffsetTestEntity offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(offset.datetimeValue, is(test1.datetimeValue));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
@@ -235,8 +235,8 @@ public class DateTimeTest {
 			agent.required(() -> {
 				DateTestEntity test1 = new DateTestEntity(1);
 				agent.insert(test1);
-				DateTestEntity date = agent.getFromKey(DateTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.getFromKey(LocalTestEntity.class, 1).orElse(null);
+				DateTestEntity date = agent.find(DateTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(date.datetimeValue.getTime(), is(test1.datetimeValue.getTime()));
 				assertThat(date.dateValue.getTime(), is(DateUtils.truncate(test1.dateValue, Calendar.DAY_OF_MONTH).getTime()));
 				System.out.println(date.timeValue);

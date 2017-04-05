@@ -128,7 +128,7 @@ public class PropertyMapperTest {
 			agent.required(() -> {
 				PropertyMapperTestEntity test1 = new PropertyMapperTestEntity(1);
 				agent.insert(test1);
-				PropertyMapperTestEntity data = agent.getFromKey(PropertyMapperTestEntity.class, 1).orElse(null);
+				PropertyMapperTestEntity data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}
@@ -148,7 +148,7 @@ public class PropertyMapperTest {
 				test1.enumValue = null;
 				test1.bigIntValue = null;
 				agent.insert(test1);
-				PropertyMapperTestEntity data = agent.getFromKey(PropertyMapperTestEntity.class, 1).orElse(null);
+				PropertyMapperTestEntity data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}

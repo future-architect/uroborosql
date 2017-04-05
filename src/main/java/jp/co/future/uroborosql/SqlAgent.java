@@ -257,7 +257,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param <E> エンティティ型
 	 * @return SQL実行結果
 	 */
-	<E> Optional<E> getFromKey(Class<? extends E> entityType, Object... keys);
+	<E> Optional<E> find(Class<? extends E> entityType, Object... keys);
 
 	/**
 	 * クエリを実行して エンティティ {@link Stream}を取得する

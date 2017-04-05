@@ -84,11 +84,11 @@ public class DefaultEntityHandlerTest {
 				agent.insert(test2);
 				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional.of("memo3"));
 				agent.insert(test3);
-				TestEntity data = agent.getFromKey(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(TestEntity.class, 2).orElse(null);
+				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(TestEntity.class, 3).orElse(null);
+				data = agent.find(TestEntity.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});
@@ -106,11 +106,11 @@ public class DefaultEntityHandlerTest {
 				agent.insert(test2);
 				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
-				TestEntity2 data = agent.getFromKey(TestEntity2.class, 1).orElse(null);
+				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
-				data = agent.getFromKey(TestEntity2.class, 2).orElse(null);
+				data = agent.find(TestEntity2.class, 2).orElse(null);
 				assertThat(data, is(test2));
-				data = agent.getFromKey(TestEntity2.class, 3).orElse(null);
+				data = agent.find(TestEntity2.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
 			});
@@ -155,7 +155,7 @@ public class DefaultEntityHandlerTest {
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity2 data = agent.getFromKey(TestEntity2.class, 1).orElse(null);
+				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -172,7 +172,7 @@ public class DefaultEntityHandlerTest {
 
 				agent.delete(test);
 
-				TestEntity2 data = agent.getFromKey(TestEntity2.class, 1).orElse(null);
+				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
 		}
