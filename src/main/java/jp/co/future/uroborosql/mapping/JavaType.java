@@ -147,9 +147,8 @@ public abstract class JavaType {
 		private final JavaType component;
 
 		ArrayJavaType(final ImplementClass implementClass, final GenericArrayType arrayType) {
-			JavaType component = create(implementClass, arrayType.getGenericComponentType());
-			this.rawType = java.lang.reflect.Array.newInstance(component.getRawType(), 0).getClass();
-			this.component = component;
+			this.component = create(implementClass, arrayType.getGenericComponentType());
+			this.rawType = java.lang.reflect.Array.newInstance(this.component.getRawType(), 0).getClass();
 		}
 
 		@Override

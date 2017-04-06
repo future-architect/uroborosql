@@ -45,7 +45,7 @@ public final class MappingUtils {
 		private final String name;
 		private final String camelName;
 
-		public MappingColumnImpl(final Field field, final JavaType javaType) {
+		MappingColumnImpl(final Field field, final JavaType javaType) {
 			this.field = field;
 			this.javaType = javaType;
 			Column column = field.getAnnotation(Column.class);
