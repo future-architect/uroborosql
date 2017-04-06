@@ -2,9 +2,7 @@ package jp.co.future.uroborosql.mapping;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Deque;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -124,20 +122,18 @@ public final class MappingUtils {
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
 		Map<String, MappingColumn> fieldsMap = new LinkedHashMap<>();
-		Deque<Class<?>> subclasses = new LinkedList<>();
-		walkFields(entityType, subclasses, fieldsMap);
+		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+		walkFields(entityType, implementClass, fieldsMap);
 
 		return fieldsMap.values().toArray(new MappingColumn[fieldsMap.size()]);
 	}
 
-	private static void walkFields(final Class<?> type, final Deque<Class<?>> subclasses, final Map<String, MappingColumn> fieldsMap) {
+	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass, final Map<String, MappingColumn> fieldsMap) {
 		if (type.equals(Object.class)) {
 			return;
 		}
 		Class<?> superclass = type.getSuperclass();
-		subclasses.push(type);
-		walkFields(superclass, subclasses, fieldsMap);
-		subclasses.pop();
+		walkFields(superclass, implementClass, fieldsMap);
 
 		for (Field field : type.getDeclaredFields()) {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
@@ -146,7 +142,7 @@ public final class MappingUtils {
 			if (field.getAnnotation(Transient.class) != null) {
 				continue;// 除外
 			}
-			JavaType javaType = JavaType.create(subclasses, type, field.getGenericType());
+			JavaType javaType = JavaType.of(implementClass, field);
 			MappingColumn mappingColumn = new MappingColumnImpl(field, javaType);
 
 			fieldsMap.put(field.getName(), mappingColumn);

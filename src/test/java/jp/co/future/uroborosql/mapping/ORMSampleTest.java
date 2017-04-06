@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -65,16 +66,9 @@ public class ORMSampleTest {
 	@Before
 	public void setUpBefore() throws Exception {
 		try (SqlAgent agent = config.createAgent()) {
-			agent.updateWith("delete from test").count();
-			agent.commit();
-		}
-	}
-
-	@Test
-	public void testFind() throws Exception {
-
-		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
+				agent.updateWith("delete from test").count();
+
 				// 準備
 				for (int i = 0; i < 24; i++) {
 					TestEntity test = new TestEntity();
@@ -86,6 +80,66 @@ public class ORMSampleTest {
 					agent.insert(test);
 				}
 			});
+			agent.commit();
+		}
+	}
+
+	public static class TestEntity {
+		private long id;
+		private String name;
+		private int age;
+		private LocalDate birthday;
+		private Optional<String> memo;
+
+		public TestEntity() {
+		}
+
+		public String getName() {
+			return name;
+		}
+		/* 他のgetterは省略 */
+
+		public void setId(final long id) {
+			this.id = id;
+		}
+
+		public void setName(final String name) {
+			this.name = name;
+		}
+
+		public void setAge(final int age) {
+			this.age = age;
+		}
+
+		public void setBirthday(final LocalDate birthday) {
+			this.birthday = birthday;
+		}
+
+		public void setMemo(final Optional<String> memo) {
+			this.memo = memo;
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+
+	}
+
+	@Test
+	public void testFind() throws Exception {
+
+		try (SqlAgent agent = config.createAgent()) {
 
 			// KEYを指定して取得
 			TestEntity data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
@@ -98,18 +152,6 @@ public class ORMSampleTest {
 	public void testQuery() throws Exception {
 
 		try (SqlAgent agent = config.createAgent()) {
-			agent.required(() -> {
-				// 準備
-				for (int i = 0; i < 24; i++) {
-					TestEntity test = new TestEntity();
-					test.setId(i + 1);
-					test.setName("name" + (i + 1));
-					test.setAge(20 + i);
-					test.setBirthday(LocalDate.of(1990, Month.of(i % 12 + 1), 1));
-					test.setMemo(Optional.of("memo text"));
-					agent.insert(test);
-				}
-			});
 
 			// 条件なし
 			List<TestEntity> list = agent.query(TestEntity.class).collect(Collectors.toList());
@@ -130,14 +172,15 @@ public class ORMSampleTest {
 			agent.required(() -> {
 				// INSERT
 				TestEntity test = new TestEntity();
-				test.setId(1);
-				test.setName("name1");
+				test.setId(100);
+				test.setName("name100");
 				test.setAge(20);
 				test.setBirthday(LocalDate.of(1990, Month.APRIL, 1));
 				test.setMemo(Optional.of("memo text"));
 				agent.insert(test);
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				// check
+				TestEntity data = agent.find(TestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
@@ -148,18 +191,13 @@ public class ORMSampleTest {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity();
-				test.setId(1);
-				test.setName("name1");
-				test.setAge(20);
-				test.setBirthday(LocalDate.of(1990, Month.APRIL, 1));
-				test.setMemo(Optional.of("memo text"));
-				agent.insert(test);
+				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
 
 				// UPDATE
 				test.setName("update!!");
 				agent.update(test);
 
+				// check
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("update!!"));
@@ -172,17 +210,13 @@ public class ORMSampleTest {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity();
-				test.setId(1);
-				test.setName("name1");
-				test.setAge(20);
-				test.setBirthday(LocalDate.of(1990, Month.APRIL, 1));
-				test.setMemo(Optional.of("memo text"));
-				agent.insert(test);
+				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
+				assertThat(test, is(not(nullValue())));
 
 				// DELETE
 				agent.delete(test);
 
+				// check
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
@@ -250,12 +284,12 @@ public class ORMSampleTest {
 			agent.required(() -> {
 				// INSERT
 				DomainTestEntity test = new DomainTestEntity();
-				test.id = 1;
+				test.id = 100;
 				test.name = new NameDomain("name1");
 				agent.insert(test);
 
 				// SELECT
-				DomainTestEntity data = agent.find(DomainTestEntity.class, 1).orElse(null);
+				DomainTestEntity data = agent.find(DomainTestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
