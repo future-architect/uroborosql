@@ -22,7 +22,9 @@ import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.chrono.JapaneseDate;
 import java.time.chrono.JapaneseEra;
-import java.time.temporal.ChronoUnit;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
@@ -40,9 +42,9 @@ public class DateTimeApiPropertyMapperTest {
 		java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(localDateTime);
 		LocalDate localDate = localDateTime.toLocalDate();
 		java.sql.Date date = java.sql.Date.valueOf(localDate);
-		LocalTime localTime = localDateTime.toLocalTime().truncatedTo(ChronoUnit.SECONDS);
-		java.sql.Time time = java.sql.Time.valueOf(localTime);
-		OffsetTime offsetTime = offsetDateTime.toOffsetTime().truncatedTo(ChronoUnit.SECONDS);
+		LocalTime localTime = localDateTime.toLocalTime();
+		java.sql.Time time = new java.sql.Time(toTime(localTime));
+		OffsetTime offsetTime = offsetDateTime.toOffsetTime();
 
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class), newResultSet("getTimestamp", timestamp), 1), is(localDateTime));
 		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class), newResultSet("getTimestamp", timestamp), 1), is(offsetDateTime));
@@ -93,5 +95,23 @@ public class DateTimeApiPropertyMapperTest {
 		assertThat(mapper.getValue(JavaType.of(JapaneseEra.class), newResultSet("getInt", 0, "wasNull", true), 1), is(nullValue()));
 		assertThat(mapper.getValue(JavaType.of(JapaneseDate.class), newResultSet("getDate", null), 1), is(nullValue()));
 
+	}
+
+	private long toTime(final TemporalAccessor temporalAccessor) {
+		Calendar calendar = Calendar.getInstance();
+		setField(calendar, Calendar.YEAR, temporalAccessor, ChronoField.YEAR, 0, 1970);
+		setField(calendar, Calendar.MONTH, temporalAccessor, ChronoField.MONTH_OF_YEAR, -1, 0);
+		setField(calendar, Calendar.DATE, temporalAccessor, ChronoField.DAY_OF_MONTH, 0, 1);
+		setField(calendar, Calendar.HOUR_OF_DAY, temporalAccessor, ChronoField.HOUR_OF_DAY, 0, 0);
+		setField(calendar, Calendar.MINUTE, temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0, 0);
+		setField(calendar, Calendar.SECOND, temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0, 0);
+		setField(calendar, Calendar.MILLISECOND, temporalAccessor, ChronoField.MILLI_OF_SECOND, 0, 0);
+		return calendar.getTimeInMillis();
+	}
+
+	private void setField(final Calendar calendar, final int field, final TemporalAccessor temporalAccessor,
+			final ChronoField chronoField, final int offset, final int def) {
+		calendar.set(field, temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) + offset
+				: def);
 	}
 }

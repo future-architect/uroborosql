@@ -16,10 +16,12 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
 import java.util.Optional;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -105,13 +107,12 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		}
 		if (LocalTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTime(columnIndex))
-					.map(java.sql.Time::toLocalTime)
+					.map(DateTimeApiPropertyMapper::sqlTimeToLocalTime)
 					.orElse(null);
 		}
 		if (OffsetTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTime(columnIndex))
-					.map(java.sql.Time::toLocalTime)
-					.map(t -> OffsetTime.of(t, OffsetDateTime.now().getOffset()))
+					.map(DateTimeApiPropertyMapper::sqlTimeToOffsetTime)
 					.orElse(null);
 		}
 
@@ -169,4 +170,17 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		throw new UroborosqlRuntimeException();
 	}
 
+	private static OffsetTime sqlTimeToOffsetTime(final java.sql.Time time) {
+		long milliseconds = time.getTime();
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliseconds);
+		return OffsetDateTime.ofInstant(calendar.toInstant(), ZoneId.systemDefault()).toOffsetTime();
+	}
+
+	private static LocalTime sqlTimeToLocalTime(final java.sql.Time time) {
+		long milliseconds = time.getTime();
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliseconds);
+		return LocalDateTime.ofInstant(calendar.toInstant(), ZoneId.systemDefault()).toLocalTime();
+	}
 }
