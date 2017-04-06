@@ -8,6 +8,7 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 
@@ -68,7 +69,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 		this.connectionSupplier = connectionSupplier;
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;
-		this.entityHandler = entityHandler;
+		this.entityHandler = entityHandler != null ? entityHandler : new DefaultEntityHandler();
 		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.TRUE.toString());
 		getDefaultProps().put(PROPS_KEY_REMOVE_TERMINATOR, Boolean.TRUE.toString());
 	}

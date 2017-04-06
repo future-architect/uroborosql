@@ -4,10 +4,14 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.converter.EntityResultSetConverter;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 
 /**
  * デフォルトORM処理クラス
@@ -17,6 +21,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
+	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
 
 	@Override
 	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType,
@@ -25,6 +30,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		setInitParams(context, metadata);
 		setParams(context, params);
 		return context;
+	}
+
+	@Override
+	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType) throws SQLException {
+		return agent.query(context, new EntityResultSetConverter<>(entityType, new PropertyMapperManager(propertyMapperManager)));
 	}
 
 	@Override
@@ -64,6 +74,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			CONTEXTS.put(entityType, context);
 		}
 		return context;
+	}
+
+	@Override
+	public void addPropertyMapper(final PropertyMapper<?> propertyMapper) {
+		propertyMapperManager.addMapper(propertyMapper);
+	}
+
+	@Override
+	public void removePropertyMapper(final PropertyMapper<?> propertyMapper) {
+		propertyMapperManager.removeMapper(propertyMapper);
 	}
 
 	/**

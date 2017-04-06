@@ -19,7 +19,10 @@ public interface PropertyMapper<T> {
 	 * @param type 変換対象の型
 	 * @return 変換可能な型
 	 */
-	boolean canAccept(Class<?> type);
+	default boolean canAccept(final Class<?> type) {
+		Class<?> target = JavaType.of(new JavaType.ImplementClass(this.getClass()), PropertyMapper.class.getTypeParameters()[0]).getRawType();
+		return target.equals(type);
+	}
 
 	/**
 	 * 処理前に変換可能な型であるかを検証

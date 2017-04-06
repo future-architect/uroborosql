@@ -8,6 +8,7 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 
 /**
@@ -127,4 +128,18 @@ public interface EntityHandler<ENTITY> {
 	default int doDelete(final SqlAgent agent, final SqlContext context, final ENTITY entity) throws SQLException {
 		return agent.update(context);
 	}
+
+	/**
+	 * プロパティ変換クラス{@link PropertyMapper}を追加
+	 *
+	 * @param propertyMapper {@link PropertyMapper}
+	 */
+	void addPropertyMapper(PropertyMapper<?> propertyMapper);
+
+	/**
+	 * プロパティ変換クラス{@link PropertyMapper}をremove
+	 *
+	 * @param propertyMapper {@link PropertyMapper}
+	 */
+	void removePropertyMapper(PropertyMapper<?> propertyMapper);
 }
