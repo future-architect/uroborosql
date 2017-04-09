@@ -12,6 +12,15 @@ pre, code, span.cline {
     line-height: 1.2em;
 }
 
+a, a:visited {
+    color: #1e88e5;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
 h1 {
     font-size: 1.8em;
     word-break: break-all;
@@ -70,6 +79,7 @@ table.coverage-summary th {
     padding: 10px;
     cursor: pointer;
 }
+
 th.sorting-asc::after {
     content: "";
     width: 0;
@@ -303,5 +313,10 @@ Intellij Idea-like styling (c) Vasily Polovnyov <vast@whiteants.net>
 
 .hljs-param {
     color: mediumblue;
+    font-weight: bold;
+}
+
+.hljs-comment-statement {
+    color: green;
     font-weight: bold;
 }
