@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.sql.SQLType;
 import java.util.Map;
 
+import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
@@ -16,6 +17,14 @@ import jp.co.future.uroborosql.parameter.Parameter;
  * @author H.Sugimoto
  */
 public interface SqlFluent<T> {
+
+	/**
+	 * SqlContextの取得<br>
+	 *
+	 * @return SqlContext
+	 */
+	SqlContext context();
+
 	/**
 	 * パラメータの追加<br>
 	 *
@@ -164,4 +173,23 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T characterStreamParam(String paramName, Reader value, int len);
+
+	/**
+	 * リトライ回数を設定する。
+	 * リトライ待機時間は0msが設定される
+	 *
+	 * @param count リトライ回数
+	 * @return T
+	 */
+	T retry(int count);
+
+	/**
+	 * リトライ回数を設定する
+	 *
+	 * @param count リトライ回数
+	 * @apram waitTime リトライ待機時間（ms）
+	 *
+	 * @return T
+	 */
+	T retry(int count, int waitTime);
 }
