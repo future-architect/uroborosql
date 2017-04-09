@@ -132,7 +132,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 */
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
+			final ResultSet resultSet) throws SQLException {
 		if (getFilters().isEmpty()) {
 			return resultSet;
 		}
@@ -149,7 +149,8 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
+	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result)
+			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
@@ -166,7 +167,8 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
+	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result)
+			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
@@ -184,7 +186,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 */
 	@Override
 	public boolean doProcedure(final SqlContext sqlContext, final CallableStatement callableStatement,
-			final boolean result) {
+			final boolean result) throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}

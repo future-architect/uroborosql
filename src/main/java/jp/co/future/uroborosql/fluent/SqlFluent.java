@@ -187,7 +187,7 @@ public interface SqlFluent<T> {
 	 * リトライ回数を設定する
 	 *
 	 * @param count リトライ回数
-	 * @apram waitTime リトライ待機時間（ms）
+	 * @param waitTime リトライ待機時間（ms）
 	 *
 	 * @return T
 	 */
