@@ -1,15 +1,12 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
-import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 
 /**
  * ORM処理インタフェース
@@ -36,15 +33,14 @@ public interface EntityHandler<ENTITY> {
 	TableMetadata getMetadata(ConnectionManager connectionManager, Class<? extends ENTITY> entityType) throws SQLException;
 
 	/**
-	 * パラメータからSELECT SQLコンテキストを生成します。
+	 * エンティティタイプからSELECT SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
-	 * @param params パラメータ
 	 * @return INSERT SQLコンテキスト
 	 */
-	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, Map<String, ?> params);
+	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
 	 * EntityからINSERT SQLコンテキストを生成します。
@@ -56,19 +52,25 @@ public interface EntityHandler<ENTITY> {
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	default <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType) throws SQLException {
-		return agent.query(context, new EntityResultSetConverter<>(entityType, new PropertyMapperManager()));
-	}
+	<E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType) throws SQLException;
 
 	/**
-	 * EntityからINSERT SQLコンテキストを生成します。
+	 * エンティティタイプからINSERT SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
-	 * @param entity エンティティ
+	 * @param entityType エンティティタイプ
 	 * @return INSERT SQLコンテキスト
 	 */
-	SqlContext createInsertContext(SqlAgent agent, TableMetadata metadata, ENTITY entity);
+	SqlContext createInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 *
+	 * @param context SQLコンテキスト
+	 * @param entity エンティティ
+	 */
+	void setInsertParams(final SqlContext context, final ENTITY entity);
 
 	/**
 	 * INSERTを実行します。
@@ -84,14 +86,22 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * EntityからUPDATE SQLコンテキストを生成します。
+	 * エンティティタイプからUPDATE SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
-	 * @param entity エンティティ
+	 * @param entityType エンティティタイプ
 	 * @return UPDATE SQLコンテキスト
 	 */
-	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, ENTITY entity);
+	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 *
+	 * @param context SQLコンテキスト
+	 * @param entity エンティティ
+	 */
+	void setUpdateParams(final SqlContext context, final ENTITY entity);
 
 	/**
 	 * UPDATEを実行します。
@@ -107,14 +117,22 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * EntityからDELETE SQLコンテキストを生成します。
+	 * エンティティタイプからDELETE SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
-	 * @param entity エンティティ
+	 * @param entityType エンティティタイプ
 	 * @return DELETE SQLコンテキスト
 	 */
-	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, ENTITY entity);
+	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 *
+	 * @param context SQLコンテキスト
+	 * @param entity エンティティ
+	 */
+	void setDeleteParams(final SqlContext context, final ENTITY entity);
 
 	/**
 	 * DELETEを実行します。

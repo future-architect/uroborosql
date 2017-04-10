@@ -357,7 +357,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */
 	@Override
-	public SqlContext paramMap(final Map<String, Object> paramMap) {
+	public SqlContext paramMap(final Map<String, ?> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
 		}
@@ -386,6 +386,7 @@ public class SqlContextImpl implements SqlContext {
 
 	/**
 	 * パラメータ名のリストを取得する
+	 * 
 	 * @return パラメータ名のリスト
 	 */
 	public List<String> getParameterNames() {
@@ -781,8 +782,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * SqlFilter管理クラスを設定します。
 	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 *            SqlFilter管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス SqlFilter管理クラス
 	 */
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
 		this.sqlFilterManager = sqlFilterManager;

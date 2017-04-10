@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +12,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.fluent.Procedure;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.tx.TransactionManager;
@@ -260,25 +260,13 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	<E> Optional<E> find(Class<? extends E> entityType, Object... keys);
 
 	/**
-	 * クエリを実行して エンティティ {@link Stream}を取得する
-	 *
-	 * @param entityType エンティティタイプ
-	 * @param params パラメータ
-	 * @param <E> エンティティ型
-	 * @return SQL実行結果
-	 */
-	<E> Stream<E> query(Class<? extends E> entityType, Map<String, ?> params);
-
-	/**
-	 * クエリを実行して エンティティ {@link Stream}を取得する
+	 * エンティティを指定して Query処理の実行
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param <E> エンティティ型
-	 * @return SQL実行結果
+	 * @return SqlEntityQuery
 	 */
-	default <E> Stream<E> query(final Class<? extends E> entityType) {
-		return query(entityType, Collections.emptyMap());
-	}
+	<E> SqlEntityQuery<E> query(Class<? extends E> entityType);
 
 	/**
 	 * エンティティのINSERTを実行
@@ -303,5 +291,4 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SQL実行結果
 	 */
 	int delete(Object entity);
-
 }

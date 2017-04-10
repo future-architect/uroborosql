@@ -24,12 +24,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
 
 	@Override
-	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType,
-			final Map<String, ?> params) {
-		SqlContext context = agent.contextWith(buildSelectSQL(metadata, entityType));
-		setInitParams(context, metadata);
-		setParams(context, params);
-		return context;
+	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType) {
+		return agent.contextWith(buildSelectSQL(metadata, entityType));
 	}
 
 	@Override
@@ -38,27 +34,33 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	}
 
 	@Override
-	public SqlContext createInsertContext(final SqlAgent agent, final TableMetadata metadata, final Object entity) {
-		SqlContext context = agent.contextWith(buildInsertSQL(metadata, entity.getClass()));
-		setInitParams(context, metadata);
-		setFields(context, entity);
-		return context;
+	public SqlContext createInsertContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType) {
+		return agent.contextWith(buildInsertSQL(metadata, entityType));
 	}
 
 	@Override
-	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata, final Object entity) {
-		SqlContext context = agent.contextWith(buildUpdateSQL(metadata, entity.getClass()));
-		setInitParams(context, metadata);
-		setFields(context, entity);
-		return context;
+	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType) {
+		return agent.contextWith(buildUpdateSQL(metadata, entityType));
 	}
 
 	@Override
-	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata, final Object entity) {
-		SqlContext context = agent.contextWith(buildDeleteSQL(metadata, entity.getClass()));
-		setInitParams(context, metadata);
+	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata, final Class<? extends Object> entityType) {
+		return agent.contextWith(buildDeleteSQL(metadata, entityType));
+	}
+
+	@Override
+	public void setInsertParams(final SqlContext context, final Object entity) {
 		setFields(context, entity);
-		return context;
+	}
+
+	@Override
+	public void setUpdateParams(final SqlContext context, final Object entity) {
+		setFields(context, entity);
+	}
+
+	@Override
+	public void setDeleteParams(final SqlContext context, final Object entity) {
+		setFields(context, entity);
 	}
 
 	@Override
@@ -138,7 +140,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		for (TableMetadata.Column col : columns) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF hasParam_").append(camelColName).append("*/\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF getParam(\"").append(camelColName).append("\") != null */\n");// フィールドがセットされていない場合はカラム自体を削る
 			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
 			sql.append("/*END*/\n");
 		}
@@ -179,7 +181,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF hasParam_").append(camelColName).append("*/\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF getParam(\"").append(camelColName).append("\") != null */\n");// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				sql.append(", ");
 			}
@@ -192,7 +194,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF hasParam_").append(camelColName).append("*/\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF getParam(\"").append(camelColName).append("\") != null */\n");// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				sql.append(", ");
 			}
@@ -225,7 +227,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF hasParam_").append(camelColName).append("*/\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF getParam(\"").append(camelColName).append("\") != null */\n");// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				sql.append(", ");
 			}
@@ -255,25 +257,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql.toString();
 	}
 
-	private void setInitParams(final SqlContext context, final TableMetadata metadata) {
-		for (TableMetadata.Column column : metadata.getColumns()) {
-			context.param("hasParam_" + column.getCamelColumnName(), false);
-		}
-	}
-
 	private void setFields(final SqlContext context, final Object entity) {
 		Class<?> type = entity.getClass();
 		for (MappingColumn column : MappingUtils.getMappingColumns(type)) {
 			Object value = column.getValue(entity);
 			context.param(column.getCamelName(), value);
-			context.param("hasParam_" + column.getCamelName(), true);
 		}
-	}
-
-	private void setParams(final SqlContext context, final Map<String, ?> params) {
-		params.forEach((key, value) -> {
-			context.param(key, value);
-			context.param("hasParam_" + key, true);
-		});
 	}
 }

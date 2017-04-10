@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -24,13 +25,18 @@ import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
+import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
+import jp.co.future.uroborosql.exception.EntitySqlRuntimeException.EntityProcKind;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery;
+import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
@@ -566,6 +572,26 @@ public abstract class AbstractAgent implements SqlAgent {
 		return new ProcedureImpl(this, context);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> SqlEntityQuery<E> query(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+
+			return new SqlEntityQueryImpl<>(this, handler, context, entityType);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
+		}
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -708,23 +734,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		return stmt;
 	}
 
-	/**
-	 * SqlQuery実装
-	 *
-	 * @author H.Sugimoto
-	 */
-	private final class SqlQueryImpl implements SqlQuery {
-		private final SqlAgent agent;
-		private final SqlContext context;
+	private static abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
+		protected final SqlContext context;
 
-		/**
-		 * コンストラクタ
-		 *
-		 * @param agent SqlAgent
-		 * @param context SqlContext
-		 */
-		private SqlQueryImpl(final SqlAgent agent, final SqlContext context) {
-			this.agent = agent;
+		protected AbstractSqlFluent(final SqlContext context) {
 			this.context = context;
 		}
 
@@ -733,10 +746,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery paramList(final String paramName, final Object... value) {
+		public T paramList(final String paramName, final Object... value) {
 			context.paramList(paramName, value);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -744,12 +758,13 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery paramMap(final Map<String, Object> paramMap) {
+		public T paramMap(final Map<String, ?> paramMap) {
 			if (paramMap != null) {
 				paramMap.forEach((k, v) -> param(k, v));
 			}
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -757,10 +772,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery param(final String paramName, final Object value, final int sqlType) {
+		public T param(final String paramName, final Object value, final int sqlType) {
 			context.param(paramName, value, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -768,10 +784,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery param(final String paramName, final Object value, final SQLType sqlType) {
+		public T param(final String paramName, final Object value, final SQLType sqlType) {
 			context.param(paramName, value, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -779,10 +796,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery param(final String paramName, final Object value) {
+		public T param(final String paramName, final Object value) {
 			context.param(paramName, value);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -790,10 +808,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery param(final Parameter param) {
+		public T param(final Parameter param) {
 			context.param(param);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -801,10 +820,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery outParam(final String paramName, final int sqlType) {
+		public T outParam(final String paramName, final int sqlType) {
 			context.outParam(paramName, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -812,10 +832,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery outParam(final String paramName, final SQLType sqlType) {
+		public T outParam(final String paramName, final SQLType sqlType) {
 			context.outParam(paramName, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -823,10 +844,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery inOutParam(final String paramName, final Object value, final int sqlType) {
+		public T inOutParam(final String paramName, final Object value, final int sqlType) {
 			context.inOutParam(paramName, value, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -835,10 +857,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
 		 *      java.sql.SQLType)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery inOutParam(final String paramName, final Object value, final SQLType sqlType) {
+		public T inOutParam(final String paramName, final Object value, final SQLType sqlType) {
 			context.inOutParam(paramName, value, sqlType);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -846,10 +869,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery characterStreamParam(final String paramName, final Reader value, final int len) {
+		public T characterStreamParam(final String paramName, final Reader value, final int len) {
 			context.characterStreamParam(paramName, value, len);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -857,10 +881,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery characterStreamParam(final String paramName, final Reader value) {
+		public T characterStreamParam(final String paramName, final Reader value) {
 			context.characterStreamParam(paramName, value);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -868,10 +893,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery binaryStreamParam(final String paramName, final InputStream value, final int len) {
+		public T binaryStreamParam(final String paramName, final InputStream value, final int len) {
 			context.binaryStreamParam(paramName, value, len);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -879,10 +905,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery binaryStreamParam(final String paramName, final InputStream value) {
+		public T binaryStreamParam(final String paramName, final InputStream value) {
 			context.binaryStreamParam(paramName, value);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -890,10 +917,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery asciiStreamParam(final String paramName, final InputStream value, final int len) {
+		public T asciiStreamParam(final String paramName, final InputStream value, final int len) {
 			context.asciiStreamParam(paramName, value, len);
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -901,10 +929,31 @@ public abstract class AbstractAgent implements SqlAgent {
 		 *
 		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public SqlQuery asciiStreamParam(final String paramName, final InputStream value) {
+		public T asciiStreamParam(final String paramName, final InputStream value) {
 			context.asciiStreamParam(paramName, value);
-			return this;
+			return (T) this;
+		}
+	}
+
+	/**
+	 * SqlQuery実装
+	 *
+	 * @author H.Sugimoto
+	 */
+	private static final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery {
+		private final SqlAgent agent;
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param agent SqlAgent
+		 * @param context SqlContext
+		 */
+		private SqlQueryImpl(final SqlAgent agent, final SqlContext context) {
+			super(context);
+			this.agent = agent;
 		}
 
 		/**
@@ -981,13 +1030,75 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
+	 * SqlEntityQuery実装
+	 *
+	 * @author ota
+	 */
+	private static final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
+		private final SqlAgent agent;
+		private final EntityHandler<?> entityHandler;
+		private final Class<? extends E> entityType;
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param agent SqlAgent
+		 * @param entityHandler EntityHandler
+		 * @param context SqlContext
+		 * @param entityType エンティティタイプ
+		 */
+		private SqlEntityQueryImpl(final SqlAgent agent, final EntityHandler<?> entityHandler, final SqlContext context,
+				final Class<? extends E> entityType) {
+			super(context);
+			this.agent = agent;
+			this.entityHandler = entityHandler;
+			this.entityType = entityType;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#collect()
+		 */
+		@Override
+		public List<E> collect() {
+			return stream().collect(Collectors.toList());
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#first()
+		 */
+		@Override
+		public Optional<E> first() {
+			return stream().findFirst();
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#stream()
+		 */
+		@Override
+		public Stream<E> stream() {
+			try {
+				return this.entityHandler.doSelect(agent, context, entityType);
+			} catch (SQLException e) {
+				throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+			}
+
+		}
+
+	}
+
+	/**
 	 * SqlUpdate実装
 	 *
 	 * @author H.Sugimoto
 	 */
-	private final class SqlUpdateImpl implements SqlUpdate {
+	private static final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpdate {
 		private final SqlAgent agent;
-		private final SqlContext context;
 		/** バッチ処理を行うかどうか */
 		boolean batch = false;
 
@@ -998,187 +1109,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @param context SqlContext
 		 */
 		private SqlUpdateImpl(final SqlAgent agent, final SqlContext context) {
+			super(context);
 			this.agent = agent;
-			this.context = context;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
-		 */
-		@Override
-		public SqlUpdate paramList(final String paramName, final Object... value) {
-			context.paramList(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
-		 */
-		@Override
-		public SqlUpdate paramMap(final Map<String, Object> paramMap) {
-			if (paramMap != null) {
-				paramMap.forEach((k, v) -> param(k, v));
-			}
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
-		 */
-		@Override
-		public SqlUpdate param(final String paramName, final Object value, final int sqlType) {
-			context.param(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
-		 */
-		@Override
-		public SqlUpdate param(final String paramName, final Object value, final SQLType sqlType) {
-			context.param(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
-		 */
-		@Override
-		public SqlUpdate param(final String paramName, final Object value) {
-			context.param(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
-		 */
-		@Override
-		public SqlUpdate param(final Parameter param) {
-			context.param(param);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
-		 */
-		@Override
-		public SqlUpdate outParam(final String paramName, final int sqlType) {
-			context.outParam(paramName, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
-		 */
-		@Override
-		public SqlUpdate outParam(final String paramName, final SQLType sqlType) {
-			context.outParam(paramName, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
-		 */
-		@Override
-		public SqlUpdate inOutParam(final String paramName, final Object value, final int sqlType) {
-			context.inOutParam(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
-		 *      java.sql.SQLType)
-		 */
-		@Override
-		public SqlUpdate inOutParam(final String paramName, final Object value, final SQLType sqlType) {
-			context.inOutParam(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
-		 */
-		@Override
-		public SqlUpdate characterStreamParam(final String paramName, final Reader value, final int len) {
-			context.characterStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
-		 */
-		@Override
-		public SqlUpdate characterStreamParam(final String paramName, final Reader value) {
-			context.characterStreamParam(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
-		 */
-		@Override
-		public SqlUpdate binaryStreamParam(final String paramName, final InputStream value, final int len) {
-			context.binaryStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
-		 */
-		@Override
-		public SqlUpdate binaryStreamParam(final String paramName, final InputStream value) {
-			context.binaryStreamParam(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
-		 */
-		@Override
-		public SqlUpdate asciiStreamParam(final String paramName, final InputStream value, final int len) {
-			context.asciiStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
-		 */
-		@Override
-		public SqlUpdate asciiStreamParam(final String paramName, final InputStream value) {
-			context.asciiStreamParam(paramName, value);
-			return this;
 		}
 
 		/**
@@ -1226,9 +1158,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private final class ProcedureImpl implements Procedure {
+	private static final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Procedure {
 		private final SqlAgent agent;
-		private final SqlContext context;
 
 		/**
 		 * コンストラクタ
@@ -1237,187 +1168,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		 * @param context SqlContext
 		 */
 		private ProcedureImpl(final SqlAgent agent, final SqlContext context) {
+			super(context);
 			this.agent = agent;
-			this.context = context;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
-		 */
-		@Override
-		public Procedure paramList(final String paramName, final Object... value) {
-			context.paramList(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(Map)
-		 */
-		@Override
-		public Procedure paramMap(final Map<String, Object> paramMap) {
-			if (paramMap != null) {
-				paramMap.forEach((k, v) -> param(k, v));
-			}
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
-		 */
-		@Override
-		public Procedure param(final String paramName, final Object value, final int sqlType) {
-			context.param(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
-		 */
-		@Override
-		public Procedure param(final String paramName, final Object value, final SQLType sqlType) {
-			context.param(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
-		 */
-		@Override
-		public Procedure param(final String paramName, final Object value) {
-			context.param(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
-		 */
-		@Override
-		public Procedure param(final Parameter param) {
-			context.param(param);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
-		 */
-		@Override
-		public Procedure outParam(final String paramName, final int sqlType) {
-			context.outParam(paramName, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
-		 */
-		@Override
-		public Procedure outParam(final String paramName, final SQLType sqlType) {
-			context.outParam(paramName, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
-		 */
-		@Override
-		public Procedure inOutParam(final String paramName, final Object value, final int sqlType) {
-			context.inOutParam(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object,
-		 *      java.sql.SQLType)
-		 */
-		@Override
-		public Procedure inOutParam(final String paramName, final Object value, final SQLType sqlType) {
-			context.inOutParam(paramName, value, sqlType);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
-		 */
-		@Override
-		public Procedure characterStreamParam(final String paramName, final Reader value, final int len) {
-			context.characterStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
-		 */
-		@Override
-		public Procedure characterStreamParam(final String paramName, final Reader value) {
-			context.characterStreamParam(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
-		 */
-		@Override
-		public Procedure binaryStreamParam(final String paramName, final InputStream value, final int len) {
-			context.binaryStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
-		 */
-		@Override
-		public Procedure binaryStreamParam(final String paramName, final InputStream value) {
-			context.binaryStreamParam(paramName, value);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
-		 */
-		@Override
-		public Procedure asciiStreamParam(final String paramName, final InputStream value, final int len) {
-			context.asciiStreamParam(paramName, value, len);
-			return this;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
-		 */
-		@Override
-		public Procedure asciiStreamParam(final String paramName, final InputStream value) {
-			context.asciiStreamParam(paramName, value);
-			return this;
 		}
 
 		/**

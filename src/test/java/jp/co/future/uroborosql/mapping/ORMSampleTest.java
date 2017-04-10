@@ -10,11 +10,8 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
@@ -154,13 +151,13 @@ public class ORMSampleTest {
 		try (SqlAgent agent = config.createAgent()) {
 
 			// 条件なし
-			List<TestEntity> list = agent.query(TestEntity.class).collect(Collectors.toList());
+			List<TestEntity> list = agent.query(TestEntity.class).collect();
 			assertThat(list.size(), is(24));
 
 			// 条件あり
-			Map<String, LocalDate> params = new HashMap<>();
-			params.put("birthday", LocalDate.of(1990, Month.MAY, 1));
-			list = agent.query(TestEntity.class, params).collect(Collectors.toList());
+			list = agent.query(TestEntity.class)
+					.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+					.collect();
 			assertThat(list.size(), is(2));
 		}
 	}

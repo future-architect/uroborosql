@@ -617,29 +617,10 @@ public class SqlAgentImpl extends AbstractAgent {
 				params.put(keyNames[i], keys[i]);
 			}
 
-			SqlContext context = handler.createSelectContext(this, metadata, entityType, params);
+			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+			context.paramMap(params);
 
 			return handler.doSelect(this, context, entityType).findFirst();
-		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <E> Stream<E> query(final Class<? extends E> entityType, final Map<String, ?> params) {
-		@SuppressWarnings("rawtypes")
-		EntityHandler handler = this.getEntityHandler();
-		if (!handler.getEntityType().isAssignableFrom(entityType)) {
-			throw new IllegalArgumentException("Entity type not supported");
-		}
-
-		try {
-			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
-
-			SqlContext context = handler.createSelectContext(this, metadata, entityType, params);
-
-			return handler.doSelect(this, context, entityType);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
 		}
@@ -660,10 +641,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		try {
-			TableMetadata metadata = handler.getMetadata(this.transactionManager, entity.getClass());
-
-			SqlContext context = handler.createInsertContext(this, metadata, entity);
-
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createInsertContext(this, metadata, type);
+			handler.setInsertParams(context, entity);
 			return handler.doInsert(this, context, entity);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
@@ -685,10 +666,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		try {
-			TableMetadata metadata = handler.getMetadata(this.transactionManager, entity.getClass());
-
-			SqlContext context = handler.createUpdateContext(this, metadata, entity);
-
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createUpdateContext(this, metadata, type);
+			handler.setUpdateParams(context, entity);
 			return handler.doUpdate(this, context, entity);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.UPDATE, e);
@@ -710,13 +691,14 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		try {
-			TableMetadata metadata = handler.getMetadata(this.transactionManager, entity.getClass());
-
-			SqlContext context = handler.createDeleteContext(this, metadata, entity);
-
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createDeleteContext(this, metadata, type);
+			handler.setDeleteParams(context, entity);
 			return handler.doDelete(this, context, entity);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
 		}
 	}
+
 }

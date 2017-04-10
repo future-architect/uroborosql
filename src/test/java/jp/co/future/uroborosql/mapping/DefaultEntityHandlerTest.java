@@ -9,11 +9,8 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
@@ -129,15 +126,14 @@ public class DefaultEntityHandlerTest {
 				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
-				List<TestEntity2> list = agent.query(TestEntity2.class).collect(Collectors.toList());
+				List<TestEntity2> list = agent.query(TestEntity2.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
-				Map<String, LocalDate> params = new HashMap<>();
-				params.put("birthday", LocalDate.of(1990, Month.MAY, 1));
-
-				list = agent.query(TestEntity2.class, params).collect(Collectors.toList());
+				list = agent.query(TestEntity2.class)
+						.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+						.collect();
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
 			});
@@ -190,7 +186,7 @@ public class DefaultEntityHandlerTest {
 				TestDataNoKeyEntity test3 = new TestDataNoKeyEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional.of("memo3"));
 				agent.insert(test3);
 
-				List<TestDataNoKeyEntity> list = agent.query(TestDataNoKeyEntity.class).collect(Collectors.toList());
+				List<TestDataNoKeyEntity> list = agent.query(TestDataNoKeyEntity.class).collect();
 				assertThat(list.size(), is(3));
 			});
 		}
@@ -208,7 +204,7 @@ public class DefaultEntityHandlerTest {
 				TestDataMultiKeyEntity test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
 				agent.insert(test3);
 
-				List<TestDataMultiKeyEntity> list = agent.query(TestDataMultiKeyEntity.class).collect(Collectors.toList());
+				List<TestDataMultiKeyEntity> list = agent.query(TestDataMultiKeyEntity.class).collect();
 				assertThat(list.size(), is(3));
 			});
 		}

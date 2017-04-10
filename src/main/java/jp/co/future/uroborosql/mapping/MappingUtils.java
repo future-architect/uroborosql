@@ -95,6 +95,13 @@ public final class MappingUtils {
 		}
 	}
 
+	private static final Map<Class<?>, MappingColumn[]> CHACHE = new LinkedHashMap<Class<?>, MappingColumn[]>() {
+		@Override
+		protected boolean removeEldestEntry(final Map.Entry<Class<?>, MappingColumn[]> eldest) {
+			return size() > 10;
+		}
+	};
+
 	/**
 	 * エンティティ型からテーブル情報の取得
 	 *
@@ -121,11 +128,23 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
+		MappingColumn[] cols;
+		synchronized (CHACHE) {
+			cols = CHACHE.get(entityType);
+		}
+		if (cols != null) {
+			return cols;
+		}
+
 		Map<String, MappingColumn> fieldsMap = new LinkedHashMap<>();
 		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
 		walkFields(entityType, implementClass, fieldsMap);
 
-		return fieldsMap.values().toArray(new MappingColumn[fieldsMap.size()]);
+		cols = fieldsMap.values().toArray(new MappingColumn[fieldsMap.size()]);
+		synchronized (CHACHE) {
+			CHACHE.put(entityType, cols);
+		}
+		return cols;
 	}
 
 	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass, final Map<String, MappingColumn> fieldsMap) {
