@@ -126,14 +126,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					ResultSet rs = getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery());
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return rs;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
+								LOG.debug(String.format(
+										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -149,6 +149,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					} else {
 						throw ex;
 					}
+				} finally {
+					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return null;
@@ -287,14 +289,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					int result = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return result;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
+								LOG.debug(String.format(
+										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -310,6 +312,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					} else {
 						throw ex;
 					}
+				} finally {
+					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return 0;
@@ -384,14 +388,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					int[] result = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
 					return result;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
+								LOG.debug(String.format(
+										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -407,6 +411,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					} else {
 						throw ex;
 					}
+				} finally {
+					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return null;
@@ -490,7 +496,8 @@ public class SqlAgentImpl extends AbstractAgent {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format("Caught the error code to be retried.(%d times). Retry after %,3d ms.",
+								LOG.debug(String.format(
+										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
 										loopCount + 1, retryWaitTime));
 							}
 							if (retryWaitTime > 0) {
@@ -506,6 +513,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					} else {
 						throw ex;
 					}
+				} finally {
+					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 		} catch (SQLException ex) {
@@ -556,8 +565,10 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		if (LOG.isErrorEnabled() && isOutputExceptionLog()) {
 			StringBuilder builder = new StringBuilder();
-			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.").append(System.lineSeparator());
-			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]").append(System.lineSeparator());
+			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
+					.append(System.lineSeparator());
+			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]")
+					.append(System.lineSeparator());
 			if (sqlContext instanceof SqlContextImpl) {
 				Parameter[] bindParameters = ((SqlContextImpl) sqlContext).getBindParameters();
 				for (int i = 0; i < bindParameters.length; i++) {

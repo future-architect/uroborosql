@@ -163,88 +163,89 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。
 	 *
-	 * @return 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#isOutputExceptionLog()
 	 */
+	@Override
 	public boolean isOutputExceptionLog() {
 		return Boolean.parseBoolean(getDefaultProps().get(PROPS_KEY_OUTPUT_EXCEPTION_LOG));
 	}
 
 	/**
-	 * 例外発生時のログ出力を行うかどうかを設定します。
+	 * {@inheritDoc}
 	 *
-	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setOutputExceptionLog(boolean)
 	 */
+	@Override
 	public void setOutputExceptionLog(final boolean outputExceptionLog) {
 		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.toString(outputExceptionLog));
 	}
 
 	/**
-	 * 終端文字（;）を削除するかどうか を取得します
+	 * {@inheritDoc}
 	 *
-	 * @return 終端文字（;）を削除するかどうか。終端文字（;）を削除する場合<code>true</code>
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#isRemoveTerminator()
 	 */
+	@Override
 	public boolean isRemoveTerminator() {
 		return Boolean.parseBoolean(getDefaultProps().get(PROPS_KEY_REMOVE_TERMINATOR));
 	}
 
 	/**
-	 * 終端文字（;）を削除するかどうか を設定します
+	 * {@inheritDoc}
 	 *
-	 * @param removeTerminator 終端文字（;）を削除するかどうか
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setRemoveTerminator(boolean)
 	 */
+	@Override
 	public void setRemoveTerminator(final boolean removeTerminator) {
 		getDefaultProps().put(PROPS_KEY_REMOVE_TERMINATOR, Boolean.toString(removeTerminator));
 	}
 
 	/**
-	 * フェッチサイズを取得します
+	 * {@inheritDoc}
 	 *
-	 * @return フェッチサイズ
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getFetchSize()
 	 */
+	@Override
 	public int getFetchSize() {
-		if (getDefaultProps().containsKey(PROPS_KEY_FETCH_SIZE)) {
-			return Integer.parseInt(getDefaultProps().get(PROPS_KEY_FETCH_SIZE));
-		} else {
-			return -1;
-		}
+		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_FETCH_SIZE, "-1"));
 	}
 
 	/**
-	 * フェッチサイズを設定する
+	 * {@inheritDoc}
 	 *
-	 * @param fetchSize フェッチサイズ
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setFetchSize(int)
 	 */
+	@Override
 	public void setFetchSize(final int fetchSize) {
 		getDefaultProps().put(PROPS_KEY_FETCH_SIZE, String.valueOf(fetchSize));
 	}
 
 	/**
-	 * フェッチサイズを取得します
+	 * {@inheritDoc}
 	 *
-	 * @return フェッチサイズ
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getQueryTimeout()
 	 */
+	@Override
 	public int getQueryTimeout() {
-		if (getDefaultProps().containsKey(PROPS_KEY_QUERY_TIMEOUT)) {
-			return Integer.parseInt(getDefaultProps().get(PROPS_KEY_QUERY_TIMEOUT));
-		} else {
-			return -1;
-		}
+		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_QUERY_TIMEOUT, "-1"));
 	}
 
 	/**
-	 * クエリタイムアウトを設定する
+	 * {@inheritDoc}
 	 *
-	 * @param queryTimeout クエリタイムアウト
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setQueryTimeout(int)
 	 */
+	@Override
 	public void setQueryTimeout(final int queryTimeout) {
 		getDefaultProps().put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
 	}
 
 	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を取得します
+	 * {@inheritDoc}
 	 *
-	 * @return SQLをリトライ実行するSQLエラーコードのリスト
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlRetryCodeList()
 	 */
+	@Override
 	public List<String> getSqlRetryCodeList() {
 		String codes = getDefaultProps().get(PROPS_KEY_SQL_RETRY_CODES);
 		if (codes == null) {
@@ -255,10 +256,11 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	}
 
 	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を設定します
+	 * {@inheritDoc}
 	 *
-	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlRetryCodeList(java.util.List)
 	 */
+	@Override
 	public void setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
 		if (sqlRetryCodeList != null && !sqlRetryCodeList.isEmpty()) {
 			getDefaultProps().put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
@@ -266,67 +268,61 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	}
 
 	/**
-	 * 最大リトライカウントの初期値を取得します
+	 * {@inheritDoc}
 	 *
-	 * @return 最大リトライカウントの初期値
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultMaxRetryCount()
 	 */
+	@Override
 	public int getDefaultMaxRetryCount() {
-		if (getDefaultProps().containsKey(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
-			return Integer.parseInt(getDefaultProps().get(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
-		} else {
-			return 0;
-		}
+		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, "0"));
 	}
 
 	/**
-	 * 最大リトライカウントの初期値を設定する
+	 * {@inheritDoc}
 	 *
-	 * @param defaultMaxRetryCount 最大リトライカウントの初期値
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMaxRetryCount(int)
 	 */
+	@Override
 	public void setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, String.valueOf(defaultMaxRetryCount));
 	}
 
 	/**
-	 * SQLリトライ時の待機時間（ms）の初期値を取得します
+	 * {@inheritDoc}
 	 *
-	 * @return SQLリトライ時の待機時間（ms）の初期値
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultSqlRetryWaitTime()
 	 */
+	@Override
 	public int getDefaultSqlRetryWaitTime() {
-		if (getDefaultProps().containsKey(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			return Integer.parseInt(getDefaultProps().get(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
-		} else {
-			return 0;
-		}
+		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, "0"));
 	}
 
 	/**
-	 * SQLリトライ時の待機時間（ms）の初期値を設定する
+	 * {@inheritDoc}
 	 *
-	 * @param defaultSqlRetryWaitTime SQLリトライ時の待機時間（ms）の初期値
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultSqlRetryWaitTime(int)
 	 */
+	@Override
 	public void setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, String.valueOf(defaultSqlRetryWaitTime));
 	}
 
 	/**
-	 * SQL_IDを置換するためのKEY文字列を取得します
+	 * {@inheritDoc}
 	 *
-	 * @return SQL_IDを置換するためのKEY文字列
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlIdKeyName()
 	 */
+	@Override
 	public String getSqlIdKeyName() {
-		if (getDefaultProps().containsKey(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			return getDefaultProps().get(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME);
-		} else {
-			return "_SQL_ID_";
-		}
+		return getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, "_SQL_ID_");
 	}
 
 	/**
-	 * SQL_IDを置換するためのKEY文字列を設定する
+	 * {@inheritDoc}
 	 *
-	 * @param sqlIdKeyName SQL_IDを置換するためのKEY文字列
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlIdKeyName(java.lang.String)
 	 */
+	@Override
 	public void setSqlIdKeyName(final String sqlIdKeyName) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, sqlIdKeyName);
 	}
