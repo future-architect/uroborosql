@@ -323,6 +323,16 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#context()
+	 */
+	@Override
+	public SqlContext context() {
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
 	 */
 	@Override
@@ -490,6 +500,26 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext characterStreamParam(final String paramName, final Reader value, final int len) {
 		return param(new ReaderParameter(paramName, value, len));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int)
+	 */
+	@Override
+	public SqlContext retry(final int count) {
+		return retry(count, 0);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int, int)
+	 */
+	@Override
+	public SqlContext retry(final int count, final int waitTime) {
+		return this.setMaxRetryCount(count).setRetryWaitTime(waitTime);
 	}
 
 	/**
