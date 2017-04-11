@@ -116,11 +116,12 @@ public class TableMetadataImpl implements TableMetadata {
 	/**
 	 * コンストラクタ
 	 *
-	 * @param table テーブル情報
+	 * @param schema スキーマ名
+	 * @param tableName テーブル名
 	 */
-	public TableMetadataImpl(final Table table) {
-		this.tableName = table.getName();
-		this.schema = table.getSchema();
+	public TableMetadataImpl(final String schema, final String tableName) {
+		this.tableName = tableName;
+		this.schema = schema;
 	}
 
 	/**

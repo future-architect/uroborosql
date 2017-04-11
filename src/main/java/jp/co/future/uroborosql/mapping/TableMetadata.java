@@ -120,13 +120,11 @@ public interface TableMetadata {
 	 */
 	@SuppressWarnings("resource")
 	static TableMetadata createTableEntityMetadata(final ConnectionManager connectionManager, final Table table) throws SQLException {
-		TableMetadataImpl entityMetadata = new TableMetadataImpl(table);
-
-		String schemaPattern = StringUtils.isEmpty(table.getSchema()) ? "%" : table.getSchema();
 
 		Connection connection = connectionManager.getConnection();
 		DatabaseMetaData metaData = connection.getMetaData();
 
+		String schema = table.getSchema();
 		String tableName = table.getName();
 		// case 変換
 		if (!tableName.startsWith(metaData.getIdentifierQuoteString())) {
@@ -136,6 +134,21 @@ public interface TableMetadata {
 				tableName = tableName.toUpperCase();
 			}
 		}
+		String schemaPattern;// schema検索パターン
+		if (StringUtils.isEmpty(schema)) {
+			schemaPattern = "%";
+		} else {
+			if (!schema.startsWith(metaData.getIdentifierQuoteString())) {
+				if (metaData.storesLowerCaseIdentifiers()) {
+					schema = schema.toLowerCase();
+				} else if (metaData.storesUpperCaseIdentifiers()) {
+					schema = schema.toUpperCase();
+				}
+			}
+			schemaPattern = schema;
+		}
+		TableMetadataImpl entityMetadata = new TableMetadataImpl(schema, tableName);
+
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
 		try (ResultSet rs = metaData.getColumns(null, schemaPattern, tableName, "%")) {
 			while (rs.next()) {
