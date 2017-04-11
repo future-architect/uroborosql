@@ -126,19 +126,34 @@ public interface TableMetadata {
 
 		Connection connection = connectionManager.getConnection();
 		DatabaseMetaData metaData = connection.getMetaData();
+
+		String tableName = table.getName();
+		// case 変換
+		if (!tableName.startsWith(metaData.getIdentifierQuoteString())) {
+			if (metaData.storesLowerCaseIdentifiers()) {
+				tableName = tableName.toLowerCase();
+			} else if (metaData.storesUpperCaseIdentifiers()) {
+				tableName = tableName.toUpperCase();
+			}
+		}
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
-		try (ResultSet rs = metaData.getColumns(null, schemaPattern, table.getName(), "%")) {
+		try (ResultSet rs = metaData.getColumns(null, schemaPattern, tableName, "%")) {
 			while (rs.next()) {
-				TableMetadataImpl.Column column = new TableMetadataImpl.Column(
-						rs.getString("COLUMN_NAME"), rs.getInt("DATA_TYPE"));
+				String columnName = rs.getString(4);
+				int sqlType = rs.getInt(5);
+				// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
+				if (sqlType == java.sql.Types.DISTINCT) {
+					sqlType = rs.getInt("SOURCE_DATA_TYPE");
+				}
+				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType);
 				entityMetadata.addColumn(column);
 				columns.put(column.getColumnName(), column);
 			}
 		}
-		try (ResultSet rs = metaData.getPrimaryKeys(null, schemaPattern, table.getName())) {
+		try (ResultSet rs = metaData.getPrimaryKeys(null, schemaPattern, tableName)) {
 			while (rs.next()) {
-				String columnName = rs.getString("COLUMN_NAME");
-				short keySeq = rs.getShort("KEY_SEQ");
+				String columnName = rs.getString(4);
+				short keySeq = rs.getShort(5);
 				columns.get(columnName).setKeySeq(keySeq);
 			}
 		}
