@@ -80,7 +80,7 @@ public class HtmlReportCoverageHandlerTest {
 		assertThat(Files.readAllLines(path.resolve("covertest/test01.html")).size(), is(97));
 		assertThat(Files.readAllLines(path.resolve("covertest/test01_hash_1.html")).size(), is(99));
 		assertThat(Files.readAllLines(path.resolve("covertest/test02.html")).size(), is(97));
-		assertThat(Files.readAllLines(path.resolve("covertest/test03.html")).size(), is(115));
+		assertThat(Files.readAllLines(path.resolve("covertest/test03.html")).size(), is(121));
 		assertThat(Files.readAllLines(path.resolve("example/select_test.html")).size(), is(76));
 
 		ref.set(before);

@@ -78,8 +78,10 @@ public interface SqlFilter {
 	 * @param resultSet 実行結果
 	 *
 	 * @return 実行結果
+	 * @throws SQLException SQL例外
 	 */
-	ResultSet doQuery(SqlContext sqlContext, PreparedStatement preparedStatement, ResultSet resultSet);
+	ResultSet doQuery(SqlContext sqlContext, PreparedStatement preparedStatement, ResultSet resultSet)
+			throws SQLException;
 
 	/**
 	 * 更新処理に対するフィルター処理を行う
@@ -89,8 +91,9 @@ public interface SqlFilter {
 	 * @param result 実行結果
 	 *
 	 * @return 実行結果
+	 * @throws SQLException SQL例外
 	 */
-	int doUpdate(SqlContext sqlContext, PreparedStatement preparedStatement, int result);
+	int doUpdate(SqlContext sqlContext, PreparedStatement preparedStatement, int result) throws SQLException;
 
 	/**
 	 * バッチ処理に対するフィルター処理を行う
@@ -100,8 +103,9 @@ public interface SqlFilter {
 	 * @param result 実行結果
 	 *
 	 * @return 実行結果
+	 * @throws SQLException SQL例外
 	 */
-	int[] doBatch(SqlContext sqlContext, PreparedStatement preparedStatement, int[] result);
+	int[] doBatch(SqlContext sqlContext, PreparedStatement preparedStatement, int[] result) throws SQLException;
 
 	/**
 	 * CallableProcedure処理に対するフィルター処理を行う
@@ -109,7 +113,9 @@ public interface SqlFilter {
 	 * @param sqlContext SQLコンテキスト
 	 * @param callableStatement 実行するCallableStatement
 	 * @param result 実行結果
+	 *
 	 * @return 実行結果
+	 * @throws SQLException SQL例外
 	 */
-	boolean doProcedure(SqlContext sqlContext, CallableStatement callableStatement, boolean result);
+	boolean doProcedure(SqlContext sqlContext, CallableStatement callableStatement, boolean result) throws SQLException;
 }
