@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage.reports.html;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -49,7 +49,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/test02.html"));
 		Files.deleteIfExists(path.resolve("covertest/test03.html"));
 
-		//カバレッジ用インスタンスをクリア
+		// カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
@@ -93,7 +93,7 @@ public class HtmlReportCoverageHandlerTest {
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"));
 
-		//カバレッジ用インスタンスをクリア
+		// カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
@@ -119,7 +119,7 @@ public class HtmlReportCoverageHandlerTest {
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"));
 
-		//カバレッジ用インスタンスをクリア
+		// カバレッジ用インスタンスをクリア
 		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
@@ -134,7 +134,8 @@ public class HtmlReportCoverageHandlerTest {
 
 		assertThat(
 				Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"))
-						.size(), is(64));
+						.size(),
+				is(70));
 
 		ref.set(before);
 		System.clearProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");

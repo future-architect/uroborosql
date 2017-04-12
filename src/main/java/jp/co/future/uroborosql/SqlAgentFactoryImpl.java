@@ -8,6 +8,8 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 
 /**
@@ -28,6 +30,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/** SqlFilter管理クラス */
 	private SqlFilterManager sqlFilterManager;
 
+	/** ORM処理クラス */
+	private EntityHandler<?> entityHandler;
+
 	/** デフォルト値を保持するプロパティ */
 	private final Map<String, String> defaultProps = new HashMap<>();
 
@@ -35,7 +40,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * コンストラクタ。
 	 */
 	public SqlAgentFactoryImpl() {
-		this(null, null, null);
+		this(null, null, null, null);
 	}
 
 	/**
@@ -47,9 +52,24 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	public SqlAgentFactoryImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager) {
+		this(connectionSupplier, sqlManager, sqlFilterManager, null);
+	}
+
+	/**
+	 * コンストラクタ。
+	 *
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param entityHandler ORM処理クラス
+	 *
+	 */
+	public SqlAgentFactoryImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler) {
 		this.connectionSupplier = connectionSupplier;
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;
+		this.entityHandler = entityHandler != null ? entityHandler : new DefaultEntityHandler();
 		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.TRUE.toString());
 		getDefaultProps().put(PROPS_KEY_REMOVE_TERMINATOR, Boolean.TRUE.toString());
 	}
@@ -61,7 +81,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgent createSqlAgent() {
-		return new SqlAgentImpl(getConnectionSupplier(), getSqlManager(), getSqlFilterManager(), getDefaultProps());
+		return new SqlAgentImpl(getConnectionSupplier(), getSqlManager(), getSqlFilterManager(), getEntityHandler(), getDefaultProps());
 	}
 
 	/**
@@ -119,6 +139,25 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
 		this.sqlFilterManager = sqlFilterManager;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getEntityHandler()
+	 */
+	@Override
+	public EntityHandler<?> getEntityHandler() {
+		return entityHandler;
+	}
+
+	/**
+	 * ORM処理クラスを設定します。
+	 *
+	 * @param entityHandler SQLフィルタ管理クラス
+	 */
+	public void setEntityHandler(final EntityHandler<?> entityHandler) {
+		this.entityHandler = entityHandler;
 	}
 
 	/**

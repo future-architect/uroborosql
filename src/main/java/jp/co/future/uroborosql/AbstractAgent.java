@@ -15,11 +15,16 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
@@ -54,7 +59,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
-	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<CoverageHandler>();
+	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -67,6 +72,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** SqlFilter管理クラス */
 	private final SqlFilterManager sqlFilterManager;
+
+	/** ORM処理クラス */
+	private final EntityHandler<?> entityHandler;
 
 	/** 終端文字（;）を削除するかどうか。デフォルト値は<code>true</code> */
 	private boolean removeTerminator = true;
@@ -125,9 +133,24 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
+		this(connectionSupplier, sqlManager, sqlFilterManager, null, defaultProps);
+	}
+
+	/**
+	 * コンストラクタ。
+	 *
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param entityHandler ORM処理クラス
+	 * @param defaultProps デフォルト値プロパティ
+	 */
+	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler, final Map<String, String> defaultProps) {
 		transactionManager = new LocalTransactionManager(connectionSupplier, sqlFilterManager);
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;
+		this.entityHandler = entityHandler != null ? entityHandler : new DefaultEntityHandler();
 
 		// デフォルトプロパティ設定
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR)) {
@@ -190,6 +213,15 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public SqlFilterManager getSqlFilterManager() {
 		return sqlFilterManager;
+	}
+
+	/**
+	 * ORM処理クラス を取得します。
+	 *
+	 * @return ORM処理クラス
+	 */
+	protected EntityHandler<?> getEntityHandler() {
+		return entityHandler;
 	}
 
 	/**
@@ -527,6 +559,26 @@ public abstract class AbstractAgent implements SqlAgent {
 		return new ProcedureImpl(this, context);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> SqlEntityQuery<E> query(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+
+			return new SqlEntityQueryImpl<>(this, handler, context, entityType);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
+		}
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -668,5 +720,4 @@ public abstract class AbstractAgent implements SqlAgent {
 		applyProperties(stmt);
 		return stmt;
 	}
-
 }
