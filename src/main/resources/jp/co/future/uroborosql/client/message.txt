@@ -18,6 +18,7 @@ Commands :
 	list	: list loaded sql files.
 	driver	: list loaded drivers.
 	reload	: reload sql files.
+	cls		: clear screen.
 	help	: show this message.
-	quit	: quit SQL REPL. `exit` is an alias.
+	exit	: exit SQL REPL. `CTRL+C` is an alias.
 
