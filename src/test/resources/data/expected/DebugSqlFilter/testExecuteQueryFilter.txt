@@ -1,0 +1,1 @@
+ParameterÅFParameter name[product_id], Value[[Ljava.lang.Object;@dd3b207], Class[Object[]], SQLÅFexample/select_product executed.
