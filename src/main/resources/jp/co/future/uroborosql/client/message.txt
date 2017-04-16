@@ -10,12 +10,14 @@ ${name} SQL REPL ver.${version}
 
 Commands :
 	query	: execute query from loaded sql file.
-		ex1) query [sql file path]<Enter> : Interactive mode.If parameters are included in the SQL file, query the value to be set.
-		ex2) query [sql file path] param1=val1 param2=val2 ...<Enter> : Batch execution mode. Execute SQL with the specified parameters.
+		ex1) query [sql file name]<Enter> : Execute SQL without parameter.
+		ex2) query [sql file name] param1=val1 param2=val2 ...<Enter> : Execute SQL with the specified parameters.
 	update	: execute update from loaded sql file.
-		ex1) update [sql file path]<Enter> : Interactive mode.If parameters are included in the SQL file, query the value to be set.
-		ex2) update [sql file path] param1=val1 param2=val2 ...<Enter> : Batch execution mode. Execute SQL with the specified parameters.
+		ex1) update [sql file name]<Enter> : Execute SQL without parameter.
+		ex2) update [sql file name] param1=val1 param2=val2 ...<Enter> : Execute SQL with the specified parameters.
 	list	: list loaded sql files.
+		ex1) list<Enter> : Show all loaded sql file(s).
+		ex2) list keyword<Enter> : Show loaded sql file(s) filter by keyword.
 	driver	: list loaded drivers.
 	reload	: reload sql files.
 	cls		: clear screen.

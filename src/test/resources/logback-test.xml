@@ -6,7 +6,7 @@
 		<Target>System.out</Target>
 		<!-- パターンレイアウト -->
 		<encoder>
-			<pattern>[%-5p] %m%n</pattern>
+			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
