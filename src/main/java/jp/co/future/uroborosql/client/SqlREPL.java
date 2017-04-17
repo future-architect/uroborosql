@@ -218,7 +218,6 @@ public class SqlREPL {
 		listen();
 
 		console.println("SQL REPL end.");
-		console.flush();
 		console.close();
 	}
 
@@ -351,7 +350,6 @@ public class SqlREPL {
 
 		case Reload:
 			console.println("RELOAD " + propPath);
-			console.flush();
 
 			for (Enumeration<Driver> drivers = DriverManager.getDrivers(); drivers.hasMoreElements();) {
 				Driver driver = drivers.nextElement();
@@ -367,7 +365,6 @@ public class SqlREPL {
 
 		case List:
 			console.println("LIST:");
-			console.flush();
 
 			List<String> pathList = null;
 			if (parts.length > 1) {
@@ -379,12 +376,10 @@ public class SqlREPL {
 			for (String key : pathList) {
 				console.println(key);
 			}
-			console.flush();
 			return true;
 
 		case Driver:
 			console.println("DRIVER:");
-			console.flush();
 
 			Enumeration<Driver> drivers = DriverManager.getDrivers();
 			int driverCount = 0;
@@ -392,13 +387,11 @@ public class SqlREPL {
 				Driver driver = drivers.nextElement();
 				console.println(String.format("%02d : %s%n", ++driverCount, driver));
 			}
-			console.flush();
 
 			return true;
 
 		case Help:
 			console.println("HELP:");
-			console.flush();
 			showMessage("/message.txt");
 
 			return true;
@@ -426,14 +419,12 @@ public class SqlREPL {
 
 						try (ResultSet rs = agent.query(ctx)) {
 							console.println("query sql[" + sqlName + "] end.");
-							console.flush();
 						} finally {
 							agent.rollback();
 						}
 					}
 				} else {
 					console.println("SQL not found. sql=" + sqlName);
-					console.flush();
 				}
 			}
 			return true;
@@ -451,14 +442,12 @@ public class SqlREPL {
 							int ans = agent.update(ctx);
 							agent.commit();
 							console.println("update sql[" + sqlName + "] end. row count=" + ans);
-							console.flush();
 						} catch (SQLException ex) {
 							agent.rollback();
 						}
 					}
 				} else {
 					console.println("SQL not found. sql=" + sqlName);
-					console.flush();
 				}
 			}
 			return true;
@@ -682,8 +671,6 @@ public class SqlREPL {
 					// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 				}
 			});
-		} finally {
-			console.flush();
 		}
 	}
 
@@ -701,7 +688,6 @@ public class SqlREPL {
 			}
 		});
 		console.println();
-		console.flush();
 	}
 
 	class SqlNameCompleter implements Completer {
