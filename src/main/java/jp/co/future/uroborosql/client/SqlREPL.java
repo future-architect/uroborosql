@@ -218,6 +218,7 @@ public class SqlREPL {
 		listen();
 
 		console.println("SQL REPL end.");
+		console.flush();
 		console.close();
 	}
 
