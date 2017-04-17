@@ -146,6 +146,8 @@ public class SqlREPL {
 	/** SQL設定クラス */
 	private SqlConfig config = null;
 
+	private ConsoleReader console = null;
+
 	/**
 	 * メインメソッド
 	 *
@@ -199,6 +201,7 @@ public class SqlREPL {
 	public SqlREPL(final Path path) throws Exception {
 		propPath = path;
 		props = loadProps(path);
+		console = new ConsoleReader();
 	}
 
 	/**
@@ -213,6 +216,10 @@ public class SqlREPL {
 		initialize();
 
 		listen();
+
+		console.println("SQL REPL end.");
+		console.flush();
+		console.close();
 	}
 
 	/**
@@ -265,6 +272,11 @@ public class SqlREPL {
 			}
 		});
 
+		String sqlEncoding = p("sql.encoding", "");
+		if (StringUtils.isNotEmpty(sqlEncoding)) {
+			System.setProperty("file.encoding", sqlEncoding);
+		}
+
 		config = DefaultSqlConfig.getConfig(p("db.url", ""), p("db.user", ""), p("db.password", ""),
 				p("db.schema", null), p("sql.loadPath", "sql"));
 
@@ -283,9 +295,7 @@ public class SqlREPL {
 		return props.getProperty(key, defaultValue);
 	}
 
-	@SuppressWarnings("resource")
 	private void listen() throws IOException {
-		ConsoleReader console = new ConsoleReader();
 		console.setPrompt("uroborosql > ");
 		console.setHandleUserInterrupt(true);
 
@@ -293,7 +303,7 @@ public class SqlREPL {
 		console.addCompleter((buffer, cursor, candidates) -> {
 			String buff = buffer.trim();
 			if (buff.length() > 0 && !buffer.endsWith(" ") || buff.isEmpty()) {
-				Stream.of(Command.values()).filter(c -> c.match(buff)).forEach(c -> candidates.add(c.toString()));
+				Stream.of(Command.values()).filter(c -> c.match(buff)).map(Object::toString).forEach(candidates::add);
 			}
 			return candidates.isEmpty() ? -1 : 0;
 		});
@@ -308,7 +318,7 @@ public class SqlREPL {
 		while (true) { // ユーザの一行入力を待つ
 			try {
 				String line = console.readLine();
-				if (!commandExecute(line, console)) {
+				if (!commandExecute(line)) {
 					break;
 				}
 			} catch (UserInterruptException uie) {
@@ -323,11 +333,10 @@ public class SqlREPL {
 	 * 入力から指定されたコマンドを判定し実行する。
 	 *
 	 * @param line 入力文字列
-	 * @param console Inputスキャナ
 	 * @return 入力を継続する場合は<code>true</code>
 	 * @throws Exception 実行時例外
 	 */
-	private boolean commandExecute(final String line, final ConsoleReader console) throws Exception {
+	private boolean commandExecute(final String line) throws Exception {
 		if (line == null || line.isEmpty()) {
 			// 空なら何もせずにループ
 			return true;
@@ -338,11 +347,11 @@ public class SqlREPL {
 
 		switch (command) {
 		case Exit:
-			System.out.println("SQL REPL end.");
 			return false;
 
 		case Reload:
-			System.out.println("RELOAD " + propPath);
+			console.println("RELOAD " + propPath);
+			console.flush();
 
 			for (Enumeration<Driver> drivers = DriverManager.getDrivers(); drivers.hasMoreElements();) {
 				Driver driver = drivers.nextElement();
@@ -357,7 +366,9 @@ public class SqlREPL {
 			return true;
 
 		case List:
-			System.out.println("LIST:");
+			console.println("LIST:");
+			console.flush();
+
 			List<String> pathList = null;
 			if (parts.length > 1) {
 				pathList = config.getSqlManager().getSqlPathList().stream().filter(p -> p.contains(parts[1]))
@@ -366,23 +377,28 @@ public class SqlREPL {
 				pathList = config.getSqlManager().getSqlPathList();
 			}
 			for (String key : pathList) {
-				System.out.printf("%s%n", key);
+				console.println(key);
 			}
+			console.flush();
 			return true;
 
 		case Driver:
-			System.out.println("DRIVER:");
+			console.println("DRIVER:");
+			console.flush();
+
 			Enumeration<Driver> drivers = DriverManager.getDrivers();
 			int driverCount = 0;
 			while (drivers.hasMoreElements()) {
 				Driver driver = drivers.nextElement();
-				System.out.printf("%02d : %s%n", ++driverCount, driver);
+				console.println(String.format("%02d : %s%n", ++driverCount, driver));
 			}
+			console.flush();
 
 			return true;
 
 		case Help:
-			System.out.println("HELP:");
+			console.println("HELP:");
+			console.flush();
 			showMessage("/message.txt");
 
 			return true;
@@ -409,13 +425,15 @@ public class SqlREPL {
 						ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 						try (ResultSet rs = agent.query(ctx)) {
-							System.out.println("query sql[" + sqlName + "] end.");
+							console.println("query sql[" + sqlName + "] end.");
+							console.flush();
 						} finally {
 							agent.rollback();
 						}
 					}
 				} else {
-					System.out.println("SQL not found. sql=" + sqlName);
+					console.println("SQL not found. sql=" + sqlName);
+					console.flush();
 				}
 			}
 			return true;
@@ -432,13 +450,15 @@ public class SqlREPL {
 						try {
 							int ans = agent.update(ctx);
 							agent.commit();
-							System.out.println("update sql[" + sqlName + "] end. row count=" + ans);
+							console.println("update sql[" + sqlName + "] end. row count=" + ans);
+							console.flush();
 						} catch (SQLException ex) {
 							agent.rollback();
 						}
 					}
 				} else {
-					System.out.println("SQL not found. sql=" + sqlName);
+					console.println("SQL not found. sql=" + sqlName);
+					console.flush();
 				}
 			}
 			return true;
@@ -554,23 +574,24 @@ public class SqlREPL {
 	 * @return 変換後オブジェクト
 	 */
 	private Object convertSingleValue(final String val) {
-		if (StringUtils.isEmpty(val)) {
+		String value = StringUtils.trim(val);
+		if (StringUtils.isEmpty(value)) {
 			return null;
-		} else if ("[NULL]".equalsIgnoreCase(val)) {
+		} else if ("[NULL]".equalsIgnoreCase(value)) {
 			return null;
-		} else if ("[EMPTY]".equalsIgnoreCase(val)) {
+		} else if ("[EMPTY]".equalsIgnoreCase(value)) {
 			return "";
-		} else if (val.startsWith("'") && val.endsWith("'")) {
+		} else if (value.startsWith("'") && value.endsWith("'")) {
 			// ''で囲まれた値は文字列として扱う。空白を含むこともできる。 ex) 'This is a pen'
-			return val.substring(1, val.length() - 1);
-		} else if (Boolean.TRUE.toString().equalsIgnoreCase(val)) {
+			return value.substring(1, value.length() - 1);
+		} else if (Boolean.TRUE.toString().equalsIgnoreCase(value)) {
 			return Boolean.TRUE;
-		} else if (Boolean.FALSE.toString().equalsIgnoreCase(val)) {
+		} else if (Boolean.FALSE.toString().equalsIgnoreCase(value)) {
 			return Boolean.FALSE;
-		} else if (NumberUtils.isDigits(val)) {
-			return NumberUtils.toInt(val);
+		} else if (NumberUtils.isDigits(value)) {
+			return NumberUtils.toInt(value);
 		} else {
-			return val;
+			return value;
 		}
 	}
 
@@ -648,26 +669,39 @@ public class SqlREPL {
 
 	/**
 	 * メッセージの表示
+	 * @throws IOException IO例外
 	 */
-	private void showMessage(final String path) {
+	private void showMessage(final String path) throws IOException {
 		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
-			reader.lines().forEach(s -> System.out.println(s));
-		} catch (IOException ex) {
-			ex.printStackTrace();
+			reader.lines().forEach(s -> {
+				try {
+					console.println(s);
+				} catch (Exception ex) {
+					// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
+				}
+			});
+		} finally {
+			console.flush();
 		}
 	}
 
 	/**
 	 * 現在読み込んでいるプロパティの情報を表示
+	 * @throws IOException IO例外
 	 */
-	private void showProps() {
-		System.out.println("[Properties]");
+	private void showProps() throws IOException {
+		console.println("[Properties]");
 		props.forEach((key, value) -> {
-			System.out.println(key + "=" + value);
+			try {
+				console.println(key + "=" + value);
+			} catch (Exception e) {
+				// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
+			}
 		});
-		System.out.println("");
+		console.println();
+		console.flush();
 	}
 
 	class SqlNameCompleter implements Completer {

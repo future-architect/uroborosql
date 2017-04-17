@@ -2,7 +2,7 @@ package jp.co.future.uroborosql.store;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +40,11 @@ public class SqlLoaderImpl implements SqlLoader {
 	private String fileExtension = DEFAULT_FILE_EXTENSION;
 
 	/**
+	 * SQLファイルエンコーディング
+	 */
+	private String sqlEncoding = System.getProperty("file.encoding");
+
+	/**
 	 * コンストラクタ<br>
 	 */
 	public SqlLoaderImpl() {
@@ -57,9 +62,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	}
 
 	/**
-	 * SQLファイルロードパス取得<br>
+	 * {@inheritDoc}
 	 *
-	 * @return SQLファイルロードパス
+	 * @see jp.co.future.uroborosql.store.SqlLoader#getLoadPath()
 	 */
 	@Override
 	public String getLoadPath() {
@@ -67,9 +72,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	}
 
 	/**
-	 * SQLファイルロードパス設定<br>
+	 * {@inheritDoc}
 	 *
-	 * @param loadPath SQLファイルロードパス
+	 * @see jp.co.future.uroborosql.store.SqlLoader#setLoadPath(java.lang.String)
 	 */
 	@Override
 	public void setLoadPath(final String loadPath) {
@@ -83,9 +88,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	}
 
 	/**
-	 * SQLファイル拡張子取得<br>
+	 * {@inheritDoc}
 	 *
-	 * @return SQLファイル拡張子
+	 * @see jp.co.future.uroborosql.store.SqlLoader#getFileExtension()
 	 */
 	@Override
 	public String getFileExtension() {
@@ -93,9 +98,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	}
 
 	/**
-	 * SQLファイル拡張子設定<br>
+	 * {@inheritDoc}
 	 *
-	 * @param fileExtension SQLファイル拡張子
+	 * @see jp.co.future.uroborosql.store.SqlLoader#setFileExtension(java.lang.String)
 	 */
 	@Override
 	public void setFileExtension(final String fileExtension) {
@@ -106,6 +111,26 @@ public class SqlLoaderImpl implements SqlLoader {
 		} else {
 			this.fileExtension = fileExtension;
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlLoader#getSqlEncoding()
+	 */
+	@Override
+	public String getSqlEncoding() {
+		return sqlEncoding;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlLoader#setSqlEncoding(java.lang.String)
+	 */
+	@Override
+	public void setSqlEncoding(final String encoding) {
+		this.sqlEncoding = encoding;
 	}
 
 	/**
@@ -210,7 +235,8 @@ public class SqlLoaderImpl implements SqlLoader {
 			if (file.isDirectory()) {
 				sqlMap.putAll(load(makeNewPackageName(packageName, file), file));
 			} else if (fileName.toLowerCase().endsWith(fileExtension)) {
-				String sql = trimSlash(read(new BufferedReader(new FileReader(file))));
+				String sql = trimSlash(read(new BufferedReader(new InputStreamReader(new FileInputStream(file),
+						getSqlEncoding()))));
 				String sqlName = makeSqlName(packageName, fileName);
 				sqlMap.put(sqlName, sql);
 
@@ -359,4 +385,5 @@ public class SqlLoaderImpl implements SqlLoader {
 			return sql;
 		}
 	}
+
 }

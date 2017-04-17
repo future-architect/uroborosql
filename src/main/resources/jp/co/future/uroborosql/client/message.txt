@@ -20,7 +20,7 @@ Commands :
 		ex2) list keyword<Enter> : Show loaded sql file(s) filter by keyword.
 	driver	: list loaded drivers.
 	reload	: reload sql files.
-	cls		: clear screen.
+	cls	: clear screen.
 	help	: show this message.
 	exit	: exit SQL REPL. `CTRL+C` is an alias.
 

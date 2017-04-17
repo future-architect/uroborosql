@@ -192,7 +192,7 @@ encoding/<project>=UTF-8
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<links>
-						<link>https://docs.oracle.com/javase/jp/8/docs/api/</link>
+						<link>http://docs.oracle.com/javase/jp/8/docs/api/</link>
 					</links>
 					<maxmemory>512m</maxmemory>
 					<encoding>${src.encoding}</encoding>
