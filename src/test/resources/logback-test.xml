@@ -27,10 +27,6 @@
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
-	<!-- <appender name="DumpResultSqlFilterTest" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>logs/app.log</file> <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-		<fileNamePattern>logs/app.%d{yyyy-MM-dd}.log.tar.gz</fileNamePattern> <maxHistory>7</maxHistory>
-		</rollingPolicy> <encoder> <pattern>%m%n</pattern> </encoder> </appender> -->
 
 	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
 		level="DEBUG" additivity="false">
