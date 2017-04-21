@@ -116,8 +116,7 @@ public class DebugSqlFilterTest {
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			try (SqlAgent agent = config.createAgent()) {
-				SqlContext ctx = agent.contextFrom("example/select_product")
-						.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal("0"))
 						.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 				ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 

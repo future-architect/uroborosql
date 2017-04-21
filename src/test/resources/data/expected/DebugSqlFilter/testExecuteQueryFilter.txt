@@ -1,2 +1,2 @@
-Parameter：Parameter name[product_id], Value[[Ljava.lang.Object;@551bdc27], Class[Object[]]
+Parameter：Parameter name[product_id], Value[0], Class[BigDecimal]
 SQL：example/select_product executed.
