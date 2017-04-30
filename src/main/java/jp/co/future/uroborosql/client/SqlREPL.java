@@ -76,12 +76,50 @@ public class SqlREPL {
 
 	/** コマンド名 */
 	private enum Command {
-		Query(true, false), Update(true, false), List(true, false), Reload(false, false), Driver(false, false), Help(
-				false, false), Cls(false, false), Exit(false, false), ThisCmd(false, true);
+		/** SQLの検索実行 */
+		QUERY(true),
+		/** SQLの更新実行 */
+		UPDATE(true),
+		/** SQLファイルの参照 */
+		VIEW(true),
+		/** SQLファイルのリスト出力 */
+		LIST(true),
+		/** 入力コマンドの履歴出力 */
+		HISTORY(true),
+		/** リロード */
+		RELOAD(false),
+		/** 登録されているJDBCドライバーのリスト出力 */
+		DRIVER(false),
+		/** ヘルプメッセージ出力 */
+		HELP(false),
+		/** 画面のクリア */
+		CLS(false),
+		/** SqlREPLの終了 */
+		EXIT(false),
+		/** スペシャルメッセージ */
+		THIS(false, true);
 
+		/** 引数の有無 */
 		private boolean hasArgs = false;
+		/** HELPコマンドで非表示 */
 		private boolean hidden = false;
 
+		/**
+		 * 入力コマンド
+		 *
+		 * @param hasArgs 引数の有無
+		 */
+		private Command(final boolean hasArgs) {
+			this.hasArgs = hasArgs;
+			this.hidden = false;
+		}
+
+		/**
+		 * 入力コマンド
+		 *
+		 * @param hasArgs 引数の有無
+		 * @param hidden HELPコマンドで表示しない場合に<code>true</code>
+		 */
 		private Command(final boolean hasArgs, final boolean hidden) {
 			this.hasArgs = hasArgs;
 			this.hidden = hidden;
@@ -112,9 +150,14 @@ public class SqlREPL {
 			return !isHidden() && toString().startsWith(input.toLowerCase());
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see java.lang.Enum#toString()
+		 */
 		@Override
 		public String toString() {
-			return super.toString().replace("Cmd", "").toLowerCase();
+			return super.toString().toLowerCase();
 		}
 
 		/**
@@ -130,7 +173,7 @@ public class SqlREPL {
 					}
 				}
 			}
-			return Help;
+			return HELP;
 		}
 	}
 
@@ -146,6 +189,7 @@ public class SqlREPL {
 	/** SQL設定クラス */
 	private SqlConfig config = null;
 
+	/** コンソールリーダ */
 	private ConsoleReader console = null;
 
 	/**
@@ -295,6 +339,11 @@ public class SqlREPL {
 		return props.getProperty(key, defaultValue);
 	}
 
+	/**
+	 * コンソールからの入力のリスン
+	 *
+	 * @throws IOException I/O例外
+	 */
 	private void listen() throws IOException {
 		console.setPrompt("uroborosql > ");
 		console.setHandleUserInterrupt(true);
@@ -346,10 +395,10 @@ public class SqlREPL {
 		Command command = Command.toCommand(parts[0]);
 
 		switch (command) {
-		case Exit:
+		case EXIT:
 			return false;
 
-		case Reload:
+		case RELOAD:
 			console.println("RELOAD " + propPath);
 
 			for (Enumeration<Driver> drivers = DriverManager.getDrivers(); drivers.hasMoreElements();) {
@@ -364,7 +413,7 @@ public class SqlREPL {
 
 			return true;
 
-		case List:
+		case LIST:
 			console.println("LIST:");
 
 			List<String> pathList = null;
@@ -379,7 +428,27 @@ public class SqlREPL {
 			}
 			return true;
 
-		case Driver:
+		case HISTORY:
+			console.println("HISTORY:");
+
+			List<String> keywords = new ArrayList<>();
+			if (parts.length > 1) {
+				keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
+			}
+
+			console.getHistory().forEach(entry -> {
+				try {
+					String value = entry.value().toString();
+					if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
+						console.println(value);
+					}
+				} catch (Exception e) {
+					// do nothing
+				}
+			});
+			return true;
+
+		case DRIVER:
 			console.println("DRIVER:");
 
 			Enumeration<Driver> drivers = DriverManager.getDrivers();
@@ -391,28 +460,43 @@ public class SqlREPL {
 
 			return true;
 
-		case Help:
+		case HELP:
 			console.println("HELP:");
 			showMessage("/message.txt");
 
 			return true;
 
-		case ThisCmd:
+		case THIS:
 			showMessage("/this.txt");
 
 			return true;
 
-		case Cls:
+		case CLS:
 			console.clearScreen();
 			return true;
 
-		case Query:
-			if (parts.length >= 2) {
-				String sqlName = parts[1];
+		case VIEW:
+			if (parts.length == 2) {
+				String sqlName = parts[1].replaceAll("\\.", "/");
 				if (config.getSqlManager().existSql(sqlName)) {
+					String sql = config.getSqlManager().getSql(sqlName);
+					String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
+					for (String sqlLine : sqlLines) {
+						console.println(sqlLine);
+					}
+				} else {
+					console.println("SQL not found. sql=" + sqlName);
+				}
+			}
+			return true;
 
+		case QUERY:
+			if (parts.length >= 2) {
+				String sqlName = parts[1].replaceAll("\\.", "/");
+				if (config.getSqlManager().existSql(sqlName)) {
 					try (SqlAgent agent = config.createAgent()) {
-						SqlContext ctx = agent.contextFrom(sqlName.replaceAll("\\.", "/"));
+						SqlContext ctx = agent.contextFrom(sqlName);
+						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
 						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
 						setSqlParams(ctx, params);
 
@@ -430,13 +514,14 @@ public class SqlREPL {
 			}
 			return true;
 
-		case Update:
+		case UPDATE:
 			if (parts.length >= 2) {
-				String sqlName = parts[1];
+				String sqlName = parts[1].replaceAll("\\.", "/");
 				if (config.getSqlManager().existSql(sqlName)) {
 
 					try (SqlAgent agent = config.createAgent()) {
-						SqlContext ctx = agent.contextFrom(sqlName.replaceAll("\\.", "/"));
+						SqlContext ctx = agent.contextFrom(sqlName);
+						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
 						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
 						setSqlParams(ctx, params);
 						try {
@@ -509,17 +594,25 @@ public class SqlREPL {
 	 * @param paramsArray パラメータ配列
 	 */
 	private void setSqlParams(final SqlContext ctx, final String[] paramsArray) {
+		Set<String> bindParams = getSqlParams(ctx.getSql());
+
 		for (String element : paramsArray) {
 			String[] param = element.split("=");
 			String key = param[0];
-			if (param.length == 1) {
-				// キーだけの指定は値をnullと扱う
-				ctx.param(key, null);
-			} else {
-				String val = param[1];
-				setParam(ctx, key, val);
+			if (bindParams.remove(key)) {
+				// キーがバインドパラメータに存在するときは値を設定する
+				if (param.length == 1) {
+					// キーだけの指定は値をnullと扱う
+					ctx.param(key, null);
+				} else {
+					String val = param[1];
+					setParam(ctx, key, val);
+				}
 			}
 		}
+
+		// 指定がなかったキーについてはnullを設定する
+		bindParams.forEach(s -> ctx.param(s, null));
 	}
 
 	/**
@@ -691,14 +784,26 @@ public class SqlREPL {
 		console.println();
 	}
 
+	/**
+	 * SQL Name の補完を行うCompleter
+	 *
+	 * @author H.Sugimoto
+	 *
+	 */
 	class SqlNameCompleter implements Completer {
 		private final SortedSet<String> sqlNames = new TreeSet<String>();
 
+		/**
+		 * コンストラクタ
+		 * @param sqlNames SQL名のリスト
+		 */
 		private SqlNameCompleter(final List<String> sqlNames) {
 			this.sqlNames.addAll(sqlNames);
 		}
 
 		/**
+		 * コンストラクタから渡されたSQL名の一覧と入力を比較し、前方一致するものがあれば補完対象とする<br>
+		 *
 		 * {@inheritDoc}
 		 *
 		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
@@ -730,8 +835,18 @@ public class SqlREPL {
 		}
 	}
 
+	/**
+	 * バインドパラメータを補完するCompleter
+	 *
+	 * @author H.Sugimoto
+	 *
+	 */
 	class BindParamCompleter implements Completer {
 		/**
+		 * バッファから渡されたSQL名のSQLを取得し、バインドパラメータをパースして取得する。<br>
+		 * 取得したバインドパラメータと入力を比較し、前方一致する場合は補完候補にする。<br>
+		 * ただし、すでに指定済みのバインドパラメータは補完候補から除く<br>
+		 *
 		 * {@inheritDoc}
 		 *
 		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
