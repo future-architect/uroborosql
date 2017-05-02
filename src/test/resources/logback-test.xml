@@ -16,9 +16,20 @@
 		</encoder>
 	</appender>
 
+	<appender name="SecretColumnSqlInitializeTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
 	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
 		level="DEBUG" additivity="false">
 		<appender-ref ref="AuditLogTest" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.filter.SecretColumnSqlFilter"
+		level="DEBUG" additivity="false">
+		<appender-ref ref="SecretColumnSqlInitializeTest" />
 	</logger>
 
 	<appender name="CoverageLog" class="ch.qos.logback.core.FileAppender">
