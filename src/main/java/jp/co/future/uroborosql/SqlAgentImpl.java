@@ -5,8 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -18,7 +21,11 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -51,6 +58,24 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
 		super(connectionSupplier, sqlManager, sqlFilterManager, defaultProps);
+		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
+			outputExceptionLog = Boolean.parseBoolean(defaultProps
+					.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));
+		}
+	}
+
+	/**
+	 * コンストラクタ。
+	 *
+	 * @param connectionSupplier コネクション供給クラス
+	 * @param sqlManager SQL管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param entityHandler ORM処理クラス
+	 * @param defaultProps 初期化用プロパティ
+	 */
+	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler, final Map<String, String> defaultProps) {
+		super(connectionSupplier, sqlManager, sqlFilterManager, entityHandler, defaultProps);
 		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean.parseBoolean(defaultProps
 					.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));
@@ -165,12 +190,14 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
 	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
+	@SuppressWarnings("resource")
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		ResultSet rs = query(sqlContext);
 
 		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
 				Spliterator.ORDERED) {
+			@SuppressWarnings("null")
 			@Override
 			public boolean tryAdvance(final Consumer<? super T> action) {
 				try {
@@ -180,7 +207,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 					action.accept(converter.createRecord(rs));
 					return true;
-				} catch (Exception ex) {
+				} catch (RuntimeException | Error ex) {
 					try {
 						if (rs != null && !rs.isClosed()) {
 							rs.close();
@@ -188,7 +215,16 @@ public class SqlAgentImpl extends AbstractAgent {
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-					return false;
+					throw ex;
+				} catch (SQLException ex) {
+					try {
+						if (rs != null && !rs.isClosed()) {
+							rs.close();
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					throw new UroborosqlRuntimeException(ex);
 				}
 			}
 		}, false);
@@ -564,4 +600,116 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected void setOutputExceptionLog(final boolean outputExceptionLog) {
 		this.outputExceptionLog = outputExceptionLog;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> Optional<E> find(final Class<? extends E> entityType, final Object... keys) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			String[] keyNames = metadata.getColumns().stream()
+					.filter(TableMetadata.Column::isKey)
+					.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
+					.map(TableMetadata.Column::getColumnName)
+					.map(CaseFormat.CamelCase::convert)
+					.toArray(String[]::new);
+
+			if (keyNames.length != keys.length) {
+				throw new IllegalArgumentException("Number of keys does not match");
+			}
+			Map<String, Object> params = new HashMap<>();
+			for (int i = 0; i < keys.length; i++) {
+				params.put(keyNames[i], keys[i]);
+			}
+
+			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+			context.paramMap(params);
+
+			return handler.doSelect(this, context, entityType).findFirst();
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#insert(Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public int insert(final Object entity) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isInstance(entity)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createInsertContext(this, metadata, type);
+			handler.setInsertParams(context, entity);
+			return handler.doInsert(this, context, entity);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#update(Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public int update(final Object entity) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isInstance(entity)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createUpdateContext(this, metadata, type);
+			handler.setUpdateParams(context, entity);
+			return handler.doUpdate(this, context, entity);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.UPDATE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public int delete(final Object entity) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isInstance(entity)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			Class<?> type = entity.getClass();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			SqlContext context = handler.createDeleteContext(this, metadata, type);
+			handler.setDeleteParams(context, entity);
+			return handler.doDelete(this, context, entity);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+		}
+	}
+
 }

@@ -8,9 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLType;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,27 @@ import org.slf4j.LoggerFactory;
  * @author H.Sugimoto
  */
 public class SqlContextImpl implements SqlContext {
+	/**
+	 * @see #getParameterNames()
+	 */
+	private class ParameterNames extends AbstractSet<String> {
+
+		@Override
+		public Iterator<String> iterator() {
+			return parameterMap.keySet().iterator();
+		}
+
+		@Override
+		public int size() {
+			return parameterMap.size();
+		}
+
+		@Override
+		public boolean contains(final Object o) {
+			return parameterMap.containsKey(o);
+		}
+	}
+
 	/** where句の直後にくるANDやORを除外するための正規表現 */
 	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
 			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND|OR)");
@@ -106,6 +129,8 @@ public class SqlContextImpl implements SqlContext {
 
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
+
+	private ParameterNames parameterNames;
 
 	/**
 	 * コンストラクタ。
@@ -367,7 +392,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */
 	@Override
-	public SqlContext paramMap(final Map<String, Object> paramMap) {
+	public SqlContext paramMap(final Map<String, ?> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
 		}
@@ -396,10 +421,11 @@ public class SqlContextImpl implements SqlContext {
 
 	/**
 	 * パラメータ名のリストを取得する
+	 *
 	 * @return パラメータ名のリスト
 	 */
-	public List<String> getParameterNames() {
-		return new ArrayList<>(parameterMap.keySet());
+	public Set<String> getParameterNames() {
+		return parameterNames != null ? parameterNames : (parameterNames = new ParameterNames());
 	}
 
 	/**
@@ -811,8 +837,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * SqlFilter管理クラスを設定します。
 	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 *            SqlFilter管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス SqlFilter管理クラス
 	 */
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
 		this.sqlFilterManager = sqlFilterManager;
