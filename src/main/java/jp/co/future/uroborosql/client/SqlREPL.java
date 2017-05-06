@@ -77,15 +77,15 @@ public class SqlREPL {
 	/** コマンド名 */
 	private enum Command {
 		/** SQLの検索実行 */
-		QUERY(true),
+		QUERY(false, SqlNameCompleter.class.getSimpleName(), BindParamCompleter.class.getSimpleName()),
 		/** SQLの更新実行 */
-		UPDATE(true),
+		UPDATE(false, SqlNameCompleter.class.getSimpleName(), BindParamCompleter.class.getSimpleName()),
 		/** SQLファイルの参照 */
-		VIEW(true),
+		VIEW(false, SqlNameCompleter.class.getSimpleName()),
 		/** SQLファイルのリスト出力 */
-		LIST(true),
+		LIST(false, SqlNameCompleter.class.getSimpleName()),
 		/** 入力コマンドの履歴出力 */
-		HISTORY(true),
+		HISTORY(false),
 		/** リロード */
 		RELOAD(false),
 		/** 登録されているJDBCドライバーのリスト出力 */
@@ -97,40 +97,37 @@ public class SqlREPL {
 		/** SqlREPLの終了 */
 		EXIT(false),
 		/** スペシャルメッセージ */
-		THIS(false, true);
+		THIS(true);
 
-		/** 引数の有無 */
-		private boolean hasArgs = false;
+		/** 利用する入力補完の並び */
+		private String[] completerNames = {};
 		/** HELPコマンドで非表示 */
 		private boolean hidden = false;
 
 		/**
 		 * 入力コマンド
 		 *
-		 * @param hasArgs 引数の有無
-		 */
-		private Command(final boolean hasArgs) {
-			this.hasArgs = hasArgs;
-			this.hidden = false;
-		}
-
-		/**
-		 * 入力コマンド
-		 *
-		 * @param hasArgs 引数の有無
+		 * @param  引数の有無
 		 * @param hidden HELPコマンドで表示しない場合に<code>true</code>
 		 */
-		private Command(final boolean hasArgs, final boolean hidden) {
-			this.hasArgs = hasArgs;
+		private Command(final boolean hidden, final String... completerNames) {
 			this.hidden = hidden;
+			this.completerNames = completerNames;
 		}
 
 		/**
-		 * 引数を持つかどうか
-		 * @return 引数がある場合に<code>true</code>
+		 * 指定されたコード補完の対象とする引数の開始位置を返却する
+		 *
+		 * @param completerName 対象とするコード補完名
+		 * @return 引数の位置。該当するコード補完がない場合は<code>-1</code>を返す
 		 */
-		public boolean hasArgs() {
-			return hasArgs;
+		public int getStartArgNo(final String completerName) {
+			for (int i = 0; i < completerNames.length; i++) {
+				if (completerNames[i].equals(completerName)) {
+					return i + 1;
+				}
+			}
+			return -1;
 		}
 
 		/**
@@ -811,12 +808,19 @@ public class SqlREPL {
 		@Override
 		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
 			String[] parts = getLineParts(buffer);
-			boolean isBlank = buffer.endsWith(" ");
 			int len = parts.length;
-			if (len == 1 || (len == 2 && !isBlank)) {
-				if (Command.toCommand(parts[0]).hasArgs()) {
+
+			// コード補完する引数の番号を特定。
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass().getSimpleName()) : -1;
+
+			// 対象引数が-1の時は該当なしなのでコード補完しない
+			if (startArgNo == -1) {
+				return -1;
+			} else {
+				boolean isBlank = buffer.endsWith(" ");
+				if ((len == startArgNo && isBlank) || (len == (startArgNo + 1) && !isBlank)) {
 					// コマンドが引数ありの場合
-					String args = len == 2 ? parts[1] : "";
+					String args = len == (startArgNo + 1) ? parts[startArgNo] : "";
 					if (StringUtils.isEmpty(args)) {
 						candidates.addAll(sqlNames);
 					} else {
@@ -827,10 +831,15 @@ public class SqlREPL {
 							candidates.add(match);
 						}
 					}
+				} else {
+					return -1;
 				}
-				return candidates.isEmpty() ? buffer.length() : parts[0].length() + 1;
-			} else {
-				return -1;
+				// カーソルポジションの計算
+				int pos = 0;
+				for (int i = 0; i < startArgNo; i++) {
+					pos = pos + parts[i].length() + 1;
+				}
+				return candidates.isEmpty() ? buffer.length() : pos;
 			}
 		}
 	}
@@ -856,24 +865,29 @@ public class SqlREPL {
 			String[] parts = getLineParts(buffer);
 			int pos = buffer.length();
 			int len = parts.length;
-			boolean isBlank = buffer.endsWith(" ");
-			if (len >= 2) {
-				if (Command.toCommand(parts[0]).hasArgs()) {
+
+			// コード補完する引数の番号を特定。
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass().getSimpleName()) : -1;
+
+			// 対象引数が-1の時は該当なしなのでコード補完しない
+			if (startArgNo == -1) {
+				return -1;
+			} else {
+				boolean isBlank = buffer.endsWith(" ");
+				if (len >= startArgNo) {
 					// sqlNameが指定されている場合
-					String sqlName = parts[1];
+					String sqlName = parts[startArgNo - 1];
 					if (StringUtils.isNotEmpty(sqlName)) {
 						String sql = config.getSqlManager().getSql(sqlName);
 						if (StringUtils.isNotEmpty(sql)) {
 							Set<String> params = getSqlParams(sql);
-							if (len >= 3) {
+							if (len > startArgNo) {
 								// 最後のパラメータ以外ですでに指定されたバインドパラメータを候補から除去する
 								int lastPos = isBlank ? len : len - 1;
-								for (int i = 2; i < lastPos; i++) {
+								for (int i = startArgNo; i < lastPos; i++) {
 									String part = parts[i];
 									String[] keyValue = part.split("=", 2);
-									if (keyValue.length == 2) {
-										params.remove(keyValue[0]);
-									}
+									params.remove(keyValue[0]);
 								}
 								if (isBlank) {
 									// 候補の表示位置を計算
@@ -900,10 +914,10 @@ public class SqlREPL {
 							}
 						}
 					}
+					return pos;
+				} else {
+					return -1;
 				}
-				return pos;
-			} else {
-				return -1;
 			}
 		}
 
