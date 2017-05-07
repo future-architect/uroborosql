@@ -74,7 +74,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @param defaultProps 初期化用プロパティ
 	 */
 	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler, final Map<String, String> defaultProps) {
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler,
+			final Map<String, String> defaultProps) {
 		super(connectionSupplier, sqlManager, sqlFilterManager, entityHandler, defaultProps);
 		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean.parseBoolean(defaultProps
@@ -190,14 +191,12 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
 	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
-	@SuppressWarnings("resource")
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		ResultSet rs = query(sqlContext);
 
 		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
 				Spliterator.ORDERED) {
-			@SuppressWarnings("null")
 			@Override
 			public boolean tryAdvance(final Consumer<? super T> action) {
 				try {
@@ -613,12 +612,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
-			String[] keyNames = metadata.getColumns().stream()
-					.filter(TableMetadata.Column::isKey)
+			String[] keyNames = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
 					.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
-					.map(TableMetadata.Column::getColumnName)
-					.map(CaseFormat.CamelCase::convert)
-					.toArray(String[]::new);
+					.map(TableMetadata.Column::getColumnName).map(CaseFormat.CamelCase::convert).toArray(String[]::new);
 
 			if (keyNames.length != keys.length) {
 				throw new IllegalArgumentException("Number of keys does not match");

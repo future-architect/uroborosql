@@ -16,6 +16,8 @@ public @interface Column {
 
 	/**
 	 * カラム名
+	 *
+	 * @return カラム名
 	 */
 	String name() default "";
 }

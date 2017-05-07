@@ -18,11 +18,15 @@ public @interface Table {
 	 * テーブル名
 	 * <p>
 	 * デフォルトはエンティティ名から算出します.
+	 *
+	 * @return テーブル名
 	 */
 	String name() default "";
 
 	/**
 	 * スキーマ名
+	 *
+	 * @return スキーマ名
 	 */
 	String schema() default "";
 }
