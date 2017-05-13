@@ -68,4 +68,18 @@ public interface SqlLoader {
 	 */
 	void setFileExtension(String fileExtension);
 
+	/**
+	 * SQLファイルの文字エンコーディングを取得<br>
+	 *
+	 * @return SQLファイルの文字エンコーディング
+	 */
+	String getSqlEncoding();
+
+	/**
+	 * SQLファイルの文字エンコーディングを設定<br>
+	 *
+	 * @param encoding SQLファイルの文字エンコーディング
+	 */
+	void setSqlEncoding(String encoding);
+
 }

@@ -16,6 +16,8 @@ public @interface Domain {
 
 	/**
 	 * ドメインクラスを生成するのに必要な値の型
+	 *
+	 * @return ドメインクラスを生成するのに必要な値の型
 	 */
 	Class<?> valueType();
 
@@ -24,16 +26,21 @@ public @interface Domain {
 	 * <p>
 	 * デフォルトではコンストラクタが呼び出されます
 	 *
+	 * @return ドメインクラスを生成・取得するメソッド名
 	 */
 	String factoryMethod() default "";
 
 	/**
 	 * JDBCが受け付けられる値に変換できる値を返すメソッド名
+	 *
+	 * @return JDBCが受け付けられる値に変換できる値を返すメソッド名
 	 */
 	String toJdbcMethod() default "getValue";
 
 	/**
 	 * NULLをインスタンスとして管理する場合はtrue
+	 *
+	 * @return NULLをインスタンスとして管理する場合はtrue
 	 */
 	boolean nullable() default false;
 }

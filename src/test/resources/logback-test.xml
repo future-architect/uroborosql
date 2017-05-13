@@ -6,11 +6,17 @@
 		<Target>System.out</Target>
 		<!-- パターンレイアウト -->
 		<encoder>
-			<pattern>[%-5p] %m%n</pattern>
+			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
 	<appender name="AuditLogTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="SecretColumnSqlInitializeTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
@@ -31,6 +37,11 @@
 	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
 		level="DEBUG" additivity="false">
 		<appender-ref ref="AuditLogTest" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.filter.SecretColumnSqlFilter"
+		level="DEBUG" additivity="false">
+		<appender-ref ref="SecretColumnSqlInitializeTest" />
 	</logger>
 
 	<logger name="jp.co.future.uroborosql.filter.DebugSqlFilter"

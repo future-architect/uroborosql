@@ -35,4 +35,31 @@ public interface SqlManager {
 	 */
 	List<String> getSqlPathList();
 
+	/**
+	 * SqlLoader の取得<br>
+	 * @return SqlLoader
+	 */
+	SqlLoader getSqlLoader();
+
+	/**
+	 * SqlLoader の設定<br>
+	 *
+	 * @param sqlLoader SqlLoader
+	 */
+	void setSqlLoader(SqlLoader sqlLoader);
+
+	/**
+	 * 起動時にSQLファイルをキャッシュするかどうかを取得する
+	 *
+	 * @return SQLをキャッシュする場合<code>true</code>
+	 */
+	boolean isCache();
+
+	/**
+	 * 起動時にSQLファイルをキャッシュするかどうか<BR>
+	 *
+	 * @param cache SQLをキャッシュする場合<code>true</code>
+	 */
+	void setCache(boolean cache);
+
 }
