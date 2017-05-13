@@ -118,6 +118,8 @@ We also prepare a SQL formatter useful for development.
     - https://github.com/future-architect/Sublime-uroboroSQL-formatter
 - IntelliJ IDEA Platform Plugin
     - https://github.com/future-architect/idea-uroborosql-formatter
+- Eclipse Plugin
+    - https://github.com/future-architect/eclipse-uroborosql-formatter
 
 License
 -------

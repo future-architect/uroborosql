@@ -68,6 +68,8 @@ public class SqlManagerImpl implements SqlManager {
 	public void initialize() {
 		if (cache) {
 			sqlMap = sqlLoader.load();
+		} else {
+			sqlMap.clear();
 		}
 	}
 
@@ -110,10 +112,21 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
-	 * SQL読み込みクラス設定
+	 * {@inheritDoc}
 	 *
-	 * @param sqlLoader SqlLoaderオブジェクト
+	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlLoader()
 	 */
+	@Override
+	public SqlLoader getSqlLoader() {
+		return this.sqlLoader;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#setSqlLoader(jp.co.future.uroborosql.store.SqlLoader)
+	 */
+	@Override
 	public void setSqlLoader(final SqlLoader sqlLoader) {
 		this.sqlLoader = sqlLoader;
 	}
@@ -155,21 +168,23 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
-	 * 起動時にSQLファイルをキャッシュするかどうか<BR>
+	 * {@inheritDoc}
 	 *
-	 * @param cache SQLをキャッシュする場合<code>true</code>
+	 * @see jp.co.future.uroborosql.store.SqlManager#isCache()
 	 */
-	public void setCache(final boolean cache) {
-		this.cache = cache;
+	@Override
+	public boolean isCache() {
+		return this.cache;
 	}
 
 	/**
-	 * 起動時にSQLファイルをキャッシュするかどうかを取得する
+	 * {@inheritDoc}
 	 *
-	 * @return SQLをキャッシュする場合<code>true</code>
+	 * @see jp.co.future.uroborosql.store.SqlManager#setCache(boolean)
 	 */
-	public boolean isCache() {
-		return this.cache;
+	@Override
+	public void setCache(final boolean cache) {
+		this.cache = cache;
 	}
 
 }
