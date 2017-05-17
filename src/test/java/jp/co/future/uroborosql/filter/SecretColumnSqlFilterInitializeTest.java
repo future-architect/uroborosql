@@ -60,12 +60,11 @@ public class SecretColumnSqlFilterInitializeTest {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
-					"src/test/resources/data/expected/SecretColumnSqlFilterInitialize/fake.jks");
+					"src/test/resources/data/expected/SecretColumnSqlFilter/fake.jks");
 			sqlFilterManager.initialize();
 		});
 		assertThat(log, is(Arrays.asList(
-				"Not found KeyStore file path. Path:src/test/resources/data/expected/SecretColumnSqlFilterInitialize/"
-				+ "fake.jks")));
+				"Not found KeyStore file path. Path:src/test/resources/data/expected/SecretColumnSqlFilter/fake.jks")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
 
@@ -74,11 +73,11 @@ public class SecretColumnSqlFilterInitializeTest {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
-					"src/test/resources/data/expected/SecretColumnSqlFilterInitialize");
+					"src/test/resources/data/expected/SecretColumnSqlFilter");
 			sqlFilterManager.initialize();
 		});
 		assertThat(log, is(Arrays.asList(
-				"Invalid KeyStore file path. Path:src/test/resources/data/expected/SecretColumnSqlFilterInitialize")));
+				"Invalid KeyStore file path. Path:src/test/resources/data/expected/SecretColumnSqlFilter")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
 
@@ -90,7 +89,7 @@ public class SecretColumnSqlFilterInitializeTest {
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
 			filter.setKeyStoreFilePath(
-					"src/test/resources/data/expected/SecretColumnSqlFilterInitialize/keystore.jceks");
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
 			filter.setStorePassword(null);
 			sqlFilterManager.initialize();
 		});
@@ -108,7 +107,7 @@ public class SecretColumnSqlFilterInitializeTest {
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
 			filter.setKeyStoreFilePath(
-					"src/test/resources/data/expected/SecretColumnSqlFilterInitialize/keystore.jceks");
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
 			filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
 			filter.setAlias(null);
 			sqlFilterManager.initialize();
@@ -119,16 +118,16 @@ public class SecretColumnSqlFilterInitializeTest {
 		assertThat(filter.isSkipFilter(), is(true));
 	}
 
-	@Test
-	public void testInitialize07() throws Exception {
-		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		// 下記コマンドでkeystoreファイル生成
-		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
-		// -storepass password -keypass password -keyalg AES -keysize 128
-		filter.setKeyStoreFilePath(
-				"src/test/resources/data/expected/SecretColumnSqlFilterInitialize/keystore.jceks");
-		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-		filter.setAlias("testexample");
-		sqlFilterManager.initialize();
-	}
+//	@Test
+//	public void testInitialize07() throws Exception {
+//		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
+//		// 下記コマンドでkeystoreファイル生成
+//		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
+//		// -storepass password -keypass password -keyalg AES -keysize 128
+//		filter.setKeyStoreFilePath(
+//				"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+//		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+//		filter.setAlias("testexample");
+//		sqlFilterManager.initialize();
+//	}
 }
