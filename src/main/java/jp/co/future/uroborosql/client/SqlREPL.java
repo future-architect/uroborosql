@@ -40,6 +40,8 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.SqlContextFactory;
+import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.EmbeddedValueNode;
@@ -69,7 +71,7 @@ import ch.qos.logback.classic.Logger;
  */
 public class SqlREPL {
 	/** バインドパラメータ中の定数指定を判定するための正規表現 */
-	private static final Pattern CONSTANT_PAT = Pattern.compile("^[A-Z][A-Z_-]*$");
+	private static final Pattern CONSTANT_PAT = Pattern.compile("^[A-Z][A-Z0-9_-]*$");
 
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
@@ -321,9 +323,30 @@ public class SqlREPL {
 		config = DefaultSqlConfig.getConfig(p("db.url", ""), p("db.user", ""), p("db.password", ""),
 				p("db.schema", null), p("sql.loadPath", "sql"));
 
+		// sqlFilter
+
 		config.getSqlFilterManager().addSqlFilter(new DumpResultSqlFilter());
 		config.getSqlFilterManager().initialize();
 
+		// sqlContextFactory
+		SqlContextFactory contextFactory = config.getSqlContextFactory();
+		List<String> constantClassNames = Arrays
+				.asList(p("sqlContextFactory.constantClassNames", "").split("\\s*,\\s*")).stream()
+				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+		if (!constantClassNames.isEmpty()) {
+			contextFactory.setConstantClassNames(constantClassNames);
+		}
+
+		List<String> enumConstantPackageNames = Arrays
+				.asList(p("sqlContextFactory.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
+				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+		if (!enumConstantPackageNames.isEmpty()) {
+			contextFactory.setEnumConstantPackageNames(enumConstantPackageNames);
+		}
+
+		if (!constantClassNames.isEmpty() || !enumConstantPackageNames.isEmpty()) {
+			contextFactory.initialize();
+		}
 	}
 
 	/**
@@ -433,11 +456,12 @@ public class SqlREPL {
 				keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
 			}
 
+			int sizeLen = String.valueOf(console.getHistory().size()).length();
 			console.getHistory().forEach(entry -> {
 				try {
 					String value = entry.value().toString();
 					if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
-						console.println(value);
+						console.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
 					}
 				} catch (Exception e) {
 					// do nothing
@@ -501,6 +525,8 @@ public class SqlREPL {
 
 						try (ResultSet rs = agent.query(ctx)) {
 							console.println("query sql[" + sqlName + "] end.");
+						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
+							console.println("Error : " + ex.getMessage());
 						} finally {
 							agent.rollback();
 						}
@@ -525,7 +551,8 @@ public class SqlREPL {
 							int ans = agent.update(ctx);
 							agent.commit();
 							console.println("update sql[" + sqlName + "] end. row count=" + ans);
-						} catch (SQLException ex) {
+						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
+							console.println("Error : " + ex.getMessage());
 							agent.rollback();
 						}
 					}

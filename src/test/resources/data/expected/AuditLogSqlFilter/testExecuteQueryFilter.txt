@@ -1,1 +1,1 @@
-{"userName":"testUserName","funcId":"testFunction","sqlId":"111","sqlName":"example\/select_product","sql":"select \/* 111 *\/ * from product where product_id in (?, ?)\/*product_id*\/","rowCount":1}
+{"userName":"testUserName","funcId":"testFunction","sqlId":"111","sqlName":"example\/select_product","sql":"SELECT \/* 111 *\/ \t* FROM \tPRODUCT WHERE 1 = 1 AND\tPRODUCT_ID\tIN\t(?, ?)\/*product_id*\/ ORDER BY PRODUCT_ID","rowCount":1}

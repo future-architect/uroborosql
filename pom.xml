@@ -247,7 +247,7 @@ encoding/<project>=UTF-8
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<build>
-				<defaultGoal>process-classes</defaultGoal>
+				<defaultGoal>process-test-classes</defaultGoal>
 				<plugins>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -265,7 +265,7 @@ encoding/<project>=UTF-8
 										<argument>REPL/repl.properties</argument>
 									</arguments>
 								</configuration>
-								<phase>process-classes</phase>
+								<phase>process-test-classes</phase>
 							</execution>
 						</executions>
 					</plugin>
