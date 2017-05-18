@@ -3,13 +3,13 @@ package jp.co.future.uroborosql.filter;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -28,17 +28,22 @@ import jp.co.future.uroborosql.config.SqlConfig;
 public class SecretColumnSqlFilterTest {
 
 	private SqlConfig config;
-	private List<String> cryptColumnNames = new ArrayList<String>();
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:AuditLogSqlFilterTest"));
+		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"));
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		SecretColumnSqlFilter filter = new SecretColumnSqlFilter();
-		// ここにKeyStore関連の情報を指定する必要がある
-		cryptColumnNames.add("PRODUCT_NAME");
-		filter.setCryptColumnNames(cryptColumnNames);
 		sqlFilterManager.addSqlFilter(filter);
+
+		filter.setCryptColumnNames(Arrays.asList("JAN_CODE", "PRODUCT_NAME"));
+		// 下記コマンドでkeystoreファイル生成
+		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
+		// -alias testexample
+		// -storepass password -keypass password -keyalg AES -keysize 128
+		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+		filter.setAlias("testexample");
 		sqlFilterManager.initialize();
 
 		try (SqlAgent agent = config.createAgent()) {
@@ -114,12 +119,47 @@ public class SecretColumnSqlFilterTest {
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+		// cleanInsert(Paths.get("src/test/resources/data/setup",
+		// "testExecuteSecretQuery.ltsv"));
 
 		try (SqlAgent agent = config.createAgent()) {
-			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
-					.first();
-			// 暗号化カラムを確認するテスト
+			Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+
+			// Map<String, Object> result =
+			// agent.query("example/select_product").param("product_id", new
+			// BigDecimal(0))
+			// .first();
+			//
+			// System.out.println(result);
+
+			// SqlContext ctx =
+			// agent.contextFrom("example/insert_product").setSqlId("333")
+			// .param("product_id", new BigDecimal(1)).param("product_name",
+			// "商品名1")
+			// .param("product_kana_name", "ショウヒンメイイチ").param("jan_code",
+			// "1234567890123")
+			// .param("product_description", "1番目の商品").param("ins_datetime",
+			// currentDatetime)
+			// .param("upd_datetime", currentDatetime).param("version_no", new
+			// BigDecimal(0)).addBatch()
+			// .param("product_id", new BigDecimal(2)).param("product_name",
+			// "商品名2")
+			// .param("product_kana_name", "ショウヒンメイニ").param("jan_code",
+			// "1234567890124")
+			// .param("product_description", "2番目の商品").param("ins_datetime",
+			// currentDatetime)
+			// .param("upd_datetime", currentDatetime).param("version_no", new
+			// BigDecimal(0))
+			// .param("_userName", "testUserName").param("_funcId",
+			// "testFunction").addBatch();
+			//
+			// agent.batch(ctx);
+			//
+			// Map<String, Object> result =
+			// agent.query("example/select_product").param("product_id", new
+			// BigDecimal(1))
+			// .first();
+			// System.out.println(result);
 		}
 	};
 
