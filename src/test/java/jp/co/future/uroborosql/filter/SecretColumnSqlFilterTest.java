@@ -27,15 +27,18 @@ import jp.co.future.uroborosql.config.SqlConfig;
 public class SecretColumnSqlFilterTest {
 
 	private SqlConfig config;
+    private SqlFilterManager sqlFilterManager;
+    private SecretColumnSqlFilter filter;
+
 
 	@Before
 	public void setUp() throws Exception {
 		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"));
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
-		SecretColumnSqlFilter filter = new SecretColumnSqlFilter();
+		sqlFilterManager = config.getSqlFilterManager();
+		filter = new SecretColumnSqlFilter();
 		sqlFilterManager.addSqlFilter(filter);
 
-		filter.setCryptColumnNames(Arrays.asList("JAN_CODE", "PRODUCT_NAME"));
+		filter.setCryptColumnNames(Arrays.asList("PRODUCT_ID", "PRODUCT_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
@@ -118,17 +121,30 @@ public class SecretColumnSqlFilterTest {
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteSecretQuery.ltsv"));
-
-		try (SqlAgent agent = config.createAgent()) {
-			// Map<String, Object> result =
-			// agent.query("example/select_product").param("product_id", new
-			// BigDecimal(0))
-			// .first();
-
-			// System.out.println(result);
-		}
+//		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteSecretQuery.ltsv"));
+//
+//		try (SqlAgent agent = config.createAgent()) {
+//			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
+//					.first();
+//
+//			System.out.println(result);
+//		}
 	};
+
+	@Test
+    public void testDoParameter() throws Exception {
+//        assertThat(sqlFilterManager.doParameter(null), is(nullValue()));
+//
+//        cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+//
+//        try (SqlAgent agent = config.createAgent()) {
+//            SqlContext ctx = agent.contextFrom("example/select_product")
+//            		.param("product_id", new BigDecimal(0));
+//
+//            agent.query(ctx);
+//        }
+    };
+
 
 	@Test
 	public void testExecuteUpdateFilter() throws Exception {

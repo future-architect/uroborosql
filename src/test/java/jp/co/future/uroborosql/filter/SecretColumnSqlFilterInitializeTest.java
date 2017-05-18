@@ -117,17 +117,4 @@ public class SecretColumnSqlFilterInitializeTest {
 				"No alias for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
-
-//	@Test
-//	public void testInitialize07() throws Exception {
-//		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-//		// 下記コマンドでkeystoreファイル生成
-//		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
-//		// -storepass password -keypass password -keyalg AES -keysize 128
-//		filter.setKeyStoreFilePath(
-//				"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-//		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-//		filter.setAlias("testexample");
-//		sqlFilterManager.initialize();
-//	}
 }

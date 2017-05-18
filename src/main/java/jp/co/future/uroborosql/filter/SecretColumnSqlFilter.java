@@ -98,7 +98,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			cryptParamKeys = new ArrayList<>();
 			List<String> newColumnNames = new ArrayList<>();
 			for (String columnName : getCryptColumnNames()) {
-				cryptParamKeys.add(toCamelCase(columnName));
+				cryptParamKeys.add(columnName.toLowerCase());
 				newColumnNames.add(columnName.toUpperCase());
 			}
 			// 定義ファイルで指定されたカラム名は大文字でない可能性があるので、ここで大文字に置換し直す
