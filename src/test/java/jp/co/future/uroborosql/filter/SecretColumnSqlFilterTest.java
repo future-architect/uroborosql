@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -119,46 +118,14 @@ public class SecretColumnSqlFilterTest {
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-		// cleanInsert(Paths.get("src/test/resources/data/setup",
-		// "testExecuteSecretQuery.ltsv"));
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteSecretQuery.ltsv"));
 
 		try (SqlAgent agent = config.createAgent()) {
-			Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
-
 			// Map<String, Object> result =
 			// agent.query("example/select_product").param("product_id", new
 			// BigDecimal(0))
 			// .first();
-			//
-			// System.out.println(result);
 
-			// SqlContext ctx =
-			// agent.contextFrom("example/insert_product").setSqlId("333")
-			// .param("product_id", new BigDecimal(1)).param("product_name",
-			// "商品名1")
-			// .param("product_kana_name", "ショウヒンメイイチ").param("jan_code",
-			// "1234567890123")
-			// .param("product_description", "1番目の商品").param("ins_datetime",
-			// currentDatetime)
-			// .param("upd_datetime", currentDatetime).param("version_no", new
-			// BigDecimal(0)).addBatch()
-			// .param("product_id", new BigDecimal(2)).param("product_name",
-			// "商品名2")
-			// .param("product_kana_name", "ショウヒンメイニ").param("jan_code",
-			// "1234567890124")
-			// .param("product_description", "2番目の商品").param("ins_datetime",
-			// currentDatetime)
-			// .param("upd_datetime", currentDatetime).param("version_no", new
-			// BigDecimal(0))
-			// .param("_userName", "testUserName").param("_funcId",
-			// "testFunction").addBatch();
-			//
-			// agent.batch(ctx);
-			//
-			// Map<String, Object> result =
-			// agent.query("example/select_product").param("product_id", new
-			// BigDecimal(1))
-			// .first();
 			// System.out.println(result);
 		}
 	};
