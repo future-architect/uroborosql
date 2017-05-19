@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.filter;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,9 +28,8 @@ import jp.co.future.uroborosql.config.SqlConfig;
 public class SecretColumnSqlFilterTest {
 
 	private SqlConfig config;
-    private SqlFilterManager sqlFilterManager;
-    private SecretColumnSqlFilter filter;
-
+	private SqlFilterManager sqlFilterManager;
+	private SecretColumnSqlFilter filter;
 
 	@Before
 	public void setUp() throws Exception {
@@ -38,7 +38,7 @@ public class SecretColumnSqlFilterTest {
 		filter = new SecretColumnSqlFilter();
 		sqlFilterManager.addSqlFilter(filter);
 
-		filter.setCryptColumnNames(Arrays.asList("PRODUCT_ID", "PRODUCT_NAME"));
+		filter.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
@@ -107,12 +107,14 @@ public class SecretColumnSqlFilterTest {
 
 			dataList.stream().forEach(map -> {
 				try {
+
 					agent.update(map.get("sql").toString()).paramMap(map).count();
-				} catch (SQLException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
+
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
@@ -121,30 +123,29 @@ public class SecretColumnSqlFilterTest {
 
 	@Test
 	public void testExecuteQueryFilter() throws Exception {
-//		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteSecretQuery.ltsv"));
-//
-//		try (SqlAgent agent = config.createAgent()) {
-//			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
-//					.first();
-//
-//			System.out.println(result);
-//		}
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.createAgent()) {
+			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
+					.first();
+			System.out.println(result);
+		}
 	};
 
 	@Test
-    public void testDoParameter() throws Exception {
-//        assertThat(sqlFilterManager.doParameter(null), is(nullValue()));
-//
-//        cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-//
-//        try (SqlAgent agent = config.createAgent()) {
-//            SqlContext ctx = agent.contextFrom("example/select_product")
-//            		.param("product_id", new BigDecimal(0));
-//
-//            agent.query(ctx);
-//        }
-    };
-
+	public void testDoParameter() throws Exception {
+		// assertThat(sqlFilterManager.doParameter(null), is(nullValue()));
+		//
+		// cleanInsert(Paths.get("src/test/resources/data/setup",
+		// "testExecuteQuery.ltsv"));
+		//
+		// try (SqlAgent agent = config.createAgent()) {
+		// SqlContext ctx = agent.contextFrom("example/select_product")
+		// .param("product_id", new BigDecimal(0));
+		//
+		// agent.query(ctx);
+		// }
+	};
 
 	@Test
 	public void testExecuteUpdateFilter() throws Exception {
