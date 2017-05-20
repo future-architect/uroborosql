@@ -126,6 +126,13 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	SqlContext addBatch();
 
 	/**
+	 * これまでに追加されたパラメータ群をバッチパラメータから削除する
+	 *
+	 * @return 自身のSqlContext
+	 */
+	SqlContext clearBatch();
+
+	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号
