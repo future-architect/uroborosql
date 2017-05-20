@@ -1,4 +1,7 @@
-insert into product (
+INSERT
+INTO
+	PRODUCT
+(
 	PRODUCT_ID
 ,	PRODUCT_NAME
 ,	PRODUCT_KANA_NAME
@@ -7,8 +10,7 @@ insert into product (
 ,	INS_DATETIME
 ,	UPD_DATETIME
 ,	VERSION_NO
-)
-values (
+) VALUES (
 	/*product_id*/
 ,	/*product_name*/
 ,	/*product_kana_name*/

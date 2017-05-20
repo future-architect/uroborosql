@@ -32,6 +32,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import ognl.OgnlRuntime;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,7 +130,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 						Parameter newValue = new Parameter(fieldName, field.get(null));
 						Parameter prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							LOG.warn("Duplicate constant name. Constant name：{}, Old name：{} destroy.", fieldName, prevValue.getValue());
+							LOG.warn("Duplicate constant name. Constant name：{}, Old name：{} destroy.", fieldName,
+									prevValue.getValue());
 						}
 						LOG.debug("Constant [name：{}, value：{}] added to parameter.", fieldName, newValue.getValue());
 					}
@@ -317,11 +319,14 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private Map<? extends String, ? extends Parameter> buildConstParamMap() {
 		Map<String, Parameter> paramMap = new HashMap<>();
 		for (String className : constantClassNames) {
-			try {
-				Class<?> targetClass = Class.forName(className);
-				makeConstParamMap(paramMap, targetClass);
-			} catch (ClassNotFoundException ex) {
-				LOG.error(ex.getMessage(), ex);
+			if (StringUtils.isNotBlank(className)) {
+				try {
+					Class<?> targetClass = Class.forName(className, true, Thread.currentThread()
+							.getContextClassLoader());
+					makeConstParamMap(paramMap, targetClass);
+				} catch (ClassNotFoundException ex) {
+					LOG.error(ex.getMessage(), ex);
+				}
 			}
 		}
 		return paramMap;
@@ -335,8 +340,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private Map<? extends String, ? extends Parameter> buildEnumConstParamMap() {
 		Map<String, Parameter> paramMap = new HashMap<>();
 		for (String packageName : enumConstantPackageNames) {
-			for (Class<? extends Enum<?>> targetClass : listupEnumClasses(packageName)) {
-				makeEnumConstParamMap(paramMap, packageName, targetClass);
+			if (StringUtils.isNotBlank(packageName)) {
+				for (Class<? extends Enum<?>> targetClass : listupEnumClasses(packageName)) {
+					makeEnumConstParamMap(paramMap, packageName, targetClass);
+				}
 			}
 		}
 		return paramMap;
@@ -435,7 +442,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	private static Optional<Class<?>> loadEnum(final String className) {
 		try {
-			Class<?> type = Class.forName(className);
+			Class<?> type = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 			if (type.isEnum()) {
 				return Optional.of(type);
 			}
