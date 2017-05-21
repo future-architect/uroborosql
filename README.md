@@ -33,7 +33,7 @@ Installation
 #### for Gradle
 
 ```gradle
-compile group: jp.co.future, name: uroborosql, version: 0.2.0
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.2.0'
 ```
 
 Documentation
