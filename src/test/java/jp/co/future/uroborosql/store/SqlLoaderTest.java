@@ -13,16 +13,22 @@ public class SqlLoaderTest extends TestCase {
 
 		String sql = sqls.get("example/select_product");
 		assertEquals(
-				"select /* _SQL_ID_ */ * from product where product_id in /*product_id*/(0, 2)"
-						+ System.lineSeparator(), sql);
+				"SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
+						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
+						+ System.lineSeparator() + "/*IF product_id != null */" + System.lineSeparator()
+						+ "AND	PRODUCT_ID	IN	/*product_id*/(0, 2)" + System.lineSeparator() + "/*END*/"
+						+ System.lineSeparator() + "ORDER BY PRODUCT_ID" + System.lineSeparator(), sql);
 	}
 
 	public void testLoadFile() throws Exception {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
 		String sql = sqlLoader.load("example/select_product");
 		assertEquals(
-				"select /* _SQL_ID_ */ * from product where product_id in /*product_id*/(0, 2)"
-						+ System.lineSeparator(), sql);
+				"SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
+						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
+						+ System.lineSeparator() + "/*IF product_id != null */" + System.lineSeparator()
+						+ "AND	PRODUCT_ID	IN	/*product_id*/(0, 2)" + System.lineSeparator() + "/*END*/"
+						+ System.lineSeparator() + "ORDER BY PRODUCT_ID" + System.lineSeparator(), sql);
 	}
 
 	public void testLoadFileNull() throws Exception {
