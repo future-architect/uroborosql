@@ -2,7 +2,7 @@ package jp.co.future.uroborosql.coverage.reports.html;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,7 +73,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	@Override
 	public synchronized void accept(CoverageData coverageData) {
 		if (StringUtils.isEmpty(coverageData.getSqlName())) {
-			//SQL名の設定されていないSQLは集約しない
+			// SQL名の設定されていないSQLは集約しない
 			return;
 		}
 		Map<String, SqlCoverageReport> map = coverages.computeIfAbsent(coverageData.getSqlName(),
@@ -99,10 +99,9 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			// copy resources
 			String packagePath = this.getClass().getPackage().getName().replace(".", "/");
 			Stream.of("style.css", "jquery-3.2.0.min.js", "stupidtable.min.js", "highlight.pack.js", "sqlcov.js", "icon.png").forEach(filename -> {
-				try {
-					Files.copy(Paths.get(this.getClass().getClassLoader().getResource(packagePath + "/" + filename).toURI()),
-							Paths.get(this.reportDirPath + "/" + filename), StandardCopyOption.REPLACE_EXISTING);
-				} catch (IOException | URISyntaxException e) {
+				try (InputStream src = this.getClass().getClassLoader().getResourceAsStream(packagePath + "/" + filename)) {
+					Files.copy(src, Paths.get(this.reportDirPath + "/" + filename), StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException e) {
 					LOG.error(e.getMessage(), e);
 				}
 			});
