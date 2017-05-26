@@ -314,7 +314,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public String getSqlIdKeyName() {
-		return getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, "_SQL_ID_");
+		return getDefaultProps().getOrDefault(PROPS_KEY_SQL_ID_KEY_NAME, "_SQL_ID_");
 	}
 
 	/**
@@ -324,7 +324,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public void setSqlIdKeyName(final String sqlIdKeyName) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, sqlIdKeyName);
+		getDefaultProps().put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
 	}
 
 	/**
