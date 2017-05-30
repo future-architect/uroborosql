@@ -56,7 +56,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final StringFunction SF = new StringFunction();
 
 	/** ログ出力を抑止するためのMDCキー */
-	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "suppressParameterLogOutput";
+	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
 
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();

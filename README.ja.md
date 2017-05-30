@@ -13,7 +13,7 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 
 さらにSQLの開発生産性を格段に上げるREPL機能も搭載しています。
 
-[![asciicast](https://asciinema.org/a/110293.png)](https://asciinema.org/a/110293)
+[![asciicast](https://asciinema.org/a/122312.png)](https://asciinema.org/a/122312)
 
 Installation
 ------------
@@ -46,6 +46,8 @@ Requirement
 
 Quick start
 -----------
+
+### 2Way-SQL
 
 ```sql
 /* department/select_department.sql */
@@ -98,6 +100,31 @@ try (SqlAgent agent = config.createAgent()) {
 
 ```
 
+### DAO Interface
+
+```java
+SqlConfig config = DefaultSqlConfig.getConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+
+try (SqlAgent agent = config.createAgent()) {
+  // select
+  Department dept =
+      agent.find(Department.class, 1001).orElse(null);
+
+  // insert
+  Department hrDept = new Department();
+  hrDept.setDeptNo(1002);
+  hrDept.setDeptName("HR");
+  agent.insert(hrDept);
+
+  // update
+  hrDept.setDeptName("Human Resources");
+  agent.update(hrDept);
+
+  // delete
+  agent.delete(hrDept);
+}
+```
+
 Sample application
 ------------------
 
@@ -110,14 +137,14 @@ SQL Formatter
 
 開発で便利なSQL formatterも用意しています。
 
-- CLI
-    - https://github.com/future-architect/uroboroSQL-formatter
-- Sublime Text 3 Plugin
-    - https://github.com/future-architect/Sublime-uroboroSQL-formatter
-- IntelliJ IDEA Platform Plugin
-    - https://github.com/future-architect/idea-uroborosql-formatter
-- Eclipse Plugin
-    - https://github.com/future-architect/eclipse-uroborosql-formatter
+-	CLI
+	-	https://github.com/future-architect/uroboroSQL-formatter
+-	Sublime Text 3 Plugin
+	-	https://github.com/future-architect/Sublime-uroboroSQL-formatter
+-	IntelliJ IDEA Platform Plugin
+	-	https://github.com/future-architect/idea-uroborosql-formatter
+-	Eclipse Plugin
+	-	https://github.com/future-architect/eclipse-uroborosql-formatter
 
 License
 -------
