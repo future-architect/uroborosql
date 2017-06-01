@@ -387,6 +387,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					int[] result = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
+					sqlContext.clearBatch();
 					return result;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {

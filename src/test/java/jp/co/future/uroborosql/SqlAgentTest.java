@@ -469,6 +469,47 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * バッチ処理のテストケース。(複数回)
+	 */
+	@Test
+	public void testExecuteBatchRepeat() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		// 処理実行
+		try (SqlAgent agent = config.createAgent()) {
+			Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+
+			SqlContext ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
+					.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
+					.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
+					.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0)).addBatch();
+
+			int[] count = agent.batch(ctx);
+			assertEquals("データの登録件数が不正です。", 1, count.length);
+			assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+
+			ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
+					.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
+					.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
+
+			count = agent.batch(ctx);
+			assertEquals("データの登録件数が不正です。", 1, count.length);
+			assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+
+			// 検証処理
+			List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
+					"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
+			List<Map<String, Object>> actualDataList = agent.query("example/select_product")
+					.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+
+			assertEquals(expectedDataList.toString(), actualDataList.toString());
+		}
+	}
+
+	/**
 	 * バッチ処理(Null挿入）のテストケース。
 	 */
 	@Test

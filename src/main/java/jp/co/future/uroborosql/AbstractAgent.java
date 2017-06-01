@@ -111,7 +111,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		CoverageHandler handler = null;
 		if (sqlCoverageClassName != null) {
 			try {
-				handler = (CoverageHandler) Class.forName(sqlCoverageClassName).newInstance();
+				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
+						Thread.currentThread().getContextClassLoader()).newInstance();
 			} catch (Exception ex) {
 				LOG.warn("Failed to generate CoverageHandler class. Class：{}, Cause：{}", sqlCoverageClassName,
 						ex.getMessage());
@@ -146,7 +147,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @param defaultProps デフォルト値プロパティ
 	 */
 	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler, final Map<String, String> defaultProps) {
+			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler,
+			final Map<String, String> defaultProps) {
 		transactionManager = new LocalTransactionManager(connectionSupplier, sqlFilterManager);
 		this.sqlManager = sqlManager;
 		this.sqlFilterManager = sqlFilterManager;

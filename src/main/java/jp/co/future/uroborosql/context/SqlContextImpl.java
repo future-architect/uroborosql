@@ -730,6 +730,17 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#clearBatch()
+	 */
+	@Override
+	public SqlContext clearBatch() {
+		batchParameters.clear();
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.context.SqlContext#addDefineColumnType(int, int)
 	 */
 	@Override
