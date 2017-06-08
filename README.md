@@ -13,7 +13,7 @@ From the knowhow acquired through our business, we have enhanced UroboroSQL with
 
 There is also REPL which dramatically increases SQL development productivity.
 
-[![asciicast](https://asciinema.org/a/110293.png)](https://asciinema.org/a/110293)
+[![asciicast](https://asciinema.org/a/122312.png)](https://asciinema.org/a/122312)
 
 for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/blob/master/README.ja.md)
 
@@ -44,10 +44,12 @@ Documentation
 Requirement
 -----------
 
-- Java 1.8 or later.
+-	Java 1.8 or later.
 
 Quick start
 -----------
+
+### 2Way-SQL
 
 ```sql
 /* department/select_department.sql */
@@ -97,7 +99,31 @@ try (SqlAgent agent = config.createAgent()) {
     .param("dept_name", "sales")
     .count();
 }
+```
 
+### DAO Interface
+
+```java
+SqlConfig config = DefaultSqlConfig.getConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+
+try (SqlAgent agent = config.createAgent()) {
+  // select
+  Department dept =
+      agent.find(Department.class, 1001).orElse(null);
+
+  // insert
+  Department hrDept = new Department();
+  hrDept.setDeptNo(1002);
+  hrDept.setDeptName("HR");
+  agent.insert(hrDept);
+
+  // update
+  hrDept.setDeptName("Human Resources");
+  agent.update(hrDept);
+
+  // delete
+  agent.delete(hrDept);
+}
 ```
 
 Sample application
@@ -112,14 +138,14 @@ SQL Formatter
 
 We also prepare a SQL formatter useful for development.
 
-- CLI
-    - https://github.com/future-architect/uroboroSQL-formatter
-- Sublime Text 3 Plugin
-    - https://github.com/future-architect/Sublime-uroboroSQL-formatter
-- IntelliJ IDEA Platform Plugin
-    - https://github.com/future-architect/idea-uroborosql-formatter
-- Eclipse Plugin
-    - https://github.com/future-architect/eclipse-uroborosql-formatter
+-	CLI
+	-	https://github.com/future-architect/uroboroSQL-formatter
+-	Sublime Text 3 Plugin
+	-	https://github.com/future-architect/Sublime-uroboroSQL-formatter
+-	IntelliJ IDEA Platform Plugin
+	-	https://github.com/future-architect/idea-uroborosql-formatter
+-	Eclipse Plugin
+	-	https://github.com/future-architect/eclipse-uroborosql-formatter
 
 License
 -------

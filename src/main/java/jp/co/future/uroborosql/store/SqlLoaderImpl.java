@@ -266,15 +266,15 @@ public class SqlLoaderImpl implements SqlLoader {
 		String sql = null;
 
 		URL resource = Thread.currentThread().getContextClassLoader().getResource(targetFilePath);
+		if (resource != null) {
+			try (InputStream is = resource.openStream()) {
 
-		try (InputStream is = resource.openStream()) {
-			if (resource != null) {
 				sql = trimSlash(read(new BufferedReader(new InputStreamReader(is))));
 
 				LOG.debug("Loaded SQL template.[{}]", targetFilePath);
+			} catch (IOException e) {
+				throw new UroborosqlRuntimeException("Failed to load SQL template[" + targetFilePath + "].", e);
 			}
-		} catch (IOException e) {
-			throw new UroborosqlRuntimeException("Failed to load SQL template[" + targetFilePath + "].", e);
 		}
 
 		if (sql == null) {
@@ -348,8 +348,8 @@ public class SqlLoaderImpl implements SqlLoader {
 	 *
 	 * 以下２種類に対応
 	 * <ol>
-	 * 	<li>キャッシュ時のディレクトリからFileの読み込む場合</li>
-	 * 	<li>キャッシュなしで クラスパス内のリソース(jarファイル内も含む)を読み込む場合</li>
+	 * <li>キャッシュ時のディレクトリからFileの読み込む場合</li>
+	 * <li>キャッシュなしで クラスパス内のリソース(jarファイル内も含む)を読み込む場合</li>
 	 * </ol>
 	 *
 	 * @param reader リーダ
