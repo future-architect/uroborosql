@@ -37,7 +37,10 @@ import org.slf4j.LoggerFactory;
 public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	private static final Logger LOG = LoggerFactory.getLogger(SecretColumnSqlFilter.class);
 
+	/** 暗号キー */
 	private SecretKey secretKey = null;
+
+	/** 暗号器 */
 	private Cipher encryptCipher = null;
 
 	/** 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。 */
