@@ -21,6 +21,7 @@ import javax.crypto.SecretKey;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 
+import jp.co.future.uroborosql.utils.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,10 @@ import org.slf4j.LoggerFactory;
 public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	private static final Logger LOG = LoggerFactory.getLogger(SecretColumnSqlFilter.class);
 
+	/** 暗号キー */
 	private SecretKey secretKey = null;
+
+	/** 暗号器 */
 	private Cipher encryptCipher = null;
 
 	/** 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。 */
@@ -66,25 +70,6 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
 	/**
-	 * スネーク式の文字列をキャメル式に変換する
-	 *
-	 * @param snake スネーク式文字列
-	 * @return キャメル式文字列
-	 */
-	private String toCamelCase(final String snake) {
-		if (snake == null || "".equals(snake)) {
-			return "";
-		}
-		StringBuilder builder = new StringBuilder();
-
-		String[] parts = snake.split("_");
-		for (String part : parts) {
-			builder.append(StringUtils.capitalize(StringUtils.lowerCase(part)));
-		}
-		return StringUtils.uncapitalize(builder.toString());
-	}
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#initialize()
@@ -98,8 +83,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			cryptParamKeys = new ArrayList<>();
 			List<String> newColumnNames = new ArrayList<>();
 			for (String columnName : getCryptColumnNames()) {
-				cryptParamKeys.add(columnName.toLowerCase());
-				newColumnNames.add(columnName.toUpperCase());
+				cryptParamKeys.add(CaseFormat.CamelCase.convert(columnName));
+				newColumnNames.add(CaseFormat.SnakeCase.convert(columnName));
 			}
 			// 定義ファイルで指定されたカラム名は大文字でない可能性があるので、ここで大文字に置換し直す
 			cryptColumnNames = newColumnNames;
@@ -173,7 +158,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		if (Parameter.class.equals(parameter.getClass())) {
 			// 通常のパラメータの場合
 			String key = parameter.getParameterName();
-			if (getCryptParamKeys().contains(key)) {
+			if (getCryptParamKeys().contains(CaseFormat.CamelCase.convert(key))) {
 				Object obj = parameter.getValue();
 				if (obj != null && obj instanceof String) {
 					String objStr = obj.toString();
@@ -182,7 +167,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 							synchronized (encryptCipher) {
 								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
 										getCharset()));
-								return new Parameter(key, Base64.getUrlEncoder().withoutPadding().encode(crypted));
+								return new Parameter(key, Base64.getUrlEncoder().withoutPadding().encodeToString(crypted));
 							}
 						} catch (Exception ex) {
 							return parameter;
