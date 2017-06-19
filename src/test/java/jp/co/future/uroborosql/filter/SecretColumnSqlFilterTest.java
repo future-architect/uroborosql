@@ -26,7 +26,6 @@ import org.junit.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 
 public class SecretColumnSqlFilterTest {
 
@@ -172,19 +171,6 @@ public class SecretColumnSqlFilterTest {
 			assertThat(result.get("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
 			assertThat(result.get("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
 			assertThat(result.get("VERSION_NO"), is(new BigDecimal("0")));
-		}
-	};
-
-	@Test
-	public void testDoParameter() throws Exception {
-		assertThat(sqlFilterManager.doParameter(null), is(nullValue()));
-
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-
-		try (SqlAgent agent = config.createAgent()) {
-			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
-
-			agent.query(ctx);
 		}
 	};
 }

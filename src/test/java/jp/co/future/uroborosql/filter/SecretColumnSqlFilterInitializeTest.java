@@ -39,6 +39,7 @@ public class SecretColumnSqlFilterInitializeTest {
 		assertThat(filter.isSkipFilter(), is(true));
 
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
+		filter.setCryptParamKeys(Arrays.asList("product_id", "product_name"));
 		sqlFilterManager.initialize();
 		assertThat(filter.getCryptParamKeys(), is(Arrays.asList("productId", "productName")));
 		assertThat(filter.getCryptColumnNames(), is(Arrays.asList("PRODUCT_ID", "PRODUCT_NAME")));
