@@ -9,11 +9,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,26 +155,95 @@ public class SecretColumnSqlFilterTest {
 
 		// 復号化しないで取得した場合 (skipFilter = true)
 		try (SqlAgent agent = skipConfig.createAgent()) {
-			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
-					.first();
+			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
 
-			assertEquals(result.get("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
+			while (result.next()) {
+				assertEquals(result.getString("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
+			}
 
 		}
 
 		// 復号化して取得した場合 (skipFilter = false)
 		try (SqlAgent agent = config.createAgent()) {
-			Map<String, Object> result = agent.query("example/select_product").param("product_id", new BigDecimal(0))
-					.first();
+			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
 
-			assertThat(result.get("PRODUCT_ID"), is(new BigDecimal("0")));
-			assertThat(result.get("PRODUCT_NAME"), is("商品名0"));
-			assertThat(result.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
-			assertThat(result.get("JAN_CODE"), is("1234567890123"));
-			assertThat(result.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
-			assertThat(result.get("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
-			assertThat(result.get("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
-			assertThat(result.get("VERSION_NO"), is(new BigDecimal("0")));
+			while (result.next()) {
+				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
+				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
+				assertThat(result.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(result.getString("JAN_CODE"), is("1234567890123"));
+				assertThat(result.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+				assertThat(result.getTimestamp("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
+				assertThat(result.getTimestamp("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
+				assertThat(result.getBigDecimal("VERSION_NO"), is(BigDecimal.ZERO));
+			}
+		}
+	};
+
+	@Test
+	public void testSecretResultSet() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// 復号化して取得した場合 (skipFilter = false)
+		try (SqlAgent agent = config.createAgent()) {
+			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+
+			while (result.next()) {
+				assertThat(result.getString("PRODUCT_ID"), is("0"));
+				assertThat(result.getString(1), is("0"));
+				assertThat(result.getBoolean("PRODUCT_ID"), is(false));
+				assertThat(result.getBoolean(1), is(false));
+				assertThat(result.getByte("PRODUCT_ID"), is((byte) 0));
+				assertThat(result.getByte(1), is((byte) 0));
+				assertThat(result.getShort("PRODUCT_ID"), is((short) 0));
+				assertThat(result.getShort(1), is((short) 0));
+				assertThat(result.getInt("PRODUCT_ID"), is((int) 0));
+				assertThat(result.getInt(1), is((int) 0));
+				assertThat(result.getLong("PRODUCT_ID"), is(0L));
+				assertThat(result.getLong(1), is(0L));
+				assertThat(result.getFloat("PRODUCT_ID"), is(0.0f));
+				assertThat(result.getFloat(1), is(0.0f));
+				assertThat(result.getDouble("PRODUCT_ID"), is(0.0d));
+				assertThat(result.getDouble(1), is(0.0d));
+				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
+				assertThat(result.getBigDecimal(1), is(BigDecimal.ZERO));
+				assertThat(result.getBigDecimal("PRODUCT_ID", 0), is(BigDecimal.ZERO));
+				assertThat(result.getBigDecimal(1, 0), is(BigDecimal.ZERO));
+				assertThat(result.getDate("INS_DATETIME"), is(Date.valueOf("2005-12-12")));
+				assertThat(result.getDate(6), is(Date.valueOf("2005-12-12")));
+				assertThat(result.getDate("INS_DATETIME", Calendar.getInstance()), is(Date.valueOf("2005-12-12")));
+				assertThat(result.getDate(6, Calendar.getInstance()), is(Date.valueOf("2005-12-12")));
+				assertThat(result.getTime("INS_DATETIME"), is(Time.valueOf("10:10:10")));
+				assertThat(result.getTime(6), is(Time.valueOf("10:10:10")));
+				assertThat(result.getTime("INS_DATETIME", Calendar.getInstance()), is(Time.valueOf("10:10:10")));
+				assertThat(result.getTime(6, Calendar.getInstance()), is(Time.valueOf("10:10:10")));
+				assertThat(result.getTimestamp("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getTimestamp(6), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getTimestamp("INS_DATETIME", Calendar.getInstance()), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getTimestamp(6, Calendar.getInstance()), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getNString("PRODUCT_ID"), is("0"));
+				assertThat(result.getNString(1), is("0"));
+				assertThat(result.findColumn("PRODUCT_ID"), is(1));
+				assertThat(result.wasNull(), is(false));
+				assertThat(result.isFirst(), is(true));
+				assertThat(result.isLast(), is(true));
+				assertThat(result.isBeforeFirst(), is(false));
+				assertThat(result.isAfterLast(), is(false));
+				assertThat(result.getRow(), is(1));
+				assertThat(result.getHoldability(), is(1));
+				assertThat(result.absolute(1), is(true));
+				assertThat(result.relative(1), is(false));
+				assertThat(result.isClosed(), is(false));
+				result.setFetchDirection(1000);
+				assertThat(result.getFetchDirection(), is(1000));
+				result.setFetchSize(0);
+				assertThat(result.getFetchSize(), is(0));
+				assertThat(result.getType(), is(1003));
+				assertThat(result.getConcurrency(), is(1007));
+				result.clearWarnings();
+				assertNull(result.getWarnings());
+			}
+			result.close();
 		}
 	};
 }
