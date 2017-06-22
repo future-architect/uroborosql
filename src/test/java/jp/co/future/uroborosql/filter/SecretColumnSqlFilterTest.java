@@ -30,6 +30,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.context.SqlContext;
 
 public class SecretColumnSqlFilterTest {
 
@@ -160,7 +161,7 @@ public class SecretColumnSqlFilterTest {
 			while (result.next()) {
 				assertEquals(result.getString("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
 			}
-
+			result.close();
 		}
 
 		// 復号化して取得した場合 (skipFilter = false)
@@ -177,16 +178,17 @@ public class SecretColumnSqlFilterTest {
 				assertThat(result.getTimestamp("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
 				assertThat(result.getBigDecimal("VERSION_NO"), is(BigDecimal.ZERO));
 			}
+			result.close();
 		}
 	};
 
 	@Test
-	public void testSecretResultSet() throws Exception {
+	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		// 復号化して取得した場合 (skipFilter = false)
 		try (SqlAgent agent = config.createAgent()) {
-			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+			SecretResultSet result = (SecretResultSet) agent.query("example/select_product")
+					.param("product_id", new BigDecimal(0)).resultSet();
 
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_ID"), is("0"));
@@ -219,8 +221,10 @@ public class SecretColumnSqlFilterTest {
 				assertThat(result.getTime(6, Calendar.getInstance()), is(Time.valueOf("10:10:10")));
 				assertThat(result.getTimestamp("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10")));
 				assertThat(result.getTimestamp(6), is(Timestamp.valueOf("2005-12-12 10:10:10")));
-				assertThat(result.getTimestamp("INS_DATETIME", Calendar.getInstance()), is(Timestamp.valueOf("2005-12-12 10:10:10")));
-				assertThat(result.getTimestamp(6, Calendar.getInstance()), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getTimestamp("INS_DATETIME", Calendar.getInstance()),
+						is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				assertThat(result.getTimestamp(6, Calendar.getInstance()),
+						is(Timestamp.valueOf("2005-12-12 10:10:10")));
 				assertThat(result.getNString("PRODUCT_ID"), is("0"));
 				assertThat(result.getNString(1), is("0"));
 				assertThat(result.findColumn("PRODUCT_ID"), is(1));
@@ -231,6 +235,9 @@ public class SecretColumnSqlFilterTest {
 				assertThat(result.isAfterLast(), is(false));
 				assertThat(result.getRow(), is(1));
 				assertThat(result.getHoldability(), is(1));
+				assertThat(result.rowUpdated(), is(false));
+				assertThat(result.rowInserted(), is(false));
+				assertThat(result.rowDeleted(), is(false));
 				assertThat(result.absolute(1), is(true));
 				assertThat(result.relative(1), is(false));
 				assertThat(result.isClosed(), is(false));
@@ -242,6 +249,101 @@ public class SecretColumnSqlFilterTest {
 				assertThat(result.getConcurrency(), is(1007));
 				result.clearWarnings();
 				assertNull(result.getWarnings());
+
+			}
+			result.close();
+		}
+	};
+
+	@Test
+	public void testSecretResultSet02() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.createAgent()) {
+			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+			ctx.setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
+
+			ResultSet result = agent.query(ctx);
+			while (result.next()) {
+				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
+				result.updateNull("PRODUCT_NAME");
+				result.updateRow();
+				assertNull(result.getString("PRODUCT_NAME"));
+				result.updateNull(2);
+				result.updateRow();
+				assertNull(result.getString("PRODUCT_NAME"));
+				result.updateBoolean("PRODUCT_NAME", true);
+				result.updateRow();
+				assertThat(result.getBoolean("PRODUCT_NAME"), is(true));
+				result.updateBoolean(2, false);
+				result.updateRow();
+				assertThat(result.getBoolean("PRODUCT_NAME"), is(false));
+				result.updateByte("PRODUCT_NAME", (byte) 1);
+				result.updateRow();
+				assertThat(result.getByte("PRODUCT_NAME"), is((byte) 1));
+				result.updateByte(2, (byte) 2);
+				result.updateRow();
+				assertThat(result.getByte("PRODUCT_NAME"), is((byte) 2));
+				result.updateShort("PRODUCT_NAME", (short) 3);
+				result.updateRow();
+				assertThat(result.getShort("PRODUCT_NAME"), is((short) 3));
+				result.updateShort(2, (short) 4);
+				result.updateRow();
+				assertThat(result.getShort("PRODUCT_NAME"), is((short) 4));
+				result.updateInt("PRODUCT_NAME", (int) 5);
+				result.updateRow();
+				assertThat(result.getInt("PRODUCT_NAME"), is((int) 5));
+				result.updateInt(2, (int) 6);
+				result.updateRow();
+				assertThat(result.getInt("PRODUCT_NAME"), is((int) 6));
+				result.updateLong("PRODUCT_NAME", 7L);
+				result.updateRow();
+				assertThat(result.getLong("PRODUCT_NAME"), is(7L));
+				result.updateLong(2, 8L);
+				result.updateRow();
+				assertThat(result.getLong("PRODUCT_NAME"), is(8L));
+				result.updateFloat("PRODUCT_NAME", 8.0f);
+				result.updateRow();
+				assertThat(result.getFloat("PRODUCT_NAME"), is(8.0f));
+				result.updateFloat(2, 8.1f);
+				result.updateRow();
+				assertThat(result.getFloat("PRODUCT_NAME"), is(8.1f));
+				result.updateDouble("PRODUCT_NAME", 9.0D);
+				result.updateRow();
+				assertThat(result.getDouble("PRODUCT_NAME"), is(9.0D));
+				result.updateDouble(2, 9.1D);
+				result.updateRow();
+				assertThat(result.getDouble("PRODUCT_NAME"), is(9.1D));
+				result.updateBigDecimal("PRODUCT_NAME", BigDecimal.ZERO);
+				result.updateRow();
+				assertThat(result.getBigDecimal("PRODUCT_NAME"), is(BigDecimal.ZERO));
+				result.updateBigDecimal(2, BigDecimal.ONE);
+				result.updateRow();
+				assertThat(result.getBigDecimal("PRODUCT_NAME"), is(BigDecimal.ONE));
+				result.updateString("PRODUCT_NAME", "string1");
+				result.updateRow();
+				assertThat(result.getString("PRODUCT_NAME"), is("string1"));
+				result.updateString(2, "string2");
+				result.updateRow();
+				assertThat(result.getString("PRODUCT_NAME"), is("string2"));
+				result.updateDate("PRODUCT_NAME", Date.valueOf("2017-06-01"));
+				result.updateRow();
+				assertThat(result.getDate("PRODUCT_NAME"), is(Date.valueOf("2017-06-01")));
+				result.updateDate(2, Date.valueOf("2017-06-02"));
+				result.updateRow();
+				assertThat(result.getDate("PRODUCT_NAME"), is(Date.valueOf("2017-06-02")));
+				result.updateTime("PRODUCT_NAME", Time.valueOf("10:10:10"));
+				result.updateRow();
+				assertThat(result.getTime("PRODUCT_NAME"), is(Time.valueOf("10:10:10")));
+				result.updateTime(2, Time.valueOf("10:10:11"));
+				result.updateRow();
+				assertThat(result.getTime("PRODUCT_NAME"), is(Time.valueOf("10:10:11")));
+				result.updateTimestamp("PRODUCT_NAME", Timestamp.valueOf("2005-12-12 10:10:10"));
+				result.updateRow();
+				assertThat(result.getTimestamp("PRODUCT_NAME"), is(Timestamp.valueOf("2005-12-12 10:10:10")));
+				result.updateTimestamp(2, Timestamp.valueOf("2005-12-12 10:10:11"));
+				result.updateRow();
+				assertThat(result.getTimestamp("PRODUCT_NAME"), is(Timestamp.valueOf("2005-12-12 10:10:11")));
 			}
 			result.close();
 		}
