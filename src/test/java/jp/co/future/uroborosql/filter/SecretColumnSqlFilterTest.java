@@ -227,6 +227,18 @@ public class SecretColumnSqlFilterTest {
 						is(Timestamp.valueOf("2005-12-12 10:10:10")));
 				assertThat(result.getNString("PRODUCT_ID"), is("0"));
 				assertThat(result.getNString(1), is("0"));
+			    assertThat(result.getBlob(1).toString(), is("blob0: 0"));
+			    assertThat(result.getBlob("PRODUCT_ID").toString(), is("blob1: 0"));
+			    assertThat(result.getArray(1).toString(), is("ar0: 0"));
+			    assertThat(result.getArray("PRODUCT_ID").toString(), is("ar1: 0"));
+			    assertThat(result.getClob(1).toString(), is("clob0: 0"));
+			    assertThat(result.getClob("PRODUCT_ID").toString(), is("clob1: 0"));
+			    assertThat(result.getStatement().getMaxRows(), is(0));
+				assertThat(result.getObject("PRODUCT_ID").getClass().getName(), is("java.math.BigDecimal"));
+				assertThat(result.getObject(1).getClass().getName(), is("java.math.BigDecimal"));
+				assertThat(result.getCipher().getProvider().getName(), is("SunJCE"));
+				assertThat(result.getCryptColumnNames(), is(Arrays.asList("PRODUCT_NAME")));
+				assertThat(result.getWrapped().getString(1), is("0"));
 				assertThat(result.findColumn("PRODUCT_ID"), is(1));
 				assertThat(result.wasNull(), is(false));
 				assertThat(result.isFirst(), is(true));
@@ -344,6 +356,29 @@ public class SecretColumnSqlFilterTest {
 				result.updateTimestamp(2, Timestamp.valueOf("2005-12-12 10:10:11"));
 				result.updateRow();
 				assertThat(result.getTimestamp("PRODUCT_NAME"), is(Timestamp.valueOf("2005-12-12 10:10:11")));
+				result.updateNString("PRODUCT_NAME", "string1");
+				result.updateRow();
+				assertThat(result.getNString("PRODUCT_NAME"), is("string1"));
+				result.updateNString(2, "string2");
+				result.updateRow();
+				assertThat(result.getNString("PRODUCT_NAME"), is("string2"));
+			}
+			result.close();
+		}
+	};
+
+	@Test
+	public void testSecretResultSet03() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.createAgent()) {
+			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+
+			ResultSet result = agent.query(ctx);
+			while (result.next()) {
+//				result.beforeFirst();
+//				assertThat(result.isBeforeFirst(), is(true));
 			}
 			result.close();
 		}
