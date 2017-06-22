@@ -236,6 +236,8 @@ public class SecretColumnSqlFilterTest {
 			    assertThat(result.getStatement().getMaxRows(), is(0));
 				assertThat(result.getObject("PRODUCT_ID").getClass().getName(), is("java.math.BigDecimal"));
 				assertThat(result.getObject(1).getClass().getName(), is("java.math.BigDecimal"));
+				assertThat(result.getObject("PRODUCT_ID", String.class).getClass().getName(),is("java.lang.String"));
+				assertThat(result.getObject(1, String.class).getClass().getName(),is("java.lang.String"));
 				assertThat(result.getCipher().getProvider().getName(), is("SunJCE"));
 				assertThat(result.getCryptColumnNames(), is(Arrays.asList("PRODUCT_NAME")));
 				assertThat(result.getWrapped().getString(1), is("0"));
@@ -259,6 +261,7 @@ public class SecretColumnSqlFilterTest {
 				assertThat(result.getFetchSize(), is(0));
 				assertThat(result.getType(), is(1003));
 				assertThat(result.getConcurrency(), is(1007));
+				assertThat(result.getMetaData().getColumnCount(), is(8));
 				result.clearWarnings();
 				assertNull(result.getWarnings());
 
@@ -377,8 +380,23 @@ public class SecretColumnSqlFilterTest {
 
 			ResultSet result = agent.query(ctx);
 			while (result.next()) {
-//				result.beforeFirst();
-//				assertThat(result.isBeforeFirst(), is(true));
+				result.first();
+				assertThat(result.isFirst(), is(true));
+				result.previous();
+				assertThat(result.isBeforeFirst(), is(true));
+				result.next();
+				assertThat(result.isBeforeFirst(), is(false));
+				result.last();
+				assertThat(result.isLast(), is(true));
+				result.next();
+				assertThat(result.isAfterLast(), is(true));
+				result.previous();
+				assertThat(result.isAfterLast(), is(false));
+				result.beforeFirst();
+				assertThat(result.isBeforeFirst(), is(true));
+				result.afterLast();
+				assertThat(result.isAfterLast(), is(true));
+				result.next();
 			}
 			result.close();
 		}
