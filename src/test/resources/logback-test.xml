@@ -34,12 +34,6 @@
 		</encoder>
 	</appender>
 
-	<appender name="SqlAgentTest" class="jp.co.future.uroborosql.testlog.TestAppender">
-		<encoder>
-			<pattern>%m%n</pattern>
-		</encoder>
-	</appender>
-
 	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
 		level="DEBUG" additivity="false">
 		<appender-ref ref="AuditLogTest" />
@@ -60,11 +54,6 @@
 		<appender-ref ref="DumpResultSqlFilterTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.SqlAgent"
-		level="DEBUG" additivity="false">
-		<appender-ref ref="SqlAgentTest" />
-	</logger>
-
 	<appender name="CoverageLog" class="ch.qos.logback.core.FileAppender">
 		<file>target/coverage.log</file>
 		<append>true</append>
@@ -81,7 +70,7 @@
 	<!-- ログ出力に関する設定 -->
 	<root>
 		<!-- 出力するレベルを設定 -->
-		<level value="INFO" />
+		<level value="DEBUG" />
 
 		<!-- アペンダを設定 -->
 		<appender-ref ref="STDOUT" />
