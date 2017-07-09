@@ -1,10 +1,18 @@
+*.class
+*.log
+
+# Eclipse
 /target/
 /.settings/
 .project
 .classpath
-*.log
 
-*.class
+# IntelliJ
+/.idea/
+/tmp/
+/bin/
+*.test
+*.swp
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
