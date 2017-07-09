@@ -138,4 +138,21 @@ public class ParameterTest {
 			}
 		}
 	}
+
+	/**
+	 * ByteArrayのテスト
+	 *
+	 * @throws SQLException SQL例外
+	 */
+	@Test
+	public void testSetInParameter_bytearray() throws SQLException {
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
+
+			assertThat("更新件数が一致しません",
+					agent.updateWith("INSERT INTO BYTE_ARRAY_TEST VALUES (/*id*/, /*data*/)").param("id", 1)
+							.param("data", "test".getBytes()).count(), is(1));
+		}
+	}
 }

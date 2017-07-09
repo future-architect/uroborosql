@@ -94,7 +94,8 @@ public class Parameter {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]", subParameterName);
+					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+							subParameterName);
 				}
 			} else {
 				try {
@@ -102,7 +103,8 @@ public class Parameter {
 					field.setAccessible(true);
 					subValue = field.get(value);
 				} catch (Exception e) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]", subParameterName, e);
+					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+							subParameterName, e);
 				}
 			}
 		}
@@ -144,7 +146,8 @@ public class Parameter {
 				parameterLog(parameterIndex);
 				parameterIndex++;
 			}
-		} else if (value != null && value.getClass().isArray() && !parameterMapperManager.existsArrayMapper(value)//マッピング対象のArrayはここで処理しない
+		} else if (value != null && value.getClass().isArray() && !(value instanceof byte[]) // byte配列の場合は配列用の処理を行わない
+				&& !parameterMapperManager.existsArrayMapper(value) // マッピング対象のArrayはここで処理しない
 		) {
 			int length = Array.getLength(value);
 			for (int i = 0; i < length; i++) {
