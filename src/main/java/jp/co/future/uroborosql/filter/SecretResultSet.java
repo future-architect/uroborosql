@@ -322,7 +322,7 @@ public class SecretResultSet implements ResultSet {
 	@Override
 	public String getString(final String columnLabel) throws SQLException {
 		String val = wrapped.getString(columnLabel);
-		if (cryptColumnNames.contains(CaseFormat.SnakeCase.convert(columnLabel))) {
+		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel))) {
 			return decode(val);
 		} else {
 			return val;
@@ -553,7 +553,7 @@ public class SecretResultSet implements ResultSet {
 	@Override
 	public Object getObject(final String columnLabel) throws SQLException {
 		Object val = wrapped.getObject(columnLabel);
-		if (cryptColumnNames.contains(CaseFormat.SnakeCase.convert(columnLabel)) && val instanceof String) {
+		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return decode(val);
 		} else {
 			return val;
@@ -569,7 +569,7 @@ public class SecretResultSet implements ResultSet {
 	@Override
 	public <T> T getObject(final String columnLabel, final Class<T> type) throws SQLException {
 		T val = wrapped.getObject(columnLabel, type);
-		if (cryptColumnNames.contains(CaseFormat.SnakeCase.convert(columnLabel)) && val instanceof String) {
+		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return (T) decode(val);
 		} else {
 			return val;

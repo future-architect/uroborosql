@@ -83,8 +83,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			cryptParamKeys = new ArrayList<>();
 			List<String> newColumnNames = new ArrayList<>();
 			for (String columnName : getCryptColumnNames()) {
-				cryptParamKeys.add(CaseFormat.CamelCase.convert(columnName));
-				newColumnNames.add(CaseFormat.SnakeCase.convert(columnName));
+				cryptParamKeys.add(CaseFormat.CAMEL_CASE.convert(columnName));
+				newColumnNames.add(CaseFormat.UPPER_SNAKE_CASE.convert(columnName));
 			}
 			// 定義ファイルで指定されたカラム名は大文字でない可能性があるので、ここで大文字に置換し直す
 			cryptColumnNames = newColumnNames;
@@ -158,7 +158,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		if (Parameter.class.equals(parameter.getClass())) {
 			// 通常のパラメータの場合
 			String key = parameter.getParameterName();
-			if (getCryptParamKeys().contains(CaseFormat.CamelCase.convert(key))) {
+			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
 				Object obj = parameter.getValue();
 				if (obj != null && obj instanceof String) {
 					String objStr = obj.toString();

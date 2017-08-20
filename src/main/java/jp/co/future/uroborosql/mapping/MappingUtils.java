@@ -54,9 +54,9 @@ public final class MappingUtils {
 
 			if (column != null) {
 				this.name = column.name();
-				this.camelName = CaseFormat.CamelCase.convert(column.name());
+				this.camelName = CaseFormat.CAMEL_CASE.convert(column.name());
 			} else {
-				this.name = CaseFormat.SnakeCase.convert(field.getName());
+				this.name = CaseFormat.UPPER_SNAKE_CASE.convert(field.getName());
 				this.camelName = field.getName();
 			}
 		}
@@ -118,7 +118,7 @@ public final class MappingUtils {
 		if (baseName.endsWith("Entity")) {
 			baseName = baseName.substring(0, baseName.length() - 6);
 		}
-		return new TableImpl(CaseFormat.SnakeCase.convert(baseName), "");
+		return new TableImpl(CaseFormat.UPPER_SNAKE_CASE.convert(baseName), "");
 	}
 
 	/**
