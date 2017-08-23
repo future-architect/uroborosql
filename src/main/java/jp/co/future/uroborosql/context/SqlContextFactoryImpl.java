@@ -30,11 +30,12 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import ognl.OgnlRuntime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ognl.OgnlRuntime;
 
 /**
  * SQLコンテキストファクトリ実装
@@ -123,9 +124,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 			Field[] fields = targetClass.getFields();
 			for (Field field : fields) {
 				int mod = field.getModifiers();
-				if (Modifier.isFinal(mod) && Modifier.isPublic(mod) && Modifier.isStatic(mod)) {
-					if (String.class.equals(field.getType()) || int.class.equals(field.getType())) {
-						String fieldName = getConstParamPrefix() + fieldPrefix + field.getName().toUpperCase();
+				if (Modifier.isFinal(mod) && Modifier.isStatic(mod)) {
+					Object value = field.get(null);
+					if (parameterMapperManager.canAcceptByStandard(value)) {
+						String fieldName = getConstParamPrefix() + fieldPrefix + field.getName();
 						fieldName = fieldName.toUpperCase();
 						Parameter newValue = new Parameter(fieldName, field.get(null));
 						Parameter prevValue = paramMap.put(fieldName, newValue);
@@ -153,6 +155,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 
 	/**
 	 * Enum型の定数パラメータのMapを生成する
+	 *
 	 * @param paramMap 定数パラメータを保持するMap
 	 * @param packageName パッケージ名
 	 * @param targetClass 対象Enumクラス
@@ -190,8 +193,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * 定数パラメータプレフィックスを設定します。
 	 *
-	 * @param constParamPrefix
-	 *            定数パラメータプレフィックス
+	 * @param constParamPrefix 定数パラメータプレフィックス
 	 */
 	@Override
 	public void setConstParamPrefix(final String constParamPrefix) {
@@ -211,8 +213,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * 定数クラス名（FQDN）を設定します。
 	 *
-	 * @param constantClassNames
-	 *            定数クラス名（FQDN）
+	 * @param constantClassNames 定数クラス名（FQDN）
 	 */
 	@Override
 	public void setConstantClassNames(final List<String> constantClassNames) {
@@ -262,8 +263,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * SqlFilter管理クラスを設定します。
 	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 *            SqlFilter管理クラス
+	 * @param sqlFilterManager SQLフィルタ管理クラス SqlFilter管理クラス
 	 */
 	@Override
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
@@ -303,8 +303,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * 自動バインド用パラメータ生成クラスのリストを設定します。
 	 *
-	 * @param autoBindParameterCreators
-	 *            自動バインド用パラメータ生成クラスのリスト
+	 * @param autoBindParameterCreators 自動バインド用パラメータ生成クラスのリスト
 	 */
 	@Override
 	public void setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
