@@ -39,7 +39,7 @@ public interface TableMetadata {
 		 * @return CamelCase カラム名
 		 */
 		default String getCamelColumnName() {
-			return CaseFormat.CamelCase.convert(getColumnName());
+			return CaseFormat.CAMEL_CASE.convert(getColumnName());
 		}
 
 		/**

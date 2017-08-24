@@ -55,7 +55,7 @@ public class TableMetadataImpl implements TableMetadata {
 
 		@Override
 		public String getCamelColumnName() {
-			return this.camelName != null ? this.camelName : (this.camelName = CaseFormat.CamelCase.convert(getColumnName()));
+			return this.camelName != null ? this.camelName : (this.camelName = CaseFormat.CAMEL_CASE.convert(getColumnName()));
 		}
 
 		/**

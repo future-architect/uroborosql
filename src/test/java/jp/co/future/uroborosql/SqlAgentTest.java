@@ -326,7 +326,7 @@ public class SqlAgentTest {
 			SqlContext ctx = agent.contextFrom("example/select_product");
 			ctx.paramList("product_id", 0, 1);
 
-			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CamelCase);
+			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
 			ans.forEach((m) -> {
 				assertTrue(m.containsKey("productId"));
 				assertTrue(m.containsKey("productName"));
@@ -343,7 +343,7 @@ public class SqlAgentTest {
 			SqlContext ctx = agent.contextFrom("example/select_product");
 			ctx.paramList("product_id", 0, 1);
 
-			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.SnakeCase);
+			List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.UPPER_SNAKE_CASE);
 			ans.forEach((m) -> {
 				assertTrue(m.containsKey("PRODUCT_ID"));
 				assertTrue(m.containsKey("PRODUCT_NAME"));
