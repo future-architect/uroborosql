@@ -113,6 +113,46 @@ public final class BindParameterMapperManager {
 	}
 
 	/**
+	 * 標準でパラメータとして受け入れ可能な値かを判定
+	 *
+	 * @param object 指定パラメータ
+	 * @return true：標準で受け入れ可能
+	 */
+	public boolean canAcceptByStandard(final Object object) {
+		if (object == null) {
+			return true;
+		}
+		if (object instanceof Boolean || object instanceof Byte || object instanceof Short || object instanceof Integer
+				|| object instanceof Long || object instanceof Float || object instanceof Double
+				|| object instanceof BigDecimal || object instanceof String
+
+				|| object instanceof byte[]
+
+				|| object instanceof java.sql.Date || object instanceof java.sql.Time
+				|| object instanceof java.sql.Timestamp || object instanceof java.sql.Array
+				|| object instanceof java.sql.Ref || object instanceof java.sql.Blob || object instanceof java.sql.Clob
+				|| object instanceof java.sql.SQLXML
+
+				|| object instanceof java.sql.Struct) {
+			return true;
+		}
+		for (@SuppressWarnings("rawtypes")
+		BindParameterMapper parameterMapper : mappers) {
+			if (parameterMapper.canAccept(object)) {
+				return true;
+			}
+		}
+
+		for (@SuppressWarnings("rawtypes")
+		BindParameterMapper parameterMapper : DEFAULT_MAPPERS) {
+			if (parameterMapper.canAccept(object)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * 配列用のバインドパラメータMapperが存在するかどうかを判定
 	 *
 	 * @param object マッピング対象オブジェクト
