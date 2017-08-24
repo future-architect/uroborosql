@@ -15,7 +15,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  *
  */
 public class MapResultSetConverter implements ResultSetConverter<Map<String, Object>> {
-	private CaseFormat caseFormat = CaseFormat.SnakeCase;
+	private CaseFormat caseFormat = CaseFormat.UPPER_SNAKE_CASE;
 
 	public MapResultSetConverter() {
 	}

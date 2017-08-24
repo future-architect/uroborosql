@@ -70,7 +70,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Map<String, Object> first() throws DataNotFoundException, SQLException {
-		return first(CaseFormat.SnakeCase);
+		return first(CaseFormat.UPPER_SNAKE_CASE);
 	}
 
 	/**
@@ -101,6 +101,6 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public List<Map<String, Object>> collect() throws SQLException {
-		return collect(CaseFormat.SnakeCase);
+		return collect(CaseFormat.UPPER_SNAKE_CASE);
 	}
 }

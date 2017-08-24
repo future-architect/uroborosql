@@ -118,7 +118,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	protected void makeConstParamMap(final Map<String, Parameter> paramMap, final Class<?> targetClass) {
 		try {
-			String fieldPrefix = targetClass.isMemberClass() ? CaseFormat.SnakeCase
+			String fieldPrefix = targetClass.isMemberClass() ? CaseFormat.UPPER_SNAKE_CASE
 					.convert(targetClass.getSimpleName()) + "_" : "";
 			// 指定されたクラス直下の定数フィールドを追加
 			Field[] fields = targetClass.getFields();
@@ -163,7 +163,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
-		String fieldPrefix = CaseFormat.SnakeCase.convert(targetClass.getName().substring(packageName.length() + 1))
+		String fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(packageName.length() + 1))
 				+ "_";
 
 		Enum<?>[] enumValues = targetClass.getEnumConstants();
