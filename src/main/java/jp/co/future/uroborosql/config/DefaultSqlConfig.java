@@ -2,6 +2,8 @@ package jp.co.future.uroborosql.config;
 
 import java.sql.Connection;
 
+import javax.sql.DataSource;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.SqlAgentFactoryImpl;
@@ -154,11 +156,58 @@ public class DefaultSqlConfig implements SqlConfig {
 	/**
 	 * データソースを指定してSqlConfigを取得する
 	 *
+	 * @param dataSource データソース
+	 * @return SqlConfigオブジェクト
+	 */
+	public static SqlConfig getConfig(final DataSource dataSource) {
+		DataSourceConnectionSupplierImpl connectionSupplier = new DataSourceConnectionSupplierImpl(dataSource);
+		return new DefaultSqlConfig(connectionSupplier, null);
+	}
+
+	/**
+	 * データソースを指定してSqlConfigを取得する
+	 *
+	 * @param dataSource データソース
+	 * @param autoCommit 自動コミットの指定
+	 * @param readOnly 読み取り専用モードの指定
+	 * @param transactionIsolation トランザクション隔離レベルの指定
+	 * @return SqlConfigオブジェクト
+	 */
+	public static SqlConfig getConfig(final DataSource dataSource, final boolean autoCommit, final boolean readOnly,
+			final int transactionIsolation) {
+		DataSourceConnectionSupplierImpl connectionSupplier = new DataSourceConnectionSupplierImpl(dataSource);
+		connectionSupplier.setDefaultAutoCommit(autoCommit);
+		connectionSupplier.setDefaultReadOnly(readOnly);
+		connectionSupplier.setDefaultTransactionIsolation(transactionIsolation);
+		return new DefaultSqlConfig(connectionSupplier, null);
+	}
+
+	/**
+	 * データソース名を指定してSqlConfigを取得する
+	 *
 	 * @param dataSourceName データソース名
 	 * @return SqlConfigオブジェクト
 	 */
 	public static SqlConfig getConfig(final String dataSourceName) {
 		DataSourceConnectionSupplierImpl connectionSupplier = new DataSourceConnectionSupplierImpl(dataSourceName);
+		return new DefaultSqlConfig(connectionSupplier, null);
+	}
+
+	/**
+	 * データソース名を指定してSqlConfigを取得する
+	 *
+	 * @param dataSourceName データソース名
+	 * @param autoCommit 自動コミットの指定
+	 * @param readOnly 読み取り専用モードの指定
+	 * @param transactionIsolation トランザクション隔離レベルの指定
+	 * @return SqlConfigオブジェクト
+	 */
+	public static SqlConfig getConfig(final String dataSourceName, final boolean autoCommit, final boolean readOnly,
+			final int transactionIsolation) {
+		DataSourceConnectionSupplierImpl connectionSupplier = new DataSourceConnectionSupplierImpl(dataSourceName);
+		connectionSupplier.setDefaultAutoCommit(autoCommit);
+		connectionSupplier.setDefaultReadOnly(readOnly);
+		connectionSupplier.setDefaultTransactionIsolation(transactionIsolation);
 		return new DefaultSqlConfig(connectionSupplier, null);
 	}
 
