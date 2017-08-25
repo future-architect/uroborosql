@@ -67,7 +67,8 @@ public class SqlContextFactoryTest {
 				"CLS_STRING", "AAA",
 				"CLS_INT", 1,
 				"CLS_INNER_CLASS_ISTRING", TestConsts.InnerClass.ISTRING,
-				"CLS_OVERLAP_OVERLAP_VAL", "重複テスト２",
+				// コンパイラによりバイトコード差異で安定しないためテストしない
+				// "CLS_OVERLAP_OVERLAP_VAL", "重複テスト２",
 				"CLS_BOOLEAN", TestConsts.BOOLEAN,
 				"CLS_BYTE", TestConsts.BYTE,
 				"CLS_SHORT", TestConsts.SHORT,

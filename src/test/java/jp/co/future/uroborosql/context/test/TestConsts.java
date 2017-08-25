@@ -57,13 +57,14 @@ public class TestConsts {
 		public static final String ISTRING = "BBB";
 	}
 
-	public final class Overlap {
-		public static final String OVERLAP_VAL = "重複テスト１";
-	}
-
-	public final class OverlapOverlap {
-		public static final String VAL = "重複テスト２";
-	}
+	// コンパイラによりバイトコード差異で安定しないためテストしない
+	// public final class Overlap {
+	// public static final String OVERLAP_VAL = "重複テスト１";
+	// }
+	//
+	// public final class OverlapOverlap {
+	// public static final String VAL = "重複テスト２";
+	// }
 
 	interface ProxyContainer {
 		Object getOriginal();
