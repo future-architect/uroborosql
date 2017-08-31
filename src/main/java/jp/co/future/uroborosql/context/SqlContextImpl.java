@@ -65,7 +65,7 @@ public class SqlContextImpl implements SqlContext {
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
 	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND|OR)");
+			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND\\s+|OR\\s+)");
 
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(SqlContextImpl.class);
@@ -182,7 +182,7 @@ public class SqlContextImpl implements SqlContext {
 			if (executableSql.length() > 0) {
 				// where句の直後に来るANDやORの除去
 				StringBuffer buff = new StringBuffer();
-				if (executableSql.indexOf("WHERE") >= 0 || executableSql.indexOf("where") >= 0) {
+				if (executableSql.toString().toUpperCase().indexOf("WHERE") >= 0) {
 					Matcher whereMatcher = WHERE_CLAUSE_PATTERN.matcher(executableSql);
 					while (whereMatcher.find()) {
 						String whereClause = whereMatcher.group(1);
