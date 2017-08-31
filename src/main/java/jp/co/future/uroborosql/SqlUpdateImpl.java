@@ -13,7 +13,7 @@ import jp.co.future.uroborosql.fluent.SqlUpdate;
 final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpdate {
 	private final SqlAgent agent;
 	/** バッチ処理を行うかどうか */
-	boolean batch = false;
+	private boolean batch = false;
 
 	/**
 	 * コンストラクタ
@@ -58,6 +58,9 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 */
 	@Override
 	public int[] batch() throws SQLException {
+		if (context.batchCount() == 0) {
+			return new int[0];
+		}
 		if (!batch) {
 			addBatch();
 		}

@@ -133,6 +133,12 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	SqlContext clearBatch();
 
 	/**
+	 * addBatchされた回数を取得する
+	 * @return バッチ回数
+	 */
+	int batchCount();
+
+	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号
