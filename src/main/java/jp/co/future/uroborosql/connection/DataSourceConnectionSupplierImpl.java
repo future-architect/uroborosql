@@ -250,6 +250,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @see Connection#TRANSACTION_REPEATABLE_READ
 	 * @see Connection#TRANSACTION_SERIALIZABLE
 	 *
+	 * @param dataSourceName データソース名
 	 * @param transactionIsolation transactionIsolationオプション
 	 *
 	 */
