@@ -543,6 +543,18 @@ public class SqlAgentTest {
 		}
 	}
 
+	@Test
+	public void testExecuteBatchNoAddBatch() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		// 処理実行
+		try (SqlAgent agent = config.createAgent()) {
+			int[] count = agent.update("example/insert_product").batch();
+			assertEquals("データの登録件数が不正です。", 0, count.length);
+		}
+	}
+
 	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */

@@ -741,6 +741,16 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#batchCount()
+	 */
+	@Override
+	public int batchCount() {
+		return batchParameters.size();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.context.SqlContext#addDefineColumnType(int, int)
 	 */
 	@Override
