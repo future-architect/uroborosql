@@ -1086,4 +1086,38 @@ public class SqlParserTest {
 		assertEquals("aaa 1=1 bbb", ctx.getExecutableSql());
 	}
 
+	// Delete AND / OR immediately after WHERE clause
+	@Test
+	public void testDeleteImmediatelyAfterWhereClause() throws Exception {
+		// OK Case
+		String sql = "aaa Where /*IF true*/And col1 = 1/*END*/ bbb";
+
+		SqlParser parser = new SqlParserImpl(sql);
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa Where col1 = 1 bbb", ctx.getExecutableSql());
+
+		// OK Case in \r\n
+		sql = "aaa Where\r\n/*IF true*/or\r\ncol1 = 1/*END*/ bbb";
+
+		parser = new SqlParserImpl(sql);
+		ctx = sqlContextFactory.createSqlContext();
+
+		transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa Where\r\ncol1 = 1 bbb", ctx.getExecutableSql());
+
+		// NG Case
+		sql = "aaa WHERE /*IF true*/ORDER = 1/*END*/ bbb";
+
+		parser = new SqlParserImpl(sql);
+		ctx = sqlContextFactory.createSqlContext();
+
+		transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("aaa WHERE ORDER = 1 bbb", ctx.getExecutableSql());
+	}
+
 }
