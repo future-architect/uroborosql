@@ -1,26 +1,24 @@
 package jp.co.future.uroborosql.mapping;
 
-import java.time.LocalDate;
-
-import jp.co.future.uroborosql.mapping.annotations.*;
-
 import jp.co.future.uroborosql.mapping.annotations.Table;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import jp.co.future.uroborosql.mapping.annotations.*;
+import org.apache.commons.lang3.builder.*;
+
+import java.time.*;
 
 @Table(name = "TEST")
-public class TestEntity2 {
+public class TestEntity3 {
 	private long id;
 	private String name;
 	private int age;
 	private LocalDate birthday;
+	@Version
 	private int lockVersion = 0;
 
-	public TestEntity2() {
+	public TestEntity3() {
 	}
 
-	public TestEntity2(final long id, final String name, final int age, final LocalDate birthday) {
+	public TestEntity3(final long id, final String name, final int age, final LocalDate birthday) {
 		this.id = id;
 		this.name = name;
 		this.age = age;

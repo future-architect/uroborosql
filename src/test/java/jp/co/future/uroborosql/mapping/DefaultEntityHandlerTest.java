@@ -15,6 +15,7 @@ import java.util.Optional;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.exception.*;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 
@@ -39,7 +40,7 @@ public class DefaultEntityHandlerTest {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
-						"create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE,memo VARCHAR(500), primary key(id))");
+						"create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version NUMERIC(4), primary key(id))");
 
 				stmt.execute(
 						"drop table if exists test_data_no_key");
@@ -154,6 +155,41 @@ public class DefaultEntityHandlerTest {
 				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateLockVersionSuccess() throws Exception {
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.required(() -> {
+				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntity3 data = agent.find(TestEntity3.class, 1).orElse(null);
+				test.setLockVersion(test.getLockVersion() + 1);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+			});
+		}
+	}
+
+	@Test(expected = OptimisticLockException.class)
+	public void testUpdateLockVersionError() throws Exception {
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.required(() -> {
+				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				test.setLockVersion(1);
+				agent.insert(test);
+
+				test.setName("updatename");
+				test.setLockVersion(0);
+				agent.update(test);
 			});
 		}
 	}

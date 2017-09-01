@@ -44,4 +44,10 @@ public interface MappingColumn {
 	 */
 	JavaType getJavaType();
 
+	/**
+	 * バージョン情報カラムかどうか
+	 *
+	 * @return バージョンカラムの場合は<code>true</code>
+	 */
+	boolean isVersion();
 }

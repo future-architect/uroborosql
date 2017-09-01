@@ -2,12 +2,15 @@ package jp.co.future.uroborosql.mapping;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Column;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -44,6 +47,7 @@ public final class MappingUtils {
 		private final JavaType javaType;
 		private final String name;
 		private final String camelName;
+		private final boolean isVersion;
 
 		MappingColumnImpl(final Field field, final JavaType javaType) {
 			this.field = field;
@@ -59,6 +63,7 @@ public final class MappingUtils {
 				this.name = CaseFormat.UPPER_SNAKE_CASE.convert(field.getName());
 				this.camelName = field.getName();
 			}
+			this.isVersion = field.getAnnotation(Version.class) != null;
 		}
 
 		@Override
@@ -93,6 +98,11 @@ public final class MappingUtils {
 		public String getCamelName() {
 			return this.camelName;
 		}
+
+		@Override
+		public boolean isVersion() {
+			return isVersion;
+		}
 	}
 
 	private static final Map<Class<?>, MappingColumn[]> CHACHE = new LinkedHashMap<Class<?>, MappingColumn[]>() {
@@ -108,7 +118,7 @@ public final class MappingUtils {
 	 * @param entityType エンティティ型
 	 * @return テーブル情報
 	 */
-	public static Table geTable(final Class<?> entityType) {
+	public static Table getTable(final Class<?> entityType) {
 		jp.co.future.uroborosql.mapping.annotations.Table table = entityType.getAnnotation(
 				jp.co.future.uroborosql.mapping.annotations.Table.class);
 		if (table != null) {
@@ -145,6 +155,18 @@ public final class MappingUtils {
 			CHACHE.put(entityType, cols);
 		}
 		return cols;
+	}
+
+	/**
+	 * バージョン情報のカラムマッピング情報を返す
+	 *
+	 * @param entityType エンティティ型
+	 * @return カラムマッピング情報
+	 */
+	public static Optional<MappingColumn> getVersionMappingColumn(final Class<?> entityType) {
+		return Arrays.stream(getMappingColumns(entityType))
+			.filter(MappingColumn::isVersion)
+			.findFirst();
 	}
 
 	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass, final Map<String, MappingColumn> fieldsMap) {
