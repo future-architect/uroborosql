@@ -22,9 +22,11 @@ import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
+import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -678,7 +680,12 @@ public class SqlAgentImpl extends AbstractAgent {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createUpdateContext(this, metadata, type);
 			handler.setUpdateParams(context, entity);
-			return handler.doUpdate(this, context, entity);
+			int count = handler.doUpdate(this, context, entity);
+
+			if (count == 0 && MappingUtils.getVersionMappingColumn(type).isPresent()) {
+				throw new OptimisticLockException(context);
+			}
+			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.UPDATE, e);
 		}

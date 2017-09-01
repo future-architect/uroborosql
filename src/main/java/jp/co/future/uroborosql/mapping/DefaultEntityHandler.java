@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.mapping;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -98,7 +99,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected TableMetadata createMetadata(final ConnectionManager connectionManager, final Class<? extends Object> type)
 			throws SQLException {
-		Table table = geTable(type);
+		Table table = getTable(type);
 		return TableMetadata.createTableEntityMetadata(connectionManager, table);
 	}
 
@@ -108,8 +109,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param type エンティティ型
 	 * @return テーブル情報
 	 */
-	protected Table geTable(final Class<? extends Object> type) {
-		return MappingUtils.geTable(type);
+	protected Table getTable(final Class<? extends Object> type) {
+		return MappingUtils.getTable(type);
 	}
 
 	/**
@@ -224,6 +225,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(metadata.getTableIdentifier())
 				.append(" SET \n");
 
+		Optional<MappingColumn> versionMappingColumn = MappingUtils.getVersionMappingColumn(type);
+
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
@@ -232,14 +235,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			if (i > 0) {
 				appendIfCommma(sql, columns, i);
 			}
-			sql.append(col.getColumnName()).append(" = /*").append(camelColName).append("*/''\n");
-			sql.append("/*END*/\n");
+			sql.append(col.getColumnName()).append(" = /*").append(camelColName).append("*/''");
+			versionMappingColumn.ifPresent(mappingColumn -> {
+				if (camelColName.equals(mappingColumn.getCamelName())) {
+					sql.append(" + 1");
+				}
+			});
+			sql.append("\n").append("/*END*/\n");
 		}
 		sql.append("WHERE 1 = 1\n");
 		for (TableMetadata.Column col : metadata.getKeyColumns()) {
 			String camelColName = col.getCamelColumnName();
 			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
 		}
+		versionMappingColumn.ifPresent(mappingColumn -> {
+			sql.append("AND ").append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName()).append("*/''\n");
+		});
 		return sql.toString();
 	}
 
