@@ -182,7 +182,7 @@ public class SqlContextImpl implements SqlContext {
 			if (executableSql.length() > 0) {
 				// where句の直後に来るANDやORの除去
 				StringBuffer buff = new StringBuffer();
-				if (executableSql.toString().toUpperCase().indexOf("WHERE") >= 0) {
+				if (executableSql.toString().toUpperCase().contains("WHERE")) {
 					Matcher whereMatcher = WHERE_CLAUSE_PATTERN.matcher(executableSql);
 					while (whereMatcher.find()) {
 						String whereClause = whereMatcher.group(1);
