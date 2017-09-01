@@ -213,4 +213,10 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	 */
 	Map<String, Object> contextAttrs();
 
+	/**
+	 * バインドパラメータの文字列表現を返す
+	 *
+	 * @return バインドパラメータの文字列表現
+	 */
+	String formatParams();
 }

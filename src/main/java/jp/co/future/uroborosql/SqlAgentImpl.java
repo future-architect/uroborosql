@@ -682,8 +682,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
-			if (MappingUtils.getVersionMappingColumn(type).isPresent() && count == 0) {
-				throw new OptimisticLockException();
+			if (count == 0 && MappingUtils.getVersionMappingColumn(type).isPresent()) {
+				throw new OptimisticLockException(context);
 			}
 			return count;
 		} catch (SQLException e) {

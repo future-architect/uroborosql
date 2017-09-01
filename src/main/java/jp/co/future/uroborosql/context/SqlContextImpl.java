@@ -892,4 +892,12 @@ public class SqlContextImpl implements SqlContext {
 		return contextAttributes;
 	}
 
+	@Override
+	public String formatParams() {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < bindNames.size(); i++) {
+			sb.append(String.format("[%s=%s]", bindNames.get(i), bindValiables.get(i)));
+		}
+		return sb.toString();
+	}
 }
