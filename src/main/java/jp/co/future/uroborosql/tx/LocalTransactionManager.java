@@ -329,7 +329,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#close()
 	 */
 	@Override
-	public void close() throws SQLException {
+	public void close() {
 		txCtxStack.forEach((elem) -> elem.close());
 		txCtxStack.clear();
 	}

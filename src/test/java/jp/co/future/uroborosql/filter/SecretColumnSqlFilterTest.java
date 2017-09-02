@@ -101,7 +101,7 @@ public class SecretColumnSqlFilterTest {
 					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
@@ -124,7 +124,7 @@ public class SecretColumnSqlFilterTest {
 				}
 			});
 
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}

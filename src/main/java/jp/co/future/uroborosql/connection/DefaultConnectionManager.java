@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.connection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,10 +63,14 @@ public class DefaultConnectionManager implements ConnectionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#close()
 	 */
 	@Override
-	public void close() throws SQLException {
+	public void close() {
 		if (conn != null) {
 			LOG.trace("Close connection. conn[{}], hashCode[{}]", conn, conn.hashCode());
-			conn.close();
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				throw new UroborosqlRuntimeException(e);
+			}
 			conn = null;
 		}
 	}

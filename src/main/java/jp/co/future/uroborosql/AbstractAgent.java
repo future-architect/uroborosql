@@ -308,7 +308,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#close()
 	 */
 	@Override
-	public void close() throws SQLException {
+	public void close() {
 		transactionManager.close();
 		if (coverageHandlerRef.get() != null) {
 			coverageHandlerRef.get().onSqlAgentClose();
