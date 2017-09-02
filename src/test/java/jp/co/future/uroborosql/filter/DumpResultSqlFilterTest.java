@@ -81,7 +81,7 @@ public class DumpResultSqlFilterTest {
 					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
@@ -102,7 +102,7 @@ public class DumpResultSqlFilterTest {
 					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}

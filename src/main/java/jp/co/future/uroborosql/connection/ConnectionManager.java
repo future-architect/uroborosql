@@ -29,7 +29,7 @@ public interface ConnectionManager extends AutoCloseable {
 	 * Connectionをcloseします
 	 */
 	@Override
-	void close() throws SQLException;
+	void close();
 
 	/**
 	 * コネクションのコミットを行う

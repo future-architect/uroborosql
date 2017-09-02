@@ -95,10 +95,9 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * クローズ処理
 	 *
 	 * @see java.lang.AutoCloseable#close()
-	 * @throws SQLException SQL例外
 	 */
 	@Override
-	void close() throws SQLException;
+	void close();
 
 	/**
 	 * フェッチサイズ取得。
