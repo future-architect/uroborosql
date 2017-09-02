@@ -5,7 +5,7 @@ package jp.co.future.uroborosql.exception;
  *
  * @author H.Sugimoto
  */
-public class DataNotFoundException extends Exception {
+public class DataNotFoundException extends UroborosqlRuntimeException {
 
 	public DataNotFoundException() {
 		super();

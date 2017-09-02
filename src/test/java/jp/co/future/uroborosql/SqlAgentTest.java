@@ -78,7 +78,7 @@ public class SqlAgentTest {
 			Arrays.asList(tables).stream().forEach(tbl -> {
 				try {
 					agent.updateWith("truncate table " + tbl.toString()).count();
-				} catch (SQLException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
 					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
@@ -99,7 +99,7 @@ public class SqlAgentTest {
 			dataList.stream().forEach(map -> {
 				try {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
-				} catch (SQLException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
 					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
 				}
