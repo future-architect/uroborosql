@@ -3,8 +3,8 @@ package jp.co.future.uroborosql.connection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,7 @@ public class DefaultConnectionManager implements ConnectionManager {
 			try {
 				conn.close();
 			} catch (SQLException e) {
-				throw new UroborosqlRuntimeException(e);
+				throw new UroborosqlSQLException(e);
 			}
 			conn = null;
 		}
