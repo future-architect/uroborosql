@@ -11,8 +11,6 @@ import java.sql.SQLException;
 public interface SQLRunnable {
 	/**
 	 * SQL実行
-	 *
-	 * @throws SQLException SQL例外
 	 */
-	void run() throws SQLException;
+	void run();
 }

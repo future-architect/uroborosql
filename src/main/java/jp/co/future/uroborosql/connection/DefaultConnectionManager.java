@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,9 +82,13 @@ public class DefaultConnectionManager implements ConnectionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#commit()
 	 */
 	@Override
-	public void commit() throws SQLException {
+	public void commit() {
 		if (conn != null) {
-			conn.commit();
+			try {
+				conn.commit();
+			} catch (SQLException e) {
+				throw new UroborosqlSQLException(e);
+			}
 		}
 	}
 
@@ -93,9 +98,13 @@ public class DefaultConnectionManager implements ConnectionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#rollback()
 	 */
 	@Override
-	public void rollback() throws SQLException {
+	public void rollback() {
 		if (conn != null) {
-			conn.rollback();
+			try {
+				conn.rollback();
+			} catch (SQLException e) {
+				throw new UroborosqlSQLException(e);
+			}
 		}
 	}
 }

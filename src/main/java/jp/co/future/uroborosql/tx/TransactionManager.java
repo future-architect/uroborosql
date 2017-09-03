@@ -1,7 +1,6 @@
 package jp.co.future.uroborosql.tx;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import jp.co.future.uroborosql.connection.ConnectionManager;
 
@@ -16,9 +15,8 @@ public interface TransactionManager extends ConnectionManager {
 	 * トランザクションを実行します。
 	 *
 	 * @param runnable トランザクション内で実行する処理
-	 * @throws SQLException SQL例外
 	 */
-	void required(SQLRunnable runnable) throws SQLException;
+	void required(SQLRunnable runnable);
 
 	/**
 	 * トランザクションを実行します。
@@ -26,17 +24,15 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param supplier トランザクション内で実行する処理
 	 * @param <R> 結果の型
 	 * @return 処理の結果
-	 * @throws SQLException SQL例外
 	 */
-	<R> R required(SQLSupplier<R> supplier) throws SQLException;
+	<R> R required(SQLSupplier<R> supplier);
 
 	/**
 	 * 新たなトランザクションを実行します。
 	 *
 	 * @param runnable トランザクション内で実行する処理
-	 * @throws SQLException SQL例外
 	 */
-	void requiresNew(SQLRunnable runnable) throws SQLException;
+	void requiresNew(SQLRunnable runnable);
 
 	/**
 	 * 新たなトランザクションを実行します。
@@ -44,17 +40,15 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param supplier トランザクション内で実行する処理
 	 * @param <R> 結果の型
 	 * @return 処理の結果
-	 * @throws SQLException SQL例外
 	 */
-	<R> R requiresNew(SQLSupplier<R> supplier) throws SQLException;
+	<R> R requiresNew(SQLSupplier<R> supplier);
 
 	/**
 	 * トランザクションを開始せず処理を実行します。
 	 *
 	 * @param runnable 実行する処理
-	 * @throws SQLException SQL例外
 	 */
-	void notSupported(SQLRunnable runnable) throws SQLException;
+	void notSupported(SQLRunnable runnable);
 
 	/**
 	 * トランザクションを開始せず処理を実行します。
@@ -62,9 +56,8 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param supplier 実行する処理
 	 * @param <R> 結果の型
 	 * @return 処理の結果
-	 * @throws SQLException SQL例外
 	 */
-	<R> R notSupported(SQLSupplier<R> supplier) throws SQLException;
+	<R> R notSupported(SQLSupplier<R> supplier);
 
 	/**
 	 * 現在のトランザクションをロールバックすることを予約します。
@@ -79,9 +72,8 @@ public interface TransactionManager extends ConnectionManager {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
-	void setSavepoint(String savepointName) throws SQLException;
+	void setSavepoint(String savepointName);
 
 	/**
 	 * トランザクションから指定されたセーブポイントと以降のセーブポイントを削除します。
@@ -91,9 +83,8 @@ public interface TransactionManager extends ConnectionManager {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
-	void releaseSavepoint(String savepointName) throws SQLException;
+	void releaseSavepoint(String savepointName);
 
 	/**
 	 * 指定されたセーブポイントが設定されたあとに行われたすべての変更をロールバックします。
@@ -103,8 +94,7 @@ public interface TransactionManager extends ConnectionManager {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
-	void rollback(String savepointName) throws SQLException;
+	void rollback(String savepointName);
 
 }

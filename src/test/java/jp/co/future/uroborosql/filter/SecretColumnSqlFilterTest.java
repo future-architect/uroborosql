@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public class SecretColumnSqlFilterTest {
 				}
 			}
 			agent.commit();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
