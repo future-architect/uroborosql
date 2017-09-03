@@ -17,6 +17,7 @@ import java.util.Arrays;
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.exception.*;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
@@ -97,7 +98,7 @@ public class SqlAgentRetryTest {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -117,7 +118,7 @@ public class SqlAgentRetryTest {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -173,7 +174,7 @@ public class SqlAgentRetryTest {
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -195,7 +196,7 @@ public class SqlAgentRetryTest {
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -260,7 +261,7 @@ public class SqlAgentRetryTest {
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -285,7 +286,7 @@ public class SqlAgentRetryTest {
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}

@@ -96,7 +96,7 @@ public class SecretColumnSqlFilterTest {
 			Arrays.asList(tables).stream().forEach(tbl -> {
 				try {
 					agent.updateWith("truncate table " + tbl.toString()).count();
-				} catch (SQLException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
 					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
