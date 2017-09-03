@@ -3,17 +3,16 @@
  */
 package jp.co.future.uroborosql.fluent;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.utils.CaseFormat;
+
+import java.sql.ResultSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * SQL Query 実行インタフェース
@@ -26,7 +25,6 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * ResultSetの取得（終端処理）
 	 *
 	 * @return ResultSet
-	 *
 	 * @see SqlAgent#query(SqlContext)
 	 */
 	ResultSet resultSet();
@@ -35,7 +33,6 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * 検索結果の取得（終端処理）
 	 *
 	 * @return 検索結果のリスト. MapのキーはSnakeCaseに変換される.
-	 *
 	 * @see SqlAgent#query(String)
 	 */
 	List<Map<String, Object>> collect();
@@ -45,7 +42,6 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 *
 	 * @param caseFormat Mapのキーの変換書式
 	 * @return 検索結果のリスト
-	 *
 	 * @see SqlAgent#query(String)
 	 */
 	List<Map<String, Object>> collect(CaseFormat caseFormat);
@@ -70,7 +66,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果をStreamとして取得（終端処理）
 	 *
-	 * @param <T> Streamの型
+	 * @param <T>       Streamの型
 	 * @param converter ResultSetの各行を変換するための変換器
 	 * @return 検索結果を順次取得するStream
 	 */
@@ -82,4 +78,11 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果を順次取得するStream. MapのキーはCamel式に変換される.
 	 */
 	Stream<Map<String, Object>> stream();
+
+	/**
+	 * 検索結果をEntityのStreamとして取得（終端処理）
+	 *
+	 * @return 検索結果を順次取得するStream.
+	 */
+	<T> Stream<T> stream(Class<T> type);
 }

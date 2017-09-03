@@ -8,11 +8,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.converter.MapResultSetConverter;
-import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.converter.*;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlQuery;
+import jp.co.future.uroborosql.mapping.mapper.*;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -53,6 +53,15 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public <T> Stream<T> stream(final ResultSetConverter<T> converter) {
 		try {
 			return agent.query(context(), converter);
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
+		}
+	}
+
+	@Override
+	public <T> Stream<T> stream(final Class<T> type) {
+		try {
+			return agent.query(context(), new EntityResultSetConverter<T>(type, new PropertyMapperManager()));
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);
 		}
