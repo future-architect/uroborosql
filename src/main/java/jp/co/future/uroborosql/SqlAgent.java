@@ -146,22 +146,20 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
 	 *
-	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
 	 * @throws UnsupportedOperationException この操作を提供しない場合
 	 */
 	@Override
-	void commit() throws SQLException;
+	void commit();
 
 	/**
 	 * トランザクションのロールバック用API<br>
 	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
 	 *
-	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
 	 * @throws UnsupportedOperationException この操作を提供しない場合
 	 */
 	@Override
-	void rollback() throws SQLException;
+	void rollback();
 
 	/**
 	 * SQL設定管理クラスの取得

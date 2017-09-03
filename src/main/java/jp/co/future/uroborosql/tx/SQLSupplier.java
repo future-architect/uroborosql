@@ -14,7 +14,6 @@ public interface SQLSupplier<T> {
 	/**
 	 * 処理ブロックの取得
 	 * @return 処理ブロック
-	 * @throws SQLException SQL例外
 	 */
-	T get() throws SQLException;
+	T get();
 }

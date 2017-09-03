@@ -33,16 +33,12 @@ public interface ConnectionManager extends AutoCloseable {
 
 	/**
 	 * コネクションのコミットを行う
-	 *
-	 * @throws SQLException SQL例外
 	 */
-	void commit() throws SQLException;
+	void commit();
 
 	/**
 	 * コネクションのロールバックを行う
-	 *
-	 * @throws SQLException SQL例外
 	 */
-	void rollback() throws SQLException;
+	void rollback();
 
 }

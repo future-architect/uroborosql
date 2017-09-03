@@ -47,7 +47,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void required(final SQLRunnable runnable) throws SQLException {
+	public void required(final SQLRunnable runnable) {
 		requiredInternal(toSupplier(runnable));
 	}
 
@@ -57,7 +57,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R required(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R required(final SQLSupplier<R> supplier) {
 		return requiredInternal(supplier);
 	}
 
@@ -67,7 +67,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void requiresNew(final SQLRunnable runnable) throws SQLException {
+	public void requiresNew(final SQLRunnable runnable) {
 		requiresNewInternal(toSupplier(runnable));
 	}
 
@@ -77,7 +77,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R requiresNew(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R requiresNew(final SQLSupplier<R> supplier) {
 		return requiresNewInternal(supplier);
 	}
 
@@ -87,7 +87,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void notSupported(final SQLRunnable runnable) throws SQLException {
+	public void notSupported(final SQLRunnable runnable) {
 		notSupportedInternal(toSupplier(runnable));
 	}
 
@@ -97,7 +97,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R notSupported(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R notSupported(final SQLSupplier<R> supplier) {
 		return notSupportedInternal(supplier);
 	}
 
@@ -126,7 +126,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#setSavepoint(java.lang.String)
 	 */
 	@Override
-	public void setSavepoint(final String savepointName) throws SQLException {
+	public void setSavepoint(final String savepointName) {
 		currentTxContext().setSavepoint(savepointName);
 	}
 
@@ -136,7 +136,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#releaseSavepoint(java.lang.String)
 	 */
 	@Override
-	public void releaseSavepoint(final String savepointName) throws SQLException {
+	public void releaseSavepoint(final String savepointName) {
 		currentTxContext().releaseSavepoint(savepointName);
 	}
 
@@ -146,7 +146,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#rollback(java.lang.String)
 	 */
 	@Override
-	public void rollback(final String savepointName) throws SQLException {
+	public void rollback(final String savepointName) {
 		currentTxContext().rollback(savepointName);
 	}
 
@@ -248,7 +248,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	private <R> R requiredInternal(final SQLSupplier<R> supplier) throws SQLException {
+	private <R> R requiredInternal(final SQLSupplier<R> supplier) {
 		if (currentTxContext() != null) {
 			return supplier.get();
 		} else {
@@ -262,7 +262,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	private <R> R requiresNewInternal(final SQLSupplier<R> supplier) throws SQLException {
+	private <R> R requiresNewInternal(final SQLSupplier<R> supplier) {
 		return runInNewTx(supplier);
 	}
 
@@ -270,9 +270,8 @@ public class LocalTransactionManager implements TransactionManager {
 	 * notSupportedメソッドの内部実装
 	 * @param supplier SQLサプライヤ
 	 * @return 実行結果
-	 * @throws SQLException SQL例外
 	 */
-	private <R> R notSupportedInternal(final SQLSupplier<R> supplier) throws SQLException {
+	private <R> R notSupportedInternal(final SQLSupplier<R> supplier) {
 		LocalTransactionContext txContext = currentTxContext();
 		if (txContext != null) {
 			// トランザクションをサスペンド
@@ -294,17 +293,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param supplier トランザクション内で実行する処理
 	 * @param <R> 結果の型
 	 * @return 処理の結果
-	 * @throws SQLException
 	 */
-	private <R> R runInNewTx(final SQLSupplier<R> supplier) throws SQLException {
+	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
 		try (LocalTransactionContext txContext = new LocalTransactionContext(connectionSupplier, sqlFilterManager)) {
 			txCtxStack.push(txContext);
 			try {
-				R result = supplier.get();
-				return result;
-			} catch (SQLException ex) {
-				txContext.setRollbackOnly();
-				throw ex;
+				return supplier.get();
 			} catch (Exception ex) {
 				txContext.setRollbackOnly();
 				throw ex;
@@ -340,7 +334,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#commit()
 	 */
 	@Override
-	public void commit() throws SQLException {
+	public void commit() {
 		LocalTransactionContext txContext = currentTxContext();
 		if (txContext == null) {
 			if (unmanagedTransaction != null) {
@@ -357,7 +351,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @see jp.co.future.uroborosql.connection.ConnectionManager#rollback()
 	 */
 	@Override
-	public void rollback() throws SQLException {
+	public void rollback() {
 		LocalTransactionContext txContext = currentTxContext();
 		if (txContext == null) {
 			if (unmanagedTransaction != null) {

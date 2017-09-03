@@ -331,7 +331,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void required(final SQLRunnable runnable) throws SQLException {
+	public void required(final SQLRunnable runnable) {
 		transactionManager.required(runnable);
 	}
 
@@ -341,7 +341,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R required(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R required(final SQLSupplier<R> supplier) {
 		return transactionManager.required(supplier);
 	}
 
@@ -351,7 +351,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void requiresNew(final SQLRunnable runnable) throws SQLException {
+	public void requiresNew(final SQLRunnable runnable) {
 		transactionManager.requiresNew(runnable);
 	}
 
@@ -361,7 +361,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R requiresNew(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R requiresNew(final SQLSupplier<R> supplier) {
 		return transactionManager.requiresNew(supplier);
 	}
 
@@ -371,7 +371,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLRunnable)
 	 */
 	@Override
-	public void notSupported(final SQLRunnable runnable) throws SQLException {
+	public void notSupported(final SQLRunnable runnable) {
 		transactionManager.notSupported(runnable);
 	}
 
@@ -381,7 +381,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLSupplier)
 	 */
 	@Override
-	public <R> R notSupported(final SQLSupplier<R> supplier) throws SQLException {
+	public <R> R notSupported(final SQLSupplier<R> supplier) {
 		return transactionManager.notSupported(supplier);
 	}
 
@@ -401,7 +401,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#setSavepoint(java.lang.String)
 	 */
 	@Override
-	public void setSavepoint(final String savepointName) throws SQLException {
+	public void setSavepoint(final String savepointName) {
 		transactionManager.setSavepoint(savepointName);
 	}
 
@@ -411,7 +411,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#releaseSavepoint(java.lang.String)
 	 */
 	@Override
-	public void releaseSavepoint(final String savepointName) throws SQLException {
+	public void releaseSavepoint(final String savepointName) {
 		transactionManager.releaseSavepoint(savepointName);
 	}
 
@@ -421,7 +421,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#rollback(java.lang.String)
 	 */
 	@Override
-	public void rollback(final String savepointName) throws SQLException {
+	public void rollback(final String savepointName) {
 		transactionManager.rollback(savepointName);
 	}
 
@@ -431,7 +431,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#rollback()
 	 */
 	@Override
-	public void rollback() throws SQLException {
+	public void rollback() {
 		transactionManager.rollback();
 	}
 
@@ -441,7 +441,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#commit()
 	 */
 	@Override
-	public void commit() throws SQLException {
+	public void commit() {
 		transactionManager.commit();
 	}
 

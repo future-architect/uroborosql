@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -225,7 +225,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-					throw new UroborosqlRuntimeException(ex);
+					throw new UroborosqlSQLException(ex);
 				}
 			}
 		}, false);
@@ -617,7 +617,8 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			String[] keyNames = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
 					.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
-					.map(TableMetadata.Column::getColumnName).map(CaseFormat.CAMEL_CASE::convert).toArray(String[]::new);
+					.map(TableMetadata.Column::getColumnName).map(CaseFormat.CAMEL_CASE::convert)
+					.toArray(String[]::new);
 
 			if (keyNames.length != keys.length) {
 				throw new IllegalArgumentException("Number of keys does not match");

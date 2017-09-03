@@ -24,7 +24,7 @@ public class LocalTxManagerTest {
 	SqlConfig config;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:LocalTxManagerTest", null, null);
 		try (SqlAgent agent = config.createAgent()) {
 			agent.updateWith("create table if not exists emp ( \n id VARCHAR(30) \n )").count();
@@ -40,7 +40,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample01_required() throws SQLException {
+	public void testagentSample01_required() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -64,7 +64,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample02_requiresNew() throws SQLException {
+	public void testagentSample02_requiresNew() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -94,7 +94,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample03_rollback() throws SQLException {
+	public void testagentSample03_rollback() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -115,7 +115,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample04_error_rollback() throws SQLException {
+	public void testagentSample04_error_rollback() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			try {
@@ -137,7 +137,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample05_savepoint() throws SQLException {
+	public void testagentSample05_savepoint() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -157,7 +157,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent02() throws SQLException {
+	public void testagent02() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -194,7 +194,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent03() throws SQLException {
+	public void testagent03() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -213,7 +213,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent04() throws SQLException {
+	public void testagent04() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -234,7 +234,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent05() throws SQLException {
+	public void testagent05() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -285,7 +285,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentEx01() throws SQLException {
+	public void testagentEx01() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -315,7 +315,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentEx02() throws SQLException {
+	public void testagentEx02() {
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.required(() -> {
@@ -340,15 +340,15 @@ public class LocalTxManagerTest {
 		}
 	}
 
-	private void ins(final SqlAgent agent, final String id) throws SQLException {
+	private void ins(final SqlAgent agent, final String id) {
 		agent.updateWith("insert into emp (id) values (/*id*/'A')").param("id", id).count();
 	}
 
-	private void del(final SqlAgent agent) throws SQLException {
+	private void del(final SqlAgent agent) {
 		agent.updateWith("delete from emp").count();
 	}
 
-	private List<String> select(final SqlAgent agent) throws SQLException {
+	private List<String> select(final SqlAgent agent) {
 		return agent.queryWith("select id from emp order by id").stream().map(m -> m.get("ID").toString())
 				.collect(Collectors.toList());
 	}

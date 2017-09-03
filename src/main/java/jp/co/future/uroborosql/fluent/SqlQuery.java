@@ -82,6 +82,8 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果をEntityのStreamとして取得（終端処理）
 	 *
+	 * @param <T>       Streamの型
+	 * @param type 受け取りたいEntityの型
 	 * @return 検索結果を順次取得するStream.
 	 */
 	<T> Stream<T> stream(Class<T> type);
