@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -315,6 +316,31 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentStreamEntity() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.createAgent()) {
+			agent.query("example/select_product")
+				.paramList("product_id", 0, 1)
+				.stream(Product.class)
+				.forEach(p -> {
+					assertNotNull(p.getProductId());
+					assertNotNull(p.getProductName());
+					assertNotNull(p.getProductKanaName());
+					assertNotNull(p.getJanCode());
+					assertNotNull(p.getProductDescription());
+					assertNotNull(p.getInsDatetime());
+					assertNotNull(p.getUpdDatetime());
+					assertNotNull(p.getVersionNo());
+				});
+		}
+	}
+
+	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
@@ -582,6 +608,84 @@ public class SqlAgentTest {
 				record.put(rsmd.getColumnLabel(i).toLowerCase(), rs.getObject(i));
 			}
 			return record;
+		}
+	}
+
+	public static class Product {
+		private int productId;
+		private String productName;
+		private String productKanaName;
+		private String janCode;
+		private String productDescription;
+		private Date insDatetime;
+		private Date updDatetime;
+		private int versionNo;
+
+		public Product() {
+		}
+
+		public int getProductId() {
+			return productId;
+		}
+
+		public void setProductId(int productId) {
+			this.productId = productId;
+		}
+
+		public String getProductName() {
+			return productName;
+		}
+
+		public void setProductName(String productName) {
+			this.productName = productName;
+		}
+
+		public String getProductKanaName() {
+			return productKanaName;
+		}
+
+		public void setProductKanaName(String productKanaName) {
+			this.productKanaName = productKanaName;
+		}
+
+		public String getJanCode() {
+			return janCode;
+		}
+
+		public void setJanCode(String janCode) {
+			this.janCode = janCode;
+		}
+
+		public String getProductDescription() {
+			return productDescription;
+		}
+
+		public void setProductDescription(String productDescription) {
+			this.productDescription = productDescription;
+		}
+
+		public Date getInsDatetime() {
+			return insDatetime;
+		}
+
+		public void setInsDatetime(Date insDatetime) {
+			this.insDatetime = insDatetime;
+		}
+
+		public Date getUpdDatetime() {
+			return updDatetime;
+		}
+
+		public void setUpdDatetime(Date updDatetime) {
+			this.updDatetime = updDatetime;
+		}
+
+		public int getVersionNo() {
+			return versionNo;
+		}
+
+		public void setVersionNo(int versionNo) {
+			this.versionNo = versionNo;
 		}
 	}
 }
