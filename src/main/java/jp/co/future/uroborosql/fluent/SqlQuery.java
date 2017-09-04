@@ -64,6 +64,16 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	Map<String, Object> first();
 
 	/**
+	 * 検索結果の先頭行をEntityとして取得（終端処理）
+	 *
+	 * @param <T>  Entityの型
+	 * @param type 受け取りたいEntityの型
+	 * @return 検索結果の先頭行のEntity
+	 * @throws DataNotFoundException 検索結果が０件の場合
+	 */
+	<T>T first(Class<T> type);
+
+	/**
 	 * 検索結果をStreamとして取得（終端処理）
 	 *
 	 * @param <T>       Streamの型

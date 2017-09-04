@@ -94,6 +94,13 @@ public interface SqlAgentFactory {
 	EntityHandler<?> getEntityHandler();
 
 	/**
+	 * ORM処理クラスを設定します。
+	 *
+	 * @param entityHandler ORM処理クラス
+	 */
+	void setEntityHandler(EntityHandler<?> entityHandler);
+
+	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。
 	 *
 	 * @return 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>

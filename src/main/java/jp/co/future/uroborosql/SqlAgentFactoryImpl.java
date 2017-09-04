@@ -156,6 +156,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @param entityHandler SQLフィルタ管理クラス
 	 */
+	@Override
 	public void setEntityHandler(final EntityHandler<?> entityHandler) {
 		this.entityHandler = entityHandler;
 	}
