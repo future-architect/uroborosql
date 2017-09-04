@@ -107,6 +107,17 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#first(Class)
+	 */
+	@Override
+	public <T>T first(Class<T> type) {
+		Optional<T> first = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager())).findFirst();
+		return first.orElseThrow(() -> new DataNotFoundException("query result is empty."));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect(jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override

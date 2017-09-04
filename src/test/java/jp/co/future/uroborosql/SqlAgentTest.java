@@ -253,6 +253,27 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirstByClass() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.createAgent()) {
+			Product product = agent.query("example/select_product")
+				.paramList("product_id", 0, 1, 2, 3)
+				.first(Product.class);
+
+			assertEquals(0, product.getProductId());
+			assertEquals("商品名0", product.getProductName());
+			assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
+			assertEquals("1234567890123", product.getJanCode());
+			assertEquals("0番目の商品", product.getProductDescription());
+		}
+	}
+
+	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
