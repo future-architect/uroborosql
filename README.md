@@ -129,7 +129,10 @@ try (SqlAgent agent = config.createAgent()) {
 Sample application
 ------------------
 
-https://github.com/future-architect/uroborosql-sample
+- CLI
+    - https://github.com/future-architect/uroborosql-sample
+- Web application(with Spring Boot)
+    - https://github.com/shout-star/uroborosql-springboot-demo
 
 SQL Formatter
 -------------
