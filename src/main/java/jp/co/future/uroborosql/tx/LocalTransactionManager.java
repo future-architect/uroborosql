@@ -324,8 +324,15 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void close() {
-		txCtxStack.forEach((elem) -> elem.close());
-		txCtxStack.clear();
+		LocalTransactionContext txContext = currentTxContext();
+		if (txContext == null) {
+			if (unmanagedTransaction != null) {
+				unmanagedTransaction.close();
+			}
+		} else {
+			txCtxStack.forEach((elem) -> elem.close());
+			txCtxStack.clear();
+		}
 	}
 
 	/**
