@@ -60,6 +60,14 @@ public interface SqlFluent<T> {
 	T paramMap(Map<String, ?> paramMap);
 
 	/**
+	 * 引数として渡されたObjectのフィールド名と値のセットをパラメータに追加<br>
+	 *
+	 * @param bean パラメータとなるオブジェクト
+	 * @return T
+	 */
+	T paramBean(Object bean);
+
+	/**
 	 * 型指定のパラメータ追加<br>
 	 *
 	 * @param paramName パラメータ名
@@ -175,8 +183,7 @@ public interface SqlFluent<T> {
 	T characterStreamParam(String paramName, Reader value, int len);
 
 	/**
-	 * リトライ回数を設定する。
-	 * リトライ待機時間は0msが設定される
+	 * リトライ回数を設定する。 リトライ待機時間は0msが設定される
 	 *
 	 * @param count リトライ回数
 	 * @return T

@@ -31,6 +31,7 @@ import jp.co.future.uroborosql.parameter.ReaderParameter;
 import jp.co.future.uroborosql.parameter.StreamParameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
+import jp.co.future.uroborosql.utils.BeanAccessor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -395,6 +396,15 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext paramMap(final Map<String, ?> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
+		}
+		return this;
+	}
+
+	@Override
+	public SqlContext paramBean(final Object bean) {
+		if (bean != null) {
+			BeanAccessor.fields(bean.getClass()).stream()
+					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
 		}
 		return this;
 	}

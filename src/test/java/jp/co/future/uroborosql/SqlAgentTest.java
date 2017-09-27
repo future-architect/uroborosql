@@ -340,6 +340,36 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
+	public void testQueryFluentLambdaWithParamBean() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = this.config.createAgent()) {
+			ProductSearchBean bean = new ProductSearchBean();
+			bean.setProductIds(new int[] { 0, 1 });
+			bean.setProductName("商品");
+
+			Stream<Map<String, Object>> stream = agent.query("example/select_product_param_camel")
+					.paramBean(bean)
+					.stream();
+
+			stream.forEach((m) -> {
+				assertTrue(m.containsKey("PRODUCT_ID"));
+				assertTrue(m.containsKey("PRODUCT_NAME"));
+				assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+				assertTrue(m.containsKey("JAN_CODE"));
+				assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+				assertTrue(m.containsKey("INS_DATETIME"));
+				assertTrue(m.containsKey("UPD_DATETIME"));
+				assertTrue(m.containsKey("VERSION_NO"));
+			});
+		}
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
 	public void testQueryFluentStreamEntity() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -646,67 +676,91 @@ public class SqlAgentTest {
 		}
 
 		public int getProductId() {
-			return productId;
+			return this.productId;
 		}
 
-		public void setProductId(int productId) {
+		public void setProductId(final int productId) {
 			this.productId = productId;
 		}
 
 		public String getProductName() {
-			return productName;
+			return this.productName;
 		}
 
-		public void setProductName(String productName) {
+		public void setProductName(final String productName) {
 			this.productName = productName;
 		}
 
 		public String getProductKanaName() {
-			return productKanaName;
+			return this.productKanaName;
 		}
 
-		public void setProductKanaName(String productKanaName) {
+		public void setProductKanaName(final String productKanaName) {
 			this.productKanaName = productKanaName;
 		}
 
 		public String getJanCode() {
-			return janCode;
+			return this.janCode;
 		}
 
-		public void setJanCode(String janCode) {
+		public void setJanCode(final String janCode) {
 			this.janCode = janCode;
 		}
 
 		public String getProductDescription() {
-			return productDescription;
+			return this.productDescription;
 		}
 
-		public void setProductDescription(String productDescription) {
+		public void setProductDescription(final String productDescription) {
 			this.productDescription = productDescription;
 		}
 
 		public Date getInsDatetime() {
-			return insDatetime;
+			return this.insDatetime;
 		}
 
-		public void setInsDatetime(Date insDatetime) {
+		public void setInsDatetime(final Date insDatetime) {
 			this.insDatetime = insDatetime;
 		}
 
 		public Date getUpdDatetime() {
-			return updDatetime;
+			return this.updDatetime;
 		}
 
-		public void setUpdDatetime(Date updDatetime) {
+		public void setUpdDatetime(final Date updDatetime) {
 			this.updDatetime = updDatetime;
 		}
 
 		public int getVersionNo() {
-			return versionNo;
+			return this.versionNo;
 		}
 
-		public void setVersionNo(int versionNo) {
+		public void setVersionNo(final int versionNo) {
 			this.versionNo = versionNo;
+		}
+	}
+
+	public static class BaseProductSearchBean {
+		private String productName;
+
+		public String getProductName() {
+			return this.productName;
+		}
+
+		public void setProductName(final String productName) {
+			this.productName = productName;
+		}
+	}
+
+	public static class ProductSearchBean extends BaseProductSearchBean {
+		private int[] productIds;
+
+		public int[] getProductIds() {
+			return this.productIds;
+		}
+
+		public void setProductIds(final int[] productIds) {
+			this.productIds = productIds;
 		}
 	}
 }
