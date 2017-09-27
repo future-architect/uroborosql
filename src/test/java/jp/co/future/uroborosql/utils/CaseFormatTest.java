@@ -36,7 +36,7 @@ public class CaseFormatTest {
 		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("ConvertToSnake"));
 		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("convert_to_snake"));
 		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("CONVERT_TO_SNAKE"));
-		assertEquals("s_n_a_k_e", CaseFormat.LOWER_SNAKE_CASE.convert("SNAKE"));
+		assertEquals("snake", CaseFormat.LOWER_SNAKE_CASE.convert("SNAKE"));
 		assertEquals("to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("toSnake"));
 		assertEquals("", CaseFormat.LOWER_SNAKE_CASE.convert(null));
 		assertEquals("", CaseFormat.LOWER_SNAKE_CASE.convert(""));

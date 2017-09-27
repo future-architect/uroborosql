@@ -184,7 +184,7 @@ public enum CaseFormat {
 				return "";
 			}
 			String str = original.trim();
-			if (str.contains("_") || str.toLowerCase().equals(str)) {
+			if (str.contains("_") || str.toLowerCase().equals(str) || str.toUpperCase().equals(str)) {
 				return str.toLowerCase();
 			}
 
