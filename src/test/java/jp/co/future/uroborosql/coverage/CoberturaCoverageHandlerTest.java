@@ -27,7 +27,7 @@ public class CoberturaCoverageHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:CoberturaCoverageHandlerTest", null, null);
+		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:CoberturaCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null);
 
 		try (SqlAgent agent = config.createAgent()) {
 			agent.updateWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )").count();

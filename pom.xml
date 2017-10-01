@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.co.future</groupId>
 	<artifactId>uroborosql</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.3.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uroboroSQL</name>
 	<description>Developer-oriented and SQL centric database access library</description>
@@ -257,7 +257,6 @@ encoding/<project>=UTF-8
 									<goal>java</goal>
 								</goals>
 								<configuration>
-									<workingDirectory>${basedir}</workingDirectory>
 									<mainClass>jp.co.future.uroborosql.client.SqlREPL</mainClass>
 									<arguments>
 										<argument>REPL/repl.properties</argument>
