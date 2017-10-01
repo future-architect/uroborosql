@@ -128,20 +128,6 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	void setQueryTimeout(int queryTimeout);
 
 	/**
-	 * 終端文字（;）を削除するかどうか を取得します
-	 *
-	 * @return 終端文字（;）を削除する場合<code>true</code>
-	 */
-	boolean isRemoveTerminator();
-
-	/**
-	 * 終端文字（;）を削除するかどうか を設定します
-	 *
-	 * @param removeTerminator 終端文字（;）を削除する場合<code>true</code>
-	 */
-	void setRemoveTerminator(boolean removeTerminator);
-
-	/**
 	 * トランザクションのコミット用API<br>
 	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること

@@ -17,18 +17,6 @@ public interface SqlAgentFactory {
 	final String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
 	/**
-	 * プロパティ：終端文字を削除するかどうか.<br>
-	 * デフォルトは<code>true</code>
-	 */
-	final String PROPS_KEY_REMOVE_TERMINATOR = "removeTerminator";
-
-	/**
-	 * プロパティ：SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
-	 * デフォルトは指定なし
-	 */
-	final String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
-
-	/**
 	 * プロパティ：SQL実行エラー時の最大リトライ回数デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
@@ -94,13 +82,6 @@ public interface SqlAgentFactory {
 	EntityHandler<?> getEntityHandler();
 
 	/**
-	 * ORM処理クラスを設定します。
-	 *
-	 * @param entityHandler ORM処理クラス
-	 */
-	void setEntityHandler(EntityHandler<?> entityHandler);
-
-	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。
 	 *
 	 * @return 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
@@ -113,20 +94,6 @@ public interface SqlAgentFactory {
 	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
 	 */
 	void setOutputExceptionLog(final boolean outputExceptionLog);
-
-	/**
-	 * 終端文字（;）を削除するかどうか を取得します
-	 *
-	 * @return 終端文字（;）を削除するかどうか。終端文字（;）を削除する場合<code>true</code>
-	 */
-	boolean isRemoveTerminator();
-
-	/**
-	 * 終端文字（;）を削除するかどうか を設定します
-	 *
-	 * @param removeTerminator 終端文字（;）を削除するかどうか
-	 */
-	void setRemoveTerminator(final boolean removeTerminator);
 
 	/**
 	 * フェッチサイズを取得します
@@ -155,20 +122,6 @@ public interface SqlAgentFactory {
 	 * @param queryTimeout クエリタイムアウト
 	 */
 	void setQueryTimeout(final int queryTimeout);
-
-	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を取得します
-	 *
-	 * @return SQLをリトライ実行するSQLエラーコードのリスト
-	 */
-	List<String> getSqlRetryCodeList();
-
-	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を設定します
-	 *
-	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
-	 */
-	void setSqlRetryCodeList(final List<String> sqlRetryCodeList);
 
 	/**
 	 * 最大リトライカウントの初期値を取得します
