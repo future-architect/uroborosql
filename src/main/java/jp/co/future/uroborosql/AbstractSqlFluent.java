@@ -8,6 +8,7 @@ import java.util.Map;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
 	protected final SqlContext context;
@@ -48,6 +49,21 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	public T paramMap(final Map<String, ?> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
+		}
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramBean(java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public T paramBean(final Object bean) {
+		if (bean != null) {
+			BeanAccessor.fields(bean.getClass()).stream()
+					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
 		}
 		return (T) this;
 	}
