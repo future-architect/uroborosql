@@ -37,7 +37,7 @@ public class DefaultSqlConfigTest {
 	@Before
 	public void setUp() throws Exception {
 		ds = new JdbcDataSource();
-		ds.setURL(JDBC_URL + System.currentTimeMillis());
+		ds.setURL(JDBC_URL + System.currentTimeMillis() + ";DB_CLOSE_DELAY=-1");
 		ds.setUser(JDBC_USER);
 		ds.setPassword(JDBC_PASSWORD);
 
