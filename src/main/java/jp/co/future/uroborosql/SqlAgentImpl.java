@@ -4,15 +4,12 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -23,7 +20,6 @@ import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
-import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -195,42 +191,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
-		ResultSet rs = query(sqlContext);
-
-		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
-				Spliterator.ORDERED) {
-			@Override
-			public boolean tryAdvance(final Consumer<? super T> action) {
-				try {
-					if (!rs.next()) {
-						rs.close();
-						return false;
-					}
-					action.accept(converter.createRecord(rs));
-					return true;
-				} catch (RuntimeException | Error ex) {
-					try {
-						if (rs != null && !rs.isClosed()) {
-							rs.close();
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					throw ex;
-				} catch (SQLException ex) {
-					try {
-						if (rs != null && !rs.isClosed()) {
-							rs.close();
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					throw new UroborosqlSQLException(ex);
-				}
-			}
-		}, false);
-
-		return stream;
+		return StreamSupport.stream(new ResultSetSpliterator<T>(query(sqlContext), converter), false);
 	}
 
 	/**
@@ -242,10 +203,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	@Override
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
 			throws SQLException {
-		Stream<Map<String, Object>> stream = query(sqlContext, new MapResultSetConverter(caseFormat));
-		List<Map<String, Object>> ans = new ArrayList<>();
-		stream.forEachOrdered(m -> ans.add(m));
-		return ans;
+		return query(sqlContext, new MapResultSetConverter(caseFormat)).collect(Collectors.toList());
 	}
 
 	/**
