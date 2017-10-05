@@ -95,6 +95,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		transformContext(sqlContext);
 
 		PreparedStatement stmt = getPreparedStatement(sqlContext);
+		stmt.closeOnCompletion();
 
 		// INパラメータ設定
 		sqlContext.bindParams(stmt);
@@ -217,22 +218,22 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		PreparedStatement stmt = getPreparedStatement(sqlContext);
-
-		// INパラメータ設定
-		sqlContext.bindParams(stmt);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute update SQL.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		// 前処理
-		beforeUpdate(sqlContext);
+		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
-		try {
+			// INパラメータ設定
+			sqlContext.bindParams(stmt);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute update SQL.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			// 前処理
+			beforeUpdate(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -316,22 +317,22 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		PreparedStatement stmt = getPreparedStatement(sqlContext);
-
-		// INパラメータ設定
-		sqlContext.bindBatchParams(stmt);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute batch process.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		// 前処理
-		beforeBatch(sqlContext);
+		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
-		try {
+			// INパラメータ設定
+			sqlContext.bindBatchParams(stmt);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute batch process.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			// 前処理
+			beforeBatch(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -419,21 +420,21 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		CallableStatement callableStatement = getCallableStatement(sqlContext);
-
-		// パラメータ設定
-		sqlContext.bindParams(callableStatement);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute stored procedure.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		beforeProcedure(sqlContext);
+		try (CallableStatement callableStatement = getCallableStatement(sqlContext)) {
 
-		try {
+			// パラメータ設定
+			sqlContext.bindParams(callableStatement);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute stored procedure.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			beforeProcedure(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -477,6 +478,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
+			// 結果取得
+			return sqlContext.getOutParams(callableStatement);
 		} catch (SQLException ex) {
 			handleException(sqlContext, ex);
 		} finally {
@@ -487,9 +490,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
-
-		// 結果取得
-		return sqlContext.getOutParams(callableStatement);
+		return null;
 	}
 
 	/**

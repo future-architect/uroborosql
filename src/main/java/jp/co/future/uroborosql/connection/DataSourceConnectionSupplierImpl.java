@@ -76,7 +76,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.lang.String)
 	 */
 	@Override
-	public Connection getConnection(final String datasourceName) {
+	public synchronized Connection getConnection(final String datasourceName) {
 		try {
 			DataSource ds = dsMap.computeIfAbsent(datasourceName, DataSourceConnectionSupplierImpl::getNewDataSource);
 			Connection connection = ds.getConnection();
