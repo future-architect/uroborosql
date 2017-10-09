@@ -4,15 +4,9 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -99,6 +93,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		transformContext(sqlContext);
 
 		PreparedStatement stmt = getPreparedStatement(sqlContext);
+		stmt.closeOnCompletion();
 
 		// INパラメータ設定
 		sqlContext.bindParams(stmt);
@@ -195,13 +190,16 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
-		ResultSet rs = query(sqlContext);
-
 		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
-				Spliterator.ORDERED) {
+				Spliterator.ORDERED | Spliterator.CONCURRENT) {
+			private ResultSet rs;
+
 			@Override
 			public boolean tryAdvance(final Consumer<? super T> action) {
 				try {
+					if (rs == null) {
+						rs = query(sqlContext);
+					}
 					if (!rs.next()) {
 						rs.close();
 						return false;
@@ -242,10 +240,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	@Override
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
 			throws SQLException {
-		Stream<Map<String, Object>> stream = query(sqlContext, new MapResultSetConverter(caseFormat));
-		List<Map<String, Object>> ans = new ArrayList<>();
-		stream.forEachOrdered(m -> ans.add(m));
-		return ans;
+		return query(sqlContext, new MapResultSetConverter(caseFormat)).collect(Collectors.toList());
 	}
 
 	/**
@@ -259,22 +254,22 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		PreparedStatement stmt = getPreparedStatement(sqlContext);
-
-		// INパラメータ設定
-		sqlContext.bindParams(stmt);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute update SQL.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		// 前処理
-		beforeUpdate(sqlContext);
+		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
-		try {
+			// INパラメータ設定
+			sqlContext.bindParams(stmt);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute update SQL.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			// 前処理
+			beforeUpdate(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -358,22 +353,22 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		PreparedStatement stmt = getPreparedStatement(sqlContext);
-
-		// INパラメータ設定
-		sqlContext.bindBatchParams(stmt);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute batch process.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		// 前処理
-		beforeBatch(sqlContext);
+		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
-		try {
+			// INパラメータ設定
+			sqlContext.bindBatchParams(stmt);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute batch process.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			// 前処理
+			beforeBatch(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -461,21 +456,21 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext);
 
-		CallableStatement callableStatement = getCallableStatement(sqlContext);
-
-		// パラメータ設定
-		sqlContext.bindParams(callableStatement);
-
 		StopWatch watch = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute stored procedure.");
-			watch = new StopWatch();
-			watch.start();
-		}
 
-		beforeProcedure(sqlContext);
+		try (CallableStatement callableStatement = getCallableStatement(sqlContext)) {
 
-		try {
+			// パラメータ設定
+			sqlContext.bindParams(callableStatement);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Execute stored procedure.");
+				watch = new StopWatch();
+				watch.start();
+			}
+
+			beforeProcedure(sqlContext);
+
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
 			if (sqlContext.getMaxRetryCount() > 0) {
@@ -519,6 +514,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
+			// 結果取得
+			return sqlContext.getOutParams(callableStatement);
 		} catch (SQLException ex) {
 			handleException(sqlContext, ex);
 		} finally {
@@ -529,9 +526,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
-
-		// 結果取得
-		return sqlContext.getOutParams(callableStatement);
+		return null;
 	}
 
 	/**

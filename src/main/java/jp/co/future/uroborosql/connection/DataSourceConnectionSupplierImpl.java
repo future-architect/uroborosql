@@ -79,7 +79,10 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	public Connection getConnection(final String datasourceName) {
 		try {
 			DataSource ds = dsMap.computeIfAbsent(datasourceName, DataSourceConnectionSupplierImpl::getNewDataSource);
-			Connection connection = ds.getConnection();
+			final Connection connection;
+			synchronized (ds) {
+				connection = ds.getConnection();
+			}
 			boolean autoCommit = getAutoCommit(datasourceName);
 			if (connection.getAutoCommit() != autoCommit) {
 				connection.setAutoCommit(autoCommit);
