@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * テーブルメタ情報
@@ -119,12 +119,13 @@ public interface TableMetadata {
 	 * @throws SQLException SQL例外
 	 */
 	@SuppressWarnings("resource")
-	static TableMetadata createTableEntityMetadata(final ConnectionManager connectionManager, final Table table) throws SQLException {
+	static TableMetadata createTableEntityMetadata(final ConnectionManager connectionManager, final Table table)
+			throws SQLException {
 
 		Connection connection = connectionManager.getConnection();
 		DatabaseMetaData metaData = connection.getMetaData();
 
-		String schema = table.getSchema();
+		String schema = StringUtils.defaultIfEmpty(table.getSchema(), connection.getSchema());
 		String tableName = table.getName();
 		// case 変換
 		if (!tableName.startsWith(metaData.getIdentifierQuoteString())) {
