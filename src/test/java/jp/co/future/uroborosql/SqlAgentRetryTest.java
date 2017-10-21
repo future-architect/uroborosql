@@ -37,7 +37,7 @@ public class SqlAgentRetryTest {
     @Before
     public void setUp() throws Exception {
         config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentRetryTest"));
-        config.getDialect().setSqlRetryCodes(Arrays.asList("54", "60", "30006"));
+        config.getSqlAgentFactory().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
 
         agent = config.createAgent();
 

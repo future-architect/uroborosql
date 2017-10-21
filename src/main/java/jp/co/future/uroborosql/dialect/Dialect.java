@@ -1,5 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
+import jp.co.future.uroborosql.connection.ConnectionSupplier;
+
 import java.sql.Driver;
 import java.util.List;
 
@@ -11,10 +13,8 @@ import java.util.List;
 public interface Dialect {
 	String getName();
 
-	String getDriverClassName();
-
-	default boolean accept(Driver driver) {
-		return driver != null ? driver.getClass().getName().startsWith(getDriverClassName()) : false;
+	default boolean accept(ConnectionSupplier supplier) {
+		return supplier != null ? supplier.getDatabaseName().startsWith(getName()) : false;
 	}
 
 	/**
@@ -25,18 +25,4 @@ public interface Dialect {
 	default boolean isRemoveTerminator() {
 		return true;
 	}
-
-	/**
-	 * リトライするSQLエラーコードのリストを取得する
-	 *
-	 * @return リトライするSQLエラーコードリスト
-	 */
-	List<String> getSqlRetryCodes();
-
-	/**
-	 * リトライするSQLエラーコードを設定する
-	 *
-	 * @param sqlRetryCodes リトライするSQLエラーコードリスト
-	 */
-	void setSqlRetryCodes(List<String> sqlRetryCodes);
 }

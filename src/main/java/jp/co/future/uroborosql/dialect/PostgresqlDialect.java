@@ -15,11 +15,7 @@ public class PostgresqlDialect extends AbstractDialect {
 
 	@Override
 	public String getName() {
-		return "postgresql";
+		return "PostgreSQL";
 	}
 
-	@Override
-	public String getDriverClassName() {
-		return "org.postgresql.Driver";
-	}
 }

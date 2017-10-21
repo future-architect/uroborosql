@@ -17,6 +17,12 @@ public interface SqlAgentFactory {
 	final String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
 	/**
+	 * プロパティ：SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
+	 * デフォルトは指定なし
+	 */
+	final String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
+
+	/**
 	 * プロパティ：SQL実行エラー時の最大リトライ回数デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
@@ -122,6 +128,20 @@ public interface SqlAgentFactory {
 	 * @param queryTimeout クエリタイムアウト
 	 */
 	void setQueryTimeout(final int queryTimeout);
+
+	/**
+	 * SQLをリトライ実行するSQLエラーコードのリスト を取得します
+	 *
+	 * @return SQLをリトライ実行するSQLエラーコードのリスト
+	 */
+	List<String> getSqlRetryCodeList();
+
+	/**
+	 * SQLをリトライ実行するSQLエラーコードのリスト を設定します
+	 *
+	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
+	 */
+	void setSqlRetryCodeList(final List<String> sqlRetryCodeList);
 
 	/**
 	 * 最大リトライカウントの初期値を取得します

@@ -112,7 +112,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlConfig().getDialect().getSqlRetryCodes().contains(errorCode)) {
+						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -273,7 +273,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlConfig().getDialect().getSqlRetryCodes().contains(errorCode)) {
+						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -373,7 +373,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlConfig().getDialect().getSqlRetryCodes().contains(errorCode)) {
+						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -475,7 +475,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlConfig().getDialect().getSqlRetryCodes().contains(errorCode)) {
+						if (getSqlRetryCodes().contains(errorCode)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",

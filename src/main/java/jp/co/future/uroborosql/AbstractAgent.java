@@ -73,6 +73,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** フェッチサイズ */
 	private int fetchSize = -1;
 
+	/** SQL実行エラー時にリトライするエラーコードのリスト */
+	private List<String> sqlRetryCodes = Collections.emptyList();
+
 	/** SQL実行エラー時の最大リトライ回数 */
 	private int maxRetryCount = 0;
 
@@ -125,6 +128,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
 			this.queryTimeout = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
+		}
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
+			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(defaultProps.get(
+					SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
 			this.maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
@@ -577,6 +584,24 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void setQueryTimeout(final int queryTimeout) {
 		this.queryTimeout = queryTimeout;
+	}
+
+	/**
+	 * SQL実行をリトライするSQLエラーコードのリスト を取得します
+	 *
+	 * @return SQL実行をリトライするSQLエラーコードのリスト
+	 */
+	public List<String> getSqlRetryCodes() {
+		return sqlRetryCodes;
+	}
+
+	/**
+	 * SQL実行をリトライするSQLエラーコードのリスト を設定します
+	 *
+	 * @param sqlRetryCodes SQL実行をリトライするSQLエラーコードのリスト
+	 */
+	public void setSqlRetryCodes(final List<String> sqlRetryCodes) {
+		this.sqlRetryCodes = sqlRetryCodes;
 	}
 
 	/**

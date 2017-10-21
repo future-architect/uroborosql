@@ -9,15 +9,4 @@ import java.util.List;
  * @author H.Sugimoto
  */
 public abstract class AbstractDialect implements Dialect {
-	private List<String> sqlRetryCodes = Collections.emptyList();
-
-	@Override
-	public List<String> getSqlRetryCodes() {
-		return sqlRetryCodes;
-	}
-
-	@Override
-	public void setSqlRetryCodes(List<String> sqlRetryCodes) {
-		this.sqlRetryCodes = sqlRetryCodes;
-	}
 }

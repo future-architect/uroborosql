@@ -15,11 +15,7 @@ public class MySqlDialect extends AbstractDialect {
 
 	@Override
 	public String getName() {
-		return "mysql";
+		return "MySQL";
 	}
 
-	@Override
-	public String getDriverClassName() {
-		return "com.mysql.jdbc.Driver";
-	}
 }

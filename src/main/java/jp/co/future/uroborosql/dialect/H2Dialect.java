@@ -18,11 +18,6 @@ public class H2Dialect extends AbstractDialect {
 
 	@Override
 	public String getName() {
-		return "h2";
-	}
-
-	@Override
-	public String getDriverClassName() {
-		return "org.h2.Driver";
+		return "H2";
 	}
 }

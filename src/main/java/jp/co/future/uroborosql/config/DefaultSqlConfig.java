@@ -1,8 +1,6 @@
 package jp.co.future.uroborosql.config;
 
 import java.sql.*;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -57,10 +55,7 @@ public class DefaultSqlConfig implements SqlConfig {
 		this.sqlContextFactory = new SqlContextFactoryImpl();
 		this.entityHandler = new DefaultEntityHandler();
 
-		Enumeration<Driver> drivers = DriverManager.getDrivers();
-		Driver driver = drivers.hasMoreElements() ? drivers.nextElement() : null;
-		// DialectはDriverのうち、1つ目に取得できたものに対して設定する
-		this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false).filter(d -> d.accept(driver)).findFirst().get();
+		this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false).filter(d -> d.accept(connectionSupplier)).findFirst().orElse(new DefaultDialect());
 
 		this.sqlAgentFactory = new SqlAgentFactoryImpl(this);
 

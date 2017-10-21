@@ -19,13 +19,14 @@ import jp.co.future.uroborosql.store.SqlManager;
  * @author H.Sugimoto
  */
 public class SqlAgentFactoryImpl implements SqlAgentFactory {
-	private SqlConfig sqlConfig = null;
-
 	/** プロパティ：例外発生時のログ出力を行うかどうか。デフォルトは<code>true</code> */
 	public static final String PROPS_KEY_OUTPUT_EXCEPTION_LOG = "outputExceptionLog";
 
 	/** デフォルト値を保持するプロパティ */
 	private final Map<String, String> defaultProps = new HashMap<>();
+
+	/** SQLConfig */
+	private final SqlConfig sqlConfig;
 
 	/**
 	 * コンストラクタ。
@@ -145,6 +146,33 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public void setQueryTimeout(final int queryTimeout) {
 		getDefaultProps().put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlRetryCodeList()
+	 */
+	@Override
+	public List<String> getSqlRetryCodeList() {
+		String codes = getDefaultProps().get(PROPS_KEY_SQL_RETRY_CODES);
+		if (codes == null) {
+			return Collections.emptyList();
+		} else {
+			return Arrays.asList(codes.split(","));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlRetryCodeList(java.util.List)
+	 */
+	@Override
+	public void setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
+		if (sqlRetryCodeList != null && !sqlRetryCodeList.isEmpty()) {
+			getDefaultProps().put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
+		}
 	}
 
 	/**

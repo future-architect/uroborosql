@@ -1,5 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
+import jp.co.future.uroborosql.connection.ConnectionSupplier;
+
 import java.sql.Driver;
 
 /**
@@ -8,8 +10,6 @@ import java.sql.Driver;
  * @author H.Sugimoto
  */
 public class DefaultDialect extends AbstractDialect {
-	private String driverClassName = null;
-
 	/**
 	 * コンストラクタ
 	 */
@@ -23,13 +23,7 @@ public class DefaultDialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getDriverClassName() {
-		return driverClassName;
-	}
-
-	@Override
-	public boolean accept(Driver driver) {
-		driverClassName = driver != null ? driver.getClass().getName() : "default.driver";
+	public boolean accept(ConnectionSupplier supplier) {
 		return true;
 	}
 }

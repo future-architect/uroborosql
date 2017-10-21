@@ -15,17 +15,12 @@ public class MsSqlDialect extends AbstractDialect {
 
 	@Override
 	public String getName() {
-		return "mssql";
-	}
-
-	@Override
-	public String getDriverClassName() {
-		return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		return "Microsoft SQL Server";
 	}
 
 	/**
 	 * MSSQLではMerge文で;を使用するため終端文字の削除を行わない
-	 * @return
+	 * @return false
 	 */
 	@Override
 	public boolean isRemoveTerminator() {
