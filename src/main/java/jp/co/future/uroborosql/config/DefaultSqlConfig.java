@@ -1,11 +1,5 @@
 package jp.co.future.uroborosql.config;
 
-import java.sql.*;
-import java.util.ServiceLoader;
-import java.util.stream.StreamSupport;
-
-import javax.sql.DataSource;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.SqlAgentFactoryImpl;
@@ -24,6 +18,11 @@ import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.util.ServiceLoader;
+import java.util.stream.StreamSupport;
 
 /**
  * SQLを発行するための設定を管理するクラスのデフォルト実装
@@ -55,7 +54,7 @@ public class DefaultSqlConfig implements SqlConfig {
 		this.sqlContextFactory = new SqlContextFactoryImpl();
 		this.entityHandler = new DefaultEntityHandler();
 
-		this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false).filter(d -> d.accept(connectionSupplier)).findFirst().orElse(new DefaultDialect());
+		this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false).filter(d -> d.accept(connectionSupplier)).findFirst().orElseGet(DefaultDialect::new);
 
 		this.sqlAgentFactory = new SqlAgentFactoryImpl(this);
 
