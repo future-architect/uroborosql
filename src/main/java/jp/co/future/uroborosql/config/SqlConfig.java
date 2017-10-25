@@ -8,7 +8,9 @@ import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 
 /**
@@ -82,5 +84,19 @@ public interface SqlConfig {
 	 * @return sqlAgentFactory
 	 */
 	SqlAgentFactory getSqlAgentFactory();
+
+	/**
+	 * dialect を取得します
+	 *
+	 * @return dialect
+	 */
+	Dialect getDialect();
+
+	/**
+	 * entityHandler を取得します
+	 *
+	 * @return entityHandler
+	 */
+	EntityHandler<?> getEntityHandler();
 
 }

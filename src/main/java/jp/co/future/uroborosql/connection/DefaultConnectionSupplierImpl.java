@@ -1,10 +1,12 @@
 package jp.co.future.uroborosql.connection;
 
-import java.sql.Connection;
+import java.sql.*;
 
 /**
  * デフォルトコネクション供給クラス<br>
  * コネクションを保持して返すだけの実装。<br>
+ * 保持しているコネクションはクローズされないようWrapper経由で提供される。<br>
+ *
  * @author H.Sugimoto
  */
 public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
@@ -16,7 +18,7 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param connection コネクション
 	 */
 	public DefaultConnectionSupplierImpl(final Connection connection) {
-		this.connection = connection;
+		this.connection = new DoNotCloseConnectionWrapper(connection);
 	}
 
 	/**

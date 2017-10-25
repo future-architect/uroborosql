@@ -1,9 +1,5 @@
 package jp.co.future.uroborosql.config;
 
-import java.sql.Connection;
-
-import javax.sql.DataSource;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.SqlAgentFactoryImpl;
@@ -14,10 +10,19 @@ import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.dialect.DefaultDialect;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.util.ServiceLoader;
+import java.util.stream.StreamSupport;
 
 /**
  * SQLを発行するための設定を管理するクラスのデフォルト実装
@@ -31,6 +36,8 @@ public class DefaultSqlConfig implements SqlConfig {
 	private final ConnectionSupplier connectionSupplier;
 	private final SqlContextFactory sqlContextFactory;
 	private final SqlAgentFactory sqlAgentFactory;
+	private final Dialect dialect;
+	private final EntityHandler<?> entityHandler;
 
 	/**
 	 * コンストラクタ
@@ -42,19 +49,23 @@ public class DefaultSqlConfig implements SqlConfig {
 		super();
 		this.connectionSupplier = connectionSupplier;
 
-		sqlManager = new SqlManagerImpl(loadPath);
-		sqlFilterManager = new SqlFilterManagerImpl();
-		sqlContextFactory = new SqlContextFactoryImpl();
-		sqlAgentFactory = new SqlAgentFactoryImpl(this.connectionSupplier, sqlManager, sqlFilterManager);
+		this.sqlManager = new SqlManagerImpl(loadPath);
+		this.sqlFilterManager = new SqlFilterManagerImpl();
+		this.sqlContextFactory = new SqlContextFactoryImpl();
+		this.entityHandler = new DefaultEntityHandler();
+
+		this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false).filter(d -> d.accept(connectionSupplier)).findFirst().orElseGet(DefaultDialect::new);
+
+		this.sqlAgentFactory = new SqlAgentFactoryImpl(this);
 
 		initialize();
-
 	}
 
 	private void initialize() {
-		sqlManager.initialize();
-		sqlContextFactory.setSqlFilterManager(sqlFilterManager);
-		sqlContextFactory.initialize();
+		this.sqlManager.initialize();
+		this.sqlContextFactory.setSqlFilterManager(sqlFilterManager);
+		this.sqlContextFactory.initialize();
+
 	}
 
 	/**
@@ -248,9 +259,7 @@ public class DefaultSqlConfig implements SqlConfig {
 	 */
 	@Override
 	public SqlAgent createAgent() {
-		SqlAgent agent = sqlAgentFactory.createSqlAgent();
-		agent.setSqlConfig(this);
-		return agent;
+		return sqlAgentFactory.createSqlAgent();
 	}
 
 	/**
@@ -301,6 +310,26 @@ public class DefaultSqlConfig implements SqlConfig {
 	@Override
 	public SqlAgentFactory getSqlAgentFactory() {
 		return sqlAgentFactory;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfig#getDialect()
+	 */
+	@Override
+	public Dialect getDialect() {
+		return dialect;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfig#getEntityHandler()
+	 */
+	@Override
+	public EntityHandler<?> getEntityHandler() {
+		return entityHandler;
 	}
 
 }

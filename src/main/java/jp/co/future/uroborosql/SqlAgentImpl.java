@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
@@ -46,33 +47,11 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param connectionSupplier コネクション供給クラス
-	 * @param sqlManager SQL管理クラス
-	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param sqlConfig SQL設定管理クラス
 	 * @param defaultProps 初期化用プロパティ
 	 */
-	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
-		super(connectionSupplier, sqlManager, sqlFilterManager, defaultProps);
-		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
-			outputExceptionLog = Boolean.parseBoolean(defaultProps
-					.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));
-		}
-	}
-
-	/**
-	 * コンストラクタ。
-	 *
-	 * @param connectionSupplier コネクション供給クラス
-	 * @param sqlManager SQL管理クラス
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 * @param entityHandler ORM処理クラス
-	 * @param defaultProps 初期化用プロパティ
-	 */
-	protected SqlAgentImpl(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler,
-			final Map<String, String> defaultProps) {
-		super(connectionSupplier, sqlManager, sqlFilterManager, entityHandler, defaultProps);
+	protected SqlAgentImpl(final SqlConfig sqlConfig, final Map<String, String> defaultProps) {
+		super(sqlConfig, defaultProps);
 		if (defaultProps.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean.parseBoolean(defaultProps
 					.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));

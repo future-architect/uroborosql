@@ -67,18 +67,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** トランザクション管理機能 */
 	protected TransactionManager transactionManager;
 
-	/** SQLマネージャ */
-	protected SqlManager sqlManager;
-
-	/** SqlFilter管理クラス */
-	private final SqlFilterManager sqlFilterManager;
-
-	/** ORM処理クラス */
-	private final EntityHandler<?> entityHandler;
-
-	/** 終端文字（;）を削除するかどうか。デフォルト値は<code>true</code> */
-	private boolean removeTerminator = true;
-
 	/** クエリータイムアウト制限値 */
 	private int queryTimeout = -1;
 
@@ -127,55 +115,32 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param connectionSupplier コネクション供給クラス
-	 * @param sqlManager SQL管理クラス
-	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param sqlConfig SQL設定管理クラス
 	 * @param defaultProps デフォルト値プロパティ
 	 */
-	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final Map<String, String> defaultProps) {
-		this(connectionSupplier, sqlManager, sqlFilterManager, null, defaultProps);
-	}
-
-	/**
-	 * コンストラクタ。
-	 *
-	 * @param connectionSupplier コネクション供給クラス
-	 * @param sqlManager SQL管理クラス
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 * @param entityHandler ORM処理クラス
-	 * @param defaultProps デフォルト値プロパティ
-	 */
-	public AbstractAgent(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-			final SqlFilterManager sqlFilterManager, final EntityHandler<?> entityHandler,
-			final Map<String, String> defaultProps) {
-		transactionManager = new LocalTransactionManager(connectionSupplier, sqlFilterManager);
-		this.sqlManager = sqlManager;
-		this.sqlFilterManager = sqlFilterManager;
-		this.entityHandler = entityHandler != null ? entityHandler : new DefaultEntityHandler();
+	public AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> defaultProps) {
+		this.sqlConfig = sqlConfig;
+		this.transactionManager = new LocalTransactionManager(sqlConfig.getConnectionSupplier(), sqlConfig.getSqlFilterManager());
 
 		// デフォルトプロパティ設定
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR)) {
-			removeTerminator = Boolean.parseBoolean(defaultProps.get(SqlAgentFactory.PROPS_KEY_REMOVE_TERMINATOR));
-		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
-			fetchSize = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
+			this.fetchSize = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
-			queryTimeout = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
+			this.queryTimeout = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
-			sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(defaultProps.get(
+			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(defaultProps.get(
 					SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
-			maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
+			this.maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			retryWaitTime = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
+			this.retryWaitTime = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
-			keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
+			this.keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
 		}
 	}
 
@@ -205,7 +170,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return SQLマネージャ
 	 */
 	protected SqlManager getSqlManager() {
-		return sqlManager;
+		return sqlConfig.getSqlManager();
 	}
 
 	/**
@@ -214,7 +179,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return SqlFilter管理クラス
 	 */
 	public SqlFilterManager getSqlFilterManager() {
-		return sqlFilterManager;
+		return sqlConfig.getSqlFilterManager();
 	}
 
 	/**
@@ -223,7 +188,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return ORM処理クラス
 	 */
 	protected EntityHandler<?> getEntityHandler() {
-		return entityHandler;
+		return sqlConfig.getEntityHandler();
 	}
 
 	/**
@@ -257,7 +222,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
-			SqlParser sqlParser = new SqlParserImpl(originalSql, isRemoveTerminator());
+			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getDialect().isRemoveTerminator());
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 
@@ -619,26 +584,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void setQueryTimeout(final int queryTimeout) {
 		this.queryTimeout = queryTimeout;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#isRemoveTerminator()
-	 */
-	@Override
-	public boolean isRemoveTerminator() {
-		return removeTerminator;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#setRemoveTerminator(boolean)
-	 */
-	@Override
-	public void setRemoveTerminator(final boolean removeTerminator) {
-		this.removeTerminator = removeTerminator;
 	}
 
 	/**
