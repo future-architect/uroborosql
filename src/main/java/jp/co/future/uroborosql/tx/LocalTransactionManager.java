@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -24,10 +25,10 @@ public class LocalTransactionManager implements TransactionManager {
 	private final SqlFilterManager sqlFilterManager;
 
 	/** トランザクションコンテキストのスタック */
-	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<LocalTransactionContext>();
+	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
 
 	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
-	private LocalTransactionContext unmanagedTransaction = null;
+	private Optional<LocalTransactionContext> unmanagedTransaction = Optional.empty();
 
 	/**
 	 * コンストラクタ
@@ -35,7 +36,8 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param connectionSupplier コネクション供給クラス
 	 * @param sqlFilterManager SQLフィルタ管理クラス
 	 */
-	public LocalTransactionManager(final ConnectionSupplier connectionSupplier, final SqlFilterManager sqlFilterManager) {
+	public LocalTransactionManager(final ConnectionSupplier connectionSupplier,
+			final SqlFilterManager sqlFilterManager) {
 		this.connectionSupplier = connectionSupplier;
 		this.sqlFilterManager = sqlFilterManager;
 
@@ -106,8 +108,8 @@ public class LocalTransactionManager implements TransactionManager {
 	 *
 	 * @return 現在有効なTransactionContext
 	 */
-	private LocalTransactionContext currentTxContext() {
-		return txCtxStack.peek();
+	private Optional<LocalTransactionContext> currentTxContext() {
+		return Optional.ofNullable(this.txCtxStack.peek());
 	}
 
 	/**
@@ -117,7 +119,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setRollbackOnly() {
-		currentTxContext().setRollbackOnly();
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().setRollbackOnly();
+		} else {
+			this.unmanagedTransaction.ifPresent(LocalTransactionContext::setRollbackOnly);
+		}
 	}
 
 	/**
@@ -127,7 +134,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setSavepoint(final String savepointName) {
-		currentTxContext().setSavepoint(savepointName);
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().setSavepoint(savepointName);
+		} else {
+			this.unmanagedTransaction.ifPresent(ut -> ut.setSavepoint(savepointName));
+		}
 	}
 
 	/**
@@ -137,7 +149,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void releaseSavepoint(final String savepointName) {
-		currentTxContext().releaseSavepoint(savepointName);
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().releaseSavepoint(savepointName);
+		} else {
+			this.unmanagedTransaction.ifPresent(ut -> ut.releaseSavepoint(savepointName));
+		}
 	}
 
 	/**
@@ -147,7 +164,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback(final String savepointName) {
-		currentTxContext().rollback(savepointName);
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().rollback(savepointName);
+		} else {
+			this.unmanagedTransaction.ifPresent(ut -> ut.rollback(savepointName));
+		}
 	}
 
 	/**
@@ -157,14 +179,16 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public Connection getConnection() {
-		LocalTransactionContext txContext = currentTxContext();
+		Optional<LocalTransactionContext> txContext = currentTxContext();
 		try {
-			if (txContext == null) {
-				return unmanagedTransaction != null ? unmanagedTransaction.getConnection()
-						: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
-								.getConnection();
+			if (txContext.isPresent()) {
+				return txContext.get().getConnection();
 			} else {
-				return txContext.getConnection();
+				if (!this.unmanagedTransaction.isPresent()) {
+					this.unmanagedTransaction = Optional
+							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				}
+				return this.unmanagedTransaction.get().getConnection();
 			}
 		} catch (SQLException ex) {
 			ex.printStackTrace();
@@ -179,14 +203,17 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public Connection getConnection(final String alias) {
-		LocalTransactionContext txContext = currentTxContext();
+		Optional<LocalTransactionContext> txContext = currentTxContext();
 		try {
-			if (txContext == null) {
-				return unmanagedTransaction != null ? unmanagedTransaction.getConnection(alias)
-						: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
-								.getConnection(alias);
+			if (txContext.isPresent()) {
+				return txContext.get().getConnection(alias);
+			} else {
+				if (!this.unmanagedTransaction.isPresent()) {
+					this.unmanagedTransaction = Optional
+							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				}
+				return this.unmanagedTransaction.get().getConnection(alias);
 			}
-			return txContext.getConnection(alias);
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			return null;
@@ -201,13 +228,20 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext == null) {
-			return unmanagedTransaction != null ? unmanagedTransaction.getPreparedStatement(sqlContext)
-					: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
-							.getPreparedStatement(sqlContext);
-		} else {
-			return txContext.getPreparedStatement(sqlContext);
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		try {
+			if (txContext.isPresent()) {
+				return txContext.get().getPreparedStatement(sqlContext);
+			} else {
+				if (!this.unmanagedTransaction.isPresent()) {
+					this.unmanagedTransaction = Optional
+							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				}
+				return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
+			}
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return null;
 		}
 	}
 
@@ -219,13 +253,20 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext == null) {
-			return unmanagedTransaction != null ? unmanagedTransaction.getCallableStatement(sqlContext)
-					: (unmanagedTransaction = new LocalTransactionContext(connectionSupplier, sqlFilterManager))
-							.getCallableStatement(sqlContext);
-		} else {
-			return txContext.getCallableStatement(sqlContext);
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		try {
+			if (txContext.isPresent()) {
+				return txContext.get().getCallableStatement(sqlContext);
+			} else {
+				if (!this.unmanagedTransaction.isPresent()) {
+					this.unmanagedTransaction = Optional
+							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				}
+				return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
+			}
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return null;
 		}
 	}
 
@@ -244,12 +285,13 @@ public class LocalTransactionManager implements TransactionManager {
 
 	/**
 	 * requiredメソッドの内部実装
+	 *
 	 * @param supplier SQLサプライヤ
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
 	private <R> R requiredInternal(final SQLSupplier<R> supplier) {
-		if (currentTxContext() != null) {
+		if (currentTxContext().isPresent()) {
 			return supplier.get();
 		} else {
 			return runInNewTx(supplier);
@@ -258,6 +300,7 @@ public class LocalTransactionManager implements TransactionManager {
 
 	/**
 	 * requiresNewメソッドの内部実装
+	 *
 	 * @param supplier SQLサプライヤ
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
@@ -268,19 +311,20 @@ public class LocalTransactionManager implements TransactionManager {
 
 	/**
 	 * notSupportedメソッドの内部実装
+	 *
 	 * @param supplier SQLサプライヤ
 	 * @return 実行結果
 	 */
 	private <R> R notSupportedInternal(final SQLSupplier<R> supplier) {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext != null) {
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
 			// トランザクションをサスペンド
-			txCtxStack.pop();
+			LocalTransactionContext txContextValue = this.txCtxStack.pop();
 			try {
 				return supplier.get();
 			} finally {
 				//戻す
-				txCtxStack.push(txContext);
+				this.txCtxStack.push(txContextValue);
 			}
 		} else {
 			return supplier.get();
@@ -295,8 +339,9 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 処理の結果
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(connectionSupplier, sqlFilterManager)) {
-			txCtxStack.push(txContext);
+		try (LocalTransactionContext txContext = new LocalTransactionContext(this.connectionSupplier,
+				this.sqlFilterManager)) {
+			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();
 			} catch (Exception ex) {
@@ -311,7 +356,7 @@ public class LocalTransactionManager implements TransactionManager {
 					}
 					txContext.close();
 				} finally {
-					txCtxStack.pop();
+					this.txCtxStack.pop();
 				}
 			}
 		}
@@ -324,14 +369,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void close() {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext == null) {
-			if (unmanagedTransaction != null) {
-				unmanagedTransaction.close();
-			}
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			this.txCtxStack.forEach((elem) -> elem.close());
+			this.txCtxStack.clear();
 		} else {
-			txCtxStack.forEach((elem) -> elem.close());
-			txCtxStack.clear();
+			this.unmanagedTransaction.ifPresent(LocalTransactionContext::close);
 		}
 	}
 
@@ -342,13 +385,11 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void commit() {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext == null) {
-			if (unmanagedTransaction != null) {
-				unmanagedTransaction.commit();
-			}
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().commit();
 		} else {
-			txContext.commit();
+			this.unmanagedTransaction.ifPresent(LocalTransactionContext::commit);
 		}
 	}
 
@@ -359,13 +400,11 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback() {
-		LocalTransactionContext txContext = currentTxContext();
-		if (txContext == null) {
-			if (unmanagedTransaction != null) {
-				unmanagedTransaction.rollback();
-			}
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			txContext.get().rollback();
 		} else {
-			txContext.rollback();
+			this.unmanagedTransaction.ifPresent(LocalTransactionContext::rollback);
 		}
 	}
 
