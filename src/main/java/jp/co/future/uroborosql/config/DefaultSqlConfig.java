@@ -37,7 +37,7 @@ public class DefaultSqlConfig implements SqlConfig {
 	private final SqlContextFactory sqlContextFactory;
 	private final SqlAgentFactory sqlAgentFactory;
 	private final Dialect dialect;
-	private final EntityHandler<?> entityHandler;
+	private EntityHandler<?> entityHandler;
 
 	/**
 	 * コンストラクタ
@@ -330,6 +330,16 @@ public class DefaultSqlConfig implements SqlConfig {
 	@Override
 	public EntityHandler<?> getEntityHandler() {
 		return entityHandler;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfig#setEntityHandler(EntityHandler)
+	 */
+	@Override
+	public void setEntityHandler(final EntityHandler<?> entityHandler) {
+		this.entityHandler = entityHandler;
 	}
 
 }

@@ -99,4 +99,10 @@ public interface SqlConfig {
 	 */
 	EntityHandler<?> getEntityHandler();
 
+	/**
+	 * entityHandler を設定します
+	 *
+	 * @param entityHandler
+	 */
+	void setEntityHandler(EntityHandler<?> entityHandler);
 }
