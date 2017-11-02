@@ -17,6 +17,9 @@ import java.sql.DriverPropertyInfo;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -57,6 +60,7 @@ import ognl.OgnlException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -695,9 +699,29 @@ public class SqlREPL {
 			return Boolean.TRUE;
 		} else if (Boolean.FALSE.toString().equalsIgnoreCase(value)) {
 			return Boolean.FALSE;
-		} else if (NumberUtils.isDigits(value)) {
-			return NumberUtils.toInt(value);
+		} else if (NumberUtils.isCreatable(value)) {
+			return NumberUtils.createNumber(value);
 		} else {
+			try {
+				// 日時に変換できるか
+				return new Timestamp(DateUtils.parseDateStrictly(value, "yyyy-MM-dd'T'HH:mm:ss").getTime());
+			} catch (ParseException ex) {
+				// do nothing
+			}
+
+			try {
+				// 日付に変換できるか？
+				return new java.sql.Date(DateUtils.parseDateStrictly(value, "yyyy-MM-dd").getTime());
+			} catch (ParseException ex) {
+				// do nothing
+			}
+
+			try {
+				// 時刻に変換できるか？
+				return new Time(DateUtils.parseDateStrictly(value, "HH:mm:ss").getTime());
+			} catch (ParseException ex) {
+				// do nothing
+			}
 			return value;
 		}
 	}
