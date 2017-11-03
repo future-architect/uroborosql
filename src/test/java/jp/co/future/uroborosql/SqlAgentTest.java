@@ -1,5 +1,30 @@
 package jp.co.future.uroborosql;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.DriverManager;
+import java.sql.JDBCType;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
@@ -8,24 +33,11 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.utils.CaseFormat;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.*;
-import java.util.*;
-import java.util.Date;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.junit.Assert.*;
 
 public class SqlAgentTest {
 	private SqlConfig config;
@@ -37,7 +49,7 @@ public class SqlAgentTest {
 		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest"));
 		agent = config.createAgent();
 		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
-			StandardCharsets.UTF_8).split(";");
+				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
@@ -84,7 +96,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-			.forEach(tbl -> truncateTable(tbl));
+				.forEach(tbl -> truncateTable(tbl));
 
 		dataList.stream().forEach(map -> {
 			try {
@@ -108,7 +120,7 @@ public class SqlAgentTest {
 		productIdList.add(new BigDecimal("0"));
 		productIdList.add(new BigDecimal("2"));
 		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", productIdList)
-			.setSqlId("test_sql_id");
+				.setSqlId("test_sql_id");
 
 		ResultSet rs = agent.query(ctx);
 		assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -131,13 +143,13 @@ public class SqlAgentTest {
 
 		SqlFilterManager manager = config.getSqlFilterManager();
 		WrapContextSqlFilter filter = new WrapContextSqlFilter("",
-			"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
+				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		manager.addSqlFilter(filter);
 
 		SqlContext ctx = agent.contextFrom("example/select_product")
-			.paramList("product_id", new BigDecimal("0"), new BigDecimal("1")).param("startRowIndex", 0)
-			.param("maxRowCount", 1);
+				.paramList("product_id", new BigDecimal("0"), new BigDecimal("1")).param("startRowIndex", 0)
+				.param("maxRowCount", 1);
 
 		ResultSet rs = agent.query(ctx);
 		assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -197,7 +209,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
-			.collect();
+				.collect();
 		assertEquals("結果の件数が一致しません。", 2, ans.size());
 		Map<String, Object> map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
@@ -224,6 +236,69 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindFirst() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0, 1, 2, 3).findFirst();
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
+		assertEquals("商品名0", map.get("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", map.get("JAN_CODE"));
+		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirstCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.first(CaseFormat.LOWER_SNAKE_CASE);
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindFirstCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0, 1, 2, 3).findFirst(CaseFormat.PASCAL_CASE);
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("ProductId"));
+		assertEquals("商品名0", map.get("ProductName"));
+		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
+		assertEquals("1234567890123", map.get("JanCode"));
+		assertEquals("0番目の商品", map.get("ProductDescription"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
@@ -232,14 +307,43 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Product product = agent.query("example/select_product")
-			.paramList("product_id", 0, 1, 2, 3)
-			.first(Product.class);
+				.paramList("product_id", 0, 1, 2, 3)
+				.first(Product.class);
 
 		assertEquals(0, product.getProductId());
 		assertEquals("商品名0", product.getProductName());
 		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
 		assertEquals("1234567890123", product.getJanCode());
 		assertEquals("0番目の商品", product.getProductDescription());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindFirstByClass() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Optional<Product> optional = agent.query("example/select_product")
+				.paramList("product_id", 0, 1, 2, 3)
+				.findFirst(Product.class);
+
+		assertTrue(optional.isPresent());
+
+		Product product = optional.get();
+
+		assertEquals(0, product.getProductId());
+		assertEquals("商品名0", product.getProductName());
+		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
+		assertEquals("1234567890123", product.getJanCode());
+		assertEquals("0番目の商品", product.getProductDescription());
+
+		optional = agent.query("example/select_product")
+				.paramList("product_id", 4)
+				.findFirst(Product.class);
+
+		assertFalse(optional.isPresent());
 	}
 
 	/**
@@ -287,7 +391,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Stream<Map<String, Object>> stream = agent.query("example/select_product").paramList("product_id", 0, 1)
-			.stream();
+				.stream();
 
 		stream.forEach((m) -> {
 			assertTrue(m.containsKey("PRODUCT_ID"));
@@ -314,8 +418,8 @@ public class SqlAgentTest {
 		bean.setProductName("商品");
 
 		Stream<Map<String, Object>> stream = agent.query("example/select_product_param_camel")
-			.paramBean(bean)
-			.stream();
+				.paramBean(bean)
+				.stream();
 
 		stream.forEach((m) -> {
 			assertTrue(m.containsKey("PRODUCT_ID"));
@@ -338,18 +442,18 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product")
-			.paramList("product_id", 0, 1)
-			.stream(Product.class)
-			.forEach(p -> {
-				assertNotNull(p.getProductId());
-				assertNotNull(p.getProductName());
-				assertNotNull(p.getProductKanaName());
-				assertNotNull(p.getJanCode());
-				assertNotNull(p.getProductDescription());
-				assertNotNull(p.getInsDatetime());
-				assertNotNull(p.getUpdDatetime());
-				assertNotNull(p.getVersionNo());
-			});
+				.paramList("product_id", 0, 1)
+				.stream(Product.class)
+				.forEach(p -> {
+					assertNotNull(p.getProductId());
+					assertNotNull(p.getProductName());
+					assertNotNull(p.getProductKanaName());
+					assertNotNull(p.getJanCode());
+					assertNotNull(p.getProductDescription());
+					assertNotNull(p.getInsDatetime());
+					assertNotNull(p.getUpdDatetime());
+					assertNotNull(p.getVersionNo());
+				});
 	}
 
 	/**
@@ -401,13 +505,13 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").paramList("product_id", 0, 1).stream(new CustomResultSetConverter())
-			.forEach((m) -> {
-				try {
-					agent.update("example/insert_product_regist_work").paramMap(m).count();
-				} catch (Exception e) {
-					fail(e.getMessage());
-				}
-			});
+				.forEach((m) -> {
+					try {
+						agent.update("example/insert_product_regist_work").paramMap(m).count();
+					} catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
 
 		List<Map<String, Object>> collect = agent.queryWith("select * from product_regist_work").collect();
 		assertEquals(2, collect.size());
@@ -422,17 +526,17 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
 		SqlContext ctx = agent.contextFrom("example/selectinsert_product")
-			.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
-			.param("jan_code", "1234567890123", Types.CHAR);
+				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
+				.param("jan_code", "1234567890123", Types.CHAR);
 
 		int updateCount = agent.update(ctx);
 		assertEquals("データの登録に失敗しました。", 1, updateCount);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
-			"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
+				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-			.paramList("product_id", 0, 1).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+				.paramList("product_id", 0, 1).stream(new CustomResultSetConverter()).collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -446,15 +550,15 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
 		int updateCount = agent.update("example/selectinsert_product")
-			.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
-			.param("jan_code", "1234567890123", Types.CHAR).count();
+				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
+				.param("jan_code", "1234567890123", Types.CHAR).count();
 		assertEquals("データの登録に失敗しました。", 1, updateCount);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
-			"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
+				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-			.paramList("product_id", 0, 1).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+				.paramList("product_id", 0, 1).stream(new CustomResultSetConverter()).collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -471,14 +575,14 @@ public class SqlAgentTest {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
 		SqlContext ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
-			.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
-			.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
-			.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
-			.param("version_no", new BigDecimal(0)).addBatch().param("product_id", new BigDecimal(2))
-			.param("product_name", "商品名2").param("product_kana_name", "ショウヒンメイニ")
-			.param("jan_code", "1234567890124").param("product_description", "2番目の商品")
-			.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
-			.param("version_no", new BigDecimal(0)).addBatch();
+				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
+				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
+				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch().param("product_id", new BigDecimal(2))
+				.param("product_name", "商品名2").param("product_kana_name", "ショウヒンメイニ")
+				.param("jan_code", "1234567890124").param("product_description", "2番目の商品")
+				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
 		assertEquals("データの登録件数が不正です。", 2, count.length);
@@ -487,9 +591,9 @@ public class SqlAgentTest {
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
-			"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
+				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-			.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+				.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -506,19 +610,19 @@ public class SqlAgentTest {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
 		SqlContext ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
-			.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
-			.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
-			.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
-			.param("version_no", new BigDecimal(0)).addBatch();
+				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
+				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
+				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
 		assertEquals("データの登録件数が不正です。", 1, count.length);
 		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
 
 		ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-			.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-			.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-			.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
+				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
+				.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		count = agent.batch(ctx);
 		assertEquals("データの登録件数が不正です。", 1, count.length);
@@ -526,9 +630,9 @@ public class SqlAgentTest {
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
-			"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
+				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-			.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+				.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -544,13 +648,13 @@ public class SqlAgentTest {
 		// 処理実行
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		SqlContext ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
-			.param("product_name", null).param("product_kana_name", null).param("jan_code", "1234567890123")
-			.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
-			.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
-			.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-			.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-			.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-			.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
+				.param("product_name", null).param("product_kana_name", null).param("jan_code", "1234567890123")
+				.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
+				.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
+				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
+				.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
 		assertEquals("データの登録件数が不正です。", 2, count.length);
@@ -558,9 +662,9 @@ public class SqlAgentTest {
 		assertEquals("2行目のデータの登録に失敗しました。", 1, count[1]);
 
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
-			"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
+				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-			.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
+				.paramList("product_id", 1, 2).stream(new CustomResultSetConverter()).collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -622,7 +726,7 @@ public class SqlAgentTest {
 			return productId;
 		}
 
-		public void setProductId(int productId) {
+		public void setProductId(final int productId) {
 			this.productId = productId;
 		}
 
@@ -630,7 +734,7 @@ public class SqlAgentTest {
 			return productName;
 		}
 
-		public void setProductName(String productName) {
+		public void setProductName(final String productName) {
 			this.productName = productName;
 		}
 
@@ -638,7 +742,7 @@ public class SqlAgentTest {
 			return productKanaName;
 		}
 
-		public void setProductKanaName(String productKanaName) {
+		public void setProductKanaName(final String productKanaName) {
 			this.productKanaName = productKanaName;
 		}
 
@@ -646,7 +750,7 @@ public class SqlAgentTest {
 			return janCode;
 		}
 
-		public void setJanCode(String janCode) {
+		public void setJanCode(final String janCode) {
 			this.janCode = janCode;
 		}
 
@@ -654,7 +758,7 @@ public class SqlAgentTest {
 			return productDescription;
 		}
 
-		public void setProductDescription(String productDescription) {
+		public void setProductDescription(final String productDescription) {
 			this.productDescription = productDescription;
 		}
 
@@ -662,7 +766,7 @@ public class SqlAgentTest {
 			return insDatetime;
 		}
 
-		public void setInsDatetime(Date insDatetime) {
+		public void setInsDatetime(final Date insDatetime) {
 			this.insDatetime = insDatetime;
 		}
 
@@ -670,7 +774,7 @@ public class SqlAgentTest {
 			return updDatetime;
 		}
 
-		public void setUpdDatetime(Date updDatetime) {
+		public void setUpdDatetime(final Date updDatetime) {
 			this.updDatetime = updDatetime;
 		}
 
@@ -678,7 +782,7 @@ public class SqlAgentTest {
 			return versionNo;
 		}
 
-		public void setVersionNo(int versionNo) {
+		public void setVersionNo(final int versionNo) {
 			this.versionNo = versionNo;
 		}
 	}
