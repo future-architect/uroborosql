@@ -102,7 +102,7 @@ public interface SqlConfig {
 	/**
 	 * entityHandler を設定します
 	 *
-	 * @param entityHandler
+	 * @param entityHandler entityHandler
 	 */
 	void setEntityHandler(EntityHandler<?> entityHandler);
 }

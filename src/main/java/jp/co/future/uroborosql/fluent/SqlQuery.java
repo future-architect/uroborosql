@@ -6,6 +6,7 @@ package jp.co.future.uroborosql.fluent;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
@@ -71,7 +72,31 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果の先頭行のEntity
 	 * @throws DataNotFoundException 検索結果が０件の場合
 	 */
-	<T>T first(Class<T> type);
+	<T> T first(Class<T> type);
+
+	/**
+	 * 検索結果の先頭行を取得（終端処理）
+	 *
+	 * @param caseFormat Mapのキーの変換書式
+	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却
+	 */
+	Optional<Map<String, Object>> findFirst(CaseFormat caseFormat);
+
+	/**
+	 * 検索結果の先頭行を取得（終端処理）
+	 *
+	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却. MapのキーはSnakeCase式に変換される.
+	 */
+	Optional<Map<String, Object>> findFirst();
+
+	/**
+	 * 検索結果の先頭行をEntityとして取得（終端処理）
+	 *
+	 * @param <T>  Entityの型
+	 * @param type 受け取りたいEntityの型
+	 * @return 検索結果の先頭行のEntityをOptionalとして返却
+	 */
+	<T> Optional<T> findFirst(Class<T> type);
 
 	/**
 	 * 検索結果をStreamとして取得（終端処理）
