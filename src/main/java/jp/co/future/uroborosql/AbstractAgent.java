@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -22,7 +21,6 @@ import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
-import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parser.ContextTransformer;
@@ -120,7 +118,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> defaultProps) {
 		this.sqlConfig = sqlConfig;
-		this.transactionManager = new LocalTransactionManager(sqlConfig.getConnectionSupplier(), sqlConfig.getSqlFilterManager());
+		this.transactionManager = new LocalTransactionManager(sqlConfig.getConnectionSupplier(),
+				sqlConfig.getSqlFilterManager());
 
 		// デフォルトプロパティ設定
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
@@ -137,7 +136,8 @@ public abstract class AbstractAgent implements SqlAgent {
 			this.maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			this.retryWaitTime = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
+			this.retryWaitTime = Integer.parseInt(defaultProps
+					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
 			this.keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);

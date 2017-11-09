@@ -2,8 +2,6 @@ package jp.co.future.uroborosql.dialect;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
-import java.sql.Driver;
-
 /**
  * 標準のDialect
  *
