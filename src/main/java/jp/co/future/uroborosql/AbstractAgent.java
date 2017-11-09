@@ -31,6 +31,7 @@ import jp.co.future.uroborosql.tx.LocalTransactionManager;
 import jp.co.future.uroborosql.tx.SQLRunnable;
 import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
 
 import org.apache.commons.lang3.StringUtils;
@@ -82,6 +83,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** SQLを特定するための一意なIDに置換するためのキー */
 	private String keySqlId = "_SQL_ID_";
+
+	/** Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat */
+	private CaseFormat defaultMapKeyCaseFormat = CaseFormat.UPPER_SNAKE_CASE;
 
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
@@ -141,6 +145,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
 			this.keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
+		}
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
+			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(defaultProps
+					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
 		}
 	}
 
@@ -638,6 +646,26 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public void setRetryWaitTime(final int retryWaitTime) {
 		this.retryWaitTime = retryWaitTime;
+	}
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 *
+	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	@Override
+	public CaseFormat getDefaultMapKeyCaseFormat() {
+		return defaultMapKeyCaseFormat;
+	}
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
+	 *
+	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	@Override
+	public void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
+		this.defaultMapKeyCaseFormat = defaultMapKeyCaseFormat;
 	}
 
 	/**

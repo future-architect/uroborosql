@@ -128,6 +128,20 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	void setQueryTimeout(int queryTimeout);
 
 	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 *
+	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	CaseFormat getDefaultMapKeyCaseFormat();
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
+	 *
+	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat);
+
+	/**
 	 * トランザクションのコミット用API<br>
 	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
