@@ -2,9 +2,6 @@ package jp.co.future.uroborosql.dialect;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
-import java.sql.Driver;
-import java.util.List;
-
 /**
  * Databaseの方言を表すインタフェース
  *

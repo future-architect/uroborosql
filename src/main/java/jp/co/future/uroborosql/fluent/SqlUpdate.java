@@ -3,8 +3,6 @@
  */
 package jp.co.future.uroborosql.fluent;
 
-import java.sql.SQLException;
-
 /**
  * SQL Update 実行インタフェース
  *

@@ -1,7 +1,6 @@
 package jp.co.future.uroborosql.connection;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Connectionマネージャ

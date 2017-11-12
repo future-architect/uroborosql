@@ -1,11 +1,10 @@
 package jp.co.future.uroborosql.connection;
 
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
  * JDBCコネクション提供インターフェース
@@ -45,7 +44,7 @@ public interface ConnectionSupplier {
 				if (conn != null) {
 					conn.close();
 				}
-			}catch (SQLException ex){
+			} catch (SQLException ex) {
 				throw new UroborosqlSQLException(ex);
 			}
 		}
