@@ -6,6 +6,7 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * SQL実行クラスのファクトリインターフェース。
@@ -51,6 +52,12 @@ public interface SqlAgentFactory {
 	 * デフォルトは "_SQL_ID_"
 	 */
 	final String PROPS_KEY_SQL_ID_KEY_NAME = "sqlIdKeyName";
+
+	/**
+	 * プロパティ：Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat<br>
+	 * デフォルトは "UPPER_SNAKE_CASE"
+	 */
+	final String PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT = "defaultMapKeyCaseFormat";
 
 	/**
 	 * SQL実行クラス生成。
@@ -184,4 +191,18 @@ public interface SqlAgentFactory {
 	 * @param sqlIdKeyName SQL_IDを置換するためのKEY文字列
 	 */
 	void setSqlIdKeyName(final String sqlIdKeyName);
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 *
+	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	CaseFormat getDefaultMapKeyCaseFormat();
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する
+	 *
+	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	void setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
 }

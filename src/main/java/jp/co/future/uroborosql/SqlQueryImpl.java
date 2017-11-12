@@ -43,7 +43,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream() {
-		return stream(new MapResultSetConverter());
+		return stream(new MapResultSetConverter(agent.getDefaultMapKeyCaseFormat()));
 	}
 
 	/**
@@ -90,7 +90,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Map<String, Object> first() {
-		return first(CaseFormat.UPPER_SNAKE_CASE);
+		return first(agent.getDefaultMapKeyCaseFormat());
 	}
 
 	/**
@@ -122,7 +122,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findFirst() {
-		return findFirst(CaseFormat.UPPER_SNAKE_CASE);
+		return findFirst(agent.getDefaultMapKeyCaseFormat());
 	}
 
 	/**
@@ -166,6 +166,6 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public List<Map<String, Object>> collect() {
-		return collect(CaseFormat.UPPER_SNAKE_CASE);
+		return collect(agent.getDefaultMapKeyCaseFormat());
 	}
 }

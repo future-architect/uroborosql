@@ -9,9 +9,9 @@ import java.util.Map;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * Sql実行クラスのファクトリクラス。
@@ -19,7 +19,10 @@ import jp.co.future.uroborosql.store.SqlManager;
  * @author H.Sugimoto
  */
 public class SqlAgentFactoryImpl implements SqlAgentFactory {
-	/** プロパティ：例外発生時のログ出力を行うかどうか。デフォルトは<code>true</code> */
+	/**
+	 * プロパティ：例外発生時のログ出力を行うかどうか。
+	 * デフォルトは<code>true</code>
+	 */
 	public static final String PROPS_KEY_OUTPUT_EXCEPTION_LOG = "outputExceptionLog";
 
 	/** デフォルト値を保持するプロパティ */
@@ -233,6 +236,27 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public void setSqlIdKeyName(final String sqlIdKeyName) {
 		getDefaultProps().put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultMapKeyCaseFormat()
+	 */
+	@Override
+	public CaseFormat getDefaultMapKeyCaseFormat() {
+		return CaseFormat.valueOf(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT,
+				CaseFormat.UPPER_SNAKE_CASE.toString()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMapKeyCaseFormat(jp.co.future.uroborosql.utils.CaseFormat)
+	 */
+	@Override
+	public void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
+		getDefaultProps().put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
 	}
 
 	/**

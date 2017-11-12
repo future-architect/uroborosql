@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.dialect;
 
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 
 /**
  * H2用のDialect

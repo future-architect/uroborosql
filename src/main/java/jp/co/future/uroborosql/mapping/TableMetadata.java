@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * テーブルメタ情報
@@ -118,7 +118,6 @@ public interface TableMetadata {
 	 * @return TableMetadata
 	 * @throws SQLException SQL例外
 	 */
-	@SuppressWarnings("resource")
 	static TableMetadata createTableEntityMetadata(final ConnectionManager connectionManager, final Table table)
 			throws SQLException {
 

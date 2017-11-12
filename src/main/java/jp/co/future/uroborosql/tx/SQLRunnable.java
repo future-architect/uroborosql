@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.tx;
 
-import java.sql.SQLException;
-
 /**
  * SQL実行関数インタフェース
  *

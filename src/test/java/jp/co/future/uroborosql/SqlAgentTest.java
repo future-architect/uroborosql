@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -220,6 +219,32 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentCollectSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.createAgent();
+
+		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.collect();
+		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		Map<String, Object> map = ans.get(0);
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+	}
+
+	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
@@ -233,6 +258,29 @@ public class SqlAgentTest {
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", map.get("JAN_CODE"));
 		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirstSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.createAgent();
+
+		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).first();
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
 	}
 
 	/**
@@ -253,6 +301,36 @@ public class SqlAgentTest {
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", map.get("JAN_CODE"));
 		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindFirstSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.createAgent();
+
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0, 1, 2, 3).findFirst();
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
 
 		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
 		assertFalse(optional.isPresent());
@@ -357,7 +435,7 @@ public class SqlAgentTest {
 		SqlContext ctx = agent.contextFrom("example/select_product");
 		ctx.paramList("product_id", 0, 1);
 
-		Stream<Map<String, String>> stream = agent.query(ctx, (rs) -> {
+		agent.query(ctx, (rs) -> {
 			ResultSetMetaData rsmd = rs.getMetaData();
 
 			int columnCount = rsmd.getColumnCount();
@@ -368,9 +446,7 @@ public class SqlAgentTest {
 				record.put(rsmd.getColumnLabel(i), rs.getString(i));
 			}
 			return record;
-		});
-
-		stream.forEach((m) -> {
+		}).forEach((m) -> {
 			assertTrue(m.containsKey("PRODUCT_ID"));
 			assertTrue(m.containsKey("PRODUCT_NAME"));
 			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
@@ -390,19 +466,45 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Stream<Map<String, Object>> stream = agent.query("example/select_product").paramList("product_id", 0, 1)
-				.stream();
+		agent.query("example/select_product").paramList("product_id", 0, 1)
+				.stream().forEach((m) -> {
+					assertTrue(m.containsKey("PRODUCT_ID"));
+					assertTrue(m.containsKey("PRODUCT_NAME"));
+					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+					assertTrue(m.containsKey("JAN_CODE"));
+					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+					assertTrue(m.containsKey("INS_DATETIME"));
+					assertTrue(m.containsKey("UPD_DATETIME"));
+					assertTrue(m.containsKey("VERSION_NO"));
+				});
+	}
 
-		stream.forEach((m) -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
-		});
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentLambdaSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.createAgent();
+
+		agent.query("example/select_product").paramList("product_id", 0, 1)
+				.stream().forEach((m) -> {
+					assertTrue(m.containsKey("product_id"));
+					assertTrue(m.containsKey("product_name"));
+					assertTrue(m.containsKey("product_kana_name"));
+					assertTrue(m.containsKey("jan_code"));
+					assertTrue(m.containsKey("product_description"));
+					assertTrue(m.containsKey("ins_datetime"));
+					assertTrue(m.containsKey("upd_datetime"));
+					assertTrue(m.containsKey("version_no"));
+				});
 	}
 
 	/**
@@ -417,20 +519,18 @@ public class SqlAgentTest {
 		bean.setProductIds(new int[] { 0, 1 });
 		bean.setProductName("商品");
 
-		Stream<Map<String, Object>> stream = agent.query("example/select_product_param_camel")
+		agent.query("example/select_product_param_camel")
 				.paramBean(bean)
-				.stream();
-
-		stream.forEach((m) -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
-		});
+				.stream().forEach((m) -> {
+					assertTrue(m.containsKey("PRODUCT_ID"));
+					assertTrue(m.containsKey("PRODUCT_NAME"));
+					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+					assertTrue(m.containsKey("JAN_CODE"));
+					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+					assertTrue(m.containsKey("INS_DATETIME"));
+					assertTrue(m.containsKey("UPD_DATETIME"));
+					assertTrue(m.containsKey("VERSION_NO"));
+				});
 	}
 
 	/**

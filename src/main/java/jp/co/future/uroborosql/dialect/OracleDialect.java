@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.dialect;
 
-import java.util.Arrays;
 
 /**
  * Oracle用のDialect
