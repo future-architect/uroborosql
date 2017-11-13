@@ -11,7 +11,7 @@ public interface Dialect {
 	String getName();
 
 	default boolean accept(ConnectionSupplier supplier) {
-		return supplier != null ? supplier.getDatabaseName().startsWith(getName()) : false;
+		return supplier != null && supplier.getDatabaseName().startsWith(getName());
 	}
 
 	/**

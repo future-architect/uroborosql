@@ -105,8 +105,9 @@ public interface SqlAgentFactory {
 	 * 例外発生時のログ出力を行うかどうかを設定します。
 	 *
 	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
+	 * @return SqlAgentFactory
 	 */
-	void setOutputExceptionLog(final boolean outputExceptionLog);
+	SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog);
 
 	/**
 	 * フェッチサイズを取得します
@@ -119,8 +120,9 @@ public interface SqlAgentFactory {
 	 * フェッチサイズを設定する
 	 *
 	 * @param fetchSize フェッチサイズ
+	 * @return SqlAgentFactory
 	 */
-	void setFetchSize(final int fetchSize);
+	SqlAgentFactory setFetchSize(final int fetchSize);
 
 	/**
 	 * フェッチサイズを取得します
@@ -133,8 +135,9 @@ public interface SqlAgentFactory {
 	 * クエリタイムアウトを設定する
 	 *
 	 * @param queryTimeout クエリタイムアウト
+	 * @return SqlAgentFactory
 	 */
-	void setQueryTimeout(final int queryTimeout);
+	SqlAgentFactory setQueryTimeout(final int queryTimeout);
 
 	/**
 	 * SQLをリトライ実行するSQLエラーコードのリスト を取得します
@@ -147,8 +150,9 @@ public interface SqlAgentFactory {
 	 * SQLをリトライ実行するSQLエラーコードのリスト を設定します
 	 *
 	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
+	 * @return SqlAgentFactory
 	 */
-	void setSqlRetryCodeList(final List<String> sqlRetryCodeList);
+	SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList);
 
 	/**
 	 * 最大リトライカウントの初期値を取得します
@@ -161,8 +165,9 @@ public interface SqlAgentFactory {
 	 * 最大リトライカウントの初期値を設定する
 	 *
 	 * @param defaultMaxRetryCount 最大リトライカウントの初期値
+	 * @return SqlAgentFactory
 	 */
-	void setDefaultMaxRetryCount(final int defaultMaxRetryCount);
+	SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount);
 
 	/**
 	 * SQLリトライ時の待機時間（ms）の初期値を取得します
@@ -175,8 +180,9 @@ public interface SqlAgentFactory {
 	 * SQLリトライ時の待機時間（ms）の初期値を設定する
 	 *
 	 * @param defaultSqlRetryWaitTime SQLリトライ時の待機時間（ms）の初期値
+	 * @return SqlAgentFactory
 	 */
-	void setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime);
+	SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime);
 
 	/**
 	 * SQL_IDを置換するためのKEY文字列を取得します
@@ -189,8 +195,9 @@ public interface SqlAgentFactory {
 	 * SQL_IDを置換するためのKEY文字列を設定する
 	 *
 	 * @param sqlIdKeyName SQL_IDを置換するためのKEY文字列
+	 * @return SqlAgentFactory
 	 */
-	void setSqlIdKeyName(final String sqlIdKeyName);
+	SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName);
 
 	/**
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
@@ -203,6 +210,7 @@ public interface SqlAgentFactory {
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する
 	 *
 	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 * @return SqlAgentFactory
 	 */
-	void setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
+	SqlAgentFactory setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
 }

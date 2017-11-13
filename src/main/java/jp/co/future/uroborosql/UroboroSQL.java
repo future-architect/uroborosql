@@ -138,12 +138,12 @@ public final class UroboroSQL {
                 throw new IllegalStateException("ConnectionSupplier is mandatory. Please set ConnectionSupplier instance before calling build() method.");
             }
 
-            return new InnerConfig(this.connectionSupplier, this.sqlManager, this.sqlContextFactory, this.sqlFilterManager, this.entityHandler, this.dialect);
+            return new InternalConfig(this.connectionSupplier, this.sqlManager, this.sqlContextFactory, this.sqlFilterManager, this.entityHandler, this.dialect);
         }
 
     }
 
-    public static class InnerConfig implements SqlConfig {
+    public static class InternalConfig implements SqlConfig {
         /**
          * コネクション提供クラス
          */
@@ -179,7 +179,7 @@ public final class UroboroSQL {
          */
         private final Dialect dialect;
 
-        InnerConfig(ConnectionSupplier connectionSupplier, SqlManager sqlManager, SqlContextFactory sqlContextFactory, SqlFilterManager sqlFilterManager, EntityHandler<?> entityHandler, Dialect dialect) {
+        InternalConfig(ConnectionSupplier connectionSupplier, SqlManager sqlManager, SqlContextFactory sqlContextFactory, SqlFilterManager sqlFilterManager, EntityHandler<?> entityHandler, Dialect dialect) {
             this.connectionSupplier = connectionSupplier;
             this.sqlManager = sqlManager;
             this.sqlContextFactory = sqlContextFactory;
@@ -193,6 +193,7 @@ public final class UroboroSQL {
             }
 
             this.sqlManager.initialize();
+            this.sqlFilterManager.initialize();
             this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);
             this.sqlContextFactory.initialize();
 

@@ -55,8 +55,9 @@ public interface SqlContextFactory {
 	 *
 	 * @param constParamPrefix
 	 *            定数パラメータプレフィックス
+	 * @return SqlContextFactory
 	 */
-	void setConstParamPrefix(String constParamPrefix);
+	SqlContextFactory setConstParamPrefix(String constParamPrefix);
 
 	/**
 	 * 定数クラス名（FQDN）を取得します。
@@ -70,8 +71,9 @@ public interface SqlContextFactory {
 	 *
 	 * @param constantClassNames
 	 *            定数クラス名（FQDN）
+	 * @return SqlContextFactory
 	 */
-	void setConstantClassNames(List<String> constantClassNames);
+	SqlContextFactory setConstantClassNames(List<String> constantClassNames);
 
 	/**
 	 * Enum定数パッケージ名を取得します。
@@ -84,8 +86,9 @@ public interface SqlContextFactory {
 	 * Enum定数パッケージ名（FQDN）を設定します。
 	 *
 	 * @param enumConstantPackageNames Enum定数パッケージ名
+	 * @return SqlContextFactory
 	 */
-	void setEnumConstantPackageNames(List<String> enumConstantPackageNames);
+	SqlContextFactory setEnumConstantPackageNames(List<String> enumConstantPackageNames);
 
 	/**
 	 * 定数クラスパラメータマップを取得します。
@@ -106,21 +109,24 @@ public interface SqlContextFactory {
 	 *
 	 * @param autoBindParameterCreators
 	 *            自動バインド用パラメータ生成クラスのリスト
+	 * @return SqlContextFactory
 	 */
-	void setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
+	SqlContextFactory setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}を追加
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
+	 * @return SqlContextFactory
 	 */
-	void addBindParamMapper(BindParameterMapper<?> parameterMapper);
+	SqlContextFactory addBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}をremove
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
+	 * @return SqlContextFactory
 	 */
-	void removeBindParamMapper(BindParameterMapper<?> parameterMapper);
+	SqlContextFactory removeBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 }

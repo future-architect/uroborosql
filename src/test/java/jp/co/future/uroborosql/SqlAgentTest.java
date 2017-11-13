@@ -97,7 +97,7 @@ public class SqlAgentTest {
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
 				.forEach(tbl -> truncateTable(tbl));
 
-		dataList.stream().forEach(map -> {
+		dataList.forEach(map -> {
 			try {
 				agent.update(map.get("sql").toString()).paramMap(map).count();
 			} catch (Exception ex) {

@@ -181,9 +181,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * 定数パラメータプレフィックスを取得します。
+	 * {inheritDoc}
 	 *
-	 * @return 定数パラメータプレフィックス
+	 * @see SqlContextFactory#getConstParamPrefix()
 	 */
 	@Override
 	public String getConstParamPrefix() {
@@ -191,19 +191,20 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * 定数パラメータプレフィックスを設定します。
+	 * {inheritDoc}
 	 *
-	 * @param constParamPrefix 定数パラメータプレフィックス
+	 * @see SqlContextFactory#setConstParamPrefix(String)
 	 */
 	@Override
-	public void setConstParamPrefix(final String constParamPrefix) {
+	public SqlContextFactory setConstParamPrefix(final String constParamPrefix) {
 		this.constParamPrefix = constParamPrefix;
+		return this;
 	}
 
 	/**
-	 * 定数クラス名（FQDN）を取得します。
+	 * {inheritDoc}
 	 *
-	 * @return 定数クラス名（FQDN）
+	 * @see SqlContextFactory#getConstantClassNames()
 	 */
 	@Override
 	public List<String> getConstantClassNames() {
@@ -211,19 +212,20 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * 定数クラス名（FQDN）を設定します。
+	 * {inheritDoc}
 	 *
-	 * @param constantClassNames 定数クラス名（FQDN）
+	 * @see SqlContextFactory#setConstantClassNames(List)
 	 */
 	@Override
-	public void setConstantClassNames(final List<String> constantClassNames) {
+	public SqlContextFactory setConstantClassNames(final List<String> constantClassNames) {
 		this.constantClassNames = constantClassNames;
+		return this;
 	}
 
 	/**
-	 * 定数クラスパラメータマップを取得します。
+	 * {inheritDoc}
 	 *
-	 * @return 定数クラスパラメータマップ
+	 * @see SqlContextFactory#getConstParameterMap()
 	 */
 	@Override
 	public Map<String, Parameter> getConstParameterMap() {
@@ -231,9 +233,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * Enum定数パッケージ名を取得します。
+	 * {inheritDoc}
 	 *
-	 * @return Enum定数パッケージ名
+	 * @see SqlContextFactory#getEnumConstantPackageNames()
 	 */
 	@Override
 	public List<String> getEnumConstantPackageNames() {
@@ -241,19 +243,20 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * Enum定数パッケージ名（FQDN）を設定します。
+	 * {inheritDoc}
 	 *
-	 * @param enumConstantPackageNames Enum定数パッケージ名
+	 * @see SqlContextFactory#setEnumConstantPackageNames(List)
 	 */
 	@Override
-	public void setEnumConstantPackageNames(final List<String> enumConstantPackageNames) {
+	public SqlContextFactory setEnumConstantPackageNames(final List<String> enumConstantPackageNames) {
 		this.enumConstantPackageNames = enumConstantPackageNames;
+		return this;
 	}
 
 	/**
-	 * SqlFilter管理クラスを取得します。
+	 * {inheritDoc}
 	 *
-	 * @return SqlFilter管理クラス
+	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
 	 */
 	@Override
 	public SqlFilterManager getSqlFilterManager() {
@@ -261,9 +264,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * SqlFilter管理クラスを設定します。
+	 * {inheritDoc}
 	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス SqlFilter管理クラス
+	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
 	 */
 	@Override
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
@@ -271,29 +274,31 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * パラメータ変換クラス{@link BindParameterMapper}を追加
+	 * {inheritDoc}
 	 *
-	 * @param parameterMapper {@link BindParameterMapper}
+	 * @see SqlContextFactory#addBindParamMapper(BindParameterMapper)
 	 */
 	@Override
-	public void addBindParamMapper(final BindParameterMapper<?> parameterMapper) {
+	public SqlContextFactory addBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.addMapper(parameterMapper);
+		return this;
 	}
 
 	/**
-	 * パラメータ変換クラス{@link BindParameterMapper}をremove
+	 * {inheritDoc}
 	 *
-	 * @param parameterMapper {@link BindParameterMapper}
+	 * @see SqlContextFactory#removeBindParamMapper(BindParameterMapper)
 	 */
 	@Override
-	public void removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
+	public SqlContextFactory removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.removeMapper(parameterMapper);
+		return this;
 	}
 
 	/**
-	 * 自動バインド用パラメータ生成クラスのリストを取得します。
+	 * {inheritDoc}
 	 *
-	 * @return 自動バインド用パラメータ生成クラスのリスト
+	 * @see SqlContextFactory#getAutoBindParameterCreators()
 	 */
 	@Override
 	public List<AutoBindParameterCreator> getAutoBindParameterCreators() {
@@ -301,13 +306,14 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	}
 
 	/**
-	 * 自動バインド用パラメータ生成クラスのリストを設定します。
+	 * {inheritDoc}
 	 *
-	 * @param autoBindParameterCreators 自動バインド用パラメータ生成クラスのリスト
+	 * @see SqlContextFactory#setAutoBindParameterCreators(List)
 	 */
 	@Override
-	public void setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
+	public SqlContextFactory setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
 		this.autoBindParameterCreators = autoBindParameterCreators;
+		return this;
 	}
 
 	/**
@@ -416,7 +422,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 * jarファイルから対象パッケージ以下のEnumクラスを取得
 	 *
 	 * @param packageName ルートパッケージ名
-	 * @param dir 対象ディレクトリ
+	 * @param jarFile jarファイル
 	 * @return クラスリスト
 	 * @throws ClassNotFoundException エラー
 	 * @throws IOException
@@ -436,7 +442,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 * Enumクラスをロード<br>
 	 * 指定クラスがEnumでない場合はemptyを返す
 	 *
-	 * @param className
+	 * @param className クラス名
 	 * @return ロードしたEnumクラス
 	 */
 	private static Optional<Class<?>> loadEnum(final String className) {

@@ -151,13 +151,15 @@ public interface EntityHandler<ENTITY> {
 	 * プロパティ変換クラス{@link PropertyMapper}を追加
 	 *
 	 * @param propertyMapper {@link PropertyMapper}
+	 * @return EntityHandler
 	 */
-	void addPropertyMapper(PropertyMapper<?> propertyMapper);
+	EntityHandler<ENTITY> addPropertyMapper(PropertyMapper<?> propertyMapper);
 
 	/**
 	 * プロパティ変換クラス{@link PropertyMapper}をremove
 	 *
 	 * @param propertyMapper {@link PropertyMapper}
+	 * @return EntityHandler
 	 */
-	void removePropertyMapper(PropertyMapper<?> propertyMapper);
+	EntityHandler<ENTITY> removePropertyMapper(PropertyMapper<?> propertyMapper);
 }
