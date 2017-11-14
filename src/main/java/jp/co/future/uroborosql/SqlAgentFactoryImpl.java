@@ -28,8 +28,16 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/** デフォルト値を保持するプロパティ */
 	private final Map<String, String> defaultProps = new HashMap<>();
 
-	/** SQLConfig */
-	private final SqlConfig sqlConfig;
+	/** SqlConfig */
+	private SqlConfig sqlConfig;
+
+	/**
+	 * コンストラクタ。
+	 *
+	 */
+	public SqlAgentFactoryImpl() {
+		this(null);
+	}
 
 	/**
 	 * コンストラクタ。
@@ -48,7 +56,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgent createSqlAgent() {
-		return new SqlAgentImpl(sqlConfig, getDefaultProps());
+		return sqlConfig == null ? null : new SqlAgentImpl(sqlConfig, getDefaultProps());
 	}
 
 	/**
@@ -58,7 +66,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public ConnectionSupplier getConnectionSupplier() {
-		return sqlConfig.getConnectionSupplier();
+		return sqlConfig == null ? null : sqlConfig.getConnectionSupplier();
 	}
 
 	/**
@@ -68,7 +76,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlManager getSqlManager() {
-		return sqlConfig.getSqlManager();
+		return sqlConfig == null ? null : sqlConfig.getSqlManager();
 	}
 
 	/**
@@ -78,7 +86,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlFilterManager getSqlFilterManager() {
-		return sqlConfig.getSqlFilterManager();
+		return sqlConfig == null ? null : sqlConfig.getSqlFilterManager();
 	}
 
 	/**
@@ -88,7 +96,17 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public EntityHandler<?> getEntityHandler() {
-		return sqlConfig.getEntityHandler();
+		return sqlConfig == null ? null : sqlConfig.getEntityHandler();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
 	}
 
 	/**

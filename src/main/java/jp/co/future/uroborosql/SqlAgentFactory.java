@@ -2,6 +2,7 @@ package jp.co.future.uroborosql;
 
 import java.util.List;
 
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -93,6 +94,14 @@ public interface SqlAgentFactory {
 	 * @return ORM処理クラス
 	 */
 	EntityHandler<?> getEntityHandler();
+
+	/**
+	 * SqlConfigの設定[
+	 *
+	 * @param sqlConfig SqlConfig
+	 * @return SqlAgentFactory
+	 */
+	void setSqlConfig(final SqlConfig sqlConfig);
 
 	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。

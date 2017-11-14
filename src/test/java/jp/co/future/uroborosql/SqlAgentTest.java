@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
@@ -45,8 +44,8 @@ public class SqlAgentTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest"));
-		agent = config.createAgent();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		agent = config.agent();
 		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
@@ -231,7 +230,7 @@ public class SqlAgentTest {
 
 		// defaultMapKeyCaseFormatの設定
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
-		agent = config.createAgent();
+		agent = config.agent();
 
 		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
 				.collect();
@@ -273,7 +272,7 @@ public class SqlAgentTest {
 
 		// defaultMapKeyCaseFormatの設定
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
-		agent = config.createAgent();
+		agent = config.agent();
 
 		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).first();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
@@ -319,7 +318,7 @@ public class SqlAgentTest {
 
 		// defaultMapKeyCaseFormatの設定
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
-		agent = config.createAgent();
+		agent = config.agent();
 
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
 				.paramList("product_id", 0, 1, 2, 3).findFirst();
@@ -492,7 +491,7 @@ public class SqlAgentTest {
 
 		// defaultMapKeyCaseFormatの設定
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
-		agent = config.createAgent();
+		agent = config.agent();
 
 		agent.query("example/select_product").paramList("product_id", 0, 1)
 				.stream().forEach((m) -> {
