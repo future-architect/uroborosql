@@ -5,7 +5,6 @@ package jp.co.future.uroborosql.config;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
-import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
