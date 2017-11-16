@@ -13,8 +13,9 @@ public interface SqlFilterManager extends SqlFilter {
 	 * SqlFilterの追加
 	 *
 	 * @param filter 追加するSqlFilter
+	 * @return SqlFilterManager
 	 */
-	void addSqlFilter(SqlFilter filter);
+	SqlFilterManager addSqlFilter(SqlFilter filter);
 
 	/**
 	 * SqlFilterのリストを取得します。

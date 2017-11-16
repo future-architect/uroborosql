@@ -80,13 +80,15 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	}
 
 	@Override
-	public void addPropertyMapper(final PropertyMapper<?> propertyMapper) {
+	public EntityHandler<Object> addPropertyMapper(final PropertyMapper<?> propertyMapper) {
 		propertyMapperManager.addMapper(propertyMapper);
+		return this;
 	}
 
 	@Override
-	public void removePropertyMapper(final PropertyMapper<?> propertyMapper) {
+	public EntityHandler<Object> removePropertyMapper(final PropertyMapper<?> propertyMapper) {
 		propertyMapperManager.removeMapper(propertyMapper);
+		return this;
 	}
 
 	/**

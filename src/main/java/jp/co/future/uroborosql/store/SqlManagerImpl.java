@@ -60,6 +60,27 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
+	 * コンストラクタ
+	 *
+	 * @param cache 起動時にSQLファイルをキャッシュするかどうか
+	 */
+	public SqlManagerImpl(final boolean cache) {
+		this();
+		this.cache = cache;
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPath SQLをロードするルートパス
+	 * @param cache 起動時にSQLファイルをキャッシュするかどうか
+	 */
+	public SqlManagerImpl(final String loadPath, final boolean cache) {
+		this(loadPath);
+		this.cache = cache;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()

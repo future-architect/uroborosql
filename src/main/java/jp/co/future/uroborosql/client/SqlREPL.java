@@ -40,12 +40,13 @@ import jline.console.UserInterruptException;
 import jline.console.completer.CandidateListCompletionHandler;
 import jline.console.completer.Completer;
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
+import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
@@ -54,6 +55,7 @@ import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
+import jp.co.future.uroborosql.store.SqlManagerImpl;
 import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
@@ -113,8 +115,8 @@ public class SqlREPL {
 		/**
 		 * 入力コマンド
 		 *
-		 * @param  引数の有無
 		 * @param hidden HELPコマンドで表示しない場合に<code>true</code>
+		 * @param completerNames 補完器名
 		 */
 		private Command(final boolean hidden, final String... completerNames) {
 			this.hidden = hidden;
@@ -324,13 +326,10 @@ public class SqlREPL {
 			System.setProperty("file.encoding", sqlEncoding);
 		}
 
-		config = DefaultSqlConfig.getConfig(p("db.url", ""), p("db.user", ""), p("db.password", ""),
-				p("db.schema", null), p("sql.loadPath", "sql"));
-
-		// sqlFilter
-
-		config.getSqlFilterManager().addSqlFilter(new DumpResultSqlFilter());
-		config.getSqlFilterManager().initialize();
+		// config
+		config = UroboroSQL.builder(p("db.url", ""), p("db.user", ""), p("db.password", ""), p("db.schema", null))
+				.setSqlManager(new SqlManagerImpl(p("sql.loadPath", "sql")))
+				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// sqlContextFactory
 		SqlContextFactory contextFactory = config.getSqlContextFactory();
@@ -519,7 +518,7 @@ public class SqlREPL {
 			if (parts.length >= 2) {
 				String sqlName = parts[1].replaceAll("\\.", "/");
 				if (config.getSqlManager().existSql(sqlName)) {
-					try (SqlAgent agent = config.createAgent()) {
+					try (SqlAgent agent = config.agent()) {
 						SqlContext ctx = agent.contextFrom(sqlName);
 						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
 						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
@@ -546,7 +545,7 @@ public class SqlREPL {
 				String sqlName = parts[1].replaceAll("\\.", "/");
 				if (config.getSqlManager().existSql(sqlName)) {
 
-					try (SqlAgent agent = config.createAgent()) {
+					try (SqlAgent agent = config.agent()) {
 						SqlContext ctx = agent.contextFrom(sqlName);
 						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
 						String[] params = Arrays.copyOfRange(parts, 2, parts.length);

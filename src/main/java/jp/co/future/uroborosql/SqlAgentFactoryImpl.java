@@ -28,8 +28,16 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/** デフォルト値を保持するプロパティ */
 	private final Map<String, String> defaultProps = new HashMap<>();
 
-	/** SQLConfig */
-	private final SqlConfig sqlConfig;
+	/** SqlConfig */
+	private SqlConfig sqlConfig;
+
+	/**
+	 * コンストラクタ。
+	 *
+	 */
+	public SqlAgentFactoryImpl() {
+		this(null);
+	}
 
 	/**
 	 * コンストラクタ。
@@ -48,7 +56,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgent createSqlAgent() {
-		return new SqlAgentImpl(sqlConfig, getDefaultProps());
+		return sqlConfig == null ? null : new SqlAgentImpl(sqlConfig, getDefaultProps());
 	}
 
 	/**
@@ -58,7 +66,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public ConnectionSupplier getConnectionSupplier() {
-		return sqlConfig.getConnectionSupplier();
+		return sqlConfig == null ? null : sqlConfig.getConnectionSupplier();
 	}
 
 	/**
@@ -68,7 +76,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlManager getSqlManager() {
-		return sqlConfig.getSqlManager();
+		return sqlConfig == null ? null : sqlConfig.getSqlManager();
 	}
 
 	/**
@@ -78,7 +86,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlFilterManager getSqlFilterManager() {
-		return sqlConfig.getSqlFilterManager();
+		return sqlConfig == null ? null : sqlConfig.getSqlFilterManager();
 	}
 
 	/**
@@ -88,7 +96,17 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public EntityHandler<?> getEntityHandler() {
-		return sqlConfig.getEntityHandler();
+		return sqlConfig == null ? null : sqlConfig.getEntityHandler();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
 	}
 
 	/**
@@ -107,8 +125,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setOutputExceptionLog(boolean)
 	 */
 	@Override
-	public void setOutputExceptionLog(final boolean outputExceptionLog) {
+	public SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog) {
 		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.toString(outputExceptionLog));
+		return this;
 	}
 
 	/**
@@ -127,8 +146,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setFetchSize(int)
 	 */
 	@Override
-	public void setFetchSize(final int fetchSize) {
+	public SqlAgentFactory setFetchSize(final int fetchSize) {
 		getDefaultProps().put(PROPS_KEY_FETCH_SIZE, String.valueOf(fetchSize));
+		return this;
 	}
 
 	/**
@@ -147,8 +167,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setQueryTimeout(int)
 	 */
 	@Override
-	public void setQueryTimeout(final int queryTimeout) {
+	public SqlAgentFactory setQueryTimeout(final int queryTimeout) {
 		getDefaultProps().put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
+		return this;
 	}
 
 	/**
@@ -172,10 +193,11 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlRetryCodeList(java.util.List)
 	 */
 	@Override
-	public void setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
+	public SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
 		if (sqlRetryCodeList != null && !sqlRetryCodeList.isEmpty()) {
 			getDefaultProps().put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
 		}
+		return this;
 	}
 
 	/**
@@ -194,8 +216,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMaxRetryCount(int)
 	 */
 	@Override
-	public void setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
+	public SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, String.valueOf(defaultMaxRetryCount));
+		return this;
 	}
 
 	/**
@@ -214,8 +237,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultSqlRetryWaitTime(int)
 	 */
 	@Override
-	public void setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
+	public SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, String.valueOf(defaultSqlRetryWaitTime));
+		return this;
 	}
 
 	/**
@@ -234,8 +258,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlIdKeyName(java.lang.String)
 	 */
 	@Override
-	public void setSqlIdKeyName(final String sqlIdKeyName) {
+	public SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName) {
 		getDefaultProps().put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
+		return this;
 	}
 
 	/**
@@ -255,8 +280,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMapKeyCaseFormat(jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
-	public void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
+	public SqlAgentFactory setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
+		return this;
 	}
 
 	/**

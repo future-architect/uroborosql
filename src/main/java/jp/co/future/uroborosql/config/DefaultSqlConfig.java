@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.config;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.SqlAgentFactoryImpl;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
@@ -27,9 +28,11 @@ import java.util.stream.StreamSupport;
 /**
  * SQLを発行するための設定を管理するクラスのデフォルト実装
  *
+ * @deprecated Instead, use the {@link UroboroSQL}.
  * @author H.Sugimoto
  *
  */
+@Deprecated
 public class DefaultSqlConfig implements SqlConfig {
 	private final SqlManager sqlManager;
 	private final SqlFilterManager sqlFilterManager;
@@ -258,7 +261,18 @@ public class DefaultSqlConfig implements SqlConfig {
 	 * @see jp.co.future.uroborosql.config.SqlConfig#createAgent()
 	 */
 	@Override
+	@Deprecated
 	public SqlAgent createAgent() {
+		return this.agent();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfig#agent()
+	 */
+	@Override
+	public SqlAgent agent() {
 		return sqlAgentFactory.createSqlAgent();
 	}
 

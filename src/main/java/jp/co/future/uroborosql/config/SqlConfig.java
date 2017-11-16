@@ -46,9 +46,19 @@ public interface SqlConfig {
 	/**
 	 * SqlAgentの生成
 	 *
+	 * @deprecated Instead, use the agent() method.
+	 *
 	 * @return 生成したSqlAgent
 	 */
+	@Deprecated()
 	SqlAgent createAgent();
+
+	/**
+	 * SqlAgentの生成
+	 *
+	 * @return 生成したSqlAgent
+	 */
+	SqlAgent agent();
 
 	/**
 	 * sqlManager を取得します。
@@ -102,7 +112,9 @@ public interface SqlConfig {
 	/**
 	 * entityHandler を設定します
 	 *
+	 * @deprecated Insted, use {@link jp.co.future.uroborosql.UroboroSQL.UroboroSQLBuilder#setEntityHandler(EntityHandler)}
 	 * @param entityHandler entityHandler
 	 */
+	@Deprecated
 	void setEntityHandler(EntityHandler<?> entityHandler);
 }

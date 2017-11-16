@@ -85,7 +85,7 @@ INTO
 ```
 
 ```java
-SqlConfig config = DefaultSqlConfig.getConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
 
 try (SqlAgent agent = config.createAgent()) {
   // SELECT
@@ -103,7 +103,7 @@ try (SqlAgent agent = config.createAgent()) {
 ### DAO Interface
 
 ```java
-SqlConfig config = DefaultSqlConfig.getConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
 
 try (SqlAgent agent = config.createAgent()) {
   // select

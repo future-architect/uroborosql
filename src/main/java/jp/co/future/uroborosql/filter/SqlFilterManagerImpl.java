@@ -226,11 +226,12 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilterManager#addSqlFilter(jp.co.future.uroborosql.filter.SqlFilter)
 	 */
 	@Override
-	public void addSqlFilter(final SqlFilter filter) {
+	public SqlFilterManager addSqlFilter(final SqlFilter filter) {
 		if (filter == null) {
 			throw new IllegalArgumentException("filter is null.");
 		}
 		filters.add(filter);
+		return this;
 	}
 
 }
