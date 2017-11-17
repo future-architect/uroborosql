@@ -110,7 +110,7 @@ public final class UroboroSQL {
 		/**
 		 * SqlManagerの設定
 		 *
-		 * @param sqlManager
+		 * @param sqlManager sqlManager
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setSqlManager(final SqlManager sqlManager) {
@@ -121,7 +121,7 @@ public final class UroboroSQL {
 		/**
 		 * SqlFilterManagerの設定
 		 *
-		 * @param sqlFilterManager
+		 * @param sqlFilterManager sqlFilterManager
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
@@ -132,7 +132,7 @@ public final class UroboroSQL {
 		/**
 		 * ConnectionSupplierの設定
 		 *
-		 * @param connectionSupplier
+		 * @param connectionSupplier connectionSupplier
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setConnectionSupplier(final ConnectionSupplier connectionSupplier) {
@@ -143,7 +143,7 @@ public final class UroboroSQL {
 		/**
 		 * SqlContextFactoryの作成
 		 *
-		 * @param sqlContextFactory
+		 * @param sqlContextFactory sqlContextFactory
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setSqlContextFactory(final SqlContextFactory sqlContextFactory) {
@@ -154,7 +154,7 @@ public final class UroboroSQL {
 		/**
 		 * SqlAgentFactoryの設定
 		 *
-		 * @param sqlAgentFactory
+		 * @param sqlAgentFactory sqlAgentFactory
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setSqlAgentFactory(final SqlAgentFactory sqlAgentFactory) {
@@ -165,7 +165,7 @@ public final class UroboroSQL {
 		/**
 		 * EntityHandlerの設定
 		 *
-		 * @param entityHandler
+		 * @param entityHandler entityHandler
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setEntityHandler(final EntityHandler<?> entityHandler) {
@@ -176,7 +176,7 @@ public final class UroboroSQL {
 		/**
 		 * Dialectの設定
 		 *
-		 * @param dialect
+		 * @param dialect dialect
 		 * @return UroboroSQLBuilder
 		 */
 		public UroboroSQLBuilder setDialect(final Dialect dialect) {
@@ -389,6 +389,7 @@ public final class UroboroSQL {
 		 * @see jp.co.future.uroborosql.config.SqlConfig#setEntityHandler(EntityHandler)
 		 */
 		@Override
+		@Deprecated
 		public void setEntityHandler(final EntityHandler<?> entityHandler) {
 			throw new UnsupportedOperationException();
 		}

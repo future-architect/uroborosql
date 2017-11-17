@@ -26,14 +26,14 @@ Installation
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
 #### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.3.0'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.4.0'
 ```
 
 Documentation
@@ -89,7 +89,7 @@ INTO
 ```java
 SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
 
-try (SqlAgent agent = config.createAgent()) {
+try (SqlAgent agent = config.agent()) {
   // SELECT
   List<Map<String, Object>> departments = agent.query("department/select_department").param("dept_no", 1001).collect();
 
@@ -106,7 +106,7 @@ try (SqlAgent agent = config.createAgent()) {
 ```java
 SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
 
-try (SqlAgent agent = config.createAgent()) {
+try (SqlAgent agent = config.agent()) {
   // select
   Department dept =
       agent.find(Department.class, 1001).orElse(null);

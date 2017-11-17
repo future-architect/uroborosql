@@ -99,7 +99,6 @@ public interface SqlAgentFactory {
 	 * SqlConfigの設定[
 	 *
 	 * @param sqlConfig SqlConfig
-	 * @return SqlAgentFactory
 	 */
 	void setSqlConfig(final SqlConfig sqlConfig);
 
