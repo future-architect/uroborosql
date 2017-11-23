@@ -1,7 +1,6 @@
 package jp.co.future.uroborosql.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 
 /**
  * OGNL式内で{@link StringUtils}
@@ -327,7 +326,7 @@ public class StringFunction {
 	 *
 	 * @param str 文字列
 	 * @return 先頭を大文字にした文字列
-	 * @see WordUtils#capitalize(String)
+	 * @see StringUtils#capitalize(String)
 	 * @see #uncapitalize(String)
 	 */
 	public String capitalize(final String str) {
@@ -346,7 +345,7 @@ public class StringFunction {
 	 *
 	 * @param str 文字列
 	 * @return 先頭を小文字にした文字列
-	 * @see WordUtils#uncapitalize(String)
+	 * @see StringUtils#uncapitalize(String)
 	 * @see #capitalize(String)
 	 */
 	public String uncapitalize(final String str) {

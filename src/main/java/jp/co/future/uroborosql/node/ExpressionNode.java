@@ -1,12 +1,12 @@
 package jp.co.future.uroborosql.node;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 import ognl.Ognl;
 import ognl.OgnlException;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 値の評価を行うノードの親クラス
@@ -72,7 +72,8 @@ public abstract class ExpressionNode extends AbstractNode {
 			// OGNL式の場合はEvalした結果を取得
 			// OGNL式の評価は処理が重いため、必要な段階になってからParsedExpressionを取得する
 			try {
-				value = Ognl.getValue(getParsedExpression(expression), transformContext);
+				value = Ognl.getValue(getParsedExpression(expression),
+						Ognl.createDefaultContext(null, new DefaultMemberAccess(false)), transformContext);
 			} catch (OgnlException ex) {
 				throw new OgnlRuntimeException("Acquire an object failed.[" + expression + "]", ex);
 			}
