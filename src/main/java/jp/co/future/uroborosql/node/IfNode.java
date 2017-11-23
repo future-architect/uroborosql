@@ -95,8 +95,7 @@ public class IfNode extends BranchNode {
 		Node parsedExpression = null;
 		try {
 			parsedExpression = (Node) Ognl.parseExpression(expression);
-			result = Ognl.getValue(parsedExpression, Ognl.createDefaultContext(null, new DefaultMemberAccess(false)),
-					transformContext);
+			result = Ognl.getValue(parsedExpression, transformContext);
 		} catch (OgnlException ex) {
 			throw new OgnlRuntimeException("Value could not be obtained.[" + expression + "]", ex);
 		}
@@ -162,8 +161,7 @@ public class IfNode extends BranchNode {
 			ASTProperty prop = (ASTProperty) node;
 			if (!StringFunction.SHORT_NAME.equals(prop.toString())) {
 				try {
-					Object value = Ognl.getValue(prop, Ognl.createDefaultContext(null, new DefaultMemberAccess(false)),
-							transformContext);
+					Object value = Ognl.getValue(prop, transformContext);
 					builder.append(prop)
 							.append(":[")
 							.append(value == null ? null : ToStringBuilder.reflectionToString(value,

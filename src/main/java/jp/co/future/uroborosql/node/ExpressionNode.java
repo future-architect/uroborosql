@@ -72,8 +72,7 @@ public abstract class ExpressionNode extends AbstractNode {
 			// OGNL式の場合はEvalした結果を取得
 			// OGNL式の評価は処理が重いため、必要な段階になってからParsedExpressionを取得する
 			try {
-				value = Ognl.getValue(getParsedExpression(expression),
-						Ognl.createDefaultContext(null, new DefaultMemberAccess(false)), transformContext);
+				value = Ognl.getValue(getParsedExpression(expression), transformContext);
 			} catch (OgnlException ex) {
 				throw new OgnlRuntimeException("Acquire an object failed.[" + expression + "]", ex);
 			}
