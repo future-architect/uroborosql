@@ -17,7 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * @author H.Sugimoto
  */
 final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpdate {
-	private static final BiPredicate<SqlContext, Map<String, Object>> DEFAULT_BATCH_FRAME = (ctx, row) -> ctx
+	private static final BiPredicate<SqlContext, Map<String, Object>> DEFAULT_BATCH_WHEN_CONDITION = (ctx, row) -> ctx
 			.batchCount() == 1000;
 	/** SqlAgent */
 	private final SqlAgent agent;
@@ -28,7 +28,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	private Stream<Map<String, Object>> stream = null;
 
 	/** 一括更新の発行判定条件 */
-	private BiPredicate<SqlContext, Map<String, Object>> batchFrame = DEFAULT_BATCH_FRAME;
+	private BiPredicate<SqlContext, Map<String, Object>> condition = DEFAULT_BATCH_WHEN_CONDITION;
 
 	/**
 	 * コンストラクタ
@@ -60,18 +60,22 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 */
 	@Override
 	public SqlUpdate paramStream(final Stream<Map<String, Object>> stream) {
-		this.stream = stream;
+		if (this.stream == null) {
+			this.stream = stream;
+		} else {
+			this.stream = Stream.concat(this.stream, stream);
+		}
 		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batchFrame(java.util.function.BiPredicate)
+	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batchWhen(java.util.function.BiPredicate)
 	 */
 	@Override
-	public SqlUpdate batchFrame(final BiPredicate<SqlContext, Map<String, Object>> batchFrame) {
-		this.batchFrame = batchFrame;
+	public SqlUpdate batchWhen(final BiPredicate<SqlContext, Map<String, Object>> condition) {
+		this.condition = condition;
 		return this;
 	}
 
@@ -125,7 +129,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 		try (Stream<Map<String, Object>> paramStream = stream) {
 			int[] result = paramStream.map(r -> {
 				paramMap(r).addBatch();
-				if (batchFrame.test(context(), r)) {
+				if (condition.test(context(), r)) {
 					try {
 						return agent.batch(context());
 					} catch (Exception e) {
@@ -140,7 +144,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 			throw new UroborosqlSQLException(e);
 		} finally {
 			stream = null;
-			batchFrame = DEFAULT_BATCH_FRAME;
+			condition = DEFAULT_BATCH_WHEN_CONDITION;
 		}
 	}
 

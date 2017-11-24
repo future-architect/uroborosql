@@ -17,6 +17,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -822,7 +823,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
 		int[] count = agent.update("example/insert_product").paramStream(input.stream())
-				.batchFrame((ctx, row) -> {
+				.batchWhen((ctx, row) -> {
 					Object current = row.get("ins_datetime");
 					Object pre = ctx.contextAttrs().put("prevRowValue", current);
 					return pre != null && !current.equals(pre);
@@ -865,12 +866,57 @@ public class SqlAgentTest {
 		int[] workCount = agent.update("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
 						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
-				.batchFrame((ctx, row) -> ctx.batchCount() == 7)
+				.batchWhen((ctx, row) -> ctx.batchCount() == 7)
 				.batch();
 
 		assertEquals("データの登録件数が不正です。", 100, workCount.length);
 		for (int i = 0; i < workCount.length; i++) {
+			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, workCount[i]);
+		}
+	}
+
+	/**
+	 * バッチ処理のテストケース(Query結果のStream）。
+	 */
+	@Test
+	public void testExecuteBatchStreamMultiStream() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
+				"testExecuteBatchStream.ltsv"));
+		int[] productCount = agent.update("example/insert_product").paramStream(input.stream()).batch();
+
+		assertEquals("データの登録件数が不正です。", 100, productCount.length);
+		for (int i = 0; i < productCount.length; i++) {
 			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, productCount[i]);
+		}
+
+		agent.commit();
+
+		List<Map<String, Object>> paramList = new ArrayList<Map<String, Object>>();
+		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		for (int i = 101; i <= 150; i++) {
+			Map<String, Object> row = new HashMap<String, Object>();
+			row.put("product_name", "商品名" + i);
+			row.put("product_kana_name", "ショウヒンメイ" + i);
+			row.put("jan_code", "1234567890124");
+			row.put("product_description", i + "番目の商品");
+			row.put("ins_datetime", currentDatetime);
+			paramList.add(row);
+		}
+
+		// 処理実行
+		int[] workCount = agent.update("example/insert_product_regist_work")
+				.paramStream(agent.query("example/select_product")
+						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
+				.paramStream(paramList.stream())
+				.batchWhen((ctx, row) -> ctx.batchCount() == 10)
+				.batch();
+
+		assertEquals("データの登録件数が不正です。", 150, workCount.length);
+		for (int i = 0; i < workCount.length; i++) {
+			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, workCount[i]);
 		}
 	}
 

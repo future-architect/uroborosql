@@ -34,13 +34,13 @@ public interface SqlUpdate extends SqlFluent<SqlUpdate> {
 	 * 一括更新用のバッチフレームの判定条件を設定する
 	 * <pre>
 	 * ex)
-	 *  batchFrame((ctx, row) -&gt; ctx.batchCount() == 100)
+	 *  batchWhen((ctx, row) -&gt; ctx.batchCount() == 100)
 	 * </pre>
 	 *
-	 * @param batchFrame 判定条件
+	 * @param condition 判定条件
 	 * @return SqlUpdate
 	 */
-	SqlUpdate batchFrame(BiPredicate<SqlContext, Map<String, Object>> batchFrame);
+	SqlUpdate batchWhen(BiPredicate<SqlContext, Map<String, Object>> condition);
 
 	/**
 	 * 更新結果の取得（終端処理）
