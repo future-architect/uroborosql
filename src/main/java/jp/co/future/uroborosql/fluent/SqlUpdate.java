@@ -15,6 +15,7 @@ import jp.co.future.uroborosql.context.SqlContext;
  * @author H.Sugimoto
  */
 public interface SqlUpdate extends SqlFluent<SqlUpdate> {
+
 	/**
 	 * これまでに追加されたパラメータ群をバッチパラメータに格納する
 	 *
@@ -41,6 +42,24 @@ public interface SqlUpdate extends SqlFluent<SqlUpdate> {
 	 * @return SqlUpdate
 	 */
 	SqlUpdate batchWhen(BiPredicate<SqlContext, Map<String, Object>> condition);
+
+	/**
+	 * コミットのタイミングを設定する.
+	 * 初期設定は {@link CommitTiming#DO_NOTHING}
+	 *
+	 * @param commitTiming コミットタイミング
+	 * @return SqlUpdate
+	 */
+	SqlUpdate batchCommitWhen(CommitTiming commitTiming);
+
+	/**
+	 * エラー発生時の動作を設定する.
+	 * 初期設定は {@link ErrorAction#THROW_EXCEPTION}
+	 *
+	 * @param errorAction エラー時動作
+	 * @return SqlUpdate
+	 */
+	SqlUpdate batchErrorWhen(ErrorAction errorAction);
 
 	/**
 	 * 更新結果の取得（終端処理）

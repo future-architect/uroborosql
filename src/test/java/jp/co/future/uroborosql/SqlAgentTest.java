@@ -30,6 +30,8 @@ import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+import jp.co.future.uroborosql.fluent.CommitTiming;
+import jp.co.future.uroborosql.fluent.ErrorAction;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.StringUtils;
@@ -815,7 +817,7 @@ public class SqlAgentTest {
 	 * バッチ処理のテストケース(Stream)。
 	 */
 	@Test
-	public void testExecuteBatchStreamWithBatchFrame() throws Exception {
+	public void testExecuteBatchStreamWithBatchWhen() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -917,6 +919,40 @@ public class SqlAgentTest {
 		assertEquals("データの登録件数が不正です。", 150, workCount.length);
 		for (int i = 0; i < workCount.length; i++) {
 			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, workCount[i]);
+		}
+	}
+
+	/**
+	 * バッチ処理のテストケース(Query結果のStream）。
+	 */
+	@Test
+	public void testExecuteBatchStreamCommitTiming() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		List<Map<String, Object>> paramList = new ArrayList<Map<String, Object>>();
+		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		for (int i = 1; i <= 100; i++) {
+			Map<String, Object> row = new HashMap<String, Object>();
+			row.put("product_name", "商品名" + i);
+			row.put("product_kana_name", "ショウヒンメイ" + i);
+			row.put("jan_code", i % 25 != 0 ? "1234567890124" : "12345678901234"); // 20で割り切れるとき、桁あふれエラーを発生させる
+			row.put("product_description", i + "番目の商品");
+			row.put("ins_datetime", currentDatetime);
+			paramList.add(row);
+		}
+
+		// 処理実行
+		int[] count = agent.update("example/insert_product_regist_work")
+				.paramStream(paramList.stream())
+				.batchWhen((ctx, row) -> ctx.batchCount() == 10)
+				.batchCommitWhen(CommitTiming.COMMIT_EACH_TIME)
+				.batchErrorWhen(ErrorAction.DO_NOTHING)
+				.batch();
+
+		assertEquals("データの登録件数が不正です。", 60, count.length);
+		for (int i = 0; i < count.length; i++) {
+			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, count[i]);
 		}
 	}
 

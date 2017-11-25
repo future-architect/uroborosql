@@ -7,6 +7,8 @@ import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.fluent.CommitTiming;
+import jp.co.future.uroborosql.fluent.ErrorAction;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -29,6 +31,12 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 
 	/** 一括更新の発行判定条件 */
 	private BiPredicate<SqlContext, Map<String, Object>> condition = DEFAULT_BATCH_WHEN_CONDITION;
+
+	/** コミット実行タイミング */
+	private CommitTiming commitTiming = CommitTiming.DO_NOTHING;
+
+	/** エラー時アクション */
+	private ErrorAction errorAction = ErrorAction.THROW_EXCEPTION;
 
 	/**
 	 * コンストラクタ
@@ -82,6 +90,28 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batchCommitWhen(jp.co.future.uroborosql.fluent.SqlUpdate.CommitTiming)
+	 */
+	@Override
+	public SqlUpdate batchCommitWhen(final CommitTiming commitTiming) {
+		this.commitTiming = commitTiming;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batchErrorWhen(jp.co.future.uroborosql.fluent.SqlUpdate.ErrorAction)
+	 */
+	@Override
+	public SqlUpdate batchErrorWhen(final ErrorAction errorAction) {
+		this.errorAction = errorAction;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#count()
 	 */
 	@Override
@@ -112,12 +142,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 			if (!batch) {
 				addBatch();
 			}
-
-			try {
-				return agent.batch(context());
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
-			}
+			return executeBatch();
 		}
 	}
 
@@ -129,23 +154,34 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 		try (Stream<Map<String, Object>> paramStream = stream) {
 			int[] result = paramStream.map(r -> {
 				paramMap(r).addBatch();
-				if (condition.test(context(), r)) {
-					try {
-						return agent.batch(context());
-					} catch (Exception e) {
-						throw new UroborosqlSQLException(e);
-					}
-				} else {
-					return null;
-				}
-			}).reduce(new int[0], (joined, element) -> ArrayUtils.addAll(joined, element));
-			return ArrayUtils.addAll(result, context().batchCount() != 0 ? agent.batch(context()) : null);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+				return condition.test(context(), r) ? executeBatch() : null;
+			}).reduce(new int[0], (joined, element) -> element != null ? ArrayUtils.addAll(joined, element) : joined);
+			return ArrayUtils.addAll(result, context().batchCount() != 0 ? executeBatch() : null);
 		} finally {
 			stream = null;
 			condition = DEFAULT_BATCH_WHEN_CONDITION;
+			commitTiming = CommitTiming.DO_NOTHING;
+			errorAction = ErrorAction.THROW_EXCEPTION;
 		}
+	}
+
+	/**
+	 * バッチ処理の実行
+	 * @return 更新件数
+	 */
+	private int[] executeBatch() {
+		try {
+			return agent.batch(context());
+		} catch (Exception e) {
+			if (ErrorAction.THROW_EXCEPTION.equals(errorAction)) {
+				throw new UroborosqlSQLException(e);
+			}
+		} finally {
+			if (CommitTiming.COMMIT_EACH_TIME.equals(commitTiming)) {
+				agent.commit();
+			}
+		}
+		return new int[0];
 	}
 
 }
