@@ -30,16 +30,19 @@ import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
-import jp.co.future.uroborosql.fluent.CommitTiming;
-import jp.co.future.uroborosql.fluent.ErrorAction;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SqlAgentTest {
+	/** ロガー */
+	private static final Logger log = LoggerFactory.getLogger(SqlAgentTest.class);
+
 	private SqlConfig config;
 
 	private SqlAgent agent;
@@ -797,12 +800,9 @@ public class SqlAgentTest {
 		// 処理実行
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
-		int[] count = agent.update("example/insert_product").paramStream(input.stream()).batch();
+		int count = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count.length);
-		for (int i = 0; i < count.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, count[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 100, count);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -824,17 +824,14 @@ public class SqlAgentTest {
 		// 処理実行
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
-		int[] count = agent.update("example/insert_product").paramStream(input.stream())
-				.batchWhen((ctx, row) -> {
+		int count = agent.batch("example/insert_product").paramStream(input.stream())
+				.when((ctx, row) -> {
 					Object current = row.get("ins_datetime");
 					Object pre = ctx.contextAttrs().put("prevRowValue", current);
 					return pre != null && !current.equals(pre);
-				}).batch();
+				}).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count.length);
-		for (int i = 0; i < count.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, count[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 100, count);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -856,25 +853,19 @@ public class SqlAgentTest {
 		// 処理実行
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
-		int[] productCount = agent.update("example/insert_product").paramStream(input.stream()).batch();
+		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount.length);
-		for (int i = 0; i < productCount.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, productCount[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 100, productCount);
 
 		agent.commit();
 
-		int[] workCount = agent.update("example/insert_product_regist_work")
+		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
 						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
-				.batchWhen((ctx, row) -> ctx.batchCount() == 7)
-				.batch();
+				.when((ctx, row) -> ctx.batchCount() == 7)
+				.count();
 
-		assertEquals("データの登録件数が不正です。", 100, workCount.length);
-		for (int i = 0; i < workCount.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, workCount[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 100, workCount);
 	}
 
 	/**
@@ -887,12 +878,9 @@ public class SqlAgentTest {
 
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
-		int[] productCount = agent.update("example/insert_product").paramStream(input.stream()).batch();
+		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount.length);
-		for (int i = 0; i < productCount.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, productCount[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 100, productCount);
 
 		agent.commit();
 
@@ -909,17 +897,14 @@ public class SqlAgentTest {
 		}
 
 		// 処理実行
-		int[] workCount = agent.update("example/insert_product_regist_work")
+		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
 						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
 				.paramStream(paramList.stream())
-				.batchWhen((ctx, row) -> ctx.batchCount() == 10)
-				.batch();
+				.when((ctx, row) -> ctx.batchCount() == 10)
+				.count();
 
-		assertEquals("データの登録件数が不正です。", 150, workCount.length);
-		for (int i = 0; i < workCount.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, workCount[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 150, workCount);
 	}
 
 	/**
@@ -943,17 +928,16 @@ public class SqlAgentTest {
 		}
 
 		// 処理実行
-		int[] count = agent.update("example/insert_product_regist_work")
+		int count = agent.batch("example/insert_product_regist_work")
 				.paramStream(paramList.stream())
-				.batchWhen((ctx, row) -> ctx.batchCount() == 10)
-				.batchCommitWhen(CommitTiming.COMMIT_EACH_TIME)
-				.batchErrorWhen(ErrorAction.DO_NOTHING)
-				.batch();
+				.when((ctx, row) -> ctx.batchCount() == 10)
+				.batchWhen((agent, ctx) -> agent.commit())
+				.errorWhen((agent, ctx, ex) -> {
+					log.error("error occured. ex:{}", ex.getMessage());
+				})
+				.count();
 
-		assertEquals("データの登録件数が不正です。", 60, count.length);
-		for (int i = 0; i < count.length; i++) {
-			assertEquals((i + 1) + "行目のデータの登録に失敗しました。", 1, count[i]);
-		}
+		assertEquals("データの登録件数が不正です。", 60, count);
 	}
 
 	/**
