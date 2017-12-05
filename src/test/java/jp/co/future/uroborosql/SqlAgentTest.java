@@ -825,7 +825,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
 				"testExecuteBatchStream.ltsv"));
 		int count = agent.batch("example/insert_product").paramStream(input.stream())
-				.when((ctx, row) -> {
+				.by((ctx, row) -> {
 					Object current = row.get("ins_datetime");
 					Object pre = ctx.contextAttrs().put("prevRowValue", current);
 					return pre != null && !current.equals(pre);
@@ -862,7 +862,7 @@ public class SqlAgentTest {
 		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
 						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
-				.when((ctx, row) -> ctx.batchCount() == 7)
+				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
 
 		assertEquals("データの登録件数が不正です。", 100, workCount);
@@ -901,7 +901,7 @@ public class SqlAgentTest {
 				.paramStream(agent.query("example/select_product")
 						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
 				.paramStream(paramList.stream())
-				.when((ctx, row) -> ctx.batchCount() == 10)
+				.by((ctx, row) -> ctx.batchCount() == 10)
 				.count();
 
 		assertEquals("データの登録件数が不正です。", 150, workCount);
@@ -930,7 +930,7 @@ public class SqlAgentTest {
 		// 処理実行
 		int count = agent.batch("example/insert_product_regist_work")
 				.paramStream(paramList.stream())
-				.when((ctx, row) -> ctx.batchCount() == 10)
+				.by((ctx, row) -> ctx.batchCount() == 10)
 				.batchWhen((agent, ctx) -> agent.commit())
 				.errorWhen((agent, ctx, ex) -> {
 					log.error("error occured. ex:{}", ex.getMessage());

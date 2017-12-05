@@ -69,10 +69,10 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlBatch#when(java.util.function.BiPredicate)
+	 * @see jp.co.future.uroborosql.fluent.SqlBatch#by(java.util.function.BiPredicate)
 	 */
 	@Override
-	public SqlBatch when(final BiPredicate<SqlContext, Map<String, Object>> condition) {
+	public SqlBatch by(final BiPredicate<SqlContext, Map<String, Object>> condition) {
 		this.condition = condition;
 		return this;
 	}

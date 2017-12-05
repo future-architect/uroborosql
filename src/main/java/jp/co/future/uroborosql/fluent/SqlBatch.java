@@ -31,13 +31,13 @@ public interface SqlBatch extends SqlFluent<SqlBatch> {
 	 * 一括更新用のバッチフレームの判定条件を設定する
 	 * <pre>
 	 * ex)
-	 *  when((ctx, row) -&gt; ctx.batchCount() == 100)
+	 *  by((ctx, row) -&gt; ctx.batchCount() == 100)
 	 * </pre>
 	 *
 	 * @param condition 判定条件
 	 * @return SqlBatch
 	 */
-	SqlBatch when(BiPredicate<SqlContext, Map<String, Object>> condition);
+	SqlBatch by(BiPredicate<SqlContext, Map<String, Object>> condition);
 
 	/**
 	 * バッチ実行時の動作を設定する.
