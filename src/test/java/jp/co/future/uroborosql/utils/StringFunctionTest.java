@@ -1,6 +1,10 @@
 package jp.co.future.uroborosql.utils;
 
 import static org.junit.Assert.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import ognl.Ognl;
 import ognl.OgnlContext;
 
@@ -20,8 +24,8 @@ public class StringFunctionTest {
 
 	@Test
 	public void test() throws Exception {
-		OgnlContext context = new OgnlContext();
-		OgnlContext root = new OgnlContext();
+		Map<Object, Object> root = new HashMap<Object, Object>();
+		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val1", null);
 		root.put(StringFunction.SHORT_NAME, new StringFunction());
 
@@ -29,5 +33,4 @@ public class StringFunctionTest {
 
 		assertTrue((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null));
 	}
-
 }
