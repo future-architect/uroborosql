@@ -1,10 +1,5 @@
 package jp.co.future.uroborosql.node;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
@@ -14,6 +9,11 @@ import ognl.ASTProperty;
 import ognl.Node;
 import ognl.Ognl;
 import ognl.OgnlException;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * IF句を表すノード
@@ -110,8 +110,9 @@ public class IfNode extends BranchNode {
 					StringBuilder builder = new StringBuilder();
 					dumpNode(parsedExpression, transformContext, builder);
 
-					LOG.debug("Evaluation Expression：[{}], Result：[{}], Parameter：[{}]", expression, resultValue, builder.length() == 0 ? ""
-							: builder.substring(0, builder.length() - 1));
+					LOG.debug("Evaluation Expression：[{}], Result：[{}], Parameter：[{}]", expression, resultValue,
+							builder.length() == 0 ? ""
+									: builder.substring(0, builder.length() - 1));
 				}
 			}
 			passState(resultValue);
