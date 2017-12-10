@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql.mapping;
 
+import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -131,7 +133,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(" */").append(System.lineSeparator());
 
 		for (TableMetadata.Column col : columns) {
-			sql.append(", ").append(col.getColumnName()).append("\tAS\t").append(col.getColumnName()).append(System.lineSeparator());
+			sql.append(", ").append(col.getColumnName()).append("\tAS\t").append(col.getColumnName());
+			if (StringUtils.isNotEmpty(col.getRemarks())) {
+				sql.append("\t-- ").append(col.getRemarks());
+			}
+			sql.append(System.lineSeparator());
 		}
 		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
 		sql.append("/*BEGIN*/").append(System.lineSeparator());
@@ -139,9 +145,18 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		for (TableMetadata.Column col : columns) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+			if (col.isNullable()) {
+				JDBCType t = col.getDataType();
+				if (JDBCType.CHAR.equals(t)  || JDBCType.NCHAR.equals(t) || JDBCType.VARCHAR.equals(t) || JDBCType.NVARCHAR.equals(t) || JDBCType.LONGNVARCHAR.equals(t)) {
+					sql.append("/*IF SF.isNotEmpty(\"").append(camelColName).append("\") */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+				} else {
+					sql.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+				}
+			}
 			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
-			sql.append("/*END*/").append(System.lineSeparator());
+			if (col.isNullable()) {
+				sql.append("/*END*/").append(System.lineSeparator());
+			}
 		}
 		sql.append("/*END*/").append(System.lineSeparator());
 

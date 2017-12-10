@@ -62,6 +62,21 @@ public interface TableMetadata {
 		 * @return true:主キー
 		 */
 		boolean isKey();
+
+		/**
+		 * コメント文字列取得
+		 *
+		 * @return コメント文字列
+		 */
+		String getRemarks();
+
+		/**
+		 * NULLが許可されるかどうかを取得
+		 * @return NULLが許可されるかどうか
+		 */
+		boolean isNullable();
+
+		int getOrdinalPosition();
 	}
 
 	/**
@@ -152,13 +167,17 @@ public interface TableMetadata {
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
 		try (ResultSet rs = metaData.getColumns(null, schemaPattern, tableName, "%")) {
 			while (rs.next()) {
-				String columnName = rs.getString(4);
-				int sqlType = rs.getInt(5);
+				String columnName = rs.getString("COLUMN_NAME");
+				int sqlType = rs.getInt("DATA_TYPE");
 				// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
 				if (sqlType == java.sql.Types.DISTINCT) {
 					sqlType = rs.getInt("SOURCE_DATA_TYPE");
 				}
-				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType);
+				String remarks = rs.getString("REMARKS");
+				String isNullable = rs.getString("IS_NULLABLE");
+				int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+
+				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks, isNullable, ordinalPosition);
 				entityMetadata.addColumn(column);
 				columns.put(column.getColumnName(), column);
 			}
