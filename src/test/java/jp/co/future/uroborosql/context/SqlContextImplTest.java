@@ -46,6 +46,9 @@ public class SqlContextImplTest {
 
 		SqlContext ctx6 = getSqlContext("select * from test where /* comment */ --comment [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1"), ctx6.getExecutableSql());
+
+		SqlContext ctx7 = getSqlContext("select * from test where[LF]/*IF aaa != null*/[LF]and aaa = /*aaa*/''[LF]/*END*/[LF]/*IF bbb != null*/[LF]and bbb = /*bbb*/''[LF]/*END*/order by 1");
+		assertEquals(replaceLineSep("select * from test where[LF]/*IF aaa != null*/[LF]aaa = /*aaa*/''[LF]/*END*/[LF]/*IF bbb != null*/[LF]and bbb = /*bbb*/''[LF]/*END*/order by 1"), ctx7.getExecutableSql());
 	}
 
 	@Test
