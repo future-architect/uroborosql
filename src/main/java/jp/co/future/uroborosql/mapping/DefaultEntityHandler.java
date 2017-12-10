@@ -128,36 +128,27 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		StringBuilder sql = new StringBuilder("SELECT /* mapping @ ")
 				.append(type.getSimpleName())
-				.append(" */\n");
+				.append(" */").append(System.lineSeparator());
 
-		for (int i = 0; i < columnSize; i++) {
-			TableMetadata.Column col = columns.get(i);
-			if (i > 0) {
-				sql.append(", ");
-			}
-			sql.append(col.getColumnName()).append("\n");
+		for (TableMetadata.Column col : columns) {
+			sql.append(", ").append(col.getColumnName()).append("\tAS\t").append(col.getColumnName()).append(System.lineSeparator());
 		}
-
-		sql.append("FROM ").append(metadata.getTableIdentifier()).append("\n");
-		sql.append("WHERE 1 = 1\n");
+		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
+		sql.append("WHERE").append(System.lineSeparator());
 
 		for (TableMetadata.Column col : columns) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
-			sql.append("/*END*/\n");
+			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
+			sql.append("/*END*/").append(System.lineSeparator());
 		}
 
 		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
-
-		for (int i = 0; i < keys.size(); i++) {
-			TableMetadata.Column col = keys.get(i);
-			if (i == 0) {
-				sql.append("ORDER BY \n");
-			} else {
-				sql.append(", ");
+		if (!keys.isEmpty()) {
+			sql.append("ORDER BY ").append(System.lineSeparator());
+			for (TableMetadata.Column col : keys) {
+				sql.append(", ").append(col.getColumnName()).append(System.lineSeparator());
 			}
-			sql.append(col.getColumnName()).append("\n");
 		}
 
 		return sql.toString();
@@ -179,30 +170,30 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(type.getSimpleName())
 				.append(" */ INTO ")
 				.append(metadata.getTableIdentifier())
-				.append("(\n");
+				.append("(").append(System.lineSeparator());
 
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				appendIfCommma(sql, columns, i);
 			}
-			sql.append(col.getColumnName()).append("\n");
-			sql.append("/*END*/\n");
+			sql.append(col.getColumnName()).append("").append(System.lineSeparator());
+			sql.append("/*END*/").append(System.lineSeparator());
 		}
 
-		sql.append(") VALUES (\n");
+		sql.append(") VALUES (").append(System.lineSeparator());
 
 		for (int i = 0; i < columnSize; i++) {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				appendIfCommma(sql, columns, i);
 			}
-			sql.append("/*").append(camelColName).append("*/''\n");
-			sql.append("/*END*/\n");
+			sql.append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
+			sql.append("/*END*/").append(System.lineSeparator());
 		}
 
 		sql.append(")");
@@ -225,7 +216,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(type.getSimpleName())
 				.append(" */ ")
 				.append(metadata.getTableIdentifier())
-				.append(" SET \n");
+				.append(" SET ").append(System.lineSeparator());
 
 		Optional<MappingColumn> versionMappingColumn = MappingUtils.getVersionMappingColumn(type);
 
@@ -233,7 +224,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			TableMetadata.Column col = columns.get(i);
 			String camelColName = col.getCamelColumnName();
 
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
+			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
 			if (i > 0) {
 				appendIfCommma(sql, columns, i);
 			}
@@ -243,15 +234,15 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					sql.append(" + 1");
 				}
 			});
-			sql.append("\n").append("/*END*/\n");
+			sql.append("").append(System.lineSeparator()).append("/*END*/").append(System.lineSeparator());
 		}
-		sql.append("WHERE 1 = 1\n");
+		sql.append("WHERE 1 = 1").append(System.lineSeparator());
 		for (TableMetadata.Column col : metadata.getKeyColumns()) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
+			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
 		}
 		versionMappingColumn.ifPresent(mappingColumn -> {
-			sql.append("AND ").append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName()).append("*/''\n");
+			sql.append("AND ").append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName()).append("*/''").append(System.lineSeparator());
 		});
 		return sql.toString();
 	}
@@ -261,12 +252,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(type.getSimpleName())
 				.append(" */ FROM ")
 				.append(metadata.getTableIdentifier())
-				.append("\n");
+				.append("").append(System.lineSeparator());
 
-		sql.append("WHERE 1 = 1\n");
+		sql.append("WHERE 1 = 1").append(System.lineSeparator());
 		for (TableMetadata.Column col : metadata.getKeyColumns()) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
+			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
 		}
 		return sql.toString();
 	}
@@ -281,7 +272,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 			sql.append("\"").append(camelColName).append("\" in getParameterNames()");
 		}
-		sql.append(" */\n, \n/*END*/\n");
+		sql.append(" */\n, \n/*END*/").append(System.lineSeparator());
 	}
 
 	private void setFields(final SqlContext context, final Object entity) {
