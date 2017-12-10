@@ -26,7 +26,7 @@ public class ElseNode extends ContainerNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		super.accept(transformContext);
 		transformContext.setEnabled(true);
+		super.accept(transformContext);
 	}
 }
