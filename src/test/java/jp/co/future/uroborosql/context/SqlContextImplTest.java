@@ -79,4 +79,16 @@ public class SqlContextImplTest {
 		SqlContext ctx3 = getSqlContext( replaceLineSep("insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])"));
 		assertEquals(replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"), ctx3.getExecutableSql());
 	}
+
+	@Test
+	public void removeFirstCommaWhenSetClause() throws Exception {
+		SqlContext ctx1 = getSqlContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		assertEquals("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1", ctx1.getExecutableSql());
+
+		SqlContext ctx2 = getSqlContext("update test set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		assertEquals("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1", ctx2.getExecutableSql());
+
+		SqlContext ctx3 = getSqlContext(replaceLineSep("update test set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1"));
+		assertEquals(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"), ctx3.getExecutableSql());
+	}
 }

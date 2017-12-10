@@ -69,7 +69,7 @@ public class SqlContextImpl implements SqlContext {
 			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND\\s+|OR\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile("(?i)((SELECT|ORDER BY|GROUP BY)\\s+|\\(\\s*)(,)");
+	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile("(?i)((SELECT|ORDER BY|GROUP BY|SET)\\s+|\\(\\s*)(,)");
 	/** 不要な空白、改行を除去するための正規表現 */
 	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
