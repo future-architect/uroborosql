@@ -134,6 +134,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append(", ").append(col.getColumnName()).append("\tAS\t").append(col.getColumnName()).append(System.lineSeparator());
 		}
 		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
+		sql.append("/*BEGIN*/").append(System.lineSeparator());
 		sql.append("WHERE").append(System.lineSeparator());
 
 		for (TableMetadata.Column col : columns) {
@@ -142,6 +143,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
 			sql.append("/*END*/").append(System.lineSeparator());
 		}
+		sql.append("/*END*/").append(System.lineSeparator());
 
 		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
 		if (!keys.isEmpty()) {
