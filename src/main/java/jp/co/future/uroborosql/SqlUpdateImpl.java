@@ -3,7 +3,7 @@ package jp.co.future.uroborosql;
 import java.sql.SQLException;
 
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.exception.*;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 
 /**
@@ -12,7 +12,6 @@ import jp.co.future.uroborosql.fluent.SqlUpdate;
  * @author H.Sugimoto
  */
 final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpdate {
-	private final SqlAgent agent;
 	/** バッチ処理を行うかどうか */
 	private boolean batch = false;
 
@@ -23,8 +22,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 * @param context SqlContext
 	 */
 	SqlUpdateImpl(final SqlAgent agent, final SqlContext context) {
-		super(context);
-		this.agent = agent;
+		super(agent, context);
 	}
 
 	/**
@@ -33,6 +31,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#addBatch()
 	 */
 	@Override
+	@Deprecated
 	public SqlUpdate addBatch() {
 		context().addBatch();
 		batch = true;
@@ -50,7 +49,7 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 			throw new IllegalStateException("すでにaddBatch()でパラメータが設定されているため、batch()を呼び出してください");
 		}
 		try {
-			return agent.update(context());
+			return agent().update(context());
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);
 		}
@@ -62,18 +61,19 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 * @see jp.co.future.uroborosql.fluent.SqlUpdate#batch()
 	 */
 	@Override
+	@Deprecated
 	public int[] batch() {
-		if (context.batchCount() == 0) {
+		if (context().batchCount() == 0) {
 			return new int[0];
 		}
 		if (!batch) {
 			addBatch();
 		}
-
 		try {
-			return agent.batch(context());
-		} catch (SQLException e) {
+			return agent().batch(context());
+		} catch (Exception e) {
 			throw new UroborosqlSQLException(e);
 		}
 	}
+
 }

@@ -19,7 +19,6 @@ import jp.co.future.uroborosql.mapping.EntityHandler;
  * @author ota
  */
 final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
-	private final SqlAgent agent;
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
 
@@ -33,8 +32,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	 */
 	SqlEntityQueryImpl(final SqlAgent agent, final EntityHandler<?> entityHandler, final SqlContext context,
 			final Class<? extends E> entityType) {
-		super(context);
-		this.agent = agent;
+		super(agent, context);
 		this.entityHandler = entityHandler;
 		this.entityType = entityType;
 	}
@@ -67,7 +65,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public Stream<E> stream() {
 		try {
-			return this.entityHandler.doSelect(agent, context, entityType);
+			return this.entityHandler.doSelect(agent(), context(), entityType);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
 		}
