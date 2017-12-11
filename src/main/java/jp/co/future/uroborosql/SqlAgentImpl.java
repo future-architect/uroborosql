@@ -106,7 +106,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					ResultSet rs = getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery());
-					return rs;
+					return new StatementAutoCloseResultSet(rs, stmt);
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
