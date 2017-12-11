@@ -12,8 +12,6 @@ import jp.co.future.uroborosql.fluent.Procedure;
  * @author H.Sugimoto
  */
 final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Procedure {
-	private final SqlAgent agent;
-
 	/**
 	 * コンストラクタ
 	 *
@@ -21,8 +19,7 @@ final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Proced
 	 * @param context SqlContext
 	 */
 	ProcedureImpl(final SqlAgent agent, final SqlContext context) {
-		super(context);
-		this.agent = agent;
+		super(agent, context);
 	}
 
 	/**
@@ -32,6 +29,6 @@ final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Proced
 	 */
 	@Override
 	public Map<String, Object> call() throws SQLException {
-		return agent.procedure(context());
+		return agent().procedure(context());
 	}
 }

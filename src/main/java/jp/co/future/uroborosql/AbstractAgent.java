@@ -18,6 +18,7 @@ import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
+import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
@@ -475,8 +476,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public SqlQuery query(final String sqlName) {
-		SqlContext context = contextFrom(sqlName);
-		return new SqlQueryImpl(this, context);
+		return new SqlQueryImpl(this, contextFrom(sqlName));
 	}
 
 	/**
@@ -486,8 +486,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public SqlQuery queryWith(final String sql) {
-		SqlContext context = contextWith(sql);
-		return new SqlQueryImpl(this, context);
+		return new SqlQueryImpl(this, contextWith(sql));
 	}
 
 	/**
@@ -497,8 +496,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public SqlUpdate update(final String sqlName) {
-		SqlContext context = contextFrom(sqlName);
-		return new SqlUpdateImpl(this, context);
+		return new SqlUpdateImpl(this, contextFrom(sqlName));
 	}
 
 	/**
@@ -508,8 +506,27 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public SqlUpdate updateWith(final String sql) {
-		SqlContext context = contextWith(sql);
-		return new SqlUpdateImpl(this, context);
+		return new SqlUpdateImpl(this, contextWith(sql));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#batch(java.lang.String)
+	 */
+	@Override
+	public SqlBatch batch(final String sqlName) {
+		return new SqlBatchImpl(this, contextFrom(sqlName));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#batchWith(java.lang.String)
+	 */
+	@Override
+	public SqlBatch batchWith(final String sql) {
+		return new SqlBatchImpl(this, contextWith(sql));
 	}
 
 	/**
@@ -519,8 +536,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public Procedure proc(final String sqlName) {
-		SqlContext context = contextFrom(sqlName);
-		return new ProcedureImpl(this, context);
+		return new ProcedureImpl(this, contextFrom(sqlName));
 	}
 
 	/**
@@ -530,8 +546,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public Procedure procWith(final String sql) {
-		SqlContext context = contextWith(sql);
-		return new ProcedureImpl(this, context);
+		return new ProcedureImpl(this, contextWith(sql));
 	}
 
 	@SuppressWarnings("unchecked")

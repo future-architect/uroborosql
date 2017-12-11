@@ -366,7 +366,6 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					int[] result = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
-					sqlContext.clearBatch();
 					return result;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
@@ -391,6 +390,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
+					sqlContext.clearBatch();
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
