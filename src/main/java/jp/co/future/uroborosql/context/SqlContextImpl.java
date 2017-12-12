@@ -69,7 +69,8 @@ public class SqlContextImpl implements SqlContext {
 			.compile("(?i)(WHERE\\s+(--.*|/\\*.*\\*/\\s*)*\\s*)(AND\\s+|OR\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile("(?i)(((SELECT|ORDER BY|GROUP BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
+	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
+			.compile("(?i)(((SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
 	/** 不要な空白、改行を除去するための正規表現 */
 	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
@@ -919,7 +920,7 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public String formatParams() {
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < bindNames.size(); i++) {
+		for (int i = 0; i < bindNames.size(); i++) {
 			sb.append(String.format("[%s=%s]", bindNames.get(i), bindValiables.get(i)));
 		}
 		return sb.toString();
