@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -105,8 +106,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					ResultSet rs = getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery());
-					return new StatementAutoCloseResultSet(rs, stmt);
+					return new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()),
+							stmt);
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
@@ -692,6 +693,49 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
 		}
+	}
+
+	/**
+	 * ResultSetのラッパークラス。ResultSetのクローズに合わせてStatementもクローズする。
+	 *
+	 * @author H.Sugimoto
+	 * @version 0.5.0
+	 */
+	private static class InnerResultSet extends AbstractResultSetWrapper {
+		/** 同期してクローズするStatement */
+		private Statement stmt;
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param wrapped 元となるResultSet
+		 * @param stmt Statement
+		 */
+		InnerResultSet(final ResultSet wrapped, final Statement stmt) {
+			super(wrapped);
+			this.stmt = stmt;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractResultSetWrapper#close()
+		 */
+		@Override
+		public void close() throws SQLException {
+			try {
+				super.close();
+			} finally {
+				try {
+					if (stmt != null && !stmt.isClosed()) {
+						stmt.close();
+					}
+				} catch (SQLException e) {
+					// do nothing
+				}
+			}
+		}
+
 	}
 
 }
