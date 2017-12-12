@@ -66,7 +66,13 @@ public class SqlContextImpl implements SqlContext {
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
 	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(WHERE(\\s+(/\\*.*\\*/|--.*)+)*\\s+)(AND\\s+|OR\\s+)");
+			.compile("(?i)(WHERE\\s+(--.*|/\\*.*\\*/\\s*)*\\s*)(AND\\s+|OR\\s+)");
+
+	/** 各句の最初に現れるカンマを除去するための正規表現 */
+	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
+			.compile("(?i)(((SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
+	/** 不要な空白、改行を除去するための正規表現 */
+	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(SqlContextImpl.class);
@@ -181,21 +187,30 @@ public class SqlContextImpl implements SqlContext {
 	public String getExecutableSql() {
 		if (StringUtils.isEmpty(executableSqlCache)) {
 			if (executableSql.length() > 0) {
-				// where句の直後に来るANDやORの除去
-				StringBuffer buff = new StringBuffer();
-				if (executableSql.toString().toUpperCase().contains("WHERE")) {
-					Matcher whereMatcher = WHERE_CLAUSE_PATTERN.matcher(executableSql);
-					while (whereMatcher.find()) {
-						String whereClause = whereMatcher.group(1);
-						whereMatcher.appendReplacement(buff, whereClause);
+				executableSqlCache = executableSql.toString();
+				if (executableSqlCache.toUpperCase().contains("WHERE")) {
+					// where句の直後に来るANDやORの除去
+					StringBuffer buff = new StringBuffer();
+					Matcher matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
+					while (matcher.find()) {
+						String whereClause = matcher.group(1);
+						matcher.appendReplacement(buff, whereClause);
 					}
-					whereMatcher.appendTail(buff);
+					matcher.appendTail(buff);
 					executableSqlCache = buff.toString();
-				} else {
-					executableSqlCache = executableSql.toString();
 				}
+				// 各句の直後に現れる不要なカンマの除去
+				StringBuffer buff = new StringBuffer();
+				Matcher removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
+				while (removeCommaMatcher.find()) {
+					String clauseWords = removeCommaMatcher.group(1);
+					removeCommaMatcher.appendReplacement(buff, clauseWords);
+				}
+				removeCommaMatcher.appendTail(buff);
+				executableSqlCache = buff.toString();
+
 				// 空行の除去
-				executableSqlCache = executableSqlCache.replaceAll("(?m)^\\s*(\\r\\n|\\r|\\n)", "");
+				executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");
 			}
 		}
 		return executableSqlCache;
@@ -905,7 +920,7 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public String formatParams() {
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < bindNames.size(); i++) {
+		for (int i = 0; i < bindNames.size(); i++) {
 			sb.append(String.format("[%s=%s]", bindNames.get(i), bindValiables.get(i)));
 		}
 		return sb.toString();
