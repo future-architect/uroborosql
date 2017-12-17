@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
@@ -98,6 +99,8 @@ public class SqlREPL {
 		RELOAD(false),
 		/** 登録されているJDBCドライバーのリスト出力 */
 		DRIVER(false),
+		/** テーブル定義表示 */
+		DESC(false, TableNameCompleter.class.getSimpleName()),
 		/** ヘルプメッセージ出力 */
 		HELP(false),
 		/** 画面のクリア */
@@ -383,6 +386,8 @@ public class SqlREPL {
 		console.addCompleter(new SqlNameCompleter(config.getSqlManager().getSqlPathList()));
 		// バインドパラメータのコード補完
 		console.addCompleter(new BindParamCompleter());
+		// テーブル名のコード補完
+		console.addCompleter(new TableNameCompleter());
 		CandidateListCompletionHandler handler = new CandidateListCompletionHandler();
 		handler.setPrintSpaceAfterFullCompletion(false);
 		console.setCompletionHandler(handler);
@@ -480,6 +485,25 @@ public class SqlREPL {
 			while (drivers.hasMoreElements()) {
 				Driver driver = drivers.nextElement();
 				console.println(String.format("%02d : %s%n", ++driverCount, driver));
+			}
+
+			return true;
+
+		case DESC:
+			console.println("DESC:");
+
+			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] + "%" : "%";
+
+			try {
+				Connection conn = config.getConnectionSupplier().getConnection();
+				DatabaseMetaData md = conn.getMetaData();
+				ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(), tableNamePattern, null);
+				DumpResultSqlFilter filter = new DumpResultSqlFilter();
+				StringBuilder builder = filter.displayResult(rs);
+				console.print(builder.toString());
+				console.println();
+			} catch (SQLException ex) {
+				ex.printStackTrace();
 			}
 
 			return true;
@@ -969,6 +993,65 @@ public class SqlREPL {
 					return -1;
 				}
 			}
+		}
+	}
+
+	/**
+	 * テーブル名を補完するCompleter
+	 *
+	 * @author H.Sugimoto
+	 *
+	 */
+	class TableNameCompleter implements Completer {
+
+		/**
+		 * DatabaseMetadateからテーブル名を取得して補完候補とする。
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
+		 */
+		@Override
+		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+			String[] parts = getLineParts(buffer);
+			int len = parts.length;
+
+			// コード補完する引数の番号を特定。
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass().getSimpleName()) : -1;
+
+			// 対象引数が-1の時は該当なしなのでコード補完しない
+			if (startArgNo == -1) {
+				return -1;
+			} else {
+				boolean isBlank = buffer.endsWith(" ");
+				String tableNamePattern = "%";
+				if (len == startArgNo && isBlank) {
+					tableNamePattern = parts[len - 1];
+				} else if (len == (startArgNo + 1) && !isBlank) {
+					tableNamePattern = parts[len - 1] + "%";
+				} else {
+					return -1;
+				}
+
+				try {
+					Connection conn = config.getConnectionSupplier().getConnection();
+					DatabaseMetaData md = conn.getMetaData();
+					ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(), tableNamePattern, null);
+					while (rs.next()) {
+						candidates.add(rs.getString("TABLE_NAME"));
+					}
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					return -1;
+				}
+			}
+
+			// カーソルポジションの計算
+			int pos = 0;
+			for (int i = 0; i < startArgNo; i++) {
+				pos = pos + parts[i].length() + 1;
+			}
+			return candidates.isEmpty() ? buffer.length() : pos;
 		}
 
 	}
