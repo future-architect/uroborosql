@@ -11,10 +11,21 @@ import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
+	protected final SqlAgent agent;
 	protected final SqlContext context;
 
-	protected AbstractSqlFluent(final SqlContext context) {
+	protected AbstractSqlFluent(final SqlAgent agent, final SqlContext context) {
+		this.agent = agent;
 		this.context = context;
+	}
+
+	/**
+	 * SqlAgentの取得
+	 *
+	 * @return SqlAgent
+	 */
+	protected SqlAgent agent() {
+		return agent;
 	}
 
 	/**
