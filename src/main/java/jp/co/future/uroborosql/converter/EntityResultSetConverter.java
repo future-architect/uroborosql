@@ -49,7 +49,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 
 		void bindValue(final E rec, final ResultSet rs, final MappingColumn column) throws SQLException {
 			for (int i = 0; i < this.columnLabels.length; i++) {
-				if (this.columnLabels[i].equals(column.getName())) {
+				if (this.columnLabels[i].equalsIgnoreCase(column.getName())) {
 					column.setValue(rec, getValue(column.getJavaType(), rs, i + 1));
 					return;
 				}
