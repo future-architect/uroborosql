@@ -173,45 +173,16 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
-		Stream<T> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE,
-				Spliterator.ORDERED | Spliterator.CONCURRENT) {
-			private ResultSet rs;
-
-			@Override
-			public boolean tryAdvance(final Consumer<? super T> action) {
-				try {
-					if (rs == null) {
-						rs = query(sqlContext);
-					}
-					if (!rs.next()) {
-						rs.close();
-						return false;
-					}
-					action.accept(converter.createRecord(rs));
-					return true;
-				} catch (RuntimeException | Error ex) {
-					try {
-						if (rs != null && !rs.isClosed()) {
-							rs.close();
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					throw ex;
-				} catch (SQLException ex) {
-					try {
-						if (rs != null && !rs.isClosed()) {
-							rs.close();
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					throw new UroborosqlSQLException(ex);
+		final ResultSet rs = query(sqlContext);
+		return StreamSupport.stream(new ResultSetSpliterator<T>(rs, converter), false).onClose(() -> {
+			try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
 				}
+			} catch (SQLException ex) {
+				// do nothing
 			}
-		}, false);
-
-		return stream;
+		});
 	}
 
 	/**
@@ -223,7 +194,9 @@ public class SqlAgentImpl extends AbstractAgent {
 	@Override
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
 			throws SQLException {
-		return query(sqlContext, new MapResultSetConverter(caseFormat)).collect(Collectors.toList());
+		try (Stream<Map<String, Object>> stream = query(sqlContext, new MapResultSetConverter(caseFormat))) {
+			return stream.collect(Collectors.toList());
+		}
 	}
 
 	/**
@@ -609,7 +582,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createSelectContext(this, metadata, entityType);
 			context.paramMap(params);
 
-			return handler.doSelect(this, context, entityType).findFirst();
+			try (Stream<E> stream = handler.doSelect(this, context, entityType)) {
+				return stream.findFirst();
+			}
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
 		}
@@ -692,6 +667,47 @@ public class SqlAgentImpl extends AbstractAgent {
 			return handler.doDelete(this, context, entity);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+		}
+	}
+
+	private final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
+		private final ResultSetConverter<T> converter;
+		private final ResultSet rs;
+
+		private ResultSetSpliterator(final ResultSet rs, final ResultSetConverter<T> converter) {
+			super(Long.MAX_VALUE, Spliterator.ORDERED);
+			this.rs = rs;
+			this.converter = converter;
+		}
+
+		@Override
+		public boolean tryAdvance(final Consumer<? super T> action) {
+			try {
+				if (!rs.next()) {
+					rs.close();
+					return false;
+				}
+				action.accept(converter.createRecord(rs));
+				return true;
+			} catch (RuntimeException | Error ex) {
+				try {
+					if (rs != null && !rs.isClosed()) {
+						rs.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				throw ex;
+			} catch (SQLException ex) {
+				try {
+					if (rs != null && !rs.isClosed()) {
+						rs.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				throw new UroborosqlSQLException(ex);
+			}
 		}
 	}
 
