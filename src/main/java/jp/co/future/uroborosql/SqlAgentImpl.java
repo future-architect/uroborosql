@@ -670,6 +670,13 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
+	/**
+	 * ResultSetをStreamで扱うためのSpliterator
+	 *
+	 * @author H.Sugimoto
+	 *
+	 * @param <T> ResultSetの1行を変換した型
+	 */
 	private final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
 		private final ResultSetConverter<T> converter;
 		private final ResultSet rs;
