@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql.mapping;
 
+import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -124,40 +126,33 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildSelectSQL(final TableMetadata metadata, final Class<? extends Object> type) {
 		List<? extends TableMetadata.Column> columns = metadata.getColumns();
-		int columnSize = columns.size();
 
-		StringBuilder sql = new StringBuilder("SELECT /* mapping @ ")
-				.append(type.getSimpleName())
-				.append(" */\n");
+		StringBuilder sql = buildSqlIdComment(new StringBuilder("SELECT "), type).append(System.lineSeparator());
 
-		for (int i = 0; i < columnSize; i++) {
-			TableMetadata.Column col = columns.get(i);
-			if (i > 0) {
-				sql.append(", ");
+		for (TableMetadata.Column col : columns) {
+			sql.append("\t").append(", ").append(col.getColumnName()).append("\tAS\t").append(col.getColumnName());
+			if (StringUtils.isNotEmpty(col.getRemarks())) {
+				sql.append("\t").append("-- ").append(col.getRemarks());
 			}
-			sql.append(col.getColumnName()).append("\n");
+			sql.append(System.lineSeparator());
 		}
-
-		sql.append("FROM ").append(metadata.getTableIdentifier()).append("\n");
-		sql.append("WHERE 1 = 1\n");
+		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
+		sql.append("/*BEGIN*/").append(System.lineSeparator());
+		sql.append("WHERE").append(System.lineSeparator());
 
 		for (TableMetadata.Column col : columns) {
 			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
-			sql.append("/*END*/\n");
+			StringBuilder parts = new StringBuilder().append("\t").append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
+			wrapIfComment(sql, parts, col);
 		}
+		sql.append("/*END*/").append(System.lineSeparator());
 
 		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
-
-		for (int i = 0; i < keys.size(); i++) {
-			TableMetadata.Column col = keys.get(i);
-			if (i == 0) {
-				sql.append("ORDER BY \n");
-			} else {
-				sql.append(", ");
+		if (!keys.isEmpty()) {
+			sql.append("ORDER BY ").append(System.lineSeparator());
+			for (TableMetadata.Column col : keys) {
+				sql.append("\t").append(", ").append(col.getColumnName()).append(System.lineSeparator());
 			}
-			sql.append(col.getColumnName()).append("\n");
 		}
 
 		return sql.toString();
@@ -171,38 +166,29 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @return INSERT SQL
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type) {
-		List<? extends TableMetadata.Column> columns = metadata.getColumns();
-
-		int columnSize = columns.size();
-
-		StringBuilder sql = new StringBuilder("INSERT /* mapping @ ")
-				.append(type.getSimpleName())
-				.append(" */ INTO ")
+		StringBuilder sql = buildSqlIdComment(new StringBuilder("INSERT "), type)
+				.append(" INTO ")
 				.append(metadata.getTableIdentifier())
-				.append("(\n");
+				.append("(").append(System.lineSeparator());
 
-		for (int i = 0; i < columnSize; i++) {
-			TableMetadata.Column col = columns.get(i);
-			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
-			if (i > 0) {
-				appendIfCommma(sql, columns, i);
+		for (TableMetadata.Column col : metadata.getColumns()) {
+			StringBuilder parts = new StringBuilder().append("\t").append(", ").append(col.getColumnName()).append(System.lineSeparator());
+			if (col.isNullable()) {
+				wrapIfComment(sql, parts, col);
+			} else {
+				sql.append(parts);
 			}
-			sql.append(col.getColumnName()).append("\n");
-			sql.append("/*END*/\n");
 		}
 
-		sql.append(") VALUES (\n");
+		sql.append(") VALUES (").append(System.lineSeparator());
 
-		for (int i = 0; i < columnSize; i++) {
-			TableMetadata.Column col = columns.get(i);
-			String camelColName = col.getCamelColumnName();
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
-			if (i > 0) {
-				appendIfCommma(sql, columns, i);
+		for (TableMetadata.Column col : metadata.getColumns()) {
+			StringBuilder parts = new StringBuilder().append("\t").append(", ").append("/*").append(col.getCamelColumnName()).append("*/''").append(System.lineSeparator());
+			if (col.isNullable()) {
+				wrapIfComment(sql, parts, col);
+			} else {
+				sql.append(parts);
 			}
-			sql.append("/*").append(camelColName).append("*/''\n");
-			sql.append("/*END*/\n");
 		}
 
 		sql.append(")");
@@ -217,71 +203,93 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @return UPDATE SQL
 	 */
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type) {
-		List<? extends TableMetadata.Column> columns = metadata.getColumns();
-
-		int columnSize = columns.size();
-
-		StringBuilder sql = new StringBuilder("UPDATE /* mapping @ ")
-				.append(type.getSimpleName())
-				.append(" */ ")
-				.append(metadata.getTableIdentifier())
-				.append(" SET \n");
+		StringBuilder sql = buildSqlIdComment(new StringBuilder("UPDATE "), type)
+				.append(" ").append(metadata.getTableIdentifier())
+				.append(" SET ").append(System.lineSeparator());
 
 		Optional<MappingColumn> versionMappingColumn = MappingUtils.getVersionMappingColumn(type);
 
-		for (int i = 0; i < columnSize; i++) {
-			TableMetadata.Column col = columns.get(i);
+		for (TableMetadata.Column col : metadata.getColumns()) {
 			String camelColName = col.getCamelColumnName();
-
-			sql.append("/*IF \"").append(camelColName).append("\" in getParameterNames() */\n");// フィールドがセットされていない場合はカラム自体を削る
-			if (i > 0) {
-				appendIfCommma(sql, columns, i);
-			}
-			sql.append(col.getColumnName()).append(" = /*").append(camelColName).append("*/''");
+			StringBuilder parts = new StringBuilder().append("\t").append(", ").append(col.getColumnName()).append(" = /*").append(camelColName).append("*/''");
 			versionMappingColumn.ifPresent(mappingColumn -> {
 				if (camelColName.equals(mappingColumn.getCamelName())) {
-					sql.append(" + 1");
+					parts.append(" + 1");
 				}
 			});
-			sql.append("\n").append("/*END*/\n");
+			parts.append(System.lineSeparator());
+			if (col.isNullable()) {
+				wrapIfComment(sql, parts, col);
+			} else {
+				sql.append(parts);
+			}
 		}
-		sql.append("WHERE 1 = 1\n");
+
+		sql.append("WHERE").append(System.lineSeparator());
 		for (TableMetadata.Column col : metadata.getKeyColumns()) {
-			String camelColName = col.getCamelColumnName();
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
+			sql.append("\t").append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(col.getCamelColumnName()).append("*/''").append(System.lineSeparator());
 		}
 		versionMappingColumn.ifPresent(mappingColumn -> {
-			sql.append("AND ").append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName()).append("*/''\n");
+			sql.append("\t").append("AND ").append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName()).append("*/''").append(System.lineSeparator());
 		});
 		return sql.toString();
 	}
 
 	protected String buildDeleteSQL(final TableMetadata metadata, final Class<? extends Object> type) {
-		StringBuilder sql = new StringBuilder("DELETE /* mapping @ ")
-				.append(type.getSimpleName())
-				.append(" */ FROM ")
+		StringBuilder sql = buildSqlIdComment(new StringBuilder("DELETE "), type)
+				.append(" FROM ")
 				.append(metadata.getTableIdentifier())
-				.append("\n");
+				.append("").append(System.lineSeparator());
 
-		sql.append("WHERE 1 = 1\n");
+		sql.append("/*BEGIN*/").append(System.lineSeparator());;
+		sql.append("WHERE").append(System.lineSeparator());
 		for (TableMetadata.Column col : metadata.getKeyColumns()) {
-			String camelColName = col.getCamelColumnName();
-			sql.append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(camelColName).append("*/''\n");
+			sql.append("\t").append("AND ").append(col.getColumnName()).append(" = ").append("/*").append(col.getCamelColumnName()).append("*/''").append(System.lineSeparator());
 		}
+		sql.append("/*END*/").append(System.lineSeparator());;
 		return sql.toString();
 	}
 
-	private void appendIfCommma(final StringBuilder sql, final List<? extends TableMetadata.Column> columns, final int endColumnIndex) {
-		sql.append("/*IF ");
-		for (int i = 0; i < endColumnIndex; i++) {
-			TableMetadata.Column col = columns.get(i);
-			String camelColName = col.getCamelColumnName();
-			if (i > 0) {
-				sql.append(" || ");
-			}
-			sql.append("\"").append(camelColName).append("\" in getParameterNames()");
+	/**
+	 * SQL-ID コメントの生成
+	 *
+	 * @param sql 生成するSQLを格納するStringBuilder
+	 * @param type エンティティタイプ
+	 * @return sql
+	 */
+	private StringBuilder buildSqlIdComment(final StringBuilder sql, final Class<? extends Object> type) {
+		sql.append("/* mapping @ ").append(type.getSimpleName()).append(" */");
+		return sql;
+	}
+
+	/**
+	 * 文字列型かどうかを判定する
+	 *
+	 * @param type JDBC上の型
+	 * @return 文字列型の場合<code>true</code>
+	 */
+	private boolean isStringType(final JDBCType type) {
+		return (JDBCType.CHAR.equals(type)  || JDBCType.NCHAR.equals(type) || JDBCType.VARCHAR.equals(type) || JDBCType.NVARCHAR.equals(type) || JDBCType.LONGNVARCHAR.equals(type));
+	}
+
+	/**
+	 * IFコメントでSQLをラップする
+	 *
+	 * @param original SQL
+	 * @param addParts IFコメントの中に含まれるSQLパーツ
+	 * @param col カラム情報
+	 * @return SQL
+	 */
+	private StringBuilder wrapIfComment(final StringBuilder original, final StringBuilder addParts, final TableMetadata.Column col) {
+		String camelColName = col.getCamelColumnName();
+		if (isStringType(col.getDataType())) {
+			original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+		} else {
+			original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
 		}
-		sql.append(" */\n, \n/*END*/\n");
+		original.append(addParts);
+		original.append("/*END*/").append(System.lineSeparator());
+		return original;
 	}
 
 	private void setFields(final SqlContext context, final Object entity) {

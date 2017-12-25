@@ -601,7 +601,7 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM emp";
 		String sql3 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		String sql4 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
-		String sql5 = "SELECT * FROM emp WHERE deptno = ?/*deptno*/";
+		String sql5 = "SELECT * FROM emp WHERE  deptno = ?/*deptno*/";
 		SqlParser parser = new SqlParserImpl(sql);
 
 		SqlContext ctx = sqlContextFactory.createSqlContext();
