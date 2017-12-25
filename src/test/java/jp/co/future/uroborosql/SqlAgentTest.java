@@ -941,6 +941,32 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * バッチ処理のテストケース(Query結果のStream）。
+	 */
+	@Test
+	public void testExecuteManyInsert() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		for (int i = 1; i <= 1000; i++) {
+			Map<String, Object> row = new HashMap<String, Object>();
+			row.put("product_id",  i);
+			row.put("product_name", "商品名" + i);
+			row.put("product_kana_name", "ショウヒンメイ" + i);
+			row.put("jan_code", "1234567890124");
+			row.put("product_description", i + "番目の商品");
+			row.put("ins_datetime", currentDatetime);
+			row.put("upd_datetime", currentDatetime);
+			row.put("version_no", 1);
+			// 処理実行
+			int count = agent.update("example/insert_product")
+					.paramMap(row).count();
+			assertEquals("データの登録件数が不正です。", 1, count);
+		}
+	}
+
+	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test

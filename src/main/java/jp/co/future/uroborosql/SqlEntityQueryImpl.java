@@ -44,7 +44,9 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	 */
 	@Override
 	public List<E> collect() {
-		return stream().collect(Collectors.toList());
+		try (Stream<E> stream = stream()) {
+			return stream.collect(Collectors.toList());
+		}
 	}
 
 	/**
@@ -54,7 +56,9 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	 */
 	@Override
 	public Optional<E> first() {
-		return stream().findFirst();
+		try (Stream<E> stream = stream()) {
+			return stream.findFirst();
+		}
 	}
 
 	/**
