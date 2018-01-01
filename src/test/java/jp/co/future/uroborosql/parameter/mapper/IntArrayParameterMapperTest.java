@@ -12,17 +12,17 @@ import java.sql.Connection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 
-public class StringArrayParameterMapperTest {
+public class IntArrayParameterMapperTest {
 
 	@Test
 	public void test() {
 		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
 		Array jdbcArray = newProxy(Array.class);
-		String[] array = { "A" };
+		int[] array = { 111 };
 
 		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
-				assertThat(args[0], is("VARCHAR"));
+				assertThat(args[0], is("INTEGER"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
 			}

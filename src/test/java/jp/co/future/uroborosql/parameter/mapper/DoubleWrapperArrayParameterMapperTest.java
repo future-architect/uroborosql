@@ -12,17 +12,17 @@ import java.sql.Connection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 
-public class StringArrayParameterMapperTest {
+public class DoubleWrapperArrayParameterMapperTest {
 
 	@Test
 	public void test() {
 		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
 		Array jdbcArray = newProxy(Array.class);
-		String[] array = { "A" };
+		Double[] array = { Double.valueOf(111.11d), Double.valueOf(222.22d) };
 
 		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
-				assertThat(args[0], is("VARCHAR"));
+				assertThat(args[0], is("FLOAT"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
 			}
@@ -31,7 +31,7 @@ public class StringArrayParameterMapperTest {
 
 		assertThat(parameterMapperManager.toJdbc(array, conn), is(jdbcArray));
 
-		Object[] objArray = { 1, "A" };
+		Object[] objArray = { Double.valueOf(333.33d), "A" };
 		assertThat(parameterMapperManager.toJdbc(objArray, conn), is(objArray));
 
 	}

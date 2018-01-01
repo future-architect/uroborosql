@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -399,7 +400,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public SqlContext paramList(final String parameterName, final Object... value) {
-		return param(new Parameter(parameterName, value));
+		return param(new Parameter(parameterName, Arrays.asList(value)));
 	}
 
 	/**
