@@ -39,9 +39,6 @@ class LocalTransactionContext implements AutoCloseable {
 	/** コネクション */
 	private Connection connection;
 
-	/** SQLステートメントのキャッシュ */
-	private final Deque<PreparedStatement> stmtQueue = new ConcurrentLinkedDeque<PreparedStatement>();
-
 	/** ロールバックフラグ */
 	private boolean rollbackOnly = false;
 
@@ -107,8 +104,6 @@ class LocalTransactionContext implements AutoCloseable {
 				sqlContext,
 				conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
 						sqlContext.getResultSetConcurrency()));
-		stmtQueue.push(stmt);
-
 		return stmt;
 
 	}
@@ -135,7 +130,6 @@ class LocalTransactionContext implements AutoCloseable {
 				sqlContext,
 				conn.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
 						sqlContext.getResultSetConcurrency()));
-		stmtQueue.push(stmt);
 		return stmt;
 	}
 
@@ -270,11 +264,6 @@ class LocalTransactionContext implements AutoCloseable {
 	public void close() {
 		if (connection != null) {
 			try {
-				for (PreparedStatement stmt : stmtQueue) {
-					if (stmt != null && !stmt.isClosed()) {
-						stmt.close();
-					}
-				}
 				connection.close();
 			} catch (SQLException e) {
 				//nop

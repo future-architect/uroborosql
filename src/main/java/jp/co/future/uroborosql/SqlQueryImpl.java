@@ -97,8 +97,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Map<String, Object> first(final CaseFormat caseFormat) {
-		Optional<Map<String, Object>> first = stream(new MapResultSetConverter(caseFormat)).findFirst();
-		return first.orElseThrow(() -> new DataNotFoundException("query result is empty."));
+		return findFirst(caseFormat).orElseThrow(() -> new DataNotFoundException("query result is empty."));
 	}
 
 	/**
@@ -108,8 +107,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> T first(final Class<T> type) {
-		Optional<T> first = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager())).findFirst();
-		return first.orElseThrow(() -> new DataNotFoundException("query result is empty."));
+		return findFirst(type).orElseThrow(() -> new DataNotFoundException("query result is empty."));
 	}
 
 	/**
@@ -129,7 +127,9 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findFirst(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(caseFormat)).findFirst();
+		try (Stream<Map<String, Object>> stream = stream(new MapResultSetConverter(caseFormat))) {
+			return stream.findFirst();
+		}
 	}
 
 	/**
@@ -139,7 +139,9 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Optional<T> findFirst(final Class<T> type) {
-		return stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager())).findFirst();
+		try (Stream<T> stream = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()))) {
+			return stream.findFirst();
+		}
 	}
 
 	/**

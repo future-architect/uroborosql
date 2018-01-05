@@ -117,8 +117,8 @@ public class IfNode extends BranchNode {
 			}
 			passState(resultValue);
 			if (resultValue) {
-				super.accept(transformContext);
 				transformContext.setEnabled(true);
+				super.accept(transformContext);
 			} else if (elseIfNode != null) {
 				elseIfNode.accept(transformContext);
 			} else if (elseNode != null) {

@@ -20,32 +20,38 @@ public class TableMetadataImpl implements TableMetadata {
 		private String camelName;
 		private JDBCType dataType;
 		private Integer keySeq = null;
-
-		/**
-		 * コンストラクタ
-		 */
-		public Column() {
-		}
+		private String remarks;
+		private boolean isNullable;
+		private int ordinalPosition;
 
 		/**
 		 * コンストラクタ
 		 *
 		 * @param columnName カラム名
-		 * @param dataType タイプ
+		 * @param dataType データタイプ
+		 * @param remarks コメント文字列
+		 * @param isNullable NULL可かどうか
+		 * @param ordinalPosition 列インデックス
 		 */
-		public Column(final String columnName, final JDBCType dataType) {
+		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable, final int ordinalPosition) {
 			this.columnName = columnName;
 			this.dataType = dataType;
+			this.remarks = remarks;
+			this.isNullable = "YES".equalsIgnoreCase(isNullable);
+			this.ordinalPosition = ordinalPosition;
 		}
 
 		/**
 		 * コンストラクタ
 		 *
 		 * @param columnName カラム名
-		 * @param dataType タイプ
+		 * @param dataType データタイプ
+		 * @param remarks コメント文字列
+		 * @param isNullable NULL可かどうか
+		 * @param ordinalPosition 列インデックス
 		 */
-		public Column(final String columnName, final int dataType) {
-			this(columnName, JDBCType.valueOf(dataType));
+		public Column(final String columnName, final int dataType, final String remarks, final String isNullable, final int ordinalPosition) {
+			this(columnName, JDBCType.valueOf(dataType), remarks, isNullable, ordinalPosition);
 		}
 
 		@Override
@@ -90,6 +96,21 @@ public class TableMetadataImpl implements TableMetadata {
 		@Override
 		public boolean isKey() {
 			return this.keySeq != null;
+		}
+
+		@Override
+		public String getRemarks() {
+			return this.remarks;
+		}
+
+		@Override
+		public boolean isNullable() {
+			return this.isNullable;
+		}
+
+		@Override
+		public int getOrdinalPosition() {
+			return this.ordinalPosition;
 		}
 
 		/**
