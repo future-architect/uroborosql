@@ -222,6 +222,10 @@ public abstract class AbstractAgent implements SqlAgent {
 			if (StringUtils.isEmpty(sqlId)) {
 				sqlId = sqlContext.getSqlName();
 			}
+			if (StringUtils.isEmpty(sqlId)) {
+				sqlId = String.valueOf(originalSql.hashCode());
+			}
+
 			originalSql = originalSql.replace(keySqlId, sqlId);
 		}
 
