@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -24,8 +25,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -82,6 +85,10 @@ public class SqlREPL {
 
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
+
+	/** DESCで表示する項目 */
+	private static final String[] DESC_COLUMN_LABELS = { "TABLE_NAME", "COLUMN_NAME", "TYPE_NAME", "COLUMN_SIZE",
+			"DECIMAL_DIGITS", "IS_NULLABLE", "COLUMN_DEF", "REMARKS" };
 
 	/** コマンド名 */
 	private enum Command {
@@ -492,15 +499,75 @@ public class SqlREPL {
 		case DESC:
 			console.println("DESC:");
 
-			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] + "%" : "%";
+			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
 
 			try {
 				Connection conn = config.getConnectionSupplier().getConnection();
 				DatabaseMetaData md = conn.getMetaData();
-				ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(), tableNamePattern, null);
-				DumpResultSqlFilter filter = new DumpResultSqlFilter();
-				StringBuilder builder = filter.displayResult(rs);
-				console.print(builder.toString());
+
+				List<Map<String, String>> columns = new ArrayList<>();
+				Map<String, Integer> labelLength = new HashMap<>();
+				for (String label : DESC_COLUMN_LABELS) {
+					labelLength.put(label, label.length());
+				}
+				try (ResultSet rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
+					while (rs.next()) {
+						Map<String, String> column = new HashMap<>();
+						for (String label : DESC_COLUMN_LABELS) {
+							final String value = StringUtils.defaultString(rs.getString(label));
+							column.put(label, value);
+							labelLength.compute(
+									label,
+									(k, v) -> v == null ? getByteLength(value)
+											: v.compareTo(getByteLength(value)) >= 0 ? v : getByteLength(value));
+						}
+						columns.add(column);
+					}
+				}
+
+				// ラベル
+				console.print("-");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.leftPad("", labelLength.get(label), "-"));
+					console.print("-");
+				}
+				console.println();
+				console.print("|");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.leftPad(label, labelLength.get(label)));
+					console.print("|");
+				}
+				console.println();
+				// カラムデータ
+				String tableName = null;
+				boolean breakFlag = false;
+				for (Map<String, String> column : columns) {
+					if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
+						tableName = column.get("TABLE_NAME");
+						breakFlag = true;
+					}
+					if (breakFlag) {
+						console.print("-");
+						for (String label : DESC_COLUMN_LABELS) {
+							console.print(StringUtils.leftPad("", labelLength.get(label), "-"));
+							console.print("-");
+						}
+						console.println();
+						breakFlag = false;
+					}
+
+					console.print("|");
+					for (String label : DESC_COLUMN_LABELS) {
+						console.print(StringUtils.leftPad(column.get(label), labelLength.get(label)));
+						console.print("|");
+					}
+					console.println();
+				}
+				console.print("-");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.leftPad("", labelLength.get(label), "-"));
+					console.print("-");
+				}
 				console.println();
 			} catch (SQLException ex) {
 				ex.printStackTrace();
@@ -1026,7 +1093,7 @@ public class SqlREPL {
 				boolean isBlank = buffer.endsWith(" ");
 				String tableNamePattern = "%";
 				if (len == startArgNo && isBlank) {
-					tableNamePattern = parts[len - 1];
+					tableNamePattern = "%";
 				} else if (len == (startArgNo + 1) && !isBlank) {
 					tableNamePattern = parts[len - 1] + "%";
 				} else {
@@ -1036,9 +1103,10 @@ public class SqlREPL {
 				try {
 					Connection conn = config.getConnectionSupplier().getConnection();
 					DatabaseMetaData md = conn.getMetaData();
-					ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(), tableNamePattern, null);
-					while (rs.next()) {
-						candidates.add(rs.getString("TABLE_NAME"));
+					try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
+						while (rs.next()) {
+							candidates.add(rs.getString("TABLE_NAME"));
+						}
 					}
 				} catch (SQLException ex) {
 					ex.printStackTrace();
@@ -1155,7 +1223,24 @@ public class SqlREPL {
 		public String toString() {
 			return driver.toString();
 		}
+	}
 
+	/**
+	 * オブジェクトの文字列表現のバイト数（デフォルトエンコーディング）を取得する
+	 *
+	 * @param val 計算対象オブジェクト
+	 * @return バイト数
+	 */
+	private int getByteLength(final Object val) {
+		if (val == null) {
+			return 0;
+		}
+		String str = val.toString();
+		try {
+			return str.getBytes(System.getProperty("file.encoding")).length;
+		} catch (UnsupportedEncodingException ex) {
+			return 1;
+		}
 	}
 
 }
