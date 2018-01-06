@@ -67,6 +67,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 * 検索結果を表示
 	 *
 	 * @param rs 検索結果のResultSet
+	 * @return 表示文字列
 	 */
 	public StringBuilder displayResult(final ResultSet rs) {
 		try {

@@ -1,61 +1,51 @@
 package jp.co.future.uroborosql.mapping;
 
-import java.time.LocalDate;
-
 import jp.co.future.uroborosql.mapping.annotations.Table;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-@Table(name = "TEST")
-public class TestEntity2 {
-	private long id;
+@Table(name = "TEST_DATA_LOCK_VERSION")
+public class TestEntityLockVersion {
+	private Long id;
 	private String name;
-	private int age;
-	private LocalDate birthday;
+	@Version
 	private int lockVersion = 0;
 
-	public TestEntity2() {
+	public TestEntityLockVersion() {
 	}
 
-	public TestEntity2(final long id, final String name, final int age, final LocalDate birthday) {
+	public TestEntityLockVersion(final Long id, final String name) {
 		this.id = id;
 		this.name = name;
-		this.age = age;
-		this.birthday = birthday;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return this.id;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public int getAge() {
-		return this.age;
-	}
-
-	public LocalDate getBirthday() {
-		return this.birthday;
-	}
-
-	public void setId(final long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
+	/**
+	 * name を取得します。
+	 *
+	 * @return name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * name を設定します。
+	 *
+	 * @param name name
+	 */
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public void setAge(final int age) {
-		this.age = age;
-	}
-
-	public void setBirthday(final LocalDate birthday) {
-		this.birthday = birthday;
 	}
 
 	public int getLockVersion() {

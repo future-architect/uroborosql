@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.mapping;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -304,8 +305,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		}
 
 		sql.append("WHERE").append(System.lineSeparator());
-		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : metadata
-				.getColumns();
+		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : Arrays
+				.asList(metadata.getColumns().get(0));
 		firstFlag = true;
 		for (TableMetadata.Column col : cols) {
 			StringBuilder parts = new StringBuilder().append("\t");
@@ -358,8 +359,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		boolean firstFlag = true;
 		sql.append("WHERE").append(System.lineSeparator());
 
-		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : metadata
-				.getColumns();
+		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : Arrays
+				.asList(metadata.getColumns().get(0));
 		for (TableMetadata.Column col : cols) {
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {

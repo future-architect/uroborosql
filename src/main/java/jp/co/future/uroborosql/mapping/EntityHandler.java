@@ -30,7 +30,8 @@ public interface EntityHandler<ENTITY> {
 	 * @return エンティティメタ情報
 	 * @throws SQLException SQL例外
 	 */
-	TableMetadata getMetadata(ConnectionManager connectionManager, Class<? extends ENTITY> entityType) throws SQLException;
+	TableMetadata getMetadata(ConnectionManager connectionManager, Class<? extends ENTITY> entityType)
+			throws SQLException;
 
 	/**
 	 * エンティティタイプからSELECT SQLコンテキストを生成します。
@@ -38,7 +39,7 @@ public interface EntityHandler<ENTITY> {
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
-	 * @return INSERT SQLコンテキスト
+	 * @return SELECT SQLコンテキスト
 	 */
 	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
@@ -52,7 +53,8 @@ public interface EntityHandler<ENTITY> {
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	<E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType) throws SQLException;
+	<E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
+			throws SQLException;
 
 	/**
 	 * エンティティタイプからINSERT SQLコンテキストを生成します。
