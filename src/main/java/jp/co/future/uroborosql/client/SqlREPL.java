@@ -600,11 +600,7 @@ public class SqlREPL {
 
 					@Override
 					public String getSchema() {
-						try {
-							return config.getConnectionSupplier().getConnection().getSchema();
-						} catch (SQLException e) {
-							return null;
-						}
+						return null;
 					}
 
 					@Override
@@ -613,6 +609,7 @@ public class SqlREPL {
 					}
 				};
 				TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent, table);
+				metadata.setSchema(null);
 
 				SqlContext ctx = null;
 				switch (sqlKeyword) {
