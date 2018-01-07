@@ -12,17 +12,17 @@ import java.sql.Connection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 
-public class StringArrayParameterMapperTest {
+public class LongWrapperArrayParameterMapperTest {
 
 	@Test
 	public void test() {
 		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
 		Array jdbcArray = newProxy(Array.class);
-		String[] array = { "A" };
+		Long[] array = { Long.valueOf(111L), Long.valueOf(222L) };
 
 		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
-				assertThat(args[0], is("VARCHAR"));
+				assertThat(args[0], is("BIGINT"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
 			}
@@ -31,7 +31,7 @@ public class StringArrayParameterMapperTest {
 
 		assertThat(parameterMapperManager.toJdbc(array, conn), is(jdbcArray));
 
-		Object[] objArray = { 1, "A" };
+		Object[] objArray = { Long.valueOf(333L), "A" };
 		assertThat(parameterMapperManager.toJdbc(objArray, conn), is(objArray));
 
 	}

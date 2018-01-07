@@ -121,10 +121,8 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
-		String[] param = { "1", "2", "3" };
-
 		try (SqlAgent agent = config.createAgent()) {
-			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", param);
+			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramList("targetStrs", "1", "2", "3");
 
 			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
@@ -40,7 +41,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream() {
-		return stream(new MapResultSetConverter(agent().getDefaultMapKeyCaseFormat()));
+		return stream(agent().getDefaultMapKeyCaseFormat());
 	}
 
 	/**
@@ -57,13 +58,24 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(jp.co.future.uroborosql.utils.CaseFormat)
+	 */
+	@Override
+	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
+		return stream(new MapResultSetConverter(caseFormat));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(java.lang.Class)
+	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		try {
-			return agent().query(context(), new EntityResultSetConverter<T>(type, new PropertyMapperManager()));
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
-		}
+		return stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()));
 	}
 
 	/**
@@ -147,6 +159,16 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect()
+	 */
+	@Override
+	public List<Map<String, Object>> collect() {
+		return collect(agent().getDefaultMapKeyCaseFormat());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect(jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
@@ -161,10 +183,12 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect()
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#collect(java.lang.Class)
 	 */
 	@Override
-	public List<Map<String, Object>> collect() {
-		return collect(agent().getDefaultMapKeyCaseFormat());
+	public <T> List<T> collect(final Class<T> type) {
+		try (Stream<T> stream = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()))) {
+			return stream.collect(Collectors.toList());
+		}
 	}
 }

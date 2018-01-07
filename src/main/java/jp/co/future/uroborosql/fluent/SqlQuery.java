@@ -48,6 +48,16 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	List<Map<String, Object>> collect(CaseFormat caseFormat);
 
 	/**
+	 * 検索結果の取得（終端処理）
+	 *
+	 * @param <T>  Entityの型
+	 * @param type 受け取りたいEntityの型
+	 * @return 検索結果のリスト
+	 * @see SqlAgent#query(String)
+	 */
+	<T> List<T> collect(Class<T> type);
+
+	/**
 	 * 検索結果の先頭行を取得（終端処理）
 	 *
 	 * @param caseFormat Mapのキーの変換書式
@@ -113,6 +123,14 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果を順次取得するStream. MapのキーはCamel式に変換される.
 	 */
 	Stream<Map<String, Object>> stream();
+
+	/**
+	 * 検索結果をMapのStreamとして取得（終端処理）
+	 *
+	 * @param caseFormat Mapのキーの変換書式
+	 * @return 検索結果を順次取得するStream. MapのキーはCamel式に変換される.
+	 */
+	Stream<Map<String, Object>> stream(CaseFormat caseFormat);
 
 	/**
 	 * 検索結果をEntityのStreamとして取得（終端処理）

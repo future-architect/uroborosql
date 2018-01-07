@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -140,6 +141,29 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
+	public void testQueryParamList() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		SqlContext ctx = agent.contextFrom("example/select_product")
+				.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				.setSqlId("test_sql_id");
+
+		ResultSet rs = agent.query(ctx);
+		assertNotNull("ResultSetが取得できませんでした。", rs);
+		assertTrue("結果が0件です。", rs.next());
+		assertEquals("0", rs.getString("PRODUCT_ID"));
+		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", rs.getString("JAN_CODE"));
+		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+		assertFalse("結果が複数件です。", rs.next());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース。
+	 */
+	@Test
 	public void testQueryFilter() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -220,6 +244,44 @@ public class SqlAgentTest {
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", map.get("JAN_CODE"));
 		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentCollectCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.collect(CaseFormat.LOWER_SNAKE_CASE);
+		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		Map<String, Object> map = ans.get(0);
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentCollectEntity() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Product> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.collect(Product.class);
+		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		Product product = ans.get(0);
+		assertEquals(0, product.getProductId());
+		assertEquals("商品名0", product.getProductName());
+		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
+		assertEquals("1234567890123", product.getJanCode());
+		assertEquals("0番目の商品", product.getProductDescription());
 	}
 
 	/**
@@ -487,6 +549,27 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
+	public void testQueryFluentLambdaCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.query("example/select_product").paramList("product_id", 0, 1)
+				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach((m) -> {
+					assertTrue(m.containsKey("product_id"));
+					assertTrue(m.containsKey("product_name"));
+					assertTrue(m.containsKey("product_kana_name"));
+					assertTrue(m.containsKey("jan_code"));
+					assertTrue(m.containsKey("product_description"));
+					assertTrue(m.containsKey("ins_datetime"));
+					assertTrue(m.containsKey("upd_datetime"));
+					assertTrue(m.containsKey("version_no"));
+				});
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
 	public void testQueryFluentLambdaSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -520,7 +603,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		ProductSearchBean bean = new ProductSearchBean();
-		bean.setProductIds(new int[] { 0, 1 });
+		bean.setProductIds(Arrays.asList(0, 1));
 		bean.setProductName("商品");
 
 		agent.query("example/select_product_param_camel")
@@ -951,7 +1034,7 @@ public class SqlAgentTest {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		for (int i = 1; i <= 1000; i++) {
 			Map<String, Object> row = new HashMap<String, Object>();
-			row.put("product_id",  i);
+			row.put("product_id", i);
 			row.put("product_name", "商品名" + i);
 			row.put("product_kana_name", "ショウヒンメイ" + i);
 			row.put("jan_code", "1234567890124");
@@ -980,6 +1063,76 @@ public class SqlAgentTest {
 			// OK
 		} catch (Exception e) {
 			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Array型のテスト
+	 */
+	@Test
+	public void testArrayType() throws Exception {
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			String[] vals = { "aaa", "bbb" };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			int[] vals = { 111, 222 };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Integer[] vals = { Integer.valueOf(111), Integer.valueOf(222) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			long[] vals = { 111L, 222L };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Long[] vals = { Long.valueOf(111L), Long.valueOf(222L) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			double[] vals = { 1111.11d, 2222.22d };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Double[] vals = { Double.valueOf(1111.11d), Double.valueOf(2222.22d) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
 		}
 	}
 
@@ -1074,13 +1227,13 @@ public class SqlAgentTest {
 	}
 
 	public static class ProductSearchBean extends BaseProductSearchBean {
-		private int[] productIds;
+		private List<Integer> productIds;
 
-		public int[] getProductIds() {
+		public List<Integer> getProductIds() {
 			return this.productIds;
 		}
 
-		public void setProductIds(final int[] productIds) {
+		public void setProductIds(final List<Integer> productIds) {
 			this.productIds = productIds;
 		}
 	}
