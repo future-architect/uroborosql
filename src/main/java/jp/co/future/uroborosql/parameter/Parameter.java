@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.parameter;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
@@ -135,23 +134,12 @@ public class Parameter {
 	 * @return 次のパラメータインデックス
 	 * @throws SQLException SQL例外
 	 */
-	@SuppressWarnings("rawtypes")
 	protected int setInParameter(final PreparedStatement preparedStatement, final int index,
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		int parameterIndex = index;
 		if (value instanceof List) {
-			for (Object e : (List) value) {
+			for (Object e : (List<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
-
-				parameterLog(parameterIndex);
-				parameterIndex++;
-			}
-		} else if (value != null && value.getClass().isArray() && !(value instanceof byte[]) // byte配列の場合は配列用の処理を行わない
-				&& !parameterMapperManager.existsArrayMapper(value) // マッピング対象のArrayはここで処理しない
-		) {
-			int length = Array.getLength(value);
-			for (int i = 0; i < length; i++) {
-				setParameterObject(preparedStatement, parameterIndex, Array.get(value, i), parameterMapperManager);
 
 				parameterLog(parameterIndex);
 				parameterIndex++;
@@ -251,11 +239,19 @@ public class Parameter {
 		//JDBCの受け付ける型に変換
 		Object jdbcParam = parameterMapperManager.toJdbc(param, preparedStatement.getConnection());
 		if (Objects.equals(sqlType, SQL_TYPE_NOT_SET)) {
-			preparedStatement.setObject(parameterIndex, jdbcParam);
+			if (jdbcParam instanceof java.sql.Array) {
+				preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
+			} else {
+				preparedStatement.setObject(parameterIndex, jdbcParam);
+			}
 		} else {
 			int targetSqlType = sqlType.getVendorTypeNumber();//各JDBCの対応状況が怪しいのでintで扱う
 			if (jdbcParam != null) {
-				preparedStatement.setObject(parameterIndex, jdbcParam, targetSqlType);
+				if (jdbcParam instanceof java.sql.Array) {
+					preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
+				} else {
+					preparedStatement.setObject(parameterIndex, jdbcParam, targetSqlType);
+				}
 			} else {
 				preparedStatement.setNull(parameterIndex, targetSqlType);
 			}

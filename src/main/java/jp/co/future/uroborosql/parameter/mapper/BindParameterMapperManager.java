@@ -24,6 +24,13 @@ public final class BindParameterMapperManager {
 			new OptionalDoubleParameterMapper(),
 			new DomainParameterMapper(),
 			new EnumParameterMapper(),// DomainParameterMapper・DateTimeApiParameterMapperより後に設定
+			new StringArrayParameterMapper(),
+			new IntArrayParameterMapper(),
+			new IntWrapperArrayParameterMapper(),
+			new LongArrayParameterMapper(),
+			new LongWrapperArrayParameterMapper(),
+			new DoubleArrayParameterMapper(),
+			new DoubleWrapperArrayParameterMapper(),
 	};
 
 	/** Serviceに登録されたMapper */
@@ -136,38 +143,17 @@ public final class BindParameterMapperManager {
 				|| object instanceof java.sql.Struct) {
 			return true;
 		}
-		for (@SuppressWarnings("rawtypes")
-		BindParameterMapper parameterMapper : mappers) {
-			if (parameterMapper.canAccept(object)) {
-				return true;
-			}
-		}
-
-		for (@SuppressWarnings("rawtypes")
-		BindParameterMapper parameterMapper : DEFAULT_MAPPERS) {
-			if (parameterMapper.canAccept(object)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * 配列用のバインドパラメータMapperが存在するかどうかを判定
-	 *
-	 * @param object マッピング対象オブジェクト
-	 * @return 配列用のバインドパラメータMapperが存在する場合は<code>true</code>
-	 */
-	public boolean existsArrayMapper(final Object object) {
-		if (!object.getClass().isArray()) {
-			return false;
-		}
 		for (BindParameterMapper<?> parameterMapper : mappers) {
 			if (parameterMapper.canAccept(object)) {
 				return true;
 			}
 		}
+
+		for (BindParameterMapper<?> parameterMapper : DEFAULT_MAPPERS) {
+			if (parameterMapper.canAccept(object)) {
+				return true;
+			}
+		}
 		return false;
 	}
-
 }

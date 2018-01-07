@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -520,7 +521,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		ProductSearchBean bean = new ProductSearchBean();
-		bean.setProductIds(new int[] { 0, 1 });
+		bean.setProductIds(Arrays.asList(0, 1));
 		bean.setProductName("商品");
 
 		agent.query("example/select_product_param_camel")
@@ -951,7 +952,7 @@ public class SqlAgentTest {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		for (int i = 1; i <= 1000; i++) {
 			Map<String, Object> row = new HashMap<String, Object>();
-			row.put("product_id",  i);
+			row.put("product_id", i);
 			row.put("product_name", "商品名" + i);
 			row.put("product_kana_name", "ショウヒンメイ" + i);
 			row.put("jan_code", "1234567890124");
@@ -980,6 +981,76 @@ public class SqlAgentTest {
 			// OK
 		} catch (Exception e) {
 			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Array型のテスト
+	 */
+	@Test
+	public void testArrayType() throws Exception {
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			String[] vals = { "aaa", "bbb" };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			int[] vals = { 111, 222 };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Integer[] vals = { Integer.valueOf(111), Integer.valueOf(222) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			long[] vals = { 111L, 222L };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Long[] vals = { Long.valueOf(111L), Long.valueOf(222L) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			double[] vals = { 1111.11d, 2222.22d };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			Double[] vals = { Double.valueOf(1111.11d), Double.valueOf(2222.22d) };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
 		}
 	}
 
@@ -1074,13 +1145,13 @@ public class SqlAgentTest {
 	}
 
 	public static class ProductSearchBean extends BaseProductSearchBean {
-		private int[] productIds;
+		private List<Integer> productIds;
 
-		public int[] getProductIds() {
+		public List<Integer> getProductIds() {
 			return this.productIds;
 		}
 
-		public void setProductIds(final int[] productIds) {
+		public void setProductIds(final List<Integer> productIds) {
 			this.productIds = productIds;
 		}
 	}

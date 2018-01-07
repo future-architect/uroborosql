@@ -82,31 +82,6 @@ public class BindParameterMapperManagerTest {
 
 	}
 
-	@Test
-	public void testExistsArrayMapper() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
-		String[] array = { "A" };
-		assertThat(parameterMapperManager.existsArrayMapper(array), is(false));
-
-		parameterMapperManager.addMapper(new DateParameterMapper());
-		parameterMapperManager.addMapper(new BindParameterMapper<Integer[]>() {
-
-			@Override
-			public Class<Integer[]> targetType() {
-				return Integer[].class;
-			}
-
-			@Override
-			public Object toJdbc(final Integer[] original, final Connection connection,
-					final BindParameterMapperManager parameterMapperManager) {
-				return null;
-			}
-		});
-		parameterMapperManager.addMapper(new StringArrayParameterMapper());
-		assertThat(parameterMapperManager.existsArrayMapper(array), is(true));
-		assertThat(parameterMapperManager.existsArrayMapper("test"), is(false));
-	}
-
 	interface ProxyContainer {
 		Object getOriginal();
 	}

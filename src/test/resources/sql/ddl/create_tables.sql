@@ -30,3 +30,8 @@ create table if not exists COLUMN_TYPE_TEST (
 	COL_TIME			TIME
 )
 ;
+
+create table if not exists COLUMN_TYPE_ARRAY (
+	COL_ARRAY			ARRAY
+)
+;
