@@ -33,7 +33,8 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param isNullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 */
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable, final int ordinalPosition) {
+		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable,
+				final int ordinalPosition) {
 			this.columnName = columnName;
 			this.dataType = dataType;
 			this.remarks = remarks;
@@ -50,7 +51,8 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param isNullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 */
-		public Column(final String columnName, final int dataType, final String remarks, final String isNullable, final int ordinalPosition) {
+		public Column(final String columnName, final int dataType, final String remarks, final String isNullable,
+				final int ordinalPosition) {
 			this(columnName, JDBCType.valueOf(dataType), remarks, isNullable, ordinalPosition);
 		}
 
@@ -61,7 +63,8 @@ public class TableMetadataImpl implements TableMetadata {
 
 		@Override
 		public String getCamelColumnName() {
-			return this.camelName != null ? this.camelName : (this.camelName = CaseFormat.CAMEL_CASE.convert(getColumnName()));
+			return this.camelName != null ? this.camelName : (this.camelName = CaseFormat.CAMEL_CASE
+					.convert(getColumnName()));
 		}
 
 		/**
@@ -164,6 +167,7 @@ public class TableMetadataImpl implements TableMetadata {
 	 *
 	 * @param tableName テーブル名
 	 */
+	@Override
 	public void setTableName(final String tableName) {
 		this.tableName = tableName;
 	}
@@ -178,6 +182,7 @@ public class TableMetadataImpl implements TableMetadata {
 	 *
 	 * @param schema スキーマ名
 	 */
+	@Override
 	public void setSchema(final String schema) {
 		this.schema = schema;
 	}

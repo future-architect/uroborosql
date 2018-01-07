@@ -87,11 +87,25 @@ public interface TableMetadata {
 	String getTableName();
 
 	/**
+	 * テーブル名設定
+	 *
+	 * @param tableName テーブル名
+	 */
+	void setTableName(String tableName);
+
+	/**
 	 * スキーマ名取得
 	 *
 	 * @return スキーマ名
 	 */
 	String getSchema();
+
+	/**
+	 * スキーマ名設定
+	 *
+	 * @param schema スキーマ名
+	 */
+	void setSchema(String schema);
 
 	/**
 	 * テーブル識別名の取得
@@ -177,7 +191,8 @@ public interface TableMetadata {
 				String isNullable = rs.getString("IS_NULLABLE");
 				int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
-				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks, isNullable, ordinalPosition);
+				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks,
+						isNullable, ordinalPosition);
 				entityMetadata.addColumn(column);
 				columns.put(column.getColumnName(), column);
 			}

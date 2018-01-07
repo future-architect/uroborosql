@@ -31,6 +31,15 @@ create table if not exists COLUMN_TYPE_TEST (
 )
 ;
 
+comment on table COLUMN_TYPE_TEST is 'column type test';
+comment on column COLUMN_TYPE_TEST.COL_VARCHAR is 'column varchar';
+comment on column COLUMN_TYPE_TEST.COL_CHAR is 'column char';
+comment on column COLUMN_TYPE_TEST.COL_NUMERIC is 'column numeric';
+comment on column COLUMN_TYPE_TEST.COL_BOOLEAN is 'column boolean';
+comment on column COLUMN_TYPE_TEST.COL_TIMESTAMP is 'column timestamp';
+comment on column COLUMN_TYPE_TEST.COL_DATE is 'column date';
+comment on column COLUMN_TYPE_TEST.COL_TIME is 'column time';
+
 create table if not exists COLUMN_TYPE_ARRAY (
 	COL_ARRAY			ARRAY
 )

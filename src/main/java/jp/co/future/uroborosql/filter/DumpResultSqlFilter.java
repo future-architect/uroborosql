@@ -52,11 +52,11 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
 		try {
-			if (resultSet.getType() != ResultSet.TYPE_FORWARD_ONLY) {
-				displayResult(resultSet);
-			} else {
+			if (resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY) {
 				LOG.warn("ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
+			StringBuilder builder = displayResult(resultSet);
+			LOG.info(builder.toString());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -67,8 +67,9 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 * 検索結果を表示
 	 *
 	 * @param rs 検索結果のResultSet
+	 * @return 表示文字列
 	 */
-	private void displayResult(final ResultSet rs) {
+	public StringBuilder displayResult(final ResultSet rs) {
 		try {
 			List<String> keys = new ArrayList<>();
 			Map<String, Integer> maxLengthList = new HashMap<>();
@@ -138,14 +139,16 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				builder.append(FRAME_STR.substring(0, maxLengthList.get(key))).append("+");
 			}
 
-			LOG.info(builder.toString());
-
 			// カーソルを先頭の前に戻す
-			rs.beforeFirst();
+			if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+				rs.beforeFirst();
+			}
+
+			return builder;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		return null;
 	}
 
 	private String fillHeader(final String str, final int length) {

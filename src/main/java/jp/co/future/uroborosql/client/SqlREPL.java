@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
@@ -23,8 +25,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -47,6 +51,8 @@ import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.mapping.Table;
+import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
@@ -82,22 +88,31 @@ public class SqlREPL {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
 
+	/** DESCで表示する項目 */
+	private static final String[] DESC_COLUMN_LABELS = { "TABLE_NAME", "COLUMN_NAME", "TYPE_NAME", "COLUMN_SIZE",
+			"DECIMAL_DIGITS", "IS_NULLABLE", "COLUMN_DEF", "REMARKS" };
+
 	/** コマンド名 */
+	@SuppressWarnings("unchecked")
 	private enum Command {
 		/** SQLの検索実行 */
-		QUERY(false, SqlNameCompleter.class.getSimpleName(), BindParamCompleter.class.getSimpleName()),
+		QUERY(false, SqlNameCompleter.class, BindParamCompleter.class),
 		/** SQLの更新実行 */
-		UPDATE(false, SqlNameCompleter.class.getSimpleName(), BindParamCompleter.class.getSimpleName()),
+		UPDATE(false, SqlNameCompleter.class, BindParamCompleter.class),
 		/** SQLファイルの参照 */
-		VIEW(false, SqlNameCompleter.class.getSimpleName()),
+		VIEW(false, SqlNameCompleter.class),
 		/** SQLファイルのリスト出力 */
-		LIST(false, SqlNameCompleter.class.getSimpleName()),
+		LIST(false, SqlNameCompleter.class),
 		/** 入力コマンドの履歴出力 */
 		HISTORY(false),
 		/** リロード */
 		RELOAD(false),
 		/** 登録されているJDBCドライバーのリスト出力 */
 		DRIVER(false),
+		/** テーブル定義表示 */
+		DESC(false, TableNameCompleter.class),
+		/** SQL文生成 */
+		GENERATE(false, SqlKeywordCompleter.class, TableNameCompleter.class),
 		/** ヘルプメッセージ出力 */
 		HELP(false),
 		/** 画面のクリア */
@@ -108,7 +123,7 @@ public class SqlREPL {
 		THIS(true);
 
 		/** 利用する入力補完の並び */
-		private String[] completerNames = {};
+		private List<Class<? extends Completer>> completers = new ArrayList<>();
 		/** HELPコマンドで非表示 */
 		private boolean hidden = false;
 
@@ -116,26 +131,22 @@ public class SqlREPL {
 		 * 入力コマンド
 		 *
 		 * @param hidden HELPコマンドで表示しない場合に<code>true</code>
-		 * @param completerNames 補完器名
+		 * @param completers 補完器名
 		 */
-		private Command(final boolean hidden, final String... completerNames) {
+		private Command(final boolean hidden, final Class<? extends Completer>... completers) {
 			this.hidden = hidden;
-			this.completerNames = completerNames;
+			this.completers = Arrays.asList(completers);
 		}
 
 		/**
 		 * 指定されたコード補完の対象とする引数の開始位置を返却する
 		 *
-		 * @param completerName 対象とするコード補完名
+		 * @param completer 対象とするコード補完名
 		 * @return 引数の位置。該当するコード補完がない場合は<code>-1</code>を返す
 		 */
-		public int getStartArgNo(final String completerName) {
-			for (int i = 0; i < completerNames.length; i++) {
-				if (completerNames[i].equals(completerName)) {
-					return i + 1;
-				}
-			}
-			return -1;
+		public int getStartArgNo(final Class<? extends Completer> completer) {
+			int idx = completers.indexOf(completer);
+			return idx >= 0 ? idx + 1 : -1;
 		}
 
 		/**
@@ -383,6 +394,10 @@ public class SqlREPL {
 		console.addCompleter(new SqlNameCompleter(config.getSqlManager().getSqlPathList()));
 		// バインドパラメータのコード補完
 		console.addCompleter(new BindParamCompleter());
+		// テーブル名のコード補完
+		console.addCompleter(new TableNameCompleter());
+		// SQLキーワードのコード補完
+		console.addCompleter(new SqlKeywordCompleter());
 		CandidateListCompletionHandler handler = new CandidateListCompletionHandler();
 		handler.setPrintSpaceAfterFullCompletion(false);
 		console.setCompletionHandler(handler);
@@ -480,6 +495,141 @@ public class SqlREPL {
 			while (drivers.hasMoreElements()) {
 				Driver driver = drivers.nextElement();
 				console.println(String.format("%02d : %s%n", ++driverCount, driver));
+			}
+
+			return true;
+
+		case DESC:
+			console.println("DESC:");
+
+			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
+
+			try {
+				Connection conn = config.getConnectionSupplier().getConnection();
+				DatabaseMetaData md = conn.getMetaData();
+
+				List<Map<String, String>> columns = new ArrayList<>();
+				Map<String, Integer> labelLength = new HashMap<>();
+				for (String label : DESC_COLUMN_LABELS) {
+					labelLength.put(label, label.length());
+				}
+				try (ResultSet rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
+					while (rs.next()) {
+						Map<String, String> column = new HashMap<>();
+						for (String label : DESC_COLUMN_LABELS) {
+							final String value = StringUtils.defaultString(rs.getString(label));
+							column.put(label, value);
+							labelLength.compute(
+									label,
+									(k, v) -> v == null ? getByteLength(value)
+											: v.compareTo(getByteLength(value)) >= 0 ? v : getByteLength(value));
+						}
+						columns.add(column);
+					}
+				}
+
+				// ラベル
+				console.print("-");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+					console.print("-");
+				}
+				console.println();
+				console.print("|");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.rightPad(label, labelLength.get(label)));
+					console.print("|");
+				}
+				console.println();
+				// カラムデータ
+				String tableName = null;
+				boolean breakFlag = false;
+				for (Map<String, String> column : columns) {
+					if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
+						tableName = column.get("TABLE_NAME");
+						breakFlag = true;
+					}
+					if (breakFlag) {
+						console.print("-");
+						for (String label : DESC_COLUMN_LABELS) {
+							console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+							console.print("-");
+						}
+						console.println();
+						breakFlag = false;
+					}
+
+					console.print("|");
+					for (String label : DESC_COLUMN_LABELS) {
+						String val = column.get(label);
+						if (StringUtils.isNumeric(val)) {
+							console.print(StringUtils.leftPad(val, labelLength.get(label)));
+						} else {
+							console.print(StringUtils.rightPad(val, labelLength.get(label)));
+						}
+						console.print("|");
+					}
+					console.println();
+				}
+				console.print("-");
+				for (String label : DESC_COLUMN_LABELS) {
+					console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+					console.print("-");
+				}
+				console.println();
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+
+			return true;
+
+		case GENERATE:
+			console.println("");
+
+			if (parts.length < 3) {
+				console.println(Command.GENERATE.toString() + " parameter missing. " + Command.GENERATE.toString()
+						+ " [SQL_KEYWORD] [TABLE NAME].");
+				return true;
+			}
+
+			String sqlKeyword = parts[1];
+			String tableName = parts[2];
+
+			try (SqlAgent agent = config.agent()) {
+				Table table = new Table() {
+
+					@Override
+					public String getSchema() {
+						return null;
+					}
+
+					@Override
+					public String getName() {
+						return tableName;
+					}
+				};
+				TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent, table);
+				metadata.setSchema(null);
+
+				SqlContext ctx = null;
+				switch (sqlKeyword) {
+				case "insert":
+					ctx = config.getEntityHandler().createInsertContext(agent, metadata, null);
+					break;
+
+				case "update":
+					ctx = config.getEntityHandler().createUpdateContext(agent, metadata, null);
+					break;
+
+				case "delete":
+					ctx = config.getEntityHandler().createDeleteContext(agent, metadata, null);
+					break;
+
+				default:
+					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null);
+					break;
+				}
+				console.println(ctx.getSql());
 			}
 
 			return true;
@@ -861,7 +1011,7 @@ public class SqlREPL {
 			int len = parts.length;
 
 			// コード補完する引数の番号を特定。
-			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass().getSimpleName()) : -1;
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass()) : -1;
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
 			if (startArgNo == -1) {
@@ -917,7 +1067,7 @@ public class SqlREPL {
 			int len = parts.length;
 
 			// コード補完する引数の番号を特定。
-			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass().getSimpleName()) : -1;
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass()) : -1;
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
 			if (startArgNo == -1) {
@@ -968,6 +1118,114 @@ public class SqlREPL {
 				} else {
 					return -1;
 				}
+			}
+		}
+	}
+
+	/**
+	 * テーブル名を補完するCompleter
+	 *
+	 * @author H.Sugimoto
+	 *
+	 */
+	class TableNameCompleter implements Completer {
+
+		/**
+		 * DatabaseMetadateからテーブル名を取得して補完候補とする。
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
+		 */
+		@Override
+		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+			String[] parts = getLineParts(buffer);
+			int len = parts.length;
+
+			// コード補完する引数の番号を特定。
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass()) : -1;
+
+			// 対象引数が-1の時は該当なしなのでコード補完しない
+			if (startArgNo == -1) {
+				return -1;
+			} else {
+				boolean isBlank = buffer.endsWith(" ");
+				String tableNamePattern = "%";
+				if (len == startArgNo && isBlank) {
+					tableNamePattern = "%";
+				} else if (len == (startArgNo + 1) && !isBlank) {
+					tableNamePattern = parts[len - 1] + "%";
+				} else {
+					return -1;
+				}
+
+				try {
+					Connection conn = config.getConnectionSupplier().getConnection();
+					DatabaseMetaData md = conn.getMetaData();
+					try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
+							tableNamePattern.toUpperCase(), null)) {
+						while (rs.next()) {
+							candidates.add(rs.getString("TABLE_NAME"));
+						}
+					}
+					if (candidates.isEmpty()) {
+						try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
+								tableNamePattern.toLowerCase(), null)) {
+							while (rs.next()) {
+								candidates.add(rs.getString("TABLE_NAME"));
+							}
+						}
+					}
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					return -1;
+				}
+			}
+
+			// カーソルポジションの計算
+			int pos = 0;
+			for (int i = 0; i < startArgNo; i++) {
+				pos = pos + parts[i].length() + 1;
+			}
+			return candidates.isEmpty() ? buffer.length() : pos;
+		}
+	}
+
+	class SqlKeywordCompleter implements Completer {
+		@Override
+		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+			String[] parts = getLineParts(buffer);
+			int len = parts.length;
+
+			// コード補完する引数の番号を特定。
+			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass()) : -1;
+
+			// 対象引数が-1の時は該当なしなのでコード補完しない
+			if (startArgNo == -1) {
+				return -1;
+			} else {
+				String key = null;
+
+				boolean isBlank = buffer.endsWith(" ");
+				if (len == startArgNo && isBlank) {
+					key = null;
+				} else if (len == (startArgNo + 1) && !isBlank) {
+					key = parts[len - 1];
+				} else {
+					return -1;
+				}
+
+				final String keyword = key;
+
+				Stream.of("select", "insert", "update", "delete")
+						.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase())).forEach(candidates::add);
+
+				// カーソルポジションの計算
+				int pos = 0;
+				for (int i = 0; i < startArgNo; i++) {
+					pos = pos + parts[i].length() + 1;
+				}
+				return candidates.isEmpty() ? buffer.length() : pos;
 			}
 		}
 
@@ -1072,7 +1330,24 @@ public class SqlREPL {
 		public String toString() {
 			return driver.toString();
 		}
+	}
 
+	/**
+	 * オブジェクトの文字列表現のバイト数（デフォルトエンコーディング）を取得する
+	 *
+	 * @param val 計算対象オブジェクト
+	 * @return バイト数
+	 */
+	private int getByteLength(final Object val) {
+		if (val == null) {
+			return 0;
+		}
+		String str = val.toString();
+		try {
+			return str.getBytes(System.getProperty("file.encoding")).length;
+		} catch (UnsupportedEncodingException ex) {
+			return 1;
+		}
 	}
 
 }
