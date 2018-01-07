@@ -175,7 +175,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
 		if (!keys.isEmpty()) {
-			sql.append("ORDER BY ").append(System.lineSeparator());
+			sql.append("ORDER BY").append(System.lineSeparator());
 			firstFlag = true;
 			for (TableMetadata.Column col : keys) {
 				sql.append("\t");
