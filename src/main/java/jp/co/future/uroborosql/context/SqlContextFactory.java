@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.context;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -102,6 +103,7 @@ public interface SqlContextFactory {
 	 *
 	 * @return 自動バインド用パラメータ生成クラスのリスト
 	 */
+	@Deprecated
 	List<AutoBindParameterCreator> getAutoBindParameterCreators();
 
 	/**
@@ -111,7 +113,22 @@ public interface SqlContextFactory {
 	 *            自動バインド用パラメータ生成クラスのリスト
 	 * @return SqlContextFactory
 	 */
+	@Deprecated
 	SqlContextFactory setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
+
+	/**
+	 * 自動パラメータバインド関数の追加
+	 * @param binder 自動パラメータバインド関数
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory addAutoParameterBinder(Consumer<SqlContext> binder);
+
+	/**
+	 * 自動パラメータバインド関数の追加
+	 * @param binder 自動パラメータバインド関数
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory removeAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}を追加

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,6 +136,9 @@ public class SqlContextImpl implements SqlContext {
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
+	/** 自動パラメータバインド関数 */
+	private Consumer<SqlContext> autoParameterBinder = null;
+
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
 
@@ -166,6 +170,7 @@ public class SqlContextImpl implements SqlContext {
 		resultSetConcurrency = parent.resultSetConcurrency;
 		dbAlias = parent.dbAlias;
 		contextAttributes.putAll(parent.contextAttributes);
+		autoParameterBinder = parent.autoParameterBinder;
 		parameterMapperManager = parent.parameterMapperManager;
 	}
 
@@ -687,6 +692,11 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
+		// 自動パラメータバインド関数の呼出
+		if (autoParameterBinder != null) {
+			autoParameterBinder.accept(this);
+		}
+
 		Parameter[] bindParameters = getBindParameters();
 
 		Set<String> matchParams = new HashSet<>();
@@ -906,6 +916,14 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	public void setParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
 		this.parameterMapperManager = parameterMapperManager;
+	}
+
+	/**
+	 * 自動パラメータバインド関数を設定します
+	 * @param binder 自動パラメータバインド関数
+	 */
+	public void setAutoParameterBinder(final Consumer<SqlContext> binder) {
+		this.autoParameterBinder = binder;
 	}
 
 	/**
