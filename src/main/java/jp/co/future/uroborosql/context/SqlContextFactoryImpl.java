@@ -309,6 +309,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#getAutoBindParameterCreators()
 	 */
+	@Deprecated
 	@Override
 	public List<AutoBindParameterCreator> getAutoBindParameterCreators() {
 		return autoBindParameterCreators;
@@ -319,6 +320,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#setAutoBindParameterCreators(List)
 	 */
+	@Deprecated
 	@Override
 	public SqlContextFactory setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
 		this.autoBindParameterCreators = autoBindParameterCreators;
