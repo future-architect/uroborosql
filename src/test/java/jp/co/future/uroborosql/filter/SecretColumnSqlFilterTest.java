@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -35,11 +36,9 @@ public class SecretColumnSqlFilterTest {
 	private SqlFilterManager sqlFilterManager;
 	private SecretColumnSqlFilter filter;
 
-	private SqlAgent agent;
-
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"));
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
 		sqlFilterManager = config.getSqlFilterManager();
 		filter = new SecretColumnSqlFilter();
 		sqlFilterManager.addSqlFilter(filter);
@@ -56,8 +55,7 @@ public class SecretColumnSqlFilterTest {
 		filter.setTransformationType("AES/ECB/PKCS5Padding");
 		sqlFilterManager.initialize();
 
-		try {
-			agent = config.createAgent();
+		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
@@ -93,7 +91,7 @@ public class SecretColumnSqlFilterTest {
 	private void truncateTable(final Object... tables) {
 		try {
 			Arrays.asList(tables).stream().forEach(tbl -> {
-				try {
+				try (SqlAgent agent = config.agent()) {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -114,8 +112,7 @@ public class SecretColumnSqlFilterTest {
 					.forEach(tbl -> truncateTable(tbl));
 
 			dataList.stream().forEach(map -> {
-				try {
-
+				try (SqlAgent agent = config.agent()) {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -141,8 +138,8 @@ public class SecretColumnSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
-		SqlConfig skipConfig = DefaultSqlConfig
-				.getConfig(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"));
+		SqlConfig skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
+				.build();
 		SqlFilterManager skipSqlFilterManager = skipConfig.getSqlFilterManager();
 		SecretColumnSqlFilter skipFilter = new SecretColumnSqlFilter();
 		skipSqlFilterManager.addSqlFilter(skipFilter);
@@ -154,7 +151,7 @@ public class SecretColumnSqlFilterTest {
 		skipFilter.setSkipFilter(true);
 
 		// 復号化しないで取得した場合 (skipFilter = true)
-		try (SqlAgent skipAgent = skipConfig.createAgent()) {
+		try (SqlAgent skipAgent = skipConfig.agent()) {
 			ResultSet result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
 					.resultSet();
 
@@ -165,19 +162,21 @@ public class SecretColumnSqlFilterTest {
 		}
 
 		// 復号化して取得した場合 (skipFilter = false)
-		ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+		try (SqlAgent agent = config.agent()) {
+			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
 
-		while (result.next()) {
-			assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
-			assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
-			assertThat(result.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
-			assertThat(result.getString("JAN_CODE"), is("1234567890123"));
-			assertThat(result.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
-			assertThat(result.getTimestamp("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
-			assertThat(result.getTimestamp("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
-			assertThat(result.getBigDecimal("VERSION_NO"), is(BigDecimal.ZERO));
+			while (result.next()) {
+				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
+				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
+				assertThat(result.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(result.getString("JAN_CODE"), is("1234567890123"));
+				assertThat(result.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+				assertThat(result.getTimestamp("INS_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
+				assertThat(result.getTimestamp("UPD_DATETIME"), is(Timestamp.valueOf("2005-12-12 10:10:10.0")));
+				assertThat(result.getBigDecimal("VERSION_NO"), is(BigDecimal.ZERO));
+			}
+			result.close();
 		}
-		result.close();
 	}
 
 	;
@@ -186,13 +185,20 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		ResultSet result = agent.query("example/select_product")
-				.param("product_id", new BigDecimal(0)).resultSet();
+		try (SqlAgent agent = config.agent()) {
+			ResultSet result = agent.query("example/select_product")
+					.param("product_id", new BigDecimal(0)).resultSet();
 
-		while (result.next()) {
-			assertThat(result.getString("PRODUCT_ID"), is("0"));
+			while (result.next()) {
+				assertThat(result.getString("PRODUCT_ID"), is("0"));
+				assertThat(result.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(result.getObject("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(result.getObject("PRODUCT_KANA_NAME", String.class), is("ショウヒンメイゼロ"));
+				assertThat(result.getObject("PRODUCT_ID"), is(BigDecimal.ZERO));
+				assertThat(result.getObject("PRODUCT_ID", Integer.class), is(0));
+			}
+			result.close();
 		}
-		result.close();
 	}
 
 	;
@@ -201,13 +207,17 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+		try (SqlAgent agent = config.agent()) {
+			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
 
-		ResultSet result = agent.query(ctx);
-		while (result.next()) {
-			assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
+			ResultSet result = agent.query(ctx);
+			while (result.next()) {
+				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
+				assertThat(result.getObject("PRODUCT_NAME"), is("商品名0"));
+				assertThat(result.getObject("PRODUCT_NAME", String.class), is("商品名0"));
+			}
+			result.close();
 		}
-		result.close();
 	}
 
 	;
@@ -216,31 +226,37 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
-		ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+		try (SqlAgent agent = config.agent()) {
+			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
-		ResultSet result = agent.query(ctx);
-		while (result.next()) {
-			result.first();
-			assertThat(result.isFirst(), is(true));
-			result.previous();
-			assertThat(result.isBeforeFirst(), is(true));
-			result.next();
-			assertThat(result.isBeforeFirst(), is(false));
-			result.last();
-			assertThat(result.isLast(), is(true));
-			result.next();
-			assertThat(result.isAfterLast(), is(true));
-			result.previous();
-			assertThat(result.isAfterLast(), is(false));
-			result.beforeFirst();
-			assertThat(result.isBeforeFirst(), is(true));
-			result.afterLast();
-			assertThat(result.isAfterLast(), is(true));
-			result.next();
+			ResultSet result = agent.query(ctx);
+			while (result.next()) {
+				result.first();
+				assertThat(result.isFirst(), is(true));
+				result.previous();
+				assertThat(result.isBeforeFirst(), is(true));
+				result.next();
+				assertThat(result.isBeforeFirst(), is(false));
+				result.last();
+				assertThat(result.isLast(), is(true));
+				result.next();
+				assertThat(result.isAfterLast(), is(true));
+				result.previous();
+				assertThat(result.isAfterLast(), is(false));
+				result.beforeFirst();
+				assertThat(result.isBeforeFirst(), is(true));
+				result.afterLast();
+				assertThat(result.isAfterLast(), is(true));
+				result.next();
+
+				assertThat(result.isWrapperFor(SecretResultSet.class), is(true));
+				assertThat(result.unwrap(SecretResultSet.class).getCipher(), is(not(nullValue())));
+				assertThat(result.unwrap(SecretResultSet.class).getCharset(), is(Charset.forName("UTF-8")));
+				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
+						is(Arrays.asList("PRODUCT_NAME")));
+			}
+			result.close();
 		}
-		result.close();
 	}
-
-	;
 }

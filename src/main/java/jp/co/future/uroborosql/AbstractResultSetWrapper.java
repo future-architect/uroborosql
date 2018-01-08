@@ -48,6 +48,10 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
+		if (iface != null && this.getClass().isAssignableFrom(iface)) {
+			return iface.cast(this);
+		}
+
 		return wrapped.unwrap(iface);
 	}
 
@@ -58,6 +62,9 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+		if (iface != null && this.getClass().isAssignableFrom(iface)) {
+			return true;
+		}
 		return wrapped.isWrapperFor(iface);
 	}
 
