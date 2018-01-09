@@ -41,6 +41,7 @@ public class TestConsts {
 
 	public static final Object CUSTOMMAPPER_TARGET = Arrays.asList(1, 2, 3);
 
+	@SuppressWarnings("unused")
 	private static final String PRIVATE = "private";
 	public final String notStatic = "not static";
 	public static String NOT_FINAL = "not final";
@@ -53,6 +54,7 @@ public class TestConsts {
 		public static final String ISTRING = "BBB";
 	}
 
+	@SuppressWarnings("unused")
 	private final class PrivateInnerClass {
 		public static final String ISTRING = "BBB";
 	}
@@ -83,19 +85,19 @@ public class TestConsts {
 
 		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
-					if (getOriginal.equals(method)) {
-						return o;
-					}
+			if (getOriginal.equals(method)) {
+				return o;
+			}
 
-					if (args != null) {
-						for (int i = 0; i < args.length; i++) {
-							if (args[i] instanceof ProxyContainer) {
-								args[i] = ((ProxyContainer) args[i]).getOriginal();
-							}
-						}
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					if (args[i] instanceof ProxyContainer) {
+						args[i] = ((ProxyContainer) args[i]).getOriginal();
 					}
-					return method.invoke(o, args);
-				});
+				}
+			}
+			return method.invoke(o, args);
+		});
 		return proxyInstance;
 	}
 }

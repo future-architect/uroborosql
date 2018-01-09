@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
@@ -28,14 +28,14 @@ public class ParameterTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:ParameterTest", null, null);
+		config = UroboroSQL.builder("jdbc:h2:mem:ParameterTest", null, null).build();
 	}
 
 	@Test
 	public void testSetInParameter_mapperForDate() throws ParseException, SQLException {
 
 		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
 
 			try (ResultSet rs = agent.query(ctx)) {
@@ -52,7 +52,7 @@ public class ParameterTest {
 
 		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
 
 			try (ResultSet rs = agent.query(ctx)) {
@@ -70,7 +70,7 @@ public class ParameterTest {
 
 		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
 
 			try (ResultSet rs = agent.query(ctx)) {
@@ -101,7 +101,7 @@ public class ParameterTest {
 			}
 		});
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING2").param("targetStr", param);
 
 			try (ResultSet rs = agent.query(ctx)) {
@@ -121,7 +121,7 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramList("targetStrs", "1", "2", "3");
 
 			try (ResultSet rs = agent.query(ctx)) {
@@ -145,7 +145,7 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_bytearray() throws SQLException {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
 
 			assertThat("更新件数が一致しません",

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -57,7 +57,7 @@ public class DateTimeTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
@@ -65,12 +65,13 @@ public class DateTimeTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class LocalTestEntity {
 		private long id;
@@ -104,6 +105,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DateTestEntity {
 		private long id;
@@ -137,6 +139,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class OffsetTestEntity {
 		private long id;
@@ -168,6 +171,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class ZonedTestEntity {
 		private long id;
@@ -200,7 +204,7 @@ public class DateTimeTest {
 	@Test
 	public void testZoned() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				ZonedTestEntity test1 = new ZonedTestEntity(1);
 				agent.insert(test1);
@@ -215,7 +219,7 @@ public class DateTimeTest {
 	@Test
 	public void testOffset() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				OffsetTestEntity test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
@@ -231,23 +235,27 @@ public class DateTimeTest {
 	@Test
 	public void testDate() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				DateTestEntity test1 = new DateTestEntity(1);
 				agent.insert(test1);
 				DateTestEntity date = agent.find(DateTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(date.datetimeValue.getTime(), is(test1.datetimeValue.getTime()));
-				assertThat(date.dateValue.getTime(), is(DateUtils.truncate(test1.dateValue, Calendar.DAY_OF_MONTH).getTime()));
+				assertThat(date.dateValue.getTime(), is(DateUtils.truncate(test1.dateValue, Calendar.DAY_OF_MONTH)
+						.getTime()));
 				System.out.println(date.timeValue);
 				Date time = DateUtils.setYears(test1.timeValue, 1970);
 				time = DateUtils.setMonths(time, 0);
 				time = DateUtils.setDays(time, 1);
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
-				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
+						.toLocalDateTime(),
 						is(local.datetimeValue));
-				assertThat(new Date(date.dateValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), is(local.dateValue));
-				assertThat(new Date(date.timeValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime(), is(local.timeValue));
+				assertThat(new Date(date.dateValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+						is(local.dateValue));
+				assertThat(new Date(date.timeValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime(),
+						is(local.timeValue));
 			});
 		}
 	}

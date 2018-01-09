@@ -1,8 +1,7 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,7 +10,7 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -44,7 +43,7 @@ public class TransientTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
@@ -52,12 +51,13 @@ public class TransientTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoTestEntity {
 		private long id;
@@ -96,9 +96,10 @@ public class TransientTest {
 	@Test
 	public void test() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TransientAnnoTestEntity test1 = new TransientAnnoTestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TransientAnnoTestEntity test1 = new TransientAnnoTestEntity(1, "name1", 20, LocalDate.of(1990,
+						Month.APRIL, 1));
 				agent.insert(test1);
 				TransientAnnoTestEntity data = agent.find(TransientAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data.name, is(nullValue()));

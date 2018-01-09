@@ -6,10 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;

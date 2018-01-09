@@ -1,9 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -54,7 +52,7 @@ public class ORMSampleTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
@@ -62,7 +60,7 @@ public class ORMSampleTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("delete from test").count();
 
@@ -81,6 +79,7 @@ public class ORMSampleTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private String name;
@@ -94,6 +93,7 @@ public class ORMSampleTest {
 		public String getName() {
 			return name;
 		}
+
 		/* 他のgetterは省略 */
 
 		public void setId(final long id) {
@@ -136,7 +136,7 @@ public class ORMSampleTest {
 	@Test
 	public void testFind() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 
 			// KEYを指定して取得
 			TestEntity data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
@@ -148,7 +148,7 @@ public class ORMSampleTest {
 	@Test
 	public void testQuery() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 
 			// 条件なし
 			List<TestEntity> list = agent.query(TestEntity.class).collect();
@@ -165,7 +165,7 @@ public class ORMSampleTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
 				TestEntity test = new TestEntity();
@@ -186,7 +186,7 @@ public class ORMSampleTest {
 	@Test
 	public void testUpdate() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
 
@@ -205,7 +205,7 @@ public class ORMSampleTest {
 	@Test
 	public void testDelete() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(test, is(not(nullValue())));
@@ -249,6 +249,7 @@ public class ORMSampleTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;
@@ -277,7 +278,7 @@ public class ORMSampleTest {
 	@Test
 	public void testDomain() throws Exception {
 		// Domainを定義したクラスを扱う
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
 				DomainTestEntity test = new DomainTestEntity();

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage.reports.html;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
@@ -28,9 +28,9 @@ public class HtmlReportCoverageHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:HtmlReportCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null);
+		config = UroboroSQL.builder("jdbc:h2:mem:HtmlReportCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null).build();
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )").count();
 			agent.commit();
 		}
@@ -58,7 +58,7 @@ public class HtmlReportCoverageHandlerTest {
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir", path.toString());
 		CoverageHandler before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 
 			agent.query("covertest/test01").param("id", 1).collect();
@@ -70,7 +70,7 @@ public class HtmlReportCoverageHandlerTest {
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		config.getSqlFilterManager().addSqlFilter(filter);
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("covertest/test01").param("id", 1).collect();
 
 		}
@@ -102,7 +102,7 @@ public class HtmlReportCoverageHandlerTest {
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir", path.toString());
 		CoverageHandler before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch").collect();
 		}
 
@@ -128,7 +128,7 @@ public class HtmlReportCoverageHandlerTest {
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir", path.toString());
 		CoverageHandler before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch").collect();
 		}
 

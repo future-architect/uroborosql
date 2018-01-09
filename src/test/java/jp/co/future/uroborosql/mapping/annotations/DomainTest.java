@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.Objects;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -42,7 +42,7 @@ public class DomainTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
@@ -50,7 +50,7 @@ public class DomainTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -84,6 +84,7 @@ public class DomainTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;
@@ -116,7 +117,7 @@ public class DomainTest {
 	@Test
 	public void test() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				DomainTestEntity test1 = new DomainTestEntity(1, "name1");
 				agent.insert(test1);
@@ -167,6 +168,7 @@ public class DomainTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity2 {
 		private long id;
@@ -201,7 +203,7 @@ public class DomainTest {
 	@Test
 	public void test2() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				DomainTestEntity2 test1 = new DomainTestEntity2(1, "name1");
 				agent.insert(test1);
@@ -261,6 +263,7 @@ public class DomainTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity3 {
 		private long id;
@@ -295,7 +298,7 @@ public class DomainTest {
 	@Test
 	public void test3() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				DomainTestEntity3 test1 = new DomainTestEntity3(1, "name1");
 				agent.insert(test1);
@@ -316,9 +319,10 @@ public class DomainTest {
 
 	@Domain(valueType = String.class, toJdbcMethod = "name")
 	public static enum NameDomain4 {
-		NAME1, NAME2, NAME3,;
+		NAME1, NAME2, NAME3, ;
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity4 {
 		private long id;
@@ -351,7 +355,7 @@ public class DomainTest {
 	@Test
 	public void test4() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				DomainTestEntity4 test1 = new DomainTestEntity4(1, NameDomain4.NAME1);
 				agent.insert(test1);

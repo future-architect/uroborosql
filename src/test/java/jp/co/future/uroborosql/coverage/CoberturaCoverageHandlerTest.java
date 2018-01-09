@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
@@ -27,9 +27,9 @@ public class CoberturaCoverageHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		config = DefaultSqlConfig.getConfig("jdbc:h2:mem:CoberturaCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null);
+		config = UroboroSQL.builder("jdbc:h2:mem:CoberturaCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null).build();
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )").count();
 			agent.commit();
 		}
@@ -53,7 +53,7 @@ public class CoberturaCoverageHandlerTest {
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".file", "target/coverage/test-sql-cover.xml");
 		CoverageHandler before = ref.get();
 		ref.set(new CoberturaCoverageHandler());
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 
 			agent.query("covertest/test01").param("id", 1).collect();
@@ -64,7 +64,7 @@ public class CoberturaCoverageHandlerTest {
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		config.getSqlFilterManager().addSqlFilter(filter);
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("covertest/test01").param("id", 1).collect();
 
 		}

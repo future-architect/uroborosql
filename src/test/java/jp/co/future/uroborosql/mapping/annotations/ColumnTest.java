@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -43,7 +43,7 @@ public class ColumnTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
@@ -51,7 +51,7 @@ public class ColumnTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -97,13 +97,16 @@ public class ColumnTest {
 	@Test
 	public void test() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				ColumnAnnoTestEntity test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				ColumnAnnoTestEntity test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate
+						.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				ColumnAnnoTestEntity test2 = new ColumnAnnoTestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
+				ColumnAnnoTestEntity test2 = new ColumnAnnoTestEntity(2, "name2", 21, LocalDate
+						.of(1990, Month.APRIL, 2));
 				agent.insert(test2);
-				ColumnAnnoTestEntity test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
+				ColumnAnnoTestEntity test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate
+						.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
 				ColumnAnnoTestEntity data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
