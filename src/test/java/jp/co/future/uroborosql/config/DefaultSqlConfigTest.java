@@ -34,6 +34,7 @@ public class DefaultSqlConfigTest {
 
 	private Connection conn;
 
+	@SuppressWarnings("deprecation")
 	@Before
 	public void setUp() throws Exception {
 		ds = new JdbcDataSource();
@@ -77,6 +78,7 @@ public class DefaultSqlConfigTest {
 	/**
 	 * Testcase of {@link jp.co.future.uroborosql.config.DefaultSqlConfig#getConfig(java.sql.Connection)}
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetConfigConnection() throws Exception {
 		validate(DefaultSqlConfig.getConfig(conn));
@@ -85,13 +87,14 @@ public class DefaultSqlConfigTest {
 	/**
 	 * Testcase of {@link jp.co.future.uroborosql.config.DefaultSqlConfig#getConfig(javax.sql.DataSource)} のためのテスト・メソッド。
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetConfigDataSource() throws Exception {
 		validate(DefaultSqlConfig.getConfig(ds));
 	}
 
 	private void validate(final SqlConfig config) throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 		}
 

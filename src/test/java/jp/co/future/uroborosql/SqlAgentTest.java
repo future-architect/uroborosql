@@ -862,6 +862,7 @@ public class SqlAgentTest {
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testExecuteBatchNoAddBatch() throws Exception {
 		// 事前条件

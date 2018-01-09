@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 
 /**
  * SqlAgent（SQL実行エンジン）実装サンプル
@@ -38,16 +38,13 @@ public class SqlAgentSampleApp {
 	 */
 	public SqlAgentSampleApp(final String url, final String user, final String password) throws Exception {
 		// SQL設定オブジェクトを生成する(JDBCを利用する場合）
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		// SQL実行時に行う各種フィルタ処理を管理するクラスを設定
+		config = UroboroSQL.builder(url, user, password)
+				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter())).build();
 
 		// JNDIなどのDataSourceを利用する場合は、DataSource用のConnectionSupplierを指定してください
 		// Connectionの管理をDataSource側に委譲します
 		// config = SqlConfig.getConfig(dataSourceName);
-
-		// SQL実行時に行う各種フィルタ処理を管理するクラスを生成
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
-
 	}
 
 	/**
@@ -74,7 +71,7 @@ public class SqlAgentSampleApp {
 		List<Map<String, Object>> ans = new ArrayList<>();
 
 		// SqlAgent（SQL実行エンジン）を設定オブジェクトから取得
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			// SQLの実行
 			try (ResultSet rs = agent.query(sqlName).paramMap(params).resultSet()) {
 				// 実行結果はResultSetで返ってくるので、値を取得

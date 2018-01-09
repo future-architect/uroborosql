@@ -1,8 +1,7 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -15,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
@@ -34,26 +32,29 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest"));
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement, final ResultSet resultSet)
+			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+					final ResultSet resultSet)
 					throws SQLException {
 				querys.add(toLines(sqlContext.getExecutableSql()));
 				return super.doQuery(sqlContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product").collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* sqlid_test/select_product */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1", "ORDER BY PRODUCT_ID"))));
+				Arrays.asList("SELECT /* sqlid_test/select_product */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
+						"ORDER BY PRODUCT_ID"))));
 
 	}
 
@@ -62,26 +63,29 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest"));
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement, final ResultSet resultSet)
+			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+					final ResultSet resultSet)
 					throws SQLException {
 				querys.add(toLines(sqlContext.getExecutableSql()));
 				return super.doQuery(sqlContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* _TESTSQL_ID_ */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1", "ORDER BY PRODUCT_ID"))));
+				Arrays.asList("SELECT /* _TESTSQL_ID_ */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
+						"ORDER BY PRODUCT_ID"))));
 	}
 
 	/**
@@ -89,27 +93,30 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = DefaultSqlConfig.getConfig(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest"));
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentFactory().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement, final ResultSet resultSet)
+			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+					final ResultSet resultSet)
 					throws SQLException {
 				querys.add(toLines(sqlContext.getExecutableSql()));
 				return super.doQuery(sqlContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* sqlid_test/select_product_custom */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1", "ORDER BY PRODUCT_ID"))));
+				Arrays.asList("SELECT /* sqlid_test/select_product_custom */", "\t*", "FROM", "\tPRODUCT",
+						"WHERE 1 = 1", "ORDER BY PRODUCT_ID"))));
 
 	}
 

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.config.DefaultSqlConfig;
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -36,6 +36,7 @@ public class CustomMapperTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private Name name;
@@ -51,12 +52,14 @@ public class CustomMapperTest {
 
 	private static class CustomMapper implements PropertyMapper<Name>, BindParameterMapper<Name> {
 		@Override
-		public Object toJdbc(final Name original, final Connection connection, final BindParameterMapperManager parameterMapperManager) {
+		public Object toJdbc(final Name original, final Connection connection,
+				final BindParameterMapperManager parameterMapperManager) {
 			return "-" + original.s.toLowerCase() + "-";
 		}
 
 		@Override
-		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex, final PropertyMapperManager mapperManager)
+		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex,
+				final PropertyMapperManager mapperManager)
 				throws SQLException {
 			String s = rs.getString(columnIndex);
 			return s != null ? new Name(s.toUpperCase().replaceAll("^-", "").replaceAll("-$", "")) : null;
@@ -82,7 +85,7 @@ public class CustomMapperTest {
 			}
 		}
 
-		config = DefaultSqlConfig.getConfig(url, user, password);
+		config = UroboroSQL.builder(url, user, password).build();
 
 		// Mapperの登録
 		CustomMapper customMapper = new CustomMapper();
@@ -95,7 +98,7 @@ public class CustomMapperTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("delete from test").count();
 
@@ -109,6 +112,7 @@ public class CustomMapperTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class Test2Entity {
 		private long id;
@@ -118,7 +122,7 @@ public class CustomMapperTest {
 	@Test
 	public void testFind() throws Exception {
 
-		try (SqlAgent agent = config.createAgent()) {
+		try (SqlAgent agent = config.agent()) {
 			TestEntity data = agent.find(TestEntity.class, 2).orElse(null);
 			assertThat(data.name.s, is("NAME2"));
 

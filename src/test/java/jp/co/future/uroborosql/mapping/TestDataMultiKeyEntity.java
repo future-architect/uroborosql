@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+@SuppressWarnings("unused")
 public class TestDataMultiKeyEntity {
 	private long id;
 	private String key;

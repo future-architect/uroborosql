@@ -1,9 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,7 +16,7 @@ import jp.co.future.uroborosql.mapping.JavaType.ImplementClass;
 
 import org.junit.Test;
 
-@SuppressWarnings({ "rawtypes", "unused" })
+@SuppressWarnings({ "rawtypes" })
 public class JavaTypeTest {
 
 	class Test01 {
@@ -190,7 +188,8 @@ public class JavaTypeTest {
 		assertThat(implementClass.getSubclass(Enum.class), is(equalTo(Test09.class)));
 
 		Method method = Enum.class.getMethod("compareTo", Enum.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test09.class), method.getParameters()[0].getParameterizedType());
+		JavaType javaType = JavaType.of(new ImplementClass(Test09.class),
+				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("jp.co.future.uroborosql.mapping.JavaTypeTest$Test09"));
 
 		javaType = JavaType.of(new ImplementClass(Enum.class), method.getParameters()[0].getParameterizedType());
@@ -219,18 +218,25 @@ public class JavaTypeTest {
 		assertThat(javaType.toString(), is("jp.co.future.uroborosql.mapping.JavaTypeTest$Test10"));
 
 		javaType = JavaType.of(new ImplementClass(Abs2Test10.class), method.getGenericReturnType());
-		assertThat(javaType.toString(),
+		assertThat(
+				javaType.toString(),
 				is("jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10<jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
-		assertThat(javaType.getParam(0).toString(),
+		assertThat(
+				javaType.getParam(0).toString(),
 				is("jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10<jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
 
 		javaType = JavaType.of(new ImplementClass(Abs1Test10.class), method.getGenericReturnType());
-		assertThat(javaType.toString(), is(
+		assertThat(
+				javaType.toString(),
+				is(
 				"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
 		assertThat(javaType.getParam(0).toString(), is("java.lang.Object"));
-		assertThat(javaType.getParam(1).toString(), is(
+		assertThat(
+				javaType.getParam(1).toString(),
+				is(
 				"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
-		assertThat(javaType.getParam(2).toString(),
+		assertThat(
+				javaType.getParam(2).toString(),
 				is("jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10<jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
 
 	}
@@ -253,7 +259,8 @@ public class JavaTypeTest {
 	public void test11() throws SecurityException, NoSuchMethodException {
 
 		Method method = Test11.class.getMethod("test", List.class, List.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test11.class), method.getParameters()[0].getParameterizedType());
+		JavaType javaType = JavaType.of(new ImplementClass(Test11.class),
+				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("java.util.List<? extends java.lang.Comparable>"));
 		assertThat(javaType.getParam(0).toString(), is("? extends java.lang.Comparable<?>"));
 		assertThat(javaType.getParam(0).getLower(), is(nullValue()));
@@ -266,8 +273,10 @@ public class JavaTypeTest {
 
 		method = Test11.class.getMethod("test2", List.class);
 		javaType = JavaType.of(new ImplementClass(Test11.class), method.getParameters()[0].getParameterizedType());
-		assertThat(javaType.toString(), is("java.util.List<E extends java.lang.Comparable & java.util.List & java.util.Queue>"));
-		assertThat(javaType.getParam(0).toString(),
+		assertThat(javaType.toString(),
+				is("java.util.List<E extends java.lang.Comparable & java.util.List & java.util.Queue>"));
+		assertThat(
+				javaType.getParam(0).toString(),
 				is("E extends java.lang.Comparable<?> & java.util.List<java.lang.Object> & java.util.Queue<java.lang.Object>"));
 		assertThat(javaType.getParam(0).getUpperBounds()[0].toString(), is("java.lang.Comparable<?>"));
 		assertThat(javaType.getParam(0).getUpperBounds()[1].toString(), is("java.util.List<java.lang.Object>"));
@@ -276,7 +285,8 @@ public class JavaTypeTest {
 	}
 
 	class Test12 {
-		public <C extends Comparable<?>, T extends C> void test(final List<? extends T> list1, final List<? super T> list2) {
+		public <C extends Comparable<?>, T extends C> void test(final List<? extends T> list1,
+				final List<? super T> list2) {
 
 		}
 	}
@@ -285,7 +295,8 @@ public class JavaTypeTest {
 	public void test12() throws SecurityException, NoSuchMethodException {
 
 		Method method = Test12.class.getMethod("test", List.class, List.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test12.class), method.getParameters()[0].getParameterizedType());
+		JavaType javaType = JavaType.of(new ImplementClass(Test12.class),
+				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("java.util.List<? extends java.lang.Comparable>"));
 		assertThat(javaType.getParam(0).toString(), is("? extends java.lang.Comparable<?>"));
 		javaType = JavaType.of(new ImplementClass(Test12.class), method.getParameters()[1].getParameterizedType());
