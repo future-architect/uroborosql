@@ -140,4 +140,48 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		factory.removeAutoParameterBinder(binder2);
 		factory.removeAutoParameterBinder(binder3);
 	}
+
+	@Test
+	public void testMultiAutoParameterBinderIfAbsent() {
+		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+
+		SqlContextFactory factory = config.getSqlContextFactory();
+
+		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", insDate);
+		factory.addAutoParameterBinder(binder1);
+		Consumer<SqlContext> binder2 = (ctx) -> ctx.param("upd_datetime", updDate);
+		factory.addAutoParameterBinder(binder2);
+		Consumer<SqlContext> binder3 = (ctx) -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
+		factory.addAutoParameterBinder(binder3);
+
+		try (SqlAgent agent = config.agent()) {
+			int productId = 10;
+			// insert
+			agent.update("example/insert_product")
+					.param("product_id", productId)
+					.param("product_name", "name")
+					.param("product_kana_name", "kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "description")
+					.param("version_no", 1)
+					.param("ins_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
+					.param("upd_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
+					.count();
+
+			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
+			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
+			// autoPrameterBinderのほうが後で設定されるため、上書きされる）
+			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
+
+			// autoParameterBinderでupd_datetimeが設定される。binder3が後で実行されるがIfAbsentなのでbinder2の実行結果になる
+			row = agent.queryWith("select * from PRODUCT where UPD_DATETIME = /*upd_datetime*/").first();
+			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
+			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
+		}
+
+		factory.removeAutoParameterBinder(binder1);
+		factory.removeAutoParameterBinder(binder2);
+		factory.removeAutoParameterBinder(binder3);
+	}
 }

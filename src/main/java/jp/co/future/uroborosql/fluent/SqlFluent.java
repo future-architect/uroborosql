@@ -9,7 +9,6 @@ import java.sql.SQLType;
 import java.util.Map;
 
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
  * Fluent API を使用してDBアクセスするためのインタフェース
@@ -26,12 +25,12 @@ public interface SqlFluent<T> {
 	SqlContext context();
 
 	/**
-	 * パラメータの追加<br>
+	 * 指定したパラメータ名のパラメータがすでに追加されているかどうかを判定する
 	 *
-	 * @param param パラメータ
-	 * @return T
+	 * @param paramName パラメータ名
+	 * @return パラメータが追加されていれば<code>true</code>. それ以外は<code>false</code>
 	 */
-	T param(Parameter param);
+	boolean hasParam(String paramName);
 
 	/**
 	 * パラメータの追加<br>
@@ -43,6 +42,17 @@ public interface SqlFluent<T> {
 	T param(String paramName, Object value);
 
 	/**
+	 * パラメータの追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @return T
+	 */
+	T paramIfAbsent(String paramName, Object value);
+
+	/**
 	 * パラメータ配列の追加<br>
 	 *
 	 * @param paramName パラメータ名
@@ -50,6 +60,17 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T paramList(String paramName, Object... value);
+
+	/**
+	 * パラメータ配列の追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 配列として追加する
+	 * @return T
+	 */
+	T paramListIfAbsent(String paramName, Object... value);
 
 	/**
 	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>
@@ -80,12 +101,36 @@ public interface SqlFluent<T> {
 	/**
 	 * 型指定のパラメータ追加<br>
 	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
+	 * @return T
+	 */
+	T paramIfAbsent(String paramName, Object value, SQLType sqlType);
+
+	/**
+	 * 型指定のパラメータ追加<br>
+	 *
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
 	 * @return T
 	 */
 	T param(String paramName, Object value, int sqlType);
+
+	/**
+	 * 型指定のパラメータ追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
+	 * @return T
+	 */
+	T paramIfAbsent(String paramName, Object value, int sqlType);
 
 	/**
 	 * 出力パラメータ追加<br>
@@ -118,6 +163,18 @@ public interface SqlFluent<T> {
 	/**
 	 * 入出力パラメータ追加<br>
 	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
+	 * @return T
+	 */
+	T inOutParamIfAbsent(String paramName, Object value, SQLType sqlType);
+
+	/**
+	 * 入出力パラメータ追加<br>
+	 *
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
@@ -126,61 +183,100 @@ public interface SqlFluent<T> {
 	T inOutParam(String paramName, Object value, int sqlType);
 
 	/**
-	 * ストリームパラメータ追加<br>
+	 * 入出力パラメータ追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
+	 * @return T
+	 */
+	T inOutParamIfAbsent(String paramName, Object value, int sqlType);
+
+	/**
+	 * BLOBパラメータ追加<br>
 	 *
 	 * @param paramName パラメータ名
 	 * @param value ストリーム型の値
 	 * @return T
 	 */
-	T binaryStreamParam(String paramName, InputStream value);
+	T blobParam(String paramName, InputStream value);
 
 	/**
-	 * ストリームパラメータ追加<br>
+	 * BLOBパラメータ追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value ストリーム型の値
+	 * @return T
+	 */
+	T blobParamIfAbsent(String paramName, InputStream value);
+
+	/**
+	 * BLOBパラメータ追加<br>
 	 *
 	 * @param paramName パラメータ名
 	 * @param value ストリーム型の値
 	 * @param len 入力ストリームの長さ
 	 * @return T
 	 */
-	T binaryStreamParam(String paramName, InputStream value, int len);
+	T blobParam(String paramName, InputStream value, int len);
 
 	/**
-	 * ストリームパラメータ追加<br>
+	 * BLOBパラメータ追加<br>
 	 *
-	 * @param paramName パラメータ名
-	 * @param value ストリーム型の値
-	 * @return T
-	 */
-	T asciiStreamParam(String paramName, InputStream value);
-
-	/**
-	 * ストリームパラメータ追加<br>
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
 	 * @param paramName パラメータ名
 	 * @param value ストリーム型の値
 	 * @param len 入力ストリームの長さ
 	 * @return T
 	 */
-	T asciiStreamParam(String paramName, InputStream value, int len);
+	T blobParamIfAbsent(String paramName, InputStream value, int len);
 
 	/**
-	 * ストリームパラメータ追加<br>
+	 * CLOBパラメータ追加<br>
 	 *
 	 * @param paramName パラメータ名
 	 * @param value リーダー型の値
 	 * @return T
 	 */
-	T characterStreamParam(String paramName, Reader value);
+	T clobParam(String paramName, Reader value);
 
 	/**
-	 * ストリームパラメータ追加<br>
+	 * CLOBパラメータ追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value リーダー型の値
+	 * @return T
+	 */
+	T clobParamIfAbsent(String paramName, Reader value);
+
+	/**
+	 * CLOBパラメータ追加<br>
 	 *
 	 * @param paramName パラメータ名
 	 * @param value リーダー型の値
 	 * @param len リーダーの長さ
 	 * @return T
 	 */
-	T characterStreamParam(String paramName, Reader value, int len);
+	T clobParam(String paramName, Reader value, int len);
+
+	/**
+	 * CLOBパラメータ追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param paramName パラメータ名
+	 * @param value リーダー型の値
+	 * @param len リーダーの長さ
+	 * @return T
+	 */
+	T clobParamIfAbsent(String paramName, Reader value, int len);
 
 	/**
 	 * リトライ回数を設定する。 リトライ待機時間は0msが設定される
