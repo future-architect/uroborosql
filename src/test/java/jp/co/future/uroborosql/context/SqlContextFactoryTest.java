@@ -1,16 +1,16 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.isA;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
-import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -19,8 +19,6 @@ import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.parameter.Parameter;
-import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
-import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,15 +40,7 @@ public class SqlContextFactoryTest {
 
 	@Test
 	public void testConst_class() {
-		sqlContextFactory.addBindParamMapper(new BindParameterMapper<Collection<?>>() {
-
-			@Override
-			public Object toJdbc(Collection<?> original, Connection connection, BindParameterMapperManager parameterMapperManager) {
-				// テストでは使わない
-				return null;
-			}
-
-		});
+		sqlContextFactory.addBindParamMapper((original, connection, parameterMapperManager) -> null);
 
 		sqlContextFactory.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
 
@@ -91,13 +81,14 @@ public class SqlContextFactoryTest {
 				"CLS_UTIL_DATE", TestConsts.UTIL_DATE,
 				"CLS_NULL", TestConsts.NULL,
 				"CLS_OBJECT_STR", TestConsts.OBJECT_STR,
+				"CLS_IGNORE", TestConsts.IGNORE,
 
 				"CLS_CUSTOMMAPPER_TARGET", TestConsts.CUSTOMMAPPER_TARGET
 
-		)));
+				)));
 	}
 
-	private Map<String, ?> mapOf(Object... args) {
+	private Map<String, ?> mapOf(final Object... args) {
 		Map<String, Object> map = new HashMap<>();
 		for (int i = 0; i < args.length; i += 2) {
 			map.put((String) args[i], args[i + 1]);
@@ -146,5 +137,37 @@ public class SqlContextFactoryTest {
 		for (Parameter parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test
+	public void testAutoBindParameterCreator() throws Exception {
+		List<AutoBindParameterCreator> creators = new ArrayList<>();
+		sqlContextFactory.setAutoBindParameterCreators(creators);
+		sqlContextFactory.initialize();
+
+		SqlContext ctx = sqlContextFactory.createSqlContext();
+		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
+
+		creators.add(() -> {
+			ConcurrentHashMap<String, Parameter> params = new ConcurrentHashMap<>();
+			return params;
+		});
+
+		sqlContextFactory.initialize();
+		ctx = sqlContextFactory.createSqlContext();
+		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
+
+		creators.add(() -> {
+			ConcurrentHashMap<String, Parameter> params = new ConcurrentHashMap<>();
+			params.put("DUMMY", new Parameter("DUMMY", "dummy_value"));
+			return params;
+		});
+		sqlContextFactory.initialize();
+		ctx = sqlContextFactory.createSqlContext();
+
+		assertThat(sqlContextFactory.getAutoBindParameterCreators(), is(creators));
+
+		assertThat(ctx.getParam("DUMMY").getValue(), is("dummy_value"));
 	}
 }

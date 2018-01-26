@@ -3,7 +3,6 @@ package jp.co.future.uroborosql.context;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.CallableStatement;
-import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,6 +135,9 @@ public class SqlContextImpl implements SqlContext {
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
+	/** 自動パラメータバインド関数 */
+	private Consumer<SqlContext> autoParameterBinder = null;
+
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
 
@@ -166,6 +169,7 @@ public class SqlContextImpl implements SqlContext {
 		resultSetConcurrency = parent.resultSetConcurrency;
 		dbAlias = parent.dbAlias;
 		contextAttributes.putAll(parent.contextAttributes);
+		autoParameterBinder = parent.autoParameterBinder;
 		parameterMapperManager = parent.parameterMapperManager;
 	}
 
@@ -375,10 +379,21 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(jp.co.future.uroborosql.parameter.Parameter)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#hasParam(java.lang.String)
 	 */
 	@Override
-	public SqlContext param(final Parameter parameter) {
+	public boolean hasParam(final String paramName) {
+		return parameterMap.containsKey(paramName);
+	}
+
+	/**
+	 * パラメータの追加
+	 *
+	 * @param parameter パラメータ
+	 *
+	 * @return SqlContext
+	 */
+	private SqlContext param(final Parameter parameter) {
 		parameterMap.put(parameter.getParameterName(), parameter);
 		return this;
 	}
@@ -396,11 +411,37 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public SqlContext paramIfAbsent(final String parameterName, final Object value) {
+		if (!hasParam(parameterName)) {
+			param(parameterName, value);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
 	 */
 	@Override
 	public SqlContext paramList(final String parameterName, final Object... value) {
 		return param(new Parameter(parameterName, Arrays.asList(value)));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(String, Object...)
+	 */
+	@Override
+	public SqlContext paramListIfAbsent(final String parameterName, final Object... value) {
+		if (!hasParam(parameterName)) {
+			paramList(parameterName, value);
+		}
+		return this;
 	}
 
 	/**
@@ -438,11 +479,37 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
+	@Override
+	public SqlContext paramIfAbsent(final String parameterName, final Object value, final SQLType sqlType) {
+		if (!hasParam(parameterName)) {
+			param(parameterName, value, sqlType);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
 	public SqlContext param(final String parameterName, final Object value, final int sqlType) {
 		return param(new Parameter(parameterName, value, sqlType));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
+	 */
+	@Override
+	public SqlContext paramIfAbsent(final String parameterName, final Object value, final int sqlType) {
+		if (!hasParam(parameterName)) {
+			param(parameterName, value, sqlType);
+		}
+		return this;
 	}
 
 	/**
@@ -487,6 +554,19 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
+	@Override
+	public SqlContext inOutParamIfAbsent(final String parameterName, final Object value, final SQLType sqlType) {
+		if (!hasParam(parameterName)) {
+			inOutParam(parameterName, value, sqlType);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
@@ -497,61 +577,106 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public SqlContext binaryStreamParam(final String parameterName, final InputStream value) {
-		return param(new StreamParameter(parameterName, value, JDBCType.BLOB));
+	public SqlContext inOutParamIfAbsent(final String parameterName, final Object value, final int sqlType) {
+		if (!hasParam(parameterName)) {
+			inOutParam(parameterName, value, sqlType);
+		}
+		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#binaryStreamParam(java.lang.String, java.io.InputStream, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public SqlContext binaryStreamParam(final String parameterName, final InputStream value, final int len) {
-		return param(new StreamParameter(parameterName, value, len, JDBCType.BLOB));
+	public SqlContext blobParam(final String parameterName, final InputStream value) {
+		return param(new StreamParameter(parameterName, value));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public SqlContext asciiStreamParam(final String parameterName, final InputStream value) {
-		return param(new StreamParameter(parameterName, value, JDBCType.CLOB));
+	public SqlContext blobParamIfAbsent(final String parameterName, final InputStream value) {
+		if (!hasParam(parameterName)) {
+			blobParam(parameterName, value);
+		}
+		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#asciiStreamParam(java.lang.String, java.io.InputStream, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
-	public SqlContext asciiStreamParam(final String parameterName, final InputStream value, final int len) {
-		return param(new StreamParameter(parameterName, value, len, JDBCType.CLOB));
+	public SqlContext blobParam(final String parameterName, final InputStream value, final int len) {
+		return param(new StreamParameter(parameterName, value, len));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
-	public SqlContext characterStreamParam(final String paramName, final Reader value) {
+	public SqlContext blobParamIfAbsent(final String parameterName, final InputStream value, final int len) {
+		if (!hasParam(parameterName)) {
+			blobParam(parameterName, value, len);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader)
+	 */
+	@Override
+	public SqlContext clobParam(final String paramName, final Reader value) {
 		return param(new ReaderParameter(paramName, value));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#characterStreamParam(java.lang.String, java.io.Reader, int)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader)
 	 */
 	@Override
-	public SqlContext characterStreamParam(final String paramName, final Reader value, final int len) {
+	public SqlContext clobParamIfAbsent(final String paramName, final Reader value) {
+		if (!hasParam(paramName)) {
+			clobParam(paramName, value);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader, int)
+	 */
+	@Override
+	public SqlContext clobParam(final String paramName, final Reader value, final int len) {
 		return param(new ReaderParameter(paramName, value, len));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader, int)
+	 */
+	@Override
+	public SqlContext clobParamIfAbsent(final String paramName, final Reader value, final int len) {
+		if (!hasParam(paramName)) {
+			clobParam(paramName, value, len);
+		}
+		return this;
 	}
 
 	/**
@@ -687,6 +812,11 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
+		// 自動パラメータバインド関数の呼出
+		if (autoParameterBinder != null) {
+			autoParameterBinder.accept(this);
+		}
+
 		Parameter[] bindParameters = getBindParameters();
 
 		Set<String> matchParams = new HashSet<>();
@@ -906,6 +1036,14 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	public void setParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
 		this.parameterMapperManager = parameterMapperManager;
+	}
+
+	/**
+	 * 自動パラメータバインド関数を設定します
+	 * @param binder 自動パラメータバインド関数
+	 */
+	public void setAutoParameterBinder(final Consumer<SqlContext> binder) {
+		this.autoParameterBinder = binder;
 	}
 
 	/**

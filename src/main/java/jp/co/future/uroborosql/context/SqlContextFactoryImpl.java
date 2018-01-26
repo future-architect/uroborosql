@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -30,12 +31,11 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import ognl.OgnlRuntime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ognl.OgnlRuntime;
 
 /**
  * SQLコンテキストファクトリ実装
@@ -61,6 +61,12 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private SqlFilterManager sqlFilterManager;
 	/** 自動バインド用パラメータ生成クラスのリスト */
 	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
+
+	/** 自動パラメータバインド関数List */
+	private List<Consumer<SqlContext>> autoParameterBinders = new ArrayList<>();
+
+	/** 合成自動パラメータバインド関数 */
+	private Consumer<SqlContext> autoParameterBinder = null;
 
 	/** パラメータ変換マネージャ */
 	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
@@ -93,6 +99,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		sqlContext.setConstParameterMap(paramMap);
 		sqlContext.setSqlFilterManager(getSqlFilterManager());
 		sqlContext.setParameterMapperManager(new BindParameterMapperManager(parameterMapperManager));
+		sqlContext.setAutoParameterBinder(autoParameterBinder);
+
 		return sqlContext;
 	}
 
@@ -163,7 +171,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
-		String fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(packageName.length() + 1))
+		String fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(
+				packageName.length() + 1))
 				+ "_";
 
 		Enum<?>[] enumValues = targetClass.getEnumConstants();
@@ -300,6 +309,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#getAutoBindParameterCreators()
 	 */
+	@Deprecated
 	@Override
 	public List<AutoBindParameterCreator> getAutoBindParameterCreators() {
 		return autoBindParameterCreators;
@@ -310,9 +320,36 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#setAutoBindParameterCreators(List)
 	 */
+	@Deprecated
 	@Override
 	public SqlContextFactory setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
 		this.autoBindParameterCreators = autoBindParameterCreators;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addAutoParameterBinder(java.util.function.Consumer)
+	 */
+	@Override
+	public SqlContextFactory addAutoParameterBinder(final Consumer<SqlContext> binder) {
+		autoParameterBinders.add(binder);
+		autoParameterBinder = autoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+				.orElse(null);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeAutoParameterBinder(java.util.function.Consumer)
+	 */
+	@Override
+	public SqlContextFactory removeAutoParameterBinder(final Consumer<SqlContext> binder) {
+		autoParameterBinders.remove(binder);
+		autoParameterBinder = autoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+				.orElse(null);
 		return this;
 	}
 
