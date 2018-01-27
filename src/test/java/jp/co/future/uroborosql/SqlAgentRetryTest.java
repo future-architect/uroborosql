@@ -16,6 +16,7 @@ import java.util.Arrays;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
@@ -101,6 +102,7 @@ public class SqlAgentRetryTest {
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
+			assertThat(ex.getCause(), instanceOf(PessimisticLockException.class));
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -173,6 +175,7 @@ public class SqlAgentRetryTest {
 			update.count();
 			fail();
 		} catch (UroborosqlSQLException ex) {
+			assertThat(ex.getCause(), instanceOf(PessimisticLockException.class));
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -259,6 +262,7 @@ public class SqlAgentRetryTest {
 			update.retry(retryCount - 1).batch();
 			fail();
 		} catch (UroborosqlSQLException ex) {
+			assertThat(ex.getCause(), instanceOf(PessimisticLockException.class));
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -336,7 +340,8 @@ public class SqlAgentRetryTest {
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
+			assertThat(ex.getCause(), instanceOf(PessimisticLockException.class));
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}
@@ -358,7 +363,7 @@ public class SqlAgentRetryTest {
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
 			fail();
-		} catch (SQLException ex) {
+		} catch (UroborosqlSQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
 		}

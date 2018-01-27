@@ -24,6 +24,7 @@ import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -128,7 +129,11 @@ public class SqlAgentImpl extends AbstractAgent {
 							throw ex;
 						}
 					} else {
-						throw ex;
+						if (maxRetryCount > 0) {
+							throw new PessimisticLockException(sqlContext, loopCount, ex);
+						} else {
+							throw ex;
+						}
 					}
 				} finally {
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
@@ -262,7 +267,11 @@ public class SqlAgentImpl extends AbstractAgent {
 							throw ex;
 						}
 					} else {
-						throw ex;
+						if (maxRetryCount > 0) {
+							throw new PessimisticLockException(sqlContext, loopCount, ex);
+						} else {
+							throw ex;
+						}
 					}
 				} finally {
 					sqlContext.contextAttrs().put("__retryCount", loopCount);
@@ -361,7 +370,11 @@ public class SqlAgentImpl extends AbstractAgent {
 							throw ex;
 						}
 					} else {
-						throw ex;
+						if (maxRetryCount > 0) {
+							throw new PessimisticLockException(sqlContext, loopCount, ex);
+						} else {
+							throw ex;
+						}
 					}
 				} finally {
 					sqlContext.clearBatch();
@@ -464,7 +477,11 @@ public class SqlAgentImpl extends AbstractAgent {
 							throw ex;
 						}
 					} else {
-						throw ex;
+						if (maxRetryCount > 0) {
+							throw new PessimisticLockException(sqlContext, loopCount, ex);
+						} else {
+							throw ex;
+						}
 					}
 				} finally {
 					sqlContext.contextAttrs().put("__retryCount", loopCount);

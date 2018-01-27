@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.Map;
 
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.Procedure;
 
 /**
@@ -28,7 +29,11 @@ final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Proced
 	 * @see jp.co.future.uroborosql.fluent.Procedure#call()
 	 */
 	@Override
-	public Map<String, Object> call() throws SQLException {
-		return agent().procedure(context());
+	public Map<String, Object> call() {
+		try {
+			return agent().procedure(context());
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
+		}
 	}
 }
