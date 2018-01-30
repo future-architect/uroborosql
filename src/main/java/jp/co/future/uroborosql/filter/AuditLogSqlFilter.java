@@ -5,14 +5,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
  * 監査用ログを出力するSqlFilter
@@ -34,6 +34,16 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 
 	/** 機能名の初期値 */
 	private static final String DEFAULT_FUNC_ID = "UNKNOWN";
+
+	/** ログ出力時のフォーマット */
+	private ToStringStyle toStringStyle = ToStringStyle.JSON_STYLE;
+
+	public AuditLogSqlFilter() {
+	}
+
+	public AuditLogSqlFilter(final ToStringStyle toStringStyle) {
+		this.toStringStyle = toStringStyle;
+	}
 
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
@@ -67,7 +77,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 
 		LOG.debug(ToStringBuilder.reflectionToString(
 				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), rowCount), ToStringStyle.JSON_STYLE));
+						.getExecutableSql(), rowCount),
+				this.toStringStyle));
 
 		return resultSet;
 	}
@@ -88,7 +99,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 
 		LOG.debug(ToStringBuilder.reflectionToString(
 				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), result), ToStringStyle.JSON_STYLE));
+						.getExecutableSql(), result),
+				this.toStringStyle));
 
 		return result;
 
@@ -117,7 +129,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 		}
 		LOG.debug(ToStringBuilder.reflectionToString(
 				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), rowCount), ToStringStyle.JSON_STYLE));
+						.getExecutableSql(), rowCount),
+				this.toStringStyle));
 
 		return result;
 	}
