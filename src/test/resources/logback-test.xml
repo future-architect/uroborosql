@@ -70,7 +70,7 @@
 	<!-- ログ出力に関する設定 -->
 	<root>
 		<!-- 出力するレベルを設定 -->
-		<level value="DEBUG" />
+		<level value="${logback.loglevel:-OFF}" />
 
 		<!-- アペンダを設定 -->
 		<appender-ref ref="STDOUT" />
