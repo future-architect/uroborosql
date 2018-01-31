@@ -139,6 +139,11 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	int batchCount();
 
 	/**
+	 * 自動パラメータバインド関数の受け入れ
+	 */
+	void acceptAutoParameterBinder();
+
+	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号

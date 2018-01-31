@@ -812,11 +812,6 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
-		// 自動パラメータバインド関数の呼出
-		if (autoParameterBinder != null) {
-			autoParameterBinder.accept(this);
-		}
-
 		Parameter[] bindParameters = getBindParameters();
 
 		Set<String> matchParams = new HashSet<>();
@@ -878,6 +873,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public SqlContext addBatch() {
+		acceptAutoParameterBinder();
 		batchParameters.add(parameterMap);
 		parameterMap = new HashMap<>();
 		return this;
@@ -902,6 +898,18 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public int batchCount() {
 		return batchParameters.size();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#acceptAutoParameterBinder()
+	 */
+	@Override
+	public void acceptAutoParameterBinder() {
+		if (autoParameterBinder != null) {
+			autoParameterBinder.accept(this);
+		}
 	}
 
 	/**
@@ -1064,4 +1072,5 @@ public class SqlContextImpl implements SqlContext {
 		}
 		return sb.toString();
 	}
+
 }

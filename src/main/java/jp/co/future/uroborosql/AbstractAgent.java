@@ -234,6 +234,11 @@ public abstract class AbstractAgent implements SqlAgent {
 			sqlContext.param(StringFunction.SHORT_NAME, SF);
 		}
 
+		// 自動パラメータバインド関数の呼出
+		if (sqlContext.batchCount() == 0) {
+			sqlContext.acceptAutoParameterBinder();
+		}
+
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
 			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getDialect().isRemoveTerminator());
 			ContextTransformer contextTransformer = sqlParser.parse();

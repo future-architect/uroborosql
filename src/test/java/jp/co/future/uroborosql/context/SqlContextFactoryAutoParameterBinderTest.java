@@ -8,6 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -15,6 +18,7 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -60,6 +64,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.param("upd_datetime", dt)
 					.param("version_no", 1)
 					.count();
+			agent.commit();
 		}
 	}
 
@@ -184,4 +189,73 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		factory.removeAutoParameterBinder(binder2);
 		factory.removeAutoParameterBinder(binder3);
 	}
+
+	@Test
+	public void testAutoBindIfCase() {
+		SqlContextFactory factory = config.getSqlContextFactory();
+
+		final int productId = 2;
+		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramListIfAbsent("product_id", productId);
+		factory.addAutoParameterBinder(binder1);
+
+		try (SqlAgent agent = config.agent()) {
+			// insert
+			assertThat(agent.update("example/insert_product")
+					.param("product_id", productId)
+					.param("product_name", "name")
+					.param("product_kana_name", "kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "description")
+					.param("version_no", 1)
+					.param("ins_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
+					.param("upd_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
+					.count(), is(1));
+
+			// query
+			assertThat(agent.query("example/select_product").collect().size(), is(1));
+
+			factory.removeAutoParameterBinder(binder1);
+			// query
+			assertThat(agent.query("example/select_product").collect().size(), is(2));
+		}
+	}
+
+	@Test
+	public void testBatchAutoBind() {
+		SqlContextFactory factory = config.getSqlContextFactory();
+
+		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", LocalDateTime.now());
+		factory.addAutoParameterBinder(binder1);
+
+		int count = 100;
+		try (SqlAgent agent = config.agent()) {
+			agent.updateWith("truncate table PRODUCT").count();
+
+			List<Map<String, Object>> input = new ArrayList<>();
+			for (int i = 1; i <= count; i++) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("product_id", i * 10);
+				map.put("product_name", "name");
+				map.put("product_kana_name", "kana");
+				map.put("jan_code", "1234567890123");
+				map.put("product_description", "description");
+				map.put("version_no", 1);
+				map.put("upd_datetime", null);
+				input.add(map);
+			}
+
+			// insert
+			assertThat(agent.batch("example/insert_product").paramStream(input.stream()).count(), is(count));
+
+			long dateCount =
+					agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
+							.map(r -> r.get("ins_datetime"))
+							.distinct().count();
+			// ins_datetimeが同じ時間になっていないことを確認
+			assertNotEquals(1, dateCount);
+		}
+
+		factory.removeAutoParameterBinder(binder1);
+	}
+
 }
