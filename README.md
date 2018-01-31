@@ -134,6 +134,12 @@ Sample application
 - Web application(with Spring Boot)
     - https://github.com/shout-star/uroborosql-springboot-demo
 
+Automated code generation
+-------------------------
+
+- uroboroSQL source generator
+    - https://github.com/shout-star/uroborosql-generator
+
 SQL Formatter
 -------------
 
