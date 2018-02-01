@@ -205,7 +205,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 */
-	protected void transformContext(final SqlContext sqlContext) {
+	protected void transformContext(final SqlContext sqlContext, final boolean isQuery) {
 		String originalSql = sqlContext.getSql();
 		if (StringUtils.isEmpty(originalSql) && getSqlManager() != null) {
 			originalSql = getSqlManager().getSql(sqlContext.getSqlName());
@@ -236,7 +236,11 @@ public abstract class AbstractAgent implements SqlAgent {
 
 		// 自動パラメータバインド関数の呼出
 		if (sqlContext.batchCount() == 0) {
-			sqlContext.acceptAutoParameterBinder();
+			if (isQuery) {
+				sqlContext.acceptQueryAutoParameterBinder();
+			} else {
+				sqlContext.acceptUpdateAutoParameterBinder();
+			}
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {

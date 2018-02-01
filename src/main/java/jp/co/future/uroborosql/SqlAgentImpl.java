@@ -73,7 +73,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
 		// コンテキスト変換
-		transformContext(sqlContext);
+		transformContext(sqlContext, true);
 
 		PreparedStatement stmt = getPreparedStatement(sqlContext);
 		stmt.closeOnCompletion();
@@ -208,7 +208,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
 		// コンテキスト変換
-		transformContext(sqlContext);
+		transformContext(sqlContext, false);
 
 		StopWatch watch = null;
 
@@ -307,7 +307,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
 
 		// コンテキスト変換
-		transformContext(sqlContext);
+		transformContext(sqlContext, false);
 
 		StopWatch watch = null;
 
@@ -410,7 +410,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
 		// コンテキスト変換
-		transformContext(sqlContext);
+		transformContext(sqlContext, false);
 
 		StopWatch watch = null;
 

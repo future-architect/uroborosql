@@ -135,8 +135,11 @@ public class SqlContextImpl implements SqlContext {
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
-	/** 自動パラメータバインド関数 */
-	private Consumer<SqlContext> autoParameterBinder = null;
+	/** 自動パラメータバインド関数(query用) */
+	private Consumer<SqlContext> queryAutoParameterBinder = null;
+
+	/** 自動パラメータバインド関数(update/batch/proc用) */
+	private Consumer<SqlContext> updateAutoParameterBinder = null;
 
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
@@ -169,7 +172,7 @@ public class SqlContextImpl implements SqlContext {
 		resultSetConcurrency = parent.resultSetConcurrency;
 		dbAlias = parent.dbAlias;
 		contextAttributes.putAll(parent.contextAttributes);
-		autoParameterBinder = parent.autoParameterBinder;
+		queryAutoParameterBinder = parent.queryAutoParameterBinder;
 		parameterMapperManager = parent.parameterMapperManager;
 	}
 
@@ -873,7 +876,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public SqlContext addBatch() {
-		acceptAutoParameterBinder();
+		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
 		parameterMap = new HashMap<>();
 		return this;
@@ -903,12 +906,24 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#acceptAutoParameterBinder()
+	 * @see jp.co.future.uroborosql.context.SqlContext#acceptQueryAutoParameterBinder()
 	 */
 	@Override
-	public void acceptAutoParameterBinder() {
-		if (autoParameterBinder != null) {
-			autoParameterBinder.accept(this);
+	public void acceptQueryAutoParameterBinder() {
+		if (queryAutoParameterBinder != null) {
+			queryAutoParameterBinder.accept(this);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#acceptUpdateAutoParameterBinder()
+	 */
+	@Override
+	public void acceptUpdateAutoParameterBinder() {
+		if (updateAutoParameterBinder != null) {
+			updateAutoParameterBinder.accept(this);
 		}
 	}
 
@@ -1047,11 +1062,19 @@ public class SqlContextImpl implements SqlContext {
 	}
 
 	/**
-	 * 自動パラメータバインド関数を設定します
+	 * 自動パラメータバインド関数(query用)を設定します
 	 * @param binder 自動パラメータバインド関数
 	 */
-	public void setAutoParameterBinder(final Consumer<SqlContext> binder) {
-		this.autoParameterBinder = binder;
+	public void setQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+		this.queryAutoParameterBinder = binder;
+	}
+
+	/**
+	 * 自動パラメータバインド関数(update/batch/proc用)を設定します
+	 * @param binder 自動パラメータバインド関数
+	 */
+	public void setUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+		this.updateAutoParameterBinder = binder;
 	}
 
 	/**
