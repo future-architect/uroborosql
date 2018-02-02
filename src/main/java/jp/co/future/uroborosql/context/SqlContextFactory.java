@@ -109,7 +109,7 @@ public interface SqlContextFactory {
 	/**
 	 * 自動バインド用パラメータ生成クラスのリストを設定します。
 	 *
-	 * use {@link #addAutoParameterBinder(Consumer)}
+	 * use {@link #addQueryAutoParameterBinder(Consumer)} , {@link #addUpdateAutoParameterBinder(Consumer)}
 	 *
 	 * @param autoBindParameterCreators
 	 *            自動バインド用パラメータ生成クラスのリスト
@@ -119,18 +119,32 @@ public interface SqlContextFactory {
 	SqlContextFactory setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
 
 	/**
-	 * 自動パラメータバインド関数の追加
+	 * 自動パラメータバインド関数(query用)の追加
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
-	SqlContextFactory addAutoParameterBinder(Consumer<SqlContext> binder);
+	SqlContextFactory addQueryAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
-	 * 自動パラメータバインド関数の追加
+	 * 自動パラメータバインド関数(query用)の削除
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
-	SqlContextFactory removeAutoParameterBinder(Consumer<SqlContext> binder);
+	SqlContextFactory removeQueryAutoParameterBinder(Consumer<SqlContext> binder);
+
+	/**
+	 * 自動パラメータバインド関数(update/batch/proc用)の追加
+	 * @param binder 自動パラメータバインド関数
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory addUpdateAutoParameterBinder(Consumer<SqlContext> binder);
+
+	/**
+	 * 自動パラメータバインド関数(update/batch/proc用)の削除
+	 * @param binder 自動パラメータバインド関数
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory removeUpdateAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}を追加

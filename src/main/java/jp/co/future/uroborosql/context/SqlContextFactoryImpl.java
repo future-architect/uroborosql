@@ -62,11 +62,17 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/** 自動バインド用パラメータ生成クラスのリスト */
 	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
 
-	/** 自動パラメータバインド関数List */
-	private List<Consumer<SqlContext>> autoParameterBinders = new ArrayList<>();
+	/** 自動パラメータバインド関数List(query用) */
+	private List<Consumer<SqlContext>> queryAutoParameterBinders = new ArrayList<>();
 
-	/** 合成自動パラメータバインド関数 */
-	private Consumer<SqlContext> autoParameterBinder = null;
+	/** 自動パラメータバインド関数List(update/batch/proc用) */
+	private List<Consumer<SqlContext>> updateAutoParameterBinders = new ArrayList<>();
+
+	/** 合成自動パラメータバインド関数(query用) */
+	private Consumer<SqlContext> queryAutoParameterBinder = null;
+
+	/** 合成自動パラメータバインド関数(update/batch/proc用) */
+	private Consumer<SqlContext> updateAutoParameterBinder = null;
 
 	/** パラメータ変換マネージャ */
 	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
@@ -99,7 +105,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		sqlContext.setConstParameterMap(paramMap);
 		sqlContext.setSqlFilterManager(getSqlFilterManager());
 		sqlContext.setParameterMapperManager(new BindParameterMapperManager(parameterMapperManager));
-		sqlContext.setAutoParameterBinder(autoParameterBinder);
+		sqlContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
+		sqlContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 
 		return sqlContext;
 	}
@@ -330,12 +337,12 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addQueryAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory addAutoParameterBinder(final Consumer<SqlContext> binder) {
-		autoParameterBinders.add(binder);
-		autoParameterBinder = autoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+	public SqlContextFactory addQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+		queryAutoParameterBinders.add(binder);
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
 				.orElse(null);
 		return this;
 	}
@@ -343,12 +350,40 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeQueryAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory removeAutoParameterBinder(final Consumer<SqlContext> binder) {
-		autoParameterBinders.remove(binder);
-		autoParameterBinder = autoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+	public SqlContextFactory removeQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+		queryAutoParameterBinders.remove(binder);
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+				.orElse(null);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addUpdateAutoParameterBinder(java.util.function.Consumer)
+	 */
+	@Override
+	public SqlContextFactory addUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+		updateAutoParameterBinders.add(binder);
+		updateAutoParameterBinder = updateAutoParameterBinders.stream()
+				.reduce((first, second) -> first.andThen(second))
+				.orElse(null);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeUpdateAutoParameterBinder(java.util.function.Consumer)
+	 */
+	@Override
+	public SqlContextFactory removeUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+		updateAutoParameterBinders.remove(binder);
+		updateAutoParameterBinder = updateAutoParameterBinders.stream()
+				.reduce((first, second) -> first.andThen(second))
 				.orElse(null);
 		return this;
 	}
