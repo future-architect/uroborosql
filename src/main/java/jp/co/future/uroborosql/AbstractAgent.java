@@ -204,6 +204,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * SqlContextの設定内容を元にSQLを構築する
 	 *
 	 * @param sqlContext SQLコンテキスト
+	 * @param isQuery queryかどうか。queryの場合<code>true</code>
 	 */
 	protected void transformContext(final SqlContext sqlContext, final boolean isQuery) {
 		String originalSql = sqlContext.getSql();

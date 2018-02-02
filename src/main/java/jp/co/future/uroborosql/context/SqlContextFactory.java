@@ -109,7 +109,7 @@ public interface SqlContextFactory {
 	/**
 	 * 自動バインド用パラメータ生成クラスのリストを設定します。
 	 *
-	 * use {@link #addAutoParameterBinder(Consumer)}
+	 * use {@link #addQueryAutoParameterBinder(Consumer)} , {@link #addUpdateAutoParameterBinder(Consumer)}
 	 *
 	 * @param autoBindParameterCreators
 	 *            自動バインド用パラメータ生成クラスのリスト
