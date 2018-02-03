@@ -66,17 +66,17 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	@Override
 	public void setInsertParams(final SqlContext context, final Object entity) {
-		setFields(context, entity);
+		setFields(context, entity, SqlStatement.INSERT);
 	}
 
 	@Override
 	public void setUpdateParams(final SqlContext context, final Object entity) {
-		setFields(context, entity);
+		setFields(context, entity, SqlStatement.UPDATE);
 	}
 
 	@Override
 	public void setDeleteParams(final SqlContext context, final Object entity) {
-		setFields(context, entity);
+		setFields(context, entity, SqlStatement.DELETE);
 	}
 
 	@Override
@@ -427,9 +427,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return original;
 	}
 
-	private void setFields(final SqlContext context, final Object entity) {
+	private void setFields(final SqlContext context, final Object entity, final SqlStatement stmt) {
 		Class<?> type = entity.getClass();
-		for (MappingColumn column : MappingUtils.getMappingColumns(type)) {
+		for (MappingColumn column : MappingUtils.getMappingColumns(type, stmt)) {
 			Object value = column.getValue(entity);
 			context.param(column.getCamelName(), value);
 		}
