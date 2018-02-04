@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Column;
@@ -105,10 +107,12 @@ public final class MappingUtils {
 		}
 	}
 
-	private static final Map<Class<?>, MappingColumn[]> CHACHE = new LinkedHashMap<Class<?>, MappingColumn[]>() {
+	private static final Map<Class<?>, Map<SqlStatement, MappingColumn[]>> CACHE = new LinkedHashMap<Class<?>, Map<SqlStatement, MappingColumn[]>>() {
+		private final int cacheSize = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+
 		@Override
-		protected boolean removeEldestEntry(final Map.Entry<Class<?>, MappingColumn[]> eldest) {
-			return size() > 10;
+		protected boolean removeEldestEntry(final Map.Entry<Class<?>, Map<SqlStatement, MappingColumn[]>> eldest) {
+			return size() > cacheSize;
 		}
 	};
 
@@ -138,23 +142,44 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
-		MappingColumn[] cols;
-		synchronized (CHACHE) {
-			cols = CHACHE.get(entityType);
+		return getMappingColumns(entityType, SqlStatement.NONE);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param entityType エンティティ型
+	 * @param stmt SQLステートメントタイプ
+	 * @return カラムマッピング情報
+	 */
+	public static MappingColumn[] getMappingColumns(final Class<?> entityType, final SqlStatement stmt) {
+		Map<SqlStatement, MappingColumn[]> cols;
+		synchronized (CACHE) {
+			cols = CACHE.get(entityType);
 		}
 		if (cols != null) {
-			return cols;
+			return cols.computeIfAbsent(stmt, k -> cols.get(SqlStatement.NONE));
 		}
 
-		Map<String, MappingColumn> fieldsMap = new LinkedHashMap<>();
+		Map<SqlStatement, Map<String, MappingColumn>> fieldsMap =
+				Stream.of(SqlStatement.NONE, SqlStatement.INSERT, SqlStatement.UPDATE).collect(
+						Collectors.toMap(e -> e, e -> new LinkedHashMap<String, MappingColumn>()));
+
 		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+
 		walkFields(entityType, implementClass, fieldsMap);
 
-		cols = fieldsMap.values().toArray(new MappingColumn[fieldsMap.size()]);
-		synchronized (CHACHE) {
-			CHACHE.put(entityType, cols);
+		final Map<SqlStatement, MappingColumn[]> entityCols = fieldsMap
+				.entrySet()
+				.stream()
+				.collect(
+						Collectors.toConcurrentMap(e -> e.getKey(),
+								e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
+
+		synchronized (CACHE) {
+			CACHE.put(entityType, entityCols);
 		}
-		return cols;
+		return entityCols.computeIfAbsent(stmt, k -> entityCols.get(SqlStatement.NONE));
 	}
 
 	/**
@@ -165,28 +190,42 @@ public final class MappingUtils {
 	 */
 	public static Optional<MappingColumn> getVersionMappingColumn(final Class<?> entityType) {
 		return Arrays.stream(getMappingColumns(entityType))
-			.filter(MappingColumn::isVersion)
-			.findFirst();
+				.filter(MappingColumn::isVersion)
+				.findFirst();
 	}
 
-	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass, final Map<String, MappingColumn> fieldsMap) {
+	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass,
+			final Map<SqlStatement, Map<String, MappingColumn>> fieldsMap) {
 		if (type.equals(Object.class)) {
 			return;
 		}
 		Class<?> superclass = type.getSuperclass();
 		walkFields(superclass, implementClass, fieldsMap);
 
+		Map<String, MappingColumn> noneColumns = fieldsMap.get(SqlStatement.NONE);
+		Map<String, MappingColumn> insertColumns = fieldsMap.get(SqlStatement.INSERT);
+		Map<String, MappingColumn> updateColumns = fieldsMap.get(SqlStatement.UPDATE);
+
 		for (Field field : type.getDeclaredFields()) {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
 				continue;
 			}
-			if (field.getAnnotation(Transient.class) != null) {
+			Transient t = field.getAnnotation(Transient.class);
+			if (t != null && t.insert() && t.update()) {
 				continue;// 除外
 			}
 			JavaType javaType = JavaType.of(implementClass, field);
 			MappingColumn mappingColumn = new MappingColumnImpl(field, javaType);
 
-			fieldsMap.put(field.getName(), mappingColumn);
+			String fieldName = field.getName();
+			noneColumns.put(fieldName, mappingColumn);
+			if (t == null || (t != null && !t.insert())) {
+				insertColumns.put(fieldName, mappingColumn);
+			}
+			if (t == null || (t != null && !t.update())) {
+				updateColumns.put(fieldName, mappingColumn);
+			}
+
 			field.setAccessible(true);
 		}
 	}
