@@ -13,9 +13,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Transient {
-	/** insert文で除外対象とするかどうか */
+	/**
+	 * insert文で除外対象とするかどうか
+	 *
+	 * @return 除外対象とする場合<code>true</code>
+	 */
 	boolean insert() default true;
 
-	/** update文で除外対象とするかどうか */
+	/** update文で除外対象とするかどうか
+	 *
+	 * @return 除外対象とする場合<code>true</code>
+	 */
 	boolean update() default true;
 }
