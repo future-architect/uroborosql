@@ -2,6 +2,8 @@ package jp.co.future.uroborosql.store;
 
 import java.util.List;
 
+import jp.co.future.uroborosql.dialect.Dialect;
+
 /**
  * SQL管理インターフェース
  *
@@ -61,5 +63,19 @@ public interface SqlManager {
 	 * @param cache SQLをキャッシュする場合<code>true</code>
 	 */
 	void setCache(boolean cache);
+
+	/**
+	 * Dialectの取得
+	 *
+	 * @return Dialect
+	 */
+	Dialect getDialect();
+
+	/**
+	 * Dialectの設定
+	 *
+	 * @param dialect Dialect
+	 */
+	void setDialect(Dialect dialect);
 
 }
