@@ -14,7 +14,7 @@ public class MsSqlDialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getName() {
+	public String getDatabaseName() {
 		return "Microsoft SQL Server";
 	}
 

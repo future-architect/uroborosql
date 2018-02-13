@@ -14,7 +14,7 @@ public class MySqlDialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getName() {
+	public String getDatabaseName() {
 		return "MySQL";
 	}
 

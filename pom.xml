@@ -343,6 +343,13 @@ encoding/<project>=UTF-8
 			<version>1.4.196</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>dummy</groupId>
+			<artifactId>sql</artifactId>
+			<version>0.0.1</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/src/test/resources/lib/sql.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 	<distributionManagement>

@@ -15,7 +15,7 @@ public class H2Dialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getName() {
+	public String getDatabaseName() {
 		return "H2";
 	}
 }

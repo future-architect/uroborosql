@@ -16,7 +16,7 @@ public class DefaultDialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getName() {
+	public String getDatabaseName() {
 		return "default";
 	}
 
