@@ -153,6 +153,10 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType, final SqlStatement stmt) {
+		if (entityType == null) {
+			return new MappingColumn[0];
+		}
+
 		Map<SqlStatement, MappingColumn[]> cols;
 		synchronized (CACHE) {
 			cols = CACHE.get(entityType);

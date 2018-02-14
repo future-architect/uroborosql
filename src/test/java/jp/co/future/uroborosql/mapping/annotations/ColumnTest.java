@@ -67,15 +67,20 @@ public class ColumnTest {
 		private int ageAaaaAaaa;
 		@Column(name = "BIRTHDAY")
 		private LocalDate birthdayAaaaAaaa;
+		@Column(name = "MEMO")
+		@Transient
+		private String memoAaaaAaaa;
 
 		public ColumnAnnoTestEntity() {
 		}
 
-		public ColumnAnnoTestEntity(final long id, final String name, final int age, final LocalDate birthday) {
+		public ColumnAnnoTestEntity(final long id, final String name, final int age, final LocalDate birthday,
+				final String memo) {
 			this.idAaaaAaaa = id;
 			this.nameAaaaAaaa = name;
 			this.ageAaaaAaaa = age;
 			this.birthdayAaaaAaaa = birthday;
+			this.memoAaaaAaaa = memo;
 		}
 
 		@Override
@@ -100,14 +105,20 @@ public class ColumnTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				ColumnAnnoTestEntity test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate
-						.of(1990, Month.APRIL, 1));
+						.of(1990, Month.APRIL, 1), "memo1");
 				agent.insert(test1);
+				test1.memoAaaaAaaa = null;
+
 				ColumnAnnoTestEntity test2 = new ColumnAnnoTestEntity(2, "name2", 21, LocalDate
-						.of(1990, Month.APRIL, 2));
+						.of(1990, Month.APRIL, 2), null);
 				agent.insert(test2);
+				test2.memoAaaaAaaa = null;
+
 				ColumnAnnoTestEntity test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate
-						.of(1990, Month.APRIL, 3));
+						.of(1990, Month.APRIL, 3), "memo3");
 				agent.insert(test3);
+				test3.memoAaaaAaaa = null;
+
 				ColumnAnnoTestEntity data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(ColumnAnnoTestEntity.class, 2).orElse(null);

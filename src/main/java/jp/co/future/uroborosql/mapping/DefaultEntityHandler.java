@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
@@ -205,8 +206,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("INSERT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" INTO ").append(metadata.getTableIdentifier()).append("(").append(System.lineSeparator());
 
+		Map<String, MappingColumn> mappingColumns = Arrays.stream(
+				MappingUtils.getMappingColumns(type, SqlStatement.INSERT)).collect(
+				Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
+			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
 				if (col.isNullable()) {
@@ -234,6 +243,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
+			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
 				if (col.isNullable()) {
@@ -270,11 +284,20 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
+		Map<String, MappingColumn> mappingColumns = Arrays.stream(
+				MappingUtils.getMappingColumns(type, SqlStatement.UPDATE)).collect(
+				Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+
 		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty() : MappingUtils
 				.getVersionMappingColumn(type);
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
+			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+
 			String camelColName = col.getCamelColumnName();
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
@@ -309,6 +332,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.asList(metadata.getColumns().get(0));
 		firstFlag = true;
 		for (TableMetadata.Column col : cols) {
+			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
 				if (col.isNullable()) {
