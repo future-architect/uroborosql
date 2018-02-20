@@ -56,18 +56,18 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	 */
 	@Override
 	public E createRecord(final ResultSet rs) throws SQLException {
-		if (columnLabels == null) {
-			ResultSetMetaData rsmd = rs.getMetaData();
-			columnCount = rsmd.getColumnCount();
-
-			// columnLabelsは1始まりの配列で値を格納
-			columnLabels = new String[columnCount + 1];
-			for (int i = 1; i <= columnCount; i++) {
-				columnLabels[i] = rsmd.getColumnLabel(i);
-			}
-		}
-
 		try {
+			if (columnLabels == null) {
+				ResultSetMetaData rsmd = rs.getMetaData();
+				columnCount = rsmd.getColumnCount();
+
+				// columnLabelsは1始まりの配列で値を格納
+				columnLabels = new String[columnCount + 1];
+				for (int i = 1; i <= columnCount; i++) {
+					columnLabels[i] = rsmd.getColumnLabel(i);
+				}
+			}
+
 			E rec = constructor.newInstance();
 			for (MappingColumn column : columns) {
 				bindValue(rec, rs, column);
