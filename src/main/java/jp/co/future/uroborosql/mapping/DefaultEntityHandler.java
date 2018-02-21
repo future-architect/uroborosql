@@ -206,12 +206,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("INSERT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" INTO ").append(metadata.getTableIdentifier()).append("(").append(System.lineSeparator());
 
-		Map<String, MappingColumn> mappingColumns = Arrays.stream(
-				MappingUtils.getMappingColumns(type, SqlStatement.INSERT)).collect(
-				Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.INSERT))
+				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
 				// Transient annotation のついているカラムをスキップ
 				continue;
 			}
@@ -243,7 +242,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
 				// Transient annotation のついているカラムをスキップ
 				continue;
 			}
@@ -284,16 +283,15 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
-		Map<String, MappingColumn> mappingColumns = Arrays.stream(
-				MappingUtils.getMappingColumns(type, SqlStatement.UPDATE)).collect(
-				Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.UPDATE))
+				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 
 		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty() : MappingUtils
 				.getVersionMappingColumn(type);
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
+			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
 				// Transient annotation のついているカラムをスキップ
 				continue;
 			}
@@ -332,11 +330,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.asList(metadata.getColumns().get(0));
 		firstFlag = true;
 		for (TableMetadata.Column col : cols) {
-			if (mappingColumns.size() > 0 && !mappingColumns.containsKey(col.getColumnName().toLowerCase())) {
-				// Transient annotation のついているカラムをスキップ
-				continue;
-			}
-
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
 				if (col.isNullable()) {

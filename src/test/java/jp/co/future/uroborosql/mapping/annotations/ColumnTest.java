@@ -104,6 +104,7 @@ public class ColumnTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
+				// insert
 				ColumnAnnoTestEntity test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate
 						.of(1990, Month.APRIL, 1), "memo1");
 				agent.insert(test1);
@@ -125,6 +126,17 @@ public class ColumnTest {
 				assertThat(data, is(test2));
 				data = agent.find(ColumnAnnoTestEntity.class, 3).orElse(null);
 				assertThat(data, is(test3));
+
+				// update
+
+				test1.nameAaaaAaaa = "name11";
+				test1.memoAaaaAaaa = "memo11";
+				agent.update(test1);
+
+				test1.memoAaaaAaaa = null;
+
+				data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
+				assertThat(data, is(test1));
 
 			});
 		}
