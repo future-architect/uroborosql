@@ -339,7 +339,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", LocalDateTime.now());
 		factory.addUpdateAutoParameterBinder(binder1);
 
-		int count = 100;
+		int count = 1000;
 		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("truncate table PRODUCT").count();
 

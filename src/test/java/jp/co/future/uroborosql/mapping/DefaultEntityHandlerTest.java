@@ -3,9 +3,11 @@ package jp.co.future.uroborosql.mapping;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
@@ -19,6 +21,10 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
+import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -512,6 +518,55 @@ public class DefaultEntityHandlerTest {
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
 			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null), is(nullValue()));
+		}
+	}
+
+	@Test
+	public void testAddAndRemovePropertyMapper() throws Exception {
+		EntityHandler<?> handler = config.getEntityHandler();
+
+		CustomMapper customMapper = new CustomMapper();
+		handler.addPropertyMapper(customMapper);
+
+		Class<?> clazz = handler.getClass();
+		Field mapperField = clazz.getDeclaredField("propertyMapperManager");
+		mapperField.setAccessible(true);
+		Class<?> mapperClazz = mapperField.getType();
+		Object mapperObj = mapperField.get(handler);
+		Field mappersField = mapperClazz.getDeclaredField("mappers");
+		mappersField.setAccessible(true);
+		@SuppressWarnings("unchecked")
+		List<PropertyMapper<?>> instance = (List<PropertyMapper<?>>) mappersField.get(mapperObj);
+
+		assertThat(instance.contains(customMapper), is(true));
+
+		handler.removePropertyMapper(customMapper);
+
+		assertThat(instance.contains(customMapper), is(false));
+
+	}
+
+	public static class Name {
+		private final String s;
+
+		public Name(final String s) {
+			this.s = s;
+		}
+	}
+
+	private static class CustomMapper implements PropertyMapper<Name>, BindParameterMapper<Name> {
+		@Override
+		public Object toJdbc(final Name original, final Connection connection,
+				final BindParameterMapperManager parameterMapperManager) {
+			return "-" + original.s.toLowerCase() + "-";
+		}
+
+		@Override
+		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex,
+				final PropertyMapperManager mapperManager)
+				throws SQLException {
+			String s = rs.getString(columnIndex);
+			return s != null ? new Name(s.toUpperCase().replaceAll("^-", "").replaceAll("-$", "")) : null;
 		}
 	}
 
