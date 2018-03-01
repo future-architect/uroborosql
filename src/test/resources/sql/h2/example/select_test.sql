@@ -1,4 +1,4 @@
-select -- H2DB
+select -- H2DB file
 	*
 from test t
 where 1 = 1

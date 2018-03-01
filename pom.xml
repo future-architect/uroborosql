@@ -83,6 +83,9 @@
 					<version>2.20.1</version>
 					<configuration>
 						<argLine>-Duroborosql.sql.coverage=true ${jacocoArgs}</argLine>
+						<additionalClasspathElements>
+							<additionalClasspathElement>${basedir}/src/test/resources/lib/sql.zip</additionalClasspathElement>
+						</additionalClasspathElements>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -342,13 +345,6 @@ encoding/<project>=UTF-8
 			<artifactId>h2</artifactId>
 			<version>1.4.196</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>dummy</groupId>
-			<artifactId>sql</artifactId>
-			<version>0.0.1</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/test/resources/lib/sql.jar</systemPath>
 		</dependency>
 	</dependencies>
 
