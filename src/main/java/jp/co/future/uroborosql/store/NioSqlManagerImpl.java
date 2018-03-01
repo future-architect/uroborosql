@@ -5,24 +5,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static java.nio.file.StandardWatchEventKinds.*;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -32,33 +24,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NioSqlManagerImpl implements SqlManager {
-	private static final String SCHEME_JAR = "jar";
-
-	private static final String SCHEME_FILE = "file";
-
-	private static final String PATH_SEPARATOR = "/";
-
 	/** ロガー */
 	private static final Logger log = LoggerFactory.getLogger(NioSqlManagerImpl.class);
 
-	private static Set<String> dialects = StreamSupport
+	private static final String SCHEME_JAR = "jar";
+	private static final String SCHEME_FILE = "file";
+	private static final String PATH_SEPARATOR = "/";
+
+	/** 有効なDialectのSet */
+	private static final Set<String> dialects = StreamSupport
 			.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
-			.map(d -> d.getDialectName()).collect(Collectors.toSet());
+			.map(Dialect::getDialectName).collect(Collectors.toSet());
 
 	/** SQLファイルをロードするルートパス */
 	private String loadPath = "sql";
 
-	/**
-	 * SQLファイル拡張子
-	 */
+	/** SQLファイル拡張子 */
 	private String fileExtension = ".sql";
 
-	/**
-	 * SQLファイルエンコーディング
-	 */
+	/** SQLファイルエンコーディング */
 	private final Charset charset;
 
 	private Dialect dialect;
+
+	private WatchService watcher;
 
 	private ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
 
@@ -82,6 +71,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		} else {
 			this.charset = Charset.forName(System.getProperty("file.encoding"));
 		}
+
 	}
 
 	private ConcurrentHashMap<String, SqlInfo> getSqlInfos() {
@@ -94,7 +84,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				URI uri = root.nextElement().toURI();
 				String scheme = uri.getScheme();
 				if (SCHEME_FILE.equals(scheme)) {
-					traverse(infos, Paths.get(uri));
+					traverse(infos, Paths.get(uri), true);
 				} else if (SCHEME_JAR.equals(scheme)) {
 					FileSystem fs = null;
 					try {
@@ -104,7 +94,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						env.put("create", "false");
 						fs = FileSystems.newFileSystem(uri, env);
 					}
-					traverse(infos, fs.getPath(loadPath));
+					traverse(infos, fs.getPath(loadPath), false);
 				}
 			}
 
@@ -227,23 +217,22 @@ public class NioSqlManagerImpl implements SqlManager {
 
 		String d = path.getName(count).toString().toLowerCase();
 		// loadPathの直下が現在のdialect以外と一致する場合は無効なパスと判定する
-		if (dialects.contains(d)) {
-			return this.dialect.getDialectName().equals(d);
-		} else {
-			return true;
-		}
+		return !dialects.contains(d) || this.dialect.getDialectName().equals(d);
 
 	}
 
-	private void traverse(final Map<String, SqlInfo> sqlInfos, final Path path) {
+	private void traverse(final Map<String, SqlInfo> sqlInfos, final Path path, final boolean watch) {
 		if (Files.notExists(path)) {
 			return;
 		}
 		if (Files.isDirectory(path)) {
 			if (validPath(path)) {
 				try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
+					if (watch) {
+						path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+					}
 					for (Path child : ds) {
-						traverse(sqlInfos, child);
+						traverse(sqlInfos, child, watch);
 					}
 				} catch (IOException ex) {
 					throw new UroborosqlRuntimeException("I/O error occured.", ex);
@@ -287,7 +276,16 @@ public class NioSqlManagerImpl implements SqlManager {
 
 	@Override
 	public void initialize() {
+		try {
+			watcher = FileSystems.getDefault().newWatchService();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		this.sqlInfos = getSqlInfos();
+
+		ExecutorService es = Executors.newSingleThreadExecutor();
+		es.execute(this::watchFolder);
 	}
 
 	@Override
@@ -313,6 +311,38 @@ public class NioSqlManagerImpl implements SqlManager {
 	@Override
 	public void setCache(final boolean cache) {
 		throw new UnsupportedOperationException();
+	}
+
+	private void watchFolder() {
+		for (;;) {
+			//監視キーの送信を待機
+			WatchKey key;
+			try {
+				key = watcher.take();
+			} catch (InterruptedException x) {
+				return;
+			}
+
+			for (WatchEvent<?> event : key.pollEvents()) {
+				WatchEvent.Kind<?> kind = event.kind();
+
+				if (kind == OVERFLOW) {
+					continue;
+				}
+
+				//ファイル名はイベントのコンテキストです。
+				WatchEvent<Path> ev = (WatchEvent<Path>) event;
+				Path path = ev.context();
+				log.info("watch file : {} : {}", path, kind.name());
+			}
+
+			//監視キーをリセットします。この手順は、この後さらに監視イベントを取得する場合は
+			//非常に重要です。 監視キーが有効ではない場合は、ディレクトリに
+			//アクセスできないため、ループを終了します。
+			if (!key.reset()) {
+				break;
+			}
+		}
 	}
 
 	/**
@@ -374,7 +404,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		 *
 		 * @return sqlBody
 		 */
-		public String getSqlBody() {
+		private String getSqlBody() {
 			if (sqlBody == null) {
 				if (Files.notExists(path)) {
 					throw new UroborosqlRuntimeException("SQL template could not found.["
@@ -415,7 +445,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		 * @param newPath 判定用Path
 		 * @return 判定後のSqlInfo
 		 */
-		public SqlInfo computePath(final Path newPath) {
+		private SqlInfo computePath(final Path newPath) {
 			boolean replaceFlag = false;
 			String newScheme = newPath.toUri().getScheme();
 			if (scheme.equals(newScheme)) {

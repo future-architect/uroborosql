@@ -1,4 +1,4 @@
-select -- postgresql
+select -- postgresql file
 	*
 from test t
 where 1 = 1
