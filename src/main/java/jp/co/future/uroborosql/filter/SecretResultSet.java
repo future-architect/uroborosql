@@ -60,9 +60,9 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 		if (!secretStr.isEmpty()) {
 			byte[] secretData = Base64.getUrlDecoder().decode(secretStr);
 
-			synchronized (cipher) {
+			synchronized (this.cipher) {
 				try {
-					return new String(cipher.doFinal(secretData), getCharset());
+					return new String(this.cipher.doFinal(secretData), getCharset());
 				} catch (Exception ex) {
 					return secretStr;
 				}
@@ -79,14 +79,10 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public void close() throws SQLException {
-		cipher = null;
-		cryptColumnNames = null;
-		charset = null;
-		try {
-			getWrapped().close();
-		} finally {
-			setWrapped(null);
-		}
+		this.cipher = null;
+		this.cryptColumnNames = null;
+		this.charset = null;
+		super.close();
 	}
 
 	/**
@@ -109,7 +105,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	@Override
 	public String getString(final String columnLabel) throws SQLException {
 		String val = getWrapped().getString(columnLabel);
-		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel))) {
+		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel))) {
 			return decode(val);
 		} else {
 			return val;
@@ -148,7 +144,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	@Override
 	public Object getObject(final String columnLabel) throws SQLException {
 		Object val = getWrapped().getObject(columnLabel);
-		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
+		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return decode(val);
 		} else {
 			return val;
@@ -164,7 +160,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	@Override
 	public <T> T getObject(final String columnLabel, final Class<T> type) throws SQLException {
 		T val = getWrapped().getObject(columnLabel, type);
-		if (cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
+		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return (T) decode(val);
 		} else {
 			return val;
@@ -177,7 +173,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * @return cipher
 	 */
 	public Cipher getCipher() {
-		return cipher;
+		return this.cipher;
 	}
 
 	/**
@@ -186,16 +182,16 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * @return キャラクタセット（デフォルトUTF-8）
 	 */
 	public Charset getCharset() {
-		return charset;
+		return this.charset;
 	}
 
 	/**
-	 * 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定　を取得します。
+	 * 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定 を取得します。
 	 *
 	 * @return 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定する
 	 */
 	public List<String> getCryptColumnNames() {
-		return cryptColumnNames;
+		return this.cryptColumnNames;
 	}
 
 }
