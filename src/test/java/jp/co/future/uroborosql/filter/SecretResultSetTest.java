@@ -49,7 +49,6 @@ public class SecretResultSetTest {
 		filter.setAlias("testexample");
 		filter.setCharset("UTF-8");
 		filter.setTransformationType("AES/ECB/PKCS5Padding");
-		sqlFilterManager.initialize();
 
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.setSqlFilterManager(sqlFilterManager.addSqlFilter(filter)).build();
@@ -262,6 +261,23 @@ public class SecretResultSetTest {
 				rs.updateRow();
 				assertThat(rs.getNString("PRODUCT_KANA_NAME"), is("string1"));
 				assertThat(rs.getNString(2), is("string2"));
+			}
+		}
+	}
+
+	@Test
+	public void testIsClose() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			ResultSet rs = null;
+			try {
+				rs = agent.query("example/select_product").param("product_id", 1).resultSet();
+				assertThat(rs.isClosed(), is(false));
+			} finally {
+				if (rs != null) {
+					rs.close();
+
+					assertThat(rs.isClosed(), is(true));
+				}
 			}
 		}
 	}

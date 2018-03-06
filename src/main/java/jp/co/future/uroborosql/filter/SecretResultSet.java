@@ -82,7 +82,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 		this.cipher = null;
 		this.cryptColumnNames = null;
 		this.charset = null;
-		getWrapped().close();
+		super.close();
 	}
 
 	/**
