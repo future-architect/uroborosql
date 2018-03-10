@@ -1,20 +1,35 @@
 package jp.co.future.uroborosql.store;
 
+import static java.nio.file.StandardWatchEventKinds.*;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.nio.file.attribute.FileTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static java.nio.file.StandardWatchEventKinds.*;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -313,13 +328,17 @@ public class NioSqlManagerImpl implements SqlManager {
 		throw new UnsupportedOperationException();
 	}
 
+	@SuppressWarnings("unchecked")
 	private void watchFolder() {
 		for (;;) {
 			//監視キーの送信を待機
 			WatchKey key;
 			try {
 				key = watcher.take();
-			} catch (InterruptedException x) {
+			} catch (InterruptedException ex) {
+				return;
+			} catch (Throwable ex) {
+				ex.printStackTrace();
 				return;
 			}
 
@@ -331,8 +350,8 @@ public class NioSqlManagerImpl implements SqlManager {
 				}
 
 				//ファイル名はイベントのコンテキストです。
-				WatchEvent<Path> ev = (WatchEvent<Path>) event;
-				Path path = ev.context();
+				WatchEvent<Path> evt = (WatchEvent<Path>) event;
+				Path path = evt.context();
 				log.info("watch file : {} : {}", path, kind.name());
 			}
 
