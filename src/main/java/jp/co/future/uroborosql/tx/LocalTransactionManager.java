@@ -229,19 +229,14 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	public PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
 		Optional<LocalTransactionContext> txContext = currentTxContext();
-		try {
-			if (txContext.isPresent()) {
-				return txContext.get().getPreparedStatement(sqlContext);
-			} else {
-				if (!this.unmanagedTransaction.isPresent()) {
-					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
-				}
-				return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
+		if (txContext.isPresent()) {
+			return txContext.get().getPreparedStatement(sqlContext);
+		} else {
+			if (!this.unmanagedTransaction.isPresent()) {
+				this.unmanagedTransaction = Optional
+						.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
 			}
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return null;
+			return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
 		}
 	}
 
@@ -254,19 +249,14 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	public CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
 		Optional<LocalTransactionContext> txContext = currentTxContext();
-		try {
-			if (txContext.isPresent()) {
-				return txContext.get().getCallableStatement(sqlContext);
-			} else {
-				if (!this.unmanagedTransaction.isPresent()) {
-					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
-				}
-				return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
+		if (txContext.isPresent()) {
+			return txContext.get().getCallableStatement(sqlContext);
+		} else {
+			if (!this.unmanagedTransaction.isPresent()) {
+				this.unmanagedTransaction = Optional
+						.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
 			}
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return null;
+			return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
 		}
 	}
 

@@ -9,11 +9,17 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.parameter.ReaderParameter;
 import jp.co.future.uroborosql.parameter.StreamParameter;
+import jp.co.future.uroborosql.parser.ContextTransformer;
+import jp.co.future.uroborosql.parser.SqlParser;
+import jp.co.future.uroborosql.parser.SqlParserImpl;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -257,5 +263,287 @@ public class SqlContextImplTest {
 		Reader r22 = new StringReader("value2");
 		ctx.clobParamIfAbsent("key1", r22, "value1".length());
 		assertThat(ctx.getParam("key1"), is(reader11));
+	}
+
+	@Test
+	public void testParamOptionalHasValue() throws Exception {
+		SqlContext ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		Optional<String> id = Optional.of("testId");
+		ctx.param("id", id);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.of("testId");
+		ctx.param("id", id, JDBCType.VARCHAR);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.of("testId");
+		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.of("testId");
+		ctx.inOutParam("id", id, JDBCType.VARCHAR);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.of("testId");
+		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
+
+	}
+
+	@Test
+	public void testParamOptionalNullValue() throws Exception {
+		SqlContext ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		Optional<String> id = Optional.empty();
+		ctx.param("id", id);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.empty();
+		ctx.param("id", id, JDBCType.VARCHAR);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.empty();
+		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.empty();
+		ctx.inOutParam("id", id, JDBCType.VARCHAR);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+
+		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		id = Optional.empty();
+		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+
+	}
+
+	@Test
+	public void testParamOptionalBean() throws Exception {
+		String sql = "insert into test ("
+				+ "/*IF id > 0 */, id/*END*/"
+				+ "/*IF name != null */, name/*END*/"
+				+ "/*IF age > 0 */, age/*END*/"
+				+ "/*IF memo != null */, memo/*END*/"
+				+ ") values ("
+				+ "/*IF id > 0 */, /*id*//*END*/"
+				+ "/*IF name != null */, /*name*//*END*/"
+				+ "/*IF age > 0 */, /*age*//*END*/"
+				+ "/*IF memo != null */, /*memo*//*END*/"
+				+ ")";
+		SqlContext ctx = config.contextWith(sql);
+
+		TestEntity entity = new TestEntity(10, "Taro", 20, Optional.of("memo1"));
+		ctx.paramBean(entity);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(),
+				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
+
+		ctx = config.contextWith(sql);
+
+		entity = new TestEntity(10, "Taro", 20, Optional.empty());
+		ctx.paramBean(entity);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(),
+				is("insert into test ( id, name, age) values ( ?/*id*/, ?/*name*/, ?/*age*/)"));
+
+		ctx = config.contextWith(sql);
+
+		ctx.paramBean(null);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("insert into test () values ()"));
+
+	}
+
+	@Test
+	public void testParamOptionalMap() throws Exception {
+		String sql = "insert into test ("
+				+ "/*IF id > 0 */, id/*END*/"
+				+ "/*IF name != null */, name/*END*/"
+				+ "/*IF age > 0 */, age/*END*/"
+				+ "/*IF memo != null */, memo/*END*/"
+				+ ") values ("
+				+ "/*IF id > 0 */, /*id*//*END*/"
+				+ "/*IF name != null */, /*name*//*END*/"
+				+ "/*IF age > 0 */, /*age*//*END*/"
+				+ "/*IF memo != null */, /*memo*//*END*/"
+				+ ")";
+		SqlContext ctx = config.contextWith(sql);
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", 10);
+		map.put("name", "Taro");
+		map.put("age", 20);
+		map.put("memo", Optional.of("memo1"));
+
+		ctx.paramMap(map);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(),
+				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
+
+		ctx = config.contextWith(sql);
+
+		map = new HashMap<>();
+		map.put("id", 10);
+		map.put("name", "Taro");
+		map.put("age", 20);
+		map.put("memo", Optional.empty());
+		ctx.paramMap(map);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(),
+				is("insert into test ( id, name, age) values ( ?/*id*/, ?/*name*/, ?/*age*/)"));
+
+		ctx = config.contextWith(sql);
+
+		ctx.paramMap(null);
+
+		transform(ctx);
+
+		assertThat(ctx.getExecutableSql(), is("insert into test () values ()"));
+
+	}
+
+	@Test
+	public void testContext() {
+		SqlContext ctx = config.contextWith("select * from test");
+		assertEquals(ctx, ctx.context());
+	}
+
+	private void transform(final SqlContext ctx) {
+		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getDialect().isRemoveTerminator());
+		ContextTransformer contextTransformer = sqlParser.parse();
+		contextTransformer.transform(ctx);
+	}
+
+	public static class TestEntity {
+		private int id;
+		private String name;
+		private int age;
+		private Optional<String> memo = Optional.empty();
+
+		public TestEntity(final int id, final String name, final int age, final Optional<String> memo) {
+			super();
+			this.id = id;
+			this.name = name;
+			this.age = age;
+			this.memo = memo;
+		}
+
+		/**
+		 * id を取得します。
+		 *
+		 * @return id
+		 */
+		public int getId() {
+			return id;
+		}
+
+		/**
+		 * id を設定します。
+		 *
+		 * @param id id
+		 */
+		public void setId(final int id) {
+			this.id = id;
+		}
+
+		/**
+		 * name を取得します。
+		 *
+		 * @return name
+		 */
+		public String getName() {
+			return name;
+		}
+
+		/**
+		 * name を設定します。
+		 *
+		 * @param name name
+		 */
+		public void setName(final String name) {
+			this.name = name;
+		}
+
+		/**
+		 * age を取得します。
+		 *
+		 * @return age
+		 */
+		public int getAge() {
+			return age;
+		}
+
+		/**
+		 * age を設定します。
+		 *
+		 * @param age age
+		 */
+		public void setAge(final int age) {
+			this.age = age;
+		}
+
+		/**
+		 * memo を取得します。
+		 *
+		 * @return memo
+		 */
+		public Optional<String> getMemo() {
+			return memo;
+		}
+
+		/**
+		 * memo を設定します。
+		 *
+		 * @param memo memo
+		 */
+		public void setMemo(final Optional<String> memo) {
+			this.memo = memo;
+		}
 	}
 }
