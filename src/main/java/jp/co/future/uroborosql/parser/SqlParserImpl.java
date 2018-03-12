@@ -3,8 +3,6 @@ package jp.co.future.uroborosql.parser;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.IfConditionNotFoundRuntimeException;
 import jp.co.future.uroborosql.node.BeginNode;
@@ -18,6 +16,8 @@ import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.node.PrefixSqlNode;
 import jp.co.future.uroborosql.node.SqlNode;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * SQL解析処理実装クラス
  *
@@ -26,6 +26,7 @@ import jp.co.future.uroborosql.node.SqlNode;
 public class SqlParserImpl implements SqlParser {
 	/** SQLトークナイザ */
 	private final SqlTokenizer tokenizer;
+	private final boolean outputBindComment;
 
 	/** ノードのスタック */
 	private final Stack<Node> nodeStack = new Stack<>();
@@ -51,11 +52,23 @@ public class SqlParserImpl implements SqlParser {
 	 * @param removeTerminator 終端文字（;）を除去するかどうか
 	 */
 	public SqlParserImpl(final String sql, final boolean removeTerminator) {
+		this(sql, removeTerminator, true);
+	}
+
+	/**
+	 * SqlParserImplのコンストラクタ
+	 *
+	 * @param sql パースするSQL
+	 * @param removeTerminator 終端文字（;）を除去するかどうか
+	 * @param outputBindComment バインド変数置換後にバインド変数のコメント文字列を出力するかどうか
+	 */
+	public SqlParserImpl(final String sql, final boolean removeTerminator, final boolean outputBindComment) {
 		String s = sql.trim();
 		if (removeTerminator) {
 			s = PATTERN.matcher(s).replaceFirst("");
 		}
-		tokenizer = new SqlTokenizerImpl(s);
+		this.tokenizer = new SqlTokenizerImpl(s);
+		this.outputBindComment = outputBindComment;
 	}
 
 	/**
@@ -214,7 +227,7 @@ public class SqlParserImpl implements SqlParser {
 	 *
 	 * @param length ELSE文の長さ
 	 */
-	protected void parseElse(int length) {
+	protected void parseElse(final int length) {
 		Node parent = peek();
 		if (!(parent instanceof IfNode)) {
 			return;
@@ -234,13 +247,13 @@ public class SqlParserImpl implements SqlParser {
 		String expr = tokenizer.getToken();
 		String s = tokenizer.skipToken();
 		if (s.startsWith("(") && s.endsWith(")")) {
-			peek().addChild(new ParenBindVariableNode(Math.max(this.position - 2, 0), expr, s));
+			peek().addChild(new ParenBindVariableNode(Math.max(this.position - 2, 0), expr, s, outputBindComment));
 		} else if (expr.startsWith("#")) {
 			peek().addChild(new EmbeddedValueNode(Math.max(this.position - 2, 0), expr.substring(1), true, s));
 		} else if (expr.startsWith("$")) {
 			peek().addChild(new EmbeddedValueNode(Math.max(this.position - 2, 0), expr.substring(1), s));
 		} else {
-			peek().addChild(new BindVariableNode(Math.max(this.position - 2, 0), expr, s));
+			peek().addChild(new BindVariableNode(Math.max(this.position - 2, 0), expr, s, outputBindComment));
 		}
 		this.position = this.tokenizer.getPosition();
 	}
@@ -250,7 +263,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseBindVariable() {
 		String expr = tokenizer.getToken();
-		peek().addChild(new BindVariableNode(this.position, expr, null));
+		peek().addChild(new BindVariableNode(this.position, expr, null, outputBindComment));
 		this.position = this.tokenizer.getPosition();
 	}
 

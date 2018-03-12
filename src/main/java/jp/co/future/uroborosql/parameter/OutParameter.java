@@ -75,7 +75,7 @@ public class OutParameter extends Parameter {
 	 * @throws SQLException SQL例外
 	 */
 	protected int setOutParameter(final CallableStatement callableStatement, int index) throws SQLException {
-		callableStatement.registerOutParameter(index, sqlType);
+		callableStatement.registerOutParameter(index, sqlType.getVendorTypeNumber());
 		parameterLog(index);
 		index++;
 		return index;

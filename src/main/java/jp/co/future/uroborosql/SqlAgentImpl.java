@@ -131,7 +131,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
+					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return null;
@@ -265,7 +265,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
+					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return 0;
@@ -365,7 +365,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 				} finally {
 					sqlContext.clearBatch();
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
+					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return null;
@@ -409,6 +409,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
+		// procedureやfunctionの場合、SQL文法エラーになるためバインドパラメータコメントを出力しない
+		sqlContext.contextAttrs().put(CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, false);
+
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
@@ -442,7 +445,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			do {
 				try {
 					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
+					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 					break;
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
@@ -467,7 +470,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					sqlContext.contextAttrs().put("__retryCount", loopCount);
+					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			// 結果取得
