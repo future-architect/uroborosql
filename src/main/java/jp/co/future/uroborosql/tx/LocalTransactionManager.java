@@ -339,11 +339,6 @@ public class LocalTransactionManager implements TransactionManager {
 				throw ex;
 			} finally {
 				try {
-					if (!txContext.isRollbackOnly()) {
-						txContext.commit();
-					} else {
-						txContext.rollback();
-					}
 					txContext.close();
 				} finally {
 					this.txCtxStack.pop();
