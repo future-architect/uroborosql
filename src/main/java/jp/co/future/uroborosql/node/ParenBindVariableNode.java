@@ -12,9 +12,13 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  */
 public class ParenBindVariableNode extends ExpressionNode {
+	/** バインド変数置換後にバインド変数のコメント文字列を出力するかどうか */
+	private final boolean outputBindComment;
 
-	public ParenBindVariableNode(final int position, final String expression, final String tokenValue) {
+	public ParenBindVariableNode(final int position, final String expression, final String tokenValue,
+			final boolean outputBindComment) {
 		super(position, 0, expression, tokenValue);
+		this.outputBindComment = outputBindComment;
 	}
 
 	/**
@@ -57,7 +61,10 @@ public class ParenBindVariableNode extends ExpressionNode {
 			transformContext.addSqlPart(", ?");
 			transformContext.addBindVariable(Array.get(values, i));
 		}
-		transformContext.addSqlPart(")/*").addSqlPart(expression).addSqlPart("*/");
+		transformContext.addSqlPart(")");
+		if (outputBindComment) {
+			transformContext.addSqlPart("/*").addSqlPart(expression).addSqlPart("*/");
+		}
 		transformContext.addBindName(expression);
 	}
 }

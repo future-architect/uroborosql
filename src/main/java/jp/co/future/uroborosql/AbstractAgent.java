@@ -58,6 +58,12 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
 
+	/** SqlContext属性キー：リトライカウント */
+	protected static final String CTX_ATTR_KEY_RETRY_COUNT = "__retryCount";
+
+	/** SqlContext属性キー：バインドパラメータコメントの出力有無 */
+	protected static final String CTX_ATTR_KEY_OUTPUT_BIND_COMMENT = "__outputBindComment";
+
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
@@ -245,7 +251,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
-			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getDialect().isRemoveTerminator());
+			boolean outputBindComment = (boolean) sqlContext.contextAttrs().getOrDefault(
+					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
+			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getDialect().isRemoveTerminator(),
+					outputBindComment);
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 

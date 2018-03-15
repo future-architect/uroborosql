@@ -1137,6 +1137,20 @@ public class SqlAgentTest {
 		}
 	}
 
+	@Test
+	public void testCallStoredFunction() throws Exception {
+		agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
+		agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
+				"String toUpperCase(String lower) throws Exception {\r\n" +
+				"    return lower.toUpperCase();\r\n" +
+				"}\r\n" +
+				"$$;").count();
+
+		Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+				.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+		assertThat(ans.get("ret"), is("TEST1"));
+	}
+
 	public static class Product {
 		private int productId;
 		private String productName;

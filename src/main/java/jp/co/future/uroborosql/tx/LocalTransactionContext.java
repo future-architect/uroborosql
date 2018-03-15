@@ -262,13 +262,17 @@ class LocalTransactionContext implements AutoCloseable {
 	public void close() {
 		if (connection != null) {
 			try {
+				if (!isRollbackOnly()) {
+					commit();
+				} else {
+					rollback();
+				}
 				connection.close();
 			} catch (SQLException e) {
-				//nop
+				throw new UroborosqlSQLException(e);
 			}
 			connection = null;
 		}
-		clearState();
 	}
 
 	/**
