@@ -29,7 +29,34 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
 	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
+	private boolean emptyStringEqualsNull = true;
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#isEmptyStringEqualsNull()
+	 */
+	@Override
+	public boolean isEmptyStringEqualsNull() {
+		return emptyStringEqualsNull;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setEmptyStringEqualsNull(boolean)
+	 */
+	@Override
+	public EntityHandler<Object> setEmptyStringEqualsNull(final boolean emptyStringEqualsNull) {
+		this.emptyStringEqualsNull = emptyStringEqualsNull;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 */
 	@Override
 	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
@@ -37,6 +64,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#doSelect(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.context.SqlContext, java.lang.Class)
+	 */
 	@Override
 	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
 			throws SQLException {
@@ -44,6 +76,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				propertyMapperManager)));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createInsertContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 */
 	@Override
 	public SqlContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
@@ -51,6 +88,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 */
 	@Override
 	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
@@ -58,6 +100,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 */
 	@Override
 	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
@@ -65,21 +112,41 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setInsertParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 */
 	@Override
 	public void setInsertParams(final SqlContext context, final Object entity) {
 		setFields(context, entity, SqlStatement.INSERT);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setUpdateParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 */
 	@Override
 	public void setUpdateParams(final SqlContext context, final Object entity) {
 		setFields(context, entity, SqlStatement.UPDATE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setDeleteParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 */
 	@Override
 	public void setDeleteParams(final SqlContext context, final Object entity) {
 		setFields(context, entity, SqlStatement.DELETE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#getEntityType()
+	 */
 	@Override
 	public Class<Object> getEntityType() {
 		return Object.class;
@@ -96,12 +163,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return context;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#addPropertyMapper(jp.co.future.uroborosql.mapping.mapper.PropertyMapper)
+	 */
 	@Override
 	public EntityHandler<Object> addPropertyMapper(final PropertyMapper<?> propertyMapper) {
 		propertyMapperManager.addMapper(propertyMapper);
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#removePropertyMapper(jp.co.future.uroborosql.mapping.mapper.PropertyMapper)
+	 */
 	@Override
 	public EntityHandler<Object> removePropertyMapper(final PropertyMapper<?> propertyMapper) {
 		propertyMapperManager.removeMapper(propertyMapper);
@@ -438,10 +515,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private StringBuilder wrapIfComment(final StringBuilder original, final StringBuilder addParts,
 			final TableMetadata.Column col) {
 		String camelColName = col.getCamelColumnName();
+		// フィールドがセットされていない場合はカラム自体を削る
 		if (isStringType(col.getDataType())) {
-			original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+			if (emptyStringEqualsNull) {
+				original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
+						.append(System.lineSeparator());
+			} else {
+				original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
+			}
 		} else {
-			original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());// フィールドがセットされていない場合はカラム自体を削る
+			original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
 		}
 		original.append(addParts);
 		original.append("/*END*/").append(System.lineSeparator());

@@ -164,4 +164,19 @@ public interface EntityHandler<ENTITY> {
 	 * @return EntityHandler
 	 */
 	EntityHandler<ENTITY> removePropertyMapper(PropertyMapper<?> propertyMapper);
+
+	/**
+	 * 空文字とNULLを同じに扱うかどうかを取得する
+	 *
+	 * @return 空文字とNULLを同じに扱う場合<code>true</code>
+	 */
+	boolean isEmptyStringEqualsNull();
+
+	/**
+	 * 空文字とNULLを同じに扱うかどうかを設定する
+	 *
+	 * @param emptyStringEqualsNull 空文字とNULLを同じに扱う場合に<code>true</code>を指定
+	 * @return EntityHandler
+	 */
+	EntityHandler<ENTITY> setEmptyStringEqualsNull(boolean emptyStringEqualsNull);
 }
