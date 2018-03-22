@@ -61,7 +61,7 @@ import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-import jp.co.future.uroborosql.store.SqlManagerImpl;
+import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
@@ -339,7 +339,7 @@ public class SqlREPL {
 
 		// config
 		config = UroboroSQL.builder(p("db.url", ""), p("db.user", ""), p("db.password", ""), p("db.schema", null))
-				.setSqlManager(new SqlManagerImpl(p("sql.loadPath", "sql")))
+				.setSqlManager(new NioSqlManagerImpl(p("sql.loadPath", "sql")))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// sqlContextFactory
