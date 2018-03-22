@@ -143,10 +143,8 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * Pathの監視
 	 */
-	@SuppressWarnings("unchecked")
 	private void watchPath() {
 		for (;;) {
-
 			//監視キーの送信を待機
 			WatchKey key;
 			try {
@@ -167,12 +165,15 @@ public class NioSqlManagerImpl implements SqlManager {
 				}
 
 				//ファイル名はイベントのコンテキストです。
+				@SuppressWarnings("unchecked")
 				WatchEvent<Path> evt = (WatchEvent<Path>) event;
 				Path dir = watchDirs.get(key);
 				Path path = dir.resolve(evt.context());
 
-				log.info("watch file : {} : {}", path, kind.name());
-				if (Files.isDirectory(path)) {
+				log.trace("file changed.({}). path={}", kind.name(), path);
+				boolean isSqlFile = path.toString().endsWith(fileExtension);
+				if (Files.isDirectory(path) || !isSqlFile) {
+					// ENTRY_DELETEの時はFiles.isDirectory()がfalseになるので拡張子での判定も行う
 					if (kind == ENTRY_CREATE) {
 						traverse(path, true, false);
 					} else if (kind == ENTRY_DELETE) {
@@ -180,7 +181,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						watchDirs.remove(key);
 						continue;
 					}
-				} else {
+				} else if (isSqlFile) {
 					if (kind == ENTRY_CREATE) {
 						traverse(path, true, false);
 					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
@@ -192,12 +193,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				}
 			}
 
-			//監視キーをリセットします。この手順は、この後さらに監視イベントを取得する場合は
-			//非常に重要です。 監視キーが有効ではない場合は、ディレクトリに
-			//アクセスできないため、ループを終了します。
-			if (!key.reset()) {
-				continue;
-			}
+			key.reset();
 		}
 	}
 
@@ -651,9 +647,13 @@ public class NioSqlManagerImpl implements SqlManager {
 				FileTime currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
+					log.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
+							oldPath, currentPath, currentTimeStamp.toString());
 				} else {
 					if (!this.lastModified.equals(currentTimeStamp)) {
 						replaceFlag = true;
+						log.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+								currentTimeStamp.toString());
 					}
 				}
 

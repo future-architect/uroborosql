@@ -3,20 +3,94 @@ package jp.co.future.uroborosql.store;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.dialect.OracleDialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 import org.junit.Test;
 
 public class NioSqlManagerTest {
 	private static final int WAIT_TIME = 100;
 	private static final String TARGET_TEST_CLASSES_SQL = "target/test-classes/sql/";
+
+	@Test
+	public void testConstractor() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl("sql", ".sql", Charset.defaultCharset());
+		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
+
+		Dialect dialect = new H2Dialect();
+		manager.setDialect(dialect);
+		manager.initialize();
+
+		assertThat(manager.getDialect(), is(dialect));
+
+	}
+
+	@Test
+	public void testGetSqlPathList() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setDialect(new H2Dialect());
+		manager.initialize();
+
+		List<String> pathList = manager.getSqlPathList();
+		assertThat(pathList, hasItem("example/select_test"));
+		assertThat(pathList, hasItem("example/select_test2"));
+		assertThat(pathList, hasItem("example/select_test3"));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetSqlLoader() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.getSqlLoader();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSetSqlLoader() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setSqlLoader(null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIsCache() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.isCache();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSetCache() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setCache(false);
+	}
+
+	@Test
+	public void testGetSql() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setDialect(new H2Dialect());
+		manager.initialize();
+
+		try {
+			manager.getSql("example/select_test");
+		} catch (Exception ex) {
+			fail();
+		}
+		try {
+			manager.getSql("example/select_test_no_file");
+			fail();
+		} catch (UroborosqlRuntimeException ex) {
+			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
+		} catch (Exception ex) {
+			fail();
+		}
+	}
 
 	@Test
 	public void testGetSqlH2() throws Exception {
@@ -68,13 +142,15 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlWithWatcher() throws Exception {
+
+		String sqlName = "test/ADD_WATCH";
+		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL, sqlName + ".sql");
+		Files.deleteIfExists(newFilePath);
+
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 
-		String sqlName = "test/ADD_WATCH";
-
-		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL, sqlName + ".sql");
 		try {
 			assertThat(manager.existSql(sqlName), is(false));
 
@@ -94,7 +170,6 @@ public class NioSqlManagerTest {
 
 			assertThat(manager.existSql(sqlName), is(false));
 		} finally {
-			Files.deleteIfExists(newFilePath);
 			manager.shutdown();
 		}
 
@@ -102,16 +177,17 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testAddDialectSqlFolder() throws Exception {
+		String sqlName = "example/select_test";
+		Path dir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "example");
+		Path newFilePath = dir.resolve("select_test.sql");
+		Files.deleteIfExists(newFilePath);
+		Files.deleteIfExists(dir);
+
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 
-		String sqlName = "example/select_test";
-		Path dir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "example");
-		Path newFilePath = dir.resolve("select_test.sql");
 		try {
-			Files.deleteIfExists(newFilePath);
-			Files.deleteIfExists(dir);
 
 			Thread.sleep(WAIT_TIME);
 
@@ -147,20 +223,21 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testAddDefaultFolderAndDialectFolder() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.setDialect(new OracleDialect());
-		manager.initialize();
-
 		String sqlName = "unit_test/select_test";
 		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL, "unit_test");
 		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "unit_test");
 		Path defaultFilePath = defaultDir.resolve("select_test.sql");
 		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		Files.deleteIfExists(defaultFilePath);
+		Files.deleteIfExists(defaultDir);
+		Files.deleteIfExists(dialectFilePath);
+		Files.deleteIfExists(dialectDir);
+
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setDialect(new OracleDialect());
+		manager.initialize();
+
 		try {
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
 
 			Thread.sleep(WAIT_TIME);
 
@@ -214,20 +291,21 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testAddDialectFolderAndDefaultFolder() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.setDialect(new OracleDialect());
-		manager.initialize();
-
 		String sqlName = "unit_test/select_test";
 		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL, "unit_test");
 		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "unit_test");
 		Path defaultFilePath = defaultDir.resolve("select_test.sql");
 		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		Files.deleteIfExists(defaultFilePath);
+		Files.deleteIfExists(defaultDir);
+		Files.deleteIfExists(dialectFilePath);
+		Files.deleteIfExists(dialectDir);
+
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setDialect(new OracleDialect());
+		manager.initialize();
+
 		try {
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
 
 			Thread.sleep(WAIT_TIME);
 
