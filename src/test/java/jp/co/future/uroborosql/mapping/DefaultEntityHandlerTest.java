@@ -464,9 +464,39 @@ public class DefaultEntityHandlerTest {
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
 			SqlContext ctx = handler.createSelectContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, containsString("SF.isNotEmpty"));
+
 			try (ResultSet rs = agent.query(ctx)) {
 				assertThat(rs.next(), is(true));
 			}
+		}
+	}
+
+	@Test
+	public void testCreateSelectContextEmptyNotEqualsNull() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+					.of("memo1"));
+			agent.insert(test);
+
+			agent.commit();
+
+			EntityHandler<?> handler = config.getEntityHandler();
+			handler.setEmptyStringEqualsNull(false);
+			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					MappingUtils.getTable(TestEntity.class));
+			SqlContext ctx = handler.createSelectContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, not(containsString("SF.isNotEmpty")));
+
+			try (ResultSet rs = agent.query(ctx)) {
+				assertThat(rs.next(), is(true));
+			}
+
+			handler.setEmptyStringEqualsNull(true);
 		}
 	}
 
@@ -477,9 +507,33 @@ public class DefaultEntityHandlerTest {
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
 			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, containsString("SF.isNotEmpty"));
+
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
 					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
+		}
+	}
+
+	@Test
+	public void testCreateInsertContextEmptyNotEqualsNull() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			EntityHandler<?> handler = config.getEntityHandler();
+			handler.setEmptyStringEqualsNull(false);
+			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					MappingUtils.getTable(TestEntity.class));
+			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, not(containsString("SF.isNotEmpty")));
+
+			ctx.param("id", 1).param("name", "name1").param("age", 20)
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+			assertThat(agent.update(ctx), is(1));
+
+			handler.setEmptyStringEqualsNull(true);
 		}
 	}
 
@@ -496,9 +550,39 @@ public class DefaultEntityHandlerTest {
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
 			SqlContext ctx = handler.createUpdateContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, containsString("SF.isNotEmpty"));
+
 			ctx.param("id", 1).param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
 			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null).getName(), is("updatename"));
+		}
+	}
+
+	@Test
+	public void testCreateUpdateContextEmptyStringEqualsNull() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+					.of("memo1"));
+			agent.insert(test);
+
+			agent.commit();
+
+			EntityHandler<?> handler = config.getEntityHandler();
+			handler.setEmptyStringEqualsNull(false);
+			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					MappingUtils.getTable(TestEntity.class));
+			SqlContext ctx = handler.createUpdateContext(agent, metadata, null);
+
+			String sql = ctx.getSql();
+			assertThat(sql, not(containsString("SF.isNotEmpty")));
+
+			ctx.param("id", 1).param("name", "updatename");
+			assertThat(agent.update(ctx), is(1));
+			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null).getName(), is("updatename"));
+
+			handler.setEmptyStringEqualsNull(true);
 		}
 	}
 
