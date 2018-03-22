@@ -591,8 +591,10 @@ public class NioSqlManagerImpl implements SqlManager {
 		 */
 		private SqlInfo computePath(final Path newPath, final boolean remove) {
 			synchronized (sqlName) {
+				// 変更前の有効Pathを保持しておく
 				Path oldPath = getPath();
 
+				// 引数で渡された判定用PathをpathListへ追加、またはpathListから削除する
 				if (!pathList.contains(newPath)) {
 					if (!remove) {
 						pathList.add(newPath);
@@ -601,12 +603,17 @@ public class NioSqlManagerImpl implements SqlManager {
 					if (remove) {
 						pathList.remove(newPath);
 						if (pathList.isEmpty()) {
+							// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
 							return null;
 						}
 					}
 				}
 
 				if (pathList.size() > 1) {
+					// 優先度が高いPathが先頭に来るようにソートを行う
+					// 1. Dialect付Pathを優先
+					// 2. file schemeをjar schemeよりも優先
+					// 3. Path同士のcompare
 					pathList.sort((p1, p2) -> {
 						if (p1 == null && p2 == null) {
 							return 0;
@@ -643,6 +650,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				}
 
 				boolean replaceFlag = false;
+				// ソートによる再計算後の有効Pathを取得する
 				Path currentPath = getPath();
 				FileTime currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
