@@ -20,8 +20,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.store.SqlManagerImpl;
 
 /**
  * UroboroSQLを利用する際、初めに利用するクラス.
@@ -99,7 +99,7 @@ public final class UroboroSQL {
 
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
-			this.sqlManager = new NioSqlManagerImpl();
+			this.sqlManager = new SqlManagerImpl();
 			this.sqlFilterManager = new SqlFilterManagerImpl();
 			this.sqlContextFactory = new SqlContextFactoryImpl();
 			this.sqlAgentFactory = new SqlAgentFactoryImpl();

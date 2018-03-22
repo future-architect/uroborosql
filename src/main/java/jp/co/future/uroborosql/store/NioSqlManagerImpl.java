@@ -18,6 +18,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -42,9 +43,10 @@ public class NioSqlManagerImpl implements SqlManager {
 	/** ロガー */
 	private static final Logger log = LoggerFactory.getLogger(NioSqlManagerImpl.class);
 
+	/** zip, jar内のファイルのscheme */
 	private static final String SCHEME_JAR = "jar";
+	/** ファイルシステム上のファイルのscheme */
 	private static final String SCHEME_FILE = "file";
-	private static final String PATH_SEPARATOR = "/";
 
 	/** 有効なDialectのSet */
 	private static final Set<String> dialects = StreamSupport
@@ -52,54 +54,270 @@ public class NioSqlManagerImpl implements SqlManager {
 			.map(Dialect::getDialectName).collect(Collectors.toSet());
 
 	/** SQLファイルをロードするルートパス */
-	private String loadPath = "sql";
+	private final String loadPath;
 
 	/** SQLファイル拡張子 */
-	private String fileExtension = ".sql";
+	private final String fileExtension;
 
 	/** SQLファイルエンコーディング */
 	private final Charset charset;
 
+	/** Dialect */
 	private Dialect dialect;
 
+	/** SQLファイル監視サービス */
 	private WatchService watcher;
 
+	/** SQLファイル監視サービスの実行サービス */
+	private ExecutorService es;
+
+	/** sqlNameとそれに対するSqlInfoの紐付きを持つMap */
 	private ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
 
+	/** WatchKeyに対するディレクトリPathを取得するためのMap */
+	private ConcurrentHashMap<WatchKey, Path> watchDirs = new ConcurrentHashMap<>();
+
+	/**
+	 * コンストラクタ
+	 */
 	public NioSqlManagerImpl() {
-		this("sql");
+		this(null);
 	}
 
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 */
 	public NioSqlManagerImpl(final String loadPath) {
-		this(loadPath, ".sql");
+		this(loadPath, null);
 	}
 
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 * @param fileExtension SQLファイル拡張子
+	 */
 	public NioSqlManagerImpl(final String loadPath, final String fileExtension) {
-		this(loadPath, fileExtension, Charset.forName(System.getProperty("file.encoding")));
+		this(loadPath, fileExtension, null);
 	}
 
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 * @param fileExtension SQLファイル拡張子
+	 * @param charset SQLファイルエンコーディング
+	 */
 	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset) {
-		this.loadPath = loadPath;
-		this.fileExtension = fileExtension;
-		if (charset != null) {
-			this.charset = charset;
-		} else {
-			this.charset = Charset.forName(System.getProperty("file.encoding"));
+		this.loadPath = loadPath != null ? loadPath : "sql";
+		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
+		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()
+	 */
+	@Override
+	public void initialize() {
+		try {
+			watcher = FileSystems.getDefault().newWatchService();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
+		generateSqlInfos();
+
+		// Path監視用のスレッド実行
+		es = Executors.newSingleThreadExecutor();
+		es.execute(this::watchPath);
 	}
 
-	private ConcurrentHashMap<String, SqlInfo> getSqlInfos() {
-		ConcurrentHashMap<String, SqlInfo> infos = new ConcurrentHashMap<>();
+	public void shutdown() {
+		es.shutdownNow();
+	}
 
+	/**
+	 * Pathの監視
+	 */
+	@SuppressWarnings("unchecked")
+	private void watchPath() {
+		for (;;) {
+
+			//監視キーの送信を待機
+			WatchKey key;
+			try {
+				key = watcher.take();
+			} catch (InterruptedException ex) {
+				log.debug("WatchService catched InterruptedException.", ex);
+				break;
+			} catch (Throwable ex) {
+				log.error("Unexpected exception occured.", ex);
+				break;
+			}
+
+			for (WatchEvent<?> event : key.pollEvents()) {
+				WatchEvent.Kind<?> kind = event.kind();
+
+				if (kind == OVERFLOW) {
+					continue;
+				}
+
+				//ファイル名はイベントのコンテキストです。
+				WatchEvent<Path> evt = (WatchEvent<Path>) event;
+				Path dir = watchDirs.get(key);
+				Path path = dir.resolve(evt.context());
+
+				log.info("watch file : {} : {}", path, kind.name());
+				if (Files.isDirectory(path)) {
+					if (kind == ENTRY_CREATE) {
+						traverse(path, true, false);
+					} else if (kind == ENTRY_DELETE) {
+						key.cancel();
+						watchDirs.remove(key);
+						continue;
+					}
+				} else {
+					if (kind == ENTRY_CREATE) {
+						traverse(path, true, false);
+					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
+						String sqlName = getSqlName(path);
+						sqlInfos.computeIfPresent(sqlName, (k, v) -> {
+							return v.computePath(path, kind == ENTRY_DELETE);
+						});
+					}
+				}
+			}
+
+			//監視キーをリセットします。この手順は、この後さらに監視イベントを取得する場合は
+			//非常に重要です。 監視キーが有効ではない場合は、ディレクトリに
+			//アクセスできないため、ループを終了します。
+			if (!key.reset()) {
+				continue;
+			}
+		}
+	}
+
+	/**
+	 * charset を取得します。
+	 *
+	 * @return charset
+	 */
+	public Charset getCharset() {
+		return charset;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#getDialect()
+	 */
+	@Override
+	public Dialect getDialect() {
+		return dialect;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
+	 */
+	@Override
+	public void setDialect(final Dialect dialect) {
+		this.dialect = dialect;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlPathList()
+	 */
+	@Override
+	public List<String> getSqlPathList() {
+		List<String> list = Collections.list(this.sqlInfos.keys());
+		Collections.sort(list);
+		return list;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlLoader()
+	 */
+	@Override
+	public SqlLoader getSqlLoader() {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#setSqlLoader(jp.co.future.uroborosql.store.SqlLoader)
+	 */
+	@Override
+	public void setSqlLoader(final SqlLoader sqlLoader) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#isCache()
+	 */
+	@Override
+	public boolean isCache() {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#setCache(boolean)
+	 */
+	@Override
+	public void setCache(final boolean cache) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#existSql(java.lang.String)
+	 */
+	@Override
+	public boolean existSql(final String sqlName) {
+		return sqlInfos.containsKey(sqlName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#getSql(java.lang.String)
+	 */
+	@Override
+	public String getSql(final String sqlName) {
+		if (existSql(sqlName)) {
+			return sqlInfos.get(sqlName).getSqlBody();
+		} else {
+			throw new UroborosqlRuntimeException("sql file not found. sqlName : " + sqlName);
+		}
+	}
+
+	/**
+	 * sqlNameとそれに対するSqlInfoのMapを生成する
+	 */
+	private void generateSqlInfos() {
 		try {
-			Enumeration<URL> root = this.getClass().getClassLoader().getResources(loadPath);
+			Enumeration<URL> root = Thread.currentThread().getContextClassLoader().getResources(loadPath);
 
 			while (root.hasMoreElements()) {
 				URI uri = root.nextElement().toURI();
 				String scheme = uri.getScheme();
 				if (SCHEME_FILE.equals(scheme)) {
-					traverse(infos, Paths.get(uri), true);
+					traverse(Paths.get(uri), true, false);
 				} else if (SCHEME_JAR.equals(scheme)) {
 					FileSystem fs = null;
 					try {
@@ -109,28 +327,11 @@ public class NioSqlManagerImpl implements SqlManager {
 						env.put("create", "false");
 						fs = FileSystems.newFileSystem(uri, env);
 					}
-					traverse(infos, fs.getPath(loadPath), false);
+					traverse(fs.getPath(loadPath), false, false);
 				}
 			}
-
 		} catch (IOException | URISyntaxException e) {
-			e.printStackTrace();
-		}
-
-		return infos;
-	}
-
-	@Override
-	public boolean existSql(final String sqlName) {
-		return sqlInfos.containsKey(sqlName);
-	}
-
-	@Override
-	public String getSql(final String sqlName) {
-		if (existSql(sqlName)) {
-			return sqlInfos.get(sqlName).getSqlBody();
-		} else {
-			throw new UroborosqlRuntimeException("sql file not found. sqlName : " + sqlName);
+			log.error("Can't load sql files.", e);
 		}
 	}
 
@@ -157,11 +358,11 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 *   上記のフォルダ構成で
 	 *   - loadPath=sql, dialect=oracleの場合は以下のSqlNameが生成される
-	 *     example/test1.sql ( 実際はoracle/example/test1.sql )
-	 *     example/test2.sql
+	 *     example/test1 ( 実際はoracle/example/test1 )
+	 *     example/test2
 	 *   - loadPath=sql, dialect=postgresqlの場合は以下のSqlNameが生成される
-	 *     example/test1.sql
-	 *     example/test2.sql ( 実際はpostgresql/example/test2.sql )
+	 *     example/test1
+	 *     example/test2 ( 実際はpostgresql/example/test2 )
 	 *
 	 * </pre>
 	 *
@@ -183,7 +384,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						continue;
 					}
 				}
-				builder.append(s).append(PATH_SEPARATOR);
+				builder.append(s).append("/");
 			} else if (part.toString().equals(loadPath)) {
 				startFlag = true;
 				dialectFlag = true;
@@ -236,7 +437,15 @@ public class NioSqlManagerImpl implements SqlManager {
 
 	}
 
-	private void traverse(final Map<String, SqlInfo> sqlInfos, final Path path, final boolean watch) {
+	/**
+	 * 指定されたPath配下のファイルを順次追跡し、sqlInfosに格納、または削除を行う。<br>
+	 * また、監視対象指定があり、Pathがディレクトリの場合は、監視サービスに登録する。
+	 *
+	 * @param path 追跡を行うディレクトリ、またはファイルのPath
+	 * @param watch 監視対象指定。<code>true</code>の場合監視対象
+	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
+	 */
+	private void traverse(final Path path, final boolean watch, final boolean remove) {
 		if (Files.notExists(path)) {
 			return;
 		}
@@ -244,10 +453,11 @@ public class NioSqlManagerImpl implements SqlManager {
 			if (validPath(path)) {
 				try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
 					if (watch) {
-						path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+						WatchKey key = path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+						watchDirs.put(key, path);
 					}
 					for (Path child : ds) {
-						traverse(sqlInfos, child, watch);
+						traverse(child, watch, remove);
 					}
 				} catch (IOException ex) {
 					throw new UroborosqlRuntimeException("I/O error occured.", ex);
@@ -255,149 +465,72 @@ public class NioSqlManagerImpl implements SqlManager {
 			}
 		} else if (path.toString().endsWith(fileExtension)) {
 			String sqlName = getSqlName(path);
-			sqlInfos.compute(sqlName,
-					(k, v) -> (v == null) ? new SqlInfo(sqlName, path, dialect, charset) : v.computePath(path));
-		}
-	}
-
-	/**
-	 * charset を取得します。
-	 *
-	 * @return charset
-	 */
-	public Charset getCharset() {
-		return charset;
-	}
-
-	/**
-	 * dialect を取得します。
-	 *
-	 * @return dialect
-	 */
-	@Override
-	public Dialect getDialect() {
-		return dialect;
-	}
-
-	/**
-	 * dialect を設定します。
-	 *
-	 * @param dialect dialect
-	 */
-	@Override
-	public void setDialect(final Dialect dialect) {
-		this.dialect = dialect;
-	}
-
-	@Override
-	public void initialize() {
-		try {
-			watcher = FileSystems.getDefault().newWatchService();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		this.sqlInfos = getSqlInfos();
-
-		ExecutorService es = Executors.newSingleThreadExecutor();
-		es.execute(this::watchFolder);
-	}
-
-	@Override
-	public List<String> getSqlPathList() {
-		return Collections.list(this.sqlInfos.keys());
-	}
-
-	@Override
-	public SqlLoader getSqlLoader() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void setSqlLoader(final SqlLoader sqlLoader) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean isCache() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void setCache(final boolean cache) {
-		throw new UnsupportedOperationException();
-	}
-
-	@SuppressWarnings("unchecked")
-	private void watchFolder() {
-		for (;;) {
-			//監視キーの送信を待機
-			WatchKey key;
-			try {
-				key = watcher.take();
-			} catch (InterruptedException ex) {
-				return;
-			} catch (Throwable ex) {
-				ex.printStackTrace();
-				return;
-			}
-
-			for (WatchEvent<?> event : key.pollEvents()) {
-				WatchEvent.Kind<?> kind = event.kind();
-
-				if (kind == OVERFLOW) {
-					continue;
-				}
-
-				//ファイル名はイベントのコンテキストです。
-				WatchEvent<Path> evt = (WatchEvent<Path>) event;
-				Path path = evt.context();
-				log.info("watch file : {} : {}", path, kind.name());
-			}
-
-			//監視キーをリセットします。この手順は、この後さらに監視イベントを取得する場合は
-			//非常に重要です。 監視キーが有効ではない場合は、ディレクトリに
-			//アクセスできないため、ループを終了します。
-			if (!key.reset()) {
-				break;
-			}
+			this.sqlInfos.compute(sqlName,
+					(k, v) -> (v == null) ? new SqlInfo(sqlName, path, dialect, charset) : v.computePath(path, remove));
 		}
 	}
 
 	/**
 	 * SQLファイルの情報を保持するオブジェクト
-	 *
-	 * @author H.Sugimoto
-	 *
 	 */
 	public static class SqlInfo {
 
+		/** キーとなるsqlName */
 		private final String sqlName;
-		private Path path;
-		private String scheme;
+		/** 対象のDialect */
 		private final Dialect dialect;
+		/** Sqlファイルの文字コード */
 		private final Charset charset;
+		/** sqlNameに対応するPathのList. ソートされて優先度が高いものから順に並んでいる. 適用されるのは先頭のPathになる. */
+		private List<Path> pathList = new ArrayList<>();
+		/** SQLファイルの内容. <code>null</code>の場合、getSqlBody()が呼び出された段階でロードして格納する. */
 		private String sqlBody;
+		/** 適用されたPathの最終更新日時。SQLファイルが更新されたかどうかの判定に利用する */
 		private FileTime lastModified;
 
+		/**
+		 * コンストラクタ
+		 * @param sqlName sqlName
+		 * @param path path
+		 * @param dialect dialect
+		 * @param charset charset
+		 */
 		SqlInfo(final String sqlName, final Path path, final Dialect dialect, final Charset charset) {
 			super();
 			this.sqlName = sqlName;
-			this.path = path;
-			this.scheme = path.toUri().getScheme();
 			this.dialect = dialect;
 			this.charset = charset;
-			this.sqlBody = null;
+			this.pathList.add(path);
 			this.lastModified = getLastModifiedTime(path);
+			this.sqlBody = null;
 		}
 
-		private FileTime getLastModifiedTime(final Path path) {
+		/**
+		 * 指定されたPathの最終更新日時を取得する
+		 * @param path 対象のPath
+		 * @return 最終更新日時
+		 */
+		private static FileTime getLastModifiedTime(final Path path) {
 			try {
 				return Files.getLastModifiedTime(path);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			return FileTime.fromMillis(0L);
+		}
+
+		/**
+		 * 指定されたPathがDialect指定のPathかどうかを判定する
+		 * @param path 判定対象Path
+		 * @return Dialect指定Pathの場合<code>true</code>
+		 */
+		private boolean hasDialect(final Path path) {
+			for (Path p : path) {
+				if (this.dialect.getDialectName().equals(p.toString())) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/**
@@ -410,21 +543,23 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 
 		/**
-		 * path を取得します。
+		 * 現在有効な path を取得します。
 		 *
-		 * @return path
+		 * @return path 現在有効なPath
 		 */
 		public Path getPath() {
-			return path;
+			return pathList.get(0);
 		}
 
 		/**
-		 * sqlBody を取得します。
+		 * sql文字列を取得します。
+		 * sqlBodyが<code>null</code>の場合、現在有効なPathからファイルの内容をロードし、sqlBodyに格納したうえ返却します。
 		 *
-		 * @return sqlBody
+		 * @return sqlBody sql文字列
 		 */
 		private String getSqlBody() {
 			if (sqlBody == null) {
+				Path path = getPath();
 				if (Files.notExists(path)) {
 					throw new UroborosqlRuntimeException("SQL template could not found.["
 							+ path.toAbsolutePath().toString() + "]");
@@ -432,12 +567,13 @@ public class NioSqlManagerImpl implements SqlManager {
 
 				synchronized (sqlName) {
 					try {
-						sqlBody = new String(Files.readAllBytes(path), charset).trim();
-						if (sqlBody.endsWith(PATH_SEPARATOR) && !sqlBody.endsWith("*/")) {
-							sqlBody = StringUtils.stripEnd(sqlBody, PATH_SEPARATOR);
+						String body = new String(Files.readAllBytes(path), charset).trim();
+						if (body.endsWith("/") && !body.endsWith("*/")) {
+							body = StringUtils.stripEnd(body, "/");
 						} else {
-							sqlBody = sqlBody + System.lineSeparator();
+							body = body + System.lineSeparator();
 						}
+						sqlBody = body;
 						log.debug("Loaded SQL template.[{}]", path);
 					} catch (IOException e) {
 						throw new UroborosqlRuntimeException("Failed to load SQL template["
@@ -450,44 +586,83 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 
 		/**
-		 * lastModified を取得します。
-		 *
-		 * @return lastModified
-		 */
-		public FileTime getLastModified() {
-			return lastModified;
-		}
-
-		/**
 		 * 同じSqlNameになるPathの優先度判定を行い、優先度が高いPathが指定された場合保持しているPathの置き換えを行う
 		 *
 		 * @param newPath 判定用Path
+		 * @param remove 指定した判定用Pathを削除する場合に<code>true</code>を指定
+		 *
 		 * @return 判定後のSqlInfo
 		 */
-		private SqlInfo computePath(final Path newPath) {
-			boolean replaceFlag = false;
-			String newScheme = newPath.toUri().getScheme();
-			if (scheme.equals(newScheme)) {
-				for (Path p : newPath) {
-					if (p.toString().equals(this.dialect.getDialectName())) {
-						replaceFlag = true;
-						break;
+		private SqlInfo computePath(final Path newPath, final boolean remove) {
+			synchronized (sqlName) {
+				Path oldPath = getPath();
+
+				if (!pathList.contains(newPath)) {
+					if (!remove) {
+						pathList.add(newPath);
+					}
+				} else {
+					if (remove) {
+						pathList.remove(newPath);
+						if (pathList.isEmpty()) {
+							return null;
+						}
 					}
 				}
-			} else if (SCHEME_JAR.equals(scheme) && SCHEME_FILE.equals(newScheme)) {
-				replaceFlag = true;
-			}
 
-			if (replaceFlag) {
-				synchronized (sqlName) {
-					this.path = newPath;
-					this.scheme = newScheme;
-					this.lastModified = getLastModifiedTime(newPath);
+				if (pathList.size() > 1) {
+					pathList.sort((p1, p2) -> {
+						if (p1 == null && p2 == null) {
+							return 0;
+						} else if (p1 != null && p2 == null) {
+							return -1;
+						} else if (p1 == null && p2 != null) {
+							return 1;
+						}
+
+						// DialectPathの比較
+						boolean p1HasDialect = hasDialect(p1);
+						boolean p2HasDialect = hasDialect(p2);
+
+						if (p1HasDialect && !p2HasDialect) {
+							return -1;
+						} else if (!p1HasDialect && p2HasDialect) {
+							return 1;
+						}
+
+						// schemeの比較
+						String p1Scheme = p1.toUri().getScheme();
+						String p2Scheme = p2.toUri().getScheme();
+
+						if (!p1Scheme.equals(p2Scheme)) {
+							if (p1Scheme.equals(SCHEME_FILE)) {
+								return -1;
+							} else {
+								return 1;
+							}
+						}
+
+						return p1.compareTo(p2);
+					});
+				}
+
+				boolean replaceFlag = false;
+				Path currentPath = getPath();
+				FileTime currentTimeStamp = getLastModifiedTime(currentPath);
+				if (!oldPath.equals(currentPath)) {
+					replaceFlag = true;
+				} else {
+					if (!this.lastModified.equals(currentTimeStamp)) {
+						replaceFlag = true;
+					}
+				}
+
+				if (replaceFlag) {
+					this.lastModified = currentTimeStamp;
 					this.sqlBody = null;
 				}
+				return this;
 			}
-			return this;
 		}
-
 	}
 }
