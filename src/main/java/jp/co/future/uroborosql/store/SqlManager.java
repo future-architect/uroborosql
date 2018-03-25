@@ -62,4 +62,18 @@ public interface SqlManager {
 	 */
 	void setCache(boolean cache);
 
+	/**
+	 * SQLファイル拡張子取得<br>
+	 *
+	 * @return SQLファイル拡張子
+	 */
+	String getFileExtension();
+
+	/**
+	 * SQLファイルロードパス取得<br>
+	 *
+	 * @return SQLファイルロードパス
+	 */
+	String getLoadPath();
+
 }

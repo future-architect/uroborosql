@@ -112,7 +112,7 @@ public class SqlREPL {
 		/** テーブル定義表示 */
 		DESC(false, TableNameCompleter.class),
 		/** SQL文生成 */
-		GENERATE(false, SqlKeywordCompleter.class, TableNameCompleter.class),
+		GENERATE(false, SqlKeywordCompleter.class, TableNameCompleter.class, SqlNameCompleter.class),
 		/** ヘルプメッセージ出力 */
 		HELP(false),
 		/** 画面のクリア */
@@ -201,6 +201,9 @@ public class SqlREPL {
 
 	/** 追加で読み込むクラスローダ */
 	private URLClassLoader additionalClassLoader = null;
+
+	/** SQLファイル格納フォルダのルート */
+	private String sqlFileRoot = null;
 
 	/** SQL設定クラス */
 	private SqlConfig config = null;
@@ -295,7 +298,10 @@ public class SqlREPL {
 			currentClassLoader = additionalClassLoader.getParent();
 		}
 
+		sqlFileRoot = p("sql.fileRootPath", "src/main/resources");
+
 		String paths = p("sql.additionalClassPath", ".");
+		paths = sqlFileRoot + ";" + paths;
 		List<URL> urls = new ArrayList<>();
 		Arrays.stream(paths.split(";")).forEach(path -> {
 			try {
@@ -594,6 +600,10 @@ public class SqlREPL {
 
 			String sqlKeyword = parts[1];
 			String tableName = parts[2];
+			String outputSqlName = null;
+			if (parts.length > 3) {
+				outputSqlName = parts[3];
+			}
 
 			try (SqlAgent agent = config.agent()) {
 				Table table = new Table() {
@@ -629,7 +639,24 @@ public class SqlREPL {
 					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null);
 					break;
 				}
-				console.println(ctx.getSql());
+
+				if (outputSqlName != null) {
+					if (outputSqlName.contains(".")) {
+						outputSqlName = outputSqlName.substring(0, outputSqlName.indexOf(".") - 1);
+					}
+					outputSqlName = outputSqlName + config.getSqlManager().getFileExtension();
+					Path outputPath = Paths.get(sqlFileRoot, config.getSqlManager().getLoadPath(), outputSqlName)
+							.normalize();
+					Files.createDirectories(outputPath.getParent());
+
+					Charset charset = Charset.forName(p("sql.encoding", "UTF-8"));
+
+					Files.write(outputPath, Arrays.asList(ctx.getSql()), charset);
+
+					console.println("output generated sql to file : " + outputPath.toAbsolutePath().toString());
+				} else {
+					console.println(ctx.getSql());
+				}
 			}
 
 			return true;

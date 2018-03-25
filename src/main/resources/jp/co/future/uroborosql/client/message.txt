@@ -23,7 +23,8 @@ Commands :
 	desc	: describe table.
 		ex) desc [table name]<Enter> : Show table description.
 	generate: generate sql to access the table.
-		ex) generate [select/insert/update/delete] [table name]<Enter> : Show sql to access tables according to keywords.
+		ex1) generate [select/insert/update/delete] [table name]<Enter> : Show sql to access tables according to keywords.
+		ex2) generate [select/insert/update/delete] [table name] [output sql file name]<Enter> : Output sql file to access tables according to keywords.
 	history	: list command history.
 		ex1) history<Enter> : Show all command history.
 		ex2) history keyword<Enter> : Show command history filter by keyword.

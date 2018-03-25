@@ -153,10 +153,11 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
-	 * SQLファイルロードパス取得<br>
+	 * {@inheritDoc}
 	 *
-	 * @return SQLファイルロードパス
+	 * @see jp.co.future.uroborosql.store.SqlManager#getLoadPath()
 	 */
+	@Override
 	public String getLoadPath() {
 		return sqlLoader.getLoadPath();
 	}
@@ -171,10 +172,11 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
-	 * SQLファイル拡張子取得<br>
+	 * {@inheritDoc}
 	 *
-	 * @return SQLファイル拡張子
+	 * @see jp.co.future.uroborosql.store.SqlManager#getFileExtension()
 	 */
+	@Override
 	public String getFileExtension() {
 		return sqlLoader.getFileExtension();
 	}
