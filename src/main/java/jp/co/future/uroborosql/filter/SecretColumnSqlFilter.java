@@ -1,12 +1,15 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
@@ -14,17 +17,18 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-
-import jp.co.future.uroborosql.utils.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルター.
@@ -97,13 +101,13 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 				setSkipFilter(true);
 				return;
 			}
-			File storeFile = new File(getKeyStoreFilePath());
-			if (!storeFile.exists()) {
+			Path storeFile = this.getPath(getKeyStoreFilePath());
+			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
-			if (storeFile.isDirectory()) {
+			if (Files.isDirectory(storeFile)) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
@@ -123,7 +127,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream is = new BufferedInputStream(new FileInputStream(storeFile))) {
+			try (InputStream fis = Files.newInputStream(storeFile);
+					InputStream is = new BufferedInputStream(fis)) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);
@@ -363,5 +368,33 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	public void setTransformationType(final String transformationType) {
 		this.transformationType = transformationType;
+	}
+
+
+	/**
+	 * 文字列から {@link Path} を取得する。<br>
+	 * 文字列がURI表記であった場合、 {@link URI} から{@link Path} を取得する
+	 *
+	 * @param pathOrUri PathまたはURI
+	 * @return {@link Path}
+	 */
+	private Path getPath(String pathOrUri) {
+		try {
+			URI uri = new URI(pathOrUri);
+			String scheme = uri.getScheme();
+			if (StringUtils.isNotEmpty(scheme)) {
+				// Spring Bootのexecutable jarのように特殊なClassLoader構造を持つケースでは
+				// Paths.getが適切なFileSystemProviderを特定できない為、自前でFileSystemProviderを走査する。
+				for (FileSystemProvider provider: ServiceLoader.load(FileSystemProvider.class)) {
+					if (provider.getScheme().equalsIgnoreCase(scheme)) {
+						return provider.getPath(uri);
+					}
+				}
+				return Paths.get(uri);
+			}
+		} catch (Exception e) {
+			//ignore
+		}
+		return Paths.get(pathOrUri);
 	}
 }

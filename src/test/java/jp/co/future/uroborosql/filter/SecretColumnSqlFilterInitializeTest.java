@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.filter;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
@@ -116,5 +117,24 @@ public class SecretColumnSqlFilterInitializeTest {
 				"KeyStoreにアクセスするためのエイリアスが指定されていません。",
 				"No alias for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
+	}
+
+	@Test
+	public void testInitialize07() throws Exception {
+		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			// 下記コマンドでkeystoreファイル生成
+			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
+			// -storepass password -keypass password -keyalg AES -keysize 128
+				filter.setKeyStoreFilePath("file:///" + (new File(".").getAbsoluteFile().getParent()).replace(File.separator, "/") + "/src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+				//filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+				filter.setAlias("testexample");
+				filter.setCharset("UTF-8");
+				filter.setTransformationType("AES/ECB/PKCS5Padding");
+				sqlFilterManager.initialize();
+			});
+		assertThat(log, is(Arrays.asList()));
+		assertThat(filter.isSkipFilter(), is(false));
 	}
 }
