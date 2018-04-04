@@ -126,7 +126,7 @@ public class SecretColumnSqlFilterInitializeTest {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath("file:///" + (new File(".").getAbsoluteFile().getParent()).replace(File.separator, "/") + "/src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+				filter.setKeyStoreFilePath(new File("./src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks").toURI().toString());
 				//filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
 				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
 				filter.setAlias("testexample");
@@ -136,5 +136,23 @@ public class SecretColumnSqlFilterInitializeTest {
 			});
 		assertThat(log, is(Arrays.asList()));
 		assertThat(filter.isSkipFilter(), is(false));
+	}
+
+	@Test
+	public void testInitialize08() throws Exception {
+		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			// 下記コマンドでkeystoreファイル生成
+			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
+			// -storepass password -keypass password -keyalg AES -keysize 128
+				filter.setKeyStoreFilePath("invalidscheme://xxxxxxxxxxx");
+				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+				filter.setAlias("testexample");
+				filter.setCharset("UTF-8");
+				filter.setTransformationType("AES/ECB/PKCS5Padding");
+				sqlFilterManager.initialize();
+			});
+		assertThat(log, is(Arrays.asList("Failed to acquire secret key. Cause：Provider \"invalidscheme\" not found")));
+		assertThat(filter.isSkipFilter(), is(true));
 	}
 }

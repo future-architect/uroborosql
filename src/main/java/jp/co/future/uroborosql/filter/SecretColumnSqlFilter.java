@@ -1,23 +1,28 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.spi.FileSystemProvider;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
-import java.util.ServiceLoader;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -127,8 +132,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream fis = Files.newInputStream(storeFile);
-					InputStream is = new BufferedInputStream(fis)) {
+			try (InputStream is = new BufferedInputStream(Files.newInputStream(storeFile))) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);
@@ -370,31 +374,34 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		this.transformationType = transformationType;
 	}
 
-
 	/**
 	 * 文字列から {@link Path} を取得する。<br>
 	 * 文字列がURI表記であった場合、 {@link URI} から{@link Path} を取得する
 	 *
 	 * @param pathOrUri PathまたはURI
 	 * @return {@link Path}
+	 * @throws IOException IOエラー発生時
 	 */
-	private Path getPath(String pathOrUri) {
+	protected Path getPath(String pathOrUri) throws IOException {
 		try {
-			URI uri = new URI(pathOrUri);
-			String scheme = uri.getScheme();
-			if (StringUtils.isNotEmpty(scheme)) {
-				// Spring Bootのexecutable jarのように特殊なClassLoader構造を持つケースでは
-				// Paths.getが適切なFileSystemProviderを特定できない為、自前でFileSystemProviderを走査する。
-				for (FileSystemProvider provider: ServiceLoader.load(FileSystemProvider.class)) {
-					if (provider.getScheme().equalsIgnoreCase(scheme)) {
-						return provider.getPath(uri);
-					}
+			return Paths.get(pathOrUri);
+		} catch (InvalidPathException e) {
+			try {
+				URI uri = new URI(pathOrUri);
+				try {
+					return Paths.get(uri);
+				} catch(FileSystemNotFoundException ex) {
 				}
-				return Paths.get(uri);
+				FileSystem fs;
+				try {
+					fs = FileSystems.getFileSystem(uri);
+				} catch (FileSystemNotFoundException ex) {
+					fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
+				}
+				return fs.getPath(pathOrUri);
+			}catch (URISyntaxException ue) {
+				throw new IllegalArgumentException(ue);
 			}
-		} catch (Exception e) {
-			//ignore
 		}
-		return Paths.get(pathOrUri);
 	}
 }
