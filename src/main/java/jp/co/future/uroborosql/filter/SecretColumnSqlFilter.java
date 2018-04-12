@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
@@ -17,7 +16,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -49,9 +47,6 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 	/** 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。 */
 	private String keyStoreFilePath = null;
-
-	/** 秘密鍵を格納したKeyStoreファイルのURI. KeyStoreはJCEKSタイプであること。 */
-	private URI keyStoreFileURI = null;
 
 	/** KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定する */
 	private String storePassword = null;
@@ -99,30 +94,19 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 		KeyStore store;
 		try {
-			if (StringUtils.isBlank(getKeyStoreFilePath()) && Objects.isNull(getKeyStoreFileURI())) {
+			if (StringUtils.isBlank(getKeyStoreFilePath())) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
-
-			Path storeFile = null;
-			String storeFilePath = null;
-			if(getKeyStoreFilePath() != null) {
-				storeFilePath = getKeyStoreFilePath();
-				storeFile = Paths.get(getKeyStoreFilePath());
-			}
-			if(getKeyStoreFileURI() != null) {
-				storeFilePath = getKeyStoreFileURI().toString();
-				storeFile = toPath(getKeyStoreFileURI());
-			}
-
+			Path storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
-				LOG.error("Not found KeyStore file path. Path:{}", storeFilePath);
+				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
-				LOG.error("Invalid KeyStore file path. Path:{}", storeFilePath);
+				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
@@ -240,27 +224,6 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	public void setKeyStoreFilePath(final String keyStoreFilePath) {
 		this.keyStoreFilePath = keyStoreFilePath;
-		this.keyStoreFileURI = null;
-	}
-
-	/**
-	 * 秘密鍵を格納したKeyStoreファイルのURI. KeyStoreはJCEKSタイプであること。を取得します。
-	 *
-	 * @return 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
-	 */
-	public URI getKeyStoreFileURI() {
-		return keyStoreFileURI;
-	}
-
-	/**
-	 * 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。を設定します。
-	 *
-	 * @param keyStoreFilePath
-	 *            秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
-	 */
-	public void setKeyStoreFileURI(final URI keyStoreFileURI) {
-		this.keyStoreFilePath = null;
-		this.keyStoreFileURI = keyStoreFileURI;
 	}
 
 	/**
@@ -405,12 +368,12 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * URI から Path オブジェクトに変換します。 {@link FileSystemProvider} の走査方法をカスタマイズしたい場合等にオーバーライドします。
+	 * 文字列から Path オブジェクトに変換します。 {@link FileSystemProvider} の走査方法をカスタマイズしたい場合等にオーバーライドします。
 	 *
-	 * @param uri 変換元URI
+	 * @param path 変換元文字列
 	 * @return Path オブジェクト
 	 */
-	protected Path toPath(URI uri) {
-		return Paths.get(uri);
+	protected Path toPath(String path) {
+		return Paths.get(path);
 	}
 }
