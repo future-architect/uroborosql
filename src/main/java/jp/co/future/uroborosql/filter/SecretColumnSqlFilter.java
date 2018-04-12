@@ -1,28 +1,23 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -54,6 +49,9 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 	/** 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。 */
 	private String keyStoreFilePath = null;
+
+	/** 秘密鍵を格納したKeyStoreファイルのURI. KeyStoreはJCEKSタイプであること。 */
+	private URI keyStoreFileURI = null;
 
 	/** KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定する */
 	private String storePassword = null;
@@ -101,19 +99,30 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 		KeyStore store;
 		try {
-			if (StringUtils.isBlank(getKeyStoreFilePath())) {
+			if (StringUtils.isBlank(getKeyStoreFilePath()) && Objects.isNull(getKeyStoreFileURI())) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
-			Path storeFile = this.getPath(getKeyStoreFilePath());
+
+			Path storeFile = null;
+			String storeFilePath = null;
+			if(getKeyStoreFilePath() != null) {
+				storeFilePath = getKeyStoreFilePath();
+				storeFile = Paths.get(getKeyStoreFilePath());
+			}
+			if(getKeyStoreFileURI() != null) {
+				storeFilePath = getKeyStoreFileURI().toString();
+				storeFile = toPath(getKeyStoreFileURI());
+			}
+
 			if (!Files.exists(storeFile)) {
-				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
+				LOG.error("Not found KeyStore file path. Path:{}", storeFilePath);
 				setSkipFilter(true);
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
-				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
+				LOG.error("Invalid KeyStore file path. Path:{}", storeFilePath);
 				setSkipFilter(true);
 				return;
 			}
@@ -231,6 +240,27 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	public void setKeyStoreFilePath(final String keyStoreFilePath) {
 		this.keyStoreFilePath = keyStoreFilePath;
+		this.keyStoreFileURI = null;
+	}
+
+	/**
+	 * 秘密鍵を格納したKeyStoreファイルのURI. KeyStoreはJCEKSタイプであること。を取得します。
+	 *
+	 * @return 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
+	 */
+	public URI getKeyStoreFileURI() {
+		return keyStoreFileURI;
+	}
+
+	/**
+	 * 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。を設定します。
+	 *
+	 * @param keyStoreFilePath
+	 *            秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
+	 */
+	public void setKeyStoreFileURI(final URI keyStoreFileURI) {
+		this.keyStoreFilePath = null;
+		this.keyStoreFileURI = keyStoreFileURI;
 	}
 
 	/**
@@ -375,33 +405,12 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * 文字列から {@link Path} を取得する。<br>
-	 * 文字列がURI表記であった場合、 {@link URI} から{@link Path} を取得する
+	 * URI から Path オブジェクトに変換します。 {@link FileSystemProvider} の走査方法をカスタマイズしたい場合等にオーバーライドします。
 	 *
-	 * @param pathOrUri PathまたはURI
-	 * @return {@link Path}
-	 * @throws IOException IOエラー発生時
+	 * @param uri 変換元URI
+	 * @return Path オブジェクト
 	 */
-	protected Path getPath(String pathOrUri) throws IOException {
-		try {
-			return Paths.get(pathOrUri);
-		} catch (InvalidPathException e) {
-			try {
-				URI uri = new URI(pathOrUri);
-				try {
-					return Paths.get(uri);
-				} catch(FileSystemNotFoundException ex) {
-				}
-				FileSystem fs;
-				try {
-					fs = FileSystems.getFileSystem(uri);
-				} catch (FileSystemNotFoundException ex) {
-					fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
-				}
-				return fs.getPath(pathOrUri);
-			}catch (URISyntaxException ue) {
-				throw new IllegalArgumentException(ue);
-			}
-		}
+	protected Path toPath(URI uri) {
+		return Paths.get(uri);
 	}
 }

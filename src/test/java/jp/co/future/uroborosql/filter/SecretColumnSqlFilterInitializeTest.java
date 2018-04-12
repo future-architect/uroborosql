@@ -4,16 +4,17 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.net.URI;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.testlog.TestAppender;
-
-import org.junit.Before;
-import org.junit.Test;
 
 public class SecretColumnSqlFilterInitializeTest {
 	private SqlConfig config;
@@ -126,7 +127,7 @@ public class SecretColumnSqlFilterInitializeTest {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath(new File("./src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks").toURI().toString());
+				filter.setKeyStoreFileURI(new File("./src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks").getAbsoluteFile().toURI());
 				//filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
 				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
 				filter.setAlias("testexample");
@@ -145,14 +146,14 @@ public class SecretColumnSqlFilterInitializeTest {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath("invalidscheme://xxxxxxxxxxx");
+				filter.setKeyStoreFileURI(new URI("invalidscheme://xxxxxxxxxxx"));
 				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
 				filter.setAlias("testexample");
 				filter.setCharset("UTF-8");
 				filter.setTransformationType("AES/ECB/PKCS5Padding");
 				sqlFilterManager.initialize();
 			});
-		assertThat(log, is(Arrays.asList("Failed to acquire secret key. Cause：Provider \"invalidscheme\" not found")));
+		assertThat(log, is(Arrays.asList("Failed to acquire secret key. Cause：Provider \"invalidscheme\" not installed")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
 }
