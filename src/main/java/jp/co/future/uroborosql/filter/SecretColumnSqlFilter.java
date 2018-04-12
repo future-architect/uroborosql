@@ -1,12 +1,14 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
@@ -18,13 +20,13 @@ import java.util.List;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-
-import jp.co.future.uroborosql.utils.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルター.
@@ -97,13 +99,13 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 				setSkipFilter(true);
 				return;
 			}
-			File storeFile = new File(getKeyStoreFilePath());
-			if (!storeFile.exists()) {
+			Path storeFile = toPath(getKeyStoreFilePath());
+			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
-			if (storeFile.isDirectory()) {
+			if (Files.isDirectory(storeFile)) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
@@ -123,7 +125,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream is = new BufferedInputStream(new FileInputStream(storeFile))) {
+			try (InputStream is = new BufferedInputStream(Files.newInputStream(storeFile))) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);
@@ -363,5 +365,15 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	public void setTransformationType(final String transformationType) {
 		this.transformationType = transformationType;
+	}
+
+	/**
+	 * 文字列から Path オブジェクトに変換します。 {@link FileSystemProvider} の走査方法をカスタマイズしたい場合等にオーバーライドします。
+	 *
+	 * @param path 変換元文字列
+	 * @return Path オブジェクト
+	 */
+	protected Path toPath(String path) {
+		return Paths.get(path);
 	}
 }
