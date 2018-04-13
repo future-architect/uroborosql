@@ -112,9 +112,7 @@ public class SecretColumnSqlFilterInitializeTest {
 				filter.setAlias(null);
 				sqlFilterManager.initialize();
 			});
-		assertThat(log, is(Arrays.asList(
-				"KeyStoreにアクセスするためのエイリアスが指定されていません。",
-				"No alias for access KeyStore.")));
+		assertThat(log, is(Arrays.asList("No alias for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
 }
