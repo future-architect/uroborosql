@@ -1,12 +1,13 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
@@ -20,8 +21,8 @@ import javax.crypto.SecretKey;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
-
 import jp.co.future.uroborosql.utils.CaseFormat;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,13 +98,13 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 				setSkipFilter(true);
 				return;
 			}
-			File storeFile = new File(getKeyStoreFilePath());
-			if (!storeFile.exists()) {
+			Path storeFile = toPath(getKeyStoreFilePath());
+			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
 			}
-			if (storeFile.isDirectory()) {
+			if (Files.isDirectory(storeFile)) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
 				return;
@@ -123,7 +124,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream is = new BufferedInputStream(new FileInputStream(storeFile))) {
+			try (InputStream is = new BufferedInputStream(Files.newInputStream(storeFile))) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);
@@ -167,7 +168,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 							synchronized (encryptCipher) {
 								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
 										getCharset()));
-								return new Parameter(key, Base64.getUrlEncoder().withoutPadding().encodeToString(crypted));
+								return new Parameter(key, Base64.getUrlEncoder().withoutPadding()
+										.encodeToString(crypted));
 							}
 						} catch (Exception ex) {
 							return parameter;
@@ -203,6 +205,17 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			ex.printStackTrace();
 		}
 		return resultSet;
+	}
+
+	/**
+	 * 文字列からPathオブジェクトに変換する。
+	 * Pathの取得方法をカスタマイズしたい場合にオーバーライドする。
+	 *
+	 * @param path パス文字列
+	 * @return Pathオブジェクト
+	 */
+	protected Path toPath(final String path) {
+		return Paths.get(path);
 	}
 
 	/**
