@@ -126,7 +126,8 @@ public class NioSqlManagerImpl implements SqlManager {
 		try {
 			watcher = FileSystems.getDefault().newWatchService();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("Can't start watcher service.", e);
+			return;
 		}
 
 		generateSqlInfos();
@@ -510,7 +511,7 @@ public class NioSqlManagerImpl implements SqlManager {
 			try {
 				return Files.getLastModifiedTime(path);
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error("Can't get lastModifiedTime. path:" + path, e);
 			}
 			return FileTime.fromMillis(0L);
 		}
@@ -655,12 +656,12 @@ public class NioSqlManagerImpl implements SqlManager {
 				FileTime currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
-					log.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
+					log.trace("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
 							oldPath, currentPath, currentTimeStamp.toString());
 				} else {
 					if (!this.lastModified.equals(currentTimeStamp)) {
 						replaceFlag = true;
-						log.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+						log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
 								currentTimeStamp.toString());
 					}
 				}
