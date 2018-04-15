@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
-	 * プロパティ：例外発生時のログ出力を行うかどうか。
+	 * プロパティ:例外発生時のログ出力を行うかどうか。
 	 * デフォルトは<code>true</code>
 	 */
 	public static final String PROPS_KEY_OUTPUT_EXCEPTION_LOG = "outputExceptionLog";

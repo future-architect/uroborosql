@@ -52,7 +52,8 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	@Override
 	public int count() {
 		if (batch) {
-			throw new IllegalStateException("すでにaddBatch()でパラメータが設定されているため、batch()を呼び出してください");
+			throw new IllegalStateException(
+					"Since the parameter has already been set with addBatch() method, please call batch() method.");
 		}
 		try {
 			return agent().update(context());

@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jp.co.future.uroborosql.dialect.Dialect;
+
 /**
  * SQL管理実装クラス
  *
@@ -25,6 +27,8 @@ public class SqlManagerImpl implements SqlManager {
 
 	/** 起動時にSQLファイルをキャッシュするかどうか */
 	private boolean cache = true;
+
+	private Dialect dialect;
 
 	/** コンストラクタ */
 	public SqlManagerImpl() {
@@ -212,6 +216,26 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public void setCache(final boolean cache) {
 		this.cache = cache;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#getDialect()
+	 */
+	@Override
+	public Dialect getDialect() {
+		return dialect;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
+	 */
+	@Override
+	public void setDialect(final Dialect dialect) {
+		this.dialect = dialect;
 	}
 
 }

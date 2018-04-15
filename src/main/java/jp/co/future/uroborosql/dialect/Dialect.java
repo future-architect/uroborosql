@@ -14,10 +14,15 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
  * @author H.Sugimoto
  */
 public interface Dialect {
-	String getName();
+	/**
+	 * データベースを判別するための文字列を取得する。
+	 *
+	 * @return データベースを判別するための文字列
+	 */
+	String getDatabaseName();
 
-	default boolean accept(ConnectionSupplier supplier) {
-		return supplier != null && supplier.getDatabaseName().startsWith(getName());
+	default boolean accept(final ConnectionSupplier supplier) {
+		return supplier != null && supplier.getDatabaseName().startsWith(getDatabaseName());
 	}
 
 	/**
@@ -28,4 +33,12 @@ public interface Dialect {
 	default boolean isRemoveTerminator() {
 		return true;
 	}
+
+	/**
+	 * Dialect名を取得する
+	 *
+	 * @return Dialect名
+	 */
+	String getDialectName();
+
 }

@@ -129,7 +129,7 @@ public final class BindParameterMapperManager {
 	 * 標準でパラメータとして受け入れ可能な値かを判定
 	 *
 	 * @param object 指定パラメータ
-	 * @return true：標準で受け入れ可能
+	 * @return 標準で受け入れ可能かどうか。可能な場合<code>true</code>
 	 */
 	public boolean canAcceptByStandard(final Object object) {
 		if (object == null) {

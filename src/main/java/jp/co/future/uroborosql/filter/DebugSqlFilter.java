@@ -27,7 +27,7 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 
 	@Override
 	public Parameter doParameter(final Parameter parameter) {
-		LOG.debug("Parameter：{}", parameter);
+		LOG.debug("Parameter:{}", parameter);
 		return parameter;
 	}
 
@@ -38,7 +38,7 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public Object doOutParameter(final String key, final Object val) {
-		LOG.debug("Out parameter - Key：{}, value：{}", key, val);
+		LOG.debug("Out parameter - Key:{}, value:{}", key, val);
 		return val;
 	}
 
@@ -50,7 +50,7 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
-		LOG.debug("SQL：{} executed.", sqlContext.getSqlName());
+		LOG.debug("SQL:{} executed.", sqlContext.getSqlName());
 		return resultSet;
 	}
 
@@ -61,7 +61,7 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
-		LOG.debug("SQL：{} executed. Count:{} items.", sqlContext.getSqlName(), result);
+		LOG.debug("SQL:{} executed. Count:{} items.", sqlContext.getSqlName(), result);
 		return result;
 	}
 
@@ -84,7 +84,7 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 			for (int val : counts) {
 				builder.append(val).append(", ");
 			}
-			LOG.debug("SQL：{} executed. Result:{}", sqlContext.getSqlName(), builder.toString());
+			LOG.debug("SQL:{} executed. Result:{}", sqlContext.getSqlName(), builder.toString());
 		}
 		return result;
 	}

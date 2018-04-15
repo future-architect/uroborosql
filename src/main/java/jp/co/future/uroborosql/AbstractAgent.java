@@ -64,10 +64,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
 
-	/** SqlContext属性キー：リトライカウント */
+	/** SqlContext属性キー:リトライカウント */
 	protected static final String CTX_ATTR_KEY_RETRY_COUNT = "__retryCount";
 
-	/** SqlContext属性キー：バインドパラメータコメントの出力有無 */
+	/** SqlContext属性キー:バインドパラメータコメントの出力有無 */
 	protected static final String CTX_ATTR_KEY_OUTPUT_BIND_COMMENT = "__outputBindComment";
 
 	/** カバレッジハンドラ */
@@ -117,7 +117,7 @@ public abstract class AbstractAgent implements SqlAgent {
 				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
 						Thread.currentThread().getContextClassLoader()).newInstance();
 			} catch (Exception ex) {
-				LOG.warn("Failed to generate CoverageHandler class. Class：{}, Cause：{}", sqlCoverageClassName,
+				LOG.warn("Failed to generate CoverageHandler class. Class:{}, Cause:{}", sqlCoverageClassName,
 						ex.getMessage());
 			}
 		}
@@ -223,7 +223,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (StringUtils.isEmpty(originalSql) && getSqlManager() != null) {
 			originalSql = getSqlManager().getSql(sqlContext.getSqlName());
 			if (StringUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("指定されたSQLファイル[" + sqlContext.getSqlName() + "]が見つかりません。");
+				throw new UroborosqlRuntimeException("sql file:[" + sqlContext.getSqlName() + "] is not found.");
 			}
 			originalSql = getSqlFilterManager().doTransformSql(sqlContext, originalSql);
 			sqlContext.setSql(originalSql);

@@ -121,7 +121,6 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 				return;
 			}
 			if (StringUtils.isBlank(getAlias())) {
-				LOG.error("KeyStoreにアクセスするためのエイリアスが指定されていません。");
 				LOG.error("No alias for access KeyStore.");
 				setSkipFilter(true);
 				return;
@@ -143,7 +142,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			encryptCipher = Cipher.getInstance(transformationType);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 		} catch (Exception ex) {
-			LOG.error("Failed to acquire secret key. Cause：{}", ex.getMessage());
+			LOG.error("Failed to acquire secret key. Cause:{}", ex.getMessage());
 			setSkipFilter(true);
 			ex.printStackTrace();
 		}

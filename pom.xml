@@ -84,6 +84,9 @@
 					<version>2.20.1</version>
 					<configuration>
 						<argLine>-Duroborosql.sql.coverage=true ${jacocoArgs}</argLine>
+						<additionalClasspathElements>
+							<additionalClasspathElement>${basedir}/src/test/resources/lib/sql.zip</additionalClasspathElement>
+						</additionalClasspathElements>
 					</configuration>
 				</plugin>
 				<plugin>

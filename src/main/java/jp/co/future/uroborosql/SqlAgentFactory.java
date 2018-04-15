@@ -25,43 +25,43 @@ public interface SqlAgentFactory {
 	final String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
 	/**
-	 * プロパティ：SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
+	 * プロパティ:SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
 
 	/**
-	 * プロパティ：SQL実行エラー時の最大リトライ回数デフォルト値<br>
+	 * プロパティ:SQL実行エラー時の最大リトライ回数デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
 	final String PROPS_KEY_DEFAULT_MAX_RETRY_COUNT = "defaultMaxRetryCount";
 
 	/**
-	 * プロパティ：SQL実行リトライ時の待機時間(ms)デフォルト値<br>
+	 * プロパティ:SQL実行リトライ時の待機時間(ms)デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
 	final String PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME = "defaultSqlRetryWaitTime";
 
 	/**
-	 * プロパティ：フェッチサイズ（数値）<br>
+	 * プロパティ:フェッチサイズ（数値）<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_FETCH_SIZE = "fetchSize";
 
 	/**
-	 * プロパティ：クエリータイムアウト（ms）（数値）<br>
+	 * プロパティ:クエリータイムアウト（ms）（数値）<br>
 	 * デフォルトは指定なし
 	 */
 	final String PROPS_KEY_QUERY_TIMEOUT = "queryTimeout";
 
 	/**
-	 * プロパティ：SQL_IDを置換するためのKEY文字列<br>
+	 * プロパティ:SQL_IDを置換するためのKEY文字列<br>
 	 * デフォルトは "_SQL_ID_"
 	 */
 	final String PROPS_KEY_SQL_ID_KEY_NAME = "sqlIdKeyName";
 
 	/**
-	 * プロパティ：Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat<br>
+	 * プロパティ:Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat<br>
 	 * デフォルトは "UPPER_SNAKE_CASE"
 	 */
 	final String PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT = "defaultMapKeyCaseFormat";

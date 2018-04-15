@@ -21,7 +21,7 @@ public class OracleDialect extends AbstractDialect {
 	}
 
 	@Override
-	public String getName() {
+	public String getDatabaseName() {
 		return "Oracle";
 	}
 
