@@ -255,6 +255,7 @@ public final class UroboroSQL {
 				this.dialect = dialect;
 			}
 
+			this.sqlManager.setDialect(this.dialect);
 			this.sqlManager.initialize();
 			this.sqlFilterManager.initialize();
 			this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);

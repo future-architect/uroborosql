@@ -161,7 +161,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(new H2Dialect().getName(), config.getDialect().getName());
+		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
 	}
 
 	@Test
@@ -195,7 +195,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(new H2Dialect().getName(), config.getDialect().getName());
+		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
 	}
 
 	@Test

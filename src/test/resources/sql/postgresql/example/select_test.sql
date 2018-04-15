@@ -1,4 +1,4 @@
-select -- default file
+select -- postgresql file
 	*
 from test t
 where 1 = 1
@@ -8,4 +8,4 @@ and	t.id = /*id*/''
 /*IF SF.isNotEmpty(name) */
 and	t.name = /*name*/''
 /*END*/
-order by t.id
+order by t.id, t.name
