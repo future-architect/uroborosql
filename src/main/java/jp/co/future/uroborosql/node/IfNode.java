@@ -110,7 +110,7 @@ public class IfNode extends BranchNode {
 					StringBuilder builder = new StringBuilder();
 					dumpNode(parsedExpression, transformContext, builder);
 
-					LOG.debug("Evaluation Expression：[{}], Result：[{}], Parameter：[{}]", expression, resultValue,
+					LOG.debug("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
 							builder.length() == 0 ? ""
 									: builder.substring(0, builder.length() - 1));
 				}

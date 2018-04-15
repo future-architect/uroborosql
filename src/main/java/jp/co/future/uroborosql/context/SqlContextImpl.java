@@ -124,10 +124,10 @@ public class SqlContextImpl implements SqlContext {
 	/** 列の型の再定義保持用マップ */
 	private final Map<Integer, Integer> defineColumnTypeMap = new HashMap<>();
 
-	/** カーソルのタイプ(デフォルト値：カーソルは最初から最後まで順方向にしか移動できません。) */
+	/** カーソルのタイプ(デフォルト値:カーソルは最初から最後まで順方向にしか移動できません。) */
 	private int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
-	/** 変更可能性(デフォルト値：カーソルはデータの読み出ししかサポートしません。) */
+	/** 変更可能性(デフォルト値:カーソルはデータの読み出ししかサポートしません。) */
 	private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** DBエイリアス名 */

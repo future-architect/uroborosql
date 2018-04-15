@@ -6,18 +6,18 @@ package jp.co.future.uroborosql.parser;
  * @author H.Sugimoto
  */
 enum TokenType {
-	/** トークン種別：SQL */
+	/** トークン種別:SQL */
 	SQL,
 
-	/** トークン種別：コメント */
+	/** トークン種別:コメント */
 	COMMENT,
 
-	/** トークン種別：ELSE */
+	/** トークン種別:ELSE */
 	ELSE,
 
-	/** トークン種別：バインド変数 */
+	/** トークン種別:バインド変数 */
 	BIND_VARIABLE,
 
-	/** トークン種別：EOF */
+	/** トークン種別:EOF */
 	EOF,
 }

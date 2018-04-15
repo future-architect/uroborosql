@@ -147,10 +147,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 						Parameter newValue = new Parameter(fieldName, field.get(null));
 						Parameter prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							LOG.warn("Duplicate constant name. Constant name：{}, Old name：{} destroy.", fieldName,
+							LOG.warn("Duplicate constant name. Constant name:{}, Old name:{} destroy.", fieldName,
 									prevValue.getValue());
 						}
-						LOG.debug("Constant [name：{}, value：{}] added to parameter.", fieldName, newValue.getValue());
+						LOG.debug("Constant [name:{}, value:{}] added to parameter.", fieldName, newValue.getValue());
 					}
 				}
 			}
@@ -190,9 +190,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 			Parameter newValue = new Parameter(fieldName, value);
 			Parameter prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				LOG.warn("Duplicate Enum name. Enum name：{}, Old name：{} destroy.", fieldName, prevValue.getValue());
+				LOG.warn("Duplicate Enum name. Enum name:{}, Old name:{} destroy.", fieldName, prevValue.getValue());
 			}
-			LOG.debug("Enum [name：{}, value：{}] added to parameter.", fieldName, newValue.getValue());
+			LOG.debug("Enum [name:{}, value:{}] added to parameter.", fieldName, newValue.getValue());
 		}
 	}
 
