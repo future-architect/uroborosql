@@ -17,10 +17,10 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import jp.co.future.uroborosql.AbstractResultSetWrapper;
 import jp.co.future.uroborosql.utils.CaseFormat;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * ResultSetのラッパークラス。検索結果に暗号化したカラムが含まれる場合復号化して値を返す
@@ -33,6 +33,9 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 
 	/** 暗号器 */
 	private Cipher cipher = null;
+
+	/** IVを利用するかどうか */
+	private boolean useIV = false;
 
 	/**
 	 * キャラクタセット（デフォルトUTF-8）
@@ -59,6 +62,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 		super(wrapped);
 		this.secretKey = secretKey;
 		this.cipher = cipher;
+		this.useIV = cipher.getIV() != null;
 		this.cryptColumnNames = cryptColumnNames;
 		this.charset = charset;
 	}
@@ -80,9 +84,10 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 
 			synchronized (cipher) {
 				try {
-					if (cipher.getIV() != null) {
-						byte[] iv = ArrayUtils.subarray(secretData, 0, cipher.getBlockSize());
-						secretData = ArrayUtils.subarray(secretData, cipher.getBlockSize(), secretData.length);
+					if (useIV) {
+						int blockSize = cipher.getBlockSize();
+						byte[] iv = ArrayUtils.subarray(secretData, 0, blockSize);
+						secretData = ArrayUtils.subarray(secretData, blockSize, secretData.length);
 						IvParameterSpec ips = new IvParameterSpec(iv);
 						cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
 					}
@@ -104,6 +109,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	@Override
 	public void close() throws SQLException {
 		this.cipher = null;
+		this.useIV = false;
 		this.cryptColumnNames = null;
 		this.charset = null;
 		super.close();

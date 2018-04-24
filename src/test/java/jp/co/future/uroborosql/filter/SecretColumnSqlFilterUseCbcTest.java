@@ -272,7 +272,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	@Test
 	public void testSecretResultSetPerformance01() throws Exception {
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");
 			try (SqlAgent agent = config.agent()) {
 				long startTime = System.currentTimeMillis();
@@ -299,8 +299,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 				long endTime = System.currentTimeMillis();
 
 				System.out.printf("update\t%d\tquery\t%d\ttotal\t%d\r\n", lapTime - startTime, endTime - lapTime,
-						endTime
-								- startTime);
+						endTime - startTime);
 			}
 		}
 	}
