@@ -272,16 +272,14 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	@Test
 	public void testSecretResultSetPerformance01() throws Exception {
-		truncateTable("PRODUCT");
-
 		for (int i = 0; i < 10; i++) {
-			final int loop = i;
+			truncateTable("PRODUCT");
 			try (SqlAgent agent = config.agent()) {
 				long startTime = System.currentTimeMillis();
-				agent.batch("example/insert_product").paramStream(IntStream.range(1, 9999).mapToObj(count -> {
+				agent.batch("example/insert_product").paramStream(IntStream.range(1, 100000).mapToObj(count -> {
 					return new HashMap<String, Object>() {
 						{
-							put("product_id", count + (loop * 10000));
+							put("product_id", count);
 							put("product_name", "商品名" + count);
 							put("product_kana_name", "ショウヒンメイ" + count);
 							put("jan_code", "1234567890123");
