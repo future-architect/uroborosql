@@ -175,13 +175,12 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
-								byte[] iv = encryptCipher.getIV();
-								if (iv != null) {
-									IvParameterSpec ips = new IvParameterSpec(iv);
-									encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ips);
+								if (encryptCipher.getIV() != null) {
+									encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 								}
 								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
 										getCharset()));
+								byte[] iv = encryptCipher.getIV();
 								if (iv != null) {
 									crypted = ArrayUtils.addAll(iv, crypted);
 								}
