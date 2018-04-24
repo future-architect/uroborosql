@@ -15,20 +15,22 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.stream.IntStream;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Test case of SecretColumnSqlFilter when using CBC mode
@@ -267,4 +269,42 @@ public class SecretColumnSqlFilterUseCbcTest {
 			result.close();
 		}
 	}
+
+	@Test
+	public void testSecretResultSetPerformance01() throws Exception {
+		truncateTable("PRODUCT");
+
+		for (int i = 0; i < 10; i++) {
+			final int loop = i;
+			try (SqlAgent agent = config.agent()) {
+				long startTime = System.currentTimeMillis();
+				agent.batch("example/insert_product").paramStream(IntStream.range(1, 9999).mapToObj(count -> {
+					return new HashMap<String, Object>() {
+						{
+							put("product_id", count + (loop * 10000));
+							put("product_name", "商品名" + count);
+							put("product_kana_name", "ショウヒンメイ" + count);
+							put("jan_code", "1234567890123");
+							put("product_description", count + "番目の商品");
+							put("ins_datetime", "2005-12-12 10:10:10");
+							put("upd_datetime", "2005-12-13 10:10:10");
+							put("version_no", count);
+						}
+					};
+				})).count();
+
+				long lapTime = System.currentTimeMillis();
+
+				agent.query("example/select_product").stream()
+						.forEach(m -> assertThat(m.get("PRODUCT_NAME").toString(), containsString("商品名")));
+
+				long endTime = System.currentTimeMillis();
+
+				System.out.printf("update\t%d\tquery\t%d\ttotal\t%d\r\n", lapTime - startTime, endTime - lapTime,
+						endTime
+								- startTime);
+			}
+		}
+	}
+
 }
