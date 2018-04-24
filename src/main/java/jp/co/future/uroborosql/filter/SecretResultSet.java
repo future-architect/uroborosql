@@ -14,6 +14,10 @@ import java.util.Base64;
 import java.util.List;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import jp.co.future.uroborosql.AbstractResultSetWrapper;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -24,12 +28,17 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author H.Sugimoto
  */
 public class SecretResultSet extends AbstractResultSetWrapper {
+	/** 暗号キー */
+	private SecretKey secretKey = null;
+
+	/** 暗号器 */
 	private Cipher cipher = null;
 
 	/**
 	 * キャラクタセット（デフォルトUTF-8）
 	 */
 	private Charset charset = StandardCharsets.UTF_8;
+
 	/**
 	 * 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定する
 	 */
@@ -39,13 +48,16 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * コンストラクタ
 	 *
 	 * @param wrapped 元のResultSet
+	 * @param secretKey 暗号キー
 	 * @param cipher 暗号器
 	 * @param cryptColumnNames 暗号対象カラム名リスト
 	 * @param charset キャラクタセット
 	 */
-	SecretResultSet(final ResultSet wrapped, final Cipher cipher, final List<String> cryptColumnNames,
+	SecretResultSet(final ResultSet wrapped, final SecretKey secretKey, final Cipher cipher,
+			final List<String> cryptColumnNames,
 			final Charset charset) {
 		super(wrapped);
+		this.secretKey = secretKey;
 		this.cipher = cipher;
 		this.cryptColumnNames = cryptColumnNames;
 		this.charset = charset;
@@ -66,9 +78,15 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 		if (!secretStr.isEmpty()) {
 			byte[] secretData = Base64.getUrlDecoder().decode(secretStr);
 
-			synchronized (this.cipher) {
+			synchronized (cipher) {
 				try {
-					return new String(this.cipher.doFinal(secretData), getCharset());
+					if (cipher.getIV() != null) {
+						byte[] iv = ArrayUtils.subarray(secretData, 0, cipher.getBlockSize());
+						secretData = ArrayUtils.subarray(secretData, cipher.getBlockSize(), secretData.length);
+						IvParameterSpec ips = new IvParameterSpec(iv);
+						cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
+					}
+					return new String(cipher.doFinal(secretData), getCharset());
 				} catch (Exception ex) {
 					return secretStr;
 				}

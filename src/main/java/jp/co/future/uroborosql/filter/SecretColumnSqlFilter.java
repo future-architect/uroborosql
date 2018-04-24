@@ -24,14 +24,16 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルター.
@@ -140,7 +142,9 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 			secretKey = entry.getSecretKey();
 			encryptCipher = Cipher.getInstance(transformationType);
-			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			if (encryptCipher.getIV() == null) {
+				encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			}
 		} catch (Exception ex) {
 			LOG.error("Failed to acquire secret key. Cause:{}", ex.getMessage());
 			setSkipFilter(true);
@@ -171,8 +175,16 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
+								byte[] iv = encryptCipher.getIV();
+								if (iv != null) {
+									IvParameterSpec ips = new IvParameterSpec(iv);
+									encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ips);
+								}
 								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
 										getCharset()));
+								if (iv != null) {
+									crypted = ArrayUtils.addAll(iv, crypted);
+								}
 								return new Parameter(key, Base64.getUrlEncoder().withoutPadding()
 										.encodeToString(crypted));
 							}
@@ -203,9 +215,12 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 		try {
 			Cipher cipher = Cipher.getInstance(transformationType);
-			cipher.init(Cipher.DECRYPT_MODE, secretKey);
 
-			return new SecretResultSet(resultSet, cipher, getCryptColumnNames(), getCharset());
+			if (encryptCipher.getIV() == null) {
+				cipher.init(Cipher.DECRYPT_MODE, secretKey);
+			}
+
+			return new SecretResultSet(resultSet, secretKey, cipher, getCryptColumnNames(), getCharset());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
