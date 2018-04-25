@@ -53,16 +53,17 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * @param wrapped 元のResultSet
 	 * @param secretKey 暗号キー
 	 * @param cipher 暗号器
+	 * @param useIV IVを利用するかどうか
 	 * @param cryptColumnNames 暗号対象カラム名リスト
 	 * @param charset キャラクタセット
 	 */
-	SecretResultSet(final ResultSet wrapped, final SecretKey secretKey, final Cipher cipher,
+	SecretResultSet(final ResultSet wrapped, final SecretKey secretKey, final Cipher cipher, final boolean useIV,
 			final List<String> cryptColumnNames,
 			final Charset charset) {
 		super(wrapped);
 		this.secretKey = secretKey;
 		this.cipher = cipher;
-		this.useIV = cipher.getIV() != null;
+		this.useIV = useIV;
 		this.cryptColumnNames = cryptColumnNames;
 		this.charset = charset;
 	}

@@ -223,7 +223,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 				cipher.init(Cipher.DECRYPT_MODE, secretKey);
 			}
 
-			return new SecretResultSet(resultSet, secretKey, cipher, getCryptColumnNames(), getCharset());
+			return new SecretResultSet(resultSet, secretKey, cipher, useIV, getCryptColumnNames(), getCharset());
 		} catch (Exception ex) {
 			LOG.error("Failed to create SecretResultSet.", ex);
 		}
