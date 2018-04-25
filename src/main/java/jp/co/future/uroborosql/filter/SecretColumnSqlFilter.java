@@ -24,11 +24,13 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +69,9 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 	/** 暗号化、復号化を行うパラメータ名リスト. キャメルケースで保存される */
 	private List<String> cryptParamKeys = null;
+
+	/** IVを利用するかどうか */
+	private boolean useIV = false;
 
 	private boolean skipFilter = false;
 
@@ -141,10 +146,10 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 			secretKey = entry.getSecretKey();
 			encryptCipher = Cipher.getInstance(transformationType);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
-			LOG.error("Failed to acquire secret key. Cause:{}", ex.getMessage());
+			LOG.error("Failed to acquire secret key.", ex);
 			setSkipFilter(true);
-			ex.printStackTrace();
 		}
 	}
 
@@ -171,8 +176,14 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
+								if (useIV) {
+									encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+								}
 								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
 										getCharset()));
+								if (useIV) {
+									crypted = ArrayUtils.addAll(encryptCipher.getIV(), crypted);
+								}
 								return new Parameter(key, Base64.getUrlEncoder().withoutPadding()
 										.encodeToString(crypted));
 							}
@@ -192,7 +203,8 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 *
 	 * 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを{@link SecretResultSet}でラップして返す
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext,
+	 *      java.sql.PreparedStatement, java.sql.ResultSet)
 	 */
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
@@ -203,11 +215,17 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 
 		try {
 			Cipher cipher = Cipher.getInstance(transformationType);
-			cipher.init(Cipher.DECRYPT_MODE, secretKey);
 
-			return new SecretResultSet(resultSet, cipher, getCryptColumnNames(), getCharset());
+			if (useIV) {
+				cipher.init(Cipher.DECRYPT_MODE, secretKey,
+						encryptCipher.getParameters().getParameterSpec(IvParameterSpec.class));
+			} else {
+				cipher.init(Cipher.DECRYPT_MODE, secretKey);
+			}
+
+			return new SecretResultSet(resultSet, secretKey, cipher, useIV, getCryptColumnNames(), getCharset());
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			LOG.error("Failed to create SecretResultSet.", ex);
 		}
 		return resultSet;
 	}
