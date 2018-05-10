@@ -32,7 +32,7 @@ public class SecretResultSetTest {
 
 	private static SqlConfig config;
 	private static SqlFilterManager sqlFilterManager;
-	private static SecretColumnSqlFilter filter;
+	private static AbstractSecretColumnSqlFilter filter;
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {

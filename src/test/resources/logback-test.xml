@@ -39,7 +39,7 @@
 		<appender-ref ref="AuditLogTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter.SecretColumnSqlFilter"
+	<logger name="jp.co.future.uroborosql.filter.AbstractSecretColumnSqlFilter"
 		level="DEBUG" additivity="false">
 		<appender-ref ref="SecretColumnSqlInitializeTest" />
 	</logger>

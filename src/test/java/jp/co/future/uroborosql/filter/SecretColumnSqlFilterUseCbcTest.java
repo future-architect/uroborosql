@@ -22,15 +22,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * Test case of SecretColumnSqlFilter when using CBC mode
@@ -44,7 +45,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	private SqlFilterManager sqlFilterManager;
 
-	private SecretColumnSqlFilter filter;
+	private AbstractSecretColumnSqlFilter filter;
 
 	@Before
 	public void setUp() throws Exception {
@@ -153,7 +154,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 		SqlConfig skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.build();
 		SqlFilterManager skipSqlFilterManager = skipConfig.getSqlFilterManager();
-		SecretColumnSqlFilter skipFilter = new SecretColumnSqlFilter();
+		AbstractSecretColumnSqlFilter skipFilter = new SecretColumnSqlFilter();
 		skipSqlFilterManager.addSqlFilter(skipFilter);
 
 		skipFilter.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
@@ -272,6 +273,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
+	@Ignore
 	public void testSecretResultSetPerformance01() throws Exception {
 		for (int i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");
