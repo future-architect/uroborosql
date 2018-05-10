@@ -141,6 +141,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/CBC/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
+		assertThat(filter.isUseIV(), is(true));
+		assertThat(filter.getSecretKey().getAlgorithm(), is("AES"));
 	}
 
 	@Test
@@ -261,7 +263,6 @@ public class SecretColumnSqlFilterUseCbcTest {
 				result.next();
 
 				assertThat(result.isWrapperFor(SecretResultSet.class), is(true));
-				assertThat(result.unwrap(SecretResultSet.class).getCipher(), is(not(nullValue())));
 				assertThat(result.unwrap(SecretResultSet.class).getCharset(), is(Charset.forName("UTF-8")));
 				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
 						is(Arrays.asList("PRODUCT_NAME")));
