@@ -141,6 +141,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/CBC/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
+		assertThat(filter.isUseIV(), is(true));
+		assertThat(filter.getSecretKey().getAlgorithm(), is("AES"));
 	}
 
 	@Test
