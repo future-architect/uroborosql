@@ -20,20 +20,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 public class SecretColumnSqlFilterTest {
 
 	private SqlConfig config;
+
 	private SqlFilterManager sqlFilterManager;
+
 	private SecretColumnSqlFilter filter;
 
 	@Before
@@ -251,7 +253,6 @@ public class SecretColumnSqlFilterTest {
 				result.next();
 
 				assertThat(result.isWrapperFor(SecretResultSet.class), is(true));
-				assertThat(result.unwrap(SecretResultSet.class).getCipher(), is(not(nullValue())));
 				assertThat(result.unwrap(SecretResultSet.class).getCharset(), is(Charset.forName("UTF-8")));
 				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
 						is(Arrays.asList("PRODUCT_NAME")));
