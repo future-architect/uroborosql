@@ -198,8 +198,10 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * パラメータの暗号化内部処理。
 	 *
-	 * @param parameter 暗号化対象、かつ値がnullや空文字でないパラメータ
-	 * @return 暗号化後パラメータ
+	 * @param cipher 暗号器
+	 * @param secretKey 暗号化キー
+	 * @param input 暗号化対象文字列
+	 * @return 暗号化後文字列
 	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
 	 */
 	protected abstract String encrypt(final Cipher cipher, final SecretKey secretKey, final String input)
@@ -231,8 +233,11 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * {@see SecretResultSet} が復号に使用するラムダを構築する。
 	 *
-	 * @return 暗号を受け取り平文を返すラムダ
-	 * @throws GeneralSecurityException
+	 * @param cipher 暗号器
+	 * @param secretKey 暗号化キー
+	 * @param secret 暗号化文字列
+	 * @return 平文文字列
+	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
 	 */
 	protected abstract String decrypt(final Cipher cipher, final SecretKey secretKey, final String secret)
 			throws GeneralSecurityException;
@@ -241,7 +246,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 * {@see SecretResultSet} が復号に使用するラムダを構築する。
 	 *
 	 * @return 暗号を受け取り平文を返すラムダ
-	 * @throws GeneralSecurityException
+	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
 	 */
 	private Function<Object, String> createDecryptor() throws GeneralSecurityException {
 		Cipher cipher = Cipher.getInstance(transformationType);
