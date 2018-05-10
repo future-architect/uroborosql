@@ -263,7 +263,6 @@ public class SecretColumnSqlFilterUseCbcTest {
 				result.next();
 
 				assertThat(result.isWrapperFor(SecretResultSet.class), is(true));
-				assertThat(result.unwrap(SecretResultSet.class).getCipher(), is(not(nullValue())));
 				assertThat(result.unwrap(SecretResultSet.class).getCharset(), is(Charset.forName("UTF-8")));
 				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
 						is(Arrays.asList("PRODUCT_NAME")));
