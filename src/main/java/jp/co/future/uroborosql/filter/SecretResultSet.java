@@ -10,17 +10,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.List;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
+import java.util.function.Function;
 
 import jp.co.future.uroborosql.AbstractResultSetWrapper;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * ResultSetのラッパークラス。検索結果に暗号化したカラムが含まれる場合復号化して値を返す
@@ -28,14 +22,8 @@ import org.apache.commons.lang3.ArrayUtils;
  * @author H.Sugimoto
  */
 public class SecretResultSet extends AbstractResultSetWrapper {
-	/** 暗号キー */
-	private SecretKey secretKey = null;
 
-	/** 暗号器 */
-	private Cipher cipher = null;
-
-	/** IVを利用するかどうか */
-	private boolean useIV = false;
+	private Function<Object, String> decode;
 
 	/**
 	 * キャラクタセット（デフォルトUTF-8）
@@ -57,49 +45,12 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * @param cryptColumnNames 暗号対象カラム名リスト
 	 * @param charset キャラクタセット
 	 */
-	SecretResultSet(final ResultSet wrapped, final SecretKey secretKey, final Cipher cipher, final boolean useIV,
-			final List<String> cryptColumnNames,
-			final Charset charset) {
+	SecretResultSet(final ResultSet wrapped, final Function<Object, String> decode,
+			final List<String> cryptColumnNames, final Charset charset) {
 		super(wrapped);
-		this.secretKey = secretKey;
-		this.cipher = cipher;
-		this.useIV = useIV;
 		this.cryptColumnNames = cryptColumnNames;
 		this.charset = charset;
-	}
-
-	/**
-	 * 復号化
-	 *
-	 * @param secret 暗号化文字列
-	 * @return 復号化した文字列
-	 */
-	private String decode(final Object secret) {
-		if (secret == null) {
-			return null;
-		}
-
-		String secretStr = secret.toString();
-		if (!secretStr.isEmpty()) {
-			byte[] secretData = Base64.getUrlDecoder().decode(secretStr);
-
-			synchronized (cipher) {
-				try {
-					if (useIV) {
-						int blockSize = cipher.getBlockSize();
-						byte[] iv = ArrayUtils.subarray(secretData, 0, blockSize);
-						secretData = ArrayUtils.subarray(secretData, blockSize, secretData.length);
-						IvParameterSpec ips = new IvParameterSpec(iv);
-						cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
-					}
-					return new String(cipher.doFinal(secretData), getCharset());
-				} catch (Exception ex) {
-					return secretStr;
-				}
-			}
-		} else {
-			return secretStr;
-		}
+		this.decode = decode;
 	}
 
 	/**
@@ -109,8 +60,6 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public void close() throws SQLException {
-		this.cipher = null;
-		this.useIV = false;
 		this.cryptColumnNames = null;
 		this.charset = null;
 		super.close();
@@ -137,7 +86,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	public String getString(final String columnLabel) throws SQLException {
 		String val = getWrapped().getString(columnLabel);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel))) {
-			return decode(val);
+			return decode.apply(val);
 		} else {
 			return val;
 		}
@@ -176,7 +125,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	public Object getObject(final String columnLabel) throws SQLException {
 		Object val = getWrapped().getObject(columnLabel);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
-			return decode(val);
+			return decode.apply(val);
 		} else {
 			return val;
 		}
@@ -192,19 +141,10 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	public <T> T getObject(final String columnLabel, final Class<T> type) throws SQLException {
 		T val = getWrapped().getObject(columnLabel, type);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
-			return (T) decode(val);
+			return (T) decode.apply(val);
 		} else {
 			return val;
 		}
-	}
-
-	/**
-	 * cipherを取得します。
-	 *
-	 * @return cipher
-	 */
-	public Cipher getCipher() {
-		return this.cipher;
 	}
 
 	/**
@@ -224,5 +164,4 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	public List<String> getCryptColumnNames() {
 		return this.cryptColumnNames;
 	}
-
 }

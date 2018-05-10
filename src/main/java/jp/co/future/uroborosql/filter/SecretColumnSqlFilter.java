@@ -14,6 +14,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
 import java.sql.PreparedStatement;
@@ -21,19 +22,20 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-import jp.co.future.uroborosql.utils.CaseFormat;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルター.
@@ -175,18 +177,7 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 					String objStr = obj.toString();
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
-							synchronized (encryptCipher) {
-								if (useIV) {
-									encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-								}
-								byte[] crypted = encryptCipher.doFinal(StringUtils.defaultString(objStr).getBytes(
-										getCharset()));
-								if (useIV) {
-									crypted = ArrayUtils.addAll(encryptCipher.getIV(), crypted);
-								}
-								return new Parameter(key, Base64.getUrlEncoder().withoutPadding()
-										.encodeToString(crypted));
-							}
+							return new Parameter(key, encode(objStr));
 						} catch (Exception ex) {
 							return parameter;
 						}
@@ -196,6 +187,27 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		}
 
 		return parameter;
+	}
+
+	/**
+	 * パラメータの暗号化内部処理。
+	 *
+	 * @param parameter 暗号化対象、かつ値がnullや空文字でないパラメータ
+	 * @return 暗号化後パラメータ
+	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
+	 */
+	protected String encode(final String input) throws GeneralSecurityException {
+		byte[] crypted;
+		synchronized (encryptCipher) {
+			if (useIV) {
+				encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			}
+			crypted = encryptCipher.doFinal(input.getBytes(getCharset()));
+			if (useIV) {
+				crypted = ArrayUtils.addAll(encryptCipher.getIV(), crypted);
+			}
+		}
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(crypted);
 	}
 
 	/**
@@ -214,20 +226,55 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 		}
 
 		try {
-			Cipher cipher = Cipher.getInstance(transformationType);
-
-			if (useIV) {
-				cipher.init(Cipher.DECRYPT_MODE, secretKey,
-						encryptCipher.getParameters().getParameterSpec(IvParameterSpec.class));
-			} else {
-				cipher.init(Cipher.DECRYPT_MODE, secretKey);
-			}
-
-			return new SecretResultSet(resultSet, secretKey, cipher, useIV, getCryptColumnNames(), getCharset());
+			return new SecretResultSet(resultSet, this.decodeFunction(), getCryptColumnNames(), getCharset());
 		} catch (Exception ex) {
 			LOG.error("Failed to create SecretResultSet.", ex);
 		}
 		return resultSet;
+	}
+
+	/**
+	 * {@see SecretResultSet} が復号に使用するラムダを構築する。
+	 *
+	 * @return 暗号を受け取り平文を返すラムダ
+	 * @throws GeneralSecurityException
+	 */
+	protected Function<Object, String> decodeFunction() throws GeneralSecurityException {
+		Cipher cipher = Cipher.getInstance(transformationType);
+		if (useIV) {
+			cipher.init(Cipher.DECRYPT_MODE, secretKey,
+					encryptCipher.getParameters().getParameterSpec(IvParameterSpec.class));
+		} else {
+			cipher.init(Cipher.DECRYPT_MODE, secretKey);
+		}
+
+		return secret -> {
+			if (secret == null) {
+				return null;
+			}
+
+			String secretStr = secret.toString();
+			if (!secretStr.isEmpty()) {
+				byte[] secretData = Base64.getUrlDecoder().decode(secretStr);
+
+				synchronized (cipher) {
+					try {
+						if (useIV) {
+							int blockSize = cipher.getBlockSize();
+							byte[] iv = ArrayUtils.subarray(secretData, 0, blockSize);
+							secretData = ArrayUtils.subarray(secretData, blockSize, secretData.length);
+							IvParameterSpec ips = new IvParameterSpec(iv);
+							cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
+						}
+						return new String(cipher.doFinal(secretData), getCharset());
+					} catch (Exception ex) {
+						return secretStr;
+					}
+				}
+			} else {
+				return secretStr;
+			}
+		};
 	}
 
 	/**
@@ -377,6 +424,22 @@ public class SecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	public void setSkipFilter(final boolean skipFilter) {
 		this.skipFilter = skipFilter;
+	}
+
+	/**
+	 * 暗号キーを取得します。
+	 * @return 暗号キー
+	 */
+	protected SecretKey getSecretKey() {
+	    return secretKey;
+	}
+
+	/**
+	 * IVを利用するかどうかを取得します。
+	 * @return IVを利用するかどうか
+	 */
+	public boolean isUseIV() {
+	    return useIV;
 	}
 
 	/**
