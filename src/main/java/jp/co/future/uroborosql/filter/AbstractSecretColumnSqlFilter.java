@@ -231,7 +231,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * {@see SecretResultSet} が復号に使用するラムダを構築する。
+	 * パラメータの復号化内部処理。
 	 *
 	 * @param cipher 暗号器
 	 * @param secretKey 暗号化キー
@@ -243,7 +243,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			throws GeneralSecurityException;
 
 	/**
-	 * {@see SecretResultSet} が復号に使用するラムダを構築する。
+	 * {@link SecretResultSet} が復号に使用するラムダを構築する。
 	 *
 	 * @return 暗号を受け取り平文を返すラムダ
 	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
