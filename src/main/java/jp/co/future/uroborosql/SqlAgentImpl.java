@@ -112,8 +112,15 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					return new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()),
-							stmt);
+					final ResultSet rs = stmt.executeQuery();
+					try {
+						return new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, rs), stmt);
+					} catch (SQLException | RuntimeException e) {
+						if(!rs.isClosed()) {
+							rs.close();
+						}
+						throw e;
+					}
 				} catch (SQLException ex) {
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
