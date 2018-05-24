@@ -29,8 +29,10 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 import org.apache.commons.lang3.StringUtils;
@@ -187,6 +189,29 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
 		assertFalse("結果が複数件です。", rs.next());
+	}
+
+	/**
+	 * SQLのdoTransformフィルターのテストケース。
+	 */
+	@Test
+	public void testQueryFilterQueryWith() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		SqlFilterManager manager = config.getSqlFilterManager();
+		manager.addSqlFilter(new AbstractSqlFilter() {
+			@Override
+			public String doTransformSql(SqlContext sqlContext, String sql) {
+				String newSql = String.format("select * from (%s)", sql);
+				return newSql;
+			}
+		});
+
+		SqlQuery query = agent.queryWith("select product_id from product");
+		List<Map<String, Object>> results = query.collect();
+		assertThat(query.context().getSql(), is("select * from (select product_id from product)"));
+		assertThat(results.size(), is(2));
 	}
 
 	/**

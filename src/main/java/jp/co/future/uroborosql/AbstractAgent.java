@@ -225,9 +225,9 @@ public abstract class AbstractAgent implements SqlAgent {
 			if (StringUtils.isEmpty(originalSql)) {
 				throw new UroborosqlRuntimeException("sql file:[" + sqlContext.getSqlName() + "] is not found.");
 			}
-			originalSql = getSqlFilterManager().doTransformSql(sqlContext, originalSql);
-			sqlContext.setSql(originalSql);
 		}
+		originalSql = getSqlFilterManager().doTransformSql(sqlContext, originalSql);
+		sqlContext.setSql(originalSql);
 
 		// SQL-IDの付与
 		if (originalSql.contains(keySqlId)) {
