@@ -100,25 +100,74 @@ public final class PropertyMapperManager {
 		if (String.class.equals(rawType)) {
 			return rs.getString(columnIndex);
 		}
-		if (Boolean.class.equals(rawType) || boolean.class.equals(rawType)) {
+		if (Boolean.class.equals(rawType)) {
+			boolean result = rs.getBoolean(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (boolean.class.equals(rawType)) {
 			return rs.getBoolean(columnIndex);
 		}
-		if (Byte.class.equals(rawType) || byte.class.equals(rawType)) {
+		if (Byte.class.equals(rawType)) {
+			byte result = rs.getByte(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (byte.class.equals(rawType)) {
 			return rs.getByte(columnIndex);
 		}
-		if (Short.class.equals(rawType) || short.class.equals(rawType)) {
+		if (Short.class.equals(rawType)) {
+			short result = rs.getShort(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (short.class.equals(rawType)) {
 			return rs.getShort(columnIndex);
 		}
-		if (Integer.class.equals(rawType) || int.class.equals(rawType)) {
+		if (Integer.class.equals(rawType)) {
+			int result = rs.getInt(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (int.class.equals(rawType)) {
 			return rs.getInt(columnIndex);
 		}
-		if (Long.class.equals(rawType) || long.class.equals(rawType)) {
+		if (Long.class.equals(rawType)) {
+			long result = rs.getLong(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (long.class.equals(rawType)) {
 			return rs.getLong(columnIndex);
 		}
-		if (Float.class.equals(rawType) || float.class.equals(rawType)) {
+		if (Float.class.equals(rawType)) {
+			float result = rs.getFloat(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (float.class.equals(rawType)) {
 			return rs.getFloat(columnIndex);
 		}
-		if (Double.class.equals(rawType) || double.class.equals(rawType)) {
+		if (Double.class.equals(rawType)) {
+			double result = rs.getDouble(columnIndex);
+			if (rs.wasNull()) {
+				return null;
+			}
+			return result;
+		}
+		if (double.class.equals(rawType)) {
 			return rs.getDouble(columnIndex);
 		}
 		if (BigDecimal.class.equals(rawType)) {
@@ -127,7 +176,6 @@ public final class PropertyMapperManager {
 		if (byte[].class.equals(rawType)) {
 			return rs.getBytes(columnIndex);
 		}
-
 		if (java.sql.Timestamp.class.equals(rawType)) {
 			return rs.getTimestamp(columnIndex);
 		}
@@ -140,7 +188,6 @@ public final class PropertyMapperManager {
 		if (Date.class.equals(rawType)) {
 			return rs.getTimestamp(columnIndex);
 		}
-
 		if (java.sql.Array.class.equals(rawType)) {
 			return rs.getArray(columnIndex);
 		}
