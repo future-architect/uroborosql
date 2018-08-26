@@ -763,6 +763,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		@Override
 		public void close() throws SQLException {
 			try {
+				LOG.debug("SQL query row count : {}", getRowCount());
 				super.close();
 			} finally {
 				try {

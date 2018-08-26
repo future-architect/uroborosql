@@ -36,6 +36,7 @@ import java.util.Map;
  */
 public abstract class AbstractResultSetWrapper implements ResultSet {
 	private ResultSet wrapped = null;
+	private long rowCount = 0;
 
 	/**
 	 * コンストラクタ
@@ -54,7 +55,7 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
-		if (iface != null && this.getClass().isAssignableFrom(iface)) {
+		if (iface != null && iface.isAssignableFrom(this.getClass())) {
 			return iface.cast(this);
 		}
 
@@ -68,7 +69,7 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
-		if (iface != null && this.getClass().isAssignableFrom(iface)) {
+		if (iface != null && iface.isAssignableFrom(this.getClass())) {
 			return true;
 		}
 		return wrapped.isWrapperFor(iface);
@@ -81,7 +82,11 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean next() throws SQLException {
-		return wrapped.next();
+		boolean flag = wrapped.next();
+		if (flag) {
+			rowCount++;
+		}
+		return flag;
 	}
 
 	/**
@@ -606,6 +611,7 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	@Override
 	public void beforeFirst() throws SQLException {
 		wrapped.beforeFirst();
+		rowCount = 0;
 	}
 
 	/**
@@ -625,7 +631,9 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean first() throws SQLException {
-		return wrapped.first();
+		boolean flag = wrapped.first();
+		rowCount = flag ? 1 : 0;
+		return flag;
 	}
 
 	/**
@@ -635,7 +643,9 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean last() throws SQLException {
-		return wrapped.last();
+		boolean flag = wrapped.last();
+		rowCount = flag ? getRow() : 0;
+		return flag;
 	}
 
 	/**
@@ -1991,4 +2001,12 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 		this.wrapped = wrapped;
 	}
 
+	/**
+	 * 取得した行数を返す。
+	 *
+	 * @return next() メソッドの呼び出し結果が<code>true</code>になった件数
+	 */
+	protected long getRowCount() {
+		return rowCount;
+	}
 }
