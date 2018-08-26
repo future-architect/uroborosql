@@ -286,7 +286,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	protected void applyProperties(final PreparedStatement preparedStatement) throws SQLException {
 		// フェッチサイズ指定
-		if (getFetchSize() >= 0) {
+		if (getFetchSize() >= 0 && !(preparedStatement instanceof CallableStatement)) {
 			preparedStatement.setFetchSize(getFetchSize());
 		}
 
