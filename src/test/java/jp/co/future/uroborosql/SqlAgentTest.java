@@ -53,6 +53,7 @@ public class SqlAgentTest {
 	@Before
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		config.getSqlAgentFactory().setFetchSize(1000);
 		agent = config.agent();
 		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
