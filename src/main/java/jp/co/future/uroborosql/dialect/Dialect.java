@@ -35,6 +35,13 @@ public interface Dialect {
 	}
 
 	/**
+	 * リトライする前にSavepointまでロールバックするかどうか
+	 *
+	 * @return ロールバックする場合<code>true</code>
+	 */
+	default boolean isRollbackToSavepointBeforeRetry() { return false; }
+
+	/**
 	 * Dialect名を取得する
 	 *
 	 * @return Dialect名

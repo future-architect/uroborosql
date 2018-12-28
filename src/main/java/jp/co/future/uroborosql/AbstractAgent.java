@@ -70,6 +70,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** SqlContext属性キー:バインドパラメータコメントの出力有無 */
 	protected static final String CTX_ATTR_KEY_OUTPUT_BIND_COMMENT = "__outputBindComment";
 
+	/** 例外発生にロールバックが必要なDBでリトライを実現するために設定するSavepointの名前 */
+	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
+
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 

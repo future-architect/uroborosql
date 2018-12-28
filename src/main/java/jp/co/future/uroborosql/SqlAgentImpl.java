@@ -82,7 +82,6 @@ public class SqlAgentImpl extends AbstractAgent {
 		transformContext(sqlContext, true);
 
 		PreparedStatement stmt = getPreparedStatement(sqlContext);
-		stmt.closeOnCompletion();
 
 		// INパラメータ設定
 		sqlContext.bindParams(stmt);
@@ -110,43 +109,54 @@ public class SqlAgentImpl extends AbstractAgent {
 				retryWaitTime = sqlContext.getRetryWaitTime();
 			}
 			int loopCount = 0;
-			do {
-				try {
-					final ResultSet rs = stmt.executeQuery();
+			ResultSet rs = null;
+			try {
+				do {
 					try {
-						return new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, rs), stmt);
-					} catch (SQLException | RuntimeException e) {
-						if(!rs.isClosed()) {
-							rs.close();
+						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						throw e;
-					}
-				} catch (SQLException ex) {
-					if (maxRetryCount > loopCount) {
-						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlRetryCodes().contains(errorCode)) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format(
-										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
-										loopCount + 1, retryWaitTime));
-							}
-							if (retryWaitTime > 0) {
-								try {
-									Thread.sleep(retryWaitTime);
-								} catch (InterruptedException ie) {
-									// do nothing
+						rs = new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()), stmt);
+						stmt.closeOnCompletion();
+						return rs;
+					} catch (SQLException ex) {
+						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+							rollback(RETRY_SAVEPOINT_NAME);
+						}
+						if (maxRetryCount > loopCount) {
+							String errorCode = Integer.toString(ex.getErrorCode());
+							if (getSqlRetryCodes().contains(errorCode)) {
+								if (LOG.isDebugEnabled()) {
+									LOG.debug(String.format(
+											"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
+											loopCount + 1, retryWaitTime));
 								}
+								if (retryWaitTime > 0) {
+									try {
+										Thread.sleep(retryWaitTime);
+									} catch (InterruptedException ie) {
+										// do nothing
+									}
+								}
+							} else {
+								throw ex;
 							}
 						} else {
 							throw ex;
 						}
-					} else {
-						throw ex;
+					} finally {
+						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+							releaseSavepoint(RETRY_SAVEPOINT_NAME);
+						}
+						sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 					}
-				} finally {
-					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
+				} while (maxRetryCount > loopCount++);
+			} catch (SQLException | RuntimeException e) {
+				if(rs != null && !rs.isClosed()) {
+					rs.close();
 				}
-			} while (maxRetryCount > loopCount++);
+				throw e;
+			}
 			return null;
 		} catch (SQLException ex) {
 			handleException(sqlContext, ex);
@@ -253,9 +263,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					int result = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
-					return result;
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						setSavepoint(RETRY_SAVEPOINT_NAME);
+					}
+					return getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
 				} catch (SQLException ex) {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						rollback(RETRY_SAVEPOINT_NAME);
+					}
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
@@ -278,6 +293,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						releaseSavepoint(RETRY_SAVEPOINT_NAME);
+					}
 					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
@@ -352,9 +370,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
-					int[] result = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
-					return result;
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						setSavepoint(RETRY_SAVEPOINT_NAME);
+					}
+					return getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
 				} catch (SQLException ex) {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						rollback(RETRY_SAVEPOINT_NAME);
+					}
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
@@ -377,6 +400,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						releaseSavepoint(RETRY_SAVEPOINT_NAME);
+					}
 					sqlContext.clearBatch();
 					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
@@ -457,10 +483,15 @@ public class SqlAgentImpl extends AbstractAgent {
 			int loopCount = 0;
 			do {
 				try {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						setSavepoint(RETRY_SAVEPOINT_NAME);
+					}
 					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
-					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 					break;
 				} catch (SQLException ex) {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						rollback(RETRY_SAVEPOINT_NAME);
+					}
 					if (maxRetryCount > loopCount) {
 						String errorCode = Integer.toString(ex.getErrorCode());
 						if (getSqlRetryCodes().contains(errorCode)) {
@@ -483,6 +514,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
+					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						releaseSavepoint(RETRY_SAVEPOINT_NAME);
+					}
 					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);

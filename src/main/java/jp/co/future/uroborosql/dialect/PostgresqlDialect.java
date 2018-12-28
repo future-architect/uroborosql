@@ -20,6 +20,11 @@ public class PostgresqlDialect extends AbstractDialect {
 	}
 
 	@Override
+	public boolean isRollbackToSavepointBeforeRetry() {
+		return true;
+	}
+
+	@Override
 	public String getDatabaseName() {
 		return "PostgreSQL";
 	}
