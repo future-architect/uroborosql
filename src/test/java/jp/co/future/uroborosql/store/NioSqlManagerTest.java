@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.store;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -23,7 +24,7 @@ public class NioSqlManagerTest {
 	private static final String TARGET_TEST_CLASSES_SQL = "target/test-classes/sql/";
 
 	@Test
-	public void testConstractor() throws Exception {
+	public void testConstructor() throws Exception {
 		NioSqlManagerImpl manager = new NioSqlManagerImpl("sql", ".sql", Charset.defaultCharset());
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
@@ -37,6 +38,8 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlPathList() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -94,6 +97,8 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlH2() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -118,6 +123,8 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlPostgresql() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
@@ -142,12 +149,13 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlWithWatcher() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		String sqlName = "test/ADD_WATCH";
 		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 
@@ -176,14 +184,46 @@ public class NioSqlManagerTest {
 	}
 
 	@Test
+	public void testGetSqlWithNoWatcher() throws Exception {
+
+		String sqlName = "test/ADD_WATCH";
+		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL, sqlName + ".sql");
+		Files.deleteIfExists(newFilePath);
+
+		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		manager.setDialect(new OracleDialect());
+		manager.initialize();
+
+		try {
+			assertThat(manager.existSql(sqlName), is(false));
+
+			Thread.sleep(WAIT_TIME);
+
+			Files.write(newFilePath, Arrays.asList("select * from ADD_WATCH"));
+
+			Thread.sleep(WAIT_TIME);
+
+			assertThat(manager.existSql(sqlName), is(false));
+
+			Thread.sleep(WAIT_TIME);
+
+			assertThat(manager.existSql("example/select_test"), is(true));
+		} finally {
+			manager.shutdown();
+		}
+	}
+
+	@Test
 	public void testAddDialectSqlFolder() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		String sqlName = "example/select_test";
 		Path dir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "example");
 		Path newFilePath = dir.resolve("select_test.sql");
 		Files.deleteIfExists(newFilePath);
 		Files.deleteIfExists(dir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 
@@ -223,6 +263,8 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testAddDefaultFolderAndDialectFolder() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		String sqlName = "unit_test/select_test";
 		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL, "unit_test");
 		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "unit_test");
@@ -233,7 +275,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 
@@ -291,6 +333,8 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testAddDialectFolderAndDefaultFolder() throws Exception {
+		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
+
 		String sqlName = "unit_test/select_test";
 		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL, "unit_test");
 		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL, "oracle", "unit_test");
@@ -301,7 +345,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new OracleDialect());
 		manager.initialize();
 

@@ -14,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,6 +73,7 @@ import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -338,14 +340,18 @@ public class SqlREPL {
 			}
 		});
 
-		String sqlEncoding = p("sql.encoding", "");
-		if (StringUtils.isNotEmpty(sqlEncoding)) {
-			System.setProperty("file.encoding", sqlEncoding);
-		}
+		String url = p("db.url", "");
+		String user = p("db.user", "");
+		String password = p("db.password", "");
+		String schema = p("db.schema", null);
+		String loadPath = p("sql.loadPath", "sql");
+		String fileExtension = p("sql.fileExtension", ".sql");
+		Charset charset = Charset.forName(p("sql.encoding", "UTF-8"));
+		boolean detectChanges = BooleanUtils.toBoolean(p("sql.detectChanges", "true"));
 
 		// config
-		config = UroboroSQL.builder(p("db.url", ""), p("db.user", ""), p("db.password", ""), p("db.schema", null))
-				.setSqlManager(new NioSqlManagerImpl(p("sql.loadPath", "sql")))
+		config = UroboroSQL.builder(url, user, password, schema)
+				.setSqlManager(new NioSqlManagerImpl(loadPath, fileExtension, charset, detectChanges))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// sqlContextFactory
