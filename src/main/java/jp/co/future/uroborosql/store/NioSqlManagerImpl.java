@@ -68,6 +68,9 @@ public class NioSqlManagerImpl implements SqlManager {
 	/** SQLファイルエンコーディング */
 	private final Charset charset;
 
+	/** SQLファイルの変更を検知するかどうか */
+	private final boolean detectChanges;
+
 	/** Dialect */
 	private Dialect dialect;
 
@@ -88,6 +91,15 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	public NioSqlManagerImpl() {
 		this(null);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param detectChanges SQLファイルの変更を検知するかどうか
+	 */
+	public NioSqlManagerImpl(boolean detectChanges) {
+		this(null, null, null, detectChanges);
 	}
 
 	/**
@@ -117,9 +129,22 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param charset SQLファイルエンコーディング
 	 */
 	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset) {
+		this(loadPath, fileExtension, charset, false);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 * @param fileExtension SQLファイル拡張子
+	 * @param charset SQLファイルエンコーディング
+	 * @param detectChanges SQLファイルの変更を検知するかどうか
+	 */
+	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset, boolean detectChanges) {
 		this.loadPath = loadPath != null ? loadPath : "sql";
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
 		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
+		this.detectChanges = detectChanges;
 	}
 
 	/**
@@ -129,22 +154,28 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	@Override
 	public void initialize() {
-		try {
-			watcher = FileSystems.getDefault().newWatchService();
-		} catch (IOException e) {
-			log.error("Can't start watcher service.", e);
-			return;
+		if (detectChanges) {
+			try {
+				watcher = FileSystems.getDefault().newWatchService();
+			} catch (IOException e) {
+				log.error("Can't start watcher service.", e);
+				return;
+			}
 		}
 
 		generateSqlInfos();
 
-		// Path監視用のスレッド実行
-		es = Executors.newSingleThreadExecutor();
-		es.execute(this::watchPath);
+		if (detectChanges) {
+			// Path監視用のスレッド実行
+			es = Executors.newSingleThreadExecutor();
+			es.execute(this::watchPath);
+		}
 	}
 
 	public void shutdown() {
-		es.shutdownNow();
+		if (detectChanges) {
+			es.shutdownNow();
+		}
 	}
 
 	/**
@@ -320,7 +351,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				URI uri = root.nextElement().toURI();
 				String scheme = uri.getScheme();
 				if (SCHEME_FILE.equals(scheme)) {
-					traverse(Paths.get(uri), true, false);
+					traverse(Paths.get(uri), detectChanges && true, false);
 				} else if (SCHEME_JAR.equals(scheme)) {
 					FileSystem fs = null;
 					try {
