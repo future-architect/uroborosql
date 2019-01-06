@@ -26,3 +26,7 @@
 hs_err_pid*
 uroborosql.iml
 /target/
+
+# maven-release-plugin
+pom.xml.releaseBackup
+release.properties
