@@ -8,10 +8,14 @@ package jp.co.future.uroborosql.utils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -22,6 +26,62 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
  *
  */
 public class BeanAccessor {
+
+	/**
+	 * Class to convert Object to Map<br>
+	 * <br>
+	 * We created our own class to reduce the number of iterations when using SqlBatch#by.
+	 */
+	private static class AsMap extends AbstractMap<String, Object> {
+		private final Set<Entry<String, Object>> entrySet;
+
+		public AsMap(final Object object) {
+			Field[] fields = BeanAccessor.fields(object.getClass()).stream()
+					.toArray(Field[]::new);
+			@SuppressWarnings("unchecked")
+			Entry<String, Object>[] entries = new Entry[fields.length];
+			this.entrySet = new AbstractSet<Map.Entry<String, Object>>() {
+
+				@Override
+				public Iterator<Entry<String, Object>> iterator() {
+					return new Iterator<Map.Entry<String, Object>>() {
+						int index = 0;
+
+						@Override
+						public boolean hasNext() {
+							return fields.length > index;
+						}
+
+						@Override
+						public Entry<String, Object> next() {
+							Entry<String, Object> next = entries[index];
+							if (next == null) {
+								Field f = fields[index];
+								next = new AbstractMap.SimpleImmutableEntry<>(f.getName(),
+										BeanAccessor.value(f, object));
+								entries[index] = next;
+							}
+							index++;
+							return next;
+						}
+
+					};
+				}
+
+				@Override
+				public int size() {
+					return fields.length;
+				}
+			};
+		}
+
+		@Override
+		public Set<Entry<String, Object>> entrySet() {
+			return this.entrySet;
+		}
+
+	}
+
 	/**
 	 * 指定したクラスの持つ全てのフィールドを親クラスを含めて取得する
 	 *
@@ -65,5 +125,15 @@ public class BeanAccessor {
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new UroborosqlRuntimeException(e);
 		}
+	}
+
+	/**
+	 * 与えられたオブジェクトをMap形式に変換します。
+	 *
+	 * @param object 対象のオブジェクト
+	 * @return {@literal Map<String, Object>}
+	 */
+	public static Map<String, Object> asMap(final Object object) {
+		return new AsMap(object);
 	}
 }

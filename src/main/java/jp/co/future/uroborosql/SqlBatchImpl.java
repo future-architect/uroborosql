@@ -16,6 +16,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.TriConsumer;
+import jp.co.future.uroborosql.utils.BeanAccessor;
 
 /**
  * SqlBatch実装
@@ -36,7 +37,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	};
 
 	/** 一括更新処理用のバッチパラメータを格納したStream */
-	private Stream<Map<String, Object>> stream = null;
+	private Stream<?> stream = null;
 
 	/** 一括更新の発行判定条件 */
 	private BiPredicate<SqlContext, Map<String, Object>> condition = DEFAULT_BATCH_WHEN_CONDITION;
@@ -63,7 +64,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 * @see jp.co.future.uroborosql.fluent.SqlBatch#paramStream(java.util.stream.Stream)
 	 */
 	@Override
-	public SqlBatch paramStream(final Stream<Map<String, Object>> stream) {
+	public SqlBatch paramStream(final Stream<?> stream) {
 		if (this.stream == null) {
 			this.stream = stream;
 		} else {
@@ -112,11 +113,12 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 */
 	@Override
 	public int count() {
-		try (Stream<Map<String, Object>> paramStream = stream) {
+		try (Stream<?> paramStream = stream) {
 			int count = paramStream.map(r -> {
-				paramMap(r);
+				Map<String, Object> m = toMap(r);
+				paramMap(m);
 				context().addBatch();
-				return condition.test(context(), r) ? executeBatch() : 0;
+				return condition.test(context(), m) ? executeBatch() : 0;
 			}).reduce(0, (joined, element) -> joined + element);
 			return count + (context().batchCount() != 0 ? executeBatch() : 0);
 		} finally {
@@ -140,5 +142,17 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 			batchAction.accept(agent(), context());
 		}
 		return 0;
+	}
+
+	/**
+	 * ObjectをMapに変換します。
+	 * @return Map
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> toMap(final Object o) {
+		if (o instanceof Map) {
+			return (Map<String, Object>) o;
+		}
+		return BeanAccessor.asMap(o);
 	}
 }

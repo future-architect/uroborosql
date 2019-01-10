@@ -28,10 +28,10 @@ public interface SqlBatch extends SqlFluent<SqlBatch> {
 	/**
 	 * 一括更新用のパラメータをStream形式で設定する
 	 *
-	 * @param stream パラメータを格納したMapのStream
+	 * @param stream パラメータを格納したMapまたはBeanのStream
 	 * @return SqlBatch
 	 */
-	SqlBatch paramStream(Stream<Map<String, Object>> stream);
+	SqlBatch paramStream(Stream<?> stream);
 
 	/**
 	 * 一括更新用のバッチフレームの判定条件を設定する
