@@ -22,6 +22,7 @@ import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
@@ -102,6 +103,7 @@ public final class UroboroSQL {
 		private SqlAgentFactory sqlAgentFactory;
 		private EntityHandler<?> entityHandler;
 		private Dialect dialect;
+		private InsertsType defaultInsertsType;
 
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
@@ -190,6 +192,18 @@ public final class UroboroSQL {
 			return this;
 		}
 
+
+		/**
+		 * デフォルトの{@link InsertsType}の設定
+		 *
+		 * @param defaultInsertsType InsertsType
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder setDefaultInsertsType(final InsertsType defaultInsertsType) {
+			this.defaultInsertsType = defaultInsertsType;
+			return this;
+		}
+
 		/**
 		 * Builderに設定された内容を元にSqlConfigを構築する
 		 *
@@ -202,7 +216,8 @@ public final class UroboroSQL {
 			}
 
 			return new InternalConfig(this.connectionSupplier, this.sqlManager, this.sqlContextFactory,
-					this.sqlAgentFactory, this.sqlFilterManager, this.entityHandler, this.dialect);
+					this.sqlAgentFactory, this.sqlFilterManager, this.entityHandler, this.dialect,
+					this.defaultInsertsType);
 		}
 
 	}
@@ -243,10 +258,15 @@ public final class UroboroSQL {
 		 */
 		private final Dialect dialect;
 
+		/**
+		 * デフォルトの{@link InsertsType}
+		 */
+		private final InsertsType defaultInsertsType;
+
 		InternalConfig(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
 				final SqlContextFactory sqlContextFactory, final SqlAgentFactory sqlAgentFactory,
 				final SqlFilterManager sqlFilterManager,
-				final EntityHandler<?> entityHandler, final Dialect dialect) {
+				final EntityHandler<?> entityHandler, final Dialect dialect, final InsertsType defaultInsertsType) {
 			this.connectionSupplier = connectionSupplier;
 			this.sqlManager = sqlManager;
 			this.sqlContextFactory = sqlContextFactory;
@@ -260,6 +280,7 @@ public final class UroboroSQL {
 			} else {
 				this.dialect = dialect;
 			}
+			this.defaultInsertsType = defaultInsertsType != null ? defaultInsertsType : InsertsType.BULK;
 
 			this.sqlManager.setDialect(this.dialect);
 			this.sqlManager.initialize();
@@ -401,6 +422,15 @@ public final class UroboroSQL {
 			throw new UnsupportedOperationException();
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getDefaultInsertsType()
+		 */
+		@Override
+		public InsertsType getDefaultInsertsType() {
+			return defaultInsertsType;
+		}
 	}
 
 }

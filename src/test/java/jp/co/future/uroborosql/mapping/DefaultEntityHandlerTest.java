@@ -13,11 +13,13 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
@@ -408,6 +410,241 @@ public class DefaultEntityHandlerTest {
 
 				data = agent.find(TestEntityLockVersion.class).orElse(null);
 				assertThat(data, is(nullValue()));
+			});
+		}
+	}
+
+	@Test
+	public void testBatchInsert() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBatchInsert2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3), InsertsType.BATCH);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBatchInsert3() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3), (c, r) -> c > 0,
+						InsertsType.BATCH);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBatchInsertEmpty() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				int count = agent.inserts(Stream.empty(), InsertsType.BATCH);
+				assertThat(count, is(0));
+
+				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testBatchInsertTypeError1() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts();
+
+				agent.inserts((Class) TestEntity.class, Stream.of(test1), InsertsType.BATCH);
+
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testBatchInsertTypeError2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts();
+
+				agent.inserts((Class) int.class, Stream.of(test1), InsertsType.BATCH);
+
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsert() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3));
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsert2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3));
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsert3() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3), (c, r) -> c > 0);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsertEmpty() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				int count = agent.inserts(Stream.empty());
+				assertThat(count, is(0));
+
+				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testBulkInsertTypeError1() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts();
+
+				agent.inserts((Class) TestEntity.class, Stream.of(test1));
+
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testBulkInsertTypeError2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts();
+
+				agent.inserts((Class) int.class, Stream.of(test1));
+
 			});
 		}
 	}

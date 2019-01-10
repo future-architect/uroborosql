@@ -24,4 +24,8 @@ public class MySqlDialect extends AbstractDialect {
 		return "MySQL";
 	}
 
+	@Override
+	public boolean supportsBulkInsert() {
+		return true;
+	}
 }

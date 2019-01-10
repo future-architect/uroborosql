@@ -15,6 +15,7 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -123,4 +124,14 @@ public interface SqlConfig {
 	 */
 	@Deprecated
 	void setEntityHandler(EntityHandler<?> entityHandler);
+
+	/**
+	 * デフォルトの{@link InsertsType}を取得します
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	default InsertsType getDefaultInsertsType() {
+		return InsertsType.BULK;
+	}
 }

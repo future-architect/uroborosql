@@ -11,13 +11,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -718,6 +722,101 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, BiPredicate)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
+			final BiPredicate<Integer, ? super E> condition) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBatchInsertContext(this, metadata, entityType);
+
+			int count = 0;
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				handler.setInsertParams(context, entity);
+				context.addBatch();
+
+				count += condition.test(context.batchCount(), entity)
+						? Arrays.stream(handler.doBatchInsert(this, context)).sum()
+								: 0;
+			}
+			return count + (context.batchCount() != 0
+					? Arrays.stream(handler.doBatchInsert(this, context)).sum()
+					: 0);
+
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(Class, Stream, BiPredicate)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
+			final BiPredicate<Integer, ? super E> condition) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			List<E> bulkEntities = new ArrayList<>();
+			int count = 0;
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				bulkEntities.add(entity);
+
+				if (condition.test(bulkEntities.size(), entity)) {
+					count += doBulkInsert(entityType, handler, metadata, bulkEntities);
+					bulkEntities = new ArrayList<>();
+				}
+			}
+			return count + (!bulkEntities.isEmpty() ? doBulkInsert(entityType, handler, metadata, bulkEntities) : 0);
+
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+		}
+	}
+
+	private <E> int doBulkInsert(final Class<E> entityType, final EntityHandler<E> handler,
+			final TableMetadata metadata, final List<E> bulkEntities) throws SQLException {
+		SqlContext context = handler.createBulkInsertContext(this, metadata, entityType, bulkEntities.size());
+
+		for (int i = 0; i < bulkEntities.size(); i++) {
+			handler.setBulkInsertParams(context, bulkEntities.get(i), i);
+		}
+
+		return handler.doBulkInsert(this, context, bulkEntities);
 	}
 
 	/**

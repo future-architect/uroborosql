@@ -29,4 +29,8 @@ public class PostgresqlDialect extends AbstractDialect {
 		return "PostgreSQL";
 	}
 
+	@Override
+	public boolean supportsBulkInsert() {
+		return true;
+	}
 }

@@ -42,6 +42,14 @@ public interface Dialect {
 	default boolean isRollbackToSavepointBeforeRetry() { return false; }
 
 	/**
+	 * BULK INSERTをサポートするかどうか
+	 * @return BULK INSERTをサポートする場合<code>true</code>
+	 */
+	default boolean supportsBulkInsert() {
+		return false;
+	}
+
+	/**
 	 * Dialect名を取得する
 	 *
 	 * @return Dialect名
