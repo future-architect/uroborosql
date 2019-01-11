@@ -540,7 +540,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (col.isNullable() && ignoreWhenEmpty) {
+			if (ignoreWhenEmpty && col.isNullable()) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);
