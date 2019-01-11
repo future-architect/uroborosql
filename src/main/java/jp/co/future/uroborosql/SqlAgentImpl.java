@@ -816,6 +816,50 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#updates(Class, Stream, UpdatesCondition)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int updates(final Class<E> entityType, final Stream<E> entities,
+			final UpdatesCondition<? super E> condition) {
+
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBatchUpdateContext(this, metadata, entityType);
+
+			int count = 0;
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				handler.setUpdateParams(context, entity);
+				context.addBatch();
+
+				count += condition.test(context, entity)
+						? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
+								: 0;
+			}
+			return count + (context.batchCount() != 0
+					? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
+							: 0);
+
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.UPDATE, e);
+		}
+	}
+
+	/**
 	 * ResultSetをStreamで扱うためのSpliterator
 	 *
 	 * @author H.Sugimoto

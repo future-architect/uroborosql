@@ -178,6 +178,28 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
+	 * エンティティタイプからバッチ用UPDATE SQLコンテキストを生成します。
+	 *
+	 * @param agent SqlAgent
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @return UPDATE SQLコンテキスト
+	 */
+	SqlContext createBatchUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * BATCH UPDATEを実行します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SQLコンテキスト
+	 * @return SQL実行結果
+	 * @throws SQLException SQL例外
+	 */
+	default int[] doBatchUpdate(final SqlAgent agent, final SqlContext context) throws SQLException {
+		return agent.batch(context);
+	}
+
+	/**
 	 * エンティティタイプからBULK INSERT SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent

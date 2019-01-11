@@ -715,6 +715,158 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testUpdates() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.inserts(Stream.of(
+						new TestEntityForInserts(1, null, 0, null, null),
+						new TestEntityForInserts(2, null, 0, null, null),
+						new TestEntityForInserts(3, "name3", 0, null, null)));
+
+				TestEntityForUpdates test1 = new TestEntityForUpdates(1, "name1", 20);
+				TestEntityForUpdates test2 = new TestEntityForUpdates(2, "name2", 21);
+				TestEntityForUpdates test3 = new TestEntityForUpdates(3, null, 22);
+
+				int count = agent.updates(Stream.of(test1, test2, test3));
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(1, "name1", 20, null, null)));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(2, "name2", 21, null, null)));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(3, null, 22, null, null)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testUpdates2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+
+				agent.inserts(Stream.of(
+						new TestEntityForInserts(1, null, 0, null, null),
+						new TestEntityForInserts(2, null, 0, null, null),
+						new TestEntityForInserts(3, "name3", 0, null, null)));
+
+				TestEntityForUpdates test1 = new TestEntityForUpdates(1, "name1", 20);
+				TestEntityForUpdates test2 = new TestEntityForUpdates(2, "name2", 21);
+				TestEntityForUpdates test3 = new TestEntityForUpdates(3, null, 22);
+
+				int count = agent.updates(TestEntityForUpdates.class, Stream.of(test1, test2, test3));
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(1, "name1", 20, null, null)));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(2, "name2", 21, null, null)));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(3, null, 22, null, null)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testUpdates3() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.inserts(Stream.of(
+						new TestEntityForInserts(1, null, 0, null, null),
+						new TestEntityForInserts(2, null, 0, null, null),
+						new TestEntityForInserts(3, "name3", 0, null, null)));
+
+				TestEntityForUpdates test1 = new TestEntityForUpdates(1, "name1", 20);
+				TestEntityForUpdates test2 = new TestEntityForUpdates(2, "name2", 21);
+				TestEntityForUpdates test3 = new TestEntityForUpdates(3, null, 22);
+
+				int count = agent.updates(Stream.of(test1, test2, test3), (c, r) -> c.batchCount() > 0);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(1, "name1", 20, null, null)));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(2, "name2", 21, null, null)));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(3, null, 22, null, null)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testUpdates4() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.inserts(Stream.of(
+						new TestEntityForInserts(1, null, 0, null, null),
+						new TestEntityForInserts(2, null, 0, null, null),
+						new TestEntityForInserts(3, "name3", 0, null, null)));
+
+				TestEntityForUpdates test1 = new TestEntityForUpdates(1, "name1", 20);
+				TestEntityForUpdates test2 = new TestEntityForUpdates(2, "name2", 21);
+				TestEntityForUpdates test3 = new TestEntityForUpdates(3, null, 22);
+
+				int count = agent.updates(Stream.of(test1, test2, test3), (c, r) -> c.batchCount() == 2);
+				assertThat(count, is(3));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(1, "name1", 20, null, null)));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(2, "name2", 21, null, null)));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(new TestEntityForInserts(3, null, 22, null, null)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testUpdatesEmpty() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				int count = agent.updates(Stream.empty());
+				assertThat(count, is(0));
+
+				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testUpdatesTypeError1() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForUpdates test1 = new TestEntityForUpdates();
+
+				agent.updates((Class) TestEntity.class, Stream.of(test1));
+
+			});
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testUpdatesTypeError2() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForUpdates test1 = new TestEntityForUpdates();
+
+				agent.updates((Class) int.class, Stream.of(test1));
+
+			});
+		}
+	}
+
+	@Test
 	public void testQueryNothingKey() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {

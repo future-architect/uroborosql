@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.ToIntBiFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -80,7 +81,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
 
 	/** 一括更新用のバッチフレームの判定条件 */
-	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_CONDITION = (context, count, row) -> count == 1000;
+	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_INSERTS_CONDITION = (context, count,
+			row) -> count == 1000;
+	private static final UpdatesCondition<Object> DEFAULT_BATCH_WHEN_UPDATES_CONDITION = (context,
+			row) -> context.batchCount() == 1000;
 
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
@@ -636,32 +640,18 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities) {
-		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_CONDITION);
+		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_INSERTS_CONDITION);
 	}
 
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities, final InsertsType insertsType) {
-		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_CONDITION, insertsType);
+		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_INSERTS_CONDITION, insertsType);
 	}
 
 	@Override
 	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
-		Iterator<E> iterator = entities.iterator();
-		if (!iterator.hasNext()) {
-			return 0;
-		}
-
-		E firstEntity = iterator.next();
-
-		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
-		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
-		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
-
-		@SuppressWarnings("unchecked")
-		Class<E> type = (Class<E>) firstEntity.getClass();
-
-		return inserts(type, stream, condition, insertsType);
+		return processEntitiesType(entities, (type, stream) -> inserts(type, stream, condition, insertsType));
 	}
 
 	@Override
@@ -671,12 +661,27 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	@Override
 	public int inserts(final Stream<?> entities) {
-		return inserts(entities, DEFAULT_BATCH_WHEN_CONDITION);
+		return inserts(entities, DEFAULT_BATCH_WHEN_INSERTS_CONDITION);
 	}
 
 	@Override
 	public int inserts(final Stream<?> entities, final InsertsType insertsType) {
-		return inserts(entities, DEFAULT_BATCH_WHEN_CONDITION, insertsType);
+		return inserts(entities, DEFAULT_BATCH_WHEN_INSERTS_CONDITION, insertsType);
+	}
+
+	@Override
+	public <E> int updates(final Class<E> entityType, final Stream<E> entities) {
+		return updates(entityType, entities, DEFAULT_BATCH_WHEN_UPDATES_CONDITION);
+	}
+
+	@Override
+	public <E> int updates(final Stream<E> entities, final UpdatesCondition<? super E> condition) {
+		return processEntitiesType(entities, (type, stream) -> updates(type, stream, condition));
+	}
+
+	@Override
+	public int updates(final Stream<?> entities) {
+		return updates(entities, DEFAULT_BATCH_WHEN_UPDATES_CONDITION);
 	}
 
 	/**
@@ -866,4 +871,22 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public abstract <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
 			final InsertsCondition<? super E> condition);
+
+	private <E> int processEntitiesType(final Stream<E> entities, final ToIntBiFunction<Class<E>, Stream<E>> process) {
+		Iterator<E> iterator = entities.iterator();
+		if (!iterator.hasNext()) {
+			return 0;
+		}
+
+		E firstEntity = iterator.next();
+
+		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
+		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
+		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
+
+		@SuppressWarnings("unchecked")
+		Class<E> type = (Class<E>) firstEntity.getClass();
+
+		return process.applyAsInt(type, stream);
+	}
 }

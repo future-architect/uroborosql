@@ -156,6 +156,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.getSqlIdKeyName(), numberOfRecords));
 	}
 
+	@Override
+	public SqlContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
+			final Class<? extends Object> entityType) {
+		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
+				.getSqlIdKeyName(), false)).setSqlId(createSqlId(metadata, entityType));
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -398,6 +405,20 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final String sqlIdKeyName) {
+		return buildUpdateSQL(metadata, type, sqlIdKeyName, true);
+	}
+
+	/**
+	 * UPDATE SQL生成
+	 *
+	 * @param metadata エンティティメタ情報
+	 * @param type エイティティタイプ
+	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param ignoreWhenEmpty 空白パラメータをSQLに含めない条件文を設定する
+	 * @return UPDATE SQL
+	 */
+	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
+			final String sqlIdKeyName, final boolean ignoreWhenEmpty) {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
@@ -436,7 +457,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (col.isNullable()) {
+			if (ignoreWhenEmpty && col.isNullable()) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);
@@ -462,7 +483,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			parts.append(col.getColumnName()).append(" = ").append("/*").append(col.getCamelColumnName())
 					.append("*/''")
 					.append(System.lineSeparator());
-			if (col.isNullable()) {
+			if (ignoreWhenEmpty && col.isNullable()) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);

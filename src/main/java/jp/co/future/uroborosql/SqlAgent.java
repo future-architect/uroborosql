@@ -52,6 +52,24 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	}
 
 	/**
+	 * {@link SqlAgent#updates(Stream, UpdatesCondition)}の一括更新用のフレームの判定条件
+	 *
+	 * @param <E> エンティティ型
+	 */
+	@FunctionalInterface
+	interface UpdatesCondition<E> {
+		/**
+		 * 一括更新用のフレームの判定
+		 *
+		 * @param context SqlContext
+		 * @param count パラメーターレコード数
+		 * @param entity エンティティ
+		 * @return `true`の場合、一括更新を実行します
+		 */
+		boolean test(SqlContext context, E entity);
+	}
+
+	/**
 	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。<br>
 	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを<br>
 	 * 利用してカバレッジの収集を行う。
@@ -429,4 +447,43 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SQL実行結果
 	 */
 	int inserts(Stream<?> entities, InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int updates(Class<E> entityType, Stream<E> entities, UpdatesCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int updates(Class<E> entityType, Stream<E> entities);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int updates(Stream<E> entities, UpdatesCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	int updates(Stream<?> entities);
 }
