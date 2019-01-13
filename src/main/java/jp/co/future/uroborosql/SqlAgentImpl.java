@@ -730,6 +730,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	private final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
 		private final ResultSetConverter<T> converter;
 		private final ResultSet rs;
+		private boolean finished = false;
 
 		private ResultSetSpliterator(final ResultSet rs, final ResultSetConverter<T> converter) {
 			super(Long.MAX_VALUE, Spliterator.ORDERED);
@@ -740,8 +741,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		@Override
 		public boolean tryAdvance(final Consumer<? super T> action) {
 			try {
-				if (!rs.next()) {
+				if (finished || !rs.next()) {
 					rs.close();
+					finished = true;
 					return false;
 				}
 				action.accept(converter.createRecord(rs));
