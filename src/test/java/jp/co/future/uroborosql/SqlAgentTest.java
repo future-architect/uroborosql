@@ -924,6 +924,37 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * バッチ処理のテストケース(Bean Stream)。
+	 */
+	@Test
+	public void testExecuteBatchBeanStream() {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		// Entity生成のために一旦登録してSelect
+		List<Map<String, Object>> data = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
+				"testExecuteBatchStream.ltsv"));
+		agent.batch("example/insert_product").paramStream(data.stream()).count();
+		// 取得
+		List<Product> input = agent.query(Product.class).collect();
+		// 再度削除
+		truncateTable("PRODUCT");
+
+		// 処理実行
+		int count = agent.batch("example/insert_product_for_bean").paramStream(input.stream()).count();
+
+		assertEquals("データの登録件数が不正です。", 100, count);
+
+		// 検証処理
+		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
+				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
+		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
+				.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)).collect(Collectors.toList());
+
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
+	}
+
+	/**
 	 * バッチ処理のテストケース(Stream)。
 	 */
 	@Test
