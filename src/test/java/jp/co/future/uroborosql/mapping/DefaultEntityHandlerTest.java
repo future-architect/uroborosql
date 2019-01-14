@@ -478,7 +478,7 @@ public class DefaultEntityHandlerTest {
 				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), (c, r) -> c > 0,
+				int count = agent.inserts(Stream.of(test1, test2, test3), (cnt, ctx, r) -> cnt > 0,
 						InsertsType.BATCH);
 				assertThat(count, is(3));
 
@@ -507,7 +507,7 @@ public class DefaultEntityHandlerTest {
 				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (c, r) -> c == 3,
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (cnt, ctx, r) -> cnt == 3,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 
@@ -537,6 +537,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected = IllegalArgumentException.class)
 	public void testBatchInsertTypeError1() throws Exception {
 
@@ -550,6 +551,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected = IllegalArgumentException.class)
 	public void testBatchInsertTypeError2() throws Exception {
 
@@ -627,7 +629,7 @@ public class DefaultEntityHandlerTest {
 				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), (c, r) -> c > 0);
+				int count = agent.inserts(Stream.of(test1, test2, test3), (cnt, ctx, r) -> cnt > 0);
 				assertThat(count, is(3));
 
 				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -655,7 +657,7 @@ public class DefaultEntityHandlerTest {
 				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (c, r) -> c == 3);
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (cnt, ctx, r) -> cnt == 3);
 				assertThat(count, is(4));
 
 				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -684,6 +686,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected = IllegalArgumentException.class)
 	public void testBulkInsertTypeError1() throws Exception {
 
@@ -697,6 +700,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected = IllegalArgumentException.class)
 	public void testBulkInsertTypeError2() throws Exception {
 

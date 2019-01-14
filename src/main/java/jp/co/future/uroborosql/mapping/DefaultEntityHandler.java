@@ -136,13 +136,24 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBulkInsertContext(SqlAgent, TableMetadata, Class, int)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBulkInsertContext(SqlAgent, TableMetadata, Class)
 	 */
 	@Override
 	public SqlContext createBulkInsertContext(final SqlAgent agent, final TableMetadata metadata,
-			final Class<? extends Object> entityType, final int numberOfRecords) {
-		return agent.contextWith(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), numberOfRecords)).setSqlId(createSqlId(metadata, entityType));
+			final Class<? extends Object> entityType) {
+		return agent.context().setSqlId(createSqlId(metadata, entityType));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setupSqlBulkInsertContext(SqlAgent, SqlContext, TableMetadata, Class, int)
+	 */
+	@Override
+	public SqlContext setupSqlBulkInsertContext(final SqlAgent agent, final SqlContext context,
+			final TableMetadata metadata, final Class<? extends Object> entityType, final int numberOfRecords) {
+		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
+				.getSqlIdKeyName(), numberOfRecords));
 	}
 
 	/**

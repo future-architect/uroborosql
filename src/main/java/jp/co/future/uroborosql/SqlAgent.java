@@ -35,6 +35,24 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
+	 * {@link SqlAgent#inserts(Stream, BiPredicate)}の一括更新用のフレームの判定条件
+	 *
+	 * @param <E> エンティティ型
+	 */
+	@FunctionalInterface
+	interface InsertsCondition<E> {
+		/**
+		 * 一括更新用のフレームの判定
+		 *
+		 * @param count パラメーターレコード数
+		 * @param context SqlContext
+		 * @param entity エンティティ
+		 * @return `true`の場合、一括更新を実行します
+		 */
+		boolean test(int count, SqlContext context, E entity);
+	}
+
+	/**
 	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。<br>
 	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを<br>
 	 * 利用してカバレッジの収集を行う。
@@ -340,7 +358,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param insertsType INSERT処理方法
 	 * @return SQL実行結果
 	 */
-	<E> int inserts(Class<E> entityType, Stream<E> entities, BiPredicate<Integer, ? super E> condition,
+	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition,
 			InsertsType insertsType);
 
 	/**
@@ -352,7 +370,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param condition 一括更新用のフレームの判定条件
 	 * @return SQL実行結果
 	 */
-	<E> int inserts(Class<E> entityType, Stream<E> entities, BiPredicate<Integer, ? super E> condition);
+	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
 	 * 複数エンティティのINSERTを実行
@@ -384,7 +402,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param insertsType INSERT処理方法
 	 * @return SQL実行結果
 	 */
-	<E> int inserts(Stream<E> entities, BiPredicate<Integer, ? super E> condition, InsertsType insertsType);
+	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition, InsertsType insertsType);
 
 	/**
 	 * 複数エンティティのINSERTを実行
@@ -394,7 +412,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param condition 一括更新用のフレームの判定条件
 	 * @return SQL実行結果
 	 */
-	<E> int inserts(Stream<E> entities, BiPredicate<Integer, ? super E> condition);
+	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
 	 * 複数エンティティのINSERTを実行

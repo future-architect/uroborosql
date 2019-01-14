@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -81,7 +80,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
 
 	/** 一括更新用のバッチフレームの判定条件 */
-	private static final BiPredicate<Integer, Object> DEFAULT_BATCH_WHEN_CONDITION = (count, row) -> count == 1000;
+	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_CONDITION = (count, ctx, row) -> count == 1000;
 
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
@@ -620,7 +619,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
-			final BiPredicate<Integer, ? super E> condition,
+			final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
 		if (insertsType == InsertsType.BULK && sqlConfig.getDialect().supportsBulkInsert()) {
 			return bulkInsert(entityType, entities, condition);
@@ -631,7 +630,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
-			final BiPredicate<Integer, ? super E> condition) {
+			final InsertsCondition<? super E> condition) {
 		return inserts(entityType, entities, condition, defaultInsertsType);
 	}
 
@@ -646,7 +645,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	@Override
-	public <E> int inserts(final Stream<E> entities, final BiPredicate<Integer, ? super E> condition,
+	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
 		Iterator<E> iterator = entities.iterator();
 		if (!iterator.hasNext()) {
@@ -666,7 +665,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	@Override
-	public <E> int inserts(final Stream<E> entities, final BiPredicate<Integer, ? super E> condition) {
+	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition) {
 		return inserts(entities, condition, defaultInsertsType);
 	}
 
@@ -855,7 +854,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return SQL実行結果
 	 */
 	public abstract <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
-			final BiPredicate<Integer, ? super E> condition);
+			final InsertsCondition<? super E> condition);
 
 	/**
 	 * 複数エンティティのINSERTをバッチ実行
@@ -867,5 +866,5 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @return SQL実行結果
 	 */
 	public abstract <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
-			final BiPredicate<Integer, ? super E> condition);
+			final InsertsCondition<? super E> condition);
 }

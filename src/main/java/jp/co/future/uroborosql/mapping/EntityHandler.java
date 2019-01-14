@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
@@ -187,8 +186,7 @@ public interface EntityHandler<ENTITY> {
 	 * @param numberOfRecords レコード行数
 	 * @return INSERT SQLコンテキスト
 	 */
-	SqlContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType,
-			int numberOfRecords);
+	SqlContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
 	 * SqlContextのパラメーターににエンティティの値をセットします。
@@ -200,15 +198,27 @@ public interface EntityHandler<ENTITY> {
 	void setBulkInsertParams(final SqlContext context, final ENTITY entity, int entityIndex);
 
 	/**
+	 * BULK INSERT SQLコンテキストにSQLを設定します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SqlContext
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @param numberOfRecords レコード行数
+	 * @return INSERT SQLコンテキスト
+	 */
+	SqlContext setupSqlBulkInsertContext(SqlAgent agent, SqlContext context, TableMetadata metadata,
+			Class<? extends ENTITY> entityType, int numberOfRecords);
+
+	/**
 	 * BULK INSERTを実行します。
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
-	 * @param entities エンティティ
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	default int doBulkInsert(final SqlAgent agent, final SqlContext context, final List<ENTITY> entities)
+	default int doBulkInsert(final SqlAgent agent, final SqlContext context)
 			throws SQLException {
 		return agent.update(context);
 	}
