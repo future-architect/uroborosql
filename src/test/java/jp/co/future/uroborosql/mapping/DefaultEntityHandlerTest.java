@@ -494,6 +494,37 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testBatchInsert4() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+						"memo4");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (c, r) -> c == 3,
+						InsertsType.BATCH);
+				assertThat(count, is(4));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+				data = agent.find(TestEntityForInserts.class, 4).orElse(null);
+				assertThat(data, is(test4));
+
+			});
+		}
+	}
+
+	@Test
 	public void testBatchInsertEmpty() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {
@@ -605,6 +636,36 @@ public class DefaultEntityHandlerTest {
 				assertThat(data, is(test2));
 				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
 				assertThat(data, is(test3));
+
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsert4() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						"memo1");
+				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						null);
+				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						"memo3");
+				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+						"memo4");
+
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (c, r) -> c == 3);
+				assertThat(count, is(4));
+
+				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntityForInserts.class, 3).orElse(null);
+				assertThat(data, is(test3));
+				data = agent.find(TestEntityForInserts.class, 4).orElse(null);
+				assertThat(data, is(test4));
 
 			});
 		}
