@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -200,7 +199,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		final ResultSet rs = query(sqlContext);
-		return StreamSupport.stream(new ResultSetSpliterator<T>(rs, converter), false).onClose(() -> {
+		return StreamSupport.stream(new ResultSetSpliterator<>(rs, converter), false).onClose(() -> {
 			try {
 				if (rs != null && !rs.isClosed()) {
 					rs.close();
@@ -726,7 +725,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, InsertsCondition)
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -769,7 +768,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(Class, Stream, BiPredicate)
+	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override

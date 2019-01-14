@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -35,7 +34,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
-	 * {@link SqlAgent#inserts(Stream, BiPredicate)}の一括更新用のフレームの判定条件
+	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件
 	 *
 	 * @param <E> エンティティ型
 	 */
