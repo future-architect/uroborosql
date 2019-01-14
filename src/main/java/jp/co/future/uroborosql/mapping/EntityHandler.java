@@ -200,7 +200,7 @@ public interface EntityHandler<ENTITY> {
 	void setBulkInsertParams(final SqlContext context, final ENTITY entity, int entityIndex);
 
 	/**
-	 * DELETEを実行します。
+	 * BULK INSERTを実行します。
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
