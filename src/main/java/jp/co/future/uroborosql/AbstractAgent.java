@@ -113,6 +113,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat */
 	private CaseFormat defaultMapKeyCaseFormat = CaseFormat.UPPER_SNAKE_CASE;
 
+	/** デフォルトの{@link InsertsType} */
+	private InsertsType defaultInsertsType = InsertsType.BULK;
+
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
 		// クラス名が指定されている場合はそのクラス名を指定
@@ -175,6 +178,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
 			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(defaultProps
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
+		}
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
+			this.defaultInsertsType = InsertsType.valueOf(defaultProps
+					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE));
 		}
 	}
 
@@ -625,7 +632,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
 			final BiPredicate<Integer, ? super E> condition) {
-		return inserts(entityType, entities, condition, sqlConfig.getDefaultInsertsType());
+		return inserts(entityType, entities, condition, defaultInsertsType);
 	}
 
 	@Override
@@ -660,7 +667,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	@Override
 	public <E> int inserts(final Stream<E> entities, final BiPredicate<Integer, ? super E> condition) {
-		return inserts(entities, condition, sqlConfig.getDefaultInsertsType());
+		return inserts(entities, condition, defaultInsertsType);
 	}
 
 	@Override
@@ -785,6 +792,29 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
 		this.defaultMapKeyCaseFormat = defaultMapKeyCaseFormat;
+	}
+
+	/**
+	 * デフォルトの{@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	@Override
+	public InsertsType getDefaultInsertsType() {
+		return defaultInsertsType;
+	}
+
+	/**
+	 * デフォルトの{@link InsertsType}を設定する
+	 *
+	 * @param defaultInsertsType デフォルトの{@link InsertsType}
+	 * @return SqlAgentFactory
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	@Override
+	public void setDefaultInsertsType(InsertsType defaultInsertsType) {
+		this.defaultInsertsType = defaultInsertsType;
 	}
 
 	/**

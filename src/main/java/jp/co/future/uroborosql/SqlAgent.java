@@ -151,6 +151,22 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat);
 
 	/**
+	 * デフォルトの{@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	InsertsType getDefaultInsertsType();
+
+	/**
+	 * デフォルトの{@link InsertsType}を設定する
+	 *
+	 * @param defaultInsertsType デフォルトの{@link InsertsType}
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	void setDefaultInsertsType(InsertsType defaultInsertsType);
+
+	/**
 	 * トランザクションのコミット用API<br>
 	 * <br>
 	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
