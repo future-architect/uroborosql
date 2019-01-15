@@ -14,6 +14,7 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -288,6 +289,28 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public SqlAgentFactory setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultInsertsType()
+	 */
+	@Override
+	public InsertsType getDefaultInsertsType() {
+		return InsertsType.valueOf(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_INSERTS_TYPE,
+				InsertsType.BULK.toString()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultInsertsType(InsertsType)
+	 */
+	@Override
+	public SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType) {
+		getDefaultProps().put(PROPS_KEY_DEFAULT_INSERTS_TYPE, defaultInsertsType.toString());
 		return this;
 	}
 

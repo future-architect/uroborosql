@@ -156,6 +156,74 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
+	 * エンティティタイプからバッチ用INSERT SQLコンテキストを生成します。
+	 *
+	 * @param agent SqlAgent
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @return INSERT SQLコンテキスト
+	 */
+	SqlContext createBatchInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * BATCH INSERTを実行します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SQLコンテキスト
+	 * @return SQL実行結果
+	 * @throws SQLException SQL例外
+	 */
+	default int[] doBatchInsert(final SqlAgent agent, final SqlContext context) throws SQLException {
+		return agent.batch(context);
+	}
+
+	/**
+	 * エンティティタイプからBULK INSERT SQLコンテキストを生成します。
+	 *
+	 * @param agent SqlAgent
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @param numberOfRecords レコード行数
+	 * @return INSERT SQLコンテキスト
+	 */
+	SqlContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 *
+	 * @param context SQLコンテキスト
+	 * @param entity エンティティ
+	 * @param entityIndex エンティティのインデックス
+	 */
+	void setBulkInsertParams(final SqlContext context, final ENTITY entity, int entityIndex);
+
+	/**
+	 * BULK INSERT SQLコンテキストにSQLを設定します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SqlContext
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @param numberOfRecords レコード行数
+	 * @return INSERT SQLコンテキスト
+	 */
+	SqlContext setupSqlBulkInsertContext(SqlAgent agent, SqlContext context, TableMetadata metadata,
+			Class<? extends ENTITY> entityType, int numberOfRecords);
+
+	/**
+	 * BULK INSERTを実行します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SQLコンテキスト
+	 * @return SQL実行結果
+	 * @throws SQLException SQL例外
+	 */
+	default int doBulkInsert(final SqlAgent agent, final SqlContext context)
+			throws SQLException {
+		return agent.update(context);
+	}
+
+	/**
 	 * プロパティ変換クラス{@link PropertyMapper}を追加
 	 *
 	 * @param propertyMapper {@link PropertyMapper}

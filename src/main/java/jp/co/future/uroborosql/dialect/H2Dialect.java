@@ -24,4 +24,9 @@ public class H2Dialect extends AbstractDialect {
 	public String getDatabaseName() {
 		return "H2";
 	}
+
+	@Override
+	public boolean supportsBulkInsert() {
+		return true;
+	}
 }

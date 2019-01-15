@@ -10,6 +10,7 @@ import java.util.List;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -65,6 +66,12 @@ public interface SqlAgentFactory {
 	 * デフォルトは "UPPER_SNAKE_CASE"
 	 */
 	final String PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT = "defaultMapKeyCaseFormat";
+
+	/**
+	 * プロパティ:デフォルトの{@link InsertsType}<br>
+	 * デフォルトは "BULK"
+	 */
+	final String PROPS_KEY_DEFAULT_INSERTS_TYPE = "defaultInsertsType";
 
 	/**
 	 * SQL実行クラス生成。
@@ -227,4 +234,21 @@ public interface SqlAgentFactory {
 	 * @return SqlAgentFactory
 	 */
 	SqlAgentFactory setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
+
+	/**
+	 * デフォルトの{@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	InsertsType getDefaultInsertsType();
+
+	/**
+	 * デフォルトの{@link InsertsType}を設定する
+	 *
+	 * @param defaultInsertsType デフォルトの{@link InsertsType}
+	 * @return SqlAgentFactory
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType);
 }

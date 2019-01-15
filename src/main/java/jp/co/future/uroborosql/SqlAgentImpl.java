@@ -11,8 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -197,7 +199,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	@Override
 	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
 		final ResultSet rs = query(sqlContext);
-		return StreamSupport.stream(new ResultSetSpliterator<T>(rs, converter), false).onClose(() -> {
+		return StreamSupport.stream(new ResultSetSpliterator<>(rs, converter), false).onClose(() -> {
 			try {
 				if (rs != null && !rs.isClosed()) {
 					rs.close();
@@ -718,6 +720,99 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBatchInsertContext(this, metadata, entityType);
+
+			int count = 0;
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				handler.setInsertParams(context, entity);
+				context.addBatch();
+
+				count += condition.test(context, context.batchCount(), entity)
+						? Arrays.stream(handler.doBatchInsert(this, context)).sum()
+								: 0;
+			}
+			return count + (context.batchCount() != 0
+					? Arrays.stream(handler.doBatchInsert(this, context)).sum()
+							: 0);
+
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBulkInsertContext(this, metadata, entityType);
+
+			int frameCount = 0;
+			int count = 0;
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				handler.setBulkInsertParams(context, entity, frameCount);
+				frameCount++;
+
+				if (condition.test(context, frameCount, entity)) {
+					count += doBulkInsert(context, entityType, handler, metadata, frameCount);
+					frameCount = 0;
+					context = handler.createBulkInsertContext(this, metadata, entityType);
+				}
+			}
+			return count + (frameCount > 0 ? doBulkInsert(context, entityType, handler, metadata, frameCount) : 0);
+
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+		}
+	}
+
+	private <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
+			final TableMetadata metadata, final int frameCount) throws SQLException {
+		return handler.doBulkInsert(this,
+				handler.setupSqlBulkInsertContext(this, context, metadata, entityType, frameCount));
 	}
 
 	/**

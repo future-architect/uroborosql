@@ -12,14 +12,20 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -73,6 +79,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** 例外発生にロールバックが必要なDBでリトライを実現するために設定するSavepointの名前 */
 	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
 
+	/** 一括更新用のバッチフレームの判定条件 */
+	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_CONDITION = (context, count, row) -> count == 1000;
+
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
@@ -102,6 +111,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat */
 	private CaseFormat defaultMapKeyCaseFormat = CaseFormat.UPPER_SNAKE_CASE;
+
+	/** デフォルトの{@link InsertsType} */
+	private InsertsType defaultInsertsType = InsertsType.BULK;
 
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
@@ -165,6 +177,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
 			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(defaultProps
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
+		}
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
+			this.defaultInsertsType = InsertsType.valueOf(defaultProps
+					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE));
 		}
 	}
 
@@ -601,6 +617,68 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 	}
 
+	@Override
+	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition,
+			final InsertsType insertsType) {
+		if (insertsType == InsertsType.BULK && sqlConfig.getDialect().supportsBulkInsert()) {
+			return bulkInsert(entityType, entities, condition);
+		} else {
+			return batchInsert(entityType, entities, condition);
+		}
+	}
+
+	@Override
+	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition) {
+		return inserts(entityType, entities, condition, defaultInsertsType);
+	}
+
+	@Override
+	public <E> int inserts(final Class<E> entityType, final Stream<E> entities) {
+		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_CONDITION);
+	}
+
+	@Override
+	public <E> int inserts(final Class<E> entityType, final Stream<E> entities, final InsertsType insertsType) {
+		return inserts(entityType, entities, DEFAULT_BATCH_WHEN_CONDITION, insertsType);
+	}
+
+	@Override
+	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition,
+			final InsertsType insertsType) {
+		Iterator<E> iterator = entities.iterator();
+		if (!iterator.hasNext()) {
+			return 0;
+		}
+
+		E firstEntity = iterator.next();
+
+		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
+		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
+		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
+
+		@SuppressWarnings("unchecked")
+		Class<E> type = (Class<E>) firstEntity.getClass();
+
+		return inserts(type, stream, condition, insertsType);
+	}
+
+	@Override
+	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition) {
+		return inserts(entities, condition, defaultInsertsType);
+	}
+
+	@Override
+	public int inserts(final Stream<?> entities) {
+		return inserts(entities, DEFAULT_BATCH_WHEN_CONDITION);
+	}
+
+	@Override
+	public int inserts(final Stream<?> entities, final InsertsType insertsType) {
+		return inserts(entities, DEFAULT_BATCH_WHEN_CONDITION, insertsType);
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -716,6 +794,29 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
+	 * デフォルトの{@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	@Override
+	public InsertsType getDefaultInsertsType() {
+		return defaultInsertsType;
+	}
+
+	/**
+	 * デフォルトの{@link InsertsType}を設定する
+	 *
+	 * @param defaultInsertsType デフォルトの{@link InsertsType}
+	 * @return SqlAgentFactory
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	@Override
+	public void setDefaultInsertsType(final InsertsType defaultInsertsType) {
+		this.defaultInsertsType = defaultInsertsType;
+	}
+
+	/**
 	 * ステートメント初期化。
 	 *
 	 * @param sqlContext SQLコンテキスト
@@ -742,4 +843,28 @@ public abstract class AbstractAgent implements SqlAgent {
 		applyProperties(stmt);
 		return stmt;
 	}
+
+	/**
+	 * 複数エンティティのBULK INSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	public abstract <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTをバッチ実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	public abstract <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition);
 }

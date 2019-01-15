@@ -17,6 +17,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
@@ -33,11 +34,29 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
+	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件
+	 *
+	 * @param <E> エンティティ型
+	 */
+	@FunctionalInterface
+	interface InsertsCondition<E> {
+		/**
+		 * 一括更新用のフレームの判定
+		 *
+		 * @param context SqlContext
+		 * @param count パラメーターレコード数
+		 * @param entity エンティティ
+		 * @return `true`の場合、一括更新を実行します
+		 */
+		boolean test(SqlContext context, int count, E entity);
+	}
+
+	/**
 	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。<br>
 	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを<br>
 	 * 利用してカバレッジの収集を行う。
 	 */
-	final String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
+	String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
 
 	/**
 	 * クエリ実行処理。
@@ -147,6 +166,22 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
 	 */
 	void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat);
+
+	/**
+	 * デフォルトの{@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	InsertsType getDefaultInsertsType();
+
+	/**
+	 * デフォルトの{@link InsertsType}を設定する
+	 *
+	 * @param defaultInsertsType デフォルトの{@link InsertsType}
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	void setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
 	 * トランザクションのコミット用API<br>
@@ -311,4 +346,87 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SQL実行結果
 	 */
 	int delete(Object entity);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @param insertsType INSERT処理方法
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition,
+			InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Class<E> entityType, Stream<E> entities);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param insertsType INSERT処理方法
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @param insertsType INSERT処理方法
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition, InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	int inserts(Stream<?> entities);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param entities エンティティ
+	 * @param insertsType INSERT処理方法
+	 * @return SQL実行結果
+	 */
+	int inserts(Stream<?> entities, InsertsType insertsType);
 }
