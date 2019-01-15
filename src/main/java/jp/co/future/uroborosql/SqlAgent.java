@@ -43,12 +43,12 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 		/**
 		 * 一括更新用のフレームの判定
 		 *
-		 * @param count パラメーターレコード数
 		 * @param context SqlContext
+		 * @param count パラメーターレコード数
 		 * @param entity エンティティ
 		 * @return `true`の場合、一括更新を実行します
 		 */
-		boolean test(int count, SqlContext context, E entity);
+		boolean test(SqlContext context, int count, E entity);
 	}
 
 	/**

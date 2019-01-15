@@ -752,13 +752,13 @@ public class SqlAgentImpl extends AbstractAgent {
 				handler.setInsertParams(context, entity);
 				context.addBatch();
 
-				count += condition.test(context.batchCount(), context, entity)
+				count += condition.test(context, context.batchCount(), entity)
 						? Arrays.stream(handler.doBatchInsert(this, context)).sum()
 								: 0;
 			}
 			return count + (context.batchCount() != 0
 					? Arrays.stream(handler.doBatchInsert(this, context)).sum()
-					: 0);
+							: 0);
 
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
@@ -796,7 +796,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				handler.setBulkInsertParams(context, entity, frameCount);
 				frameCount++;
 
-				if (condition.test(frameCount, context, entity)) {
+				if (condition.test(context, frameCount, entity)) {
 					count += doBulkInsert(context, entityType, handler, metadata, frameCount);
 					frameCount = 0;
 					context = handler.createBulkInsertContext(this, metadata, entityType);

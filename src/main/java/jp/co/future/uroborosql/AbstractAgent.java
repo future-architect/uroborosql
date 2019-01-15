@@ -80,7 +80,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
 
 	/** 一括更新用のバッチフレームの判定条件 */
-	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_CONDITION = (count, ctx, row) -> count == 1000;
+	private static final InsertsCondition<Object> DEFAULT_BATCH_WHEN_CONDITION = (context, count, row) -> count == 1000;
 
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
@@ -812,7 +812,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
 	@Override
-	public void setDefaultInsertsType(InsertsType defaultInsertsType) {
+	public void setDefaultInsertsType(final InsertsType defaultInsertsType) {
 		this.defaultInsertsType = defaultInsertsType;
 	}
 
