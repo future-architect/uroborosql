@@ -808,7 +808,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * デフォルトの{@link InsertsType}を設定する
 	 *
 	 * @param defaultInsertsType デフォルトの{@link InsertsType}
-	 * @return SqlAgentFactory
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
 	@Override
