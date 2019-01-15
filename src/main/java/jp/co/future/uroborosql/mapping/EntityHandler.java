@@ -183,7 +183,6 @@ public interface EntityHandler<ENTITY> {
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
-	 * @param numberOfRecords レコード行数
 	 * @return INSERT SQLコンテキスト
 	 */
 	SqlContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
