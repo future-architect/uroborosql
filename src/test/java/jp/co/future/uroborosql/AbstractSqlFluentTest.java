@@ -136,7 +136,6 @@ public class AbstractSqlFluentTest {
 			SqlQuery query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
 			assertThat(query.collect().size(), is(1));
 			assertThat(query.context().getExecutableSql(), containsString(sqlId));
-			System.out.println(query.context().getExecutableSql());
 		}
 	}
 }
