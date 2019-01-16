@@ -301,4 +301,12 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T retry(int count, int waitTime);
+
+	/**
+	 * 発行するSQLに付与するSQL_IDを設定する
+	 *
+	 * @param sqlId SQL_ID文字列
+	 * @return T
+	 */
+	T sqlId(String sqlId);
 }
