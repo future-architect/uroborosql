@@ -141,6 +141,11 @@ public class AbstractSqlFluentTest {
 			query.paramList("key3", () -> Arrays.asList("a", "b", "c"));
 			assertThat(query.context().getParam("key3").getValue(), is(Arrays.asList("a", "b", "c")));
 
+			query.param("key4", null);
+			assertThat(query.context().getParam("key4").getValue(), nullValue());
+
+			query.paramList("key5", () -> {return null;});
+			assertThat(query.context().getParam("key5").getValue(), nullValue());
 		}
 	}
 }

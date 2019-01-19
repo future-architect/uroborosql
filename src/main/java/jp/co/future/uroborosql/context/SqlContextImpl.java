@@ -432,7 +432,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public SqlContext param(final String paramName, final Supplier<Object> supplier) {
-		return this.param(paramName, supplier.get());
+		return this.param(paramName, supplier != null ? supplier.get() : null);
 	}
 
 	/**
