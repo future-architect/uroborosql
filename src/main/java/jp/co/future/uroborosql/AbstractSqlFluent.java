@@ -9,7 +9,9 @@ package jp.co.future.uroborosql;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
@@ -52,6 +54,18 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	@Override
 	public T paramList(final String paramName, final Object... value) {
 		context().paramList(paramName, value);
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public T paramList(final String paramName, final Supplier<List<?>> supplier) {
+		context().paramList(paramName, supplier);
 		return (T) this;
 	}
 
@@ -163,6 +177,18 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	@Override
 	public T param(final String paramName, final Object value) {
 		context().param(paramName, value);
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public T param(final String paramName, final Supplier<Object> supplier) {
+		context().param(paramName, supplier);
 		return (T) this;
 	}
 

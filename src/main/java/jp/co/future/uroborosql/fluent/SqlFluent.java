@@ -12,7 +12,9 @@ package jp.co.future.uroborosql.fluent;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.SqlContext;
 
@@ -50,6 +52,15 @@ public interface SqlFluent<T> {
 	/**
 	 * パラメータの追加<br>
 	 *
+	 * @param paramName パラメータ名
+	 * @param supplier パラメータ値を提供するSupplier
+	 * @return T
+	 */
+	T param(String paramName, Supplier<Object> supplier);
+
+	/**
+	 * パラメータの追加<br>
+	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
 	 * @param paramName パラメータ名
@@ -66,6 +77,15 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	T paramList(String paramName, Object... value);
+
+	/**
+	 * パラメータ配列の追加<br>
+	 *
+	 * @param paramName パラメータ名
+	 * @param supplier パラメータ値のListを提供するSupplier
+	 * @return T
+	 */
+	T paramList(String paramName, Supplier<List<?>> supplier);
 
 	/**
 	 * パラメータ配列の追加<br>

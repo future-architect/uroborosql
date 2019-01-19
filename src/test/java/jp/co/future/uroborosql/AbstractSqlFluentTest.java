@@ -125,4 +125,22 @@ public class AbstractSqlFluentTest {
 		}
 
 	}
+
+	@Test
+	public void testParamWithSupplier() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			SqlQuery query = null;
+			query = agent.query("select * from dummy");
+			query.param("key1", () -> "value1");
+			assertThat(query.context().getParam("key1").getValue(), is("value1"));
+
+			boolean flag = false;
+			query.param("key2", () -> flag ? "true" : "false");
+			assertThat(query.context().getParam("key2").getValue(), is("false"));
+
+			query.paramList("key3", () -> Arrays.asList("a", "b", "c"));
+			assertThat(query.context().getParam("key3").getValue(), is(Arrays.asList("a", "b", "c")));
+
+		}
+	}
 }
