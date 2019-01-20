@@ -123,6 +123,19 @@ public class AbstractSqlFluentTest {
 			query.clobParamIfAbsent("key1", r22, "value1".length());
 			assertThat(query.context().getParam("key1"), is(reader11));
 		}
+	}
 
+	@Test
+	public void testSqlId() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.update("ddl/create_tables").count();
+			agent.update("setup/insert_product").count();
+
+			final String sqlId = "SQL_ID_TEST";
+
+			SqlQuery query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
+			assertThat(query.collect().size(), is(1));
+			assertThat(query.context().getExecutableSql(), containsString(sqlId));
+		}
 	}
 }

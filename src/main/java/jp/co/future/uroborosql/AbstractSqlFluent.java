@@ -367,4 +367,15 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 		context().setMaxRetryCount(count).setRetryWaitTime(waitTime);
 		return (T) this;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
+	 */
+	@Override
+	public T sqlId(final String sqlId) {
+		context().setSqlId(sqlId);
+		return (T) this;
+	}
 }

@@ -742,6 +742,17 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
+	 */
+	@Override
+	public SqlContext sqlId(final String sqlId) {
+		this.setSqlId(sqlId);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.parser.TransformContext#addSqlPart(java.lang.String)
 	 */
 	@Override

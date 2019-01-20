@@ -454,6 +454,13 @@ public class SqlContextImplTest {
 		assertEquals(ctx, ctx.context());
 	}
 
+	@Test
+	public void testSqlId() {
+		final String testSqlId = "TEST_SQL_ID";
+		SqlContext ctx = config.contextWith("select * from test").sqlId(testSqlId);
+		assertThat(ctx.getSqlId(), is(testSqlId));
+	}
+
 	private void transform(final SqlContext ctx) {
 		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getDialect().isRemoveTerminator());
 		ContextTransformer contextTransformer = sqlParser.parse();
