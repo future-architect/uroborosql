@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -427,6 +428,16 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
+	 */
+	@Override
+	public SqlContext param(final String paramName, final Supplier<Object> supplier) {
+		return this.param(paramName, supplier != null ? supplier.get() : null);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -445,6 +456,16 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext paramList(final String parameterName, final Object... value) {
 		return param(new Parameter(parameterName, Arrays.asList(value)));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
+	 */
+	@Override
+	public SqlContext paramList(final String parameterName, final Supplier<List<?>> supplier) {
+		return param(new Parameter(parameterName, supplier.get()));
 	}
 
 	/**
