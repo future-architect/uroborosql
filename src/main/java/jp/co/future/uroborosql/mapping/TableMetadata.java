@@ -202,7 +202,7 @@ public interface TableMetadata {
 		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
 		while (tryCount < 2 && columns.isEmpty()) {
 			tryCount++;
-			if (tryCount == 1) {
+			if (tryCount == 2) {
 				// case 変換
 				if (metaData.storesLowerCaseIdentifiers()) {
 					tableName = tableName.toLowerCase();
