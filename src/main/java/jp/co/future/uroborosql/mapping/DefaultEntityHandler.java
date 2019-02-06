@@ -287,7 +287,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				sql.append(", ");
 			}
-			sql.append(col.getColumnName()).append("\tAS\t").append(col.getColumnName());
+			sql.append(col.getColumnIdentifier()).append("\tAS\t").append(col.getColumnIdentifier());
 			if (StringUtils.isNotEmpty(col.getRemarks())) {
 				sql.append("\t").append("-- ").append(col.getRemarks());
 			}
@@ -299,7 +299,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		for (TableMetadata.Column col : columns) {
 			String camelColName = col.getCamelColumnName();
-			StringBuilder parts = new StringBuilder().append("\t").append("AND ").append(col.getColumnName())
+			StringBuilder parts = new StringBuilder().append("\t").append("AND ").append(col.getColumnIdentifier())
 					.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
 			wrapIfComment(sql, parts, col);
 		}
@@ -317,7 +317,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				} else {
 					sql.append(", ");
 				}
-				sql.append(col.getColumnName()).append(System.lineSeparator());
+				sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
 			}
 		}
 
@@ -426,7 +426,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append(", ");
 			}
-			parts.append(col.getColumnName()).append(" = /*").append(camelColName).append("*/''");
+			parts.append(col.getColumnIdentifier()).append(" = /*").append(camelColName).append("*/''");
 			versionMappingColumn.ifPresent(mappingColumn -> {
 				if (camelColName.equals(mappingColumn.getCamelName())) {
 					parts.append(" + 1");
@@ -459,9 +459,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append("AND ");
 			}
-			parts.append(col.getColumnName()).append(" = ").append("/*").append(col.getCamelColumnName())
-					.append("*/''")
-					.append(System.lineSeparator());
+			parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
+			.append("*/''")
+			.append(System.lineSeparator());
 			if (col.isNullable()) {
 				wrapIfComment(sql, parts, col);
 			} else {
@@ -477,7 +477,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append("AND ");
 			}
 			sql.append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName())
-					.append("*/''").append(System.lineSeparator());
+			.append("*/''").append(System.lineSeparator());
 		});
 		return sql.toString();
 	}
@@ -512,8 +512,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append("AND ");
 			}
-			parts.append(col.getColumnName()).append(" = ").append("/*").append(col.getCamelColumnName())
-					.append("*/''").append(System.lineSeparator());
+			parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
+			.append("*/''").append(System.lineSeparator());
 			if (col.isNullable()) {
 				wrapIfComment(sql, parts, col);
 			} else {
@@ -546,7 +546,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append(", ");
 			}
-			parts.append(col.getColumnName());
+			parts.append(col.getColumnIdentifier());
 			if (StringUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}

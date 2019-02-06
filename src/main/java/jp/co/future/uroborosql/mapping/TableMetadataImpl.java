@@ -10,6 +10,8 @@ import java.sql.JDBCType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -24,11 +26,13 @@ public class TableMetadataImpl implements TableMetadata {
 	public static class Column implements TableMetadata.Column {
 		private String columnName;
 		private String camelName;
+		private String identifier;
 		private JDBCType dataType;
 		private Integer keySeq = null;
-		private String remarks;
-		private boolean isNullable;
-		private int ordinalPosition;
+		private String identifierQuoteString;
+		private final String remarks;
+		private final boolean isNullable;
+		private final int ordinalPosition;
 
 		/**
 		 * コンストラクタ
@@ -38,14 +42,36 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param remarks コメント文字列
 		 * @param isNullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
+		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
 		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable,
-				final int ordinalPosition) {
+				final int ordinalPosition, final String identifierQuoteString) {
 			this.columnName = columnName;
 			this.dataType = dataType;
 			this.remarks = remarks;
 			this.isNullable = "YES".equalsIgnoreCase(isNullable);
 			this.ordinalPosition = ordinalPosition;
+
+			if (StringUtils.isEmpty(identifierQuoteString)) {
+				this.identifierQuoteString = "";
+			} else {
+				this.identifierQuoteString = identifierQuoteString;
+			}
+		}
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param columnName カラム名
+		 * @param dataType データタイプ
+		 * @param remarks コメント文字列
+		 * @param isNullable NULL可かどうか
+		 * @param ordinalPosition 列インデックス
+		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
+		 */
+		public Column(final String columnName, final int dataType, final String remarks, final String isNullable,
+				final int ordinalPosition, final String identifierQuoteString) {
+			this(columnName, JDBCType.valueOf(dataType), remarks, isNullable, ordinalPosition, identifierQuoteString);
 		}
 
 		/**
@@ -57,10 +83,27 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param isNullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 */
+		@Deprecated
+		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable,
+				final int ordinalPosition) {
+			this(columnName, dataType, remarks, isNullable, ordinalPosition, null);
+		}
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param columnName カラム名
+		 * @param dataType データタイプ
+		 * @param remarks コメント文字列
+		 * @param isNullable NULL可かどうか
+		 * @param ordinalPosition 列インデックス
+		 */
+		@Deprecated
 		public Column(final String columnName, final int dataType, final String remarks, final String isNullable,
 				final int ordinalPosition) {
-			this(columnName, JDBCType.valueOf(dataType), remarks, isNullable, ordinalPosition);
+			this(columnName, dataType, remarks, isNullable, ordinalPosition, null);
 		}
+
 
 		@Override
 		public String getColumnName() {
@@ -81,6 +124,7 @@ public class TableMetadataImpl implements TableMetadata {
 		public void setColumnName(final String columnName) {
 			this.columnName = columnName;
 			this.camelName = null;
+			this.identifier = null;
 		}
 
 		@Override
@@ -95,6 +139,12 @@ public class TableMetadataImpl implements TableMetadata {
 		 */
 		public void setDataType(final JDBCType dataType) {
 			this.dataType = dataType;
+		}
+
+		@Override
+		public String getColumnIdentifier() {
+			return this.identifier != null ? this.identifier
+					: (this.identifier = identifierQuoteString + getColumnName() + identifierQuoteString);
 		}
 
 		@Override
@@ -135,6 +185,8 @@ public class TableMetadataImpl implements TableMetadata {
 
 	private String tableName;
 	private String schema;
+	private String identifierQuoteString = "\"";
+	private String identifier;
 	private final List<TableMetadata.Column> columns = new ArrayList<>();
 
 	/**
@@ -176,6 +228,7 @@ public class TableMetadataImpl implements TableMetadata {
 	@Override
 	public void setTableName(final String tableName) {
 		this.tableName = tableName;
+		this.identifier = null;
 	}
 
 	@Override
@@ -191,11 +244,27 @@ public class TableMetadataImpl implements TableMetadata {
 	@Override
 	public void setSchema(final String schema) {
 		this.schema = schema;
+		this.identifier = null;
+	}
+
+	@Override
+	public String getIdentifierQuoteString() {
+		return identifierQuoteString;
+	}
+
+	@Override
+	public void setIdentifierQuoteString(final String identifierQuoteString) {
+		this.identifierQuoteString = identifierQuoteString;
+		this.identifier = null;
+	}
+
+	@Override
+	public String getTableIdentifier() {
+		return this.identifier != null ? this.identifier : (this.identifier = TableMetadata.super.getTableIdentifier());
 	}
 
 	@Override
 	public List<? extends TableMetadata.Column> getColumns() {
 		return this.columns;
 	}
-
 }

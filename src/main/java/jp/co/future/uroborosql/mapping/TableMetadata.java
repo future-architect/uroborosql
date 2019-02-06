@@ -40,6 +40,15 @@ public interface TableMetadata {
 		String getColumnName();
 
 		/**
+		 * カラム識別名取得
+		 *
+		 * @return カラム識別名
+		 */
+		default String getColumnIdentifier() {
+			return getColumnName();
+		}
+
+		/**
 		 * CamelCase カラム名取得
 		 *
 		 * @return CamelCase カラム名
@@ -114,15 +123,38 @@ public interface TableMetadata {
 	void setSchema(String schema);
 
 	/**
+	 * SQL識別子を引用するのに使用する文字列を取得
+	 *
+	 * @return SQL識別子を引用するのに使用する文字列
+	 */
+	default String getIdentifierQuoteString() {
+		return "\"";
+	}
+
+	/**
+	 * SQL識別子を引用するのに使用する文字列を設定
+	 *
+	 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
+	 */
+	default void setIdentifierQuoteString(final String identifierQuoteString) {
+		//noop
+	}
+
+	/**
 	 * テーブル識別名の取得
 	 *
 	 * @return テーブル識別名
 	 */
 	default String getTableIdentifier() {
+		String identifierQuoteString = getIdentifierQuoteString();
+		if (StringUtils.isEmpty(identifierQuoteString)) {
+			identifierQuoteString = "";
+		}
 		if (StringUtils.isEmpty(getSchema())) {
-			return getTableName();
+			return identifierQuoteString + getTableName() + identifierQuoteString;
 		} else {
-			return getSchema() + "." + getTableName();
+			return identifierQuoteString + getSchema() + identifierQuoteString + "." + identifierQuoteString
+					+ getTableName() + identifierQuoteString;
 		}
 	}
 
@@ -161,49 +193,53 @@ public interface TableMetadata {
 
 		String schema = StringUtils.defaultIfEmpty(table.getSchema(), connection.getSchema());
 		String tableName = table.getName();
-		// case 変換
-		if (!tableName.startsWith(metaData.getIdentifierQuoteString())) {
-			if (metaData.storesLowerCaseIdentifiers()) {
-				tableName = tableName.toLowerCase();
-			} else if (metaData.storesUpperCaseIdentifiers()) {
-				tableName = tableName.toUpperCase();
-			}
-		}
-		String schemaPattern;// schema検索パターン
-		if (StringUtils.isEmpty(schema)) {
-			schemaPattern = "%";
-		} else {
-			if (!schema.startsWith(metaData.getIdentifierQuoteString())) {
-				if (metaData.storesLowerCaseIdentifiers()) {
-					schema = schema.toLowerCase();
-				} else if (metaData.storesUpperCaseIdentifiers()) {
-					schema = schema.toUpperCase();
-				}
-			}
-			schemaPattern = schema;
-		}
-		TableMetadataImpl entityMetadata = new TableMetadataImpl(schema, tableName);
+		String identifierQuoteString = metaData.getIdentifierQuoteString();
+
+		TableMetadataImpl entityMetadata = new TableMetadataImpl();
 
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
-		try (ResultSet rs = metaData.getColumns(null, schemaPattern, tableName, "%")) {
-			while (rs.next()) {
-				String columnName = rs.getString("COLUMN_NAME");
-				int sqlType = rs.getInt("DATA_TYPE");
-				// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
-				if (sqlType == java.sql.Types.DISTINCT) {
-					sqlType = rs.getInt("SOURCE_DATA_TYPE");
-				}
-				String remarks = rs.getString("REMARKS");
-				String isNullable = rs.getString("IS_NULLABLE");
-				int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
-				TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks,
-						isNullable, ordinalPosition);
-				entityMetadata.addColumn(column);
-				columns.put(column.getColumnName(), column);
+		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
+		while (tryCount < 2 && columns.isEmpty()) {
+			tryCount++;
+			if (tryCount == 1) {
+				// case 変換
+				if (metaData.storesLowerCaseIdentifiers()) {
+					tableName = tableName.toLowerCase();
+				} else if (metaData.storesUpperCaseIdentifiers()) {
+					tableName = tableName.toUpperCase();
+				}
+				if (StringUtils.isNotEmpty(schema)) {
+					if (metaData.storesLowerCaseIdentifiers()) {
+						schema = schema.toLowerCase();
+					} else if (metaData.storesUpperCaseIdentifiers()) {
+						schema = schema.toUpperCase();
+					}
+				}
+			}
+			try (ResultSet rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
+				while (rs.next()) {
+					String columnName = rs.getString("COLUMN_NAME");
+					int sqlType = rs.getInt("DATA_TYPE");
+					// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
+					if (sqlType == java.sql.Types.DISTINCT) {
+						sqlType = rs.getInt("SOURCE_DATA_TYPE");
+					}
+					String remarks = rs.getString("REMARKS");
+					String isNullable = rs.getString("IS_NULLABLE");
+					int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+
+					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks,
+							isNullable, ordinalPosition, identifierQuoteString);
+					entityMetadata.addColumn(column);
+					columns.put(column.getColumnName(), column);
+				}
 			}
 		}
-		try (ResultSet rs = metaData.getPrimaryKeys(null, schemaPattern, tableName)) {
+		entityMetadata.setSchema(schema);
+		entityMetadata.setTableName(tableName);
+		entityMetadata.setIdentifierQuoteString(identifierQuoteString);
+		try (ResultSet rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
 			while (rs.next()) {
 				String columnName = rs.getString(4);
 				short keySeq = rs.getShort(5);
