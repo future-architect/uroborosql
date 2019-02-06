@@ -57,6 +57,42 @@ public class TransientTest {
 		}
 	}
 
+	@Table(name = "TEST")
+	public static class TestEntity {
+		private long id;
+		private String name;
+		private int age;
+		private LocalDate birthday;
+		private static String ignore;
+		private final int finalInt = 10;
+
+		public TestEntity() {
+		}
+
+		public TestEntity(final long id, final String name, final int age, final LocalDate birthday) {
+			this.id = id;
+			this.name = name;
+			this.age = age;
+			this.birthday = birthday;
+			TestEntity.ignore = "ignore";
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
 	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoTestEntity {
@@ -222,6 +258,30 @@ public class TransientTest {
 			assertThat(data.name, is(nullValue()));
 			// update では値が設定される
 			assertThat(data.birthday, is(date));
+		}
+	}
+
+	@Test
+	public void testQuery() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			LocalDate date = LocalDate.of(1990, Month.APRIL, 1);
+			agent.insert(new TestEntity(1, "name1", 20, date));
+
+			TransientAnnoTestEntity data1 = agent.find(TransientAnnoTestEntity.class, 1).orElse(null);
+			assertThat(data1, notNullValue());
+			assertThat(data1.name, is("name1"));
+			assertThat(data1.birthday, is(date));
+
+			TransientAnnoInsTestEntity data2 = agent.find(TransientAnnoInsTestEntity.class, 1).orElse(null);
+			assertThat(data2, notNullValue());
+			assertThat(data2.name, is("name1"));
+			assertThat(data2.birthday, is(date));
+
+			TransientAnnoUpdTestEntity data3 = agent.find(TransientAnnoUpdTestEntity.class, 1).orElse(null);
+			assertThat(data3, notNullValue());
+			assertThat(data3.name, is("name1"));
+			assertThat(data3.birthday, is(date));
 		}
 	}
 }

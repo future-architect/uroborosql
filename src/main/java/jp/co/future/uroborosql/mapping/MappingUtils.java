@@ -220,15 +220,16 @@ public final class MappingUtils {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
 				continue;
 			}
-			Transient t = field.getAnnotation(Transient.class);
-			if (t != null && t.insert() && t.update()) {
-				continue;// 除外
-			}
 			JavaType javaType = JavaType.of(implementClass, field);
 			MappingColumn mappingColumn = new MappingColumnImpl(field, javaType);
 
 			String fieldName = field.getName();
 			noneColumns.put(fieldName, mappingColumn);
+
+			Transient t = field.getAnnotation(Transient.class);
+			if (t != null && t.insert() && t.update()) {
+				continue;// 除外
+			}
 			if (t == null || (t != null && !t.insert())) {
 				insertColumns.put(fieldName, mappingColumn);
 			}
