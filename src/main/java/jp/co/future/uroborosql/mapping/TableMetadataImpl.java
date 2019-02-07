@@ -29,9 +29,9 @@ public class TableMetadataImpl implements TableMetadata {
 		private String identifier;
 		private JDBCType dataType;
 		private Integer keySeq = null;
-		private String identifierQuoteString;
+		private final String identifierQuoteString;
 		private final String remarks;
-		private final boolean isNullable;
+		private final boolean nullable;
 		private final int ordinalPosition;
 
 		/**
@@ -40,16 +40,16 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
 		 * @param remarks コメント文字列
-		 * @param isNullable NULL可かどうか
+		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable,
+		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
 			this.columnName = columnName;
 			this.dataType = dataType;
 			this.remarks = remarks;
-			this.isNullable = "YES".equalsIgnoreCase(isNullable);
+			this.nullable = "YES".equalsIgnoreCase(nullable);
 			this.ordinalPosition = ordinalPosition;
 
 			if (StringUtils.isEmpty(identifierQuoteString)) {
@@ -65,13 +65,13 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
 		 * @param remarks コメント文字列
-		 * @param isNullable NULL可かどうか
+		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final int dataType, final String remarks, final String isNullable,
+		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
-			this(columnName, JDBCType.valueOf(dataType), remarks, isNullable, ordinalPosition, identifierQuoteString);
+			this(columnName, JDBCType.valueOf(dataType), remarks, nullable, ordinalPosition, identifierQuoteString);
 		}
 
 		/**
@@ -80,13 +80,13 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
 		 * @param remarks コメント文字列
-		 * @param isNullable NULL可かどうか
+		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 */
 		@Deprecated
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String isNullable,
+		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
 				final int ordinalPosition) {
-			this(columnName, dataType, remarks, isNullable, ordinalPosition, null);
+			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
 		}
 
 		/**
@@ -95,13 +95,13 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
 		 * @param remarks コメント文字列
-		 * @param isNullable NULL可かどうか
+		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 */
 		@Deprecated
-		public Column(final String columnName, final int dataType, final String remarks, final String isNullable,
+		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
 				final int ordinalPosition) {
-			this(columnName, dataType, remarks, isNullable, ordinalPosition, null);
+			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
 		}
 
 
@@ -164,7 +164,7 @@ public class TableMetadataImpl implements TableMetadata {
 
 		@Override
 		public boolean isNullable() {
-			return this.isNullable;
+			return this.nullable;
 		}
 
 		@Override
