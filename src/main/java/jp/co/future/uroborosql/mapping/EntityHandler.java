@@ -50,6 +50,16 @@ public interface EntityHandler<ENTITY> {
 	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
+	 * エンティティタイプからQUERY SQLコンテキストを生成します。
+	 *
+	 * @param agent SqlAgent
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @return QUERY SQLコンテキスト
+	 */
+	SqlContext createQueryContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
 	 * EntityからINSERT SQLコンテキストを生成します。
 	 *
 	 * @param agent SqlAgent

@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
@@ -25,8 +27,6 @@ import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -69,6 +69,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
+				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
+	}
+
+	/**
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createQueryContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, jp.co.future.uroborosql.context.SqlContext, java.lang.Class)
+	 */
+	@Override
+	public SqlContext createQueryContext(final SqlAgent agent, final TableMetadata metadata,
+			final Class<? extends Object> entityType) {
+		return agent.contextWith(buildSelectClause(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
 
@@ -119,7 +129,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
 				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -273,13 +282,59 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildSelectSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final String sqlIdKeyName) {
-		List<? extends TableMetadata.Column> columns = metadata.getColumns();
+		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
-		StringBuilder sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
+		final StringBuilder sql = new StringBuilder(buildSelectClause(metadata, type, sqlIdKeyName));
+
+		sql.append("/*BEGIN*/").append(System.lineSeparator());
+		sql.append("WHERE").append(System.lineSeparator());
+
+		for (final TableMetadata.Column col : columns) {
+			final String camelColName = col.getCamelColumnName();
+			final StringBuilder parts = new StringBuilder().append("\t").append("AND ")
+					.append(col.getColumnIdentifier())
+					.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
+			wrapIfComment(sql, parts, col);
+		}
+		sql.append("/*END*/").append(System.lineSeparator());
+
+		boolean firstFlag = true;
+		final List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
+		if (!keys.isEmpty()) {
+			sql.append("ORDER BY").append(System.lineSeparator());
+			firstFlag = true;
+			for (final TableMetadata.Column col : keys) {
+				sql.append("\t");
+				if (firstFlag) {
+					sql.append("  ");
+					firstFlag = false;
+				} else {
+					sql.append(", ");
+				}
+				sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
+			}
+		}
+
+		return sql.toString();
+	}
+
+	/**
+	 * SELECT句生成
+	 *
+	 * @param metadata エンティティメタ情報
+	 * @param type エイティティタイプ
+	 * @param sqlIdKeyName SQL_IDキー名
+	 * @return SELECT句
+	 */
+	protected String buildSelectClause(final TableMetadata metadata, final Class<? extends Object> type,
+			final String sqlIdKeyName) {
+		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
+
+		final StringBuilder sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(System.lineSeparator());
 
 		boolean firstFlag = true;
-		for (TableMetadata.Column col : columns) {
+		for (final TableMetadata.Column col : columns) {
 			sql.append("\t");
 			if (firstFlag) {
 				sql.append("  ");
@@ -294,32 +349,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append(System.lineSeparator());
 		}
 		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
-		sql.append("/*BEGIN*/").append(System.lineSeparator());
-		sql.append("WHERE").append(System.lineSeparator());
-
-		for (TableMetadata.Column col : columns) {
-			String camelColName = col.getCamelColumnName();
-			StringBuilder parts = new StringBuilder().append("\t").append("AND ").append(col.getColumnIdentifier())
-					.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
-			wrapIfComment(sql, parts, col);
-		}
-		sql.append("/*END*/").append(System.lineSeparator());
-
-		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
-		if (!keys.isEmpty()) {
-			sql.append("ORDER BY").append(System.lineSeparator());
-			firstFlag = true;
-			for (TableMetadata.Column col : keys) {
-				sql.append("\t");
-				if (firstFlag) {
-					sql.append("  ");
-					firstFlag = false;
-				} else {
-					sql.append(", ");
-				}
-				sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
-			}
-		}
 
 		return sql.toString();
 	}
@@ -444,11 +473,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		}
 
 		sql.append("WHERE").append(System.lineSeparator());
-		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : Arrays
+		final List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
+				: Arrays
 				.asList(metadata.getColumns().get(0));
 		firstFlag = true;
-		for (TableMetadata.Column col : cols) {
-			StringBuilder parts = new StringBuilder().append("\t");
+		for (final TableMetadata.Column col : cols) {
+			final StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
 				if (col.isNullable()) {
 					parts.append("AND ");
