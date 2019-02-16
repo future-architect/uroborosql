@@ -19,13 +19,33 @@ public class MsSqlDialect extends AbstractDialect {
 		super();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getDatabaseName()
+	 */
 	@Override
 	public String getDatabaseName() {
 		return "Microsoft SQL Server";
 	}
 
 	/**
-	 * MSSQLではMerge文で;を使用するため終端文字の削除を行わない
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getDatabaseType()
+	 */
+	@Override
+	public String getDatabaseType() {
+		return "mssql";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <br>MSSQLではMerge文で;を使用するため終端文字の削除を行わない
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#isRemoveTerminator()
+	 *
 	 * @return false
 	 */
 	@Override

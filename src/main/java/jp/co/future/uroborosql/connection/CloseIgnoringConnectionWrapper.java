@@ -26,13 +26,12 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 /**
- * CloseしないConnectionを提供するためのWrapper
+ * Closeを無視するConnectionを提供するためのWrapper
+ * {@link DoNotCloseConnectionWrapper} の代わりにこちらを使用してください
  *
  * @author H.Sugimoto
- * @deprecated use {@link CloseIgnoringConnectionWrapper}
  */
-@Deprecated
-public class DoNotCloseConnectionWrapper implements Connection {
+public class CloseIgnoringConnectionWrapper implements Connection {
 	private final Connection original;
 
 	/**
@@ -40,7 +39,7 @@ public class DoNotCloseConnectionWrapper implements Connection {
 	 *
 	 * @param original 元となるコネクション
 	 */
-	public DoNotCloseConnectionWrapper(final Connection original) {
+	public CloseIgnoringConnectionWrapper(final Connection original) {
 		this.original = original;
 	}
 
@@ -198,7 +197,8 @@ public class DoNotCloseConnectionWrapper implements Connection {
 
 	@Override
 	public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
-			final int resultSetHoldability) throws SQLException {
+			final int resultSetHoldability)
+					throws SQLException {
 		return original.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 

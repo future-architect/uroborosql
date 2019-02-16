@@ -6,23 +6,57 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
 /**
- * Oracle用のDialect
+ * Oracle10（以前のバージョンも含む）用のDialect
  *
  * @author H.Sugimoto
  */
-public class OracleDialect extends AbstractDialect {
+public class Oracle10Dialect extends AbstractDialect {
 	/**
 	 * コンストラクタ
 	 */
-	public OracleDialect() {
-		super();
+	public Oracle10Dialect() {
+		super('\\', new char[] { '%', '_' });
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getDatabaseName()
+	 */
 	@Override
 	public String getDatabaseName() {
 		return "Oracle";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
+	 */
+	@Override
+	public boolean accept(final ConnectionSupplier supplier) {
+		if (supplier == null) {
+			return false;
+		}
+
+		String[] parts = supplier.getDatabaseName().split("-", 2);
+		String databaseName = parts[0];
+
+		if (!databaseName.startsWith(getDatabaseName())) {
+			return false;
+		}
+
+		String databaseVersion = parts[1];
+
+		try {
+			int majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
+			return majorVersion < 11;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 }

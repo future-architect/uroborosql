@@ -25,6 +25,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
@@ -38,11 +43,6 @@ import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 /**
  * SQL実行用クラス。
@@ -118,7 +118,8 @@ public class SqlAgentImpl extends AbstractAgent {
 						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						rs = new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()), stmt);
+						rs = new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()),
+								stmt);
 						stmt.closeOnCompletion();
 						return rs;
 					} catch (SQLException ex) {
@@ -154,7 +155,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 				} while (maxRetryCount > loopCount++);
 			} catch (SQLException | RuntimeException e) {
-				if(rs != null && !rs.isClosed()) {
+				if (rs != null && !rs.isClosed()) {
 					rs.close();
 				}
 				throw e;
@@ -571,15 +572,15 @@ public class SqlAgentImpl extends AbstractAgent {
 		if (LOG.isErrorEnabled() && isOutputExceptionLog()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
-					.append(System.lineSeparator());
+			.append(System.lineSeparator());
 			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]")
-					.append(System.lineSeparator());
+			.append(System.lineSeparator());
 			if (sqlContext instanceof SqlContextImpl) {
 				Parameter[] bindParameters = ((SqlContextImpl) sqlContext).getBindParameters();
 				for (int i = 0; i < bindParameters.length; i++) {
 					Parameter parameter = getSqlFilterManager().doParameter(bindParameters[i]);
 					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
-							.append("]").append(System.lineSeparator());
+					.append("]").append(System.lineSeparator());
 				}
 			}
 			LOG.error(builder.toString(), cause);
@@ -631,7 +632,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				params.put(keyNames[i], keys[i]);
 			}
 
-			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+			SqlContext context = handler.createSelectContext(this, metadata, entityType, true);
 			context.paramMap(params);
 
 			try (Stream<E> stream = handler.doSelect(this, context, entityType)) {
@@ -684,7 +685,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
-			SqlContext context = handler.createUpdateContext(this, metadata, type);
+			SqlContext context = handler.createUpdateContext(this, metadata, type, true);
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
@@ -714,7 +715,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
-			SqlContext context = handler.createDeleteContext(this, metadata, type);
+			SqlContext context = handler.createDeleteContext(this, metadata, type, true);
 			handler.setDeleteParams(context, entity);
 			return handler.doDelete(this, context, entity);
 		} catch (SQLException e) {
@@ -873,7 +874,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	private static class InnerResultSet extends AbstractResultSetWrapper {
 		/** 同期してクローズするStatement */
-		private Statement stmt;
+		private final Statement stmt;
 
 		/**
 		 * コンストラクタ

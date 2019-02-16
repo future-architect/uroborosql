@@ -9,16 +9,17 @@ package jp.co.future.uroborosql.dialect;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
 /**
- * 標準のDialect
+ * Oracle11用のDialect
  *
  * @author H.Sugimoto
  */
-public class DefaultDialect extends AbstractDialect {
+public class Oracle11Dialect extends AbstractDialect {
+
 	/**
 	 * コンストラクタ
 	 */
-	public DefaultDialect() {
-		super();
+	public Oracle11Dialect() {
+		super('\\', new char[] { '%', '_', '％', '＿' });
 	}
 
 	/**
@@ -28,7 +29,7 @@ public class DefaultDialect extends AbstractDialect {
 	 */
 	@Override
 	public String getDatabaseName() {
-		return "default";
+		return "Oracle";
 	}
 
 	/**
@@ -38,6 +39,25 @@ public class DefaultDialect extends AbstractDialect {
 	 */
 	@Override
 	public boolean accept(final ConnectionSupplier supplier) {
-		return true;
+		if (supplier == null) {
+			return false;
+		}
+
+		String[] parts = supplier.getDatabaseName().split("-", 2);
+		String databaseName = parts[0];
+
+		if (!databaseName.startsWith(getDatabaseName())) {
+			return false;
+		}
+
+		String databaseVersion = parts[1];
+
+		try {
+			int majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
+			return majorVersion == 11;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
+
 }

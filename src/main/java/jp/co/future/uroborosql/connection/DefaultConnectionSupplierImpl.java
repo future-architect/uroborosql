@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.connection;
 
-import java.sql.*;
+import java.sql.Connection;
 
 /**
  * デフォルトコネクション供給クラス<br>
@@ -24,7 +24,7 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param connection コネクション
 	 */
 	public DefaultConnectionSupplierImpl(final Connection connection) {
-		this.connection = new DoNotCloseConnectionWrapper(connection);
+		this.connection = new CloseIgnoringConnectionWrapper(connection);
 	}
 
 	/**

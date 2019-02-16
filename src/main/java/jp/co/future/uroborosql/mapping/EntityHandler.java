@@ -45,19 +45,10 @@ public interface EntityHandler<ENTITY> {
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return SELECT SQLコンテキスト
 	 */
-	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
-
-	/**
-	 * エンティティタイプからQUERY SQLコンテキストを生成します。
-	 *
-	 * @param agent SqlAgent
-	 * @param metadata エンティティメタ情報
-	 * @param entityType エンティティタイプ
-	 * @return QUERY SQLコンテキスト
-	 */
-	SqlContext createQueryContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
 
 	/**
 	 * EntityからINSERT SQLコンテキストを生成します。
@@ -109,9 +100,10 @@ public interface EntityHandler<ENTITY> {
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return UPDATE SQLコンテキスト
 	 */
-	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
 
 	/**
 	 * SqlContextのパラメーターににエンティティの値をセットします。
@@ -140,9 +132,10 @@ public interface EntityHandler<ENTITY> {
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
 	 * @param entityType エンティティタイプ
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return DELETE SQLコンテキスト
 	 */
-	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
 
 	/**
 	 * SqlContextのパラメーターににエンティティの値をセットします。

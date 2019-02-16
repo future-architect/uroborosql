@@ -301,25 +301,101 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test1));
 
-				// Like prefix=false, suffix=false
+				// Like
 				list = agent.query(TestEntity.class).like("name", "name3").collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
-				// Like prefix=false, suffix=true
-				list = agent.query(TestEntity.class).like("name", "name", true).collect();
+				// Like with wildcards (_)
+				list = agent.query(TestEntity.class).like("name", "n_me_").collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
-				// Like prefix=false, suffix=false
-				list = agent.query(TestEntity.class).like("name", true, "3").collect();
+				// Like with wildcards (%)
+				list = agent.query(TestEntity.class).like("name", "name%").collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test3));
+
+				// startsWith
+				list = agent.query(TestEntity.class).startsWith("name", "name").collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test3));
+
+				// startsWith wildcards
+				list = agent.query(TestEntity.class).startsWith("name", "%ame").collect();
+				assertThat(list.size(), is(0));
+
+				// endsWith
+				list = agent.query(TestEntity.class).endsWith("name", "3").collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
-				// Like prefix=true, suffix=false
-				list = agent.query(TestEntity.class).like("name", true, "me", true).collect();
+				// endsWith wildcards
+				list = agent.query(TestEntity.class).endsWith("name", "%3").collect();
+				assertThat(list.size(), is(0));
+
+				// contains
+				list = agent.query(TestEntity.class).contains("name", "me").collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test3));
+
+				list = agent.query(TestEntity.class).contains("name", "%me_").collect();
+				assertThat(list.size(), is(0));
+
+				// Not Like
+				list = agent.query(TestEntity.class).notLike("name", "name3").collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+
+				// Not Like with wildcards (_)
+				list = agent.query(TestEntity.class).notLike("name", "name_").collect();
+				assertThat(list.size(), is(0));
+
+				// Not Like with wildcards (%)
+				list = agent.query(TestEntity.class).notLike("name", "name%").collect();
+				assertThat(list.size(), is(0));
+
+				// notStartsWith
+				list = agent.query(TestEntity.class).notStartsWith("name", "name").collect();
+				assertThat(list.size(), is(0));
+
+				// notStartsWith wildcards
+				list = agent.query(TestEntity.class).notStartsWith("name", "%name").collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test3));
+
+				// notEndsWith
+				list = agent.query(TestEntity.class).notEndsWith("name", "3").collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+
+				// notEndsWith wildcards
+				list = agent.query(TestEntity.class).notEndsWith("name", "%3").collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test3));
+
+				// notContains
+				list = agent.query(TestEntity.class).notContains("name", "2").collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test3));
+
+				// notContains wildcards
+				list = agent.query(TestEntity.class).notContains("name", "_2").collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
@@ -376,6 +452,22 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test3));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test1));
+
+				// limit, offset
+				list = agent.query(TestEntity.class)
+						.limit(2)
+						.collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test2));
+
+				list = agent.query(TestEntity.class)
+						.limit(2)
+						.offset(1)
+						.collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test2));
+				assertThat(list.get(1), is(test3));
 			});
 		}
 	}
@@ -946,7 +1038,7 @@ public class DefaultEntityHandlerTest {
 			EntityHandler<?> handler = config.getEntityHandler();
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createSelectContext(agent, metadata, null);
+			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
 			assertThat(sql, containsString("SF.isNotEmpty"));
@@ -970,7 +1062,7 @@ public class DefaultEntityHandlerTest {
 			handler.setEmptyStringEqualsNull(false);
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createSelectContext(agent, metadata, null);
+			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
@@ -1032,7 +1124,7 @@ public class DefaultEntityHandlerTest {
 			EntityHandler<?> handler = config.getEntityHandler();
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createUpdateContext(agent, metadata, null);
+			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
 			assertThat(sql, containsString("SF.isNotEmpty"));
@@ -1056,7 +1148,7 @@ public class DefaultEntityHandlerTest {
 			handler.setEmptyStringEqualsNull(false);
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createUpdateContext(agent, metadata, null);
+			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
@@ -1081,7 +1173,7 @@ public class DefaultEntityHandlerTest {
 			EntityHandler<?> handler = config.getEntityHandler();
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createDeleteContext(agent, metadata, null);
+			SqlContext ctx = handler.createDeleteContext(agent, metadata, null, true);
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
 			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null), is(nullValue()));

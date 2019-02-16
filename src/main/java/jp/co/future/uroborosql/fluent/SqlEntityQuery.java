@@ -45,7 +45,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に equal 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -53,7 +53,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に not equal 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -61,7 +61,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に greater than 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -69,7 +69,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に less than 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -77,7 +77,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に greater equal 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -85,7 +85,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に less equal 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param value 値
 	 * @return SqlEntityQuery
 	 */
@@ -93,7 +93,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に in 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param values 値の配列
 	 * @return SqlEntityQuery
 	 */
@@ -101,15 +101,15 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に in 条件を追加する
-	 * @param col 対象カラム
-	 * @param valueList 値のList
+	 * @param col bind column name
+	 * @param valueList 値の集合
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> in(String col, List<Object> valueList);
+	SqlEntityQuery<E> in(String col, Iterable<?> valueList);
 
 	/**
 	 * Where句に not in 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param values 値の配列
 	 * @return SqlEntityQuery
 	 */
@@ -117,87 +117,79 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に not in 条件を追加する
-	 * @param col 対象カラム
-	 * @param valueList 値のList
+	 * @param col bind column name
+	 * @param valueList 値の集合
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> notIn(String col, List<Object> valueList);
+	SqlEntityQuery<E> notIn(String col, Iterable<?> valueList);
 
 	/**
-	 * Where句に like 条件を追加する
-	 * @param col 対象カラム
+	 * Where句に like 条件を追加する。検索文字列はエスケープしない
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> like(String col, String searchValue);
+	SqlEntityQuery<E> like(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に like 条件を追加する
-	 * @param col 対象カラム
-	 * @param prefix 検索文字列の前に%を付ける
+	 * Where句に前方一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> like(String col, boolean prefix, String searchValue);
+	SqlEntityQuery<E> startsWith(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に like 条件を追加する
-	 * @param col 対象カラム
+	 * Where句に後方一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
-	 * @param suffix 検索文字列の後に%を付ける
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> like(String col, String searchValue, boolean suffix);
+	SqlEntityQuery<E> endsWith(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に like 条件を追加する
-	 * @param col 対象カラム
-	 * @param prefix 検索文字列の前に%を付ける
+	 * Where句に 部分一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
-	 * @param suffix 検索文字列の後に%を付ける
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> like(String col, boolean prefix, String searchValue, boolean suffix);
+	SqlEntityQuery<E> contains(String col, CharSequence searchValue);
 
 	/**
 	 * Where句に not like 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> notLike(String col, String searchValue);
+	SqlEntityQuery<E> notLike(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に not like 条件を追加する
-	 * @param col 対象カラム
-	 * @param prefix 検索文字列の前に%を付ける
+	 * Where句に前方一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> notLike(String col, boolean prefix, String searchValue);
+	SqlEntityQuery<E> notStartsWith(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に not like 条件を追加する
-	 * @param col 対象カラム
+	 * Where句に後方一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
-	 * @param suffix 検索文字列の後に%を付ける
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> notLike(String col, String searchValue, boolean suffix);
+	SqlEntityQuery<E> notEndsWith(String col, CharSequence searchValue);
 
 	/**
-	 * Where句に not like 条件を追加する
-	 * @param col 対象カラム
-	 * @param prefix 検索文字列の前に%を付ける
+	 * Where句に 部分一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
 	 * @param searchValue 検索文字列
-	 * @param suffix 検索文字列の後に%を付ける
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> notLike(String col, boolean prefix, String searchValue, boolean suffix);
+	SqlEntityQuery<E> notContains(String col, CharSequence searchValue);
 
 	/**
 	 * Where句に between 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @param fromValue 開始値
 	 * @param toValue 終了値
 	 * @return SqlEntityQuery
@@ -206,25 +198,24 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * Where句に is null 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> isNull(String col);
 
 	/**
 	 * Where句に is not null 条件を追加する
-	 * @param col 対象カラム
+	 * @param col bind column name
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> isNotNull(String col);
 
 	/**
 	 * Where句に 素の文字列指定で 条件を追加する
-	 * @param col 対象カラム
 	 * @param rawString Where句に出力する条件式
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> where(String rawString);
+	SqlEntityQuery<E> where(CharSequence rawString);
 
 	/**
 	 * ソート条件を指定（昇順）

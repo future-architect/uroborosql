@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException.EntityProcKind;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.TableMetadata;
@@ -34,12 +36,14 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	private final EntityHandler<?> entityHandler;
 	private final TableMetadata tableMetadata;
 	private final Class<? extends E> entityType;
-	private String rawString;
+	private CharSequence rawString;
 	private List<String> orderByColumns;
 	private boolean ascendingOrder;
+	private long limit;
+	private long offset;
 
 	/**
-	 * コンストラクタ
+	 * Constructor
 	 *
 	 * @param agent SqlAgent
 	 * @param entityHandler EntityHandler
@@ -57,6 +61,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		this.rawString = null;
 		this.orderByColumns = null;
 		this.ascendingOrder = true;
+		this.limit = -1;
+		this.offset = -1;
 	}
 
 	/**
@@ -91,7 +97,13 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public Stream<E> stream() {
 		try {
-			context().setSql(context().getSql() + whereAndOrderClause());
+			StringBuilder sql = new StringBuilder(context().getSql()).append(whereAndOrderClause());
+			Dialect dialect = agent().getSqlConfig().getDialect();
+			if (dialect.supportsLimitClause()) {
+				sql.append(dialect.getLimitClause(this.limit, this.offset));
+			}
+
+			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
@@ -99,6 +111,11 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 
 	}
 
+	/**
+	 * SELECT文のWHERE句とORDER BY句を生成する
+	 *
+	 * @return WHERE句とORDER BY句の文字列
+	 */
 	@SuppressWarnings("unchecked")
 	private String whereAndOrderClause() {
 		final List<? extends TableMetadata.Column> columns = this.tableMetadata.getColumns();
@@ -168,6 +185,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#equal(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -177,6 +196,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notEqual(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -186,6 +207,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#greaterThan(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -195,6 +218,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#lessThan(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -204,6 +229,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#greaterEqual(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -213,6 +240,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#lessEqual(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -222,6 +251,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#in(java.lang.String, java.lang.Object[])
 	 */
 	@Override
@@ -231,15 +262,19 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#in(java.lang.String, java.util.List)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#in(java.lang.String, java.lang.Iterable)
 	 */
 	@Override
-	public SqlEntityQuery<E> in(final String col, final List<Object> valueList) {
+	public SqlEntityQuery<E> in(final String col, final Iterable<?> valueList) {
 		context().param(col, new In(col, valueList));
 		return this;
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notIn(java.lang.String, java.lang.Object[])
 	 */
 	@Override
@@ -249,89 +284,113 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notIn(java.lang.String, java.util.List)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notIn(java.lang.String, java.lang.Iterable)
 	 */
 	@Override
-	public SqlEntityQuery<E> notIn(final String col, final List<Object> valueList) {
+	public SqlEntityQuery<E> notIn(final String col, final Iterable<?> valueList) {
 		context().param(col, new NotIn(col, valueList));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#like(java.lang.String, java.lang.String)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#like(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> like(final String col, final String searchValue) {
+	public SqlEntityQuery<E> like(final String col, final CharSequence searchValue) {
 		context().param(col, new Like(col, searchValue));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#like(java.lang.String, boolean, java.lang.String)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#startsWith(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> like(final String col, final boolean prefix, final String searchValue) {
-		context().param(col, new Like(col, prefix, searchValue));
+	public SqlEntityQuery<E> startsWith(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new Like(col, escaped, true));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#like(java.lang.String, java.lang.String, boolean)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#endsWith(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> like(final String col, final String searchValue, final boolean suffix) {
-		context().param(col, new Like(col, searchValue, suffix));
+	public SqlEntityQuery<E> endsWith(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new Like(col, true, escaped));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#like(java.lang.String, boolean, java.lang.String, boolean)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#contains(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> like(final String col, final boolean prefix, final String searchValue,
-			final boolean suffix) {
-		context().param(col, new Like(col, prefix, searchValue, suffix));
+	public SqlEntityQuery<E> contains(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new Like(col, true, escaped, true));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notLike(java.lang.String, java.lang.String)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notLike(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> notLike(final String col, final String searchValue) {
+	public SqlEntityQuery<E> notLike(final String col, final CharSequence searchValue) {
 		context().param(col, new NotLike(col, searchValue));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notLike(java.lang.String, boolean, java.lang.String)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notStartsWith(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> notLike(final String col, final boolean prefix, final String searchValue) {
-		context().param(col, new NotLike(col, prefix, searchValue));
+	public SqlEntityQuery<E> notStartsWith(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, escaped, true));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notLike(java.lang.String, java.lang.String, boolean)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notEndsWith(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> notLike(final String col, final String searchValue, final boolean suffix) {
-		context().param(col, new NotLike(col, searchValue, suffix));
+	public SqlEntityQuery<E> notEndsWith(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, true, escaped));
 		return this;
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notLike(java.lang.String, boolean, java.lang.String, boolean)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notContains(java.lang.String, java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> notLike(final String col, final boolean prefix, final String searchValue,
-			final boolean suffix) {
-		context().param(col, new NotLike(col, prefix, searchValue, suffix));
+	public SqlEntityQuery<E> notContains(final String col, final CharSequence searchValue) {
+		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, true, escaped, true));
 		return this;
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#between(java.lang.String, java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -341,6 +400,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#isNull(java.lang.String)
 	 */
 	@Override
@@ -350,6 +411,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#isNotNull(java.lang.String)
 	 */
 	@Override
@@ -359,15 +422,19 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#where(java.lang.String)
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#where(java.lang.CharSequence)
 	 */
 	@Override
-	public SqlEntityQuery<E> where(final String rawString) {
+	public SqlEntityQuery<E> where(final CharSequence rawString) {
 		this.rawString = rawString;
 		return this;
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#orderByAsc(java.lang.String[])
 	 */
 	@Override
@@ -378,6 +445,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#orderByDesc(java.lang.String[])
 	 */
 	@Override
@@ -388,211 +457,455 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#limit(long)
 	 */
 	@Override
 	public SqlEntityQuery<E> limit(final long limit) {
-		// TODO 未実装
-		throw new UnsupportedOperationException();
+		if (!agent().getSqlConfig().getDialect().supportsLimitClause()) {
+			throw new UroborosqlRuntimeException("Unsupported limit clause.");
+		}
+		this.limit = limit;
+		return this;
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#offset(long)
 	 */
 	@Override
 	public SqlEntityQuery<E> offset(final long offset) {
-		// TODO 未実装
-		throw new UnsupportedOperationException();
+		if (!agent().getSqlConfig().getDialect().supportsLimitClause()) {
+			throw new UroborosqlRuntimeException("Unsupported offset clause.");
+		}
+		this.offset = offset;
+		return this;
 	}
 
+	/**
+	 * 条件指定用のラップクラス
+	 */
 	public static abstract class Operator {
 		protected final String col;
 
+		/**
+		 * Constructor
+		 *
+		 * @param col バインドしたカラム名
+		 */
 		public Operator(final String col) {
 			this.col = col;
 		}
 
+		/**
+		 * バインドしたカラム名の取得
+		 *
+		 * @return カラム名
+		 */
 		public String getCol() {
 			return col;
 		}
 
-		public String getOperator() {
-			throw new UnsupportedOperationException();
-		}
+		/**
+		 * オペレータを取得する
+		 *
+		 * @return オペレータ
+		 */
+		public abstract String getOperator();
 
+		/**
+		 * 評価式に変換する
+		 *
+		 * @return 評価式
+		 */
 		public String toConditionString() {
 			return " " + getOperator();
 		}
 
+		/**
+		 * バインド変数文字列を生成する
+		 *
+		 * @param keyNames バインド変数名。複数指定した場合、"."区切りで結合する
+		 * @return バインド変数文字列
+		 */
 		protected String wrap(final String... keyNames) {
 			return "/*" + String.join(".", keyNames) + "*/";
 		}
 	}
 
+	/**
+	 * 値を1つもつオペレータ
+	 */
 	public static abstract class SingleOperator extends Operator {
 		protected final Object value;
 
+		/**
+		 * Constructor
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public SingleOperator(final String col, final Object value) {
 			super(col);
 			this.value = value;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getCol()
+		 */
 		@Override
 		public String getCol() {
 			return col;
 		}
 
+		/**
+		 * 値の取得
+		 * @return 値
+		 */
 		public Object getValue() {
 			return value;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#toConditionString()
+		 */
 		@Override
 		public String toConditionString() {
 			return " " + getOperator() + " " + wrap(getCol(), "value");
 		}
 	}
 
+	/**
+	 * Listを持つオペレータ
+	 */
 	public static abstract class ListOperator extends Operator {
-		protected final List<?> valueList;
+		protected final Iterable<?> valueList;
 
-		public ListOperator(final String col, final List<?> valueList) {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param valueList 値のリスト
+		 */
+		public ListOperator(final String col, final Iterable<?> valueList) {
 			super(col);
 			this.valueList = valueList;
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param values 値の配列
+		 */
 		public ListOperator(final String col, final Object... values) {
 			super(col);
 			valueList = Arrays.asList(values);
 		}
 
-		public List<?> getValueList() {
+		/**
+		 * 値のリストを取得する
+		 *
+		 * @return 値のリスト
+		 */
+		public Iterable<?> getValueList() {
 			return valueList;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#toConditionString()
+		 */
 		@Override
 		public String toConditionString() {
 			return " " + getOperator() + " " + wrap(getCol(), "valueList") + "()";
 		}
 	}
 
+	/**
+	 * Equal Operator
+	 */
 	public static class Equal extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public Equal(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "=";
 		}
 	}
 
+	/**
+	 * NotEqual Operator
+	 */
 	public static class NotEqual extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public NotEqual(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "!=";
 		}
 	}
 
+	/**
+	 * Greater Than Operator
+	 */
 	public static class GreaterThan extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public GreaterThan(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return ">";
 		}
 	}
 
+	/**
+	 * Less Than Operator
+	 */
 	public static class LessThan extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public LessThan(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "<";
 		}
 	}
 
+	/**
+	 * Greater Equal Operator
+	 */
 	public static class GreaterEqual extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public GreaterEqual(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return ">=";
 		}
 	}
 
+	/**
+	 * Less Than Operator
+	 */
 	public static class LessEqual extends SingleOperator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public LessEqual(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "<=";
 		}
 	}
 
+	/**
+	 * In Operator
+	 */
 	public static class In extends ListOperator {
-		public In(final String col, final List<?> valueList) {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param valueList 値リスト
+		 */
+		public In(final String col, final Iterable<?> valueList) {
 			super(col, valueList);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param values 値の配列
+		 */
 		public In(final String col, final Object... values) {
 			super(col, values);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "IN";
 		}
 	}
 
+	/**
+	 * Not In Operator
+	 */
 	public static class NotIn extends In {
-		public NotIn(final String col, final List<?> valueList) {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param valueList 値リスト
+		 */
+		public NotIn(final String col, final Iterable<?> valueList) {
 			super(col, valueList);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param values 値の配列
+		 */
 		public NotIn(final String col, final Object... values) {
 			super(col, values);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.In#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "NOT IN";
 		}
 	}
 
+	/**
+	 * Like Operator
+	 */
 	public static class Like extends SingleOperator {
 		protected boolean prefix;
 		protected boolean suffix;
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public Like(final String col, final Object value) {
 			this(col, true, value, true);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param value 値
+		 */
 		public Like(final String col, final boolean prefix, final Object value) {
 			this(col, prefix, value, false);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 */
 		public Like(final String col, final Object value, final boolean suffix) {
 			this(col, false, value, suffix);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param value 値
+		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 */
 		public Like(final String col, final boolean prefix, final Object value, final boolean suffix) {
 			super(col, value);
 			this.prefix = prefix;
 			this.suffix = suffix;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.SingleOperator#getValue()
+		 */
 		@Override
 		public Object getValue() {
 			String searchValue = Objects.toString(super.getValue(), "");
@@ -605,80 +918,177 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 			return searchValue;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "LIKE";
 		}
 	}
 
+	/**
+	 * Not Like Operator
+	 */
 	public static class NotLike extends Like {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 */
 		public NotLike(final String col, final Object value) {
 			super(col, value);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param value 値
+		 */
 		public NotLike(final String col, final boolean prefix, final Object value) {
 			super(col, prefix, value);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param value 値
+		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 */
 		public NotLike(final String col, final Object value, final boolean suffix) {
 			super(col, value, suffix);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param value 値
+		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 */
 		public NotLike(final String col, final boolean prefix, final Object value, final boolean suffix) {
 			super(col, prefix, value, suffix);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Like#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "NOT LIKE";
 		}
 	}
 
+	/**
+	 * Between Operator
+	 */
 	public static class Between extends Operator {
 		protected final Object from;
 		protected final Object to;
 
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
 		public Between(final String col, final Object from, final Object to) {
 			super(col);
 			this.from = from;
 			this.to = to;
 		}
 
+		/**
+		 * From値の取得
+		 *
+		 * @return From値
+		 */
 		public Object getFrom() {
 			return from;
 		}
 
+		/**
+		 * To値の取得
+		 *
+		 * @return To値
+		 */
 		public Object getTo() {
 			return to;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#toConditionString()
+		 */
 		@Override
 		public String toConditionString() {
 			return " " + getOperator() + " " + wrap(getCol(), "from") + " AND " + wrap(getCol(), "to");
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "BETWEEN";
 		}
 	}
 
+	/**
+	 * IS NULL Operator
+	 */
 	public static class IsNull extends Operator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 */
 		public IsNull(final String col) {
 			super(col);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "IS NULL";
 		}
 	}
 
+	/**
+	 * IS NOT NULL Operator
+	 */
 	public static class IsNotNull extends Operator {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 */
 		public IsNotNull(final String col) {
 			super(col);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.SqlEntityQueryImpl.Operator#getOperator()
+		 */
 		@Override
 		public String getOperator() {
 			return "IS NOT NULL";

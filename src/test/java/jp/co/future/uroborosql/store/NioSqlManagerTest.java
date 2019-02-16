@@ -13,7 +13,7 @@ import java.util.List;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.H2Dialect;
-import jp.co.future.uroborosql.dialect.OracleDialect;
+import jp.co.future.uroborosql.dialect.Oracle10Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -156,7 +156,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(newFilePath);
 
 		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
-		manager.setDialect(new OracleDialect());
+		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
 		try {
@@ -191,7 +191,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(newFilePath);
 
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.setDialect(new OracleDialect());
+		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
 		try {
@@ -224,7 +224,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(dir);
 
 		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
-		manager.setDialect(new OracleDialect());
+		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
 		try {
@@ -276,7 +276,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(dialectDir);
 
 		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
-		manager.setDialect(new OracleDialect());
+		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
 		try {
@@ -346,7 +346,7 @@ public class NioSqlManagerTest {
 		Files.deleteIfExists(dialectDir);
 
 		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
-		manager.setDialect(new OracleDialect());
+		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
 		try {

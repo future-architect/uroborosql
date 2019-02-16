@@ -294,7 +294,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(), System.lineSeparator());
+		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(),
+				System.lineSeparator());
 	}
 
 	/**
@@ -609,7 +610,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		try {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
-			SqlContext context = handler.createQueryContext(this, metadata, entityType);
+			SqlContext context = handler.createSelectContext(this, metadata, entityType, false);
 
 			return new SqlEntityQueryImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {

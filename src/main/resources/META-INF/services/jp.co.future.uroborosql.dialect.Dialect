@@ -1,4 +1,6 @@
-jp.co.future.uroborosql.dialect.OracleDialect
+jp.co.future.uroborosql.dialect.Oracle12Dialect
+jp.co.future.uroborosql.dialect.Oracle11Dialect
+jp.co.future.uroborosql.dialect.Oracle10Dialect
 jp.co.future.uroborosql.dialect.MsSqlDialect
 jp.co.future.uroborosql.dialect.MySqlDialect
 jp.co.future.uroborosql.dialect.PostgresqlDialect

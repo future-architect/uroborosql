@@ -42,7 +42,8 @@ public interface ConnectionSupplier {
 		try {
 			conn = getConnection();
 			DatabaseMetaData metaData = conn.getMetaData();
-			return metaData.getDatabaseProductName() + "-" + metaData.getDatabaseProductVersion();
+			return metaData.getDatabaseProductName() + "-" + metaData.getDatabaseMajorVersion() + "."
+			+ metaData.getDatabaseMinorVersion();
 		} catch (SQLException ex) {
 			throw new UroborosqlSQLException(ex);
 		} finally {
