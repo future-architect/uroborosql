@@ -946,7 +946,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		 *
 		 * @param col bind column name
 		 * @param value 値
-		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
 		public Like(final String col, final Object value, final boolean suffix) {
 			this(col, false, value, suffix);
@@ -958,7 +958,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
-		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
 		public Like(final String col, final boolean prefix, final Object value, final boolean suffix) {
 			super(col, value);
@@ -1024,7 +1024,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		 *
 		 * @param col bind column name
 		 * @param value 値
-		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
 		public NotLike(final String col, final Object value, final boolean suffix) {
 			super(col, value, suffix);
@@ -1036,7 +1036,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
-		 * @param prefix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
 		public NotLike(final String col, final boolean prefix, final Object value, final boolean suffix) {
 			super(col, prefix, value, suffix);
@@ -1160,15 +1160,31 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		}
 	}
 
+	/**
+	 * Sort Order
+	 */
 	private static class SortOrder {
 		private final String col;
 		private final Order order;
 		private final Nulls nulls;
 
+		/**
+		 * Constructor
+		 *
+		 * @param col sort column name (camelCase)
+		 * @param order {@link Order}
+		 */
 		SortOrder(final String col, final Order order) {
 			this(col, order, Nulls.LAST);
 		}
 
+		/**
+		 * Constructor
+		 *
+		 * @param col sort column name (camelCase)
+		 * @param order {@link Order}
+		 * @param nulls {@link Nulls}
+		 */
 		SortOrder(final String col, final Order order, final Nulls nulls) {
 			if (col == null) {
 				throw new UroborosqlRuntimeException("argment col is required.");
@@ -1189,7 +1205,5 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		final Nulls getNulls() {
 			return nulls;
 		}
-
 	}
-
 }
