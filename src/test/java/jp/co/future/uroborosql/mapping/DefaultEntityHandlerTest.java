@@ -28,6 +28,7 @@ import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
@@ -437,7 +438,7 @@ public class DefaultEntityHandlerTest {
 
 				// order by asc
 				list = agent.query(TestEntity.class)
-						.orderByAsc("age")
+						.asc("age")
 						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test3));
@@ -446,7 +447,17 @@ public class DefaultEntityHandlerTest {
 
 				// order by desc
 				list = agent.query(TestEntity.class)
-						.orderByDesc("birthday")
+						.desc("birthday")
+						.collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test3));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test1));
+
+				// order by asc and desc
+				list = agent.query(TestEntity.class)
+						.asc("age")
+						.desc("birthday", Nulls.FIRST)
 						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test3));

@@ -34,6 +34,16 @@ public class Oracle10Dialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsNullValuesOrdering()
+	 */
+	@Override
+	public boolean supportsNullValuesOrdering() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
 	 */
 	@Override

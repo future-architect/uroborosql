@@ -60,6 +60,15 @@ public interface Dialect {
 	}
 
 	/**
+	 * SELECT句のORDER BY でNULL値の順序を指定できるか（NULLS FIRST/LAST）
+	 *
+	 * @return NULL値の順序指定ができる場合<code>true</code>
+	 */
+	default boolean supportsNullValuesOrdering() {
+		return false;
+	}
+
+	/**
 	 * LIMIT句（とOFFSET句）を取得する
 	 * @param limit limit
 	 * @param offset offset

@@ -19,6 +19,29 @@ import jp.co.future.uroborosql.SqlAgent;
  * @author ota
  */
 public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
+	public enum Order {
+		ASCENDING("ASC"), DESCENDING("DESC");
+
+		private String alias;
+
+		Order(final String alias) {
+			this.alias = alias;
+		}
+
+		@Override
+		public String toString() {
+			return alias;
+		}
+	}
+
+	public enum Nulls {
+		FIRST, LAST;
+
+		@Override
+		public String toString() {
+			return "NULLS " + name();
+		}
+	}
 
 	/**
 	 * 検索結果の取得（終端処理）
@@ -222,14 +245,34 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 	 * @param cols ソート対象カラム名の配列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> orderByAsc(String... cols);
+	SqlEntityQuery<E> asc(String... cols);
+
+	/**
+	 * ソート条件を指定（昇順）
+	 * @param cols ソート対象カラム名の配列
+	 * @return SqlEntityQuery
+	 */
+	/**
+	 * @param col ソート対象のカラム名
+	 * @param nulls NULL値のソート順指定
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> asc(String col, Nulls nulls);
 
 	/**
 	 * ソート条件を指定（降順）
 	 * @param cols ソート対象カラム名の配列
 	 * @return SqlEntityQuery
 	 */
-	SqlEntityQuery<E> orderByDesc(String... cols);
+	SqlEntityQuery<E> desc(String... cols);
+
+	/**
+	 * ソート条件を指定（降順）
+	 * @param cols ソート対象カラム名
+	 * @param nulls NULL値のソート順指定
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> desc(String col, Nulls nulls);
 
 	/**
 	 * 検索結果の行数制限を指定する

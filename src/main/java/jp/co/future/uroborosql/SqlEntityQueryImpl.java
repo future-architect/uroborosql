@@ -9,7 +9,9 @@ package jp.co.future.uroborosql;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.TableMetadata;
+import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -37,8 +40,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	private final TableMetadata tableMetadata;
 	private final Class<? extends E> entityType;
 	private CharSequence rawString;
-	private List<String> orderByColumns;
-	private boolean ascendingOrder;
+	private final List<SortOrder> sortOrders;
 	private long limit;
 	private long offset;
 
@@ -59,8 +61,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		this.tableMetadata = tableMetadata;
 		this.entityType = entityType;
 		this.rawString = null;
-		this.orderByColumns = null;
-		this.ascendingOrder = true;
+		this.sortOrders = new ArrayList<>();
 		this.limit = -1;
 		this.offset = -1;
 	}
@@ -148,17 +149,22 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 
 		boolean firstFlag = true;
 		List<TableMetadata.Column> keys;
-		if (this.orderByColumns == null || this.orderByColumns.isEmpty()) {
+		Map<TableMetadata.Column, SortOrder> existsSortOrders = new HashMap<>();
+		if (this.sortOrders.isEmpty()) {
 			// ソート条件の指定がない場合は主キーでソートする
 			keys = (List<TableMetadata.Column>) this.tableMetadata.getKeyColumns();
+			for (Column key : keys) {
+				existsSortOrders.put(key, new SortOrder(key.getCamelColumnName(), Order.ASCENDING));
+			}
 		} else {
 			// ソート条件の指定がある場合は指定されたカラムでソートする
 			keys = new ArrayList<>();
-			for (String col : orderByColumns) {
-				String snakeCol = CaseFormat.UPPER_SNAKE_CASE.convert(col);
+			for (SortOrder sortOrder : sortOrders) {
+				String snakeCol = CaseFormat.UPPER_SNAKE_CASE.convert(sortOrder.getCol());
 				for (TableMetadata.Column metaCol : columns) {
 					if (snakeCol.equalsIgnoreCase(metaCol.getColumnName())) {
 						keys.add(metaCol);
+						existsSortOrders.put(metaCol, sortOrder);
 						break;
 					}
 				}
@@ -166,9 +172,11 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		}
 
 		if (!keys.isEmpty()) {
+			Dialect dialect = agent().getSqlConfig().getDialect();
 			sql.append("ORDER BY").append(System.lineSeparator());
 			firstFlag = true;
-			for (final TableMetadata.Column col : keys) {
+			for (final TableMetadata.Column key : keys) {
+				SortOrder sortOrder = existsSortOrders.get(key);
 				sql.append("\t");
 				if (firstFlag) {
 					sql.append("  ");
@@ -176,9 +184,12 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 				} else {
 					sql.append(", ");
 				}
-				sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
+				sql.append(key.getColumnIdentifier()).append(" ").append(sortOrder.getOrder().toString());
+				if (dialect.supportsNullValuesOrdering()) {
+					sql.append(" ").append(sortOrder.getNulls().toString());
+				}
+				sql.append(System.lineSeparator());
 			}
-			sql.append(this.ascendingOrder ? "ASC" : "DESC").append(System.lineSeparator());
 		}
 
 		return sql.toString();
@@ -435,24 +446,48 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#orderByAsc(java.lang.String[])
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#asc(java.lang.String[])
 	 */
 	@Override
-	public SqlEntityQuery<E> orderByAsc(final String... cols) {
-		this.orderByColumns = Arrays.asList(cols);
-		this.ascendingOrder = true;
+	public SqlEntityQuery<E> asc(final String... cols) {
+		for (String col : cols) {
+			this.sortOrders.add(new SortOrder(col, Order.ASCENDING));
+		}
 		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#orderByDesc(java.lang.String[])
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#asc(java.lang.String, jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls)
 	 */
 	@Override
-	public SqlEntityQuery<E> orderByDesc(final String... cols) {
-		this.orderByColumns = Arrays.asList(cols);
-		this.ascendingOrder = false;
+	public SqlEntityQuery<E> asc(final String col, final Nulls nulls) {
+		this.sortOrders.add(new SortOrder(col, Order.ASCENDING, nulls));
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#desc(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> desc(final String... cols) {
+		for (String col : cols) {
+			this.sortOrders.add(new SortOrder(col, Order.DESCENDING));
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#desc(java.lang.String, jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls)
+	 */
+	@Override
+	public SqlEntityQuery<E> desc(final String col, final Nulls nulls) {
+		this.sortOrders.add(new SortOrder(col, Order.DESCENDING, nulls));
 		return this;
 	}
 
@@ -1093,6 +1128,38 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		public String getOperator() {
 			return "IS NOT NULL";
 		}
+	}
+
+	private static class SortOrder {
+		private final String col;
+		private final Order order;
+		private final Nulls nulls;
+
+		SortOrder(final String col, final Order order) {
+			this(col, order, Nulls.LAST);
+		}
+
+		SortOrder(final String col, final Order order, final Nulls nulls) {
+			if (col == null) {
+				throw new UroborosqlRuntimeException("argment col is required.");
+			}
+			this.col = col;
+			this.order = order != null ? order : Order.ASCENDING;
+			this.nulls = nulls != null ? nulls : Nulls.LAST;
+		}
+
+		final String getCol() {
+			return col;
+		}
+
+		final Order getOrder() {
+			return order;
+		}
+
+		final Nulls getNulls() {
+			return nulls;
+		}
+
 	}
 
 }

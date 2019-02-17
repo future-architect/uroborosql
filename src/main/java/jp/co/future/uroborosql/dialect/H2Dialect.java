@@ -48,4 +48,14 @@ public class H2Dialect extends AbstractDialect {
 	public boolean supportsLimitClause() {
 		return true;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsNullValuesOrdering()
+	 */
+	@Override
+	public boolean supportsNullValuesOrdering() {
+		return true;
+	}
 }
