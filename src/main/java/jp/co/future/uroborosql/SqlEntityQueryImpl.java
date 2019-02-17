@@ -39,10 +39,11 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	private final EntityHandler<?> entityHandler;
 	private final TableMetadata tableMetadata;
 	private final Class<? extends E> entityType;
-	private CharSequence rawString;
+	private final List<CharSequence> rawStrings;
 	private final List<SortOrder> sortOrders;
 	private long limit;
 	private long offset;
+	private boolean useOperator = false;
 
 	/**
 	 * Constructor
@@ -60,10 +61,11 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 		this.entityHandler = entityHandler;
 		this.tableMetadata = tableMetadata;
 		this.entityType = entityType;
-		this.rawString = null;
+		this.rawStrings = new ArrayList<>();
 		this.sortOrders = new ArrayList<>();
 		this.limit = -1;
 		this.offset = -1;
+		this.useOperator = false;
 	}
 
 	/**
@@ -131,15 +133,21 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 					Operator ope = (Operator) param.getValue();
 					where.append("\t").append("AND ").append(col.getColumnIdentifier())
 					.append(ope.toConditionString()).append(System.lineSeparator());
-				} else {
+				} else if (!this.useOperator) {
 					where.append("\t").append("AND ").append(col.getColumnIdentifier())
 					.append(" = ").append("/*").append(camelColName).append("*/''")
 					.append(System.lineSeparator());
 				}
 			}
 		}
-		if (rawString != null) {
-			where.append(rawString).append(System.lineSeparator());
+		if (!this.rawStrings.isEmpty()) {
+			for (CharSequence raw : rawStrings) {
+				if (where.length() > 0) {
+					where.append("\t").append("AND ( ").append(raw).append(" )").append(System.lineSeparator());
+				} else {
+					where.append("\t").append("( ").append(raw).append(" )").append(System.lineSeparator());
+				}
+			}
 		}
 
 		StringBuilder sql = new StringBuilder();
@@ -203,6 +211,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> equal(final String col, final Object value) {
 		context().param(col, new Equal(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -214,6 +223,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> notEqual(final String col, final Object value) {
 		context().param(col, new NotEqual(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -225,6 +235,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> greaterThan(final String col, final Object value) {
 		context().param(col, new GreaterThan(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -236,6 +247,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> lessThan(final String col, final Object value) {
 		context().param(col, new LessThan(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -247,6 +259,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> greaterEqual(final String col, final Object value) {
 		context().param(col, new GreaterEqual(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -258,6 +271,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> lessEqual(final String col, final Object value) {
 		context().param(col, new LessEqual(col, value));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -269,6 +283,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> in(final String col, final Object... values) {
 		context().param(col, new In(col, values));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -280,6 +295,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> in(final String col, final Iterable<?> valueList) {
 		context().param(col, new In(col, valueList));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -291,6 +307,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> notIn(final String col, final Object... values) {
 		context().param(col, new NotIn(col, values));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -302,6 +319,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> notIn(final String col, final Iterable<?> valueList) {
 		context().param(col, new NotIn(col, valueList));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -313,6 +331,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> like(final String col, final CharSequence searchValue) {
 		context().param(col, new Like(col, searchValue));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -325,6 +344,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> startsWith(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new Like(col, escaped, true));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -337,6 +357,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> endsWith(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new Like(col, true, escaped));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -349,6 +370,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> contains(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new Like(col, true, escaped, true));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -360,6 +382,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> notLike(final String col, final CharSequence searchValue) {
 		context().param(col, new NotLike(col, searchValue));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -372,6 +395,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> notStartsWith(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new NotLike(col, escaped, true));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -384,6 +408,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> notEndsWith(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new NotLike(col, true, escaped));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -396,6 +421,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	public SqlEntityQuery<E> notContains(final String col, final CharSequence searchValue) {
 		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
 		context().param(col, new NotLike(col, true, escaped, true));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -407,6 +433,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> between(final String col, final Object fromValue, final Object toValue) {
 		context().param(col, new Between(col, fromValue, toValue));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -418,6 +445,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> isNull(final String col) {
 		context().param(col, new IsNull(col));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -429,6 +457,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	@Override
 	public SqlEntityQuery<E> isNotNull(final String col) {
 		context().param(col, new IsNotNull(col));
+		this.useOperator = true;
 		return this;
 	}
 
@@ -439,7 +468,8 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	 */
 	@Override
 	public SqlEntityQuery<E> where(final CharSequence rawString) {
-		this.rawString = rawString;
+		this.rawStrings.add(rawString);
+		this.useOperator = true;
 		return this;
 	}
 
@@ -483,7 +513,7 @@ final class SqlEntityQueryImpl<E> extends AbstractSqlFluent<SqlEntityQuery<E>> i
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#desc(java.lang.String, jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls)
+	s	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#desc(java.lang.String, jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls)
 	 */
 	@Override
 	public SqlEntityQuery<E> desc(final String col, final Nulls nulls) {

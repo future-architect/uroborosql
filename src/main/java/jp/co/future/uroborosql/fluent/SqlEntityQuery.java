@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * Entity取得 SQL Query 実行インタフェース
@@ -19,10 +20,13 @@ import jp.co.future.uroborosql.SqlAgent;
  * @author ota
  */
 public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
+	/**
+	 * ORDER BY句の順序を表すEnum
+	 */
 	public enum Order {
 		ASCENDING("ASC"), DESCENDING("DESC");
 
-		private String alias;
+		private final String alias;
 
 		Order(final String alias) {
 			this.alias = alias;
@@ -34,6 +38,9 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 		}
 	}
 
+	/**
+	 * NULLS FIRST/LASTを表現するEnum
+	 */
 	public enum Nulls {
 		FIRST, LAST;
 
@@ -234,7 +241,7 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 	SqlEntityQuery<E> isNotNull(String col);
 
 	/**
-	 * Where句に 素の文字列指定で 条件を追加する
+	 * Where句に 素の文字列指定で 条件を追加する。複数回呼び出した場合はそれぞれの条件をANDで結合する。
 	 * @param rawString Where句に出力する条件式
 	 * @return SqlEntityQuery
 	 */
@@ -242,47 +249,43 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 
 	/**
 	 * ソート条件を指定（昇順）
-	 * @param cols ソート対象カラム名の配列
+	 * @param cols sort target column names
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> asc(String... cols);
 
 	/**
 	 * ソート条件を指定（昇順）
-	 * @param cols ソート対象カラム名の配列
-	 * @return SqlEntityQuery
-	 */
-	/**
-	 * @param col ソート対象のカラム名
-	 * @param nulls NULL値のソート順指定
+	 * @param col sort target column name
+	 * @param nulls {@link Nulls}
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> asc(String col, Nulls nulls);
 
 	/**
 	 * ソート条件を指定（降順）
-	 * @param cols ソート対象カラム名の配列
+	 * @param cols sort target column names
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> desc(String... cols);
 
 	/**
 	 * ソート条件を指定（降順）
-	 * @param cols ソート対象カラム名
-	 * @param nulls NULL値のソート順指定
+	 * @param col sort target column name
+	 * @param nulls {@link Nulls}
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> desc(String col, Nulls nulls);
 
 	/**
-	 * 検索結果の行数制限を指定する
+	 * 検索結果の行数制限を指定する。limitがサポートされていないデータベースの場合は {@link UroborosqlRuntimeException} がスローされる
 	 * @param limit 取得する行数
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> limit(long limit);
 
 	/**
-	 * 検索結果の開始行を指定する
+	 * 検索結果の開始行を指定する。offsetがサポートされていないデータベースの場合は {@link UroborosqlRuntimeException} がスローされる
 	 * @param offset 取得開始行
 	 * @return SqlEntityQuery
 	 */

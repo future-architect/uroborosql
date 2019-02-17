@@ -431,10 +431,11 @@ public class DefaultEntityHandlerTest {
 						.where("BIRTHDAY < /*birthday1*/ or BIRTHDAY > /*birthday2*/")
 						.param("birthday1", LocalDate.of(1990, Month.APRIL, 15))
 						.param("birthday2", LocalDate.of(1990, Month.MAY, 15))
+						.where("AGE < /*age*/")
+						.param("age", 21)
 						.collect();
-				assertThat(list.size(), is(2));
-				assertThat(list.get(0), is(test1));
-				assertThat(list.get(1), is(test3));
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test3));
 
 				// order by asc
 				list = agent.query(TestEntity.class)
