@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.parameter;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -15,11 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
+import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 /**
  * パラメータオブジェクト。<br>
@@ -104,9 +106,21 @@ public class Parameter {
 				}
 			} else {
 				try {
+					// フィールドアクセスで値の取得を実施
 					Field field = value.getClass().getDeclaredField(propertyName);
 					field.setAccessible(true);
 					subValue = field.get(value);
+				} catch (NoSuchFieldException e) {
+					// メソッドアクセスで値の取得を実施
+					try {
+						String prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
+						Method method = value.getClass()
+								.getMethod(prefix + StringUtils.capitalize(propertyName));
+						subValue = method.invoke(value);
+					} catch (Exception e2) {
+						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+								subParameterName, e2);
+					}
 				} catch (Exception e) {
 					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
 							subParameterName, e);

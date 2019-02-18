@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
@@ -25,8 +27,6 @@ import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -63,13 +63,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
 	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
-			final Class<? extends Object> entityType) {
+			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
+				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -99,27 +99,26 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
 	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
-			final Class<? extends Object> entityType) {
+			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
+				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
 	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
-			final Class<? extends Object> entityType) {
+			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
+				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -247,8 +246,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @return TableMetadata
 	 * @throws SQLException SQL例外
 	 */
-	protected TableMetadata createMetadata(final ConnectionManager connectionManager, final Class<? extends Object> type)
-			throws SQLException {
+	protected TableMetadata createMetadata(final ConnectionManager connectionManager,
+			final Class<? extends Object> type)
+					throws SQLException {
 		Table table = getTable(type);
 		return TableMetadata.createTableEntityMetadata(connectionManager, table);
 	}
@@ -269,17 +269,66 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
 	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return SELECT SQL
 	 */
 	protected String buildSelectSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName) {
-		List<? extends TableMetadata.Column> columns = metadata.getColumns();
+			final String sqlIdKeyName, final boolean addCondition) {
+		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
-		StringBuilder sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
+		final StringBuilder sql = new StringBuilder(buildSelectClause(metadata, type, sqlIdKeyName));
+
+		if (addCondition) {
+			sql.append("/*BEGIN*/").append(System.lineSeparator());
+			sql.append("WHERE").append(System.lineSeparator());
+
+			for (final TableMetadata.Column col : columns) {
+				final String camelColName = col.getCamelColumnName();
+				final StringBuilder parts = new StringBuilder().append("\t").append("AND ")
+						.append(col.getColumnIdentifier())
+						.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
+				wrapIfComment(sql, parts, col);
+			}
+			sql.append("/*END*/").append(System.lineSeparator());
+
+			boolean firstFlag = true;
+			final List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
+			if (!keys.isEmpty()) {
+				sql.append("ORDER BY").append(System.lineSeparator());
+				firstFlag = true;
+				for (final TableMetadata.Column col : keys) {
+					sql.append("\t");
+					if (firstFlag) {
+						sql.append("  ");
+						firstFlag = false;
+					} else {
+						sql.append(", ");
+					}
+					sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
+				}
+			}
+		}
+
+		return sql.toString();
+	}
+
+	/**
+	 * SELECT句生成
+	 *
+	 * @param metadata エンティティメタ情報
+	 * @param type エイティティタイプ
+	 * @param sqlIdKeyName SQL_IDキー名
+	 * @return SELECT句
+	 */
+	protected String buildSelectClause(final TableMetadata metadata, final Class<? extends Object> type,
+			final String sqlIdKeyName) {
+		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
+
+		final StringBuilder sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(System.lineSeparator());
 
 		boolean firstFlag = true;
-		for (TableMetadata.Column col : columns) {
+		for (final TableMetadata.Column col : columns) {
 			sql.append("\t");
 			if (firstFlag) {
 				sql.append("  ");
@@ -294,32 +343,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append(System.lineSeparator());
 		}
 		sql.append("FROM ").append(metadata.getTableIdentifier()).append(System.lineSeparator());
-		sql.append("/*BEGIN*/").append(System.lineSeparator());
-		sql.append("WHERE").append(System.lineSeparator());
-
-		for (TableMetadata.Column col : columns) {
-			String camelColName = col.getCamelColumnName();
-			StringBuilder parts = new StringBuilder().append("\t").append("AND ").append(col.getColumnIdentifier())
-					.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
-			wrapIfComment(sql, parts, col);
-		}
-		sql.append("/*END*/").append(System.lineSeparator());
-
-		List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
-		if (!keys.isEmpty()) {
-			sql.append("ORDER BY").append(System.lineSeparator());
-			firstFlag = true;
-			for (TableMetadata.Column col : keys) {
-				sql.append("\t");
-				if (firstFlag) {
-					sql.append("  ");
-					firstFlag = false;
-				} else {
-					sql.append(", ");
-				}
-				sql.append(col.getColumnIdentifier()).append(System.lineSeparator());
-			}
-		}
 
 		return sql.toString();
 	}
@@ -394,17 +417,19 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
 	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return UPDATE SQL
 	 */
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName) {
+			final String sqlIdKeyName, final boolean addCondition) {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
 		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.UPDATE))
 				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 
-		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty() : MappingUtils
+		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty()
+				: MappingUtils
 				.getVersionMappingColumn(type);
 
 		boolean firstFlag = true;
@@ -443,42 +468,45 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 		}
 
-		sql.append("WHERE").append(System.lineSeparator());
-		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : Arrays
-				.asList(metadata.getColumns().get(0));
-		firstFlag = true;
-		for (TableMetadata.Column col : cols) {
-			StringBuilder parts = new StringBuilder().append("\t");
-			if (firstFlag) {
-				if (col.isNullable()) {
-					parts.append("AND ");
+		if (addCondition) {
+			sql.append("WHERE").append(System.lineSeparator());
+			final List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
+					: Arrays
+					.asList(metadata.getColumns().get(0));
+			firstFlag = true;
+			for (final TableMetadata.Column col : cols) {
+				final StringBuilder parts = new StringBuilder().append("\t");
+				if (firstFlag) {
+					if (col.isNullable()) {
+						parts.append("AND ");
+					} else {
+						parts.append("    ");
+					}
+					firstFlag = false;
 				} else {
-					parts.append("    ");
+					parts.append("AND ");
 				}
-				firstFlag = false;
-			} else {
-				parts.append("AND ");
+				parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
+				.append("*/''")
+				.append(System.lineSeparator());
+				if (col.isNullable()) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
 			}
-			parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
-			.append("*/''")
-			.append(System.lineSeparator());
-			if (col.isNullable()) {
-				wrapIfComment(sql, parts, col);
-			} else {
-				sql.append(parts);
-			}
+			final boolean first = firstFlag;
+			versionMappingColumn.ifPresent(mappingColumn -> {
+				sql.append("\t");
+				if (first) {
+					sql.append("    ");
+				} else {
+					sql.append("AND ");
+				}
+				sql.append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName())
+				.append("*/''").append(System.lineSeparator());
+			});
 		}
-		final boolean first = firstFlag;
-		versionMappingColumn.ifPresent(mappingColumn -> {
-			sql.append("\t");
-			if (first) {
-				sql.append("    ");
-			} else {
-				sql.append("AND ");
-			}
-			sql.append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName())
-			.append("*/''").append(System.lineSeparator());
-		});
 		return sql.toString();
 	}
 
@@ -488,36 +516,40 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
 	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return DELETE SQL
 	 */
 	protected String buildDeleteSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName) {
+			final String sqlIdKeyName, final boolean addCondition) {
 		StringBuilder sql = new StringBuilder("DELETE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" FROM ").append(metadata.getTableIdentifier()).append("").append(System.lineSeparator());
 
-		boolean firstFlag = true;
-		sql.append("WHERE").append(System.lineSeparator());
+		if (addCondition) {
+			boolean firstFlag = true;
+			sql.append("WHERE").append(System.lineSeparator());
 
-		List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns() : Arrays
-				.asList(metadata.getColumns().get(0));
-		for (TableMetadata.Column col : cols) {
-			StringBuilder parts = new StringBuilder().append("\t");
-			if (firstFlag) {
-				if (col.isNullable()) {
-					parts.append("AND ");
+			List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
+					: Arrays
+					.asList(metadata.getColumns().get(0));
+			for (TableMetadata.Column col : cols) {
+				StringBuilder parts = new StringBuilder().append("\t");
+				if (firstFlag) {
+					if (col.isNullable()) {
+						parts.append("AND ");
+					} else {
+						parts.append("    ");
+					}
+					firstFlag = false;
 				} else {
-					parts.append("    ");
+					parts.append("AND ");
 				}
-				firstFlag = false;
-			} else {
-				parts.append("AND ");
-			}
-			parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
-			.append("*/''").append(System.lineSeparator());
-			if (col.isNullable()) {
-				wrapIfComment(sql, parts, col);
-			} else {
-				sql.append(parts);
+				parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
+				.append("*/''").append(System.lineSeparator());
+				if (col.isNullable()) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
 			}
 		}
 		return sql.toString();
@@ -613,8 +645,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @return 文字列型の場合<code>true</code>
 	 */
 	private boolean isStringType(final JDBCType type) {
-		return (JDBCType.CHAR.equals(type) || JDBCType.NCHAR.equals(type) || JDBCType.VARCHAR.equals(type)
-				|| JDBCType.NVARCHAR.equals(type) || JDBCType.LONGNVARCHAR.equals(type));
+		return JDBCType.CHAR.equals(type) || JDBCType.NCHAR.equals(type) || JDBCType.VARCHAR.equals(type)
+				|| JDBCType.NVARCHAR.equals(type) || JDBCType.LONGNVARCHAR.equals(type);
 	}
 
 	/**
@@ -632,7 +664,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		if (isStringType(col.getDataType())) {
 			if (emptyStringEqualsNull) {
 				original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
-						.append(System.lineSeparator());
+				.append(System.lineSeparator());
 			} else {
 				original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
 			}

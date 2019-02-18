@@ -21,13 +21,23 @@ public class DefaultDialect extends AbstractDialect {
 		super();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getDatabaseName()
+	 */
 	@Override
 	public String getDatabaseName() {
 		return "default";
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
+	 */
 	@Override
-	public boolean accept(ConnectionSupplier supplier) {
+	public boolean accept(final ConnectionSupplier supplier) {
 		return true;
 	}
 }

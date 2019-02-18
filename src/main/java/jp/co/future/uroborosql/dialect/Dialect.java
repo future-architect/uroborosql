@@ -39,7 +39,9 @@ public interface Dialect {
 	 *
 	 * @return ロールバックする場合<code>true</code>
 	 */
-	default boolean isRollbackToSavepointBeforeRetry() { return false; }
+	default boolean isRollbackToSavepointBeforeRetry() {
+		return false;
+	}
 
 	/**
 	 * BULK INSERTをサポートするかどうか
@@ -50,10 +52,42 @@ public interface Dialect {
 	}
 
 	/**
-	 * Dialect名を取得する
-	 *
-	 * @return Dialect名
+	 * LIMIT 句をサポートするかどうか
+	 * @return LIMIT句をサポートする場合は<code>true</code>
 	 */
-	String getDialectName();
+	default boolean supportsLimitClause() {
+		return false;
+	}
+
+	/**
+	 * SELECT句のORDER BY でNULL値の順序を指定できるか（NULLS FIRST/LAST）
+	 *
+	 * @return NULL値の順序指定ができる場合<code>true</code>
+	 */
+	default boolean supportsNullValuesOrdering() {
+		return false;
+	}
+
+	/**
+	 * LIMIT句（とOFFSET句）を取得する
+	 * @param limit limit
+	 * @param offset offset
+	 * @return LIMIT句（とOFFSET句）を表す文字列
+	 */
+	String getLimitClause(long limit, long offset);
+
+	/**
+	 * LIKE 演算子のパターン文字列をエスケープする
+	 * @param pattern パターン文字列
+	 * @return エスケープ後のパターン文字列
+	 */
+	String escapeLikePattern(CharSequence pattern);
+
+	/**
+	 * Databaseの種別を表す名前を取得する
+	 *
+	 * @return Database種別名
+	 */
+	String getDatabaseType();
 
 }

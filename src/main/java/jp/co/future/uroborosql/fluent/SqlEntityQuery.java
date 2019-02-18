@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * Entity取得 SQL Query 実行インタフェース
@@ -19,6 +20,35 @@ import jp.co.future.uroborosql.SqlAgent;
  * @author ota
  */
 public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
+	/**
+	 * ORDER BY句の順序を表すEnum
+	 */
+	public enum Order {
+		ASCENDING("ASC"), DESCENDING("DESC");
+
+		private final String alias;
+
+		Order(final String alias) {
+			this.alias = alias;
+		}
+
+		@Override
+		public String toString() {
+			return alias;
+		}
+	}
+
+	/**
+	 * NULLS FIRST/LASTを表現するEnum
+	 */
+	public enum Nulls {
+		FIRST, LAST;
+
+		@Override
+		public String toString() {
+			return "NULLS " + name();
+		}
+	}
 
 	/**
 	 * 検索結果の取得（終端処理）
@@ -42,4 +72,223 @@ public interface SqlEntityQuery<E> extends SqlFluent<SqlEntityQuery<E>> {
 	 * @return 検索結果を順次取得するStream.
 	 */
 	Stream<E> stream();
+
+	/**
+	 * Where句に equal 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> equal(String col, Object value);
+
+	/**
+	 * Where句に not equal 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notEqual(String col, Object value);
+
+	/**
+	 * Where句に greater than 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> greaterThan(String col, Object value);
+
+	/**
+	 * Where句に less than 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> lessThan(String col, Object value);
+
+	/**
+	 * Where句に greater equal 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> greaterEqual(String col, Object value);
+
+	/**
+	 * Where句に less equal 条件を追加する
+	 * @param col bind column name
+	 * @param value 値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> lessEqual(String col, Object value);
+
+	/**
+	 * Where句に in 条件を追加する
+	 * @param col bind column name
+	 * @param values 値の配列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> in(String col, Object... values);
+
+	/**
+	 * Where句に in 条件を追加する
+	 * @param col bind column name
+	 * @param valueList 値の集合
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> in(String col, Iterable<?> valueList);
+
+	/**
+	 * Where句に not in 条件を追加する
+	 * @param col bind column name
+	 * @param values 値の配列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notIn(String col, Object... values);
+
+	/**
+	 * Where句に not in 条件を追加する
+	 * @param col bind column name
+	 * @param valueList 値の集合
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notIn(String col, Iterable<?> valueList);
+
+	/**
+	 * Where句に like 条件を追加する。検索文字列はエスケープしない
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> like(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に前方一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> startsWith(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に後方一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> endsWith(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に 部分一致条件を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> contains(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に not like 条件を追加する
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notLike(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に前方一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notStartsWith(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に後方一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notEndsWith(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に 部分一致条件の否定を追加する。検索文字列は内部でエスケープされる。
+	 * @param col bind column name
+	 * @param searchValue 検索文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> notContains(String col, CharSequence searchValue);
+
+	/**
+	 * Where句に between 条件を追加する
+	 * @param col bind column name
+	 * @param fromValue 開始値
+	 * @param toValue 終了値
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> between(String col, Object fromValue, Object toValue);
+
+	/**
+	 * Where句に is null 条件を追加する
+	 * @param col bind column name
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> isNull(String col);
+
+	/**
+	 * Where句に is not null 条件を追加する
+	 * @param col bind column name
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> isNotNull(String col);
+
+	/**
+	 * Where句に 素の文字列指定で 条件を追加する。複数回呼び出した場合はそれぞれの条件をANDで結合する。
+	 * @param rawString Where句に出力する条件式
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> where(CharSequence rawString);
+
+	/**
+	 * ソート条件を指定（昇順）
+	 * @param cols sort target column names
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> asc(String... cols);
+
+	/**
+	 * ソート条件を指定（昇順）
+	 * @param col sort target column name
+	 * @param nulls {@link Nulls}
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> asc(String col, Nulls nulls);
+
+	/**
+	 * ソート条件を指定（降順）
+	 * @param cols sort target column names
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> desc(String... cols);
+
+	/**
+	 * ソート条件を指定（降順）
+	 * @param col sort target column name
+	 * @param nulls {@link Nulls}
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> desc(String col, Nulls nulls);
+
+	/**
+	 * 検索結果の行数制限を指定する。limitがサポートされていないデータベースの場合は {@link UroborosqlRuntimeException} がスローされる
+	 * @param limit 取得する行数
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> limit(long limit);
+
+	/**
+	 * 検索結果の開始行を指定する。offsetがサポートされていないデータベースの場合は {@link UroborosqlRuntimeException} がスローされる
+	 * @param offset 取得開始行
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> offset(long offset);
+
 }

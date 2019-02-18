@@ -14,7 +14,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +45,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.CandidateListCompletionHandler;
@@ -72,15 +79,6 @@ import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 
 /**
  * SQL REPL実装クラス
@@ -600,7 +598,7 @@ public class SqlREPL {
 
 			if (parts.length < 3) {
 				console.println(Command.GENERATE.toString() + " parameter missing. " + Command.GENERATE.toString()
-						+ " [SQL_KEYWORD] [TABLE NAME].");
+				+ " [SQL_KEYWORD] [TABLE NAME].");
 				return true;
 			}
 
@@ -630,15 +628,15 @@ public class SqlREPL {
 					break;
 
 				case "update":
-					ctx = config.getEntityHandler().createUpdateContext(agent, metadata, null);
+					ctx = config.getEntityHandler().createUpdateContext(agent, metadata, null, true);
 					break;
 
 				case "delete":
-					ctx = config.getEntityHandler().createDeleteContext(agent, metadata, null);
+					ctx = config.getEntityHandler().createDeleteContext(agent, metadata, null, true);
 					break;
 
 				default:
-					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null);
+					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null, true);
 					break;
 				}
 				console.println(ctx.getSql());
@@ -898,7 +896,7 @@ public class SqlREPL {
 		ContextTransformer transformer = parser.parse();
 		Node rootNode = transformer.getRoot();
 
-		Set<String> params = new LinkedHashSet<String>();
+		Set<String> params = new LinkedHashSet<>();
 		traverseNode(rootNode, params);
 
 		params.removeIf(s -> CONSTANT_PAT.matcher(s).matches());
@@ -1000,7 +998,7 @@ public class SqlREPL {
 	 *
 	 */
 	class SqlNameCompleter implements Completer {
-		private final SortedSet<String> sqlNames = new TreeSet<String>();
+		private final SortedSet<String> sqlNames = new TreeSet<>();
 
 		/**
 		 * コンストラクタ
@@ -1030,9 +1028,9 @@ public class SqlREPL {
 				return -1;
 			} else {
 				boolean isBlank = buffer.endsWith(" ");
-				if ((len == startArgNo && isBlank) || (len == (startArgNo + 1) && !isBlank)) {
+				if (len == startArgNo && isBlank || len == startArgNo + 1 && !isBlank) {
 					// コマンドが引数ありの場合
-					String args = len == (startArgNo + 1) ? parts[startArgNo] : "";
+					String args = len == startArgNo + 1 ? parts[startArgNo] : "";
 					if (StringUtils.isEmpty(args)) {
 						candidates.addAll(sqlNames);
 					} else {
@@ -1165,7 +1163,7 @@ public class SqlREPL {
 				String tableNamePattern = "%";
 				if (len == startArgNo && isBlank) {
 					tableNamePattern = "%";
-				} else if (len == (startArgNo + 1) && !isBlank) {
+				} else if (len == startArgNo + 1 && !isBlank) {
 					tableNamePattern = parts[len - 1] + "%";
 				} else {
 					return -1;
@@ -1221,7 +1219,7 @@ public class SqlREPL {
 				boolean isBlank = buffer.endsWith(" ");
 				if (len == startArgNo && isBlank) {
 					key = null;
-				} else if (len == (startArgNo + 1) && !isBlank) {
+				} else if (len == startArgNo + 1 && !isBlank) {
 					key = parts[len - 1];
 				} else {
 					return -1;
@@ -1230,7 +1228,7 @@ public class SqlREPL {
 				final String keyword = key;
 
 				Stream.of("select", "insert", "update", "delete")
-						.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase())).forEach(candidates::add);
+				.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase())).forEach(candidates::add);
 
 				// カーソルポジションの計算
 				int pos = 0;

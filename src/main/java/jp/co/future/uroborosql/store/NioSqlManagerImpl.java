@@ -38,12 +38,12 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import jp.co.future.uroborosql.dialect.Dialect;
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 public class NioSqlManagerImpl implements SqlManager {
 	/** ロガー */
@@ -57,7 +57,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/** 有効なDialectのSet */
 	private static final Set<String> dialects = StreamSupport
 			.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
-			.map(Dialect::getDialectName).collect(Collectors.toSet());
+			.map(Dialect::getDatabaseType).collect(Collectors.toSet());
 
 	/** SQLファイルをロードするルートパス */
 	private final String loadPath;
@@ -81,10 +81,10 @@ public class NioSqlManagerImpl implements SqlManager {
 	private ExecutorService es;
 
 	/** sqlNameとそれに対するSqlInfoの紐付きを持つMap */
-	private ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
 
 	/** WatchKeyに対するディレクトリPathを取得するためのMap */
-	private ConcurrentHashMap<WatchKey, Path> watchDirs = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<WatchKey, Path> watchDirs = new ConcurrentHashMap<>();
 
 	/**
 	 * コンストラクタ
@@ -98,7 +98,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 * @param detectChanges SQLファイルの変更を検知するかどうか
 	 */
-	public NioSqlManagerImpl(boolean detectChanges) {
+	public NioSqlManagerImpl(final boolean detectChanges) {
 		this(null, null, null, detectChanges);
 	}
 
@@ -140,7 +140,8 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param charset SQLファイルエンコーディング
 	 * @param detectChanges SQLファイルの変更を検知するかどうか
 	 */
-	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset, boolean detectChanges) {
+	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
+			final boolean detectChanges) {
 		this.loadPath = loadPath != null ? loadPath : "sql";
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
 		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
@@ -467,7 +468,7 @@ public class NioSqlManagerImpl implements SqlManager {
 
 		String d = path.getName(count).toString().toLowerCase();
 		// loadPathの直下が現在のdialect以外と一致する場合は無効なパスと判定する
-		return !dialects.contains(d) || this.dialect.getDialectName().equals(d);
+		return !dialects.contains(d) || this.dialect.getDatabaseType().equals(d);
 
 	}
 
@@ -500,7 +501,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		} else if (path.toString().endsWith(fileExtension)) {
 			String sqlName = getSqlName(path);
 			this.sqlInfos.compute(sqlName,
-					(k, v) -> (v == null) ? new SqlInfo(sqlName, path, dialect, charset) : v.computePath(path, remove));
+					(k, v) -> v == null ? new SqlInfo(sqlName, path, dialect, charset) : v.computePath(path, remove));
 		}
 	}
 
@@ -516,7 +517,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		/** Sqlファイルの文字コード */
 		private final Charset charset;
 		/** sqlNameに対応するPathのList. ソートされて優先度が高いものから順に並んでいる. 適用されるのは先頭のPathになる. */
-		private List<Path> pathList = new ArrayList<>();
+		private final List<Path> pathList = new ArrayList<>();
 		/** SQLファイルの内容. <code>null</code>の場合、getSqlBody()が呼び出された段階でロードして格納する. */
 		private String sqlBody;
 		/** 適用されたPathの最終更新日時。SQLファイルが更新されたかどうかの判定に利用する */
@@ -560,7 +561,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		 */
 		private boolean hasDialect(final Path path) {
 			for (Path p : path) {
-				if (this.dialect.getDialectName().equals(p.toString())) {
+				if (this.dialect.getDatabaseType().equals(p.toString())) {
 					return true;
 				}
 			}

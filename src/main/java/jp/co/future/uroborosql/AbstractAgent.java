@@ -21,6 +21,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
@@ -46,10 +50,6 @@ import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringFunction;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SqlAgentの抽象親クラス
@@ -294,7 +294,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(), System.lineSeparator());
+		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(),
+				System.lineSeparator());
 	}
 
 	/**
@@ -609,9 +610,9 @@ public abstract class AbstractAgent implements SqlAgent {
 		try {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
-			SqlContext context = handler.createSelectContext(this, metadata, entityType);
+			SqlContext context = handler.createSelectContext(this, metadata, entityType, false);
 
-			return new SqlEntityQueryImpl<>(this, handler, context, entityType);
+			return new SqlEntityQueryImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
 		}
