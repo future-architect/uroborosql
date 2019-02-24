@@ -34,7 +34,6 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
 	private final EntityHandler<?> entityHandler;
-	private final TableMetadata tableMetadata;
 	private final Class<? extends E> entityType;
 	private final List<SortOrder> sortOrders;
 	private long limit;
@@ -53,7 +52,6 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			final SqlContext context, final Class<? extends E> entityType) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
-		this.tableMetadata = tableMetadata;
 		this.entityType = entityType;
 		this.sortOrders = new ArrayList<>();
 		this.limit = -1;

@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
 abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends AbstractSqlFluent<T>
 		implements ExtractionCondition<T> {
 
-	private final TableMetadata tableMetadata;
+	protected final TableMetadata tableMetadata;
 	private final List<CharSequence> rawStrings;
 	private boolean useOperator = false;
 
