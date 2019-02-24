@@ -115,4 +115,23 @@ public class Oracle12DialectTest {
 		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat\\＿tern"));
 	}
 
+	@Test
+	public void testSupports() {
+		Dialect dialect = new Oracle12Dialect();
+		assertThat(dialect.supportsBulkInsert(), is(false));
+		assertThat(dialect.supportsLimitClause(), is(true));
+		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.isRemoveTerminator(), is(true));
+		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
+	}
+
+	@Test
+	public void testGetLimitClause() {
+		Dialect dialect = new Oracle12Dialect();
+		assertThat(dialect.getLimitClause(3, 5), is("OFFSET 5 ROWS FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5 ROWS" + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(3, 0), is("FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(0, 0), is(""));
+	}
+
 }
