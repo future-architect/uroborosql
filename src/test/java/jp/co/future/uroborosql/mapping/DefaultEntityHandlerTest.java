@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -692,6 +693,53 @@ public class DefaultEntityHandlerTest {
 				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
 				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
 				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+			});
+		}
+	}
+
+	@Test
+	public void testDeleteWithKeysForNothingKey() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestDataNoKeyEntity test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						Optional.of("memo1"));
+				TestDataNoKeyEntity test2 = new TestDataNoKeyEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1),
+						Optional.of("memo2"));
+				TestDataNoKeyEntity test3 = new TestDataNoKeyEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1),
+						Optional.empty());
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				assertThat(agent.delete(TestDataNoKeyEntity.class, 1, 3), is(2));
+
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 2).first().orElse(null), is(test2));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 3).first().orElse(null), is(nullValue()));
+			});
+		}
+	}
+
+	@Test
+	public void testDeleteWithKeyForMultiKey() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestDataMultiKeyEntity test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
+				TestDataMultiKeyEntity test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
+				TestDataMultiKeyEntity test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				try {
+					agent.delete(TestDataMultiKeyEntity.class, 1, 2);
+					fail();
+				} catch (IllegalArgumentException ex) {
+					assertThat(ex.getMessage(), is("Entity has multiple keys"));
+				} catch (Exception ex) {
+					fail(ex.getMessage());
+				}
 			});
 		}
 	}
