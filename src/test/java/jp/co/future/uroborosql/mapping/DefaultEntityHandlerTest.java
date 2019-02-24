@@ -1099,7 +1099,7 @@ public class DefaultEntityHandlerTest {
 			assertThat(sql, containsString("SF.isNotEmpty"));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
-			.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
 		}
 	}
@@ -1117,7 +1117,7 @@ public class DefaultEntityHandlerTest {
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
-			.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
 
 			handler.setEmptyStringEqualsNull(true);
@@ -1235,7 +1235,7 @@ public class DefaultEntityHandlerTest {
 		@Override
 		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 				final PropertyMapperManager mapperManager)
-						throws SQLException {
+				throws SQLException {
 			String s = rs.getString(columnIndex);
 			return s != null ? new Name(s.toUpperCase().replaceAll("^-", "").replaceAll("-$", "")) : null;
 		}
