@@ -115,4 +115,13 @@ public class Oracle11DialectTest {
 		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat\\＿tern"));
 	}
 
+	@Test
+	public void testSupports() {
+		Dialect dialect = new Oracle11Dialect();
+		assertThat(dialect.supportsBulkInsert(), is(false));
+		assertThat(dialect.supportsLimitClause(), is(false));
+		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.isRemoveTerminator(), is(true));
+		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
+	}
 }

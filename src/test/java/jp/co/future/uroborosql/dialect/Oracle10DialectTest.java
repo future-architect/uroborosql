@@ -1,6 +1,8 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
@@ -111,6 +113,16 @@ public class Oracle10DialectTest {
 		assertThat(dialect.escapeLikePattern("pat[]tern"), is("pat[]tern"));
 		assertThat(dialect.escapeLikePattern("pat％tern"), is("pat％tern"));
 		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat＿tern"));
+	}
+
+	@Test
+	public void testSupports() {
+		Dialect dialect = new Oracle10Dialect();
+		assertThat(dialect.supportsBulkInsert(), is(false));
+		assertThat(dialect.supportsLimitClause(), is(false));
+		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.isRemoveTerminator(), is(true));
+		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}
 
 }

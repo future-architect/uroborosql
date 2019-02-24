@@ -44,6 +44,39 @@ public class Oracle12Dialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsLimitClause()
+	 */
+	@Override
+	public boolean supportsLimitClause() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getLimitClause(long, long)
+	 */
+	@Override
+	public String getLimitClause(final long limit, final long offset) {
+		StringBuilder builder = new StringBuilder();
+		if (offset > 0) {
+			builder.append("OFFSET ").append(offset).append(" ROWS");
+			if (limit > 0) {
+				builder.append(" ");
+			}
+		}
+		if (limit > 0) {
+			builder.append("FETCH FIRST ").append(limit).append(" ROWS ONLY");
+		}
+		if (builder.length() > 0) {
+			builder.append(System.lineSeparator());
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
 	 */
 	@Override
