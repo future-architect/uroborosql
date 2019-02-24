@@ -567,7 +567,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		@Override
 		public String getOperator() {
-			return "!=";
+			return "<>";
 		}
 	}
 

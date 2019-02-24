@@ -351,8 +351,9 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
 	 * エンティティのDELETEを実行(条件指定)
 	 *
-	 * @param entity エンティティタイプ
+	 * @param entityType エンティティタイプ
 	 * @param keys 削除対象PK値（複数指定可）
+	 * @param <E> エンティティ型
 	 * @return SQL実行結果
 	 */
 	<E> int delete(Class<? extends E> entityType, Object... keys);
@@ -360,7 +361,8 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
 	 * エンティティのDELETEを実行(条件指定)
 	 *
-	 * @param entity エンティティタイプ
+	 * @param entityType エンティティタイプ
+	 * @param <E> エンティティ型
 	 * @return SqlEntityDelete
 	 */
 	<E> SqlEntityDelete<E> delete(Class<? extends E> entityType);

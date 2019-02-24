@@ -1,10 +1,16 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.fluent;
 
 /**
  * 抽出条件インタフェース
  * @author H.Sugimoto
  *
- * @param <T>
+ * @param <T> Entity型を指定したSqlFluent型
  */
 public interface ExtractionCondition<T> extends SqlFluent<T> {
 
