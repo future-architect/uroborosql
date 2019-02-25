@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -673,6 +674,254 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testDeleteWithKeys() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+						.of("memo1"));
+				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+						.of("memo2"));
+				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+						.empty());
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				assertThat(agent.delete(TestEntity.class, 1, 3), is(2));
+
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+			});
+		}
+	}
+
+	@Test
+	public void testDeleteWithKeysForNothingKey() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestDataNoKeyEntity test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						Optional.of("memo1"));
+				TestDataNoKeyEntity test2 = new TestDataNoKeyEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1),
+						Optional.of("memo2"));
+				TestDataNoKeyEntity test3 = new TestDataNoKeyEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1),
+						Optional.empty());
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				assertThat(agent.delete(TestDataNoKeyEntity.class, 1, 3), is(2));
+
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 2).first().orElse(null), is(test2));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 3).first().orElse(null), is(nullValue()));
+			});
+		}
+	}
+
+	@Test
+	public void testDeleteWithKeyForMultiKey() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestDataMultiKeyEntity test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
+				TestDataMultiKeyEntity test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
+				TestDataMultiKeyEntity test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				try {
+					agent.delete(TestDataMultiKeyEntity.class, 1, 2);
+					fail();
+				} catch (IllegalArgumentException ex) {
+					assertThat(ex.getMessage(), is("Entity has multiple keys"));
+				} catch (Exception ex) {
+					fail(ex.getMessage());
+				}
+			});
+		}
+	}
+
+	@Test
+	public void testDeleteWithCondition() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+						.of("memo1"));
+				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+						.of("memo2"));
+				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+						.empty());
+				agent.insert(test1);
+				agent.insert(test2);
+				agent.insert(test3);
+
+				agent.setSavepoint("sp-equal");
+				assertThat(agent.delete(TestEntity.class).equal("name", "name1").count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-equal");
+
+				agent.setSavepoint("sp-notEqual");
+				assertThat(agent.delete(TestEntity.class).notEqual("name", "name1").count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-notEqual");
+
+				agent.setSavepoint("sp-greaterThan");
+				assertThat(agent.delete(TestEntity.class).greaterThan("age", 30).count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-greaterThan");
+
+				agent.setSavepoint("sp-lessThan");
+				assertThat(agent.delete(TestEntity.class).lessThan("age", 30).count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-lessThan");
+
+				agent.setSavepoint("sp-greaterEqual");
+				assertThat(agent.delete(TestEntity.class).greaterEqual("age", 30).count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-greaterEqual");
+
+				agent.setSavepoint("sp-lessEqual");
+				assertThat(agent.delete(TestEntity.class).lessEqual("age", 30).count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-lessEqual");
+
+				agent.setSavepoint("sp-in-array");
+				assertThat(agent.delete(TestEntity.class).in("id", 1, 3).count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-in-array");
+
+				agent.setSavepoint("sp-in-list");
+				assertThat(agent.delete(TestEntity.class).in("id", Arrays.asList(1, 3)).count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-in-list");
+
+				agent.setSavepoint("sp-notIn-array");
+				assertThat(agent.delete(TestEntity.class).notIn("id", 1, 3).count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-notIn-array");
+
+				agent.setSavepoint("sp-notIn-list");
+				assertThat(agent.delete(TestEntity.class).notIn("id", Arrays.asList(1, 3)).count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-notIn-list");
+
+				agent.setSavepoint("sp-like");
+				assertThat(agent.delete(TestEntity.class).like("name", "name%").count(), is(3));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-like");
+
+				agent.setSavepoint("sp-startsWith");
+				assertThat(agent.delete(TestEntity.class).startsWith("name", "name").count(), is(3));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-startsWith");
+
+				agent.setSavepoint("sp-endsWith");
+				assertThat(agent.delete(TestEntity.class).endsWith("name", "2").count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-endsWith");
+
+				agent.setSavepoint("sp-contains");
+				assertThat(agent.delete(TestEntity.class).contains("name", "name").count(), is(3));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-contains");
+
+				agent.setSavepoint("sp-notLike");
+				assertThat(agent.delete(TestEntity.class).notLike("name", "name%").count(), is(0));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-notLike");
+
+				agent.setSavepoint("sp-notStartsWith");
+				assertThat(agent.delete(TestEntity.class).notStartsWith("name", "name").count(), is(0));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-notStartsWith");
+
+				agent.setSavepoint("sp-notEndsWith");
+				assertThat(agent.delete(TestEntity.class).notEndsWith("name", "2").count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-notEndsWith");
+
+				agent.setSavepoint("sp-notContains");
+				assertThat(agent.delete(TestEntity.class).notContains("name", "2").count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-notContains");
+
+				agent.setSavepoint("sp-between");
+				assertThat(agent.delete(TestEntity.class)
+						.between("birthday", LocalDate.of(1980, Month.MAY, 1), LocalDate.of(1990, Month.APRIL, 1))
+						.count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-between");
+
+				agent.setSavepoint("sp-isNull");
+				assertThat(agent.delete(TestEntity.class).isNull("memo").count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
+				agent.rollback("sp-isNull");
+
+				agent.setSavepoint("sp-isNotNull");
+				assertThat(agent.delete(TestEntity.class).isNotNull("memo").count(), is(2));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-isNotNull");
+
+				agent.setSavepoint("sp-where");
+				assertThat(agent.delete(TestEntity.class)
+						.where("BIRTHDAY > /*birthdayFrom*/ and BIRTHDAY <= /*birthdayTo*/")
+						.param("birthdayFrom", LocalDate.of(1980, Month.MAY, 1))
+						.param("birthdayTo", LocalDate.of(1990, Month.APRIL, 1)).count(), is(1));
+				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
+				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
+				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
+				agent.rollback("sp-where");
+			});
+		}
+	}
+
+	@Test
 	public void testBatchInsert() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {
@@ -1099,7 +1348,7 @@ public class DefaultEntityHandlerTest {
 			assertThat(sql, containsString("SF.isNotEmpty"));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
-			.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
 		}
 	}
@@ -1117,7 +1366,7 @@ public class DefaultEntityHandlerTest {
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
-			.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
 
 			handler.setEmptyStringEqualsNull(true);
@@ -1235,7 +1484,7 @@ public class DefaultEntityHandlerTest {
 		@Override
 		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 				final PropertyMapperManager mapperManager)
-						throws SQLException {
+				throws SQLException {
 			String s = rs.getString(columnIndex);
 			return s != null ? new Name(s.toUpperCase().replaceAll("^-", "").replaceAll("-$", "")) : null;
 		}

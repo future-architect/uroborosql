@@ -20,6 +20,7 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
+import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
@@ -346,6 +347,25 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SQL実行結果
 	 */
 	int delete(Object entity);
+
+	/**
+	 * エンティティのDELETEを実行(条件指定)
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param keys 削除対象PK値（複数指定可）
+	 * @param <E> エンティティ型
+	 * @return SQL実行結果
+	 */
+	<E> int delete(Class<? extends E> entityType, Object... keys);
+
+	/**
+	 * エンティティのDELETEを実行(条件指定)
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param <E> エンティティ型
+	 * @return SqlEntityDelete
+	 */
+	<E> SqlEntityDelete<E> delete(Class<? extends E> entityType);
 
 	/**
 	 * 複数エンティティのINSERTを実行

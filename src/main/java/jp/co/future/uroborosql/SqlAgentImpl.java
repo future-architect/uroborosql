@@ -38,6 +38,7 @@ import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
@@ -572,15 +573,15 @@ public class SqlAgentImpl extends AbstractAgent {
 		if (LOG.isErrorEnabled() && isOutputExceptionLog()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
-			.append(System.lineSeparator());
+					.append(System.lineSeparator());
 			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]")
-			.append(System.lineSeparator());
+					.append(System.lineSeparator());
 			if (sqlContext instanceof SqlContextImpl) {
 				Parameter[] bindParameters = ((SqlContextImpl) sqlContext).getBindParameters();
 				for (int i = 0; i < bindParameters.length; i++) {
 					Parameter parameter = getSqlFilterManager().doParameter(bindParameters[i]);
 					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
-					.append("]").append(System.lineSeparator());
+							.append("]").append(System.lineSeparator());
 				}
 			}
 			LOG.error(builder.toString(), cause);
@@ -726,6 +727,62 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Class, java.lang.Object[])
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int delete(final Class<? extends E> entityType, final Object... keys) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			TableMetadata.Column keyColumn = null;
+			List<? extends TableMetadata.Column> keyColumns = metadata.getKeyColumns();
+			if (keyColumns.size() == 1) {
+				keyColumn = keyColumns.get(0);
+			} else if (keyColumns.isEmpty()) {
+				keyColumn = metadata.getColumns().get(0);
+			} else {
+				throw new IllegalArgumentException("Entity has multiple keys");
+			}
+			return delete(entityType).in(keyColumn.getCamelColumnName(), keys).count();
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Class)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> SqlEntityDelete<E> delete(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			SqlContext context = handler.createDeleteContext(this, metadata, entityType, false);
+
+			return new SqlEntityDeleteImpl<>(this, handler, metadata, context);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
 	 */
 	@SuppressWarnings("unchecked")
@@ -755,11 +812,11 @@ public class SqlAgentImpl extends AbstractAgent {
 
 				count += condition.test(context, context.batchCount(), entity)
 						? Arrays.stream(handler.doBatchInsert(this, context)).sum()
-								: 0;
+						: 0;
 			}
 			return count + (context.batchCount() != 0
 					? Arrays.stream(handler.doBatchInsert(this, context)).sum()
-							: 0);
+					: 0);
 
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);

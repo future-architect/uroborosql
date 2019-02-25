@@ -399,6 +399,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public T sqlId(final String sqlId) {
 		context().setSqlId(sqlId);
