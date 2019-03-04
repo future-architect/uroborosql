@@ -6,17 +6,15 @@
  */
 package jp.co.future.uroborosql.converter;
 
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.JDBCType;
-import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.mapping.JavaType;
+import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -26,22 +24,43 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  *
  */
 public class MapResultSetConverter implements ResultSetConverter<Map<String, Object>> {
-	private CaseFormat caseFormat;
+	private final PropertyMapperManager mapperManager;
+	private final Dialect dialect;
+	private final CaseFormat caseFormat;
 
 	/**
 	 * コンストラクタ
+	 *
+	 * @param dialect データベースDialect
 	 */
-	public MapResultSetConverter() {
-		this(CaseFormat.UPPER_SNAKE_CASE);
+	public MapResultSetConverter(final Dialect dialect) {
+		this(dialect, CaseFormat.UPPER_SNAKE_CASE);
 	}
 
 	/**
 	 * コンストラクタ
 	 *
+	 * @param dialect データベースDialect
 	 * @param caseFormat 変換するMapのキーの書式
 	 */
-	public MapResultSetConverter(final CaseFormat caseFormat) {
+	public MapResultSetConverter(final Dialect dialect, final CaseFormat caseFormat) {
+		this.dialect = dialect;
 		this.caseFormat = caseFormat;
+		this.mapperManager = new PropertyMapperManager();
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param dialect データベースDialect
+	 * @param caseFormat 変換するMapのキーの書式
+	 * @param mapperManager コピー元のパラメータ変換クラス
+	 */
+	public MapResultSetConverter(final Dialect dialect, final CaseFormat caseFormat,
+			final PropertyMapperManager mapperManager) {
+		this.dialect = dialect;
+		this.caseFormat = caseFormat;
+		this.mapperManager = new PropertyMapperManager(mapperManager);
 	}
 
 	/**
@@ -60,26 +79,20 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 		return record;
 	}
 
+	/**
+	 * ResultSetからMapperManager経由で値を取得する
+	 *
+	 * @param rs ResultSet
+	 * @param rsmd ResultSetMetadata
+	 * @param columnIndex カラムインデックス
+	 * @return 指定したカラムインデックスの値
+	 * @throws SQLException
+	 */
 	private Object getValue(final ResultSet rs, final ResultSetMetaData rsmd, final int columnIndex)
 			throws SQLException {
-		JDBCType type = JDBCType.valueOf(rsmd.getColumnType(columnIndex));
-		switch (type) {
-		case CLOB:
-			Clob clob = rs.getClob(columnIndex);
-			return clob.getSubString(1, (int) clob.length());
-		case NCLOB:
-			NClob nclob = rs.getNClob(columnIndex);
-			return nclob.getSubString(1, (int) nclob.length());
-		case BLOB:
-			Blob blob = rs.getBlob(columnIndex);
-			return blob.getBytes(1, (int) blob.length());
-		case ARRAY:
-			Array arr = rs.getArray(columnIndex);
-			return arr.getArray();
-		default:
-			return rs.getObject(columnIndex);
-		}
-
+		JavaType javaType = this.dialect.getJavaType(rsmd.getColumnType(columnIndex),
+				rsmd.getColumnTypeName(columnIndex));
+		return this.mapperManager.getValue(javaType, rs, columnIndex);
 	}
 
 }

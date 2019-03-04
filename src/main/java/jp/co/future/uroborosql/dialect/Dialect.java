@@ -6,7 +6,10 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.sql.JDBCType;
+
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.mapping.JavaType;
 
 /**
  * Databaseの方言を表すインタフェース
@@ -70,6 +73,7 @@ public interface Dialect {
 
 	/**
 	 * LIMIT句（とOFFSET句）を取得する
+	 *
 	 * @param limit limit
 	 * @param offset offset
 	 * @return LIMIT句（とOFFSET句）を表す文字列
@@ -78,10 +82,29 @@ public interface Dialect {
 
 	/**
 	 * LIKE 演算子のパターン文字列をエスケープする
+	 *
 	 * @param pattern パターン文字列
 	 * @return エスケープ後のパターン文字列
 	 */
 	String escapeLikePattern(CharSequence pattern);
+
+	/**
+	 * {@link JDBCType} を変換するJava型を取得する
+	 *
+	 * @param jdbcType JDBCType
+	 * @param jdbcTypeName データベース固有の型名
+	 * @return 変換するJava型
+	 */
+	JavaType getJavaType(JDBCType jdbcType, String jdbcTypeName);
+
+	/**
+	 * {@link JDBCType} を変換するJava型を取得する
+	 *
+	 * @param jdbcType JDBCTypeを表す数値
+	 * @param jdbcTypeName データベース固有の型名
+	 * @return 変換するJava型
+	 */
+	JavaType getJavaType(int jdbcType, String jdbcTypeName);
 
 	/**
 	 * Databaseの種別を表す名前を取得する

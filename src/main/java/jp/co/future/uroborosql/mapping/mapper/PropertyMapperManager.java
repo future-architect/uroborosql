@@ -30,8 +30,8 @@ public final class PropertyMapperManager {
 			new OptionalPropertyMapper(), new OptionalIntPropertyMapper(), new OptionalLongPropertyMapper(),
 			new OptionalDoublePropertyMapper(),
 			new DomainPropertyMapper(),
-			new EnumPropertyMapper(),// DomainPropertyMapper・DateTimeApiPropertyMapperより後に設定
-			// new ArrayPropertyMapper(), デフォルトでは利用しない
+			new EnumPropertyMapper(), // DomainPropertyMapper・DateTimeApiPropertyMapperより後に設定
+			new ArrayPropertyMapper()
 	};
 
 	/** Serviceに登録されたMapper */

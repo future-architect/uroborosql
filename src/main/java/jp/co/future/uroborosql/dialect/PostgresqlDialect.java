@@ -6,6 +6,10 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.sql.JDBCType;
+
+import jp.co.future.uroborosql.mapping.JavaType;
+
 /**
  * Postgresql用のDialect
  *
@@ -67,6 +71,22 @@ public class PostgresqlDialect extends AbstractDialect {
 	@Override
 	public boolean supportsNullValuesOrdering() {
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(java.sql.JDBCType, java.lang.String)
+	 */
+	@Override
+	public JavaType getJavaType(final JDBCType jdbcType, final String jdbcTypeName) {
+		if (JDBCType.OTHER.equals(jdbcType)) {
+			if ("json".equalsIgnoreCase(jdbcTypeName) || "jsonb".equalsIgnoreCase(jdbcTypeName)) {
+				// JSON型の場合、文字列として扱う
+				return super.getJavaType(JDBCType.NVARCHAR, jdbcTypeName);
+			}
+		}
+		return super.getJavaType(jdbcType, jdbcTypeName);
 	}
 
 }

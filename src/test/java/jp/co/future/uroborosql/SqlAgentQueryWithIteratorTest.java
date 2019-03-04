@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,15 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 
-public class Issue141Test {
-	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(Issue141Test.class);
-
+public class SqlAgentQueryWithIteratorTest {
 	private SqlConfig config;
 
 	private SqlAgent agent;
@@ -88,7 +83,7 @@ public class Issue141Test {
 		List<Map<String, Object>> dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-		.forEach(tbl -> truncateTable(tbl));
+				.forEach(tbl -> truncateTable(tbl));
 
 		dataList.forEach(map -> {
 			try {

@@ -25,6 +25,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -34,13 +41,6 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SqlAgentTest {
 	/** ロガー */
@@ -203,7 +203,7 @@ public class SqlAgentTest {
 		SqlFilterManager manager = config.getSqlFilterManager();
 		manager.addSqlFilter(new AbstractSqlFilter() {
 			@Override
-			public String doTransformSql(SqlContext sqlContext, String sql) {
+			public String doTransformSql(final SqlContext sqlContext, final String sql) {
 				String newSql = String.format("select * from (%s)", sql);
 				return newSql;
 			}
@@ -718,7 +718,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").paramList("product_id", 0, 1)
-				.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.forEach((m) -> {
 					try {
 						agent.update("example/insert_product_regist_work").paramMap(m).count();
@@ -750,7 +750,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 0, 1).stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.paramList("product_id", 0, 1)
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -773,7 +774,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 0, 1).stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.paramList("product_id", 0, 1)
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -809,7 +811,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2).stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.paramList("product_id", 1, 2)
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -849,7 +852,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2).stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.paramList("product_id", 1, 2)
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -882,7 +886,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2).stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE))
+				.paramList("product_id", 1, 2)
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -918,7 +923,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)).collect(Collectors.toList());
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -949,7 +955,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)).collect(Collectors.toList());
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -978,7 +985,8 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)).collect(Collectors.toList());
+				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
@@ -1002,7 +1010,8 @@ public class SqlAgentTest {
 
 		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
-						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
+						.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(),
+								CaseFormat.LOWER_SNAKE_CASE)))
 				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
 
@@ -1025,10 +1034,10 @@ public class SqlAgentTest {
 
 		agent.commit();
 
-		List<Map<String, Object>> paramList = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> paramList = new ArrayList<>();
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		for (int i = 101; i <= 150; i++) {
-			Map<String, Object> row = new HashMap<String, Object>();
+			Map<String, Object> row = new HashMap<>();
 			row.put("product_name", "商品名" + i);
 			row.put("product_kana_name", "ショウヒンメイ" + i);
 			row.put("jan_code", "1234567890124");
@@ -1040,7 +1049,8 @@ public class SqlAgentTest {
 		// 処理実行
 		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
-						.stream(new MapResultSetConverter(CaseFormat.LOWER_SNAKE_CASE)))
+						.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(),
+								CaseFormat.LOWER_SNAKE_CASE)))
 				.paramStream(paramList.stream())
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.count();
@@ -1056,10 +1066,10 @@ public class SqlAgentTest {
 		// 事前条件
 		truncateTable("PRODUCT");
 
-		List<Map<String, Object>> paramList = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> paramList = new ArrayList<>();
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		for (int i = 1; i <= 100; i++) {
-			Map<String, Object> row = new HashMap<String, Object>();
+			Map<String, Object> row = new HashMap<>();
 			row.put("product_name", "商品名" + i);
 			row.put("product_kana_name", "ショウヒンメイ" + i);
 			row.put("jan_code", i % 25 != 0 ? "1234567890124" : "12345678901234"); // 20で割り切れるとき、桁あふれエラーを発生させる
@@ -1091,7 +1101,7 @@ public class SqlAgentTest {
 
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		for (int i = 1; i <= 1000; i++) {
-			Map<String, Object> row = new HashMap<String, Object>();
+			Map<String, Object> row = new HashMap<>();
 			row.put("product_id", i);
 			row.put("product_name", "商品名" + i);
 			row.put("product_kana_name", "ショウヒンメイ" + i);
