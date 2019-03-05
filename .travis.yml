@@ -11,8 +11,6 @@ before_install:
   - export TZ=Asia/Tokyo
 
 before_script:
-#  - echo 'Asia/Tokyo' | sudo tee /etc/timezone
-#  - sudo dpkg-reconfigure --frontend noninteractive tzdata
   - date
 
 after_success:
