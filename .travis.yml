@@ -7,6 +7,12 @@ cache:
 jdk:
   - oraclejdk8
 
+before_install:
+  - export TZ=Asia/Tokyo
+
+before_script:
+  - date
+
 after_success:
   - mvn clean test jacoco:report coveralls:report
 

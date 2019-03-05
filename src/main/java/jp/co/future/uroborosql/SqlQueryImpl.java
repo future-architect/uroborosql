@@ -71,7 +71,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(caseFormat));
+		return stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), caseFormat));
 	}
 
 	/**
@@ -81,7 +81,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()));
+		return stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()));
 	}
 
 	/**
@@ -145,7 +145,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findFirst(final CaseFormat caseFormat) {
-		try (Stream<Map<String, Object>> stream = stream(new MapResultSetConverter(caseFormat))) {
+		try (Stream<Map<String, Object>> stream = stream(
+				new MapResultSetConverter(agent.getSqlConfig().getDialect(), caseFormat))) {
 			return stream.findFirst();
 		}
 	}
@@ -157,7 +158,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Optional<T> findFirst(final Class<T> type) {
-		try (Stream<T> stream = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()))) {
+		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
 			return stream.findFirst();
 		}
 	}
@@ -193,7 +194,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> List<T> collect(final Class<T> type) {
-		try (Stream<T> stream = stream(new EntityResultSetConverter<T>(type, new PropertyMapperManager()))) {
+		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
 			return stream.collect(Collectors.toList());
 		}
 	}
