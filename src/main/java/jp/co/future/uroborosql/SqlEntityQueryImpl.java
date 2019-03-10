@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,7 +103,32 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
 		}
+	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#count()
+	 */
+	@Override
+	public long count() {
+		StringBuilder sql = new StringBuilder("select count(*) from (").append(System.lineSeparator())
+				.append(context().getSql())
+				.append(getWhereClause())
+				.append(getOrderByClause());
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		if (dialect.supportsLimitClause()) {
+			sql.append(dialect.getLimitClause(this.limit, this.offset));
+		}
+		sql.append(System.lineSeparator()).append(") t_");
+
+		context().setSql(sql.toString());
+		try (ResultSet rs = agent().query(context())) {
+			rs.next();
+			return rs.getLong(1);
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
 	}
 
 	/**
