@@ -1,0 +1,2 @@
+insert into product (product_id, product_name, product_kana_name, jan_code, product_description, ins_datetime, upd_datetime, version_no) values (0, '商品名0', 'ショウヒンメイゼロ', '1234567890123', '0番目の商品', '2005-12-12 10:10:10', '2005-12-12 10:10:10', 0);
+insert into product (product_id, product_name, product_kana_name, jan_code, product_description, ins_datetime, upd_datetime, version_no) values (1, '商品名1', 'ショウヒンメイイチ', '1234567890124', '1番目の商品', '2005-12-12 10:10:10', '2005-12-12 10:10:10', 0);

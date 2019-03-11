@@ -1,0 +1,3 @@
+select
+	/*$CLS_INT*/ AS CLS_INT
+,	/*#CLS_STRING*/ AS CLS_STRING

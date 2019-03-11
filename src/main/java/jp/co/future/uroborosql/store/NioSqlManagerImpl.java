@@ -25,6 +25,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -60,7 +61,10 @@ public class NioSqlManagerImpl implements SqlManager {
 			.map(Dialect::getDatabaseType).collect(Collectors.toSet());
 
 	/** SQLファイルをロードするルートパス */
-	private final String loadPath;
+	private final Path loadPath;
+
+	/** SQLファイルをロードするルートパスの各階層を保持する配列（ルートパス特定用） */
+	private final String[] loadPathParts;
 
 	/** SQLファイル拡張子 */
 	private final String fileExtension;
@@ -142,7 +146,12 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
-		this.loadPath = loadPath != null ? loadPath : "sql";
+		this.loadPath = Paths.get(loadPath != null ? loadPath : "sql");
+		List<String> pathList = new ArrayList<>();
+		for (Path part : this.loadPath) {
+			pathList.add(part.toString());
+		}
+		this.loadPathParts = pathList.toArray(new String[pathList.size()]);
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
 		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
 		this.detectChanges = detectChanges;
@@ -346,7 +355,9 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	private void generateSqlInfos() {
 		try {
-			Enumeration<URL> root = Thread.currentThread().getContextClassLoader().getResources(loadPath);
+			String loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
+			Enumeration<URL> root = Thread.currentThread().getContextClassLoader()
+					.getResources(loadPathSlash);
 
 			while (root.hasMoreElements()) {
 				URI uri = root.nextElement().toURI();
@@ -362,7 +373,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						env.put("create", "false");
 						fs = FileSystems.newFileSystem(uri, env);
 					}
-					traverse(fs.getPath(loadPath), false, false);
+					traverse(fs.getPath(loadPathSlash), false, false);
 				}
 			}
 		} catch (IOException | URISyntaxException e) {
@@ -407,26 +418,47 @@ public class NioSqlManagerImpl implements SqlManager {
 	private String getSqlName(final Path path) {
 		StringBuilder builder = new StringBuilder();
 
-		boolean startFlag = false;
-		boolean dialectFlag = false;
-		for (Path part : path) {
-			if (startFlag) {
-				String s = part.toString();
-				if (dialectFlag) {
-					// loadPathの直下がdialectと一致する場合はその下のフォルダから名前を付ける
-					dialectFlag = false;
-					if (dialects.contains(s.toLowerCase())) {
-						continue;
-					}
+		boolean dialectFlag = true;
+		for (Path part : relativePath(path)) {
+			String s = part.toString();
+			if (dialectFlag) {
+				// loadPathの直下がdialectと一致する場合はその下のフォルダから名前を付ける
+				dialectFlag = false;
+				if (dialects.contains(s.toLowerCase())) {
+					continue;
 				}
-				builder.append(s).append("/");
-			} else if (part.toString().equals(loadPath)) {
-				startFlag = true;
-				dialectFlag = true;
 			}
+			builder.append(s).append("/");
 		}
 
 		return builder.substring(0, builder.length() - (fileExtension.length() + 1));
+	}
+
+	/**
+	 * loadPathからの相対パスを取得する.
+	 * loadPathと一致する部分がなかった場合は、引数のpathの値をそのまま返却する
+	 *
+	 * @param path 相対パスを取得する元のパス
+	 * @return 相対パス
+	 */
+	private Path relativePath(final Path path) {
+		List<Path> pathList = new ArrayList<>();
+		for (Path part : path) {
+			pathList.add(part);
+		}
+
+		int loadPathSize = this.loadPathParts.length;
+
+		// loadPathのフォルダの並びと一致する場所を特定し、その下を相対パスとして返却する
+		for (int i = 0; i < pathList.size() - loadPathSize; i++) {
+			String[] paths = pathList.subList(i, i + loadPathSize).stream().map(Path::toString)
+					.collect(Collectors.toList()).toArray(new String[loadPathSize]);
+			if (Arrays.equals(this.loadPathParts, paths)) {
+				return path.subpath(i + loadPathSize, path.getNameCount());
+			}
+		}
+		// loadPathと一致しなかった場合は元のpathを返却する
+		return path;
 	}
 
 	/**
@@ -447,26 +479,12 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @return 妥当なPathの場合<code>true</code>
 	 */
 	private boolean validPath(final Path path) {
-		int count = 0;
-		boolean matchFlag = false;
-		for (Path p : path) {
-			count++;
-			if (p.toString().equals(loadPath)) {
-				matchFlag = true;
-				break;
-			}
-		}
-
-		// loadPath と一致しない場合は有効と判定
-		if (!matchFlag) {
+		Path relativePath = relativePath(path);
+		if (relativePath.equals(path)) {
 			return true;
 		}
 
-		if (count >= path.getNameCount()) {
-			return true;
-		}
-
-		String d = path.getName(count).toString().toLowerCase();
+		String d = relativePath.getName(0).toString().toLowerCase();
 		// loadPathの直下が現在のdialect以外と一致する場合は無効なパスと判定する
 		return !dialects.contains(d) || this.dialect.getDatabaseType().equals(d);
 
@@ -481,6 +499,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
 	 */
 	private void traverse(final Path path, final boolean watch, final boolean remove) {
+		log.debug("traverse start. path : {}, watch : {}, remove : {}", path, watch, remove);
 		if (Files.notExists(path)) {
 			return;
 		}

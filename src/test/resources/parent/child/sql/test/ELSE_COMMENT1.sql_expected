@@ -1,0 +1,9 @@
+SELECT
+	*
+FROM
+	T_WORK	T
+WHERE
+	1	=	1
+AND	T.ID								= 'X'									-- ＩＤ
+AND T.CD								= T.NCD									-- コード
+AND T.CD2								= '0'									-- コード２
