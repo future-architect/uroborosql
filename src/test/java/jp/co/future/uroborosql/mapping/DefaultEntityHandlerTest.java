@@ -234,6 +234,24 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testQuery4() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+
+				long count = agent.query(TestEntity3.class).count();
+				assertThat(count, is(3L));
+			});
+		}
+	}
+
+	@Test
 	public void testQueryWithCondition() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {
@@ -481,6 +499,12 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
+
+				// count
+				long count = agent.query(TestEntity.class)
+						.asc("age")
+						.count();
+				assertThat(count, is(3L));
 			});
 		}
 	}

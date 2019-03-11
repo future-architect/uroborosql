@@ -74,6 +74,13 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	Stream<E> stream();
 
 	/**
+	 * 検索結果の件数を取得（終端処理）
+	 *
+	 * @return 検索結果件数.
+	 */
+	long count();
+
+	/**
 	 * ソート条件を指定（昇順）
 	 * @param cols sort target column names
 	 * @return SqlEntityQuery
