@@ -114,8 +114,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public long count() {
 		StringBuilder sql = new StringBuilder("select count(*) from (").append(System.lineSeparator())
 				.append(context().getSql())
-				.append(getWhereClause())
-				.append(getOrderByClause());
+				.append(getWhereClause());
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		if (dialect.supportsLimitClause()) {
 			sql.append(dialect.getLimitClause(this.limit, this.offset));
