@@ -1070,6 +1070,37 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testBatchInsertWithOptional() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						Optional.of("memo1"));
+				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						Optional.empty());
+				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						Optional.of("memo3"));
+				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+						Optional.of("memo4"));
+
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
+						InsertsType.BATCH);
+				assertThat(count, is(4));
+
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntity.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntity.class, 3).orElse(null);
+				assertThat(data, is(test3));
+				data = agent.find(TestEntity.class, 4).orElse(null);
+				assertThat(data, is(test4));
+
+			});
+		}
+	}
+
+	@Test
 	public void testBatchInsertEmpty() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {
@@ -1227,6 +1258,35 @@ public class DefaultEntityHandlerTest {
 				data = agent.find(TestEntityForInserts.class, 4).orElse(null);
 				assertThat(data, is(test4));
 
+			});
+		}
+	}
+
+	@Test
+	public void testBulkInsertWithOptional() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+						Optional.of("memo1"));
+				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						Optional.empty());
+				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+						Optional.of("memo3"));
+				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+						Optional.of("memo4"));
+
+				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
+				assertThat(count, is(4));
+
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				assertThat(data, is(test1));
+				data = agent.find(TestEntity.class, 2).orElse(null);
+				assertThat(data, is(test2));
+				data = agent.find(TestEntity.class, 3).orElse(null);
+				assertThat(data, is(test3));
+				data = agent.find(TestEntity.class, 4).orElse(null);
+				assertThat(data, is(test4));
 			});
 		}
 	}
