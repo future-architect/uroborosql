@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
@@ -20,6 +21,7 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
  *
  */
 public class Oracle12DialectTest {
+	private final Dialect dialect = new Oracle12Dialect();
 
 	@Test
 	public void testAccept12() {
@@ -101,8 +103,8 @@ public class Oracle12DialectTest {
 
 	@Test
 	public void testEscapeLikePattern() {
-		Dialect dialect = new Oracle12Dialect();
 		assertThat(dialect.escapeLikePattern(""), is(""));
+		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
 		assertThat(dialect.escapeLikePattern("%pattern"), is("\\%pattern"));
 		assertThat(dialect.escapeLikePattern("_pattern"), is("\\_pattern"));
@@ -116,8 +118,12 @@ public class Oracle12DialectTest {
 	}
 
 	@Test
+	public void testGetEscapeChar() {
+		assertThat(dialect.getEscapeChar(), is('\\'));
+	}
+
+	@Test
 	public void testSupports() {
-		Dialect dialect = new Oracle12Dialect();
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
@@ -127,7 +133,6 @@ public class Oracle12DialectTest {
 
 	@Test
 	public void testGetLimitClause() {
-		Dialect dialect = new Oracle12Dialect();
 		assertThat(dialect.getLimitClause(3, 5), is("OFFSET 5 ROWS FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5 ROWS" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
