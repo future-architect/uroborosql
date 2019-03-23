@@ -81,6 +81,15 @@ public interface TransformContext {
 	TransformContext addBindNames(List<String> bindNames);
 
 	/**
+	 * バインドパラメータの追加<br>
+	 *
+	 * @param paramName パラメータ名
+	 * @param value 値
+	 * @return T
+	 */
+	TransformContext param(String paramName, Object value);
+
+	/**
 	 * バインド変数名のリストを取得する
 	 *
 	 * @return バインド変数名のリスト

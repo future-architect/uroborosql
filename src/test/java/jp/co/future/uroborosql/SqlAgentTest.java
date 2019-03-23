@@ -569,6 +569,8 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("UPD_DATETIME"));
 					assertTrue(m.containsKey("VERSION_NO"));
 				});
+		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
+
 	}
 
 	/**
@@ -590,6 +592,7 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("upd_datetime"));
 					assertTrue(m.containsKey("version_no"));
 				});
+		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -618,6 +621,7 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("upd_datetime"));
 					assertTrue(m.containsKey("version_no"));
 				});
+		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -644,6 +648,9 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("UPD_DATETIME"));
 					assertTrue(m.containsKey("VERSION_NO"));
 				});
+
+		assertThat(agent.query("example/select_product_param_camel").paramBean(bean).stream().count(), is(2L));
+
 	}
 
 	/**
@@ -667,6 +674,7 @@ public class SqlAgentTest {
 					assertNotNull(p.getUpdDatetime());
 					assertNotNull(p.getVersionNo());
 				});
+		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -681,6 +689,8 @@ public class SqlAgentTest {
 		ctx.paramList("product_id", 0, 1);
 
 		List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
+		assertThat(ans.size(), is(2));
+
 		ans.forEach((m) -> {
 			assertTrue(m.containsKey("productId"));
 			assertTrue(m.containsKey("productName"));
@@ -696,6 +706,7 @@ public class SqlAgentTest {
 		ctx2.paramList("product_id", 0, 1);
 
 		List<Map<String, Object>> ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
+		assertThat(ans2.size(), is(2));
 		ans2.forEach((m) -> {
 			assertTrue(m.containsKey("PRODUCT_ID"));
 			assertTrue(m.containsKey("PRODUCT_NAME"));
@@ -728,7 +739,7 @@ public class SqlAgentTest {
 				});
 
 		List<Map<String, Object>> collect = agent.queryWith("select * from product_regist_work").collect();
-		assertEquals(2, collect.size());
+		assertThat(collect.size(), is(2));
 	}
 
 	/**
