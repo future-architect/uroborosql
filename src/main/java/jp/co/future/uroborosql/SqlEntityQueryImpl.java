@@ -18,8 +18,8 @@ import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
-import jp.co.future.uroborosql.exception.EntitySqlRuntimeException.EntityProcKind;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -101,7 +101,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
 		}
 	}
 
@@ -126,7 +126,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			rs.next();
 			return rs.getLong(1);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
 		}
 	}
 

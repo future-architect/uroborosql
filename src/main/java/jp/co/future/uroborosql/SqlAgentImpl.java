@@ -6,11 +6,14 @@
  */
 package jp.co.future.uroborosql;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -35,11 +39,14 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.enums.GenerationType;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -271,7 +278,21 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					return getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
+					int count = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
+					if (SqlKind.INSERT.equals(sqlContext.getSqlKind()) && sqlContext.getGeneratedKeyColumns() != null
+							&& sqlContext.getGeneratedKeyColumns().length > 0) {
+						try (ResultSet rs = stmt.getGeneratedKeys()) {
+							if (rs.next()) {
+								List<BigDecimal> generatedKeyValues = new ArrayList<>();
+								for (int i = 0; i < sqlContext.getGeneratedKeyColumns().length; i++) {
+									generatedKeyValues.add(rs.getBigDecimal(i + 1));
+								}
+								sqlContext.setGeneratedKeyValues(
+										generatedKeyValues.toArray(new BigDecimal[generatedKeyValues.size()]));
+							}
+						}
+					}
+					return count;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						rollback(RETRY_SAVEPOINT_NAME);
@@ -641,7 +662,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				return stream.findFirst();
 			}
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
 		}
 	}
 
@@ -663,10 +684,51 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createInsertContext(this, metadata, type);
+			context.setSqlKind(SqlKind.INSERT);
+
+			// IDアノテーションが付与されたカラム情報を取得する
+			Set<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(type))
+					.filter(c -> c.isId()).collect(Collectors.toSet());
+
+			// GenerationType.IDENTITYの場合は、実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+			MappingColumn[] generatedKeyColumns = idColumns.stream()
+					.filter(c -> GenerationType.IDENTITY.equals(c.getGeneratedValue().strategy()))
+					.toArray(MappingColumn[]::new);
+			if (generatedKeyColumns.length > 0) {
+				context.setGeneratedKeyColumns(
+						Arrays.stream(generatedKeyColumns).map(MappingColumn::getName).toArray(String[]::new));
+			}
+
+			//TODO SEQUENCE採番の場合はここでシーケンスを取得してentityに設定
+
 			handler.setInsertParams(context, entity);
-			return handler.doInsert(this, context, entity);
+			int count = handler.doInsert(this, context, entity);
+
+			if (generatedKeyColumns.length > 0) {
+				BigDecimal[] ids = context.getGeneratedKeyValues();
+				if (ids.length == generatedKeyColumns.length) {
+					for (int i = 0; i < generatedKeyColumns.length; i++) {
+						BigDecimal id = ids[i];
+						MappingColumn column = generatedKeyColumns[i];
+						Class<?> rawType = column.getJavaType().getRawType();
+						if (int.class.equals(rawType) || Integer.class.equals(rawType)) {
+							column.setValue(entity, id.intValue());
+						} else if (long.class.equals(rawType) || Long.class.equals(rawType)) {
+							column.setValue(entity, id.longValue());
+						} else if (BigInteger.class.equals(rawType)) {
+							column.setValue(entity, id.toBigInteger());
+						} else if (BigDecimal.class.equals(rawType)) {
+							column.setValue(entity, id);
+						} else if (String.class.equals(rawType)) {
+							column.setValue(entity, id.toPlainString());
+						}
+					}
+				}
+			}
+
+			return count;
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+			throw new EntitySqlRuntimeException(SqlKind.INSERT, e);
 		}
 	}
 
@@ -688,6 +750,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createUpdateContext(this, metadata, type, true);
+			context.setSqlKind(SqlKind.UPDATE);
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
@@ -696,7 +759,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 			return count;
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.UPDATE, e);
+			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
 		}
 	}
 
@@ -718,10 +781,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createDeleteContext(this, metadata, type, true);
+			context.setSqlKind(SqlKind.DELETE);
 			handler.setDeleteParams(context, entity);
 			return handler.doDelete(this, context, entity);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
 	}
 
@@ -752,7 +816,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 			return delete(entityType).in(keyColumn.getCamelColumnName(), keys).count();
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
 	}
 
@@ -774,10 +838,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
 			SqlContext context = handler.createDeleteContext(this, metadata, entityType, false);
+			context.setSqlKind(SqlKind.DELETE);
 
 			return new SqlEntityDeleteImpl<>(this, handler, metadata, context);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
 	}
 
@@ -799,6 +864,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 			SqlContext context = handler.createBatchInsertContext(this, metadata, entityType);
+			context.setSqlKind(SqlKind.BATCH_INSERT);
 
 			int count = 0;
 			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
@@ -820,7 +886,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					: 0);
 
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+			throw new EntitySqlRuntimeException(SqlKind.BATCH_INSERT, e);
 		}
 	}
 
@@ -842,6 +908,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 			SqlContext context = handler.createBulkInsertContext(this, metadata, entityType);
+			context.setSqlKind(SqlKind.BULK_INSERT);
 
 			int frameCount = 0;
 			int count = 0;
@@ -859,12 +926,13 @@ public class SqlAgentImpl extends AbstractAgent {
 					count += doBulkInsert(context, entityType, handler, metadata, frameCount);
 					frameCount = 0;
 					context = handler.createBulkInsertContext(this, metadata, entityType);
+					context.setSqlKind(SqlKind.BULK_INSERT);
 				}
 			}
 			return count + (frameCount > 0 ? doBulkInsert(context, entityType, handler, metadata, frameCount) : 0);
 
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.INSERT, e);
+			throw new EntitySqlRuntimeException(SqlKind.BULK_INSERT, e);
 		}
 	}
 

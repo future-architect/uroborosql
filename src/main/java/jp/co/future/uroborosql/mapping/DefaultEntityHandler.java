@@ -24,6 +24,7 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -162,7 +163,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	@Override
 	public void setInsertParams(final SqlContext context, final Object entity) {
-		setFields(context, entity, SqlStatement.INSERT, MappingColumn::getCamelName);
+		setFields(context, entity, SqlKind.INSERT, MappingColumn::getCamelName);
 	}
 
 	/**
@@ -172,7 +173,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	@Override
 	public void setUpdateParams(final SqlContext context, final Object entity) {
-		setFields(context, entity, SqlStatement.UPDATE, MappingColumn::getCamelName);
+		setFields(context, entity, SqlKind.UPDATE, MappingColumn::getCamelName);
 	}
 
 	/**
@@ -182,7 +183,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	@Override
 	public void setDeleteParams(final SqlContext context, final Object entity) {
-		setFields(context, entity, SqlStatement.DELETE, MappingColumn::getCamelName);
+		setFields(context, entity, SqlKind.DELETE, MappingColumn::getCamelName);
 	}
 
 	/**
@@ -192,7 +193,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	@Override
 	public void setBulkInsertParams(final SqlContext context, final Object entity, final int entityIndex) {
-		setFields(context, entity, SqlStatement.INSERT, col -> buildBulkParamName(col.getCamelName(), entityIndex));
+		setFields(context, entity, SqlKind.INSERT, col -> buildBulkParamName(col.getCamelName(), entityIndex));
 	}
 
 	/**
@@ -248,7 +249,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected TableMetadata createMetadata(final ConnectionManager connectionManager,
 			final Class<? extends Object> type)
-					throws SQLException {
+			throws SQLException {
 		Table table = getTable(type);
 		return TableMetadata.createTableEntityMetadata(connectionManager, table);
 	}
@@ -372,7 +373,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final String sqlIdKeyName, final boolean ignoreWhenEmpty) {
 
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.INSERT))
+		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
 				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumnNames, sqlIdKeyName, ignoreWhenEmpty);
 
@@ -395,7 +396,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildBulkInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final String sqlIdKeyName, final int numberOfRecords) {
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.INSERT))
+		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
 				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumnNames, sqlIdKeyName, false);
 
@@ -425,12 +426,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlStatement.UPDATE))
+		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.UPDATE))
 				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
 
 		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty()
 				: MappingUtils
-				.getVersionMappingColumn(type);
+						.getVersionMappingColumn(type);
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
@@ -472,7 +473,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("WHERE").append(System.lineSeparator());
 			final List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
 					: Arrays
-					.asList(metadata.getColumns().get(0));
+							.asList(metadata.getColumns().get(0));
 			firstFlag = true;
 			for (final TableMetadata.Column col : cols) {
 				final StringBuilder parts = new StringBuilder().append("\t");
@@ -487,8 +488,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					parts.append("AND ");
 				}
 				parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
-				.append("*/''")
-				.append(System.lineSeparator());
+						.append("*/''")
+						.append(System.lineSeparator());
 				if (col.isNullable()) {
 					wrapIfComment(sql, parts, col);
 				} else {
@@ -504,7 +505,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					sql.append("AND ");
 				}
 				sql.append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName())
-				.append("*/''").append(System.lineSeparator());
+						.append("*/''").append(System.lineSeparator());
 			});
 		}
 		return sql.toString();
@@ -530,7 +531,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 			List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
 					: Arrays
-					.asList(metadata.getColumns().get(0));
+							.asList(metadata.getColumns().get(0));
 			for (TableMetadata.Column col : cols) {
 				StringBuilder parts = new StringBuilder().append("\t");
 				if (firstFlag) {
@@ -544,7 +545,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					parts.append("AND ");
 				}
 				parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
-				.append("*/''").append(System.lineSeparator());
+						.append("*/''").append(System.lineSeparator());
 				if (col.isNullable()) {
 					wrapIfComment(sql, parts, col);
 				} else {
@@ -664,7 +665,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		if (isStringType(col.getDataType())) {
 			if (emptyStringEqualsNull) {
 				original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
-				.append(System.lineSeparator());
+						.append(System.lineSeparator());
 			} else {
 				original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
 			}
@@ -676,7 +677,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return original;
 	}
 
-	private void setFields(final SqlContext context, final Object entity, final SqlStatement stmt,
+	private void setFields(final SqlContext context, final Object entity, final SqlKind stmt,
 			final Function<MappingColumn, String> getParamName) {
 		Class<?> type = entity.getClass();
 		for (MappingColumn column : MappingUtils.getMappingColumns(type, stmt)) {

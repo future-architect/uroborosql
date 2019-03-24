@@ -29,6 +29,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -611,7 +612,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 			return new SqlEntityQueryImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(EntitySqlRuntimeException.EntityProcKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
 		}
 	}
 

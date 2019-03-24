@@ -8,27 +8,15 @@ package jp.co.future.uroborosql.exception;
 
 import java.sql.SQLException;
 
+import jp.co.future.uroborosql.enums.SqlKind;
+
 /**
  * ORMの実行エラーでスローされる例外
  *
  * @author ota
  */
 public class EntitySqlRuntimeException extends UroborosqlRuntimeException {
-	/**
-	 * Entity処理種別
-	 */
-	public enum EntityProcKind {
-		/** INSERT */
-		INSERT,
-		/** UPDATE */
-		UPDATE,
-		/** DELETE */
-		DELETE,
-		/** SELECT */
-		SELECT,
-	}
-
-	private final EntityProcKind procKind;
+	private final SqlKind procKind;
 
 	/**
 	 * コンストラクタ
@@ -36,7 +24,7 @@ public class EntitySqlRuntimeException extends UroborosqlRuntimeException {
 	 * @param procKind 処理種別
 	 * @param cause SQLException
 	 */
-	public EntitySqlRuntimeException(final EntityProcKind procKind, final SQLException cause) {
+	public EntitySqlRuntimeException(final SqlKind procKind, final SQLException cause) {
 		super(cause);
 		this.procKind = procKind;
 	}
@@ -46,7 +34,7 @@ public class EntitySqlRuntimeException extends UroborosqlRuntimeException {
 	 *
 	 * @return 処理種別
 	 */
-	public EntityProcKind getProcKind() {
+	public SqlKind getProcKind() {
 		return this.procKind;
 	}
 
