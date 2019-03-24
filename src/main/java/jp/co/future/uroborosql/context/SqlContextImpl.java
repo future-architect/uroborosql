@@ -362,20 +362,26 @@ public class SqlContextImpl implements SqlContext {
 	 * @return パラメータ
 	 */
 	private Parameter getBindParameter(final String paramName) {
-		String[] keys = StringUtils.split(paramName, ".");
-		String baseName = keys[0];
+		// メソッド呼び出しかどうかで処理を振り分け
+		if (paramName.contains(".") && paramName.contains("(") && paramName.contains(")")) {
+			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+			return parameterMap.get(paramName);
+		} else {
+			String[] keys = StringUtils.split(paramName, ".");
+			String baseName = keys[0];
 
-		Parameter parameter = parameterMap.get(baseName);
-		if (parameter == null) {
-			return null;
+			Parameter parameter = parameterMap.get(baseName);
+			if (parameter == null) {
+				return null;
+			}
+
+			if (keys.length > 1) {
+				String propertyName = keys[1];
+				return parameter.createSubParameter(propertyName);
+			}
+
+			return parameter;
 		}
-
-		if (keys.length > 1) {
-			String propertyName = keys[1];
-			return parameter.createSubParameter(propertyName);
-		}
-
-		return parameter;
 	}
 
 	/**
@@ -413,7 +419,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
+	 * @see jp.co.future.uroborosql.parser.TransformContext#param(java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public SqlContext param(final String parameterName, final Object value) {

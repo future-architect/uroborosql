@@ -64,9 +64,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
 			+ "sql.coverage");
 
-	/** 文字列用関数(OGNLで利用) */
-	protected static final StringFunction SF = new StringFunction();
-
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
 
@@ -263,7 +260,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 		// ユーザファンクション登録
 		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
-			sqlContext.param(StringFunction.SHORT_NAME, SF);
+			sqlContext.param(StringFunction.SHORT_NAME, getSqlConfig().getDialect().getExpressionFunction());
 		}
 
 		// 自動パラメータバインド関数の呼出

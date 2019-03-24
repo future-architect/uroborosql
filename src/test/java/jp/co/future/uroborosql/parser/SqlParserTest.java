@@ -14,11 +14,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
+import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
@@ -28,9 +32,6 @@ import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.SqlNode;
 import jp.co.future.uroborosql.utils.StringFunction;
-
-import org.junit.Before;
-import org.junit.Test;
 
 public class SqlParserTest {
 	private SqlContextFactory sqlContextFactory;
@@ -665,7 +666,7 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
-		List<Integer> deptnoList = new ArrayList<Integer>();
+		List<Integer> deptnoList = new ArrayList<>();
 		deptnoList.add(new Integer(10));
 		deptnoList.add(new Integer(20));
 		ctx.param("deptnoList", deptnoList);
@@ -792,7 +793,7 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM EMP WHERE ENAME IN (?, ?)/*SF.split(enames, ',')*/";
 		SqlParser parser = new SqlParserImpl(sql);
 		SqlContext ctx = sqlContextFactory.createSqlContext();
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction());
+		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
 		ctx.param("enames", "SCOTT,MARY");
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -882,7 +883,7 @@ public class SqlParserTest {
 		ctx.param("val3", "ab");
 
 		String sql2 = "1=1 ";
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction());
+		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
@@ -920,7 +921,6 @@ public class SqlParserTest {
 
 	@Test
 	public void testParamMissMatch1() throws Exception {
-		;
 		PreparedStatement st = null;
 
 		try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch1")) {

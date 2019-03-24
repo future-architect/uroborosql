@@ -10,6 +10,7 @@ import java.sql.JDBCType;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.mapping.JavaType;
+import jp.co.future.uroborosql.utils.StringFunction;
 
 /**
  * Databaseの方言を表すインタフェース
@@ -17,6 +18,14 @@ import jp.co.future.uroborosql.mapping.JavaType;
  * @author H.Sugimoto
  */
 public interface Dialect {
+
+	/**
+	 * OGNL式内で使用する式関数を取得する
+	 *
+	 * @return 式関数
+	 */
+	StringFunction getExpressionFunction();
+
 	/**
 	 * データベースを判別するための文字列を取得する。
 	 *

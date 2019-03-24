@@ -7,6 +7,6 @@ WHERE 1 = 1
 AND	PRODUCT_ID	IN	/*productIds*/(0, 2)
 /*END*/
 /*IF SF.isNotEmpty(productName) */
-AND	PRODUCT_NAME LIKE '%' || /*productName*/'' || '%'
+AND	PRODUCT_NAME LIKE /*SF.contains(productName)*/'' ESCAPE '$'
 /*END*/
 ORDER BY PRODUCT_ID

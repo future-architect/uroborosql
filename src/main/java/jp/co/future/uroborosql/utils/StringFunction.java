@@ -8,6 +8,8 @@ package jp.co.future.uroborosql.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import jp.co.future.uroborosql.dialect.Dialect;
+
 /**
  * OGNL式内で{@link StringUtils}
  * の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br>
@@ -20,11 +22,24 @@ public class StringFunction {
 	/** OGNL式から呼び出す際の略称名 {@value} */
 	public static final String SHORT_NAME = "SF";
 
+	/** dialect */
+	private final Dialect dialect;
+
 	/**
 	 * コンストラクタ
 	 */
 	public StringFunction() {
+		this(null);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param dialect Dialect
+	 */
+	public StringFunction(final Dialect dialect) {
 		super();
+		this.dialect = dialect;
 	}
 
 	/**
@@ -356,6 +371,84 @@ public class StringFunction {
 	 */
 	public String uncapitalize(final String str) {
 		return StringUtils.uncapitalize(str);
+	}
+
+	/**
+	 * 指定されたテキストで始まるLIKE句用の検索文字列を生成する。<br>
+	 * 引数のテキストはエスケープ処理される。<br>
+	 *
+	 * <pre>
+	 * ex)
+	 *  - abc  -&gt; abc%
+	 *  - a_bc -&gt; a$_bc%   (escape with '\' (oracle) or '$' (other) )
+	 *  - ''   -&gt; %
+	 *  - null -&gt; %
+	 * </pre>
+	 *
+	 * @param text テキスト
+	 * @return 指定されたテキストで始まるLIKE句用の検索文字列
+	 */
+	public String startsWith(final CharSequence text) {
+		if (dialect == null) {
+			throw new IllegalStateException("dialect is not set.");
+		}
+		if (StringUtils.isEmpty(text)) {
+			return "%";
+		} else {
+			return dialect.escapeLikePattern(text) + "%";
+		}
+	}
+
+	/**
+	 * 指定されたテキストを含むLIKE句用の検索文字列を生成する。<br>
+	 * 引数のテキストはエスケープ処理される。
+	 *
+	 * <pre>
+	 * ex)
+	 *  - abc  -&gt; %abc%
+	 *  - a_bc -&gt; %a$_bc%   (escape with '\' (oracle) or '$' (other) )
+	 *  - ''   -&gt; %
+	 *  - null -&gt; %
+	 * </pre>
+	 *
+	 * @param text テキスト
+	 * @return 指定されたテキストを含むLIKE句用の検索文字列
+	 */
+	public String contains(final CharSequence text) {
+		if (dialect == null) {
+			throw new IllegalStateException("dialect is not set.");
+		}
+		if (StringUtils.isEmpty(text)) {
+			return "%";
+		} else {
+			return "%" + dialect.escapeLikePattern(text) + "%";
+		}
+	}
+
+	/**
+	 * 指定されたテキストで終わるLIKE句用の検索文字列を生成する。<br>
+	 * 引数のテキストはエスケープ処理される。
+	 *
+	 * <pre>
+	 * ex)
+	 *  - abc  -&gt; %abc
+	 *  - a_bc -&gt; %a$_bc   (escape with '\' (oracle) or '$' (other) )
+	 *  - ''   -&gt; %
+	 *  - null -&gt; %
+	 * </pre>
+	 *
+	 * @param text テキスト
+	 * @return 指定されたテキストで終わるLIKE句用の検索文字列
+	 */
+	public String endsWith(final CharSequence text) {
+		if (dialect == null) {
+			throw new IllegalStateException("dialect is not set.");
+		}
+		if (StringUtils.isEmpty(text)) {
+			return "%";
+		} else {
+			return "%" + dialect.escapeLikePattern(text);
+		}
 	}
 
 }
