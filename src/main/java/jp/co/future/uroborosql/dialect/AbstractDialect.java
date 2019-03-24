@@ -130,8 +130,16 @@ public abstract class AbstractDialect implements Dialect {
 		return getDatabaseName().toLowerCase();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#escapeLikePattern(java.lang.CharSequence)
+	 */
 	@Override
 	public String escapeLikePattern(final CharSequence pattern) {
+		if (pattern == null) {
+			return null;
+		}
 		Matcher matcher = escapePattern.matcher(pattern);
 		return matcher.replaceAll(Matcher.quoteReplacement(String.valueOf(escapeChar)) + "$0");
 	}
@@ -180,5 +188,15 @@ public abstract class AbstractDialect implements Dialect {
 			type = JDBCType.OTHER;
 		}
 		return getJavaType(type, jdbcTypeName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getEscapeChar()
+	 */
+	@Override
+	public char getEscapeChar() {
+		return escapeChar;
 	}
 }

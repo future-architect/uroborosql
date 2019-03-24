@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
@@ -21,6 +22,7 @@ import jp.co.future.uroborosql.mapping.JavaType;
  *
  */
 public class PostgresqlDialectTest {
+	private final Dialect dialect = new PostgresqlDialect();
 
 	@Test
 	public void testAccept12() {
@@ -50,8 +52,8 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testEscapeLikePattern() {
-		Dialect dialect = new PostgresqlDialect();
 		assertThat(dialect.escapeLikePattern(""), is(""));
+		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
 		assertThat(dialect.escapeLikePattern("%pattern"), is("$%pattern"));
 		assertThat(dialect.escapeLikePattern("_pattern"), is("$_pattern"));
@@ -65,8 +67,12 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
+	public void testGetEscapeChar() {
+		assertThat(dialect.getEscapeChar(), is('$'));
+	}
+
+	@Test
 	public void testSupports() {
-		Dialect dialect = new PostgresqlDialect();
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
@@ -76,7 +82,6 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testGetLimitClause() {
-		Dialect dialect = new PostgresqlDialect();
 		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
@@ -85,7 +90,6 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testGetJavaType() {
-		Dialect dialect = new PostgresqlDialect();
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), JavaType.of(Object.class).getClass());

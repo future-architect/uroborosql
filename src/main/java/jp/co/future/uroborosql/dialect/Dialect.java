@@ -113,4 +113,11 @@ public interface Dialect {
 	 */
 	String getDatabaseType();
 
+	/**
+	 * LIKE句で指定するエスケープキャラクタを取得する
+	 *
+	 * @return エスケープキャラクタ
+	 */
+	char getEscapeChar();
+
 }

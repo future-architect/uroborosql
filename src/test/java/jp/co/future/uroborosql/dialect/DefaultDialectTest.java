@@ -58,6 +58,7 @@ public class DefaultDialectTest {
 	@Test
 	public void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
+		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
 		assertThat(dialect.escapeLikePattern("%pattern"), is("$%pattern"));
 		assertThat(dialect.escapeLikePattern("_pattern"), is("$_pattern"));
@@ -73,6 +74,11 @@ public class DefaultDialectTest {
 	@Test
 	public void testGetDatabaseType() {
 		assertThat(dialect.getDatabaseType(), is("default"));
+	}
+
+	@Test
+	public void testGetEscapeChar() {
+		assertThat(dialect.getEscapeChar(), is('$'));
 	}
 
 	@Test
