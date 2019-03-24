@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.context;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.CallableStatement;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,6 +31,10 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
@@ -41,10 +46,6 @@ import jp.co.future.uroborosql.parameter.StreamParameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.BeanAccessor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SQLコンテキスト実装クラス
@@ -418,7 +419,11 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext param(final String parameterName, final Object value) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
-			optionalValue.ifPresent(v -> param(new Parameter(parameterName, v)));
+			if (optionalValue.isPresent()) {
+				param(new Parameter(parameterName, optionalValue.get()));
+			} else {
+				param(new Parameter(parameterName, null));
+			}
 			return this;
 		} else {
 			return param(new Parameter(parameterName, value));
@@ -512,7 +517,11 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext param(final String parameterName, final Object value, final SQLType sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
-			optionalValue.ifPresent(v -> param(new Parameter(parameterName, v, sqlType)));
+			if (optionalValue.isPresent()) {
+				param(new Parameter(parameterName, optionalValue.get(), sqlType));
+			} else {
+				param(new Parameter(parameterName, null));
+			}
 			return this;
 		} else {
 			return param(new Parameter(parameterName, value, sqlType));
@@ -541,7 +550,11 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext param(final String parameterName, final Object value, final int sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
-			optionalValue.ifPresent(v -> param(new Parameter(parameterName, v, sqlType)));
+			if (optionalValue.isPresent()) {
+				param(new Parameter(parameterName, optionalValue.get(), sqlType));
+			} else {
+				param(new Parameter(parameterName, null));
+			}
 			return this;
 		} else {
 			return param(new Parameter(parameterName, value, sqlType));
@@ -599,7 +612,11 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext inOutParam(final String parameterName, final Object value, final SQLType sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
-			optionalValue.ifPresent(v -> param(new InOutParameter(parameterName, value, sqlType)));
+			if (optionalValue.isPresent()) {
+				param(new InOutParameter(parameterName, optionalValue.get(), sqlType));
+			} else {
+				param(new InOutParameter(parameterName, null, JDBCType.NULL));
+			}
 			return this;
 		} else {
 			return param(new InOutParameter(parameterName, value, sqlType));
@@ -628,7 +645,11 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext inOutParam(final String parameterName, final Object value, final int sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
-			optionalValue.ifPresent(v -> param(new InOutParameter(parameterName, value, sqlType)));
+			if (optionalValue.isPresent()) {
+				param(new InOutParameter(parameterName, optionalValue.get(), sqlType));
+			} else {
+				param(new InOutParameter(parameterName, null, JDBCType.NULL));
+			}
 			return this;
 		} else {
 			return param(new InOutParameter(parameterName, value, sqlType));
