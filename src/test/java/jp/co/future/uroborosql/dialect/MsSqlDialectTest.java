@@ -49,6 +49,11 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
+	public void testGetSequenceNextValSql() {
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("select next value for test_sequence"));
+	}
+
+	@Test
 	public void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
@@ -74,6 +79,8 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(false));
 		assertThat(dialect.supportsNullValuesOrdering(), is(false));
+		assertThat(dialect.supportsIdentity(), is(true));
+		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(false));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}

@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.mapping;
 
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
+import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
 
 /**
@@ -67,6 +68,13 @@ public interface MappingColumn {
 	 * @return {@link GeneratedValue}
 	 */
 	GeneratedValue getGeneratedValue();
+
+	/**
+	 * {@link SequenceGenerator}の取得
+	 *
+	 * @return {@link SequenceGenerator}
+	 */
+	SequenceGenerator getSequenceGenerator();
 
 	/**
 	 * {@link Transient}の取得

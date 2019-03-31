@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
 
 public class DefaultDialectTest {
@@ -35,24 +36,9 @@ public class DefaultDialectTest {
 		assertThat(dialect.accept(null), is(true));
 	}
 
-	@Test
-	public void testIsRemoveTerminator() {
-		assertThat(dialect.isRemoveTerminator(), is(true));
-	}
-
-	@Test
-	public void testIsRollbackToSavepointBeforeRetry() {
-		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
-	}
-
-	@Test
-	public void testSupportsBulkInsert() {
-		assertThat(dialect.supportsBulkInsert(), is(false));
-	}
-
-	@Test
-	public void testSupportsLimitClause() {
-		assertThat(dialect.supportsBulkInsert(), is(false));
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testGetSequenceNextValSql() {
+		dialect.getSequenceNextValSql("test_sequence");
 	}
 
 	@Test
@@ -79,6 +65,17 @@ public class DefaultDialectTest {
 	@Test
 	public void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('$'));
+	}
+
+	@Test
+	public void testSupport() {
+		assertThat(dialect.supportsBulkInsert(), is(false));
+		assertThat(dialect.supportsLimitClause(), is(false));
+		assertThat(dialect.supportsNullValuesOrdering(), is(false));
+		assertThat(dialect.supportsIdentity(), is(true));
+		assertThat(dialect.supportsSequence(), is(false));
+		assertThat(dialect.isRemoveTerminator(), is(true));
+		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}
 
 	@Test

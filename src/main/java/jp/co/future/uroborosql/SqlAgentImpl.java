@@ -39,16 +39,19 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
+import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -686,42 +689,60 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createInsertContext(this, metadata, type);
 			context.setSqlKind(SqlKind.INSERT);
 
+			Dialect dialect = getSqlConfig().getDialect();
+
 			// IDアノテーションが付与されたカラム情報を取得する
 			Set<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(type))
 					.filter(c -> c.isId()).collect(Collectors.toSet());
 
 			// GenerationType.IDENTITYの場合は、実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-			MappingColumn[] generatedKeyColumns = idColumns.stream()
+			MappingColumn[] identityKeyColumns = idColumns.stream()
 					.filter(c -> GenerationType.IDENTITY.equals(c.getGeneratedValue().strategy()))
 					.toArray(MappingColumn[]::new);
-			if (generatedKeyColumns.length > 0) {
+			if (identityKeyColumns.length > 0) {
+				if (!dialect.supportsIdentity()) {
+					// identityによる自動採番をサポートしていない場合は例外をスローする
+					throw new UroborosqlRuntimeException("Database does not support AUTO_INCREMENT by IDENTITY.");
+				}
 				context.setGeneratedKeyColumns(
-						Arrays.stream(generatedKeyColumns).map(MappingColumn::getName).toArray(String[]::new));
+						Arrays.stream(identityKeyColumns).map(MappingColumn::getName).toArray(String[]::new));
 			}
 
-			//TODO SEQUENCE採番の場合はここでシーケンスを取得してentityに設定
+			// GenerationType.SEQUENCEの場合は、シーケンスを取得してentityに設定
+			MappingColumn[] sequenceKeyColumns = idColumns.stream()
+					.filter(c -> GenerationType.SEQUENCE.equals(c.getGeneratedValue().strategy()))
+					.toArray(MappingColumn[]::new);
+			if (sequenceKeyColumns.length > 0) {
+				if (!dialect.supportsSequence()) {
+					// sequenceによる自動採番をサポートしていない場合は例外をスローする
+					throw new UroborosqlRuntimeException("Database does not support AUTO_INCREMENT by SEQUENCE.");
+				}
+				for (MappingColumn sequenceColumn : sequenceKeyColumns) {
+					SequenceGenerator generator = sequenceColumn.getSequenceGenerator();
+					if (generator == null) {
+						throw new UroborosqlRuntimeException("SequenceGenerator has not been specified.");
+					}
+					String sequenceName = getQualifiedSequenceName(generator);
+					String seqSql = dialect.getSequenceNextValSql(sequenceName);
+					try (ResultSet rs = queryWith(seqSql).resultSet()) {
+						if (rs.next()) {
+							BigDecimal id = rs.getBigDecimal(1);
+							setEntityIdValue(entity, id, sequenceColumn);
+						}
+					}
+				}
+			}
 
 			handler.setInsertParams(context, entity);
 			int count = handler.doInsert(this, context, entity);
 
-			if (generatedKeyColumns.length > 0) {
+			if (identityKeyColumns.length > 0) {
 				BigDecimal[] ids = context.getGeneratedKeyValues();
-				if (ids.length == generatedKeyColumns.length) {
-					for (int i = 0; i < generatedKeyColumns.length; i++) {
+				if (ids.length == identityKeyColumns.length) {
+					for (int i = 0; i < identityKeyColumns.length; i++) {
 						BigDecimal id = ids[i];
-						MappingColumn column = generatedKeyColumns[i];
-						Class<?> rawType = column.getJavaType().getRawType();
-						if (int.class.equals(rawType) || Integer.class.equals(rawType)) {
-							column.setValue(entity, id.intValue());
-						} else if (long.class.equals(rawType) || Long.class.equals(rawType)) {
-							column.setValue(entity, id.longValue());
-						} else if (BigInteger.class.equals(rawType)) {
-							column.setValue(entity, id.toBigInteger());
-						} else if (BigDecimal.class.equals(rawType)) {
-							column.setValue(entity, id);
-						} else if (String.class.equals(rawType)) {
-							column.setValue(entity, id.toPlainString());
-						}
+						MappingColumn column = identityKeyColumns[i];
+						setEntityIdValue(entity, id, column);
 					}
 				}
 			}
@@ -730,6 +751,44 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.INSERT, e);
 		}
+	}
+
+	/**
+	 * entityにID値を設定する
+	 * @param entity Entity
+	 * @param id ID値
+	 * @param column 設定する対象のカラム
+	 */
+	private void setEntityIdValue(final Object entity, final BigDecimal id, final MappingColumn column) {
+		Class<?> rawType = column.getJavaType().getRawType();
+		if (int.class.equals(rawType) || Integer.class.equals(rawType)) {
+			column.setValue(entity, id.intValue());
+		} else if (long.class.equals(rawType) || Long.class.equals(rawType)) {
+			column.setValue(entity, id.longValue());
+		} else if (BigInteger.class.equals(rawType)) {
+			column.setValue(entity, id.toBigInteger());
+		} else if (BigDecimal.class.equals(rawType)) {
+			column.setValue(entity, id);
+		} else if (String.class.equals(rawType)) {
+			column.setValue(entity, id.toPlainString());
+		}
+	}
+
+	/**
+	 * 修飾済みシーケンス名を取得する
+	 * @param generator SequenceGenerator
+	 * @return 修飾済みシーケンス名
+	 */
+	private String getQualifiedSequenceName(final SequenceGenerator generator) {
+		StringBuilder builder = new StringBuilder();
+		if (!generator.catalog().isEmpty()) {
+			builder.append(generator.catalog()).append(".");
+		}
+		if (!generator.schema().isEmpty()) {
+			builder.append(generator.schema()).append(".");
+		}
+		builder.append(generator.sequence());
+		return builder.toString();
 	}
 
 	/**

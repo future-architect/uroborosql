@@ -21,6 +21,7 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Column;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
+import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -61,6 +62,7 @@ public final class MappingUtils {
 		private final String camelName;
 		private final boolean isId;
 		private final GeneratedValue generatedValue;
+		private final SequenceGenerator sequenceGenerator;
 		private final Transient transientAnno;
 		private final boolean isVersion;
 
@@ -80,6 +82,7 @@ public final class MappingUtils {
 			}
 			this.isId = field.getAnnotation(Id.class) != null;
 			this.generatedValue = field.getAnnotation(GeneratedValue.class);
+			this.sequenceGenerator = field.getAnnotation(SequenceGenerator.class);
 			this.transientAnno = field.getAnnotation(Transient.class);
 			this.isVersion = field.getAnnotation(Version.class) != null;
 
@@ -89,6 +92,11 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getValue(java.lang.Object)
+		 */
 		@Override
 		public Object getValue(final Object entity) {
 			try {
@@ -98,6 +106,11 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#setValue(java.lang.Object, java.lang.Object)
+		 */
 		@Override
 		public void setValue(final Object entity, final Object value) {
 			try {
@@ -107,36 +120,81 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getJavaType()
+		 */
 		@Override
 		public JavaType getJavaType() {
 			return this.javaType;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getName()
+		 */
 		@Override
 		public String getName() {
 			return this.name;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getCamelName()
+		 */
 		@Override
 		public String getCamelName() {
 			return this.camelName;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isId()
+		 */
 		@Override
 		public boolean isId() {
 			return this.isId;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getGeneratedValue()
+		 */
 		@Override
 		public GeneratedValue getGeneratedValue() {
 			return this.generatedValue;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getSequenceGenerator()
+		 */
+		@Override
+		public SequenceGenerator getSequenceGenerator() {
+			return this.sequenceGenerator;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getTransient()
+		 */
 		@Override
 		public Transient getTransient() {
 			return this.transientAnno;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isTransient(jp.co.future.uroborosql.enums.SqlKind)
+		 */
 		@Override
 		public boolean isTransient(final SqlKind sqlKind) {
 			if (this.transientAnno == null) {
@@ -153,6 +211,11 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isVersion()
+		 */
 		@Override
 		public boolean isVersion() {
 			return isVersion;

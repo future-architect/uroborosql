@@ -20,13 +20,13 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 
-public class GeneratedKeysTest {
+public class IdentityGeneratedKeysTest {
 
 	private static SqlConfig config;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:GeneratedKeysTest;DB_CLOSE_DELAY=-1";
+		String url = "jdbc:h2:mem:IdentityGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
@@ -61,7 +61,6 @@ public class GeneratedKeysTest {
 
 	@Test
 	public void testInsert() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityWithId test1 = new TestEntityWithId("name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
@@ -88,5 +87,4 @@ public class GeneratedKeysTest {
 			});
 		}
 	}
-
 }

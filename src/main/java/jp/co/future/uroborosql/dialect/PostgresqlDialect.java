@@ -89,4 +89,14 @@ public class PostgresqlDialect extends AbstractDialect {
 		return super.getJavaType(jdbcType, jdbcTypeName);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
+	 */
+	@Override
+	public String getSequenceNextValSql(final String sequenceName) {
+		return "select nextval('" + sequenceName + "')";
+	}
+
 }
