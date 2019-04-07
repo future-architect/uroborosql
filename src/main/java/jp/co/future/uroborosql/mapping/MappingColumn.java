@@ -77,6 +77,27 @@ public interface MappingColumn {
 	SequenceGenerator getSequenceGenerator();
 
 	/**
+	 * 修飾済みのシーケンス名の取得
+	 *
+	 * @return {@link SequenceGenerator} をもとに修飾したシーケンス名
+	 */
+	default String getQualifiedSequenceName() {
+		SequenceGenerator generator = getSequenceGenerator();
+		if (generator == null) {
+			return "";
+		}
+		StringBuilder builder = new StringBuilder();
+		if (!"".equals(generator.catalog())) {
+			builder.append(generator.catalog()).append(".");
+		}
+		if (!"".equals(generator.schema())) {
+			builder.append(generator.schema()).append(".");
+		}
+		builder.append(generator.sequence());
+		return builder.toString();
+	}
+
+	/**
 	 * {@link Transient}の取得
 	 *
 	 * @return {@link Transient}

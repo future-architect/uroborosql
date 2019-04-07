@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Column;
@@ -87,7 +86,7 @@ public final class MappingUtils {
 			this.isVersion = field.getAnnotation(Version.class) != null;
 
 			if (this.isId && this.generatedValue == null) {
-				throw new IllegalStateException("@Id annotation is set in the field [" + field.getName()
+				throw new UroborosqlRuntimeException("@Id annotation is set in the field [" + field.getName()
 						+ "]. However, @GeneratedValue annotation is not set.");
 			}
 		}
@@ -335,11 +334,6 @@ public final class MappingUtils {
 				continue;// 除外
 			}
 			if (!mappingColumn.isTransient(SqlKind.INSERT)) {
-				GeneratedValue generatedValue = mappingColumn.getGeneratedValue();
-				if (generatedValue != null && GenerationType.IDENTITY.equals(generatedValue.strategy())) {
-					// ID自動生成の場合はINSERT対象カラムから除外する
-					continue;
-				}
 				insertColumns.put(fieldName, mappingColumn);
 			}
 			if (!mappingColumn.isTransient(SqlKind.UPDATE)) {

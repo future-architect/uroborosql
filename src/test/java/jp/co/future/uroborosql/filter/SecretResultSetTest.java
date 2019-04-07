@@ -16,17 +16,17 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.fluent.SqlQuery;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.fluent.SqlQuery;
 
 public class SecretResultSetTest {
 
@@ -135,8 +135,8 @@ public class SecretResultSetTest {
 				assertThat(rs.getNString(1), is("1"));
 				assertThat(rs.getBlob(1).toString().split(": ")[1], is("1"));
 				assertThat(rs.getBlob("PRODUCT_ID").toString().split(": ")[1], is("1"));
-				assertThat(rs.getArray(1).toString().split(": ")[1], is("1"));
-				assertThat(rs.getArray("PRODUCT_ID").toString().split(": ")[1], is("1"));
+				assertThat(rs.getArray(1).toString().split(": ")[1], is("[1]"));
+				assertThat(rs.getArray("PRODUCT_ID").toString().split(": ")[1], is("[1]"));
 				assertThat(rs.getClob(1).toString().split(": ")[1], is("1"));
 				assertThat(rs.getClob("PRODUCT_ID").toString().split(": ")[1], is("1"));
 				assertThat(rs.getStatement().getMaxRows(), is(0));

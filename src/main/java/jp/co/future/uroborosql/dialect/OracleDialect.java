@@ -16,6 +16,8 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 public abstract class OracleDialect extends AbstractDialect {
 	/**
 	 * コンストラクタ
+	 * @param escapeChar like検索時のエスケープ文字
+	 * @param wildcards like検索時のワイルドカード文字配列
 	 */
 	protected OracleDialect(final char escapeChar, final char[] wildcards) {
 		super(escapeChar, wildcards);
@@ -58,7 +60,7 @@ public abstract class OracleDialect extends AbstractDialect {
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
-		return "select " + sequenceName + ".nextval from dual";
+		return sequenceName + ".nextval";
 	}
 
 	/**

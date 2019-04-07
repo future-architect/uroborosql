@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -39,19 +38,15 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
-import jp.co.future.uroborosql.dialect.Dialect;
-import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
-import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -282,17 +277,19 @@ public class SqlAgentImpl extends AbstractAgent {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					int count = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
-					if (SqlKind.INSERT.equals(sqlContext.getSqlKind()) && sqlContext.getGeneratedKeyColumns() != null
+					if ((SqlKind.INSERT.equals(sqlContext.getSqlKind()) ||
+							SqlKind.BULK_INSERT.equals(sqlContext.getSqlKind()))
+							&& sqlContext.getGeneratedKeyColumns() != null
 							&& sqlContext.getGeneratedKeyColumns().length > 0) {
 						try (ResultSet rs = stmt.getGeneratedKeys()) {
-							if (rs.next()) {
-								List<BigDecimal> generatedKeyValues = new ArrayList<>();
+							List<BigDecimal> generatedKeyValues = new ArrayList<>();
+							while (rs.next()) {
 								for (int i = 0; i < sqlContext.getGeneratedKeyColumns().length; i++) {
 									generatedKeyValues.add(rs.getBigDecimal(i + 1));
 								}
-								sqlContext.setGeneratedKeyValues(
-										generatedKeyValues.toArray(new BigDecimal[generatedKeyValues.size()]));
 							}
+							sqlContext.setGeneratedKeyValues(
+									generatedKeyValues.toArray(new BigDecimal[generatedKeyValues.size()]));
 						}
 					}
 					return count;
@@ -402,7 +399,22 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					return getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
+					int[] counts = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
+					if (SqlKind.BATCH_INSERT.equals(sqlContext.getSqlKind())
+							&& sqlContext.getGeneratedKeyColumns() != null
+							&& sqlContext.getGeneratedKeyColumns().length > 0) {
+						try (ResultSet rs = stmt.getGeneratedKeys()) {
+							List<BigDecimal> generatedKeyValues = new ArrayList<>();
+							while (rs.next()) {
+								for (int i = 0; i < sqlContext.getGeneratedKeyColumns().length; i++) {
+									generatedKeyValues.add(rs.getBigDecimal(i + 1));
+								}
+							}
+							sqlContext.setGeneratedKeyValues(
+									generatedKeyValues.toArray(new BigDecimal[generatedKeyValues.size()]));
+						}
+					}
+					return counts;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						rollback(RETRY_SAVEPOINT_NAME);
@@ -689,61 +701,24 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createInsertContext(this, metadata, type);
 			context.setSqlKind(SqlKind.INSERT);
 
-			Dialect dialect = getSqlConfig().getDialect();
-
 			// IDアノテーションが付与されたカラム情報を取得する
-			Set<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(type))
-					.filter(c -> c.isId()).collect(Collectors.toSet());
+			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(type))
+					.filter(c -> c.isId()).collect(Collectors.toList());
 
-			// GenerationType.IDENTITYの場合は、実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-			MappingColumn[] identityKeyColumns = idColumns.stream()
-					.filter(c -> GenerationType.IDENTITY.equals(c.getGeneratedValue().strategy()))
-					.toArray(MappingColumn[]::new);
-			if (identityKeyColumns.length > 0) {
-				if (!dialect.supportsIdentity()) {
-					// identityによる自動採番をサポートしていない場合は例外をスローする
-					throw new UroborosqlRuntimeException("Database does not support AUTO_INCREMENT by IDENTITY.");
-				}
-				context.setGeneratedKeyColumns(
-						Arrays.stream(identityKeyColumns).map(MappingColumn::getName).toArray(String[]::new));
-			}
-
-			// GenerationType.SEQUENCEの場合は、シーケンスを取得してentityに設定
-			MappingColumn[] sequenceKeyColumns = idColumns.stream()
-					.filter(c -> GenerationType.SEQUENCE.equals(c.getGeneratedValue().strategy()))
-					.toArray(MappingColumn[]::new);
-			if (sequenceKeyColumns.length > 0) {
-				if (!dialect.supportsSequence()) {
-					// sequenceによる自動採番をサポートしていない場合は例外をスローする
-					throw new UroborosqlRuntimeException("Database does not support AUTO_INCREMENT by SEQUENCE.");
-				}
-				for (MappingColumn sequenceColumn : sequenceKeyColumns) {
-					SequenceGenerator generator = sequenceColumn.getSequenceGenerator();
-					if (generator == null) {
-						throw new UroborosqlRuntimeException("SequenceGenerator has not been specified.");
-					}
-					String sequenceName = getQualifiedSequenceName(generator);
-					String seqSql = dialect.getSequenceNextValSql(sequenceName);
-					try (ResultSet rs = queryWith(seqSql).resultSet()) {
-						if (rs.next()) {
-							BigDecimal id = rs.getBigDecimal(1);
-							setEntityIdValue(entity, id, sequenceColumn);
-						}
-					}
-				}
+			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+			if (!idColumns.isEmpty()) {
+				context.setGeneratedKeyColumns(idColumns.stream().map(MappingColumn::getName).toArray(String[]::new));
 			}
 
 			handler.setInsertParams(context, entity);
 			int count = handler.doInsert(this, context, entity);
 
-			if (identityKeyColumns.length > 0) {
+			if (!idColumns.isEmpty()) {
 				BigDecimal[] ids = context.getGeneratedKeyValues();
-				if (ids.length == identityKeyColumns.length) {
-					for (int i = 0; i < identityKeyColumns.length; i++) {
-						BigDecimal id = ids[i];
-						MappingColumn column = identityKeyColumns[i];
-						setEntityIdValue(entity, id, column);
-					}
+				int idx = 0;
+				for (MappingColumn col : idColumns) {
+					BigDecimal id = ids[idx++];
+					setEntityIdValue(entity, id, col);
 				}
 			}
 
@@ -772,23 +747,6 @@ public class SqlAgentImpl extends AbstractAgent {
 		} else if (String.class.equals(rawType)) {
 			column.setValue(entity, id.toPlainString());
 		}
-	}
-
-	/**
-	 * 修飾済みシーケンス名を取得する
-	 * @param generator SequenceGenerator
-	 * @return 修飾済みシーケンス名
-	 */
-	private String getQualifiedSequenceName(final SequenceGenerator generator) {
-		StringBuilder builder = new StringBuilder();
-		if (!generator.catalog().isEmpty()) {
-			builder.append(generator.catalog()).append(".");
-		}
-		if (!generator.schema().isEmpty()) {
-			builder.append(generator.schema()).append(".");
-		}
-		builder.append(generator.sequence());
-		return builder.toString();
 	}
 
 	/**
@@ -925,7 +883,17 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createBatchInsertContext(this, metadata, entityType);
 			context.setSqlKind(SqlKind.BATCH_INSERT);
 
+			// IDアノテーションが付与されたカラム情報を取得する
+			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(entityType))
+					.filter(c -> c.isId()).collect(Collectors.toList());
+
+			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+			if (!idColumns.isEmpty()) {
+				context.setGeneratedKeyColumns(idColumns.stream().map(MappingColumn::getName).toArray(String[]::new));
+			}
+
 			int count = 0;
+			List<E> entityList = new ArrayList<>();
 			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
 				E entity = iterator.next();
 
@@ -933,20 +901,39 @@ public class SqlAgentImpl extends AbstractAgent {
 					throw new IllegalArgumentException("Entity types do not match");
 				}
 
+				entityList.add(entity);
+
 				handler.setInsertParams(context, entity);
 				context.addBatch();
 
-				count += condition.test(context, context.batchCount(), entity)
-						? Arrays.stream(handler.doBatchInsert(this, context)).sum()
-						: 0;
+				if (condition.test(context, context.batchCount(), entity)) {
+					count += Arrays.stream(doBatchInsert(context, handler, entityList, idColumns)).sum();
+					entityList.clear();
+				}
 			}
 			return count + (context.batchCount() != 0
-					? Arrays.stream(handler.doBatchInsert(this, context)).sum()
+					? Arrays.stream(doBatchInsert(context, handler, entityList, idColumns)).sum()
 					: 0);
-
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.BATCH_INSERT, e);
 		}
+	}
+
+	private <E> int[] doBatchInsert(final SqlContext context, final EntityHandler<E> handler, final List<E> entityList,
+			final List<MappingColumn> idColumns)
+			throws SQLException {
+		int[] counts = handler.doBatchInsert(this, context);
+		if (!idColumns.isEmpty()) {
+			BigDecimal[] ids = context.getGeneratedKeyValues();
+			int idx = 0;
+			for (E ent : entityList) {
+				for (MappingColumn col : idColumns) {
+					setEntityIdValue(ent, ids[idx++], col);
+				}
+			}
+		}
+
+		return counts;
 	}
 
 	/**
@@ -969,8 +956,19 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createBulkInsertContext(this, metadata, entityType);
 			context.setSqlKind(SqlKind.BULK_INSERT);
 
+			// IDアノテーションが付与されたカラム情報を取得する
+			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(entityType))
+					.filter(c -> c.isId()).collect(Collectors.toList());
+
+			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+			String[] generatedKeyColumns = idColumns.stream().map(MappingColumn::getName).toArray(String[]::new);
+			if (!idColumns.isEmpty()) {
+				context.setGeneratedKeyColumns(generatedKeyColumns);
+			}
+
 			int frameCount = 0;
 			int count = 0;
+			List<E> entityList = new ArrayList<>();
 			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
 				E entity = iterator.next();
 
@@ -978,17 +976,26 @@ public class SqlAgentImpl extends AbstractAgent {
 					throw new IllegalArgumentException("Entity types do not match");
 				}
 
+				entityList.add(entity);
+
 				handler.setBulkInsertParams(context, entity, frameCount);
 				frameCount++;
 
 				if (condition.test(context, frameCount, entity)) {
-					count += doBulkInsert(context, entityType, handler, metadata, frameCount);
+					count += doBulkInsert(context, entityType, handler, metadata, idColumns, entityList);
 					frameCount = 0;
+					entityList.clear();
+
 					context = handler.createBulkInsertContext(this, metadata, entityType);
 					context.setSqlKind(SqlKind.BULK_INSERT);
+					// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+					if (!idColumns.isEmpty()) {
+						context.setGeneratedKeyColumns(generatedKeyColumns);
+					}
 				}
 			}
-			return count + (frameCount > 0 ? doBulkInsert(context, entityType, handler, metadata, frameCount) : 0);
+			return count + (frameCount > 0 ? doBulkInsert(context, entityType, handler, metadata, idColumns, entityList)
+					: 0);
 
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.BULK_INSERT, e);
@@ -996,9 +1003,22 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	private <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
-			final TableMetadata metadata, final int frameCount) throws SQLException {
-		return handler.doBulkInsert(this,
-				handler.setupSqlBulkInsertContext(this, context, metadata, entityType, frameCount));
+			final TableMetadata metadata, final List<MappingColumn> idColumns, final List<E> entityList)
+			throws SQLException {
+		int count = handler.doBulkInsert(this,
+				handler.setupSqlBulkInsertContext(this, context, metadata, entityType, entityList.size()));
+
+		if (!idColumns.isEmpty()) {
+			BigDecimal[] ids = context.getGeneratedKeyValues();
+			int idx = 0;
+			for (E ent : entityList) {
+				for (MappingColumn col : idColumns) {
+					setEntityIdValue(ent, ids[idx++], col);
+				}
+			}
+		}
+
+		return count;
 	}
 
 	/**

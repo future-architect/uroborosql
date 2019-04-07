@@ -21,9 +21,11 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
+import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
@@ -69,8 +71,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
+		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -93,8 +95,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName())).setSqlId(createSqlId(metadata, entityType));
+		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -105,8 +107,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
+		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -117,8 +119,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), addCondition)).setSqlId(createSqlId(metadata, entityType));
+		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -129,8 +131,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), false)).setSqlId(createSqlId(metadata, entityType));
+		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -152,8 +154,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext setupSqlBulkInsertContext(final SqlAgent agent, final SqlContext context,
 			final TableMetadata metadata, final Class<? extends Object> entityType, final int numberOfRecords) {
-		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig().getSqlAgentFactory()
-				.getSqlIdKeyName(), numberOfRecords));
+		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig(), numberOfRecords));
 	}
 
 	/**
@@ -269,15 +270,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return SELECT SQL
 	 */
 	protected String buildSelectSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName, final boolean addCondition) {
+			final SqlConfig sqlConfig, final boolean addCondition) {
 		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
-		final StringBuilder sql = new StringBuilder(buildSelectClause(metadata, type, sqlIdKeyName));
+		final StringBuilder sql = new StringBuilder(
+				buildSelectClause(metadata, type, sqlConfig.getSqlAgentFactory().getSqlIdKeyName()));
 
 		if (addCondition) {
 			sql.append("/*BEGIN*/").append(System.lineSeparator());
@@ -353,12 +355,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @return INSERT SQL
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName) {
-		return buildInsertSQL(metadata, type, sqlIdKeyName, true);
+			final SqlConfig sqlConfig) {
+		return buildInsertSQL(metadata, type, sqlConfig, true);
 	}
 
 	/**
@@ -366,22 +368,18 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @param ignoreWhenEmpty 空白パラメータをSQLに含めない条件文を設定する
 	 * @return INSERT SQL
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName, final boolean ignoreWhenEmpty) {
-
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
-				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
-		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumnNames, sqlIdKeyName, ignoreWhenEmpty);
-
+			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
+		Map<String, MappingColumn> mappingColumns = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
+				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty);
 		sql.append(" VALUES ");
-
-		sql.append(buildInsertRowBlock(metadata, mappingColumnNames, ignoreWhenEmpty,
+		sql.append(buildInsertRowBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty,
 				TableMetadata.Column::getCamelColumnName));
-
 		return sql.toString();
 	}
 
@@ -390,23 +388,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @param numberOfRecords レコード行数
 	 * @return INSERT SQL
 	 */
 	protected String buildBulkInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName, final int numberOfRecords) {
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
-				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
-		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumnNames, sqlIdKeyName, false);
-
+			final SqlConfig sqlConfig, final int numberOfRecords) {
+		Map<String, MappingColumn> mappingColumns = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
+				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, false);
 		sql.append(" VALUES ");
 
 		IntStream.range(0, numberOfRecords).forEach(i -> {
 			if (i > 0) {
 				sql.append(",").append(System.lineSeparator());
 			}
-			sql.append(buildInsertRowBlock(metadata, mappingColumnNames, false,
+			sql.append(buildInsertRowBlock(metadata, mappingColumns, sqlConfig, false,
 					col -> buildBulkParamName(col.getCamelColumnName(), i)));
 		});
 		return sql.toString();
@@ -417,13 +414,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return UPDATE SQL
 	 */
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName, final boolean addCondition) {
-		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ").append(sqlIdKeyName).append(" */")
+			final SqlConfig sqlConfig, final boolean addCondition) {
+		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ")
+				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
 		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.UPDATE))
@@ -516,13 +514,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 *
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
-	 * @param sqlIdKeyName SQL_IDキー名
+	 * @param sqlConfig SQLコンフィグ
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return DELETE SQL
 	 */
 	protected String buildDeleteSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final String sqlIdKeyName, final boolean addCondition) {
-		StringBuilder sql = new StringBuilder("DELETE ").append("/* ").append(sqlIdKeyName).append(" */")
+			final SqlConfig sqlConfig, final boolean addCondition) {
+		StringBuilder sql = new StringBuilder("DELETE ").append("/* ")
+				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
 				.append(" FROM ").append(metadata.getTableIdentifier()).append("").append(System.lineSeparator());
 
 		if (addCondition) {
@@ -556,15 +555,24 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql.toString();
 	}
 
-	private StringBuilder buildInsertTargetBlock(final TableMetadata metadata, final List<String> mappingColumnNames,
-			final String sqlIdKeyName, final boolean ignoreWhenEmpty) {
-		StringBuilder sql = new StringBuilder("INSERT ").append("/* ").append(sqlIdKeyName).append(" */")
+	private StringBuilder buildInsertTargetBlock(final TableMetadata metadata,
+			final Map<String, MappingColumn> mappingColumns,
+			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
+
+		StringBuilder sql = new StringBuilder("INSERT ").append("/* ")
+				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
 				.append(" INTO ").append(metadata.getTableIdentifier()).append("(").append(System.lineSeparator());
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
+			MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+			if (mappingColumn != null && mappingColumn.isId()
+					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy())) {
+				// AUTO_INCREMENT対象カラムの場合はスキップする
 				continue;
 			}
 
@@ -579,6 +587,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append(", ");
 			}
+
 			parts.append(col.getColumnIdentifier());
 			if (StringUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
@@ -595,13 +604,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql;
 	}
 
-	private StringBuilder buildInsertRowBlock(final TableMetadata metadata, final List<String> mappingColumnNames,
-			final boolean ignoreWhenEmpty, final Function<TableMetadata.Column, String> getParamName) {
+	private StringBuilder buildInsertRowBlock(final TableMetadata metadata,
+			final Map<String, MappingColumn> mappingColumns,
+			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty,
+			final Function<TableMetadata.Column, String> getParamName) {
 		StringBuilder sql = new StringBuilder("(").append(System.lineSeparator());
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
+			MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+
+			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+			if (mappingColumn != null && mappingColumn.isId()
+					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy())) {
+				// AUTO_INCREMENT対象カラムの場合はスキップする
 				continue;
 			}
 
@@ -616,11 +634,19 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append(", ");
 			}
-			parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-			if (ignoreWhenEmpty && col.isNullable()) {
-				wrapIfComment(sql, parts, col);
-			} else {
+
+			if (mappingColumn != null && mappingColumn.isId()
+					&& GenerationType.SEQUENCE.equals(mappingColumn.getGeneratedValue().strategy())) {
+				String sequenceName = mappingColumn.getQualifiedSequenceName();
+				parts.append(sqlConfig.getDialect().getSequenceNextValSql(sequenceName)).append(System.lineSeparator());
 				sql.append(parts);
+			} else {
+				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
+				if (ignoreWhenEmpty && col.isNullable()) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
 			}
 		}
 
@@ -681,6 +707,10 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Function<MappingColumn, String> getParamName) {
 		Class<?> type = entity.getClass();
 		for (MappingColumn column : MappingUtils.getMappingColumns(type, stmt)) {
+			if (column.isId() && (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
+					|| GenerationType.SEQUENCE.equals(column.getGeneratedValue().strategy()))) {
+				continue;
+			}
 			Object value = column.getValue(entity);
 			context.param(getParamName.apply(column), value);
 		}

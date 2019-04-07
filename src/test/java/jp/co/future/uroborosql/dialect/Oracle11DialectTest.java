@@ -103,7 +103,7 @@ public class Oracle11DialectTest {
 
 	@Test
 	public void testGetSequenceNextValSql() {
-		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("select test_sequence.nextval from dual"));
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("test_sequence.nextval"));
 	}
 
 	@Test

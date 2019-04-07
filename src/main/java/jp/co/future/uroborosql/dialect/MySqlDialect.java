@@ -68,6 +68,6 @@ public class MySqlDialect extends AbstractDialect {
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
-		throw new UroborosqlRuntimeException("Sequence is not supported.");
+		throw new UroborosqlRuntimeException("MySql does not support Sequence.");
 	}
 }

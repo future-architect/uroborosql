@@ -380,7 +380,7 @@ LICENSE file in the root directory of this source tree.
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.196</version>
+			<version>1.4.199</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

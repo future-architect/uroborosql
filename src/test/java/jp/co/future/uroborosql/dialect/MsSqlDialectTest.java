@@ -50,7 +50,7 @@ public class MsSqlDialectTest {
 
 	@Test
 	public void testGetSequenceNextValSql() {
-		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("select next value for test_sequence"));
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("next value for test_sequence"));
 	}
 
 	@Test

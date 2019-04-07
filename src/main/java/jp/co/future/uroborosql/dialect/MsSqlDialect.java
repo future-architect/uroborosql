@@ -60,6 +60,6 @@ public class MsSqlDialect extends AbstractDialect {
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
-		return "select next value for " + sequenceName;
+		return "next value for " + sequenceName;
 	}
 }

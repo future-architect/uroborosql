@@ -50,7 +50,7 @@ public class H2DialectTest {
 
 	@Test
 	public void testGetSequenceNextValSql() {
-		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("select nextval('test_sequence')"));
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("nextval('test_sequence')"));
 	}
 
 	@Test

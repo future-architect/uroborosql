@@ -66,6 +66,6 @@ public class H2Dialect extends AbstractDialect {
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
-		return "select nextval('" + sequenceName + "')";
+		return "nextval('" + sequenceName + "')";
 	}
 }
