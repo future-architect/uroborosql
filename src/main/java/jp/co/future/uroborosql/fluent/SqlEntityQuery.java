@@ -26,7 +26,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	public enum Order {
 		ASCENDING("ASC"), DESCENDING("DESC");
 
-		private String alias;
+		private final String alias;
 
 		Order(final String alias) {
 			this.alias = alias;
@@ -91,6 +91,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	/**
 	 * 検索結果のうち、引数で指定したカラムの合計値を取得（終端処理）
 	 *
+	 * @param <T> return value type
 	 * @param col sum target column name
 	 * @return 合計値.
 	 */
@@ -99,6 +100,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	/**
 	 * 検索結果のうち、引数で指定したカラムの最小値を取得（終端処理）
 	 *
+	 * @param <T> return value type
 	 * @param col min target column name
 	 * @return 最小値.
 	 */
@@ -107,6 +109,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	/**
 	 * 検索結果のうち、引数で指定したカラムの最大値を取得（終端処理）
 	 *
+	 * @param <T> return value type
 	 * @param col max target column name
 	 * @return 最大値.
 	 */
