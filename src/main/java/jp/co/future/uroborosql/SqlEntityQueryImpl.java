@@ -9,6 +9,7 @@ package jp.co.future.uroborosql;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.MappingColumn;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -106,27 +109,187 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	}
 
 	/**
+	 * 引数で指定したカラム名に一致するMappingColumnを探す。見つからなかった場合は例外をスローする
+	 *
+	 * @param col 検索対象のカラム名（キャメルケース）
+	 * @return colに対するMappingColumn
+	 * @throws UroborosqlRuntimeException colに該当するMappingColumnが見つからなかった場合
+	 */
+	private MappingColumn findMappingColumn(final String col) {
+		return Arrays.stream(MappingUtils.getMappingColumns(entityType))
+				.filter(c -> col.equalsIgnoreCase(c.getCamelName())).findFirst()
+				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col=" + col));
+	}
+
+	/**
+	 * 集計関数で集計する元となるSQL文字列を生成する.<br>
+	 * 集計する場合はソートする必要がないので order by が除かれている
+	 *
+	 * @return 集計関数で集計する元となるSQL文字列
+	 */
+	private StringBuilder aggregationSourceSql() {
+		StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause());
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		if (dialect.supportsLimitClause()) {
+			sql.append(dialect.getLimitClause(this.limit, this.offset));
+		}
+		return sql;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#count()
 	 */
 	@Override
 	public long count() {
-		StringBuilder sql = new StringBuilder("select count(*) from (").append(System.lineSeparator())
-				.append(context().getSql())
-				.append(getWhereClause());
-		Dialect dialect = agent().getSqlConfig().getDialect();
-		if (dialect.supportsLimitClause()) {
-			sql.append(dialect.getLimitClause(this.limit, this.offset));
-		}
-		sql.append(System.lineSeparator()).append(") t_");
+		return count(null);
+	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#count(java.lang.String)
+	 */
+	@Override
+	public long count(final String col) {
+		String expr = col != null ? findMappingColumn(col).getName() : "*";
+		StringBuilder sql = new StringBuilder("select count(").append(expr).append(") from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
 		context().setSql(sql.toString());
 		try (ResultSet rs = agent().query(context())) {
 			rs.next();
 			return rs.getLong(1);
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#sum(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T sum(final String col) {
+		MappingColumn mappingColumn = findMappingColumn(col);
+		Class<?> rawType = mappingColumn.getJavaType().getRawType();
+		if (!(short.class.equals(rawType) ||
+				int.class.equals(rawType) ||
+				long.class.equals(rawType) ||
+				float.class.equals(rawType) ||
+				double.class.equals(rawType) ||
+				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
+			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + col);
+		}
+		StringBuilder sql = new StringBuilder("select sum(t_.").append(mappingColumn.getName()).append(") as ")
+				.append(mappingColumn.getName()).append(" from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try {
+			return (T) mappingColumn
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#min(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T min(final String col) {
+		MappingColumn mappingColumn = findMappingColumn(col);
+		StringBuilder sql = new StringBuilder("select min(t_.").append(mappingColumn.getName()).append(") as ")
+				.append(mappingColumn.getName()).append(" from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try {
+			return (T) mappingColumn
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#max(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T max(final String col) {
+		MappingColumn mappingColumn = findMappingColumn(col);
+		StringBuilder sql = new StringBuilder("select max(t_.").append(mappingColumn.getName()).append(") as ")
+				.append(mappingColumn.getName()).append(" from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try {
+			return (T) mappingColumn
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#exists(java.lang.Runnable)
+	 */
+	@Override
+	public void exists(final Runnable runnable) {
+		StringBuilder sql = new StringBuilder("select 1 from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try (ResultSet rs = agent().query(context())) {
+			if (rs.next()) {
+				runnable.run();
+			}
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notExists(java.lang.Runnable)
+	 */
+	@Override
+	public void notExists(final Runnable runnable) {
+		StringBuilder sql = new StringBuilder("select 1 from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try (ResultSet rs = agent().query(context())) {
+			if (!rs.next()) {
+				runnable.run();
+			}
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
 		}
 	}
 
@@ -310,4 +473,5 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return nulls;
 		}
 	}
+
 }

@@ -81,6 +81,55 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	long count();
 
 	/**
+	 * 検索結果のうち、引数で指定したカラムがNULLでない行の件数を取得（終端処理）
+	 *
+	 * @param col count target column name
+	 * @return 引数で指定したカラムがNULLでない行の件数.
+	 */
+	long count(String col);
+
+	/**
+	 * 検索結果のうち、引数で指定したカラムの合計値を取得（終端処理）
+	 *
+	 * @param <T> return value type
+	 * @param col sum target column name
+	 * @return 合計値.
+	 */
+	<T> T sum(String col);
+
+	/**
+	 * 検索結果のうち、引数で指定したカラムの最小値を取得（終端処理）
+	 *
+	 * @param <T> return value type
+	 * @param col min target column name
+	 * @return 最小値.
+	 */
+	<T> T min(String col);
+
+	/**
+	 * 検索結果が1件以上ある場合にRunnableを実行する
+	 *
+	 * @param runnable 検索結果が1件以上ある場合に実行するRunnable
+	 */
+	void exists(Runnable runnable);
+
+	/**
+	 * 検索結果が0件の場合にRunnableを実行する
+	 *
+	 * @param runnable 検索結果が0件の場合に実行するRunnable
+	 */
+	void notExists(Runnable runnable);
+
+	/**
+	 * 検索結果のうち、引数で指定したカラムの最大値を取得（終端処理）
+	 *
+	 * @param <T> return value type
+	 * @param col max target column name
+	 * @return 最大値.
+	 */
+	<T> T max(String col);
+
+	/**
 	 * ソート条件を指定（昇順）
 	 * @param cols sort target column names
 	 * @return SqlEntityQuery
@@ -123,5 +172,4 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> offset(long offset);
-
 }

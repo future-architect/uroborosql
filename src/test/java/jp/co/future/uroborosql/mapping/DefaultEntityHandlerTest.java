@@ -27,6 +27,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
@@ -244,9 +245,116 @@ public class DefaultEntityHandlerTest {
 				agent.insert(test2);
 				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
+				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				agent.insert(test4);
 
-				long count = agent.query(TestEntity3.class).count();
-				assertThat(count, is(3L));
+				long count1 = agent.query(TestEntity3.class).count();
+				assertThat(count1, is(4L));
+				long count2 = agent.query(TestEntity3.class).count("birthday");
+				assertThat(count2, is(3L));
+
+				int sum = agent.query(TestEntity3.class).sum("age");
+				assertThat(sum, is(86));
+
+				int min = agent.query(TestEntity3.class).min("age");
+				assertThat(min, is(20));
+
+				String minName = agent.query(TestEntity3.class).min("name");
+				assertThat(minName, is("name1"));
+
+				long max = agent.query(TestEntity3.class).max("id");
+				assertThat(max, is(4L));
+
+				LocalDate maxDate = agent.query(TestEntity3.class).max("birthday");
+				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 1).exists(() -> {
+						throw new UroborosqlRuntimeException("exists");
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("exists"));
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 0).exists(() -> {
+						throw new UroborosqlRuntimeException("exists");
+					});
+				} catch (UroborosqlRuntimeException ex) {
+					fail();
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 0).notExists(() -> {
+						throw new UroborosqlRuntimeException("not exists");
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("not exists"));
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 1).notExists(() -> {
+						throw new UroborosqlRuntimeException("not exists");
+					});
+				} catch (UroborosqlRuntimeException ex) {
+					fail();
+				}
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testQueryCountUnmatchColumn() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				agent.insert(test4);
+
+				agent.query(TestEntity3.class).count("unmatch");
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testQuerySumUnmatchColumn() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				agent.insert(test4);
+
+				agent.query(TestEntity3.class).sum("unmatch");
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testQuerySumNoNumberColumn() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				agent.insert(test4);
+
+				agent.query(TestEntity3.class).sum("birthday");
 			});
 		}
 	}
@@ -501,10 +609,15 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(1), is(test3));
 
 				// count
-				long count = agent.query(TestEntity.class)
-						.asc("age")
-						.count();
-				assertThat(count, is(3L));
+				long count1 = agent.query(TestEntity.class).asc("age").count();
+				assertThat(count1, is(3L));
+
+				long count2 = agent.query(TestEntity.class).lessEqual("age", 21).count();
+				assertThat(count2, is(2L));
+
+				long count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
+				assertThat(count3, is(1L));
+
 			});
 		}
 	}
