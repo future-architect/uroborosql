@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.context;
 
+import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.Map;
 
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.parser.TransformContext;
 
@@ -210,6 +212,20 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	int getResultSetConcurrency();
 
 	/**
+	 * 実行するSQLの種別を取得する
+	 *
+	 * @return SQL種別
+	 */
+	SqlKind getSqlKind();
+
+	/**
+	 * 実行するSQLの種別を設定する
+	 *
+	 * @param sqlKind SQL種別
+	 */
+	void setSqlKind(SqlKind sqlKind);
+
+	/**
 	 *  DB接続の別名（エイリアス）を設定する
 	 *
 	 * @param dbAlias DB接続の別名（エイリアス）
@@ -235,4 +251,39 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	 * @return バインドパラメータの文字列表現
 	 */
 	String formatParams();
+
+	/**
+	 * 自動採番するキーカラム名の配列を取得する
+	 *
+	 * @return 自動採番するキーカラム名の配列
+	 */
+	String[] getGeneratedKeyColumns();
+
+	/**
+	 * 自動採番するキーカラム名の配列を設定する
+	 *
+	 * @param generatedKeyColumns 自動採番するキーカラム名の配列
+	 */
+	void setGeneratedKeyColumns(String[] generatedKeyColumns);
+
+	/**
+	 * 自動採番するキーカラム値の配列を取得する
+	 *
+	 * @return 自動採番するキーカラム値の配列
+	 */
+	BigDecimal[] getGeneratedKeyValues();
+
+	/**
+	 * 自動採番するキーカラム名の配列に値が設定されているか
+	 *
+	 * @return 値が設定されている場合<code>true</code>
+	 */
+	boolean hasGeneratedKeyColumns();
+
+	/**
+	 * 自動採番するキーカラム値の配列を設定する
+	 *
+	 * @param generatedKeyValues 自動採番するキーカラム値の配列
+	 */
+	void setGeneratedKeyValues(BigDecimal[] generatedKeyValues);
 }

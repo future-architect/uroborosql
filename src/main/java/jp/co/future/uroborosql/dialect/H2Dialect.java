@@ -58,4 +58,14 @@ public class H2Dialect extends AbstractDialect {
 	public boolean supportsNullValuesOrdering() {
 		return true;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
+	 */
+	@Override
+	public String getSequenceNextValSql(final String sequenceName) {
+		return "nextval('" + sequenceName + "')";
+	}
 }

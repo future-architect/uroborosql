@@ -49,6 +49,11 @@ public class H2DialectTest {
 	}
 
 	@Test
+	public void testGetSequenceNextValSql() {
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("nextval('test_sequence')"));
+	}
+
+	@Test
 	public void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
@@ -74,6 +79,8 @@ public class H2DialectTest {
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.supportsIdentity(), is(true));
+		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(true));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}

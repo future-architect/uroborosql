@@ -89,10 +89,18 @@ public abstract class AbstractDialect implements Dialect {
 		DEFAULT_TYPE_MAP.put(JDBCType.OTHER, JavaType.of(Object.class));
 	}
 
+	/**
+	 * コンストラクタ
+	 */
 	protected AbstractDialect() {
 		this('$', DEFAULT_WILDCARDS);
 	}
 
+	/**
+	 * コンストラクタ
+	 * @param escapeChar like検索時のエスケープ文字
+	 * @param wildcards like検索時のワイルドカード文字配列
+	 */
 	protected AbstractDialect(final char escapeChar, final char[] wildcards) {
 		this.escapeChar = escapeChar;
 		this.wildcards = wildcards != null ? wildcards : DEFAULT_WILDCARDS;

@@ -12,6 +12,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * MySqlDialectの個別実装部分のテストケース
@@ -48,6 +49,11 @@ public class MySqlDialectTest {
 		assertThat(dialect, instanceOf(MySqlDialect.class));
 	}
 
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testGetSequenceNextValSql() {
+		dialect.getSequenceNextValSql("test_sequence");
+	}
+
 	@Test
 	public void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
@@ -74,6 +80,8 @@ public class MySqlDialectTest {
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(false));
+		assertThat(dialect.supportsIdentity(), is(true));
+		assertThat(dialect.supportsSequence(), is(false));
 		assertThat(dialect.isRemoveTerminator(), is(true));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}

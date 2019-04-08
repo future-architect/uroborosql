@@ -6,6 +6,8 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+
 /**
  * MySQL用のDialect
  *
@@ -47,5 +49,25 @@ public class MySqlDialect extends AbstractDialect {
 	@Override
 	public boolean supportsLimitClause() {
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsSequence()
+	 */
+	@Override
+	public boolean supportsSequence() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
+	 */
+	@Override
+	public String getSequenceNextValSql(final String sequenceName) {
+		throw new UroborosqlRuntimeException("MySql does not support Sequence.");
 	}
 }

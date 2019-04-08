@@ -102,6 +102,11 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
+	public void testGetSequenceNextValSql() {
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("test_sequence.nextval"));
+	}
+
+	@Test
 	public void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
@@ -127,6 +132,8 @@ public class Oracle10DialectTest {
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(false));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.supportsIdentity(), is(false));
+		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(true));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 	}

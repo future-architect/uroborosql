@@ -6,14 +6,12 @@
  */
 package jp.co.future.uroborosql.dialect;
 
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
-
 /**
  * Oracle11用のDialect
  *
  * @author H.Sugimoto
  */
-public class Oracle11Dialect extends AbstractDialect {
+public class Oracle11Dialect extends OracleDialect {
 
 	/**
 	 * コンストラクタ
@@ -25,49 +23,11 @@ public class Oracle11Dialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.dialect.Dialect#getDatabaseName()
+	 * @see jp.co.future.uroborosql.dialect.OracleDialect#isTargetVersion(int)
 	 */
 	@Override
-	public String getDatabaseName() {
-		return "Oracle";
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsNullValuesOrdering()
-	 */
-	@Override
-	public boolean supportsNullValuesOrdering() {
-		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
-	 */
-	@Override
-	public boolean accept(final ConnectionSupplier supplier) {
-		if (supplier == null) {
-			return false;
-		}
-
-		String[] parts = supplier.getDatabaseName().split("-", 2);
-		String databaseName = parts[0];
-
-		if (!databaseName.startsWith(getDatabaseName())) {
-			return false;
-		}
-
-		String databaseVersion = parts[1];
-
-		try {
-			int majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
-			return majorVersion == 11;
-		} catch (NumberFormatException e) {
-			return false;
-		}
+	protected boolean isTargetVersion(final int majorVersion) {
+		return majorVersion == 11;
 	}
 
 }

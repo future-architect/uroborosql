@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.context;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
@@ -35,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
@@ -138,6 +140,15 @@ public class SqlContextImpl implements SqlContext {
 	/** 変更可能性(デフォルト値:カーソルはデータの読み出ししかサポートしません。) */
 	private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
+	/** 実行するSQLの種別 */
+	private SqlKind sqlKind = SqlKind.SELECT;
+
+	/** 自動採番するキーカラム名の配列 */
+	private String[] generatedKeyColumns;
+
+	/** 自動採番するキーカラム値の配列 */
+	private BigDecimal[] generatedKeyValues;
+
 	/** DBエイリアス名 */
 	private String dbAlias = null;
 
@@ -179,6 +190,7 @@ public class SqlContextImpl implements SqlContext {
 		defineColumnTypeMap.putAll(parent.defineColumnTypeMap);
 		resultSetType = parent.resultSetType;
 		resultSetConcurrency = parent.resultSetConcurrency;
+		sqlKind = parent.sqlKind;
 		dbAlias = parent.dbAlias;
 		contextAttributes.putAll(parent.contextAttributes);
 		queryAutoParameterBinder = parent.queryAutoParameterBinder;
@@ -1086,6 +1098,26 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#getSqlKind()
+	 */
+	@Override
+	public SqlKind getSqlKind() {
+		return sqlKind;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#setSqlKind(jp.co.future.uroborosql.enums.SqlKind)
+	 */
+	@Override
+	public void setSqlKind(final SqlKind sqlKind) {
+		this.sqlKind = sqlKind;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.context.SqlContext#setDBAlias(java.lang.String)
 	 */
 	@Override
@@ -1183,6 +1215,11 @@ public class SqlContextImpl implements SqlContext {
 		return contextAttributes;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#formatParams()
+	 */
 	@Override
 	public String formatParams() {
 		StringBuilder sb = new StringBuilder();
@@ -1190,6 +1227,56 @@ public class SqlContextImpl implements SqlContext {
 			sb.append(String.format("[%s=%s]", bindNames.get(i), bindValiables.get(i)));
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#getGeneratedKeyColumns()
+	 */
+	@Override
+	public String[] getGeneratedKeyColumns() {
+		return this.generatedKeyColumns;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyColumns(java.lang.String[])
+	 */
+	@Override
+	public void setGeneratedKeyColumns(final String[] generatedKeyColumns) {
+		this.generatedKeyColumns = generatedKeyColumns;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#getGeneratedKeyValues()
+	 */
+	@Override
+	public BigDecimal[] getGeneratedKeyValues() {
+		return this.generatedKeyValues;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyValues(java.math.BigDecimal[])
+	 */
+	@Override
+	public void setGeneratedKeyValues(final BigDecimal[] generatedKeyValues) {
+		this.generatedKeyValues = generatedKeyValues;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#hasGeneratedKeyColumns()
+	 */
+	@Override
+	public boolean hasGeneratedKeyColumns() {
+		return getGeneratedKeyColumns() != null && getGeneratedKeyColumns().length > 0;
 	}
 
 }

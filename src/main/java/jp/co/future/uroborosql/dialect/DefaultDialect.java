@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.dialect;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * 標準のDialect
@@ -34,10 +35,30 @@ public class DefaultDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsSequence()
+	 */
+	@Override
+	public boolean supportsSequence() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
 	 */
 	@Override
 	public boolean accept(final ConnectionSupplier supplier) {
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
+	 */
+	@Override
+	public String getSequenceNextValSql(final String sequenceName) {
+		throw new UroborosqlRuntimeException("Sequence is not supported.");
 	}
 }

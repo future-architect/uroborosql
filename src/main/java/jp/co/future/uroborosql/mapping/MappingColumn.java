@@ -6,6 +6,11 @@
  */
 package jp.co.future.uroborosql.mapping;
 
+import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
+import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
+import jp.co.future.uroborosql.mapping.annotations.Transient;
+
 /**
  * カラムマッピングインターフェース
  *
@@ -49,6 +54,63 @@ public interface MappingColumn {
 	 * @return {@link JavaType}
 	 */
 	JavaType getJavaType();
+
+	/**
+	 * IDアノテーションが付与されているかどうか
+	 *
+	 * @return IDアノテーションが付与されている場合<code>true</code>
+	 */
+	boolean isId();
+
+	/**
+	 * {@link GeneratedValue}の取得
+	 *
+	 * @return {@link GeneratedValue}
+	 */
+	GeneratedValue getGeneratedValue();
+
+	/**
+	 * {@link SequenceGenerator}の取得
+	 *
+	 * @return {@link SequenceGenerator}
+	 */
+	SequenceGenerator getSequenceGenerator();
+
+	/**
+	 * 修飾済みのシーケンス名の取得
+	 *
+	 * @return {@link SequenceGenerator} をもとに修飾したシーケンス名
+	 */
+	default String getQualifiedSequenceName() {
+		SequenceGenerator generator = getSequenceGenerator();
+		if (generator == null) {
+			return "";
+		}
+		StringBuilder builder = new StringBuilder();
+		if (!"".equals(generator.catalog())) {
+			builder.append(generator.catalog()).append(".");
+		}
+		if (!"".equals(generator.schema())) {
+			builder.append(generator.schema()).append(".");
+		}
+		builder.append(generator.sequence());
+		return builder.toString();
+	}
+
+	/**
+	 * {@link Transient}の取得
+	 *
+	 * @return {@link Transient}
+	 */
+	Transient getTransient();
+
+	/**
+	 * 指定したSQL種別でtransientかどうかを判断する
+	 *
+	 * @param sqlKind SQL種別
+	 * @return 指定したSQL種別でtransientの場合<code>true</code>
+	 */
+	boolean isTransient(SqlKind sqlKind);
 
 	/**
 	 * バージョン情報カラムかどうか

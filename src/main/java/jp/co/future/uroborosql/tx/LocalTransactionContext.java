@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,7 @@ class LocalTransactionContext implements AutoCloseable {
 	private final List<String> savepointNames = new ArrayList<>();
 
 	/** セーブポイントキャッシュ */
-	private final ConcurrentMap<String, Savepoint> savepointMap = new ConcurrentHashMap<String, Savepoint>();
+	private final ConcurrentMap<String, Savepoint> savepointMap = new ConcurrentHashMap<>();
 
 	/** コネクション提供クラス */
 	private final ConnectionSupplier connectionSupplier;
@@ -104,12 +105,27 @@ class LocalTransactionContext implements AutoCloseable {
 			throw new IllegalArgumentException(sqlContext.getDbAlias());
 		}
 
-		PreparedStatement stmt = sqlFilterManager.doPreparedStatement(
-				sqlContext,
-				conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
-						sqlContext.getResultSetConcurrency()));
-		return stmt;
-
+		PreparedStatement stmt = null;
+		switch (sqlContext.getSqlKind()) {
+		case INSERT:
+		case BULK_INSERT:
+		case BATCH_INSERT:
+			if (sqlContext.hasGeneratedKeyColumns()) {
+				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
+			} else {
+				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+			}
+			break;
+		case SELECT:
+			stmt = conn.prepareStatement(sqlContext.getExecutableSql(),
+					sqlContext.getResultSetType(),
+					sqlContext.getResultSetConcurrency());
+			break;
+		default:
+			stmt = conn.prepareStatement(sqlContext.getExecutableSql());
+			break;
+		}
+		return sqlFilterManager.doPreparedStatement(sqlContext, stmt);
 	}
 
 	/**

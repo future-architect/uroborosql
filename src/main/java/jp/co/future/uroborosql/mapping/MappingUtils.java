@@ -15,8 +15,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Column;
+import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
+import jp.co.future.uroborosql.mapping.annotations.Id;
+import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -55,6 +59,10 @@ public final class MappingUtils {
 		private final JavaType javaType;
 		private final String name;
 		private final String camelName;
+		private final boolean isId;
+		private final GeneratedValue generatedValue;
+		private final SequenceGenerator sequenceGenerator;
+		private final Transient transientAnno;
 		private final boolean isVersion;
 
 		MappingColumnImpl(final Field field, final JavaType javaType) {
@@ -71,9 +79,23 @@ public final class MappingUtils {
 				this.name = CaseFormat.UPPER_SNAKE_CASE.convert(field.getName());
 				this.camelName = field.getName();
 			}
+			this.isId = field.getAnnotation(Id.class) != null;
+			this.generatedValue = field.getAnnotation(GeneratedValue.class);
+			this.sequenceGenerator = field.getAnnotation(SequenceGenerator.class);
+			this.transientAnno = field.getAnnotation(Transient.class);
 			this.isVersion = field.getAnnotation(Version.class) != null;
+
+			if (this.isId && this.generatedValue == null) {
+				throw new UroborosqlRuntimeException("@Id annotation is set in the field [" + field.getName()
+						+ "]. However, @GeneratedValue annotation is not set.");
+			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getValue(java.lang.Object)
+		 */
 		@Override
 		public Object getValue(final Object entity) {
 			try {
@@ -83,6 +105,11 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#setValue(java.lang.Object, java.lang.Object)
+		 */
 		@Override
 		public void setValue(final Object entity, final Object value) {
 			try {
@@ -92,32 +119,113 @@ public final class MappingUtils {
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getJavaType()
+		 */
 		@Override
 		public JavaType getJavaType() {
 			return this.javaType;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getName()
+		 */
 		@Override
 		public String getName() {
 			return this.name;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getCamelName()
+		 */
 		@Override
 		public String getCamelName() {
 			return this.camelName;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isId()
+		 */
+		@Override
+		public boolean isId() {
+			return this.isId;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getGeneratedValue()
+		 */
+		@Override
+		public GeneratedValue getGeneratedValue() {
+			return this.generatedValue;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getSequenceGenerator()
+		 */
+		@Override
+		public SequenceGenerator getSequenceGenerator() {
+			return this.sequenceGenerator;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getTransient()
+		 */
+		@Override
+		public Transient getTransient() {
+			return this.transientAnno;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isTransient(jp.co.future.uroborosql.enums.SqlKind)
+		 */
+		@Override
+		public boolean isTransient(final SqlKind sqlKind) {
+			if (this.transientAnno == null) {
+				return false;
+			}
+
+			switch (sqlKind) {
+			case INSERT:
+				return this.transientAnno.insert();
+			case UPDATE:
+				return this.transientAnno.update();
+			default:
+				return this.transientAnno.insert() && this.transientAnno.update();
+			}
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isVersion()
+		 */
 		@Override
 		public boolean isVersion() {
 			return isVersion;
 		}
 	}
 
-	private static final Map<Class<?>, Map<SqlStatement, MappingColumn[]>> CACHE = new LinkedHashMap<Class<?>, Map<SqlStatement, MappingColumn[]>>() {
+	private static final Map<Class<?>, Map<SqlKind, MappingColumn[]>> CACHE = new LinkedHashMap<Class<?>, Map<SqlKind, MappingColumn[]>>() {
 		private final int cacheSize = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
 
 		@Override
-		protected boolean removeEldestEntry(final Map.Entry<Class<?>, Map<SqlStatement, MappingColumn[]>> eldest) {
+		protected boolean removeEldestEntry(final Map.Entry<Class<?>, Map<SqlKind, MappingColumn[]>> eldest) {
 			return size() > cacheSize;
 		}
 	};
@@ -148,48 +256,44 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
-		return getMappingColumns(entityType, SqlStatement.NONE);
+		return getMappingColumns(entityType, SqlKind.NONE);
 	}
 
 	/**
 	 * カラムマッピング情報取得
 	 *
 	 * @param entityType エンティティ型
-	 * @param stmt SQLステートメントタイプ
+	 * @param kind SQL種別
 	 * @return カラムマッピング情報
 	 */
-	public static MappingColumn[] getMappingColumns(final Class<?> entityType, final SqlStatement stmt) {
+	public static MappingColumn[] getMappingColumns(final Class<?> entityType, final SqlKind kind) {
 		if (entityType == null) {
 			return new MappingColumn[0];
 		}
 
-		Map<SqlStatement, MappingColumn[]> cols;
+		Map<SqlKind, MappingColumn[]> cols;
 		synchronized (CACHE) {
 			cols = CACHE.get(entityType);
 		}
 		if (cols != null) {
-			return cols.computeIfAbsent(stmt, k -> cols.get(SqlStatement.NONE));
+			return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
 		}
 
-		Map<SqlStatement, Map<String, MappingColumn>> fieldsMap =
-				Stream.of(SqlStatement.NONE, SqlStatement.INSERT, SqlStatement.UPDATE).collect(
-						Collectors.toMap(e -> e, e -> new LinkedHashMap<String, MappingColumn>()));
+		Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
+				.collect(Collectors.toMap(e -> e, e -> new LinkedHashMap<>()));
 
 		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
 
 		walkFields(entityType, implementClass, fieldsMap);
 
-		final Map<SqlStatement, MappingColumn[]> entityCols = fieldsMap
-				.entrySet()
-				.stream()
-				.collect(
-						Collectors.toConcurrentMap(e -> e.getKey(),
-								e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
+		final Map<SqlKind, MappingColumn[]> entityCols = fieldsMap.entrySet().stream()
+				.collect(Collectors.toConcurrentMap(e -> e.getKey(),
+						e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
 
 		synchronized (CACHE) {
 			CACHE.put(entityType, entityCols);
 		}
-		return entityCols.computeIfAbsent(stmt, k -> entityCols.get(SqlStatement.NONE));
+		return entityCols.computeIfAbsent(kind, k -> entityCols.get(SqlKind.NONE));
 	}
 
 	/**
@@ -205,16 +309,16 @@ public final class MappingUtils {
 	}
 
 	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass,
-			final Map<SqlStatement, Map<String, MappingColumn>> fieldsMap) {
+			final Map<SqlKind, Map<String, MappingColumn>> fieldsMap) {
 		if (type.equals(Object.class)) {
 			return;
 		}
 		Class<?> superclass = type.getSuperclass();
 		walkFields(superclass, implementClass, fieldsMap);
 
-		Map<String, MappingColumn> noneColumns = fieldsMap.get(SqlStatement.NONE);
-		Map<String, MappingColumn> insertColumns = fieldsMap.get(SqlStatement.INSERT);
-		Map<String, MappingColumn> updateColumns = fieldsMap.get(SqlStatement.UPDATE);
+		Map<String, MappingColumn> noneColumns = fieldsMap.get(SqlKind.NONE);
+		Map<String, MappingColumn> insertColumns = fieldsMap.get(SqlKind.INSERT);
+		Map<String, MappingColumn> updateColumns = fieldsMap.get(SqlKind.UPDATE);
 
 		for (Field field : type.getDeclaredFields()) {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
@@ -226,18 +330,15 @@ public final class MappingUtils {
 			String fieldName = field.getName();
 			noneColumns.put(fieldName, mappingColumn);
 
-			Transient t = field.getAnnotation(Transient.class);
-			if (t != null && t.insert() && t.update()) {
+			if (mappingColumn.isTransient(SqlKind.NONE)) {
 				continue;// 除外
 			}
-			if (t == null || (t != null && !t.insert())) {
+			if (!mappingColumn.isTransient(SqlKind.INSERT)) {
 				insertColumns.put(fieldName, mappingColumn);
 			}
-			if (t == null || (t != null && !t.update())) {
+			if (!mappingColumn.isTransient(SqlKind.UPDATE)) {
 				updateColumns.put(fieldName, mappingColumn);
 			}
-
-			field.setAccessible(true);
 		}
 	}
 }

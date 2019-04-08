@@ -81,6 +81,26 @@ public interface Dialect {
 	}
 
 	/**
+	 * データベースのIDカラムを使用したID自動採番をサポートしているか
+	 *
+	 * @return データベースのIDカラムを使用したID自動採番をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsIdentity() {
+		return true;
+	}
+
+	/**
+	 * データベースのシーケンスを使用したID自動採番をサポートしているか
+	 *
+	 * @return データベースのシーケンスを使用したID自動採番をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsSequence() {
+		return true;
+	}
+
+	String getSequenceNextValSql(String sequenceName);
+
+	/**
 	 * LIMIT句（とOFFSET句）を取得する
 	 *
 	 * @param limit limit

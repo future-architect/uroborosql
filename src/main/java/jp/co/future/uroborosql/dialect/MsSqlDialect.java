@@ -52,4 +52,14 @@ public class MsSqlDialect extends AbstractDialect {
 	public boolean isRemoveTerminator() {
 		return false;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
+	 */
+	@Override
+	public String getSequenceNextValSql(final String sequenceName) {
+		return "next value for " + sequenceName;
+	}
 }
