@@ -110,7 +110,7 @@ class LocalTransactionContext implements AutoCloseable {
 		case INSERT:
 		case BULK_INSERT:
 		case BATCH_INSERT:
-			if (sqlContext.getGeneratedKeyColumns() != null && sqlContext.getGeneratedKeyColumns().length > 0) {
+			if (sqlContext.hasGeneratedKeyColumns()) {
 				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
 			} else {
 				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);

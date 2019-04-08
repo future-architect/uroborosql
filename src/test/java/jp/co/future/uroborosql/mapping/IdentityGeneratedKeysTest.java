@@ -18,6 +18,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
@@ -104,6 +105,16 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityWithIdError test1 = new TestEntityWithIdError("name1");
+				agent.insert(test1);
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testEntityInvalidTypeGeneratedValue() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityWithIdError2 test1 = new TestEntityWithIdError2("name1");
 				agent.insert(test1);
 			});
 		}
@@ -377,6 +388,52 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
+	@Table(name = "TEST")
+	public static class TestEntityWithIdError2 {
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY)
+		private double id;
+		private String name;
+
+		public TestEntityWithIdError2() {
+		}
+
+		public TestEntityWithIdError2(final String name) {
+			this.name = name;
+		}
+
+		public double getId() {
+			return this.id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setId(final double id) {
+			this.id = id;
+		}
+
+		public void setName(final String name) {
+			this.name = name;
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCodeBuilder.reflectionHashCode(this, true);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			return EqualsBuilder.reflectionEquals(this, obj, true);
+		}
+
+		@Override
+		public String toString() {
+			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
 	@Table(name = "TEST_MULTIKEY")
 	public static class TestEntityWithMultiId {
 		@Id
@@ -422,5 +479,4 @@ public class IdentityGeneratedKeysTest {
 			return ToStringBuilder.reflectionToString(this);
 		}
 	}
-
 }

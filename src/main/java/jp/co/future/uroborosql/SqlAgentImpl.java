@@ -41,6 +41,7 @@ import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -279,8 +280,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					int count = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
 					if ((SqlKind.INSERT.equals(sqlContext.getSqlKind()) ||
 							SqlKind.BULK_INSERT.equals(sqlContext.getSqlKind()))
-							&& sqlContext.getGeneratedKeyColumns() != null
-							&& sqlContext.getGeneratedKeyColumns().length > 0) {
+							&& sqlContext.hasGeneratedKeyColumns()) {
 						try (ResultSet rs = stmt.getGeneratedKeys()) {
 							List<BigDecimal> generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
@@ -401,8 +401,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 					int[] counts = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
 					if (SqlKind.BATCH_INSERT.equals(sqlContext.getSqlKind())
-							&& sqlContext.getGeneratedKeyColumns() != null
-							&& sqlContext.getGeneratedKeyColumns().length > 0) {
+							&& sqlContext.hasGeneratedKeyColumns()) {
 						try (ResultSet rs = stmt.getGeneratedKeys()) {
 							List<BigDecimal> generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
@@ -746,6 +745,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			column.setValue(entity, id);
 		} else if (String.class.equals(rawType)) {
 			column.setValue(entity, id.toPlainString());
+		} else {
+			throw new UroborosqlRuntimeException(
+					"Column is not correct as ID type. column=" + column.getCamelName() + ", type=" + rawType);
 		}
 	}
 

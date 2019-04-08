@@ -274,6 +274,13 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
 	BigDecimal[] getGeneratedKeyValues();
 
 	/**
+	 * 自動採番するキーカラム名の配列に値が設定されているか
+	 *
+	 * @return 値が設定されている場合<code>true</code>
+	 */
+	boolean hasGeneratedKeyColumns();
+
+	/**
 	 * 自動採番するキーカラム値の配列を設定する
 	 *
 	 * @param generatedKeyValues 自動採番するキーカラム値の配列

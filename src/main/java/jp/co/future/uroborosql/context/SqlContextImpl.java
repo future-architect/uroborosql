@@ -1269,4 +1269,14 @@ public class SqlContextImpl implements SqlContext {
 		this.generatedKeyValues = generatedKeyValues;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#hasGeneratedKeyColumns()
+	 */
+	@Override
+	public boolean hasGeneratedKeyColumns() {
+		return getGeneratedKeyColumns() != null && getGeneratedKeyColumns().length > 0;
+	}
+
 }
