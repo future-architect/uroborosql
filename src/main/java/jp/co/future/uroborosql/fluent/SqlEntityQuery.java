@@ -107,18 +107,18 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	<T> T min(String col);
 
 	/**
-	 * 検索結果が1件以上ある場合にConsumerを実行する
+	 * 検索結果が1件以上ある場合にRunnableを実行する
 	 *
-	 * @param consumer 検索結果が1件以上ある場合に実行するConsumer
+	 * @param runnable 検索結果が1件以上ある場合に実行するRunnable
 	 */
-	void exists(ExistsConsumer consumer);
+	void exists(Runnable runnable);
 
 	/**
-	 * 検索結果が0件の場合にConsumerを実行する
+	 * 検索結果が0件の場合にRunnableを実行する
 	 *
-	 * @param consumer 検索結果が0件の場合に実行するConsumer
+	 * @param runnable 検索結果が0件の場合に実行するRunnable
 	 */
-	void notExists(NotExistsConsumer consumer);
+	void notExists(Runnable runnable);
 
 	/**
 	 * 検索結果のうち、引数で指定したカラムの最大値を取得（終端処理）
@@ -172,21 +172,4 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> offset(long offset);
-
-	/**
-	 * exists用のConsumer
-	 */
-	@FunctionalInterface
-	public interface ExistsConsumer {
-		void accept();
-	}
-
-	/**
-	 * notExists用のConsumer
-	 */
-	@FunctionalInterface
-	public interface NotExistsConsumer {
-		void accept();
-	}
-
 }

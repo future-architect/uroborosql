@@ -252,10 +252,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#exists(jp.co.future.uroborosql.fluent.SqlEntityQuery.ExistsConsumer)
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#exists(java.lang.Runnable)
 	 */
 	@Override
-	public void exists(final ExistsConsumer consumer) {
+	public void exists(final Runnable runnable) {
 		StringBuilder sql = new StringBuilder("select 1 from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -264,7 +264,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		context().setSql(sql.toString());
 		try (ResultSet rs = agent().query(context())) {
 			if (rs.next()) {
-				consumer.accept();
+				runnable.run();
 			}
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
@@ -274,10 +274,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notExists(jp.co.future.uroborosql.fluent.SqlEntityQuery.NotExistsConsumer)
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notExists(java.lang.Runnable)
 	 */
 	@Override
-	public void notExists(final NotExistsConsumer consumer) {
+	public void notExists(final Runnable runnable) {
 		StringBuilder sql = new StringBuilder("select 1 from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -286,7 +286,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		context().setSql(sql.toString());
 		try (ResultSet rs = agent().query(context())) {
 			if (!rs.next()) {
-				consumer.accept();
+				runnable.run();
 			}
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
