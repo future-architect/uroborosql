@@ -250,6 +250,50 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#exists(jp.co.future.uroborosql.fluent.SqlEntityQuery.ExistsConsumer)
+	 */
+	@Override
+	public void exists(final ExistsConsumer consumer) {
+		StringBuilder sql = new StringBuilder("select 1 from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try (ResultSet rs = agent().query(context())) {
+			if (rs.next()) {
+				consumer.accept();
+			}
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#notExists(jp.co.future.uroborosql.fluent.SqlEntityQuery.NotExistsConsumer)
+	 */
+	@Override
+	public void notExists(final NotExistsConsumer consumer) {
+		StringBuilder sql = new StringBuilder("select 1 from (")
+				.append(System.lineSeparator())
+				.append(aggregationSourceSql())
+				.append(System.lineSeparator())
+				.append(") t_");
+		context().setSql(sql.toString());
+		try (ResultSet rs = agent().query(context())) {
+			if (!rs.next()) {
+				consumer.accept();
+			}
+		} catch (final SQLException e) {
+			throw new EntitySqlRuntimeException(EntityProcKind.SELECT, e);
+		}
+	}
+
+	/**
 	 * ORDER BY句を生成する
 	 *
 	 * @return ORDER BY句の文字列
@@ -429,4 +473,5 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return nulls;
 		}
 	}
+
 }

@@ -267,6 +267,40 @@ public class DefaultEntityHandlerTest {
 
 				LocalDate maxDate = agent.query(TestEntity3.class).max("birthday");
 				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 1).exists(() -> {
+						throw new UroborosqlRuntimeException("exists");
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("exists"));
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 0).exists(() -> {
+						throw new UroborosqlRuntimeException("exists");
+					});
+				} catch (UroborosqlRuntimeException ex) {
+					fail();
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 0).notExists(() -> {
+						throw new UroborosqlRuntimeException("not exists");
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("not exists"));
+				}
+
+				try {
+					agent.query(TestEntity3.class).equal("id", 1).notExists(() -> {
+						throw new UroborosqlRuntimeException("not exists");
+					});
+				} catch (UroborosqlRuntimeException ex) {
+					fail();
+				}
 			});
 		}
 	}

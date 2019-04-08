@@ -26,7 +26,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	public enum Order {
 		ASCENDING("ASC"), DESCENDING("DESC");
 
-		private final String alias;
+		private String alias;
 
 		Order(final String alias) {
 			this.alias = alias;
@@ -107,6 +107,20 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	<T> T min(String col);
 
 	/**
+	 * 検索結果が1件以上ある場合にConsumerを実行する
+	 *
+	 * @param consumer 検索結果が1件以上ある場合に実行するConsumer
+	 */
+	void exists(ExistsConsumer consumer);
+
+	/**
+	 * 検索結果が0件の場合にConsumerを実行する
+	 *
+	 * @param consumer 検索結果が0件の場合に実行するConsumer
+	 */
+	void notExists(NotExistsConsumer consumer);
+
+	/**
 	 * 検索結果のうち、引数で指定したカラムの最大値を取得（終端処理）
 	 *
 	 * @param <T> return value type
@@ -158,5 +172,21 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> offset(long offset);
+
+	/**
+	 * exists用のConsumer
+	 */
+	@FunctionalInterface
+	public interface ExistsConsumer {
+		void accept();
+	}
+
+	/**
+	 * notExists用のConsumer
+	 */
+	@FunctionalInterface
+	public interface NotExistsConsumer {
+		void accept();
+	}
 
 }
