@@ -429,7 +429,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
 			if (!mappingColumns.isEmpty()) {
-				MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+				MappingColumn mappingColumn = mappingColumns.get(col.getCamelColumnName());
 				if (mappingColumn == null) {
 					// Transient annotation のついているカラムをスキップ
 					continue;
@@ -496,13 +496,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 			final boolean first = firstFlag;
 			versionMappingColumn.ifPresent(mappingColumn -> {
+				TableMetadata.Column col = metadata.getColumn(mappingColumn.getCamelName());
 				sql.append("\t");
 				if (first) {
 					sql.append("    ");
 				} else {
 					sql.append("AND ");
 				}
-				sql.append(mappingColumn.getName()).append(" = ").append("/*").append(mappingColumn.getCamelName())
+				sql.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
 						.append("*/''").append(System.lineSeparator());
 			});
 		}
@@ -565,7 +566,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+			MappingColumn mappingColumn = mappingColumns.get(col.getCamelColumnName());
 			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
 				continue;
@@ -611,7 +612,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		StringBuilder sql = new StringBuilder("(").append(System.lineSeparator());
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+			MappingColumn mappingColumn = mappingColumns.get(col.getCamelColumnName());
 
 			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
@@ -707,8 +708,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Function<MappingColumn, String> getParamName) {
 		Class<?> type = entity.getClass();
 		for (MappingColumn column : MappingUtils.getMappingColumns(type, kind)) {
-			if ((SqlKind.INSERT.equals(kind) || SqlKind.BULK_INSERT.equals(kind) || SqlKind.BATCH_INSERT.equals(kind))
-					&& column.isId() && (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
+			if (SqlKind.INSERT.equals(kind) && column.isId()
+					&& (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
 							|| GenerationType.SEQUENCE.equals(column.getGeneratedValue().strategy()))) {
 				continue;
 			}

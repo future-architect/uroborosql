@@ -253,6 +253,34 @@ public final class MappingUtils {
 	 * カラムマッピング情報取得
 	 *
 	 * @param entityType エンティティ型
+	 * @param camelColumnName 取得するカラムのキャメルケース名
+	 * @return カラムマッピング情報
+	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
+	 */
+	public static MappingColumn getMappingColumn(final Class<?> entityType, final String camelColumnName) {
+		return getMappingColumn(entityType, SqlKind.NONE, camelColumnName);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param entityType エンティティ型
+	 * @param kind SQL種別
+	 * @param camelColumnName 取得するカラムのキャメルケース名
+	 * @return カラムマッピング情報
+	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
+	 */
+	public static MappingColumn getMappingColumn(final Class<?> entityType, final SqlKind kind,
+			final String camelColumnName) {
+		return getMappingColumnMap(entityType, kind).entrySet().stream()
+				.filter(entry -> entry.getKey().equals(camelColumnName)).map(entry -> entry.getValue()).findFirst()
+				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col:" + camelColumnName));
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param entityType エンティティ型
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
@@ -305,7 +333,7 @@ public final class MappingUtils {
 	 */
 	public static Map<String, MappingColumn> getMappingColumnMap(final Class<?> entityType, final SqlKind kind) {
 		return Arrays.stream(MappingUtils.getMappingColumns(entityType, kind))
-				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+				.collect(Collectors.toMap(MappingColumn::getCamelName, c -> c));
 	}
 
 	/**

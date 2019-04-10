@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.connection.ConnectionManager;
-import jp.co.future.uroborosql.utils.CaseFormat;
-
 import org.apache.commons.lang3.StringUtils;
+
+import jp.co.future.uroborosql.connection.ConnectionManager;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * テーブルメタ情報
@@ -157,6 +158,15 @@ public interface TableMetadata {
 					+ getTableName() + identifierQuoteString;
 		}
 	}
+
+	/**
+	 * カラム取得
+	 *
+	 * @param camelColumnName カラムのキャメル名
+	 * @return カラム
+	 * @exception UroborosqlRuntimeException 指定したキャメルカラム名に該当するカラムが見つからなかった場合
+	 */
+	TableMetadata.Column getColumn(String camelColumnName);
 
 	/**
 	 * カラム取得

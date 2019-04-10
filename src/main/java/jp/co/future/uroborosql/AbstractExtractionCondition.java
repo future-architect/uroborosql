@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Objects;
 
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.fluent.ExtractionCondition;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 抽出条件の生成を担当するクラス
@@ -26,6 +28,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
 abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends AbstractSqlFluent<T>
 		implements ExtractionCondition<T> {
 
+	public static final String PARAM_KEY_ESCAPE_CHAR = "ESC_CHAR";
 	protected final TableMetadata tableMetadata;
 	private final List<CharSequence> rawStrings;
 	private boolean useOperator = false;
@@ -223,7 +226,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T like(final String col, final CharSequence searchValue) {
-		context().param(col, new Like(col, searchValue));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		context().param(col, new Like(col, searchValue)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -236,8 +240,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T startsWith(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new Like(col, escaped, true));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new Like(col, escaped, true)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -250,8 +255,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T endsWith(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new Like(col, true, escaped));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new Like(col, true, escaped)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -264,8 +270,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T contains(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new Like(col, true, escaped, true));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new Like(col, true, escaped, true)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -278,7 +285,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notLike(final String col, final CharSequence searchValue) {
-		context().param(col, new NotLike(col, searchValue));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		context().param(col, new NotLike(col, searchValue)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -291,8 +299,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notStartsWith(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new NotLike(col, escaped, true));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, escaped, true)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -305,8 +314,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notEndsWith(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new NotLike(col, true, escaped));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, true, escaped)).param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -319,8 +329,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notContains(final String col, final CharSequence searchValue) {
-		String escaped = agent().getSqlConfig().getDialect().escapeLikePattern(searchValue);
-		context().param(col, new NotLike(col, true, escaped, true));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		String escaped = dialect.escapeLikePattern(searchValue);
+		context().param(col, new NotLike(col, true, escaped, true)).param(PARAM_KEY_ESCAPE_CHAR,
+				dialect.getEscapeChar());
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -389,7 +401,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col バインドしたカラム名
 		 */
 		public Operator(final String col) {
-			this.col = col;
+			this.col = CaseFormat.CAMEL_CASE.convert(col);
 		}
 
 		/**
@@ -442,16 +454,6 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		public SingleOperator(final String col, final Object value) {
 			super(col);
 			this.value = value;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#getCol()
-		 */
-		@Override
-		public String getCol() {
-			return col;
 		}
 
 		/**

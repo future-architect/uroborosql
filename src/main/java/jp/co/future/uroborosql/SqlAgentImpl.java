@@ -736,7 +736,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			List<String> keyColumnNames = new ArrayList<>();
 			for (MappingColumn idColumn : idColumns) {
 				for (TableMetadata.Column column : metadata.getColumns()) {
-					if (idColumn.getName().equalsIgnoreCase(column.getColumnName())) {
+					if (idColumn.getCamelName().equals(column.getCamelColumnName())) {
 						keyColumnNames.add(column.getColumnName());
 						break;
 					}
