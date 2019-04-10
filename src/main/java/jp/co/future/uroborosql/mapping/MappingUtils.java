@@ -297,6 +297,29 @@ public final class MappingUtils {
 	}
 
 	/**
+	 * カラム名（小文字）をキーとしたMapにカラムマッピング情報を取得
+	 *
+	 * @param entityType エンティティ型
+	 * @param kind SQL種別
+	 * @return カラムマッピング情報
+	 */
+	public static Map<String, MappingColumn> getMappingColumnMap(final Class<?> entityType, final SqlKind kind) {
+		return Arrays.stream(MappingUtils.getMappingColumns(entityType, kind))
+				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+	}
+
+	/**
+	 * IDカラムマッピング情報を返す
+	 *
+	 * @param entityType エンティティ型
+	 * @return カラムマッピング情報
+	 */
+	public static MappingColumn[] getIdMappingColumns(final Class<?> entityType) {
+		return Arrays.stream(MappingUtils.getMappingColumns(entityType)).filter(c -> c.isId())
+				.toArray(MappingColumn[]::new);
+	}
+
+	/**
 	 * バージョン情報のカラムマッピング情報を返す
 	 *
 	 * @param entityType エンティティ型

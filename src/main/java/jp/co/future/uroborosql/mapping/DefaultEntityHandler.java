@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -374,8 +373,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
-		Map<String, MappingColumn> mappingColumns = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
-				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.INSERT);
 		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty);
 		sql.append(" VALUES ");
 		sql.append(buildInsertRowBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty,
@@ -394,8 +392,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildBulkInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final int numberOfRecords) {
-		Map<String, MappingColumn> mappingColumns = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.INSERT))
-				.collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c));
+		Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.INSERT);
 		StringBuilder sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, false);
 		sql.append(" VALUES ");
 
@@ -424,18 +421,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
-		List<String> mappingColumnNames = Arrays.stream(MappingUtils.getMappingColumns(type, SqlKind.UPDATE))
-				.map(c -> c.getName().toLowerCase()).collect(Collectors.toList());
+		Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.UPDATE);
 
 		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty()
-				: MappingUtils
-						.getVersionMappingColumn(type);
+				: MappingUtils.getVersionMappingColumn(type);
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (!mappingColumnNames.isEmpty() && !mappingColumnNames.contains(col.getColumnName().toLowerCase())) {
-				// Transient annotation のついているカラムをスキップ
-				continue;
+			if (!mappingColumns.isEmpty()) {
+				MappingColumn mappingColumn = mappingColumns.get(col.getColumnName().toLowerCase());
+				if (mappingColumn == null) {
+					// Transient annotation のついているカラムをスキップ
+					continue;
+				} else if (mappingColumn.isId()) {
+					// @Idが付与されたカラムは自動採番なので更新対象としないためスキップする
+					continue;
+				}
 			}
 
 			String camelColName = col.getCamelColumnName();
@@ -470,8 +471,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		if (addCondition) {
 			sql.append("WHERE").append(System.lineSeparator());
 			final List<? extends Column> cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays
-							.asList(metadata.getColumns().get(0));
+					: Arrays.asList(metadata.getColumns().get(0));
 			firstFlag = true;
 			for (final TableMetadata.Column col : cols) {
 				final StringBuilder parts = new StringBuilder().append("\t");
@@ -703,12 +703,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return original;
 	}
 
-	private void setFields(final SqlContext context, final Object entity, final SqlKind stmt,
+	private void setFields(final SqlContext context, final Object entity, final SqlKind kind,
 			final Function<MappingColumn, String> getParamName) {
 		Class<?> type = entity.getClass();
-		for (MappingColumn column : MappingUtils.getMappingColumns(type, stmt)) {
-			if (column.isId() && (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
-					|| GenerationType.SEQUENCE.equals(column.getGeneratedValue().strategy()))) {
+		for (MappingColumn column : MappingUtils.getMappingColumns(type, kind)) {
+			if ((SqlKind.INSERT.equals(kind) || SqlKind.BULK_INSERT.equals(kind) || SqlKind.BATCH_INSERT.equals(kind))
+					&& column.isId() && (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
+							|| GenerationType.SEQUENCE.equals(column.getGeneratedValue().strategy()))) {
 				continue;
 			}
 			Object value = column.getValue(entity);

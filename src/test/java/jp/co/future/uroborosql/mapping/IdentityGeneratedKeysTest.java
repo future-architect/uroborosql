@@ -100,6 +100,30 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
+	@Test
+	public void testInsertAndUpdate() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				TestEntityWithId test1 = new TestEntityWithId("name1");
+				agent.insert(test1);
+				assertThat(test1.getId(), is(++currVal));
+
+				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				assertThat(data.getName(), is("name1"));
+
+				test1.setName("rename1");
+				agent.update(test1);
+
+				data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				assertThat(data.getName(), is("rename1"));
+
+			});
+		}
+	}
+
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testEntityNotGeneratedValue() throws Exception {
 		try (SqlAgent agent = config.agent()) {
