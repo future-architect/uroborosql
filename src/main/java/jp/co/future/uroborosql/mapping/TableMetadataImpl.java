@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -104,7 +105,6 @@ public class TableMetadataImpl implements TableMetadata {
 			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
 		}
 
-
 		@Override
 		public String getColumnName() {
 			return this.columnName;
@@ -112,8 +112,9 @@ public class TableMetadataImpl implements TableMetadata {
 
 		@Override
 		public String getCamelColumnName() {
-			return this.camelName != null ? this.camelName : (this.camelName = CaseFormat.CAMEL_CASE
-					.convert(getColumnName()));
+			return this.camelName != null ? this.camelName
+					: (this.camelName = CaseFormat.CAMEL_CASE
+							.convert(getColumnName()));
 		}
 
 		/**
@@ -127,6 +128,11 @@ public class TableMetadataImpl implements TableMetadata {
 			this.identifier = null;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getDataType()
+		 */
 		@Override
 		public JDBCType getDataType() {
 			return this.dataType;
@@ -141,32 +147,62 @@ public class TableMetadataImpl implements TableMetadata {
 			this.dataType = dataType;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getColumnIdentifier()
+		 */
 		@Override
 		public String getColumnIdentifier() {
 			return this.identifier != null ? this.identifier
 					: (this.identifier = identifierQuoteString + getColumnName() + identifierQuoteString);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getKeySeq()
+		 */
 		@Override
 		public int getKeySeq() {
 			return this.keySeq;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#isKey()
+		 */
 		@Override
 		public boolean isKey() {
 			return this.keySeq != null;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getRemarks()
+		 */
 		@Override
 		public String getRemarks() {
 			return this.remarks;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#isNullable()
+		 */
 		@Override
 		public boolean isNullable() {
 			return this.nullable;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getOrdinalPosition()
+		 */
 		@Override
 		public int getOrdinalPosition() {
 			return this.ordinalPosition;
@@ -215,6 +251,11 @@ public class TableMetadataImpl implements TableMetadata {
 		this.columns.add(column);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getTableName()
+	 */
 	@Override
 	public String getTableName() {
 		return this.tableName;
@@ -231,15 +272,20 @@ public class TableMetadataImpl implements TableMetadata {
 		this.identifier = null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getSchema()
+	 */
 	@Override
 	public String getSchema() {
 		return this.schema;
 	}
 
 	/**
-	 * スキーマ名設定
+	 * {@inheritDoc}
 	 *
-	 * @param schema スキーマ名
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setSchema(java.lang.String)
 	 */
 	@Override
 	public void setSchema(final String schema) {
@@ -247,24 +293,55 @@ public class TableMetadataImpl implements TableMetadata {
 		this.identifier = null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getIdentifierQuoteString()
+	 */
 	@Override
 	public String getIdentifierQuoteString() {
 		return identifierQuoteString;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setIdentifierQuoteString(java.lang.String)
+	 */
 	@Override
 	public void setIdentifierQuoteString(final String identifierQuoteString) {
 		this.identifierQuoteString = identifierQuoteString;
 		this.identifier = null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getTableIdentifier()
+	 */
 	@Override
 	public String getTableIdentifier() {
 		return this.identifier != null ? this.identifier : (this.identifier = TableMetadata.super.getTableIdentifier());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getColumns()
+	 */
 	@Override
 	public List<? extends TableMetadata.Column> getColumns() {
 		return this.columns;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getColumn(java.lang.String)
+	 */
+	@Override
+	public TableMetadata.Column getColumn(final String camelColumnName) {
+		return this.columns.stream().filter(c -> c.getCamelColumnName().equals(camelColumnName)).findFirst()
+				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col=" + camelColumnName));
 	}
 }

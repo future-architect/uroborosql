@@ -102,6 +102,30 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
+	public void testInsertAndUpdate() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				TestEntityWithSeq test1 = new TestEntityWithSeq("name1");
+				agent.insert(test1);
+				assertThat(test1.getId(), is(++currVal));
+
+				TestEntityWithSeq data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				assertThat(data.getName(), is("name1"));
+
+				test1.setName("rename1");
+				agent.update(test1);
+
+				data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				assertThat(data.getName(), is("rename1"));
+
+			});
+		}
+	}
+
+	@Test
 	public void testInsertMultikey() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {

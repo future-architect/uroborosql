@@ -701,18 +701,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			context.setSqlKind(SqlKind.INSERT);
 
 			// IDアノテーションが付与されたカラム情報を取得する
-			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(type))
-					.filter(c -> c.isId()).collect(Collectors.toList());
+			MappingColumn[] idColumns = MappingUtils.getIdMappingColumns(type);
 
-			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-			if (!idColumns.isEmpty()) {
-				context.setGeneratedKeyColumns(idColumns.stream().map(MappingColumn::getName).toArray(String[]::new));
-			}
+			setGeneratedKeyColumns(context, idColumns, metadata);
 
 			handler.setInsertParams(context, entity);
 			int count = handler.doInsert(this, context, entity);
 
-			if (!idColumns.isEmpty()) {
+			if (idColumns != null && idColumns.length > 0) {
 				BigDecimal[] ids = context.getGeneratedKeyValues();
 				int idx = 0;
 				for (MappingColumn col : idColumns) {
@@ -724,6 +720,29 @@ public class SqlAgentImpl extends AbstractAgent {
 			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.INSERT, e);
+		}
+	}
+
+	/**
+	 * IDカラムの自動採番結果を取得できるよう、対象となるIDカラムをSqlContextに設定する
+	 * @param context SqlContext
+	 * @param idColumns IDカラム名配列
+	 * @param metadata テーブルメタデータ
+	 */
+	private void setGeneratedKeyColumns(final SqlContext context, final MappingColumn[] idColumns,
+			final TableMetadata metadata) {
+		// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
+		if (idColumns != null && idColumns.length > 0) {
+			List<String> keyColumnNames = new ArrayList<>();
+			for (MappingColumn idColumn : idColumns) {
+				for (TableMetadata.Column column : metadata.getColumns()) {
+					if (idColumn.getCamelName().equals(column.getCamelColumnName())) {
+						keyColumnNames.add(column.getColumnName());
+						break;
+					}
+				}
+			}
+			context.setGeneratedKeyColumns(keyColumnNames.toArray(new String[keyColumnNames.size()]));
 		}
 	}
 
@@ -886,13 +905,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			context.setSqlKind(SqlKind.BATCH_INSERT);
 
 			// IDアノテーションが付与されたカラム情報を取得する
-			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(entityType))
-					.filter(c -> c.isId()).collect(Collectors.toList());
+			MappingColumn[] idColumns = MappingUtils.getIdMappingColumns(entityType);
 
-			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-			if (!idColumns.isEmpty()) {
-				context.setGeneratedKeyColumns(idColumns.stream().map(MappingColumn::getName).toArray(String[]::new));
-			}
+			setGeneratedKeyColumns(context, idColumns, metadata);
 
 			int count = 0;
 			List<E> entityList = new ArrayList<>();
@@ -922,10 +937,10 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	private <E> int[] doBatchInsert(final SqlContext context, final EntityHandler<E> handler, final List<E> entityList,
-			final List<MappingColumn> idColumns)
+			final MappingColumn[] idColumns)
 			throws SQLException {
 		int[] counts = handler.doBatchInsert(this, context);
-		if (!idColumns.isEmpty()) {
+		if (idColumns != null && idColumns.length > 0) {
 			BigDecimal[] ids = context.getGeneratedKeyValues();
 			int idx = 0;
 			for (E ent : entityList) {
@@ -959,14 +974,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			context.setSqlKind(SqlKind.BULK_INSERT);
 
 			// IDアノテーションが付与されたカラム情報を取得する
-			List<MappingColumn> idColumns = Arrays.stream(MappingUtils.getMappingColumns(entityType))
-					.filter(c -> c.isId()).collect(Collectors.toList());
+			MappingColumn[] idColumns = MappingUtils.getIdMappingColumns(entityType);
 
-			// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-			String[] generatedKeyColumns = idColumns.stream().map(MappingColumn::getName).toArray(String[]::new);
-			if (!idColumns.isEmpty()) {
-				context.setGeneratedKeyColumns(generatedKeyColumns);
-			}
+			setGeneratedKeyColumns(context, idColumns, metadata);
 
 			int frameCount = 0;
 			int count = 0;
@@ -988,12 +998,12 @@ public class SqlAgentImpl extends AbstractAgent {
 					frameCount = 0;
 					entityList.clear();
 
+					// 新しいSqlContextを作成する前にgeneratedKeyColumnsを退避しておく
+					String[] generatedKeyColumns = context.getGeneratedKeyColumns();
 					context = handler.createBulkInsertContext(this, metadata, entityType);
 					context.setSqlKind(SqlKind.BULK_INSERT);
 					// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
-					if (!idColumns.isEmpty()) {
-						context.setGeneratedKeyColumns(generatedKeyColumns);
-					}
+					context.setGeneratedKeyColumns(generatedKeyColumns);
 				}
 			}
 			return count + (frameCount > 0 ? doBulkInsert(context, entityType, handler, metadata, idColumns, entityList)
@@ -1005,12 +1015,12 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	private <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
-			final TableMetadata metadata, final List<MappingColumn> idColumns, final List<E> entityList)
+			final TableMetadata metadata, final MappingColumn[] idColumns, final List<E> entityList)
 			throws SQLException {
 		int count = handler.doBulkInsert(this,
 				handler.setupSqlBulkInsertContext(this, context, metadata, entityType, entityList.size()));
 
-		if (!idColumns.isEmpty()) {
+		if (idColumns != null && idColumns.length > 0) {
 			BigDecimal[] ids = context.getGeneratedKeyValues();
 			int idx = 0;
 			for (E ent : entityList) {

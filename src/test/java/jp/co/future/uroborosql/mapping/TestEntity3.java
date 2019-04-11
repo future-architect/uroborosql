@@ -1,10 +1,13 @@
 package jp.co.future.uroborosql.mapping;
 
-import jp.co.future.uroborosql.mapping.annotations.Table;
-import jp.co.future.uroborosql.mapping.annotations.*;
-import org.apache.commons.lang3.builder.*;
+import java.time.LocalDate;
 
-import java.time.*;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import jp.co.future.uroborosql.mapping.annotations.Table;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 
 @Table(name = "TEST")
 public class TestEntity3 {
@@ -23,6 +26,20 @@ public class TestEntity3 {
 		this.name = name;
 		this.age = age;
 		this.birthday = birthday;
+	}
+
+	public interface Names {
+		String Id = "id";
+		String Name = "name";
+		String Age = "age";
+		String Birthday = "birthday";
+	}
+
+	public interface Cols {
+		String Id = "id";
+		String Name = "name";
+		String Age = "age";
+		String Birthday = "birthday";
 	}
 
 	public long getId() {
@@ -61,7 +78,7 @@ public class TestEntity3 {
 		return lockVersion;
 	}
 
-	public void setLockVersion(int lockVersion) {
+	public void setLockVersion(final int lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 

@@ -9,7 +9,6 @@ package jp.co.future.uroborosql;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,19 +108,6 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	}
 
 	/**
-	 * 引数で指定したカラム名に一致するMappingColumnを探す。見つからなかった場合は例外をスローする
-	 *
-	 * @param col 検索対象のカラム名（キャメルケース）
-	 * @return colに対するMappingColumn
-	 * @throws UroborosqlRuntimeException colに該当するMappingColumnが見つからなかった場合
-	 */
-	private MappingColumn findMappingColumn(final String col) {
-		return Arrays.stream(MappingUtils.getMappingColumns(entityType))
-				.filter(c -> col.equalsIgnoreCase(c.getCamelName())).findFirst()
-				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col=" + col));
-	}
-
-	/**
 	 * 集計関数で集計する元となるSQL文字列を生成する.<br>
 	 * 集計する場合はソートする必要がないので order by が除かれている
 	 *
@@ -153,7 +139,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public long count(final String col) {
-		String expr = col != null ? findMappingColumn(col).getName() : "*";
+		final String expr = col != null
+				? tableMetadata.getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
+				: "*";
 		StringBuilder sql = new StringBuilder("select count(").append(expr).append(") from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -176,7 +164,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T sum(final String col) {
-		MappingColumn mappingColumn = findMappingColumn(col);
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -184,10 +173,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				float.class.equals(rawType) ||
 				double.class.equals(rawType) ||
 				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
-			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + col);
+			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
-		StringBuilder sql = new StringBuilder("select sum(t_.").append(mappingColumn.getName()).append(") as ")
-				.append(mappingColumn.getName()).append(" from (")
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
+				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
@@ -209,9 +199,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T min(final String col) {
-		MappingColumn mappingColumn = findMappingColumn(col);
-		StringBuilder sql = new StringBuilder("select min(t_.").append(mappingColumn.getName()).append(") as ")
-				.append(mappingColumn.getName()).append(" from (")
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
+				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
@@ -233,9 +225,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T max(final String col) {
-		MappingColumn mappingColumn = findMappingColumn(col);
-		StringBuilder sql = new StringBuilder("select max(t_.").append(mappingColumn.getName()).append(") as ")
-				.append(mappingColumn.getName()).append(" from (")
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
+				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
@@ -314,9 +308,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			// ソート条件の指定がある場合は指定されたカラムでソートする
 			keys = new ArrayList<>();
 			for (SortOrder sortOrder : sortOrders) {
-				String snakeCol = CaseFormat.UPPER_SNAKE_CASE.convert(sortOrder.getCol());
 				for (TableMetadata.Column metaCol : this.tableMetadata.getColumns()) {
-					if (snakeCol.equalsIgnoreCase(metaCol.getColumnName())) {
+					if (sortOrder.getCol().equals(metaCol.getCamelColumnName())) {
 						keys.add(metaCol);
 						existsSortOrders.put(metaCol, sortOrder);
 						break;
@@ -456,7 +449,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			if (col == null) {
 				throw new UroborosqlRuntimeException("argment col is required.");
 			}
-			this.col = col;
+			this.col = CaseFormat.CAMEL_CASE.convert(col);
 			this.order = order != null ? order : Order.ASCENDING;
 			this.nulls = nulls != null ? nulls : Nulls.LAST;
 		}

@@ -52,11 +52,11 @@ public class DefaultEntityHandlerTest {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute(
-						"create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version NUMERIC(4), primary key(id))");
+						"create table if not exists test( \"ID\" NUMERIC(4),name VARCHAR(10),\"Age\" NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version NUMERIC(4), primary key(id))");
 				stmt.execute("comment on table test is 'test'");
-				stmt.execute("comment on column test.id is 'id'");
+				stmt.execute("comment on column test.\"ID\" is 'id'");
 				stmt.execute("comment on column test.name is 'name'");
-				stmt.execute("comment on column test.age is 'age'");
+				stmt.execute("comment on column test.\"Age\" is 'age'");
 				stmt.execute("comment on column test.birthday is 'birthday'");
 				stmt.execute("comment on column test.memo is 'memo'");
 
@@ -250,26 +250,26 @@ public class DefaultEntityHandlerTest {
 
 				long count1 = agent.query(TestEntity3.class).count();
 				assertThat(count1, is(4L));
-				long count2 = agent.query(TestEntity3.class).count("birthday");
+				long count2 = agent.query(TestEntity3.class).count(TestEntity3.Names.Birthday);
 				assertThat(count2, is(3L));
 
-				int sum = agent.query(TestEntity3.class).sum("age");
+				int sum = agent.query(TestEntity3.class).sum(TestEntity3.Names.Age);
 				assertThat(sum, is(86));
 
-				int min = agent.query(TestEntity3.class).min("age");
+				int min = agent.query(TestEntity3.class).min(TestEntity3.Names.Age);
 				assertThat(min, is(20));
 
-				String minName = agent.query(TestEntity3.class).min("name");
+				String minName = agent.query(TestEntity3.class).min(TestEntity3.Names.Name);
 				assertThat(minName, is("name1"));
 
-				long max = agent.query(TestEntity3.class).max("id");
+				long max = agent.query(TestEntity3.class).max(TestEntity3.Names.Id);
 				assertThat(max, is(4L));
 
-				LocalDate maxDate = agent.query(TestEntity3.class).max("birthday");
+				LocalDate maxDate = agent.query(TestEntity3.class).max(TestEntity3.Names.Birthday);
 				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
 
 				try {
-					agent.query(TestEntity3.class).equal("id", 1).exists(() -> {
+					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 1).exists(() -> {
 						throw new UroborosqlRuntimeException("exists");
 					});
 					fail();
@@ -278,7 +278,7 @@ public class DefaultEntityHandlerTest {
 				}
 
 				try {
-					agent.query(TestEntity3.class).equal("id", 0).exists(() -> {
+					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 0).exists(() -> {
 						throw new UroborosqlRuntimeException("exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
@@ -286,7 +286,7 @@ public class DefaultEntityHandlerTest {
 				}
 
 				try {
-					agent.query(TestEntity3.class).equal("id", 0).notExists(() -> {
+					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 0).notExists(() -> {
 						throw new UroborosqlRuntimeException("not exists");
 					});
 					fail();
@@ -295,7 +295,7 @@ public class DefaultEntityHandlerTest {
 				}
 
 				try {
-					agent.query(TestEntity3.class).equal("id", 1).notExists(() -> {
+					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 1).notExists(() -> {
 						throw new UroborosqlRuntimeException("not exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
@@ -555,10 +555,10 @@ public class DefaultEntityHandlerTest {
 
 				// where
 				list = agent.query(TestEntity.class)
-						.where("BIRTHDAY < /*birthday1*/ or BIRTHDAY > /*birthday2*/")
+						.where("birthday < /*birthday1*/ or BIRTHDAY > /*birthday2*/")
 						.param("birthday1", LocalDate.of(1990, Month.APRIL, 15))
 						.param("birthday2", LocalDate.of(1990, Month.MAY, 15))
-						.where("AGE < /*age*/")
+						.where("\"Age\" < /*age*/")
 						.param("age", 21)
 						.collect();
 				assertThat(list.size(), is(1));
