@@ -9,18 +9,18 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 
-import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 public class TransientTest {
 
@@ -75,6 +75,50 @@ public class TransientTest {
 			this.age = age;
 			this.birthday = birthday;
 			TestEntity.ignore = "ignore";
+		}
+
+		public long getId() {
+			return id;
+		}
+
+		public void setId(final long id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(final String name) {
+			this.name = name;
+		}
+
+		public int getAge() {
+			return age;
+		}
+
+		public void setAge(final int age) {
+			this.age = age;
+		}
+
+		public LocalDate getBirthday() {
+			return birthday;
+		}
+
+		public void setBirthday(final LocalDate birthday) {
+			this.birthday = birthday;
+		}
+
+		public static String getIgnore() {
+			return ignore;
+		}
+
+		public static void setIgnore(final String ignore) {
+			TestEntity.ignore = ignore;
+		}
+
+		public int getFinalInt() {
+			return finalInt;
 		}
 
 		@Override

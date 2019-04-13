@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -49,14 +50,21 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.ParsedLine;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.completer.AggregateCompleter;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp.Capability;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import jline.console.ConsoleReader;
-import jline.console.UserInterruptException;
-import jline.console.completer.CandidateListCompletionHandler;
-import jline.console.completer.Completer;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -197,6 +205,19 @@ public class SqlREPL {
 			}
 			return HELP;
 		}
+
+		public static Completer getCommandCompleter() {
+			return new Completer() {
+				@Override
+				public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
+					if (line.wordIndex() == 0) {
+						Stream.of(Command.values()).filter(c -> c.match(line.word()))
+								.map(c -> new Candidate(c.toString()))
+								.forEach(candidates::add);
+					}
+				}
+			};
+		}
 	}
 
 	/** プロパティパス */
@@ -210,9 +231,6 @@ public class SqlREPL {
 
 	/** SQL設定クラス */
 	private SqlConfig config = null;
-
-	/** コンソールリーダ */
-	private ConsoleReader console = null;
 
 	/**
 	 * メインメソッド
@@ -267,7 +285,6 @@ public class SqlREPL {
 	public SqlREPL(final Path path) throws Exception {
 		propPath = path;
 		props = loadProps(path);
-		console = new ConsoleReader();
 	}
 
 	/**
@@ -276,16 +293,16 @@ public class SqlREPL {
 	 * @throws Exception 実行時例外
 	 */
 	private void execute() throws Exception {
-		showMessage("/message.txt");
-		showProps();
+		try (Terminal terminal = TerminalBuilder.builder().build()) {
+			showMessage(terminal, "/message.txt");
+			showProps(terminal);
 
-		initialize();
+			initialize();
 
-		listen();
+			listen(terminal);
 
-		console.println("SQL REPL end.");
-		console.flush();
-		console.close();
+			dispose(terminal);
+		}
 	}
 
 	/**
@@ -384,41 +401,55 @@ public class SqlREPL {
 	}
 
 	/**
+	 * 終了時処理
+	 * @param terminal ターミナル
+	 */
+	private void dispose(final Terminal terminal) {
+		terminal.writer().println("SQL REPL end.");
+		terminal.writer().flush();
+
+		try {
+			NioSqlManagerImpl sqlManager = (NioSqlManagerImpl) config.getSqlManager();
+			sqlManager.shutdown();
+		} catch (Exception ex) {
+			// do nothing
+		}
+	}
+
+	/**
 	 * コンソールからの入力のリスン
 	 *
+	 * @param terminal ターミナル
 	 * @throws IOException I/O例外
 	 */
-	private void listen() throws IOException {
-		console.setPrompt("uroborosql > ");
-		console.setHandleUserInterrupt(true);
+	private void listen(final Terminal terminal) throws IOException {
+		List<Completer> completers = new ArrayList<>();
 
 		// コマンドのコード補完
-		console.addCompleter((buffer, cursor, candidates) -> {
-			String buff = buffer.trim();
-			if (buff.length() > 0 && !buffer.endsWith(" ") || buff.isEmpty()) {
-				Stream.of(Command.values()).filter(c -> c.match(buff)).map(Object::toString).forEach(candidates::add);
-			}
-			return candidates.isEmpty() ? -1 : 0;
-		});
+		completers.add(Command.getCommandCompleter());
 		// SQL名のコード補完
-		console.addCompleter(new SqlNameCompleter(config.getSqlManager().getSqlPathList()));
+		completers.add(new SqlNameCompleter(config.getSqlManager().getSqlPathList()));
 		// バインドパラメータのコード補完
-		console.addCompleter(new BindParamCompleter());
+		completers.add(new BindParamCompleter());
 		// テーブル名のコード補完
-		console.addCompleter(new TableNameCompleter());
+		completers.add(new TableNameCompleter());
 		// SQLキーワードのコード補完
-		console.addCompleter(new SqlKeywordCompleter());
-		CandidateListCompletionHandler handler = new CandidateListCompletionHandler();
-		handler.setPrintSpaceAfterFullCompletion(false);
-		console.setCompletionHandler(handler);
+		completers.add(new SqlKeywordCompleter());
 
+		LineReader reader = LineReaderBuilder.builder()
+				.appName("uroborosql")
+				.terminal(terminal)
+				.completer(new AggregateCompleter(completers))
+				.option(LineReader.Option.CASE_INSENSITIVE, true)
+				.build();
 		while (true) { // ユーザの一行入力を待つ
 			try {
-				String line = console.readLine();
-				if (!commandExecute(line)) {
+				if (!commandExecute(reader)) {
 					break;
 				}
-			} catch (UserInterruptException uie) {
+			} catch (UserInterruptException ex) {
+				// do nothing
+			} catch (EndOfFileException ex) {
 				break;
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
@@ -429,11 +460,13 @@ public class SqlREPL {
 	/**
 	 * 入力から指定されたコマンドを判定し実行する。
 	 *
-	 * @param line 入力文字列
+	 * @param reader LineReader
 	 * @return 入力を継続する場合は<code>true</code>
 	 * @throws Exception 実行時例外
 	 */
-	private boolean commandExecute(final String line) throws Exception {
+	private boolean commandExecute(final LineReader reader) throws Exception {
+		String prompt = "uroborosql > ";
+		String line = reader.readLine(prompt);
 		if (line == null || line.isEmpty()) {
 			// 空なら何もせずにループ
 			return true;
@@ -442,12 +475,15 @@ public class SqlREPL {
 		String[] parts = getLineParts(line);
 		Command command = Command.toCommand(parts[0]);
 
+		PrintWriter writer = reader.getTerminal().writer();
+
 		switch (command) {
 		case EXIT:
 			return false;
 
 		case RELOAD:
-			console.println("RELOAD " + propPath);
+			writer.println("RELOAD " + propPath);
+			writer.flush();
 
 			for (Enumeration<Driver> drivers = DriverManager.getDrivers(); drivers.hasMoreElements();) {
 				Driver driver = drivers.nextElement();
@@ -456,13 +492,14 @@ public class SqlREPL {
 				}
 			}
 			props = loadProps(propPath);
-			showProps();
+			showProps(reader.getTerminal());
 			initialize();
 
 			return true;
 
 		case LIST:
-			console.println("LIST:");
+			writer.println("LIST:");
+			writer.flush();
 
 			List<String> pathList = null;
 			if (parts.length > 1) {
@@ -472,45 +509,51 @@ public class SqlREPL {
 				pathList = config.getSqlManager().getSqlPathList();
 			}
 			for (String key : pathList) {
-				console.println(key);
+				writer.println(key);
 			}
+			writer.flush();
 			return true;
 
 		case HISTORY:
-			console.println("HISTORY:");
+			writer.println("HISTORY:");
+			writer.flush();
 
 			List<String> keywords = new ArrayList<>();
 			if (parts.length > 1) {
 				keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
 			}
 
-			int sizeLen = String.valueOf(console.getHistory().size()).length();
-			console.getHistory().forEach(entry -> {
+			int sizeLen = String.valueOf(reader.getHistory().size()).length();
+			reader.getHistory().forEach(entry -> {
 				try {
-					String value = entry.value().toString();
+					String value = entry.line();
 					if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
-						console.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
+						writer.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
 					}
 				} catch (Exception e) {
 					// do nothing
 				}
 			});
+			writer.flush();
 			return true;
 
 		case DRIVER:
-			console.println("DRIVER:");
+			writer.println("DRIVER:");
+			writer.flush();
 
 			Enumeration<Driver> drivers = DriverManager.getDrivers();
 			int driverCount = 0;
 			while (drivers.hasMoreElements()) {
 				Driver driver = drivers.nextElement();
-				console.println(String.format("%02d : %s%n", ++driverCount, driver));
+				writer.println(String.format("%02d : %s%n", ++driverCount, driver));
 			}
 
+			writer.flush();
 			return true;
 
 		case DESC:
-			console.println("DESC:");
+			writer.println("DESC:");
+			writer.flush();
 
 			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
 
@@ -539,18 +582,18 @@ public class SqlREPL {
 				}
 
 				// ラベル
-				console.print("-");
+				writer.print("-");
 				for (String label : DESC_COLUMN_LABELS) {
-					console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-					console.print("-");
+					writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+					writer.print("-");
 				}
-				console.println();
-				console.print("|");
+				writer.println();
+				writer.print("|");
 				for (String label : DESC_COLUMN_LABELS) {
-					console.print(StringUtils.rightPad(label, labelLength.get(label)));
-					console.print("|");
+					writer.print(StringUtils.rightPad(label, labelLength.get(label)));
+					writer.print("|");
 				}
-				console.println();
+				writer.println();
 				// カラムデータ
 				String tableName = null;
 				boolean breakFlag = false;
@@ -560,45 +603,47 @@ public class SqlREPL {
 						breakFlag = true;
 					}
 					if (breakFlag) {
-						console.print("-");
+						writer.print("-");
 						for (String label : DESC_COLUMN_LABELS) {
-							console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-							console.print("-");
+							writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+							writer.print("-");
 						}
-						console.println();
+						writer.println();
 						breakFlag = false;
 					}
 
-					console.print("|");
+					writer.print("|");
 					for (String label : DESC_COLUMN_LABELS) {
 						String val = column.get(label);
 						if (StringUtils.isNumeric(val)) {
-							console.print(StringUtils.leftPad(val, labelLength.get(label)));
+							writer.print(StringUtils.leftPad(val, labelLength.get(label)));
 						} else {
-							console.print(StringUtils.rightPad(val, labelLength.get(label)));
+							writer.print(StringUtils.rightPad(val, labelLength.get(label)));
 						}
-						console.print("|");
+						writer.print("|");
 					}
-					console.println();
+					writer.println();
 				}
-				console.print("-");
+				writer.print("-");
 				for (String label : DESC_COLUMN_LABELS) {
-					console.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-					console.print("-");
+					writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+					writer.print("-");
 				}
-				console.println();
+				writer.println();
 			} catch (SQLException ex) {
 				ex.printStackTrace();
 			}
+			writer.flush();
 
 			return true;
 
 		case GENERATE:
-			console.println("");
+			writer.println("GENERATE:");
+			writer.flush();
 
 			if (parts.length < 3) {
-				console.println(Command.GENERATE.toString() + " parameter missing. " + Command.GENERATE.toString()
-				+ " [SQL_KEYWORD] [TABLE NAME].");
+				writer.println(Command.GENERATE.toString() + " parameter missing. " + Command.GENERATE.toString()
+						+ " [SQL_KEYWORD] [TABLE NAME].");
 				return true;
 			}
 
@@ -639,24 +684,28 @@ public class SqlREPL {
 					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null, true);
 					break;
 				}
-				console.println(ctx.getSql());
+				writer.println(ctx.getSql());
 			}
+
+			writer.flush();
 
 			return true;
 
 		case HELP:
-			console.println("HELP:");
-			showMessage("/message.txt");
+			writer.println("HELP:");
+			writer.flush();
+			showMessage(reader.getTerminal(), "/message.txt");
 
 			return true;
 
 		case THIS:
-			showMessage("/this.txt");
+			showMessage(reader.getTerminal(), "/this.txt");
 
 			return true;
 
 		case CLS:
-			console.clearScreen();
+			reader.getTerminal().puts(Capability.clear_screen);
+			reader.getTerminal().flush();
 			return true;
 
 		case VIEW:
@@ -666,12 +715,13 @@ public class SqlREPL {
 					String sql = config.getSqlManager().getSql(sqlName);
 					String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
 					for (String sqlLine : sqlLines) {
-						console.println(sqlLine);
+						writer.println(sqlLine);
 					}
 				} else {
-					console.println("SQL not found. sql=" + sqlName);
+					writer.println("SQL not found. sql=" + sqlName);
 				}
 			}
+			writer.flush();
 			return true;
 
 		case QUERY:
@@ -687,17 +737,18 @@ public class SqlREPL {
 						ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 						try (ResultSet rs = agent.query(ctx)) {
-							console.println("query sql[" + sqlName + "] end.");
+							writer.println("query sql[" + sqlName + "] end.");
 						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
-							console.println("Error : " + ex.getMessage());
+							writer.println("Error : " + ex.getMessage());
 						} finally {
 							agent.rollback();
 						}
 					}
 				} else {
-					console.println("SQL not found. sql=" + sqlName);
+					writer.println("SQL not found. sql=" + sqlName);
 				}
 			}
+			writer.flush();
 			return true;
 
 		case UPDATE:
@@ -713,16 +764,17 @@ public class SqlREPL {
 						try {
 							int ans = agent.update(ctx);
 							agent.commit();
-							console.println("update sql[" + sqlName + "] end. row count=" + ans);
+							writer.println("update sql[" + sqlName + "] end. row count=" + ans);
 						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
-							console.println("Error : " + ex.getMessage());
+							writer.println("Error : " + ex.getMessage());
 							agent.rollback();
 						}
 					}
 				} else {
-					console.println("SQL not found. sql=" + sqlName);
+					writer.println("SQL not found. sql=" + sqlName);
 				}
 			}
+			writer.flush();
 			return true;
 
 		default:
@@ -961,34 +1013,36 @@ public class SqlREPL {
 	 * メッセージの表示
 	 * @throws IOException IO例外
 	 */
-	private void showMessage(final String path) throws IOException {
+	private void showMessage(final Terminal terminal, final String path) throws IOException {
 		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
 			reader.lines().forEach(s -> {
 				try {
-					console.println(s);
+					terminal.writer().println(s);
 				} catch (Exception ex) {
 					// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 				}
 			});
 		}
+		terminal.flush();
 	}
 
 	/**
 	 * 現在読み込んでいるプロパティの情報を表示
 	 * @throws IOException IO例外
 	 */
-	private void showProps() throws IOException {
-		console.println("[Properties]");
+	private void showProps(final Terminal terminal) throws IOException {
+		terminal.writer().println("[Properties]");
 		props.forEach((key, value) -> {
 			try {
-				console.println(key + "=" + value);
+				terminal.writer().println(key + "=" + value);
 			} catch (Exception e) {
 				// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 			}
 		});
-		console.println();
+		terminal.writer().println();
+		terminal.flush();
 	}
 
 	/**
@@ -1013,10 +1067,11 @@ public class SqlREPL {
 		 *
 		 * {@inheritDoc}
 		 *
-		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
+		 * @see org.jline.reader.Completer#complete(org.jline.reader.LineReader, org.jline.reader.ParsedLine, java.util.List)
 		 */
 		@Override
-		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+		public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
+			String buffer = line.line();
 			String[] parts = getLineParts(buffer);
 			int len = parts.length;
 
@@ -1025,31 +1080,23 @@ public class SqlREPL {
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
 			if (startArgNo == -1) {
-				return -1;
+				return;
 			} else {
 				boolean isBlank = buffer.endsWith(" ");
 				if (len == startArgNo && isBlank || len == startArgNo + 1 && !isBlank) {
 					// コマンドが引数ありの場合
 					String args = len == startArgNo + 1 ? parts[startArgNo] : "";
 					if (StringUtils.isEmpty(args)) {
-						candidates.addAll(sqlNames);
+						candidates.addAll(sqlNames.stream().map(Candidate::new).collect(Collectors.toList()));
 					} else {
 						for (String match : sqlNames.tailSet(args)) {
 							if (!match.startsWith(args)) {
 								break;
 							}
-							candidates.add(match);
+							candidates.add(new Candidate(match));
 						}
 					}
-				} else {
-					return -1;
 				}
-				// カーソルポジションの計算
-				int pos = 0;
-				for (int i = 0; i < startArgNo; i++) {
-					pos = pos + parts[i].length() + 1;
-				}
-				return candidates.isEmpty() ? buffer.length() : pos;
 			}
 		}
 	}
@@ -1068,10 +1115,11 @@ public class SqlREPL {
 		 *
 		 * {@inheritDoc}
 		 *
-		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
+		 * @see org.jline.reader.Completer#complete(org.jline.reader.LineReader, org.jline.reader.ParsedLine, java.util.List)
 		 */
 		@Override
-		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+		public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
+			String buffer = line.line();
 			String[] parts = getLineParts(buffer);
 			int pos = buffer.length();
 			int len = parts.length;
@@ -1080,8 +1128,8 @@ public class SqlREPL {
 			int startArgNo = len >= 1 ? Command.toCommand(parts[0]).getStartArgNo(this.getClass()) : -1;
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
-			if (startArgNo == -1) {
-				return -1;
+			if (startArgNo == -1 || startArgNo >= len) {
+				return;
 			} else {
 				boolean isBlank = buffer.endsWith(" ");
 				if (len >= startArgNo) {
@@ -1101,7 +1149,7 @@ public class SqlREPL {
 								}
 								if (isBlank) {
 									// 候補の表示位置を計算
-									candidates.addAll(params);
+									candidates.addAll(params.stream().map(Candidate::new).collect(Collectors.toList()));
 								} else {
 									// 候補の表示位置を計算
 									pos = pos - parts[len - 1].length();
@@ -1114,19 +1162,16 @@ public class SqlREPL {
 										String key = keyValue[0];
 										for (String match : params) {
 											if (match.startsWith(key)) {
-												candidates.add(match);
+												candidates.add(new Candidate(match));
 											}
 										}
 									}
 								}
 							} else {
-								candidates.addAll(params);
+								candidates.addAll(params.stream().map(Candidate::new).collect(Collectors.toList()));
 							}
 						}
 					}
-					return pos;
-				} else {
-					return -1;
 				}
 			}
 		}
@@ -1145,10 +1190,11 @@ public class SqlREPL {
 		 *
 		 * {@inheritDoc}
 		 *
-		 * @see jline.console.completer.Completer#complete(java.lang.String, int, java.util.List)
+		 * @see org.jline.reader.Completer#complete(org.jline.reader.LineReader, org.jline.reader.ParsedLine, java.util.List)
 		 */
 		@Override
-		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+		public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
+			String buffer = line.line();
 			String[] parts = getLineParts(buffer);
 			int len = parts.length;
 
@@ -1157,7 +1203,7 @@ public class SqlREPL {
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
 			if (startArgNo == -1) {
-				return -1;
+				return;
 			} else {
 				boolean isBlank = buffer.endsWith(" ");
 				String tableNamePattern = "%";
@@ -1166,7 +1212,7 @@ public class SqlREPL {
 				} else if (len == startArgNo + 1 && !isBlank) {
 					tableNamePattern = parts[len - 1] + "%";
 				} else {
-					return -1;
+					return;
 				}
 
 				try {
@@ -1175,35 +1221,29 @@ public class SqlREPL {
 					try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
 							tableNamePattern.toUpperCase(), null)) {
 						while (rs.next()) {
-							candidates.add(rs.getString("TABLE_NAME"));
+							candidates.add(new Candidate(rs.getString("TABLE_NAME")));
 						}
 					}
 					if (candidates.isEmpty()) {
 						try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
 								tableNamePattern.toLowerCase(), null)) {
 							while (rs.next()) {
-								candidates.add(rs.getString("TABLE_NAME"));
+								candidates.add(new Candidate(rs.getString("TABLE_NAME")));
 							}
 						}
 					}
 				} catch (SQLException ex) {
 					ex.printStackTrace();
-					return -1;
+					return;
 				}
 			}
-
-			// カーソルポジションの計算
-			int pos = 0;
-			for (int i = 0; i < startArgNo; i++) {
-				pos = pos + parts[i].length() + 1;
-			}
-			return candidates.isEmpty() ? buffer.length() : pos;
 		}
 	}
 
 	class SqlKeywordCompleter implements Completer {
 		@Override
-		public int complete(final String buffer, final int cursor, final List<CharSequence> candidates) {
+		public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
+			String buffer = line.line();
 			String[] parts = getLineParts(buffer);
 			int len = parts.length;
 
@@ -1212,7 +1252,7 @@ public class SqlREPL {
 
 			// 対象引数が-1の時は該当なしなのでコード補完しない
 			if (startArgNo == -1) {
-				return -1;
+				return;
 			} else {
 				String key = null;
 
@@ -1222,23 +1262,16 @@ public class SqlREPL {
 				} else if (len == startArgNo + 1 && !isBlank) {
 					key = parts[len - 1];
 				} else {
-					return -1;
+					return;
 				}
 
 				final String keyword = key;
 
 				Stream.of("select", "insert", "update", "delete")
-				.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase())).forEach(candidates::add);
-
-				// カーソルポジションの計算
-				int pos = 0;
-				for (int i = 0; i < startArgNo; i++) {
-					pos = pos + parts[i].length() + 1;
-				}
-				return candidates.isEmpty() ? buffer.length() : pos;
+						.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase()))
+						.forEach(c -> candidates.add(new Candidate(c)));
 			}
 		}
-
 	}
 
 	/**
