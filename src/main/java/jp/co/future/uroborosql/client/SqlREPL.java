@@ -11,25 +11,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.regex.Matcher;
@@ -49,26 +42,21 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
-import org.jline.utils.InfoCmp.Capability;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.client.completer.BindParamCompleter;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
-import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
-import jp.co.future.uroborosql.mapping.Table;
-import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 
 /**
@@ -81,22 +69,19 @@ import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 public class SqlREPL {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
-
-	/** DESCで表示する項目 */
-	private static final String[] DESC_COLUMN_LABELS = { "TABLE_NAME", "COLUMN_NAME", "TYPE_NAME", "COLUMN_SIZE",
-			"DECIMAL_DIGITS", "IS_NULLABLE", "COLUMN_DEF", "REMARKS" };
-
 	/** プロパティパス */
 	private final Path propPath;
 
 	/** プロパティ */
-	private Properties props;
+	private final Properties props;
 
 	/** 追加で読み込むクラスローダ */
 	private URLClassLoader additionalClassLoader = null;
 
 	/** SQL設定クラス */
-	SqlConfig config = null;
+	private SqlConfig sqlConfig = null;
+
+	private final List<ReplCommand> commands = new ArrayList<>();
 
 	/**
 	 * メインメソッド
@@ -151,6 +136,11 @@ public class SqlREPL {
 	public SqlREPL(final Path path) throws Exception {
 		propPath = path;
 		props = loadProps(path);
+
+		// ReplCommandの読み込み
+		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+			commands.add(command);
+		}
 	}
 
 	/**
@@ -160,7 +150,7 @@ public class SqlREPL {
 	 */
 	private void execute() throws Exception {
 		try (Terminal terminal = TerminalBuilder.builder().build()) {
-			showMessage(terminal, "/message.txt");
+			showHelp(terminal);
 			showProps(terminal);
 
 			initialize(terminal);
@@ -234,12 +224,12 @@ public class SqlREPL {
 		boolean detectChanges = BooleanUtils.toBoolean(p("sql.detectChanges", "true"));
 
 		// config
-		config = UroboroSQL.builder(url, user, password, schema)
+		sqlConfig = UroboroSQL.builder(url, user, password, schema)
 				.setSqlManager(new NioSqlManagerImpl(loadPath, fileExtension, charset, detectChanges))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// sqlContextFactory
-		SqlContextFactory contextFactory = config.getSqlContextFactory();
+		SqlContextFactory contextFactory = sqlConfig.getSqlContextFactory();
 		List<String> constantClassNames = Arrays
 				.asList(p("sqlContextFactory.constantClassNames", "").split("\\s*,\\s*")).stream()
 				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
@@ -274,15 +264,6 @@ public class SqlREPL {
 	 * @param terminal Terminal
 	 */
 	private void dispose(final Terminal terminal) {
-		terminal.writer().println("SQL REPL end.");
-		terminal.writer().flush();
-
-		try {
-			NioSqlManagerImpl sqlManager = (NioSqlManagerImpl) config.getSqlManager();
-			sqlManager.shutdown();
-		} catch (Exception ex) {
-			// do nothing
-		}
 	}
 
 	/**
@@ -295,15 +276,15 @@ public class SqlREPL {
 		List<Completer> completers = new ArrayList<>();
 
 		// コマンドのコード補完
-		completers.add(new ReplCommandCompleter());
+		completers.add(new ReplCommandCompleter(commands));
 		// SQL名のコード補完
-		completers.add(new SqlNameCompleter(config.getSqlManager()));
+		completers.add(new SqlNameCompleter(commands, sqlConfig.getSqlManager()));
 		// バインドパラメータのコード補完
-		completers.add(new BindParamCompleter(config.getSqlManager()));
+		completers.add(new BindParamCompleter(commands, sqlConfig.getSqlManager()));
 		// テーブル名のコード補完
-		completers.add(new TableNameCompleter(config.getConnectionSupplier()));
+		completers.add(new TableNameCompleter(commands, sqlConfig.getConnectionSupplier()));
 		// SQLキーワードのコード補完
-		completers.add(new SqlKeywordCompleter());
+		completers.add(new SqlKeywordCompleter(commands));
 
 		LineReader reader = LineReaderBuilder.builder()
 				.appName("uroborosql")
@@ -314,7 +295,7 @@ public class SqlREPL {
 				.build();
 		while (true) { // ユーザの一行入力を待つ
 			try {
-				if (!commandExecute(reader)) {
+				if (!executeCommand(reader)) {
 					break;
 				}
 			} catch (UserInterruptException | EndOfFileException ex) {
@@ -332,7 +313,7 @@ public class SqlREPL {
 	 * @return 入力を継続する場合は<code>true</code>
 	 * @throws Exception 実行時例外
 	 */
-	private boolean commandExecute(final LineReader reader) throws Exception {
+	private boolean executeCommand(final LineReader reader) throws Exception {
 		String prompt = new AttributedStringBuilder()
 				.style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
 				.ansiAppend("uroborosql")
@@ -346,321 +327,29 @@ public class SqlREPL {
 		}
 
 		String[] parts = line.split("\\s+");
-		ReplCommand command = ReplCommand.toCommand(parts[0]);
-
-		PrintWriter writer = reader.getTerminal().writer();
-
-		switch (command) {
-		case EXIT:
-			return false;
-
-		case RELOAD:
-			writer.println("RELOAD " + propPath);
-			writer.flush();
-
-			for (Enumeration<Driver> drivers = DriverManager.getDrivers(); drivers.hasMoreElements();) {
-				Driver driver = drivers.nextElement();
-				if (driver instanceof DriverShim) {
-					DriverManager.deregisterDriver(driver);
-				}
-			}
-			props = loadProps(propPath);
-			showProps(reader.getTerminal());
-			initialize(reader.getTerminal());
-
-			return true;
-
-		case LIST:
-			writer.println("LIST:");
-			writer.flush();
-
-			List<String> pathList = null;
-			if (parts.length > 1) {
-				pathList = config.getSqlManager().getSqlPathList().stream().filter(p -> p.contains(parts[1]))
-						.collect(Collectors.toList());
-			} else {
-				pathList = config.getSqlManager().getSqlPathList();
-			}
-			for (String key : pathList) {
-				writer.println(key);
-			}
-			writer.flush();
-			return true;
-
-		case HISTORY:
-			writer.println("HISTORY:");
-			writer.flush();
-
-			List<String> keywords = new ArrayList<>();
-			if (parts.length > 1) {
-				keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
-			}
-
-			int sizeLen = String.valueOf(reader.getHistory().size()).length();
-			reader.getHistory().forEach(entry -> {
-				try {
-					String value = entry.line();
-					if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
-						writer.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
-					}
-				} catch (Exception e) {
-					// do nothing
-				}
-			});
-			writer.flush();
-			return true;
-
-		case DRIVER:
-			writer.println("DRIVER:");
-			writer.flush();
-
-			Enumeration<Driver> drivers = DriverManager.getDrivers();
-			int driverCount = 0;
-			while (drivers.hasMoreElements()) {
-				Driver driver = drivers.nextElement();
-				writer.println(String.format("%02d : %s%n", ++driverCount, driver));
-			}
-
-			writer.flush();
-			return true;
-
-		case DESC:
-			writer.println("DESC:");
-			writer.flush();
-
-			String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
-
-			try {
-				Connection conn = config.getConnectionSupplier().getConnection();
-				DatabaseMetaData md = conn.getMetaData();
-
-				List<Map<String, String>> columns = new ArrayList<>();
-				Map<String, Integer> labelLength = new HashMap<>();
-				for (String label : DESC_COLUMN_LABELS) {
-					labelLength.put(label, label.length());
-				}
-				try (ResultSet rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
-					while (rs.next()) {
-						Map<String, String> column = new HashMap<>();
-						for (String label : DESC_COLUMN_LABELS) {
-							final String value = StringUtils.defaultString(rs.getString(label));
-							column.put(label, value);
-							labelLength.compute(
-									label,
-									(k, v) -> v == null ? getByteLength(value)
-											: v.compareTo(getByteLength(value)) >= 0 ? v : getByteLength(value));
-						}
-						columns.add(column);
-					}
-				}
-
-				// ラベル
-				writer.print("-");
-				for (String label : DESC_COLUMN_LABELS) {
-					writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-					writer.print("-");
-				}
-				writer.println();
-				writer.print("|");
-				for (String label : DESC_COLUMN_LABELS) {
-					writer.print(StringUtils.rightPad(label, labelLength.get(label)));
-					writer.print("|");
-				}
-				writer.println();
-				// カラムデータ
-				String tableName = null;
-				boolean breakFlag = false;
-				for (Map<String, String> column : columns) {
-					if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
-						tableName = column.get("TABLE_NAME");
-						breakFlag = true;
-					}
-					if (breakFlag) {
-						writer.print("-");
-						for (String label : DESC_COLUMN_LABELS) {
-							writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-							writer.print("-");
-						}
-						writer.println();
-						breakFlag = false;
-					}
-
-					writer.print("|");
-					for (String label : DESC_COLUMN_LABELS) {
-						String val = column.get(label);
-						if (StringUtils.isNumeric(val)) {
-							writer.print(StringUtils.leftPad(val, labelLength.get(label)));
-						} else {
-							writer.print(StringUtils.rightPad(val, labelLength.get(label)));
-						}
-						writer.print("|");
-					}
-					writer.println();
-				}
-				writer.print("-");
-				for (String label : DESC_COLUMN_LABELS) {
-					writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
-					writer.print("-");
-				}
-				writer.println();
-			} catch (SQLException ex) {
-				ex.printStackTrace();
-			}
-			writer.flush();
-
-			return true;
-
-		case GENERATE:
-			writer.println("GENERATE:");
-			writer.flush();
-
-			if (parts.length < 3) {
-				writer.println(
-						ReplCommand.GENERATE.toString() + " parameter missing. " + ReplCommand.GENERATE.toString()
-								+ " [SQL_KEYWORD] [TABLE NAME].");
-				return true;
-			}
-
-			String sqlKeyword = parts[1];
-			String tableName = parts[2];
-
-			try (SqlAgent agent = config.agent()) {
-				Table table = new Table() {
-
-					@Override
-					public String getSchema() {
-						return null;
-					}
-
-					@Override
-					public String getName() {
-						return tableName;
-					}
-				};
-				TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent, table);
-				metadata.setSchema(null);
-
-				SqlContext ctx = null;
-				switch (sqlKeyword) {
-				case "insert":
-					ctx = config.getEntityHandler().createInsertContext(agent, metadata, null);
-					break;
-
-				case "update":
-					ctx = config.getEntityHandler().createUpdateContext(agent, metadata, null, true);
-					break;
-
-				case "delete":
-					ctx = config.getEntityHandler().createDeleteContext(agent, metadata, null, true);
-					break;
-
-				default:
-					ctx = config.getEntityHandler().createSelectContext(agent, metadata, null, true);
-					break;
-				}
-				writer.println(ctx.getSql());
-			}
-
-			writer.flush();
-
-			return true;
-
-		case HELP:
-			writer.println("HELP:");
-			writer.flush();
-			showMessage(reader.getTerminal(), "/message.txt");
-
-			return true;
-
-		case THIS:
-			showMessage(reader.getTerminal(), "/this.txt");
-
-			return true;
-
-		case CLS:
-			reader.getTerminal().puts(Capability.clear_screen);
-			reader.getTerminal().flush();
-			return true;
-
-		case VIEW:
-			if (parts.length == 2) {
-				String sqlName = parts[1].replaceAll("\\.", "/");
-				if (config.getSqlManager().existSql(sqlName)) {
-					String sql = config.getSqlManager().getSql(sqlName);
-					String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
-					for (String sqlLine : sqlLines) {
-						writer.println(sqlLine);
-					}
-				} else {
-					writer.println("SQL not found. sql=" + sqlName);
-				}
-			}
-			writer.flush();
-			return true;
-
-		case QUERY:
-			if (parts.length >= 2) {
-				String sqlName = parts[1].replaceAll("\\.", "/");
-				if (config.getSqlManager().existSql(sqlName)) {
-					try (SqlAgent agent = config.agent()) {
-						SqlContext ctx = agent.contextFrom(sqlName);
-						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
-						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
-						SqlParamUtils.setSqlParams(ctx, params);
-
-						ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-
-						try (ResultSet rs = agent.query(ctx)) {
-							writer.println("query sql[" + sqlName + "] end.");
-						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
-							writer.println("Error : " + ex.getMessage());
-						} finally {
-							agent.rollback();
-						}
-					}
-				} else {
-					writer.println("SQL not found. sql=" + sqlName);
-				}
-			}
-			writer.flush();
-			return true;
-
-		case UPDATE:
-			if (parts.length >= 2) {
-				String sqlName = parts[1].replaceAll("\\.", "/");
-				if (config.getSqlManager().existSql(sqlName)) {
-
-					try (SqlAgent agent = config.agent()) {
-						SqlContext ctx = agent.contextFrom(sqlName);
-						ctx.setSql(config.getSqlManager().getSql(ctx.getSqlName()));
-						String[] params = Arrays.copyOfRange(parts, 2, parts.length);
-						SqlParamUtils.setSqlParams(ctx, params);
-						try {
-							int ans = agent.update(ctx);
-							agent.commit();
-							writer.println("update sql[" + sqlName + "] end. row count=" + ans);
-						} catch (ParameterNotFoundRuntimeException | SQLException ex) {
-							writer.println("Error : " + ex.getMessage());
-							agent.rollback();
-						}
-					}
-				} else {
-					writer.println("SQL not found. sql=" + sqlName);
-				}
-			}
-			writer.flush();
-			return true;
-
-		default:
+		Optional<ReplCommand> command = commands.stream().filter(c -> c.is(parts[0])).findFirst();
+		if (command.isPresent()) {
+			return command.get().execute(reader, parts, sqlConfig, props);
+		} else {
+			showHelp(reader.getTerminal());
 			return true;
 		}
+	}
+
+	/**
+	 * HELPメッセージの表示
+	 * @param terminal Terminal
+	 */
+	private void showHelp(final Terminal terminal) {
+		showMessage(terminal, "/message.txt");
+		commands.stream().filter(c -> !c.isHidden()).forEach(c -> c.showHelp(terminal));
 	}
 
 	/**
 	 * メッセージの表示
 	 * @throws IOException IO例外
 	 */
-	private void showMessage(final Terminal terminal, final String path) throws IOException {
+	private void showMessage(final Terminal terminal, final String path) {
 		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
@@ -671,6 +360,8 @@ public class SqlREPL {
 					// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 				}
 			});
+		} catch (IOException ex) {
+			// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 		}
 		terminal.flush();
 	}
@@ -680,34 +371,18 @@ public class SqlREPL {
 	 * @throws IOException IO例外
 	 */
 	private void showProps(final Terminal terminal) throws IOException {
-		terminal.writer().println("[Properties]");
+		PrintWriter writer = terminal.writer();
+		writer.println("Properties file path:" + this.propPath);
+		writer.println("[Properties]");
 		props.forEach((key, value) -> {
 			try {
-				terminal.writer().println(key + "=" + value);
+				writer.println(key + "=" + value);
 			} catch (Exception e) {
 				// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 			}
 		});
-		terminal.writer().println();
+		writer.println();
 		terminal.flush();
-	}
-
-	/**
-	 * オブジェクトの文字列表現のバイト数（デフォルトエンコーディング）を取得する
-	 *
-	 * @param val 計算対象オブジェクト
-	 * @return バイト数
-	 */
-	private int getByteLength(final Object val) {
-		if (val == null) {
-			return 0;
-		}
-		String str = val.toString();
-		try {
-			return str.getBytes(System.getProperty("file.encoding")).length;
-		} catch (UnsupportedEncodingException ex) {
-			return 1;
-		}
 	}
 
 }

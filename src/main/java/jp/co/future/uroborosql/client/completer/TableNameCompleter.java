@@ -16,6 +16,7 @@ import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
+import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
 /**
@@ -28,11 +29,13 @@ public class TableNameCompleter extends AbstractCompleter {
 	private final ConnectionSupplier connectionSupplier;
 
 	/**
-	 * コンストラクタ
+	 * Constructor
 	 *
+	 * @param commands ReplCommand List
 	 * @param connectionSupplier connectionSupplier
 	 */
-	public TableNameCompleter(final ConnectionSupplier connectionSupplier) {
+	public TableNameCompleter(final List<ReplCommand> commands, final ConnectionSupplier connectionSupplier) {
+		super(commands);
 		this.connectionSupplier = connectionSupplier;
 	}
 

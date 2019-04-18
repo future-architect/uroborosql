@@ -7,11 +7,14 @@
 package jp.co.future.uroborosql.client.completer;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
+
+import jp.co.future.uroborosql.client.command.ReplCommand;
 
 /**
  * SQLキーワードを補完するCompleter
@@ -20,6 +23,29 @@ import org.jline.reader.ParsedLine;
  *
  */
 public class SqlKeywordCompleter extends AbstractCompleter {
+	/**
+	 * SQL Keywords
+	 */
+	public enum SqlKeyword {
+		SELECT, INSERT, UPDATE, DELETE;
+
+		public boolean match(final String keyword) {
+			return keyword == null || this.toString().toLowerCase().startsWith(keyword.toLowerCase());
+		}
+
+		public static Optional<SqlKeyword> of(final String keyword) {
+			return Stream.of(values()).filter(k -> k.toString().equalsIgnoreCase(keyword)).findFirst();
+		}
+	}
+
+	/**
+	 * Constructor
+	 * @param commands ReplCommand List
+	 */
+	public SqlKeywordCompleter(final List<ReplCommand> commands) {
+		super(commands);
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -52,8 +78,7 @@ public class SqlKeywordCompleter extends AbstractCompleter {
 
 		final String keyword = key;
 
-		Stream.of("select", "insert", "update", "delete")
-				.filter(c -> keyword == null || c.startsWith(keyword.toLowerCase()))
-				.forEach(c -> candidates.add(new Candidate(c)));
+		Stream.of(SqlKeyword.values()).filter(k -> k.match(keyword))
+				.forEach(k -> candidates.add(new Candidate(k.toString().toLowerCase())));
 	}
 }

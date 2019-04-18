@@ -182,6 +182,12 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#shutdown()
+	 */
+	@Override
 	public void shutdown() {
 		if (detectChanges) {
 			es.shutdownNow();
@@ -198,7 +204,7 @@ public class NioSqlManagerImpl implements SqlManager {
 			try {
 				key = watcher.take();
 			} catch (InterruptedException ex) {
-				log.debug("WatchService catched InterruptedException.", ex);
+				log.debug("WatchService catched InterruptedException.");
 				break;
 			} catch (Throwable ex) {
 				log.error("Unexpected exception occured.", ex);

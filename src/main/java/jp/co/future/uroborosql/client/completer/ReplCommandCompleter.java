@@ -7,14 +7,13 @@
 package jp.co.future.uroborosql.client.completer;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
-import jp.co.future.uroborosql.client.ReplCommand;
+import jp.co.future.uroborosql.client.command.ReplCommand;
 
 /**
  * REPLコマンドを補完するCompleter
@@ -22,6 +21,16 @@ import jp.co.future.uroborosql.client.ReplCommand;
  * @author H.Sugimoto
  */
 public class ReplCommandCompleter implements Completer {
+	private final List<ReplCommand> commands;
+
+	/**
+	 * Constructor
+	 * @param commands ReplCommand List
+	 */
+	public ReplCommandCompleter(final List<ReplCommand> commands) {
+		this.commands = commands;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -30,7 +39,7 @@ public class ReplCommandCompleter implements Completer {
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
 		if (line.wordIndex() == 0) {
-			Stream.of(ReplCommand.values()).filter(c -> c.match(line.word()))
+			commands.stream().filter(c -> c.match(line.word()))
 					.map(c -> new Candidate(c.toString()))
 					.forEach(candidates::add);
 		}

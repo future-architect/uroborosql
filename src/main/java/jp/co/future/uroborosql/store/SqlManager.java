@@ -23,6 +23,11 @@ public interface SqlManager {
 	void initialize();
 
 	/**
+	 * 停止処理<br>
+	 */
+	void shutdown();
+
+	/**
 	 * SQL文取得<br>
 	 * @param sqlPath ルートパスからの相対パス
 	 * @return SQL文

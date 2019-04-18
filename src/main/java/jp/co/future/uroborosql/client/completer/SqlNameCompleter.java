@@ -16,6 +16,7 @@ import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
+import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.store.SqlManager;
 
 /**
@@ -28,11 +29,13 @@ public class SqlNameCompleter extends AbstractCompleter {
 	private final SqlManager sqlManager;
 
 	/**
-	 * コンストラクタ
+	 * Constructor
 	 *
+	 * @param commands ReplCommand List
 	 * @param sqlManager sqlManager
 	 */
-	public SqlNameCompleter(final SqlManager sqlManager) {
+	public SqlNameCompleter(final List<ReplCommand> commands, final SqlManager sqlManager) {
+		super(commands);
 		this.sqlManager = sqlManager;
 	}
 

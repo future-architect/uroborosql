@@ -9,27 +9,3 @@ ${name} SQL REPL ver.${version}
 ===========================================================
 
 Commands :
-	query	: execute query from loaded sql file.
-		ex1) query [sql file name]<Enter> : Execute SQL without parameter.
-		ex2) query [sql file name] param1=val1 param2=val2 ...<Enter> : Execute SQL with the specified parameters.
-	update	: execute update from loaded sql file.
-		ex1) update [sql file name]<Enter> : Execute SQL without parameter.
-		ex2) update [sql file name] param1=val1 param2=val2 ...<Enter> : Execute SQL with the specified parameters.
-	view	: view sql file.
-		ex) view [sql file name]<Enter> : Show sql file contents.
-	list	: list loaded sql files.
-		ex1) list<Enter> : Show all loaded sql file(s).
-		ex2) list keyword<Enter> : Show loaded sql file(s) filter by keyword.
-	desc	: describe table.
-		ex) desc [table name]<Enter> : Show table description.
-	generate: generate sql to access the table.
-		ex) generate [select/insert/update/delete] [table name]<Enter> : Show sql to access tables according to keywords.
-	history	: list command history.
-		ex1) history<Enter> : Show all command history.
-		ex2) history keyword<Enter> : Show command history filter by keyword.
-	driver	: list loaded drivers.
-	reload	: reload sql files.
-	cls	: clear screen.
-	help	: show this message.
-	exit	: exit SQL REPL. `CTRL+C` is an alias.
-

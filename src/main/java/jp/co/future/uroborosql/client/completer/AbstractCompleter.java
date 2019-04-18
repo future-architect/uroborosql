@@ -13,13 +13,32 @@ import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.Completer;
 import org.jline.reader.ParsedLine;
 
-import jp.co.future.uroborosql.client.ReplCommand;
+import jp.co.future.uroborosql.client.command.ReplCommand;
 
 public abstract class AbstractCompleter implements Completer {
+	private final List<ReplCommand> commands;
 
+	/**
+	 * Constructor
+	 * @param commands ReplCommand List
+	 */
+	protected AbstractCompleter(final List<ReplCommand> commands) {
+		this.commands = commands;
+	}
+
+	/**
+	 * このCompleterの開始位置を取得する
+	 * @param line コマンドをパースしたオブジェクト
+	 * @return このCompleterの開始位置。該当しない場合は<code>-1</code>を返す
+	 */
 	protected int getStartArgNo(final ParsedLine line) {
 		// コード補完する引数の番号を特定。
-		return line.wordIndex() >= 1 ? ReplCommand.toCommand(line.words().get(0)).getStartArgNo(this.getClass()) : -1;
+		if (line.wordIndex() >= 1) {
+			return commands.stream().filter(c -> c.is(line.words().get(0)))
+					.mapToInt(c -> c.getStartArgNo(this.getClass())).findFirst().orElse(-1);
+		} else {
+			return -1;
+		}
 	}
 
 	/**
