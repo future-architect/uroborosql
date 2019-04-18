@@ -134,8 +134,9 @@ public class SqlAgentImpl extends AbstractAgent {
 							rollback(RETRY_SAVEPOINT_NAME);
 						}
 						if (maxRetryCount > loopCount) {
-							String errorCode = Integer.toString(ex.getErrorCode());
-							if (getSqlRetryCodes().contains(errorCode)) {
+							String errorCode = String.valueOf(ex.getErrorCode());
+							String sqlState = ex.getSQLState();
+							if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
 								if (LOG.isDebugEnabled()) {
 									LOG.debug(String.format(
 											"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -298,8 +299,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
-						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlRetryCodes().contains(errorCode)) {
+						String errorCode = String.valueOf(ex.getErrorCode());
+						String sqlState = ex.getSQLState();
+						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -419,8 +421,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
-						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlRetryCodes().contains(errorCode)) {
+						String errorCode = String.valueOf(ex.getErrorCode());
+						String sqlState = ex.getSQLState();
+						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -533,8 +536,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
-						String errorCode = Integer.toString(ex.getErrorCode());
-						if (getSqlRetryCodes().contains(errorCode)) {
+						String errorCode = String.valueOf(ex.getErrorCode());
+						String sqlState = ex.getSQLState();
+						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",

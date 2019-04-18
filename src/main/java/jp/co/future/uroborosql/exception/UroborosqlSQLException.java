@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.exception;
 
-import java.sql.*;
+import java.sql.SQLException;
 
 /**
  * SQL実行時例外クラス
@@ -24,6 +24,10 @@ public class UroborosqlSQLException extends UroborosqlRuntimeException {
 	}
 
 	public int getErrorCode() {
-		return ((SQLException)getCause()).getErrorCode();
+		return getCause() instanceof SQLException ? ((SQLException) getCause()).getErrorCode() : 0;
+	}
+
+	public String getSQLState() {
+		return getCause() instanceof SQLException ? ((SQLException) getCause()).getSQLState() : null;
 	}
 }
