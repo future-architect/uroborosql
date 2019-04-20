@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
@@ -50,7 +49,7 @@ public class BindParamCompleter extends AbstractCompleter {
 	 */
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
-		String buffer = line.line();
+		String buffer = line.line().substring(0, line.cursor());
 		String[] parts = getLineParts(buffer);
 		int pos = buffer.length();
 		int len = parts.length;
@@ -64,46 +63,45 @@ public class BindParamCompleter extends AbstractCompleter {
 		}
 
 		boolean isBlank = buffer.endsWith(" ");
-		if (len >= startArgNo) {
-			// sqlNameが指定されている場合
-			String sqlName = parts[startArgNo - 1];
-			if (StringUtils.isNotEmpty(sqlName)) {
-				String sql = sqlManager.getSql(sqlName);
-				if (StringUtils.isNotEmpty(sql)) {
-					Set<String> params = SqlParamUtils.getSqlParams(sql);
-					if (len > startArgNo) {
-						// 最後のパラメータ以外ですでに指定されたバインドパラメータを候補から除去する
-						int lastPos = isBlank ? len : len - 1;
-						for (int i = startArgNo; i < lastPos; i++) {
-							String part = parts[i];
-							String[] keyValue = part.split("=", 2);
-							params.remove(keyValue[0]);
+		// sqlNameが指定されている場合
+		String sqlName = parts[startArgNo - 1];
+		String sql = sqlManager.getSql(sqlName);
+		Set<String> params = SqlParamUtils.getSqlParams(sql);
+		if (len > startArgNo) {
+			// 最後のパラメータ以外ですでに指定されたバインドパラメータを候補から除去する
+			int lastPos = isBlank ? len : len - 1;
+			for (int i = startArgNo; i < lastPos; i++) {
+				String part = parts[i];
+				String[] keyValue = part.split("=", 2);
+				params.remove(keyValue[0]);
+			}
+			if (isBlank) {
+				// 候補の表示位置を計算
+				candidates.addAll(
+						params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
+								.collect(Collectors.toList()));
+			} else {
+				// 候補の表示位置を計算
+				pos = pos - parts[len - 1].length();
+				// 最後のパラメータについて候補を作成
+				String[] keyValue = parts[len - 1].split("=", 2);
+				if (keyValue.length == 2) {
+					// すでに値の入力があるため補完は行わない
+					pos = -1;
+				} else {
+					String key = keyValue[0];
+					for (String match : params) {
+						if (match.startsWith(key)) {
+							candidates
+									.add(new Candidate(match + "=", match, null, null, null, null, false));
 						}
-						if (isBlank) {
-							// 候補の表示位置を計算
-							candidates.addAll(params.stream().map(Candidate::new).collect(Collectors.toList()));
-						} else {
-							// 候補の表示位置を計算
-							pos = pos - parts[len - 1].length();
-							// 最後のパラメータについて候補を作成
-							String[] keyValue = parts[len - 1].split("=", 2);
-							if (keyValue.length == 2) {
-								// すでに値の入力があるため補完は行わない
-								pos = -1;
-							} else {
-								String key = keyValue[0];
-								for (String match : params) {
-									if (match.startsWith(key)) {
-										candidates.add(new Candidate(match));
-									}
-								}
-							}
-						}
-					} else {
-						candidates.addAll(params.stream().map(Candidate::new).collect(Collectors.toList()));
 					}
 				}
 			}
+		} else {
+			candidates.addAll(
+					params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
+							.collect(Collectors.toList()));
 		}
 	}
 }

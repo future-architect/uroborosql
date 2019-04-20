@@ -90,6 +90,9 @@ public class SqlREPL {
 	 */
 	public static void main(final String... args) {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql")).setLevel(Level.DEBUG);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.client")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.context")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.store")).setLevel(Level.ERROR);
 
 		String propFile = "repl.properties";
 		if (args.length != 0) {

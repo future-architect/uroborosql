@@ -48,7 +48,7 @@ public class TableNameCompleter extends AbstractCompleter {
 	 */
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
-		String buffer = line.line();
+		String buffer = line.line().substring(0, line.cursor());
 		String[] parts = getLineParts(buffer);
 		int len = parts.length;
 

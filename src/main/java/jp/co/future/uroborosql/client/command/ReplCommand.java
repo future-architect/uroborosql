@@ -100,10 +100,8 @@ public abstract class ReplCommand {
 	 * @param props properties
 	 * @return REPLを継続する場合<code>true</code>
 	 */
-	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
-			final Properties props) {
-		return false;
-	}
+	public abstract boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
+			final Properties props);
 
 	/**
 	 * コマンドのヘルプメッセージをターミナルに出力する

@@ -48,9 +48,10 @@ public class SqlNameCompleter extends AbstractCompleter {
 	 */
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
-		String buffer = line.line();
+		String buffer = line.line().substring(0, line.cursor());
 		String[] parts = getLineParts(buffer);
 		int len = parts.length;
+		boolean complete = getLineParts(line.line()).length == len;
 
 		// コード補完する引数の番号を特定。
 		int startArgNo = getStartArgNo(line);
@@ -67,13 +68,14 @@ public class SqlNameCompleter extends AbstractCompleter {
 			// コマンドが引数ありの場合
 			String args = len == startArgNo + 1 ? parts[startArgNo] : "";
 			if (StringUtils.isEmpty(args)) {
-				candidates.addAll(sqlNames.stream().map(Candidate::new).collect(Collectors.toList()));
+				candidates.addAll(sqlNames.stream().map(n -> new Candidate(n, n, null, null, null, null, complete))
+						.collect(Collectors.toList()));
 			} else {
 				for (String match : sqlNames.tailSet(args)) {
 					if (!match.startsWith(args)) {
 						break;
 					}
-					candidates.add(new Candidate(match));
+					candidates.add(new Candidate(match, match, null, null, null, null, complete));
 				}
 			}
 		}

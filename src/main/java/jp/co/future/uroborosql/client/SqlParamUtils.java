@@ -53,7 +53,7 @@ public final class SqlParamUtils {
 	 * @param ctx SQLコンテキスト
 	 * @param paramsArray パラメータ配列
 	 */
-	public static void setSqlParams(final SqlContext ctx, final String[] paramsArray) {
+	public static void setSqlParams(final SqlContext ctx, final String... paramsArray) {
 		Set<String> bindParams = getSqlParams(ctx.getSql());
 
 		for (String element : paramsArray) {
@@ -97,7 +97,7 @@ public final class SqlParamUtils {
 	 * @param val パラメータ値
 	 */
 	private static void setParam(final SqlContext ctx, final String key, final String val) {
-		if (val.startsWith("[") && val.endsWith("]")) {
+		if (val.startsWith("[") && val.endsWith("]") && !(val.equals("[NULL]") || val.equals("[EMPTY]"))) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
 			String[] parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
 			Object[] vals = new Object[parts.length];

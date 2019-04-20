@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -190,7 +191,14 @@ public class NioSqlManagerImpl implements SqlManager {
 	@Override
 	public void shutdown() {
 		if (detectChanges) {
-			es.shutdownNow();
+			es.shutdown();
+			try {
+				if (!es.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+					es.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				es.shutdownNow();
+			}
 		}
 	}
 
@@ -246,8 +254,12 @@ public class NioSqlManagerImpl implements SqlManager {
 					}
 				}
 			}
-
 			key.reset();
+		}
+		try {
+			watcher.close();
+		} catch (IOException e) {
+			// do nothing
 		}
 	}
 

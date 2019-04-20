@@ -43,10 +43,9 @@ public abstract class AbstractCompleter implements Completer {
 
 	/**
 	 * コード補完対象かどうかを判定する
-	 *
 	 * @param startArgNo 開始引数No
 	 * @param buffer 入力文字列
-	 * @param len 入力パーツの個数
+	 * @param len partsのlength
 	 * @return コード補完対象の場合<code>true</code>
 	 */
 	protected boolean accept(final int startArgNo, final String buffer, final int len) {
