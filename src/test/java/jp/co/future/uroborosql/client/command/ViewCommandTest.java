@@ -59,17 +59,9 @@ public class ViewCommandTest extends ReaderTestSupport {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		boolean flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
-		assertConsoleOutputContains("SELECT /* _SQL_ID_ */\r\n" +
-				"	*\r\n" +
-				"FROM\r\n" +
-				"	PRODUCT\r\n" +
-				"WHERE 1 = 1\r\n" +
-				"/*IF product_id != null */\r\n" +
-				"AND	PRODUCT_ID	IN	/*product_id*/(0, 2)\r\n" +
-				"/*END*/\r\n" +
-				"ORDER BY PRODUCT_ID\r\n" +
-				"");
 		assertTrue(flag);
+		assertConsoleOutputContains("SELECT /* _SQL_ID_ */");
+		assertConsoleOutputContains("AND	PRODUCT_ID	IN	/*product_id*/(0, 2)");
 
 		command.execute(reader, "view example/select_notfound".split("\\s+"), sqlConfig, new Properties());
 		assertConsoleOutputContains("SQL not found. sql=example/select_notfound");
