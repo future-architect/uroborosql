@@ -22,7 +22,7 @@ import java.util.Properties;
  *
  */
 public class DriverShim implements Driver {
-	private Driver driver = null;
+	private final Driver driver;
 
 	/**
 	 * コンストラクタ

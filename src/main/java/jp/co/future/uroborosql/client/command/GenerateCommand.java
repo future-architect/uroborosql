@@ -47,8 +47,6 @@ public class GenerateCommand extends ReplCommand {
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
 		PrintWriter writer = reader.getTerminal().writer();
-		writer.println("GENERATE:");
-		writer.flush();
 
 		if (parts.length < 3) {
 			writer.println(toString() + " parameter missing. " + toString() + " [SQL_KEYWORD] [TABLE NAME].");

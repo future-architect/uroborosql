@@ -52,8 +52,6 @@ public class DescCommand extends ReplCommand {
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
 		PrintWriter writer = reader.getTerminal().writer();
-		writer.println("DESC:");
-		writer.flush();
 
 		String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
 
