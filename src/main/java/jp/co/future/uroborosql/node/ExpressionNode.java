@@ -78,7 +78,7 @@ public abstract class ExpressionNode extends AbstractNode {
 			// OGNL式の場合はEvalした結果を取得
 			// OGNL式の評価は処理が重いため、必要な段階になってからParsedExpressionを取得する
 			try {
-				value = Ognl.getValue(getParsedExpression(expression), transformContext);
+				value = Ognl.getValue(getParsedExpression(expression), transformContext, null);
 				// OGNL式の場合は評価した値がバインドパラメータに登録されていないのでこのタイミングで登録する
 				transformContext.param(expression, value);
 			} catch (OgnlException ex) {

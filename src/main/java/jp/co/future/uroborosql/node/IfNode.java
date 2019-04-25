@@ -6,6 +6,11 @@
  */
 package jp.co.future.uroborosql.node;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
@@ -15,11 +20,6 @@ import ognl.ASTProperty;
 import ognl.Node;
 import ognl.Ognl;
 import ognl.OgnlException;
-
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * IF句を表すノード
@@ -101,7 +101,7 @@ public class IfNode extends BranchNode {
 		Node parsedExpression = null;
 		try {
 			parsedExpression = (Node) Ognl.parseExpression(expression);
-			result = Ognl.getValue(parsedExpression, transformContext);
+			result = Ognl.getValue(parsedExpression, transformContext, null);
 		} catch (OgnlException ex) {
 			throw new OgnlRuntimeException("Value could not be obtained.[" + expression + "]", ex);
 		}
@@ -167,11 +167,12 @@ public class IfNode extends BranchNode {
 			ASTProperty prop = (ASTProperty) node;
 			if (!StringFunction.SHORT_NAME.equals(prop.toString())) {
 				try {
-					Object value = Ognl.getValue(prop, transformContext);
+					Object value = Ognl.getValue(prop, transformContext, null);
 					builder.append(prop)
 							.append(":[")
-							.append(value == null ? null : ToStringBuilder.reflectionToString(value,
-									ToStringStyle.SIMPLE_STYLE))
+							.append(value == null ? null
+									: ToStringBuilder.reflectionToString(value,
+											ToStringStyle.SIMPLE_STYLE))
 							.append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす

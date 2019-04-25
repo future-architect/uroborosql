@@ -107,6 +107,16 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#shutdown()
+	 */
+	@Override
+	public void shutdown() {
+		sqlMap.clear();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.store.SqlManager#getSql(java.lang.String)
 	 */
 	@Override

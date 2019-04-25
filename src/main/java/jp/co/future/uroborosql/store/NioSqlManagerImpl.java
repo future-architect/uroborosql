@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -182,9 +183,22 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlManager#shutdown()
+	 */
+	@Override
 	public void shutdown() {
 		if (detectChanges) {
-			es.shutdownNow();
+			es.shutdown();
+			try {
+				if (!es.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+					es.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				es.shutdownNow();
+			}
 		}
 	}
 
@@ -198,7 +212,7 @@ public class NioSqlManagerImpl implements SqlManager {
 			try {
 				key = watcher.take();
 			} catch (InterruptedException ex) {
-				log.debug("WatchService catched InterruptedException.", ex);
+				log.debug("WatchService catched InterruptedException.");
 				break;
 			} catch (Throwable ex) {
 				log.error("Unexpected exception occured.", ex);
@@ -240,8 +254,12 @@ public class NioSqlManagerImpl implements SqlManager {
 					}
 				}
 			}
-
 			key.reset();
+		}
+		try {
+			watcher.close();
+		} catch (IOException e) {
+			// do nothing
 		}
 	}
 
