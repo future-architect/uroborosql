@@ -672,9 +672,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param type JDBC上の型
 	 * @return 文字列型の場合<code>true</code>
 	 */
-	private boolean isStringType(final JDBCType type) {
-		return JDBCType.CHAR.equals(type) || JDBCType.NCHAR.equals(type) || JDBCType.VARCHAR.equals(type)
-				|| JDBCType.NVARCHAR.equals(type) || JDBCType.LONGNVARCHAR.equals(type);
+	private boolean isStringType(final int type) {
+		return JDBCType.CHAR.getVendorTypeNumber().equals(type) || JDBCType.NCHAR.getVendorTypeNumber().equals(type)
+				|| JDBCType.VARCHAR.getVendorTypeNumber().equals(type)
+				|| JDBCType.NVARCHAR.getVendorTypeNumber().equals(type)
+				|| JDBCType.LONGNVARCHAR.getVendorTypeNumber().equals(type);
 	}
 
 	/**

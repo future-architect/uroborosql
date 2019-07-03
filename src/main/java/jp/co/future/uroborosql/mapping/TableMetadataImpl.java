@@ -28,7 +28,7 @@ public class TableMetadataImpl implements TableMetadata {
 		private String columnName;
 		private String camelName;
 		private String identifier;
-		private JDBCType dataType;
+		private int dataType;
 		private Integer keySeq = null;
 		private final String identifierQuoteString;
 		private final String remarks;
@@ -47,17 +47,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 */
 		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
-			this.columnName = columnName;
-			this.dataType = dataType;
-			this.remarks = remarks;
-			this.nullable = "YES".equalsIgnoreCase(nullable);
-			this.ordinalPosition = ordinalPosition;
-
-			if (StringUtils.isEmpty(identifierQuoteString)) {
-				this.identifierQuoteString = "";
-			} else {
-				this.identifierQuoteString = identifierQuoteString;
-			}
+			this(columnName, dataType.getVendorTypeNumber(), remarks, nullable, ordinalPosition, identifierQuoteString);
 		}
 
 		/**
@@ -72,7 +62,17 @@ public class TableMetadataImpl implements TableMetadata {
 		 */
 		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
-			this(columnName, JDBCType.valueOf(dataType), remarks, nullable, ordinalPosition, identifierQuoteString);
+			this.columnName = columnName;
+			this.dataType = dataType;
+			this.remarks = remarks;
+			this.nullable = "YES".equalsIgnoreCase(nullable);
+			this.ordinalPosition = ordinalPosition;
+
+			if (StringUtils.isEmpty(identifierQuoteString)) {
+				this.identifierQuoteString = "";
+			} else {
+				this.identifierQuoteString = identifierQuoteString;
+			}
 		}
 
 		/**
@@ -134,7 +134,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getDataType()
 		 */
 		@Override
-		public JDBCType getDataType() {
+		public int getDataType() {
 			return this.dataType;
 		}
 
@@ -143,7 +143,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 *
 		 * @param dataType タイプ
 		 */
-		public void setDataType(final JDBCType dataType) {
+		public void setDataType(final int dataType) {
 			this.dataType = dataType;
 		}
 
