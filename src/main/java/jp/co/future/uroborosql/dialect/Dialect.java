@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.dialect;
 
-import java.sql.JDBCType;
+import java.sql.SQLType;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.mapping.JavaType;
@@ -118,22 +118,22 @@ public interface Dialect {
 	String escapeLikePattern(CharSequence pattern);
 
 	/**
-	 * {@link JDBCType} を変換するJava型を取得する
+	 * {@link SQLType} を変換するJava型を取得する
 	 *
-	 * @param jdbcType JDBCType
-	 * @param jdbcTypeName データベース固有の型名
+	 * @param sqlType SQLType
+	 * @param sqlTypeName データベース固有の型名
 	 * @return 変換するJava型
 	 */
-	JavaType getJavaType(JDBCType jdbcType, String jdbcTypeName);
+	JavaType getJavaType(SQLType sqlType, String sqlTypeName);
 
 	/**
-	 * {@link JDBCType} を変換するJava型を取得する
+	 * {@link SQLType} を変換するJava型を取得する
 	 *
-	 * @param jdbcType JDBCTypeを表す数値
-	 * @param jdbcTypeName データベース固有の型名
+	 * @param sqlType SQLTypeを表す数値
+	 * @param sqlTypeName データベース固有の型名
 	 * @return 変換するJava型
 	 */
-	JavaType getJavaType(int jdbcType, String jdbcTypeName);
+	JavaType getJavaType(int sqlType, String sqlTypeName);
 
 	/**
 	 * Databaseの種別を表す名前を取得する

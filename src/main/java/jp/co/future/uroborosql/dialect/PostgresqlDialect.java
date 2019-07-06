@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.dialect;
 
 import java.sql.JDBCType;
+import java.sql.SQLType;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
@@ -76,17 +77,27 @@ public class PostgresqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(java.sql.JDBCType, java.lang.String)
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(java.sql.SQLType, java.lang.String)
 	 */
 	@Override
-	public JavaType getJavaType(final JDBCType jdbcType, final String jdbcTypeName) {
-		if (JDBCType.OTHER.equals(jdbcType)) {
-			if ("json".equalsIgnoreCase(jdbcTypeName) || "jsonb".equalsIgnoreCase(jdbcTypeName)) {
+	public JavaType getJavaType(final SQLType sqlType, final String sqlTypeName) {
+		return this.getJavaType(sqlType.getVendorTypeNumber(), sqlTypeName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(int, java.lang.String)
+	 */
+	@Override
+	public JavaType getJavaType(final int sqlType, final String sqlTypeName) {
+		if (JDBCType.OTHER.getVendorTypeNumber().equals(sqlType)) {
+			if ("json".equalsIgnoreCase(sqlTypeName) || "jsonb".equalsIgnoreCase(sqlTypeName)) {
 				// JSON型の場合、文字列として扱う
-				return super.getJavaType(JDBCType.NVARCHAR, jdbcTypeName);
+				return super.getJavaType(JDBCType.NVARCHAR, sqlTypeName);
 			}
 		}
-		return super.getJavaType(jdbcType, jdbcTypeName);
+		return super.getJavaType(sqlType, sqlTypeName);
 	}
 
 	/**

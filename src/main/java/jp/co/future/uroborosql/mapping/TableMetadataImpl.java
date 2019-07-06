@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.mapping;
 
-import java.sql.JDBCType;
+import java.sql.SQLType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
+		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
 			this(columnName, dataType.getVendorTypeNumber(), remarks, nullable, ordinalPosition, identifierQuoteString);
 		}
@@ -85,7 +85,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param ordinalPosition 列インデックス
 		 */
 		@Deprecated
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
+		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
 				final int ordinalPosition) {
 			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
 		}
