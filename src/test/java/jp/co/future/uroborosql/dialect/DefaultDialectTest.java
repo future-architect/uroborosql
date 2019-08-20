@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.sql.Ref;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Timestamp;
 import java.time.LocalTime;
@@ -88,7 +89,7 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void getJavaType() {
+	public void getJavaTypeWithSQLType() {
 		assertEquals(dialect.getJavaType(JDBCType.CHAR, "").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.VARCHAR, "").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.LONGVARCHAR, "").getClass(), JavaType.of(String.class).getClass());
@@ -130,6 +131,95 @@ public class DefaultDialectTest {
 		assertEquals(dialect.getJavaType(JDBCType.ARRAY, "").getClass(), JavaType.of(Object[].class).getClass());
 
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "").getClass(), JavaType.of(Object.class).getClass());
+		assertEquals(dialect.getJavaType(new SQLType() {
+
+			@Override
+			public Integer getVendorTypeNumber() {
+				return 999;
+			}
+
+			@Override
+			public String getVendor() {
+				return "dummy";
+			}
+
+			@Override
+			public String getName() {
+				return "dummy";
+			}
+		}, "").getClass(), JavaType.of(Object.class).getClass());
+	}
+
+	@Test
+	public void getJavaTypeWithVendorTypeNumber() {
+		assertEquals(dialect.getJavaType(JDBCType.CHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.VARCHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.LONGVARCHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.NCHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.NVARCHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.LONGNVARCHAR.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.NUMERIC.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(BigDecimal.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.DECIMAL.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(BigDecimal.class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.BIT.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Boolean.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.BOOLEAN.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Boolean.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TINYINT.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(byte.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.SMALLINT.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Short.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.INTEGER.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Integer.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.BIGINT.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Long.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.REAL.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Float.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.FLOAT.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Double.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.DOUBLE.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Double.class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.BINARY.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(byte[].class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.VARBINARY.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(byte[].class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.LONGVARBINARY.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(byte[].class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.DATE.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(ZonedDateTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(LocalTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Timestamp.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME_WITH_TIMEZONE.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(OffsetTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP_WITH_TIMEZONE.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(ZonedDateTime.class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.CLOB.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.BLOB.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(byte[].class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.NCLOB.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.REF.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Ref.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.SQLXML.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(SQLXML.class).getClass());
+
+		assertEquals(dialect.getJavaType(JDBCType.ARRAY.getVendorTypeNumber(), "").getClass(),
+				JavaType.of(Object[].class).getClass());
 
 		assertEquals(dialect.getJavaType(JDBCType.OTHER.getVendorTypeNumber(), "").getClass(),
 				JavaType.of(Object.class).getClass());

@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.mapping;
 
-import java.sql.JDBCType;
+import java.sql.SQLType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class TableMetadataImpl implements TableMetadata {
 		private String columnName;
 		private String camelName;
 		private String identifier;
-		private JDBCType dataType;
+		private int dataType;
 		private Integer keySeq = null;
 		private final String identifierQuoteString;
 		private final String remarks;
@@ -45,7 +45,22 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
+		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
+				final int ordinalPosition, final String identifierQuoteString) {
+			this(columnName, dataType.getVendorTypeNumber(), remarks, nullable, ordinalPosition, identifierQuoteString);
+		}
+
+		/**
+		 * コンストラクタ
+		 *
+		 * @param columnName カラム名
+		 * @param dataType データタイプ
+		 * @param remarks コメント文字列
+		 * @param nullable NULL可かどうか
+		 * @param ordinalPosition 列インデックス
+		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
+		 */
+		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
 				final int ordinalPosition, final String identifierQuoteString) {
 			this.columnName = columnName;
 			this.dataType = dataType;
@@ -68,24 +83,9 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param remarks コメント文字列
 		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
-		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
-		 */
-		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
-				final int ordinalPosition, final String identifierQuoteString) {
-			this(columnName, JDBCType.valueOf(dataType), remarks, nullable, ordinalPosition, identifierQuoteString);
-		}
-
-		/**
-		 * コンストラクタ
-		 *
-		 * @param columnName カラム名
-		 * @param dataType データタイプ
-		 * @param remarks コメント文字列
-		 * @param nullable NULL可かどうか
-		 * @param ordinalPosition 列インデックス
 		 */
 		@Deprecated
-		public Column(final String columnName, final JDBCType dataType, final String remarks, final String nullable,
+		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
 				final int ordinalPosition) {
 			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
 		}
@@ -134,7 +134,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getDataType()
 		 */
 		@Override
-		public JDBCType getDataType() {
+		public int getDataType() {
 			return this.dataType;
 		}
 
@@ -143,7 +143,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 *
 		 * @param dataType タイプ
 		 */
-		public void setDataType(final JDBCType dataType) {
+		public void setDataType(final int dataType) {
 			this.dataType = dataType;
 		}
 

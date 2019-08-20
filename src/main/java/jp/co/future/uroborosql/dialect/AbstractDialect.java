@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.dialect;
 import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.sql.Ref;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Timestamp;
 import java.time.LocalTime;
@@ -31,8 +32,8 @@ import jp.co.future.uroborosql.utils.StringFunction;
 public abstract class AbstractDialect implements Dialect {
 	private static final char[] DEFAULT_WILDCARDS = { '%', '_' };
 
-	/** JDBCTypeとJavaTyoeのマッピング */
-	protected static final Map<JDBCType, JavaType> DEFAULT_TYPE_MAP;
+	/** SQLTypeの値(int)とJavaTypeのマッピング */
+	protected static final Map<Integer, JavaType> DEFAULT_TYPE_MAP;
 
 	/** like検索時のエスケープ文字 */
 	private final char escapeChar;
@@ -43,50 +44,50 @@ public abstract class AbstractDialect implements Dialect {
 
 	private final StringFunction expressionFunction;
 
-	protected final Map<JDBCType, JavaType> typeMap;
+	protected final Map<Integer, JavaType> typeMap;
 
 	static {
 		// initialize DEFAULT_TYPE_MAP
 		DEFAULT_TYPE_MAP = new HashMap<>();
-		DEFAULT_TYPE_MAP.put(JDBCType.CHAR, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.VARCHAR, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.LONGVARCHAR, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.NCHAR, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.NVARCHAR, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.LONGNVARCHAR, JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.CHAR.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.VARCHAR.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.LONGVARCHAR.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.NCHAR.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.NVARCHAR.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.LONGNVARCHAR.getVendorTypeNumber(), JavaType.of(String.class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.NUMERIC, JavaType.of(BigDecimal.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.DECIMAL, JavaType.of(BigDecimal.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.NUMERIC.getVendorTypeNumber(), JavaType.of(BigDecimal.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.DECIMAL.getVendorTypeNumber(), JavaType.of(BigDecimal.class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.BIT, JavaType.of(Boolean.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.BOOLEAN, JavaType.of(Boolean.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.TINYINT, JavaType.of(byte.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.SMALLINT, JavaType.of(Short.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.INTEGER, JavaType.of(Integer.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.BIGINT, JavaType.of(Long.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.REAL, JavaType.of(Float.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.FLOAT, JavaType.of(Double.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.DOUBLE, JavaType.of(Double.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.BIT.getVendorTypeNumber(), JavaType.of(Boolean.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.BOOLEAN.getVendorTypeNumber(), JavaType.of(Boolean.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.TINYINT.getVendorTypeNumber(), JavaType.of(byte.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.SMALLINT.getVendorTypeNumber(), JavaType.of(Short.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.INTEGER.getVendorTypeNumber(), JavaType.of(Integer.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.BIGINT.getVendorTypeNumber(), JavaType.of(Long.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.REAL.getVendorTypeNumber(), JavaType.of(Float.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.FLOAT.getVendorTypeNumber(), JavaType.of(Double.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.DOUBLE.getVendorTypeNumber(), JavaType.of(Double.class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.BINARY, JavaType.of(byte[].class));
-		DEFAULT_TYPE_MAP.put(JDBCType.VARBINARY, JavaType.of(byte[].class));
-		DEFAULT_TYPE_MAP.put(JDBCType.LONGVARBINARY, JavaType.of(byte[].class));
+		DEFAULT_TYPE_MAP.put(JDBCType.BINARY.getVendorTypeNumber(), JavaType.of(byte[].class));
+		DEFAULT_TYPE_MAP.put(JDBCType.VARBINARY.getVendorTypeNumber(), JavaType.of(byte[].class));
+		DEFAULT_TYPE_MAP.put(JDBCType.LONGVARBINARY.getVendorTypeNumber(), JavaType.of(byte[].class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.DATE, JavaType.of(ZonedDateTime.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.TIME, JavaType.of(LocalTime.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.TIMESTAMP, JavaType.of(Timestamp.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.TIME_WITH_TIMEZONE, JavaType.of(OffsetTime.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.TIMESTAMP_WITH_TIMEZONE, JavaType.of(ZonedDateTime.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.DATE.getVendorTypeNumber(), JavaType.of(ZonedDateTime.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.TIME.getVendorTypeNumber(), JavaType.of(LocalTime.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.TIMESTAMP.getVendorTypeNumber(), JavaType.of(Timestamp.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.TIME_WITH_TIMEZONE.getVendorTypeNumber(), JavaType.of(OffsetTime.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.TIMESTAMP_WITH_TIMEZONE.getVendorTypeNumber(), JavaType.of(ZonedDateTime.class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.CLOB, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.BLOB, JavaType.of(byte[].class));
-		DEFAULT_TYPE_MAP.put(JDBCType.NCLOB, JavaType.of(String.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.REF, JavaType.of(Ref.class));
-		DEFAULT_TYPE_MAP.put(JDBCType.SQLXML, JavaType.of(SQLXML.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.CLOB.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.BLOB.getVendorTypeNumber(), JavaType.of(byte[].class));
+		DEFAULT_TYPE_MAP.put(JDBCType.NCLOB.getVendorTypeNumber(), JavaType.of(String.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.REF.getVendorTypeNumber(), JavaType.of(Ref.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.SQLXML.getVendorTypeNumber(), JavaType.of(SQLXML.class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.ARRAY, JavaType.of(Object[].class));
+		DEFAULT_TYPE_MAP.put(JDBCType.ARRAY.getVendorTypeNumber(), JavaType.of(Object[].class));
 
-		DEFAULT_TYPE_MAP.put(JDBCType.OTHER, JavaType.of(Object.class));
+		DEFAULT_TYPE_MAP.put(JDBCType.OTHER.getVendorTypeNumber(), JavaType.of(Object.class));
 	}
 
 	/**
@@ -189,11 +190,11 @@ public abstract class AbstractDialect implements Dialect {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.dialect.Dialect#getJavaType(java.sql.JDBCType, java.lang.String)
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getJavaType(java.sql.SQLType, java.lang.String)
 	 */
 	@Override
-	public JavaType getJavaType(final JDBCType jdbcType, final String jdbcTypeName) {
-		return this.typeMap.getOrDefault(jdbcType, JavaType.of(Object.class));
+	public JavaType getJavaType(final SQLType sqlType, final String sqlTypeName) {
+		return this.getJavaType(sqlType.getVendorTypeNumber(), sqlTypeName);
 	}
 
 	/**
@@ -202,14 +203,8 @@ public abstract class AbstractDialect implements Dialect {
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getJavaType(int, java.lang.String)
 	 */
 	@Override
-	public JavaType getJavaType(final int jdbcType, final String jdbcTypeName) {
-		JDBCType type = null;
-		try {
-			type = JDBCType.valueOf(jdbcType);
-		} catch (IllegalArgumentException ex) {
-			type = JDBCType.OTHER;
-		}
-		return getJavaType(type, jdbcTypeName);
+	public JavaType getJavaType(final int sqlType, final String sqlTypeName) {
+		return this.typeMap.getOrDefault(sqlType, JavaType.of(Object.class));
 	}
 
 	/**

@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.mapping;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
@@ -61,9 +60,9 @@ public interface TableMetadata {
 		/**
 		 * カラム型取得
 		 *
-		 * @return カラム型
+		 * @return カラム型を表す値
 		 */
-		JDBCType getDataType();
+		int getDataType();
 
 		/**
 		 * 主キー内の連番取得 (値1は主キーの最初の列、値2は主キーの2番目の列を表す)。
