@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.context;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,15 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.event.Level;
+
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.parameter.Parameter;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.event.Level;
 
 public class SqlContextFactoryTest {
 
@@ -85,7 +86,7 @@ public class SqlContextFactoryTest {
 
 				"CLS_CUSTOMMAPPER_TARGET", TestConsts.CUSTOMMAPPER_TARGET
 
-				)));
+		)));
 	}
 
 	private Map<String, ?> mapOf(final Object... args) {
@@ -170,4 +171,27 @@ public class SqlContextFactoryTest {
 
 		assertThat(ctx.getParam("DUMMY").getValue(), is("dummy_value"));
 	}
+
+	@Test
+	public void testSetDefaultResultSetType() throws Exception {
+		sqlContextFactory.initialize();
+
+		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
+		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_FORWARD_ONLY));
+		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_INSENSITIVE));
+		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
+		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_SENSITIVE));
+	}
+
+	@Test
+	public void testSetDefaultResultSetConcurrency() throws Exception {
+		sqlContextFactory.initialize();
+
+		sqlContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
+		assertThat(sqlContextFactory.createSqlContext().getResultSetConcurrency(), is(ResultSet.CONCUR_READ_ONLY));
+		sqlContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
+		assertThat(sqlContextFactory.createSqlContext().getResultSetConcurrency(), is(ResultSet.CONCUR_UPDATABLE));
+	}
+
 }

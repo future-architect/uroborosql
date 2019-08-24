@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
  */
 public interface SqlContextFactory {
 	/** BEAN名 */
-	final String FACTORY_BEAN_NAME = "sqlContextFactory";
+	String FACTORY_BEAN_NAME = "sqlContextFactory";
 
 	/**
 	 * 初期化処理
@@ -167,5 +167,21 @@ public interface SqlContextFactory {
 	 * @return SqlContextFactory
 	 */
 	SqlContextFactory removeBindParamMapper(BindParameterMapper<?> parameterMapper);
+
+	/**
+	 * SqlContextに設定するResultSetTypeの初期値を指定する
+	 *
+	 * @param resultSetType ResultSetTypeの初期値
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory setDefaultResultSetType(int resultSetType);
+
+	/**
+	 * SqlContextに設定するResultSetConcurrencyの初期値を指定する
+	 *
+	 * @param resultSetConcurrency ResultSetConcurrencyの初期値
+	 * @return SqlContextFactory
+	 */
+	SqlContextFactory setDefaultResultSetConcurrency(int resultSetConcurrency);
 
 }
