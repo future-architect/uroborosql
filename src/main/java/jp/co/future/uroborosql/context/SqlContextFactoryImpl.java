@@ -15,6 +15,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +32,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
@@ -38,10 +43,6 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import ognl.OgnlRuntime;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SQLコンテキストファクトリ実装
@@ -69,16 +70,22 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
 
 	/** 自動パラメータバインド関数List(query用) */
-	private List<Consumer<SqlContext>> queryAutoParameterBinders = new ArrayList<>();
+	private final List<Consumer<SqlContext>> queryAutoParameterBinders = new ArrayList<>();
 
 	/** 自動パラメータバインド関数List(update/batch/proc用) */
-	private List<Consumer<SqlContext>> updateAutoParameterBinders = new ArrayList<>();
+	private final List<Consumer<SqlContext>> updateAutoParameterBinders = new ArrayList<>();
 
 	/** 合成自動パラメータバインド関数(query用) */
 	private Consumer<SqlContext> queryAutoParameterBinder = null;
 
 	/** 合成自動パラメータバインド関数(update/batch/proc用) */
 	private Consumer<SqlContext> updateAutoParameterBinder = null;
+
+	/** ResultSetTypeの初期値 */
+	private int defaultResultSetType = ResultSet.TYPE_FORWARD_ONLY;
+
+	/** ResultSetConcurrencyの初期値*/
+	private int defaultResultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** パラメータ変換マネージャ */
 	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
@@ -113,6 +120,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		sqlContext.setParameterMapperManager(new BindParameterMapperManager(parameterMapperManager));
 		sqlContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
 		sqlContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
+		sqlContext.setResultSetType(defaultResultSetType);
+		sqlContext.setResultSetConcurrency(defaultResultSetConcurrency);
 
 		return sqlContext;
 	}
@@ -335,7 +344,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	@Deprecated
 	@Override
-	public SqlContextFactory setAutoBindParameterCreators(final List<AutoBindParameterCreator> autoBindParameterCreators) {
+	public SqlContextFactory setAutoBindParameterCreators(
+			final List<AutoBindParameterCreator> autoBindParameterCreators) {
 		this.autoBindParameterCreators = autoBindParameterCreators;
 		return this;
 	}
@@ -505,7 +515,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 * @throws ClassNotFoundException エラー
 	 * @throws IOException
 	 */
-	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName, final JarFile jarFile) {
+	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
+			final JarFile jarFile) {
 		String resourceName = packageName.replace('.', '/');
 		Set<Class<?>> classes = new HashSet<>();
 		Collections.list(jarFile.entries()).stream().map(JarEntry::getName)
@@ -533,5 +544,17 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 			LOG.error(e.getMessage(), e);
 		}
 		return Optional.empty();
+	}
+
+	@Override
+	public SqlContextFactory setDefaultResultSetType(final int resultSetType) {
+		defaultResultSetType = resultSetType;
+		return this;
+	}
+
+	@Override
+	public SqlContextFactory setDefaultResultSetConcurrency(final int resultSetConcurrency) {
+		defaultResultSetConcurrency = resultSetConcurrency;
+		return this;
 	}
 }
