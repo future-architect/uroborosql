@@ -337,16 +337,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * {@inheritDoc} {@link #close()} を呼び出す
-	 *
-	 * @see java.lang.Object#finalize()
-	 */
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-	}
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLRunnable)
