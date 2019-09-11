@@ -18,6 +18,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlQuery;
@@ -38,64 +39,6 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	SqlQueryImpl(final SqlAgent agent, final SqlContext context) {
 		super(agent, context);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream()
-	 */
-	@Override
-	public Stream<Map<String, Object>> stream() {
-		return stream(agent().getDefaultMapKeyCaseFormat());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(jp.co.future.uroborosql.converter.ResultSetConverter)
-	 */
-	@Override
-	public <T> Stream<T> stream(final ResultSetConverter<T> converter) {
-		try {
-			return agent().query(context(), converter);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(jp.co.future.uroborosql.utils.CaseFormat)
-	 */
-	@Override
-	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), caseFormat));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(java.lang.Class)
-	 */
-	@Override
-	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlQuery#resultSet()
-	 */
-	@Override
-	public ResultSet resultSet() {
-		try {
-			return agent().query(context());
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
-		}
 	}
 
 	/**
@@ -146,7 +89,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	@Override
 	public Optional<Map<String, Object>> findFirst(final CaseFormat caseFormat) {
 		try (Stream<Map<String, Object>> stream = stream(
-				new MapResultSetConverter(agent.getSqlConfig().getDialect(), caseFormat))) {
+				new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat))) {
 			return stream.findFirst();
 		}
 	}
@@ -160,6 +103,83 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public <T> Optional<T> findFirst(final Class<T> type) {
 		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
 			return stream.findFirst();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#one()
+	 */
+	@Override
+	public Map<String, Object> one() {
+		return one(agent().getDefaultMapKeyCaseFormat());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#one(CaseFormat)
+	 */
+	@Override
+	public Map<String, Object> one(final CaseFormat caseFormat) {
+		return findOne(caseFormat).orElseThrow(() -> new DataNotFoundException("query result is empty."));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#one(Class)
+	 */
+	@Override
+	public <T> T one(final Class<T> type) {
+		return findOne(type).orElseThrow(() -> new DataNotFoundException("query result is empty."));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#findOne()
+	 */
+	@Override
+	public Optional<Map<String, Object>> findOne() {
+		return findOne(agent().getDefaultMapKeyCaseFormat());
+	}
+
+	@Override
+	public Optional<Map<String, Object>> findOne(final CaseFormat caseFormat) {
+		try (Stream<Map<String, Object>> stream = stream(
+				new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat))) {
+			List<Map<String, Object>> resultList = stream.limit(2).collect(Collectors.toList());
+			if (resultList.size() > 1) {
+				throw new DataNonUniqueException("two or more query results.");
+			}
+			return resultList.stream().findFirst();
+		}
+	}
+
+	@Override
+	public <T> Optional<T> findOne(final Class<T> type) {
+		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
+			List<T> resultList = stream.limit(2).collect(Collectors.toList());
+			if (resultList.size() > 1) {
+				throw new DataNonUniqueException("two or more query results.");
+			}
+			return resultList.stream().findFirst();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#resultSet()
+	 */
+	@Override
+	public ResultSet resultSet() {
+		try {
+			return agent().query(context());
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
 	}
 
@@ -198,4 +218,49 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 			return stream.collect(Collectors.toList());
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream()
+	 */
+	@Override
+	public Stream<Map<String, Object>> stream() {
+		return stream(agent().getDefaultMapKeyCaseFormat());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(jp.co.future.uroborosql.converter.ResultSetConverter)
+	 */
+	@Override
+	public <T> Stream<T> stream(final ResultSetConverter<T> converter) {
+		try {
+			return agent().query(context(), converter);
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(jp.co.future.uroborosql.utils.CaseFormat)
+	 */
+	@Override
+	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
+		return stream(new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#stream(java.lang.Class)
+	 */
+	@Override
+	public <T> Stream<T> stream(final Class<T> type) {
+		return stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()));
+	}
+
 }

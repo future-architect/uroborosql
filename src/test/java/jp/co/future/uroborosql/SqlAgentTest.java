@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
+import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -344,7 +345,31 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).first();
+		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.first();
+		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
+		assertEquals("商品名0", map.get("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", map.get("JAN_CODE"));
+		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentOne() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+		try {
+			agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).one();
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Map<String, Object> map = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.one();
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
@@ -367,7 +392,40 @@ public class SqlAgentTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).first();
+		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+				.first();
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentOneSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.agent();
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.one();
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Map<String, Object> map = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.one();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
 		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
@@ -402,6 +460,36 @@ public class SqlAgentTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
+	public void testQueryFluentFindOne() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3).findOne();
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0).findOne();
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
+		assertEquals("商品名0", map.get("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", map.get("JAN_CODE"));
+		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
 	public void testQueryFluentFindFirstSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -429,6 +517,44 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindOneSetDefaultCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// agentの設定を変更するため、setupで生成したagentをいったんクローズする
+		agent.close();
+
+		// defaultMapKeyCaseFormatの設定
+		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		agent = config.agent();
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.findOne();
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.findOne();
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
@@ -438,6 +564,32 @@ public class SqlAgentTest {
 
 		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
 				.first(CaseFormat.LOWER_SNAKE_CASE);
+		assertEquals(new BigDecimal("0"), map.get("product_id"));
+		assertEquals("商品名0", map.get("product_name"));
+		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
+		assertEquals("1234567890123", map.get("jan_code"));
+		assertEquals("0番目の商品", map.get("product_description"));
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentOneCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.one(CaseFormat.LOWER_SNAKE_CASE);
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Map<String, Object> map = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.one(CaseFormat.LOWER_SNAKE_CASE);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
 		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
@@ -465,6 +617,38 @@ public class SqlAgentTest {
 		assertEquals("0番目の商品", map.get("ProductDescription"));
 
 		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindOneCaseFormat() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.findOne(CaseFormat.PASCAL_CASE);
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.findOne(CaseFormat.PASCAL_CASE);
+		assertTrue(optional.isPresent());
+
+		Map<String, Object> map = optional.get();
+		assertEquals(new BigDecimal("0"), map.get("ProductId"));
+		assertEquals("商品名0", map.get("ProductName"));
+		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
+		assertEquals("1234567890123", map.get("JanCode"));
+		assertEquals("0番目の商品", map.get("ProductDescription"));
+
+		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
 		assertFalse(optional.isPresent());
 	}
 
@@ -512,6 +696,68 @@ public class SqlAgentTest {
 		optional = agent.query("example/select_product")
 				.paramList("product_id", 4)
 				.findFirst(Product.class);
+
+		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentOneByClass() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+		try {
+			Product product = agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.one(Product.class);
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Product product = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.one(Product.class);
+
+		assertEquals(0, product.getProductId());
+		assertEquals("商品名0", product.getProductName());
+		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
+		assertEquals("1234567890123", product.getJanCode());
+		assertEquals("0番目の商品", product.getProductDescription());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindOneByClass() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try {
+			agent.query("example/select_product")
+					.paramList("product_id", 0, 1, 2, 3)
+					.findOne(Product.class);
+			assertTrue(false);
+		} catch (DataNonUniqueException e) {
+			// OK
+		}
+		Optional<Product> optional = agent.query("example/select_product")
+				.paramList("product_id", 0)
+				.findOne(Product.class);
+		assertTrue(optional.isPresent());
+
+		Product product = optional.get();
+
+		assertEquals(0, product.getProductId());
+		assertEquals("商品名0", product.getProductName());
+		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
+		assertEquals("1234567890123", product.getJanCode());
+		assertEquals("0番目の商品", product.getProductDescription());
+
+		optional = agent.query("example/select_product")
+				.paramList("product_id", 4)
+				.findOne(Product.class);
 
 		assertFalse(optional.isPresent());
 	}
