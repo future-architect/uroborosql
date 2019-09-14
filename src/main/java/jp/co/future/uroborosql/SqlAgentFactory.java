@@ -11,6 +11,7 @@ import java.util.List;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -23,55 +24,61 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public interface SqlAgentFactory {
 	/** ファクトリBean名 */
-	final String FACTORY_BEAN_NAME = "sqlAagentFactory";
+	String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
 	/**
 	 * プロパティ:SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
 	 * デフォルトは指定なし
 	 */
-	final String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
+	String PROPS_KEY_SQL_RETRY_CODES = "sqlRetryCodes";
 
 	/**
 	 * プロパティ:SQL実行エラー時の最大リトライ回数デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
-	final String PROPS_KEY_DEFAULT_MAX_RETRY_COUNT = "defaultMaxRetryCount";
+	String PROPS_KEY_DEFAULT_MAX_RETRY_COUNT = "defaultMaxRetryCount";
 
 	/**
 	 * プロパティ:SQL実行リトライ時の待機時間(ms)デフォルト値<br>
 	 * デフォルトは<code>0</code>
 	 */
-	final String PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME = "defaultSqlRetryWaitTime";
+	String PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME = "defaultSqlRetryWaitTime";
 
 	/**
 	 * プロパティ:フェッチサイズ（数値）<br>
 	 * デフォルトは指定なし
 	 */
-	final String PROPS_KEY_FETCH_SIZE = "fetchSize";
+	String PROPS_KEY_FETCH_SIZE = "fetchSize";
 
 	/**
 	 * プロパティ:クエリータイムアウト（ms）（数値）<br>
 	 * デフォルトは指定なし
 	 */
-	final String PROPS_KEY_QUERY_TIMEOUT = "queryTimeout";
+	String PROPS_KEY_QUERY_TIMEOUT = "queryTimeout";
 
 	/**
 	 * プロパティ:SQL_IDを置換するためのKEY文字列<br>
 	 * デフォルトは "_SQL_ID_"
 	 */
-	final String PROPS_KEY_SQL_ID_KEY_NAME = "sqlIdKeyName";
+	String PROPS_KEY_SQL_ID_KEY_NAME = "sqlIdKeyName";
 
 	/**
 	 * プロパティ:Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat<br>
 	 * デフォルトは "UPPER_SNAKE_CASE"
 	 */
-	final String PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT = "defaultMapKeyCaseFormat";
+	String PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT = "defaultMapKeyCaseFormat";
 
 	/**
 	 * プロパティ:デフォルトの{@link InsertsType}<br>
 	 * デフォルトは "BULK"
 	 */
-	final String PROPS_KEY_DEFAULT_INSERTS_TYPE = "defaultInsertsType";
+	String PROPS_KEY_DEFAULT_INSERTS_TYPE = "defaultInsertsType";
+
+	/**
+	 * プロパティ:トランザクション内でのみ更新可能とするかどうか<br>
+	 * デフォルトは false
+	 */
+	String PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION = "onlyUpdatableWithinTransaction";
 
 	/**
 	 * SQL実行クラス生成。
@@ -251,4 +258,19 @@ public interface SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
 	SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType);
+
+	/**
+	 * トランザクション内でのみ更新可能とするかどうかを取得する
+	 * @return トランザクション内でのみ更新可能とする場合<true>
+	 */
+	boolean isOnlyUpdatableWithinTransaction();
+
+	/**
+	 * トランザクション内でのみ更新可能とするかどうかを設定する<br>
+	 * <code>true</code>を指定するとトランザクションを開始していない場合は SELECT文以外のSQLを発行すると {@link UroborosqlTransactionException}をスローする
+	 *
+	 * @param onlyUpdatableWithinTransaction トランザクション内でのみ更新可能とするかどうか。
+	 * @return SqlAgentFactory
+	 */
+	SqlAgentFactory setOnlyUpdatableWithinTransaction(boolean onlyUpdatableWithinTransaction);
 }

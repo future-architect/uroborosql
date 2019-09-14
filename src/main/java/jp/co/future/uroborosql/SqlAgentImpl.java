@@ -87,6 +87,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
+		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
+			sqlContext.setSqlKind(SqlKind.SELECT);
+		}
+
 		// コンテキスト変換
 		transformContext(sqlContext, true);
 
@@ -242,6 +246,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
+		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
+			sqlContext.setSqlKind(SqlKind.UPDATE);
+		}
+
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
@@ -364,6 +372,10 @@ public class SqlAgentImpl extends AbstractAgent {
 	public int[] batch(final SqlContext sqlContext) throws SQLException {
 		// バッチ処理の場合大量のログが出力されるため、パラメータログの出力を抑止する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
+
+		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
+			sqlContext.setSqlKind(SqlKind.BATCH_INSERT);
+		}
 
 		// コンテキスト変換
 		transformContext(sqlContext, false);
@@ -493,6 +505,10 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// procedureやfunctionの場合、SQL文法エラーになるためバインドパラメータコメントを出力しない
 		sqlContext.contextAttrs().put(CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, false);
+
+		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
+			sqlContext.setSqlKind(SqlKind.PROCEDURE);
+		}
 
 		// コンテキスト変換
 		transformContext(sqlContext, false);

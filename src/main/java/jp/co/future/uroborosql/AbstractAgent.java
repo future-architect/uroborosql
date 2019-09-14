@@ -29,8 +29,8 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -148,8 +148,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	public AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> defaultProps) {
 		this.sqlConfig = sqlConfig;
-		this.transactionManager = new LocalTransactionManager(sqlConfig.getConnectionSupplier(),
-				sqlConfig.getSqlFilterManager());
+		this.transactionManager = new LocalTransactionManager(sqlConfig);
 
 		// デフォルトプロパティ設定
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {

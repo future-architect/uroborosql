@@ -309,7 +309,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultInsertsType(InsertsType)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType) {
+	public SqlAgentFactory setDefaultInsertsType(final InsertsType defaultInsertsType) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_INSERTS_TYPE, defaultInsertsType.toString());
 		return this;
 	}
@@ -321,6 +321,19 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	protected Map<String, String> getDefaultProps() {
 		return defaultProps;
+	}
+
+	@Override
+	public boolean isOnlyUpdatableWithinTransaction() {
+		return Boolean
+				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION, "FALSE"));
+	}
+
+	@Override
+	public SqlAgentFactory setOnlyUpdatableWithinTransaction(final boolean onlyUpdatableWithinTransaction) {
+		getDefaultProps().put(PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION,
+				Boolean.toString(onlyUpdatableWithinTransaction));
+		return this;
 	}
 
 }
