@@ -14,9 +14,8 @@ import java.util.Deque;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 /**
  * ローカルトランザクションマネージャ
@@ -24,11 +23,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
  * @author ota
  */
 public class LocalTransactionManager implements TransactionManager {
-	/** コネクション供給クラス */
-	private final ConnectionSupplier connectionSupplier;
-
-	/** SQLフィルタ管理クラス */
-	private final SqlFilterManager sqlFilterManager;
+	/** SQL設定クラス */
+	private final SqlConfig sqlConfig;
 
 	/** トランザクションコンテキストのスタック */
 	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
@@ -36,17 +32,16 @@ public class LocalTransactionManager implements TransactionManager {
 	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
 	private Optional<LocalTransactionContext> unmanagedTransaction = Optional.empty();
 
+	private final boolean updatable;
+
 	/**
 	 * コンストラクタ
 	 *
-	 * @param connectionSupplier コネクション供給クラス
-	 * @param sqlFilterManager SQLフィルタ管理クラス
+	 * @param sqlConfig SQL設定クラス
 	 */
-	public LocalTransactionManager(final ConnectionSupplier connectionSupplier,
-			final SqlFilterManager sqlFilterManager) {
-		this.connectionSupplier = connectionSupplier;
-		this.sqlFilterManager = sqlFilterManager;
-
+	public LocalTransactionManager(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
+		this.updatable = !sqlConfig.getSqlAgentFactory().isForceUpdateWithinTransaction();
 	}
 
 	/**
@@ -192,7 +187,7 @@ public class LocalTransactionManager implements TransactionManager {
 			} else {
 				if (!this.unmanagedTransaction.isPresent()) {
 					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+							.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
 				}
 				return this.unmanagedTransaction.get().getConnection();
 			}
@@ -216,7 +211,7 @@ public class LocalTransactionManager implements TransactionManager {
 			} else {
 				if (!this.unmanagedTransaction.isPresent()) {
 					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+							.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
 				}
 				return this.unmanagedTransaction.get().getConnection(alias);
 			}
@@ -239,8 +234,7 @@ public class LocalTransactionManager implements TransactionManager {
 			return txContext.get().getPreparedStatement(sqlContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				this.unmanagedTransaction = Optional.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
 			}
 			return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
 		}
@@ -259,8 +253,7 @@ public class LocalTransactionManager implements TransactionManager {
 			return txContext.get().getCallableStatement(sqlContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.connectionSupplier, this.sqlFilterManager));
+				this.unmanagedTransaction = Optional.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
 			}
 			return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
 		}
@@ -335,8 +328,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 処理の結果
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(this.connectionSupplier,
-				this.sqlFilterManager)) {
+		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true)) {
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();

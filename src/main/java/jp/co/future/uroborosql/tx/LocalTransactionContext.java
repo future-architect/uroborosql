@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 
 /**
  * ローカルトランザクションContext
@@ -35,11 +35,8 @@ class LocalTransactionContext implements AutoCloseable {
 	/** セーブポイントキャッシュ */
 	private final ConcurrentMap<String, Savepoint> savepointMap = new ConcurrentHashMap<>();
 
-	/** コネクション提供クラス */
-	private final ConnectionSupplier connectionSupplier;
-
-	/** SQLフィルタ管理クラス */
-	private final SqlFilterManager sqlFilterManager;
+	/** SQL設定クラス */
+	private final SqlConfig sqlConfig;
 
 	/** コネクション */
 	private Connection connection;
@@ -47,14 +44,17 @@ class LocalTransactionContext implements AutoCloseable {
 	/** ロールバックフラグ */
 	private boolean rollbackOnly = false;
 
+	private final boolean updatable;
+
 	/**
 	 * コンストラクタ
 	 *
-	 * @param connectionSupplier コネクション提供クラス
+	 * @param sqlConfig SQL設定クラス
+	 * @param updatable 更新（INSERT/UPDATE/DELETE）SQL発行可能かどうか
 	 */
-	LocalTransactionContext(final ConnectionSupplier connectionSupplier, final SqlFilterManager sqlFilterManager) {
-		this.connectionSupplier = connectionSupplier;
-		this.sqlFilterManager = sqlFilterManager;
+	LocalTransactionContext(final SqlConfig sqlConfig, final boolean updatable) {
+		this.sqlConfig = sqlConfig;
+		this.updatable = updatable;
 	}
 
 	/**
@@ -65,7 +65,7 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	Connection getConnection() throws SQLException {
 		if (connection == null) {
-			connection = connectionSupplier.getConnection();
+			connection = this.sqlConfig.getConnectionSupplier().getConnection();
 			initSavepoints(connection);
 		}
 		return connection;
@@ -80,14 +80,14 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	Connection getConnection(final String alias) throws SQLException {
 		if (connection == null) {
-			connection = connectionSupplier.getConnection(alias);
+			connection = this.sqlConfig.getConnectionSupplier().getConnection(alias);
 			initSavepoints(connection);
 		}
 		return connection;
 	}
 
 	/**
-	 * ステートメント初期化。
+	 * ステートメント取得
 	 *
 	 * @param sqlContext SQLコンテキスト
 	 * @return PreparedStatement
@@ -110,10 +110,14 @@ class LocalTransactionContext implements AutoCloseable {
 		case INSERT:
 		case BULK_INSERT:
 		case BATCH_INSERT:
-			if (sqlContext.hasGeneratedKeyColumns()) {
-				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
+			if (updatable) {
+				if (sqlContext.hasGeneratedKeyColumns()) {
+					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
+				} else {
+					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+				}
 			} else {
-				stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+				throw new UroborosqlTransactionException("Transaction not started.");
 			}
 			break;
 		case SELECT:
@@ -122,10 +126,14 @@ class LocalTransactionContext implements AutoCloseable {
 					sqlContext.getResultSetConcurrency());
 			break;
 		default:
-			stmt = conn.prepareStatement(sqlContext.getExecutableSql());
+			if (updatable) {
+				stmt = conn.prepareStatement(sqlContext.getExecutableSql());
+			} else {
+				throw new UroborosqlTransactionException("Transaction not started.");
+			}
 			break;
 		}
-		return sqlFilterManager.doPreparedStatement(sqlContext, stmt);
+		return this.sqlConfig.getSqlFilterManager().doPreparedStatement(sqlContext, stmt);
 	}
 
 	/**
@@ -146,11 +154,13 @@ class LocalTransactionContext implements AutoCloseable {
 			throw new IllegalArgumentException(sqlContext.getDbAlias());
 		}
 
-		CallableStatement stmt = sqlFilterManager.doCallableStatement(
-				sqlContext,
-				conn.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
-						sqlContext.getResultSetConcurrency()));
-		return stmt;
+		if (this.updatable) {
+			return this.sqlConfig.getSqlFilterManager().doCallableStatement(sqlContext,
+					conn.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
+							sqlContext.getResultSetConcurrency()));
+		} else {
+			throw new UroborosqlTransactionException("Transaction not started.");
+		}
 	}
 
 	/**

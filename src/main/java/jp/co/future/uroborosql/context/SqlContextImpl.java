@@ -141,7 +141,7 @@ public class SqlContextImpl implements SqlContext {
 	private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** 実行するSQLの種別 */
-	private SqlKind sqlKind = SqlKind.SELECT;
+	private SqlKind sqlKind = SqlKind.NONE;
 
 	/** 自動採番するキーカラム名の配列 */
 	private String[] generatedKeyColumns;
