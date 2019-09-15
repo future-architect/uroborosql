@@ -386,7 +386,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSelectWithinTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -398,7 +398,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSelectWithinNewTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.requiresNew(() -> {
@@ -410,7 +410,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSelectWithinNotSupportedTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.notSupported(() -> {
@@ -422,7 +422,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSelectWithoutTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			select(agent);
@@ -432,7 +432,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testInsertWithinTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -462,7 +462,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testInsertWithinNewTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.requiresNew(() -> {
@@ -492,7 +492,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testInsertWithinNotSupportedTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.notSupported(() -> {
@@ -558,7 +558,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testInsertWithoutTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			try {
@@ -622,7 +622,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testUpdateWithinTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -637,7 +637,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testUpdateWithinNewTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -654,7 +654,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testUpdateWithinNotSupportedTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -685,7 +685,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testUpdateWithoutTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -714,7 +714,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testDeleteWithinTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -731,7 +731,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testDeleteWithinNewTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -750,7 +750,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testDeleteWithinNotSupportedTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -799,7 +799,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testDeleteWithoutTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -846,7 +846,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testCallStoredFunctionWithinTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -870,7 +870,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testCallStoredFunctionWithinNewTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -896,7 +896,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testCallStoredFunctionWithinNotSupportedTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -924,7 +924,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testCallStoredFunctionWithoutTransaction() {
-		config.getSqlAgentFactory().setOnlyUpdatableWithinTransaction(true);
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {

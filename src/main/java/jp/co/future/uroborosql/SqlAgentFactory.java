@@ -75,10 +75,10 @@ public interface SqlAgentFactory {
 	String PROPS_KEY_DEFAULT_INSERTS_TYPE = "defaultInsertsType";
 
 	/**
-	 * プロパティ:トランザクション内でのみ更新可能とするかどうか<br>
+	 * プロパティ:トランザクション内での更新を強制するかどうか<br>
 	 * デフォルトは false
 	 */
-	String PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION = "onlyUpdatableWithinTransaction";
+	String PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION = "forceUpdateWithinTransaction";
 
 	/**
 	 * SQL実行クラス生成。
@@ -260,17 +260,17 @@ public interface SqlAgentFactory {
 	SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
-	 * トランザクション内でのみ更新可能とするかどうかを取得する
+	 * トランザクション内での更新を強制するかどうかを取得する
 	 * @return トランザクション内でのみ更新可能とする場合<true>
 	 */
-	boolean isOnlyUpdatableWithinTransaction();
+	boolean isForceUpdateWithinTransaction();
 
 	/**
-	 * トランザクション内でのみ更新可能とするかどうかを設定する<br>
-	 * <code>true</code>を指定するとトランザクションを開始していない場合は SELECT文以外のSQLを発行すると {@link UroborosqlTransactionException}をスローする
+	 * トランザクション内での更新を強制するかどうかを設定する<br>
+	 * <code>true</code>を指定するとトランザクションを開始していない状態で SELECT文以外のSQLを発行すると {@link UroborosqlTransactionException}をスローする
 	 *
-	 * @param onlyUpdatableWithinTransaction トランザクション内でのみ更新可能とするかどうか。
+	 * @param forceUpdateWithinTransaction トランザクション内でのみ更新可能とするかどうか。
 	 * @return SqlAgentFactory
 	 */
-	SqlAgentFactory setOnlyUpdatableWithinTransaction(boolean onlyUpdatableWithinTransaction);
+	SqlAgentFactory setForceUpdateWithinTransaction(boolean forceUpdateWithinTransaction);
 }

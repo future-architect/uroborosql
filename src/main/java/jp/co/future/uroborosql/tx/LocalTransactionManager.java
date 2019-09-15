@@ -41,7 +41,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	public LocalTransactionManager(final SqlConfig sqlConfig) {
 		this.sqlConfig = sqlConfig;
-		this.updatable = !sqlConfig.getSqlAgentFactory().isOnlyUpdatableWithinTransaction();
+		this.updatable = !sqlConfig.getSqlAgentFactory().isForceUpdateWithinTransaction();
 	}
 
 	/**

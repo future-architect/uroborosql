@@ -315,25 +315,35 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#isForceUpdateWithinTransaction()
+	 */
+	@Override
+	public boolean isForceUpdateWithinTransaction() {
+		return Boolean
+				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION, "FALSE"));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setForceUpdateWithinTransaction(boolean)
+	 */
+	@Override
+	public SqlAgentFactory setForceUpdateWithinTransaction(final boolean forceUpdateWithinTransaction) {
+		getDefaultProps().put(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
+				Boolean.toString(forceUpdateWithinTransaction));
+		return this;
+	}
+
+	/**
 	 * defaultProps を取得します
 	 *
 	 * @return defaultProps
 	 */
 	protected Map<String, String> getDefaultProps() {
 		return defaultProps;
-	}
-
-	@Override
-	public boolean isOnlyUpdatableWithinTransaction() {
-		return Boolean
-				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION, "FALSE"));
-	}
-
-	@Override
-	public SqlAgentFactory setOnlyUpdatableWithinTransaction(final boolean onlyUpdatableWithinTransaction) {
-		getDefaultProps().put(PROPS_KEY_ONLY_UPDATABLE_WITHIN_TRANSACTION,
-				Boolean.toString(onlyUpdatableWithinTransaction));
-		return this;
 	}
 
 }
