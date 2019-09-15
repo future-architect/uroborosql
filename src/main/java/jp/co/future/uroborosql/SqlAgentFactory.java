@@ -261,7 +261,7 @@ public interface SqlAgentFactory {
 
 	/**
 	 * トランザクション内での更新を強制するかどうかを取得する
-	 * @return トランザクション内でのみ更新可能とする場合<true>
+	 * @return トランザクション内でのみ更新可能とする場合<code>true</code>
 	 */
 	boolean isForceUpdateWithinTransaction();
 
