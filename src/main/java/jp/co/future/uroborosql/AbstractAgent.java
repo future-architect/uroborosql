@@ -83,9 +83,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
 
-	/** LIKE句のエスケープ文字置換文字列名 */
-	protected static final String ESC_CHAR = "ESC_CHAR";
-
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
 
@@ -266,7 +263,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
 			sqlContext.param(StringFunction.SHORT_NAME, getSqlConfig().getDialect().getExpressionFunction());
 		}
-		sqlContext.param(ESC_CHAR, getSqlConfig().getDialect().getEscapeChar());
+		sqlContext.param(AbstractExtractionCondition.PARAM_KEY_ESCAPE_CHAR,
+				getSqlConfig().getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (sqlContext.batchCount() == 0) {
