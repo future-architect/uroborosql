@@ -29,8 +29,8 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
@@ -82,6 +82,9 @@ public abstract class AbstractAgent implements SqlAgent {
 
 	/** カバレッジハンドラ */
 	private static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
+
+	/** LIKE句のエスケープ文字置換文字列名 */
+	protected static final String ESC_CHAR = "ESC_CHAR";
 
 	/** SQL設定管理クラス */
 	protected SqlConfig sqlConfig;
@@ -263,6 +266,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
 			sqlContext.param(StringFunction.SHORT_NAME, getSqlConfig().getDialect().getExpressionFunction());
 		}
+		sqlContext.param(ESC_CHAR, getSqlConfig().getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (sqlContext.batchCount() == 0) {
