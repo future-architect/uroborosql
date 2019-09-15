@@ -217,6 +217,22 @@ public class SqlAgentTest {
 	}
 
 	/**
+	 * LIKE句によるクエリ実行処理のテストケース。
+	 */
+	@Test
+	public void testQueryWithLikeClause() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Map<String, Object>> result = agent.queryWith(
+				"select * from product where product_name like /*SF.contains(product_name)*/ escape /*#ESC_CHAR*/")
+				.param("product_name", "商品")
+				.collect();
+
+		assertThat(result.size(), is(2));
+	}
+
+	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
@@ -708,7 +724,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		try {
-			Product product = agent.query("example/select_product")
+			agent.query("example/select_product")
 					.paramList("product_id", 0, 1, 2, 3)
 					.one(Product.class);
 			assertTrue(false);

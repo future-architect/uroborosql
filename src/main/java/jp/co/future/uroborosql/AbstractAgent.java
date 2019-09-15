@@ -262,6 +262,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
 			sqlContext.param(StringFunction.SHORT_NAME, getSqlConfig().getDialect().getExpressionFunction());
 		}
+		sqlContext.param(AbstractExtractionCondition.PARAM_KEY_ESCAPE_CHAR,
+				getSqlConfig().getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (sqlContext.batchCount() == 0) {
