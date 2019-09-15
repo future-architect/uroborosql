@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -41,6 +42,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private final List<SortOrder> sortOrders;
 	private long limit;
 	private long offset;
+	private ForUpdateType forUpdateType;
+	private int waitSeconds;
 
 	/**
 	 * Constructor
@@ -59,6 +62,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.sortOrders = new ArrayList<>();
 		this.limit = -1;
 		this.offset = -1;
+		this.forUpdateType = null;
+		this.waitSeconds = -1;
 	}
 
 	/**
@@ -99,7 +104,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
 			}
-
+			if (this.forUpdateType != null) {
+				sql = dialect.addForUpdateClause(sql, this.forUpdateType, this.waitSeconds);
+			}
 			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
 		} catch (final SQLException e) {
@@ -418,6 +425,66 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		}
 		this.offset = offset;
 		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#forUpdate()
+	 */
+	@Override
+	public SqlEntityQuery<E> forUpdate() {
+		if (agent().getSqlConfig().getDialect().supportsForUpdate()) {
+			this.forUpdateType = ForUpdateType.NORMAL;
+			return this;
+		} else {
+			throw new UroborosqlRuntimeException("Unsupported for update clause.");
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#forUpdateNoWait()
+	 */
+	@Override
+	public SqlEntityQuery<E> forUpdateNoWait() {
+		if (agent().getSqlConfig().getDialect().supportsForUpdateNoWait()) {
+			this.forUpdateType = ForUpdateType.NOWAIT;
+			return this;
+		} else {
+			throw new UroborosqlRuntimeException("Unsupported for update nowait clause.");
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#forUpdateWait()
+	 */
+	@Override
+	public SqlEntityQuery<E> forUpdateWait() {
+		if (agent().getSqlConfig().getDialect().supportsForUpdateWait()) {
+			return forUpdateWait(agent().getSqlConfig().getSqlAgentFactory().getDefaultForUpdateWaitSeconds());
+		} else {
+			throw new UroborosqlRuntimeException("Unsupported for update wait clause.");
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#forUpdateWait(int)
+	 */
+	@Override
+	public SqlEntityQuery<E> forUpdateWait(final int waitSeconds) {
+		if (agent().getSqlConfig().getDialect().supportsForUpdateWait()) {
+			this.forUpdateType = ForUpdateType.WAIT;
+			this.waitSeconds = waitSeconds;
+			return this;
+		} else {
+			throw new UroborosqlRuntimeException("Unsupported for update wait clause.");
+		}
 	}
 
 	/**

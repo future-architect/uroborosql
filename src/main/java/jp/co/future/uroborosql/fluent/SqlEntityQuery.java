@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
@@ -172,4 +173,35 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 * @return SqlEntityQuery
 	 */
 	SqlEntityQuery<E> offset(long offset);
+
+	/**
+	 * 明示的な行ロックを行う
+	 *
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> forUpdate();
+
+	/**
+	 * 明示的な行ロックを行う（待機なし）
+	 *
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> forUpdateNoWait();
+
+	/**
+	 * 明示的な行ロックを行う（待機時間指定）<br>
+	 * 待機時間は{@link SqlAgentFactory#setDefaultForUpdateWaitSeconds(int)}で設定した値を使用する
+	 *
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> forUpdateWait();
+
+	/**
+	 * 明示的な行ロックを行う（待機時間指定）
+	 *
+	 * @param waitSeconds 待機時間（秒）
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> forUpdateWait(int waitSeconds);
+
 }

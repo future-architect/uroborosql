@@ -6,6 +6,8 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import jp.co.future.uroborosql.enums.ForUpdateType;
+
 /**
  * Microsoft SQLServer用のDialect
  *
@@ -56,10 +58,40 @@ public class MsSqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsForUpdateWait()
+	 */
+	@Override
+	public boolean supportsForUpdateWait() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
 		return "next value for " + sequenceName;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#addForUpdateClause(java.lang.StringBuilder, jp.co.future.uroborosql.enums.ForUpdateType, int)
+	 */
+	@Override
+	public StringBuilder addForUpdateClause(final StringBuilder sql, final ForUpdateType forUpdateType,
+			final int waitSeconds) {
+		StringBuilder forUpdate = new StringBuilder("$1 WITH (UPDLOCK, ROWLOCK");
+		if (forUpdateType == ForUpdateType.NORMAL) {
+			forUpdate.append(") ");
+		} else if (forUpdateType == ForUpdateType.NOWAIT) {
+			forUpdate.append(", NOWAIT) ");
+		}
+
+		String origSql = sql.toString();
+		return new StringBuilder(origSql.replaceFirst("((FROM|from)\\s+\\w+)\\s+", forUpdate.toString()));
+
 	}
 }

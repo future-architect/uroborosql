@@ -64,10 +64,21 @@ public class MySqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsForUpdateWait()
+	 */
+	@Override
+	public boolean supportsForUpdateWait() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
 		throw new UroborosqlRuntimeException("MySql does not support Sequence.");
 	}
+
 }

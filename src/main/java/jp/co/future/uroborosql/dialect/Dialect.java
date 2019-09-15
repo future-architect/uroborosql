@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.dialect;
 import java.sql.SQLType;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.utils.StringFunction;
 
@@ -98,6 +99,30 @@ public interface Dialect {
 		return true;
 	}
 
+	/**
+	 * 明示的な行ロックをサポートしているか
+	 * @return 明示的な行ロックをサポートしている場合<code>true</code>
+	 */
+	default boolean supportsForUpdate() {
+		return true;
+	}
+
+	/**
+	 * 明示的な行ロック（待機なし）をサポートしているか
+	 * @return 明示的な行ロック（待機なし）をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsForUpdateNoWait() {
+		return true;
+	}
+
+	/**
+	 * 明示的な行ロック（待機あり）をサポートしているか
+	 * @return 明示的な行ロック（待機あり）をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsForUpdateWait() {
+		return true;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**
@@ -149,4 +174,13 @@ public interface Dialect {
 	 */
 	char getEscapeChar();
 
+	/**
+	 * FOR UPDATE句の文字列をSQLに追加する
+	 *
+	 * @param sql 追加対象のSQL文
+	 * @param forUpdateType forUpdateのタイプ
+	 * @param waitSeconds 待機時間
+	 * @return FOR UPDATE句を追加したSQL文
+	 */
+	StringBuilder addForUpdateClause(StringBuilder sql, ForUpdateType forUpdateType, int waitSeconds);
 }

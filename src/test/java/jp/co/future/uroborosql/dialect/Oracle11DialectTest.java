@@ -13,6 +13,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
  * Oracle10Dialectの個別実装部分のテストケース
@@ -136,5 +137,19 @@ public class Oracle11DialectTest {
 		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(true));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
+		assertThat(dialect.supportsForUpdate(), is(true));
+		assertThat(dialect.supportsForUpdateNoWait(), is(true));
+		assertThat(dialect.supportsForUpdateWait(), is(true));
+	}
+
+	@Test
+	public void testAddForUpdateClause() {
+		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE NOWAIT"));
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
 }

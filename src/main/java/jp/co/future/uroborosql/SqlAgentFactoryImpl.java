@@ -346,4 +346,25 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 		return defaultProps;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultForUpdateWaitSeconds()
+	 */
+	@Override
+	public int getDefaultForUpdateWaitSeconds() {
+		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, "10"));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultForUpdateWaitSeconds(int)
+	 */
+	@Override
+	public SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds) {
+		getDefaultProps().put(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, String.valueOf(defaultForUpdateWaitSeconds));
+		return this;
+	}
+
 }

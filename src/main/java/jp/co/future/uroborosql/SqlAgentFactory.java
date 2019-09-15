@@ -81,6 +81,12 @@ public interface SqlAgentFactory {
 	String PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION = "forceUpdateWithinTransaction";
 
 	/**
+	 * プロパティ:明示的な行ロック時の待機時間(s)デフォルト値<br>
+	 * デフォルトは<code>10</code>
+	 */
+	String PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS = "defaultForUpdateWaitSeconds";
+
+	/**
 	 * SQL実行クラス生成。
 	 *
 	 * @return SqlAgent
@@ -273,4 +279,20 @@ public interface SqlAgentFactory {
 	 * @return SqlAgentFactory
 	 */
 	SqlAgentFactory setForceUpdateWithinTransaction(boolean forceUpdateWithinTransaction);
+
+	/**
+	 * 明示的な行ロック時の待機時間(s)デフォルト値を取得します
+	 *
+	 * @return 明示的な行ロック時の待機時間(s)デフォルト値
+	 */
+	int getDefaultForUpdateWaitSeconds();
+
+	/**
+	 * 明示的な行ロック時の待機時間(s)デフォルト値を設定する
+	 *
+	 * @param defaultForUpdateWaitSeconds 明示的な行ロック時の待機時間(s)デフォルト値
+	 * @return SqlAgentFactory
+	 */
+	SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds);
+
 }

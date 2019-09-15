@@ -623,6 +623,65 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
+	public void testQueryForUpdate() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				agent.insert(test4);
+
+				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(10));
+				config.getSqlAgentFactory().setDefaultForUpdateWaitSeconds(30);
+				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(30));
+
+				agent.required(() -> {
+					List<TestEntity3> list = agent.query(TestEntity3.class).forUpdate().collect();
+					assertThat(list.size(), is(4));
+				});
+
+				try {
+					agent.required(() -> {
+						agent.query(TestEntity3.class).forUpdateNoWait().first();
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("Unsupported for update nowait clause."));
+				} catch (Throwable th) {
+					fail();
+				}
+
+				try {
+					agent.required(() -> {
+						agent.query(TestEntity3.class).forUpdateWait().stream();
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
+				} catch (Throwable th) {
+					fail();
+				}
+
+				try {
+					agent.required(() -> {
+						agent.query(TestEntity3.class).forUpdateWait(30).count();
+					});
+					fail();
+				} catch (UroborosqlRuntimeException ex) {
+					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
+				} catch (Throwable th) {
+					fail();
+				}
+			});
+		}
+	}
+
+	@Test
 	public void testUpdate1() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {

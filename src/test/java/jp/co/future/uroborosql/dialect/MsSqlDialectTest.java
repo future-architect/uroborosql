@@ -12,6 +12,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
  * H2Dialectの個別実装部分のテストケース
@@ -83,6 +84,9 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(false));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
+		assertThat(dialect.supportsForUpdate(), is(true));
+		assertThat(dialect.supportsForUpdateNoWait(), is(true));
+		assertThat(dialect.supportsForUpdateWait(), is(false));
 	}
 
 	@Test
@@ -91,6 +95,15 @@ public class MsSqlDialectTest {
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 0), is(""));
+	}
+
+	@Test
+	public void testAddForUpdateClause() {
+		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
+				is("SELECT * FROM test WITH (UPDLOCK, ROWLOCK) WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
+				is("SELECT * FROM test WITH (UPDLOCK, ROWLOCK, NOWAIT) WHERE 1 = 1 ORDER id" + System.lineSeparator()));
 	}
 
 }

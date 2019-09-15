@@ -77,6 +77,16 @@ public class PostgresqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsForUpdateWait()
+	 */
+	@Override
+	public boolean supportsForUpdateWait() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(java.sql.SQLType, java.lang.String)
 	 */
 	@Override
@@ -109,5 +119,4 @@ public class PostgresqlDialect extends AbstractDialect {
 	public String getSequenceNextValSql(final String sequenceName) {
 		return "nextval('" + sequenceName + "')";
 	}
-
 }
