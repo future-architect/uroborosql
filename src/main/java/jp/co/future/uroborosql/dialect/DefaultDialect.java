@@ -45,6 +45,16 @@ public class DefaultDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsForUpdateWait()
+	 */
+	@Override
+	public boolean supportsForUpdateWait() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#accept(jp.co.future.uroborosql.connection.ConnectionSupplier)
 	 */
 	@Override

@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
 
@@ -77,6 +78,9 @@ public class DefaultDialectTest {
 		assertThat(dialect.supportsSequence(), is(false));
 		assertThat(dialect.isRemoveTerminator(), is(true));
 		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
+		assertThat(dialect.supportsForUpdate(), is(true));
+		assertThat(dialect.supportsForUpdateNoWait(), is(true));
+		assertThat(dialect.supportsForUpdateWait(), is(false));
 	}
 
 	@Test
@@ -225,5 +229,16 @@ public class DefaultDialectTest {
 				JavaType.of(Object.class).getClass());
 		assertEquals(dialect.getJavaType(999, "error type").getClass(),
 				JavaType.of(Object.class).getClass());
+	}
+
+	@Test
+	public void testAddForUpdateClause() {
+		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE NOWAIT"));
+		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
+				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
 }

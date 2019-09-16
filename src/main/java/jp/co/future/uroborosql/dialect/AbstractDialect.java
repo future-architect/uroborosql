@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.utils.StringFunction;
 
@@ -215,5 +216,23 @@ public abstract class AbstractDialect implements Dialect {
 	@Override
 	public char getEscapeChar() {
 		return escapeChar;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addForUpdateClause(java.lang.StringBuilder, jp.co.future.uroborosql.enums.ForUpdateType, int)
+	 */
+	@Override
+	public StringBuilder addForUpdateClause(final StringBuilder sql, final ForUpdateType forUpdateType,
+			final int waitSeconds) {
+		switch (forUpdateType) {
+		case WAIT:
+			return new StringBuilder().append(sql.toString()).append("FOR UPDATE WAIT ").append(waitSeconds);
+		case NOWAIT:
+			return new StringBuilder().append(sql.toString()).append("FOR UPDATE NOWAIT");
+		default:
+			return new StringBuilder().append(sql.toString()).append("FOR UPDATE");
+		}
 	}
 }
