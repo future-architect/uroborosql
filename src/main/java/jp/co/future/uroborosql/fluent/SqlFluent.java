@@ -74,6 +74,8 @@ public interface SqlFluent<T> {
 	/**
 	 * パラメータ配列の追加<br>
 	 *
+	 * @deprecated {@link SqlFluent#param(String, Object)}を使ってください。その際、valueを Arrays#asList()、もしくは List#of() を使用してList型に格納してください。
+	 *
 	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 配列として追加する
@@ -84,6 +86,8 @@ public interface SqlFluent<T> {
 
 	/**
 	 * パラメータListの追加<br>
+	 *
+	 * @deprecated {@link SqlFluent#param(String, Supplier)}を使ってください。
 	 *
 	 * @param <V> 値の型
 	 * @param paramName パラメータ名
@@ -97,6 +101,8 @@ public interface SqlFluent<T> {
 	 * パラメータ配列の追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @deprecated {@link SqlFluent#paramIfAbsent(String, Object)}を使ってください。その際、valueを Arrays#asList()、もしくは List#of() を使用してList型に格納してください。
 	 *
 	 * @param <V> 値の型
 	 * @param paramName パラメータ名
