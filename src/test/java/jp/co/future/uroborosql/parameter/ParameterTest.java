@@ -127,7 +127,7 @@ public class ParameterTest {
 	public void testSetInParameter_array() throws SQLException {
 
 		try (SqlAgent agent = config.agent()) {
-			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramList("targetStrs", "1", "2", "3");
+			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramArray("targetStrs", "1", "2", "3");
 
 			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -155,7 +155,7 @@ public class ParameterTest {
 
 			assertThat("更新件数が一致しません",
 					agent.updateWith("INSERT INTO BYTE_ARRAY_TEST VALUES (/*id*/, /*data*/)").param("id", 1)
-					.param("data", "test".getBytes()).count(),
+							.param("data", "test".getBytes()).count(),
 					is(1));
 		}
 	}

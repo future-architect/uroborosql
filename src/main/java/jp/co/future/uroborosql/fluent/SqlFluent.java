@@ -12,7 +12,6 @@ package jp.co.future.uroborosql.fluent;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -43,60 +42,122 @@ public interface SqlFluent<T> {
 	/**
 	 * パラメータの追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @return T
 	 */
-	T param(String paramName, Object value);
+	<V> T param(String paramName, V value);
 
 	/**
 	 * パラメータの追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param supplier パラメータ値を提供するSupplier
 	 * @return T
 	 */
-	T param(String paramName, Supplier<Object> supplier);
+	<V> T param(String paramName, Supplier<V> supplier);
 
 	/**
 	 * パラメータの追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @return T
 	 */
-	T paramIfAbsent(String paramName, Object value);
+	<V> T paramIfAbsent(String paramName, V value);
 
 	/**
 	 * パラメータ配列の追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 配列として追加する
 	 * @return T
 	 */
-	T paramList(String paramName, Object... value);
+	<V> T paramArray(String paramName, @SuppressWarnings("unchecked") V... value);
 
 	/**
 	 * パラメータ配列の追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
-	 * @param supplier パラメータ値のListを提供するSupplier
+	 * @param supplier パラメータ値の配列を提供するSupplier
 	 * @return T
 	 */
-	T paramList(String paramName, Supplier<List<?>> supplier);
+	<V> T paramArray(String paramName, Supplier<V[]> supplier);
 
 	/**
 	 * パラメータ配列の追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 配列として追加する
 	 * @return T
 	 */
-	T paramListIfAbsent(String paramName, Object... value);
+	<V> T paramArrayIfAbsent(String paramName, @SuppressWarnings("unchecked") V... value);
+
+	/**
+	 * パラメータ配列の追加<br>
+	 *
+	 * @param <V> 値の型
+	 * @param paramName パラメータ名
+	 * @param value 配列として追加する
+	 * @return T
+	 */
+	@Deprecated
+	<V> T paramList(String paramName, @SuppressWarnings("unchecked") V... value);
+
+	/**
+	 * パラメータ配列の追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param <V> 値の型
+	 * @param paramName パラメータ名
+	 * @param value 配列として追加する
+	 * @return T
+	 */
+	@Deprecated
+	<V> T paramListIfAbsent(String paramName, @SuppressWarnings("unchecked") V... value);
+
+	/**
+	 * パラメータListの追加<br>
+	 *
+	 * @param <V> 値の型
+	 * @param paramName パラメータ名
+	 * @param value Listとして追加する
+	 * @return T
+	 */
+	<V> T paramList(String paramName, Iterable<V> value);
+
+	/**
+	 * パラメータListの追加<br>
+	 *
+	 * @param <V> 値の型
+	 * @param paramName パラメータ名
+	 * @param supplier パラメータ値のListを提供するSupplier
+	 * @return T
+	 */
+	<V> T paramList(String paramName, Supplier<Iterable<V>> supplier);
+
+	/**
+	 * パラメータListの追加<br>
+	 *
+	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
+	 *
+	 * @param <V> 値の型
+	 * @param paramName パラメータ名
+	 * @param value Listとして追加する
+	 * @return T
+	 */
+	<V> T paramListIfAbsent(String paramName, Iterable<V> value);
 
 	/**
 	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>
@@ -109,54 +170,59 @@ public interface SqlFluent<T> {
 	/**
 	 * 引数として渡されたObjectのフィールド名と値のセットをパラメータに追加<br>
 	 *
+	 * @param <V> Beanの型
 	 * @param bean パラメータとなるオブジェクト
 	 * @return T
 	 */
-	T paramBean(Object bean);
+	<V> T paramBean(V bean);
 
 	/**
 	 * 型指定のパラメータ追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
 	 * @return T
 	 */
-	T param(String paramName, Object value, SQLType sqlType);
+	<V> T param(String paramName, V value, SQLType sqlType);
 
 	/**
 	 * 型指定のパラメータ追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
 	 * @return T
 	 */
-	T paramIfAbsent(String paramName, Object value, SQLType sqlType);
+	<V> T paramIfAbsent(String paramName, V value, SQLType sqlType);
 
 	/**
 	 * 型指定のパラメータ追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
 	 * @return T
 	 */
-	T param(String paramName, Object value, int sqlType);
+	<V> T param(String paramName, V value, int sqlType);
 
 	/**
 	 * 型指定のパラメータ追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
 	 * @return T
 	 */
-	T paramIfAbsent(String paramName, Object value, int sqlType);
+	<V> T paramIfAbsent(String paramName, V value, int sqlType);
 
 	/**
 	 * 出力パラメータ追加<br>
@@ -179,46 +245,50 @@ public interface SqlFluent<T> {
 	/**
 	 * 入出力パラメータ追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
 	 * @return T
 	 */
-	T inOutParam(String paramName, Object value, SQLType sqlType);
+	<V> T inOutParam(String paramName, V value, SQLType sqlType);
 
 	/**
 	 * 入出力パラメータ追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.SQLType}で表されるSQLの型
 	 * @return T
 	 */
-	T inOutParamIfAbsent(String paramName, Object value, SQLType sqlType);
+	<V> T inOutParamIfAbsent(String paramName, V value, SQLType sqlType);
 
 	/**
 	 * 入出力パラメータ追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
 	 * @return T
 	 */
-	T inOutParam(String paramName, Object value, int sqlType);
+	<V> T inOutParam(String paramName, V value, int sqlType);
 
 	/**
 	 * 入出力パラメータ追加<br>
 	 *
 	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @param sqlType {@link java.sql.Types}で表されるSQLの型
 	 * @return T
 	 */
-	T inOutParamIfAbsent(String paramName, Object value, int sqlType);
+	<V> T inOutParamIfAbsent(String paramName, V value, int sqlType);
 
 	/**
 	 * BLOBパラメータ追加<br>

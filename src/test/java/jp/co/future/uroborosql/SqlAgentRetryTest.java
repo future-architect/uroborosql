@@ -67,7 +67,7 @@ public class SqlAgentRetryTest {
 		int retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount + 1);
+		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -80,7 +80,7 @@ public class SqlAgentRetryTest {
 		int retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount + 1);
+		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -93,7 +93,7 @@ public class SqlAgentRetryTest {
 		int retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1)
+		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -107,7 +107,7 @@ public class SqlAgentRetryTest {
 		int retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1)
+		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -124,7 +124,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -145,7 +145,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -166,7 +166,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -187,7 +187,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {

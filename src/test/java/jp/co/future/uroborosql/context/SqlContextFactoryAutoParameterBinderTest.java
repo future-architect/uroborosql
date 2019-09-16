@@ -17,16 +17,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class SqlContextFactoryAutoParameterBinderTest {
 	private static SqlConfig config;
@@ -140,7 +140,8 @@ public class SqlContextFactoryAutoParameterBinderTest {
 			assertThat(
 					agent.queryWith(
 							"select * from PRODUCT where 1 = 1/*IF upd_datetime != null */ AND UPD_DATETIME = /*upd_datetime*/ /*END*/")
-							.collect().size(), is(2));
+							.collect().size(),
+					is(2));
 		}
 
 		config.getSqlContextFactory().removeUpdateAutoParameterBinder(binder);
@@ -307,7 +308,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		SqlContextFactory factory = config.getSqlContextFactory();
 
 		final int productId = 2;
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramListIfAbsent("product_id", productId);
+		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramArrayIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 
 		try (SqlAgent agent = config.agent()) {
@@ -359,10 +360,9 @@ public class SqlContextFactoryAutoParameterBinderTest {
 			// insert
 			assertThat(agent.batch("example/insert_product").paramStream(input.stream()).count(), is(count));
 
-			long dateCount =
-					agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
-							.map(r -> r.get("ins_datetime"))
-							.distinct().count();
+			long dateCount = agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
+					.map(r -> r.get("ins_datetime"))
+					.distinct().count();
 			// ins_datetimeが同じ時間になっていないことを確認
 			assertNotEquals(1, dateCount);
 		}

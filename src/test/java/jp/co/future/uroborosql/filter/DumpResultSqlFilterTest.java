@@ -18,16 +18,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 public class DumpResultSqlFilterTest {
 
@@ -120,7 +120,7 @@ public class DumpResultSqlFilterTest {
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = agent.contextFrom("example/select_product")
-					.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+					.paramArray("product_id", new BigDecimal("0"), new BigDecimal("2"))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 

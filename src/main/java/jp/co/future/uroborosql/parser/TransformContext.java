@@ -83,11 +83,12 @@ public interface TransformContext {
 	/**
 	 * バインドパラメータの追加<br>
 	 *
+	 * @param <V> 値の型
 	 * @param paramName パラメータ名
 	 * @param value 値
 	 * @return T
 	 */
-	TransformContext param(String paramName, Object value);
+	<V> TransformContext param(String paramName, V value);
 
 	/**
 	 * バインド変数名のリストを取得する

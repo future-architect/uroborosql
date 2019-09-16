@@ -145,12 +145,35 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
+	public void testQueryParamArray() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		SqlContext ctx = agent.contextFrom("example/select_product")
+				.paramArray("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				.setSqlId("test_sql_id");
+
+		ResultSet rs = agent.query(ctx);
+		assertNotNull("ResultSetが取得できませんでした。", rs);
+		assertTrue("結果が0件です。", rs.next());
+		assertEquals("0", rs.getString("PRODUCT_ID"));
+		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", rs.getString("JAN_CODE"));
+		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+		assertFalse("結果が複数件です。", rs.next());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース。
+	 */
+	@Test
 	public void testQueryParamList() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		SqlContext ctx = agent.contextFrom("example/select_product")
-				.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				.paramList("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 				.setSqlId("test_sql_id");
 
 		ResultSet rs = agent.query(ctx);
@@ -179,7 +202,7 @@ public class SqlAgentTest {
 		manager.addSqlFilter(filter);
 
 		SqlContext ctx = agent.contextFrom("example/select_product")
-				.paramList("product_id", new BigDecimal("0"), new BigDecimal("1")).param("startRowIndex", 0)
+				.paramArray("product_id", new BigDecimal("0"), new BigDecimal("1")).param("startRowIndex", 0)
 				.param("maxRowCount", 1);
 
 		ResultSet rs = agent.query(ctx);
@@ -240,7 +263,27 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product").paramList("product_id", 0, 1, 2, 3);
+		SqlContext ctx = agent.contextFrom("example/select_product").paramArray("product_id", 0, 1, 2, 3);
+
+		ResultSet rs = agent.query(ctx);
+		assertNotNull("ResultSetが取得できませんでした。", rs);
+		assertTrue("結果が0件です。", rs.next());
+		assertEquals("0", rs.getString("PRODUCT_ID"));
+		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", rs.getString("JAN_CODE"));
+		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+	}
+
+	/**
+	 * クエリ実行処理のテストケース。
+	 */
+	@Test
+	public void testQueryList() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		SqlContext ctx = agent.contextFrom("example/select_product").paramList("product_id", Arrays.asList(0, 1, 2, 3));
 
 		ResultSet rs = agent.query(ctx);
 		assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -260,7 +303,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		ResultSet rs = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).resultSet();
+		ResultSet rs = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3).resultSet();
 		assertNotNull("ResultSetが取得できませんでした。", rs);
 		assertTrue("結果が0件です。", rs.next());
 		assertEquals("0", rs.getString("PRODUCT_ID"));
@@ -278,7 +321,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		List<Map<String, Object>> ans = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.collect();
 		assertEquals("結果の件数が一致しません。", 2, ans.size());
 		Map<String, Object> map = ans.get(0);
@@ -297,7 +340,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		List<Map<String, Object>> ans = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.collect(CaseFormat.LOWER_SNAKE_CASE);
 		assertEquals("結果の件数が一致しません。", 2, ans.size());
 		Map<String, Object> map = ans.get(0);
@@ -316,7 +359,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Product> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		List<Product> ans = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.collect(Product.class);
 		assertEquals("結果の件数が一致しません。", 2, ans.size());
 		Product product = ans.get(0);
@@ -342,7 +385,7 @@ public class SqlAgentTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		List<Map<String, Object>> ans = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		List<Map<String, Object>> ans = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.collect();
 		assertEquals("結果の件数が一致しません。", 2, ans.size());
 		Map<String, Object> map = ans.get(0);
@@ -361,7 +404,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		Map<String, Object> map = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.first();
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
@@ -378,13 +421,13 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		try {
-			agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3).one();
+			agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3).one();
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Map<String, Object> map = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.one();
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
@@ -408,7 +451,7 @@ public class SqlAgentTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		Map<String, Object> map = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.first();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -433,14 +476,14 @@ public class SqlAgentTest {
 		agent = config.agent();
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.one();
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Map<String, Object> map = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.one();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -458,7 +501,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0, 1, 2, 3).findFirst();
+				.paramArray("product_id", 0, 1, 2, 3).findFirst();
 		assertTrue(optional.isPresent());
 
 		Map<String, Object> map = optional.get();
@@ -468,7 +511,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("JAN_CODE"));
 		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findFirst();
 		assertFalse(optional.isPresent());
 	}
 
@@ -482,13 +525,13 @@ public class SqlAgentTest {
 
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3).findOne();
+					.paramArray("product_id", 0, 1, 2, 3).findOne();
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0).findOne();
+				.paramArray("product_id", 0).findOne();
 		assertTrue(optional.isPresent());
 
 		Map<String, Object> map = optional.get();
@@ -498,7 +541,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("JAN_CODE"));
 		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findOne();
 		assertFalse(optional.isPresent());
 	}
 
@@ -518,7 +561,7 @@ public class SqlAgentTest {
 		agent = config.agent();
 
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0, 1, 2, 3).findFirst();
+				.paramArray("product_id", 0, 1, 2, 3).findFirst();
 		assertTrue(optional.isPresent());
 
 		Map<String, Object> map = optional.get();
@@ -528,7 +571,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("jan_code"));
 		assertEquals("0番目の商品", map.get("product_description"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findFirst();
 		assertFalse(optional.isPresent());
 	}
 
@@ -548,14 +591,14 @@ public class SqlAgentTest {
 		agent = config.agent();
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.findOne();
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.findOne();
 		assertTrue(optional.isPresent());
 
@@ -566,7 +609,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("jan_code"));
 		assertEquals("0番目の商品", map.get("product_description"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findOne();
 		assertFalse(optional.isPresent());
 	}
 
@@ -578,7 +621,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Map<String, Object> map = agent.query("example/select_product").paramList("product_id", 0, 1, 2, 3)
+		Map<String, Object> map = agent.query("example/select_product").paramArray("product_id", 0, 1, 2, 3)
 				.first(CaseFormat.LOWER_SNAKE_CASE);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -597,14 +640,14 @@ public class SqlAgentTest {
 
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.one(CaseFormat.LOWER_SNAKE_CASE);
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Map<String, Object> map = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.one(CaseFormat.LOWER_SNAKE_CASE);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -622,7 +665,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0, 1, 2, 3).findFirst(CaseFormat.PASCAL_CASE);
+				.paramArray("product_id", 0, 1, 2, 3).findFirst(CaseFormat.PASCAL_CASE);
 		assertTrue(optional.isPresent());
 
 		Map<String, Object> map = optional.get();
@@ -632,7 +675,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("JanCode"));
 		assertEquals("0番目の商品", map.get("ProductDescription"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findFirst();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findFirst();
 		assertFalse(optional.isPresent());
 	}
 
@@ -646,14 +689,14 @@ public class SqlAgentTest {
 
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.findOne(CaseFormat.PASCAL_CASE);
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Optional<Map<String, Object>> optional = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.findOne(CaseFormat.PASCAL_CASE);
 		assertTrue(optional.isPresent());
 
@@ -664,7 +707,7 @@ public class SqlAgentTest {
 		assertEquals("1234567890123", map.get("JanCode"));
 		assertEquals("0番目の商品", map.get("ProductDescription"));
 
-		optional = agent.query("example/select_product").paramList("product_id", 4).findOne();
+		optional = agent.query("example/select_product").paramArray("product_id", 4).findOne();
 		assertFalse(optional.isPresent());
 	}
 
@@ -677,7 +720,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Product product = agent.query("example/select_product")
-				.paramList("product_id", 0, 1, 2, 3)
+				.paramArray("product_id", 0, 1, 2, 3)
 				.first(Product.class);
 
 		assertEquals(0, product.getProductId());
@@ -696,7 +739,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		Optional<Product> optional = agent.query("example/select_product")
-				.paramList("product_id", 0, 1, 2, 3)
+				.paramArray("product_id", 0, 1, 2, 3)
 				.findFirst(Product.class);
 
 		assertTrue(optional.isPresent());
@@ -710,7 +753,7 @@ public class SqlAgentTest {
 		assertEquals("0番目の商品", product.getProductDescription());
 
 		optional = agent.query("example/select_product")
-				.paramList("product_id", 4)
+				.paramArray("product_id", 4)
 				.findFirst(Product.class);
 
 		assertFalse(optional.isPresent());
@@ -725,14 +768,14 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.one(Product.class);
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Product product = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.one(Product.class);
 
 		assertEquals(0, product.getProductId());
@@ -752,14 +795,14 @@ public class SqlAgentTest {
 
 		try {
 			agent.query("example/select_product")
-					.paramList("product_id", 0, 1, 2, 3)
+					.paramArray("product_id", 0, 1, 2, 3)
 					.findOne(Product.class);
 			assertTrue(false);
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Optional<Product> optional = agent.query("example/select_product")
-				.paramList("product_id", 0)
+				.paramArray("product_id", 0)
 				.findOne(Product.class);
 		assertTrue(optional.isPresent());
 
@@ -772,7 +815,7 @@ public class SqlAgentTest {
 		assertEquals("0番目の商品", product.getProductDescription());
 
 		optional = agent.query("example/select_product")
-				.paramList("product_id", 4)
+				.paramArray("product_id", 4)
 				.findOne(Product.class);
 
 		assertFalse(optional.isPresent());
@@ -787,7 +830,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		SqlContext ctx = agent.contextFrom("example/select_product");
-		ctx.paramList("product_id", 0, 1);
+		ctx.paramArray("product_id", 0, 1);
 
 		agent.query(ctx, (rs) -> {
 			ResultSetMetaData rsmd = rs.getMetaData();
@@ -820,7 +863,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		agent.query("example/select_product").paramList("product_id", 0, 1)
+		agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.stream().forEach((m) -> {
 					assertTrue(m.containsKey("PRODUCT_ID"));
 					assertTrue(m.containsKey("PRODUCT_NAME"));
@@ -831,7 +874,7 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("UPD_DATETIME"));
 					assertTrue(m.containsKey("VERSION_NO"));
 				});
-		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
+		assertThat(agent.query("example/select_product").paramArray("product_id", 0, 1).stream().count(), is(2L));
 
 	}
 
@@ -843,7 +886,7 @@ public class SqlAgentTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		agent.query("example/select_product").paramList("product_id", 0, 1)
+		agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach((m) -> {
 					assertTrue(m.containsKey("product_id"));
 					assertTrue(m.containsKey("product_name"));
@@ -854,7 +897,7 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("upd_datetime"));
 					assertTrue(m.containsKey("version_no"));
 				});
-		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
+		assertThat(agent.query("example/select_product").paramArray("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -872,7 +915,7 @@ public class SqlAgentTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		agent.query("example/select_product").paramList("product_id", 0, 1)
+		agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.stream().forEach((m) -> {
 					assertTrue(m.containsKey("product_id"));
 					assertTrue(m.containsKey("product_name"));
@@ -883,7 +926,7 @@ public class SqlAgentTest {
 					assertTrue(m.containsKey("upd_datetime"));
 					assertTrue(m.containsKey("version_no"));
 				});
-		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
+		assertThat(agent.query("example/select_product").paramArray("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -924,7 +967,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product")
-				.paramList("product_id", 0, 1)
+				.paramArray("product_id", 0, 1)
 				.stream(Product.class)
 				.forEach(p -> {
 					assertNotNull(p.getProductId());
@@ -936,7 +979,7 @@ public class SqlAgentTest {
 					assertNotNull(p.getUpdDatetime());
 					assertNotNull(p.getVersionNo());
 				});
-		assertThat(agent.query("example/select_product").paramList("product_id", 0, 1).stream().count(), is(2L));
+		assertThat(agent.query("example/select_product").paramArray("product_id", 0, 1).stream().count(), is(2L));
 	}
 
 	/**
@@ -948,7 +991,7 @@ public class SqlAgentTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		SqlContext ctx = agent.contextFrom("example/select_product");
-		ctx.paramList("product_id", 0, 1);
+		ctx.paramArray("product_id", 0, 1);
 
 		List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
 		assertThat(ans.size(), is(2));
@@ -965,7 +1008,7 @@ public class SqlAgentTest {
 		});
 
 		SqlContext ctx2 = agent.contextFrom("example/select_product");
-		ctx2.paramList("product_id", 0, 1);
+		ctx2.paramArray("product_id", 0, 1);
 
 		List<Map<String, Object>> ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
 		assertThat(ans2.size(), is(2));
@@ -990,7 +1033,7 @@ public class SqlAgentTest {
 		truncateTable("product_regist_work");
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		agent.query("example/select_product").paramList("product_id", 0, 1)
+		agent.query("example/select_product").paramArray("product_id", 0, 1)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.forEach((m) -> {
 					try {
@@ -1023,7 +1066,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 0, 1)
+				.paramArray("product_id", 0, 1)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -1047,7 +1090,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 0, 1)
+				.paramArray("product_id", 0, 1)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -1084,7 +1127,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2)
+				.paramArray("product_id", 1, 2)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -1125,7 +1168,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2)
+				.paramArray("product_id", 1, 2)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -1159,7 +1202,7 @@ public class SqlAgentTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.paramList("product_id", 1, 2)
+				.paramArray("product_id", 1, 2)
 				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 

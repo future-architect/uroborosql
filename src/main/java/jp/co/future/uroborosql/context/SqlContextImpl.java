@@ -434,7 +434,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.parser.TransformContext#param(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public SqlContext param(final String parameterName, final Object value) {
+	public <V> SqlContext param(final String parameterName, final V value) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
 			if (optionalValue.isPresent()) {
@@ -454,7 +454,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
 	 */
 	@Override
-	public SqlContext param(final String paramName, final Supplier<Object> supplier) {
+	public <V> SqlContext param(final String paramName, final Supplier<V> supplier) {
 		return this.param(paramName, supplier != null ? supplier.get() : null);
 	}
 
@@ -464,9 +464,43 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public SqlContext paramIfAbsent(final String parameterName, final Object value) {
+	public <V> SqlContext paramIfAbsent(final String parameterName, final V value) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArray(java.lang.String, java.lang.Object[])
+	 */
+	@Override
+	public <V> SqlContext paramArray(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
+		return param(new Parameter(parameterName, Arrays.asList(value)));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArray(java.lang.String, java.util.function.Supplier)
+	 */
+	@Override
+	public <V> SqlContext paramArray(final String parameterName, final Supplier<V[]> supplier) {
+		return param(new Parameter(parameterName, Arrays.asList(supplier.get())));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArrayIfAbsent(java.lang.String, java.lang.Object[])
+	 */
+	@Override
+	public <V> SqlContext paramArrayIfAbsent(final String parameterName,
+			@SuppressWarnings("unchecked") final V... value) {
+		if (!hasParam(parameterName)) {
+			paramArray(parameterName, value);
 		}
 		return this;
 	}
@@ -477,18 +511,9 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
 	 */
 	@Override
-	public SqlContext paramList(final String parameterName, final Object... value) {
-		return param(new Parameter(parameterName, Arrays.asList(value)));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
-	 */
-	@Override
-	public SqlContext paramList(final String parameterName, final Supplier<List<?>> supplier) {
-		return param(new Parameter(parameterName, supplier.get()));
+	@Deprecated
+	public <V> SqlContext paramList(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
+		return paramArray(parameterName, value);
 	}
 
 	/**
@@ -497,7 +522,42 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(String, Object...)
 	 */
 	@Override
-	public SqlContext paramListIfAbsent(final String parameterName, final Object... value) {
+	@Deprecated
+	public <V> SqlContext paramListIfAbsent(final String parameterName,
+			@SuppressWarnings("unchecked") final V... value) {
+		if (!hasParam(parameterName)) {
+			paramArray(parameterName, value);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Iterable)
+	 */
+	@Override
+	public <V> SqlContext paramList(final String parameterName, final Iterable<V> value) {
+		return param(new Parameter(parameterName, value));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
+	 */
+	@Override
+	public <V> SqlContext paramList(final String parameterName, final Supplier<Iterable<V>> supplier) {
+		return param(new Parameter(parameterName, supplier.get()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(java.lang.String, java.lang.Iterable)
+	 */
+	@Override
+	public <V> SqlContext paramListIfAbsent(final String parameterName, final Iterable<V> value) {
 		if (!hasParam(parameterName)) {
 			paramList(parameterName, value);
 		}
@@ -518,7 +578,7 @@ public class SqlContextImpl implements SqlContext {
 	}
 
 	@Override
-	public SqlContext paramBean(final Object bean) {
+	public <V> SqlContext paramBean(final V bean) {
 		if (bean != null) {
 			BeanAccessor.fields(bean.getClass()).stream()
 					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
@@ -532,7 +592,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public SqlContext param(final String parameterName, final Object value, final SQLType sqlType) {
+	public <V> SqlContext param(final String parameterName, final V value, final SQLType sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
 			if (optionalValue.isPresent()) {
@@ -552,7 +612,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public SqlContext paramIfAbsent(final String parameterName, final Object value, final SQLType sqlType) {
+	public <V> SqlContext paramIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value, sqlType);
 		}
@@ -565,7 +625,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public SqlContext param(final String parameterName, final Object value, final int sqlType) {
+	public <V> SqlContext param(final String parameterName, final V value, final int sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
 			if (optionalValue.isPresent()) {
@@ -585,7 +645,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public SqlContext paramIfAbsent(final String parameterName, final Object value, final int sqlType) {
+	public <V> SqlContext paramIfAbsent(final String parameterName, final V value, final int sqlType) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value, sqlType);
 		}
@@ -627,7 +687,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public SqlContext inOutParam(final String parameterName, final Object value, final SQLType sqlType) {
+	public <V> SqlContext inOutParam(final String parameterName, final V value, final SQLType sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
 			if (optionalValue.isPresent()) {
@@ -647,7 +707,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public SqlContext inOutParamIfAbsent(final String parameterName, final Object value, final SQLType sqlType) {
+	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
 		if (!hasParam(parameterName)) {
 			inOutParam(parameterName, value, sqlType);
 		}
@@ -660,7 +720,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public SqlContext inOutParam(final String parameterName, final Object value, final int sqlType) {
+	public <V> SqlContext inOutParam(final String parameterName, final V value, final int sqlType) {
 		if (value instanceof Optional) {
 			Optional<?> optionalValue = (Optional<?>) value;
 			if (optionalValue.isPresent()) {
@@ -680,7 +740,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public SqlContext inOutParamIfAbsent(final String parameterName, final Object value, final int sqlType) {
+	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final int sqlType) {
 		if (!hasParam(parameterName)) {
 			inOutParam(parameterName, value, sqlType);
 		}
