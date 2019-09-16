@@ -1,5 +1,24 @@
 package jp.co.future.uroborosql;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
@@ -9,22 +28,6 @@ import jp.co.future.uroborosql.filter.SqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.*;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * エラーハンドリングのテスト
@@ -60,7 +63,7 @@ public class SqlAgentRetryWithRollbackTest {
 		agent.close();
 	}
 
-	private void setRetryFilter(int retryCount, int errorCode) {
+	private void setRetryFilter(final int retryCount, final int errorCode) {
 		List<SqlFilter> filters = config.getSqlFilterManager().getFilters();
 		for (SqlFilter filter : filters) {
 			if (filter instanceof RetrySqlFilter) {
@@ -73,6 +76,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryNoWait() throws Exception {
 		int retryCount = 3;
@@ -86,6 +90,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（待機あり）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryWait() throws Exception {
 		int retryCount = 3;
@@ -100,6 +105,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryOver() throws Exception {
 		int retryCount = 3;
@@ -120,6 +126,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryNoRetry() throws Exception {
 		int retryCount = 3;
@@ -389,7 +396,7 @@ public class SqlAgentRetryWithRollbackTest {
 			initialize(retryCount, errorCode);
 		}
 
-		public void initialize(int retryCount, int errorCode) {
+		public void initialize(final int retryCount, final int errorCode) {
 			this.retryCount = retryCount;
 			this.currentCount = 0;
 			this.errorCode = errorCode;
@@ -402,9 +409,9 @@ public class SqlAgentRetryWithRollbackTest {
 		 */
 		@Override
 		public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
-								 final ResultSet resultSet) throws SQLException {
+				final ResultSet resultSet) throws SQLException {
 			if (retryCount > currentCount++) {
-//				preparedStatement.getConnection().rollback();
+				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
@@ -420,7 +427,7 @@ public class SqlAgentRetryWithRollbackTest {
 		public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
-//				preparedStatement.getConnection().rollback();
+				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
@@ -436,7 +443,7 @@ public class SqlAgentRetryWithRollbackTest {
 		public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
-//				preparedStatement.getConnection().rollback();
+				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
@@ -450,9 +457,9 @@ public class SqlAgentRetryWithRollbackTest {
 		 */
 		@Override
 		public boolean doProcedure(final SqlContext sqlContext, final CallableStatement callableStatement,
-								   final boolean result) throws SQLException {
+				final boolean result) throws SQLException {
 			if (retryCount > currentCount++) {
-//				callableStatement.getConnection().rollback();
+				//				callableStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 

@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.client;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -104,7 +105,7 @@ public final class SqlParamUtils {
 			for (int i = 0; i < parts.length; i++) {
 				vals[i] = convertSingleValue(parts[i]);
 			}
-			ctx.paramList(key, vals);
+			ctx.param(key, Arrays.asList(vals));
 		} else {
 			ctx.param(key, convertSingleValue(val));
 		}

@@ -123,6 +123,7 @@ public class ParameterTest {
 	 *
 	 * @throws SQLException SQL例外
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
@@ -155,7 +156,7 @@ public class ParameterTest {
 
 			assertThat("更新件数が一致しません",
 					agent.updateWith("INSERT INTO BYTE_ARRAY_TEST VALUES (/*id*/, /*data*/)").param("id", 1)
-					.param("data", "test".getBytes()).count(),
+							.param("data", "test".getBytes()).count(),
 					is(1));
 		}
 	}

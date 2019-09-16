@@ -19,10 +19,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -144,6 +146,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryParamList() throws Exception {
 		// 事前条件
@@ -167,6 +170,33 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
+	@Test
+	public void testQueryParamListWithSet() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Set<BigDecimal> params = new HashSet<>();
+		params.add(new BigDecimal("0"));
+		params.add(new BigDecimal("2"));
+		SqlContext ctx = agent.contextFrom("example/select_product")
+				.param("product_id", params)
+				.setSqlId("test_sql_id");
+
+		ResultSet rs = agent.query(ctx);
+		assertNotNull("ResultSetが取得できませんでした。", rs);
+		assertTrue("結果が0件です。", rs.next());
+		assertEquals("0", rs.getString("PRODUCT_ID"));
+		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+		assertEquals("1234567890123", rs.getString("JAN_CODE"));
+		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+		assertFalse("結果が複数件です。", rs.next());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース。
+	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFilter() throws Exception {
 		// 事前条件
@@ -236,11 +266,11 @@ public class SqlAgentTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryArray() throws Exception {
+	public void testQueryList() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product").paramList("product_id", 0, 1, 2, 3);
+		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3));
 
 		ResultSet rs = agent.query(ctx);
 		assertNotNull("ResultSetが取得できませんでした。", rs);
@@ -255,6 +285,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentArray() throws Exception {
 		// 事前条件
@@ -273,6 +304,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentCollect() throws Exception {
 		// 事前条件
@@ -292,6 +324,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentCollectCaseFormat() throws Exception {
 		// 事前条件
@@ -311,6 +344,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentCollectEntity() throws Exception {
 		// 事前条件
@@ -330,6 +364,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentCollectSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -356,6 +391,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFirst() throws Exception {
 		// 事前条件
@@ -373,6 +409,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentOne() throws Exception {
 		// 事前条件
@@ -396,6 +433,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFirstSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -420,6 +458,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentOneSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -452,6 +491,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindFirst() throws Exception {
 		// 事前条件
@@ -475,6 +515,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindOne() throws Exception {
 		// 事前条件
@@ -505,6 +546,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindFirstSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -535,6 +577,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindOneSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -573,6 +616,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFirstCaseFormat() throws Exception {
 		// 事前条件
@@ -590,6 +634,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentOneCaseFormat() throws Exception {
 		// 事前条件
@@ -616,6 +661,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindFirstCaseFormat() throws Exception {
 		// 事前条件
@@ -639,6 +685,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindOneCaseFormat() throws Exception {
 		// 事前条件
@@ -671,6 +718,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFirstByClass() throws Exception {
 		// 事前条件
@@ -690,6 +738,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindFirstByClass() throws Exception {
 		// 事前条件
@@ -719,6 +768,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentOneByClass() throws Exception {
 		// 事前条件
@@ -745,6 +795,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentFindOneByClass() throws Exception {
 		// 事前条件
@@ -781,6 +832,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryLambda() throws Exception {
 		// 事前条件
@@ -815,6 +867,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentLambda() throws Exception {
 		// 事前条件
@@ -838,6 +891,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentLambdaCaseFormat() throws Exception {
 		// 事前条件
@@ -860,6 +914,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentLambdaSetDefaultCaseFormat() throws Exception {
 		// 事前条件
@@ -918,6 +973,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentStreamEntity() throws Exception {
 		// 事前条件
@@ -942,6 +998,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryMapResuletSetConverter() throws Exception {
 		// 事前条件
@@ -984,6 +1041,7 @@ public class SqlAgentTest {
 	/**
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryFluentLambdaAndUpdate() throws Exception {
 		// 事前条件
@@ -1007,6 +1065,7 @@ public class SqlAgentTest {
 	/**
 	 * DB更新処理のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testExecuteUpdate() throws Exception {
 		// 事前条件
@@ -1033,6 +1092,7 @@ public class SqlAgentTest {
 	/**
 	 * DB更新処理のテストケース。(Fluent API)
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testUpdateFluent() throws Exception {
 		// 事前条件
@@ -1057,6 +1117,7 @@ public class SqlAgentTest {
 	/**
 	 * バッチ処理のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testExecuteBatch() throws Exception {
 		// 事前条件
@@ -1094,6 +1155,7 @@ public class SqlAgentTest {
 	/**
 	 * バッチ処理のテストケース。(複数回)
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testExecuteBatchRepeat() throws Exception {
 		// 事前条件
@@ -1135,6 +1197,7 @@ public class SqlAgentTest {
 	/**
 	 * バッチ処理(Null挿入）のテストケース。
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testExecuteBatchNull() throws Exception {
 		// 事前条件

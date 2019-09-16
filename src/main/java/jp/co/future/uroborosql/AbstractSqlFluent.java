@@ -9,7 +9,7 @@ package jp.co.future.uroborosql;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -52,20 +52,22 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramList(final String paramName, final Object... value) {
-		context().paramList(paramName, value);
+	@Deprecated
+	public <V> T paramList(final String paramName, final V... value) {
+		context().param(paramName, Arrays.asList(value));
 		return (T) this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramList(final String paramName, final Supplier<List<?>> supplier) {
-		context().paramList(paramName, supplier);
+	@Deprecated
+	public <V> T paramList(final String paramName, final Supplier<Iterable<V>> supplier) {
+		context().param(paramName, supplier);
 		return (T) this;
 	}
 
@@ -76,8 +78,9 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramListIfAbsent(final String paramName, final Object... value) {
-		context().paramListIfAbsent(paramName, value);
+	@Deprecated
+	public <V> T paramListIfAbsent(final String paramName, final V... value) {
+		context().paramIfAbsent(paramName, Arrays.asList(value));
 		return (T) this;
 	}
 
@@ -102,7 +105,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramBean(final Object bean) {
+	public <V> T paramBean(final V bean) {
 		if (bean != null) {
 			BeanAccessor.fields(bean.getClass()).stream()
 					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
@@ -127,7 +130,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T param(final String paramName, final Object value, final int sqlType) {
+	public <V> T param(final String paramName, final V value, final int sqlType) {
 		context().param(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -139,7 +142,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramIfAbsent(final String paramName, final Object value, final int sqlType) {
+	public <V> T paramIfAbsent(final String paramName, final V value, final int sqlType) {
 		context().paramIfAbsent(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -151,7 +154,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T param(final String paramName, final Object value, final SQLType sqlType) {
+	public <V> T param(final String paramName, final V value, final SQLType sqlType) {
 		context().param(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -163,7 +166,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramIfAbsent(final String paramName, final Object value, final SQLType sqlType) {
+	public <V> T paramIfAbsent(final String paramName, final V value, final SQLType sqlType) {
 		context().paramIfAbsent(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -175,7 +178,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T param(final String paramName, final Object value) {
+	public <V> T param(final String paramName, final V value) {
 		context().param(paramName, value);
 		return (T) this;
 	}
@@ -187,7 +190,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T param(final String paramName, final Supplier<Object> supplier) {
+	public <V> T param(final String paramName, final Supplier<V> supplier) {
 		context().param(paramName, supplier);
 		return (T) this;
 	}
@@ -199,7 +202,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramIfAbsent(final String paramName, final Object value) {
+	public <V> T paramIfAbsent(final String paramName, final V value) {
 		context().paramIfAbsent(paramName, value);
 		return (T) this;
 	}
@@ -235,7 +238,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T inOutParam(final String paramName, final Object value, final int sqlType) {
+	public <V> T inOutParam(final String paramName, final V value, final int sqlType) {
 		context().inOutParam(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -247,7 +250,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T inOutParamIfAbsent(final String paramName, final Object value, final int sqlType) {
+	public <V> T inOutParamIfAbsent(final String paramName, final V value, final int sqlType) {
 		context().inOutParamIfAbsent(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -259,7 +262,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T inOutParam(final String paramName, final Object value, final SQLType sqlType) {
+	public <V> T inOutParam(final String paramName, final V value, final SQLType sqlType) {
 		context().inOutParam(paramName, value, sqlType);
 		return (T) this;
 	}
@@ -271,7 +274,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T inOutParamIfAbsent(final String paramName, final Object value, final SQLType sqlType) {
+	public <V> T inOutParamIfAbsent(final String paramName, final V value, final SQLType sqlType) {
 		context().inOutParamIfAbsent(paramName, value, sqlType);
 		return (T) this;
 	}

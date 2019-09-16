@@ -9,20 +9,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.h2.jdbcx.JdbcDataSource;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
-
-import org.apache.commons.lang3.StringUtils;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Test;
 
 public class UroboroSQLTest {
 	private List<Map<String, Object>> getDataFromFile(final Path path) {
@@ -180,7 +181,7 @@ public class UroboroSQLTest {
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-			agent.query("example/select_product").paramList("product_id", 0, 1)
+			agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 					.stream().forEach((m) -> {
 						assertTrue(m.containsKey("productId"));
 						assertTrue(m.containsKey("productName"));

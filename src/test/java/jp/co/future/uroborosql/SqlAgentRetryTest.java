@@ -62,6 +62,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryNoWait() throws Exception {
 		int retryCount = 3;
@@ -75,6 +76,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryNoWaitSqlState() throws Exception {
 		int retryCount = 3;
@@ -88,6 +90,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（待機あり）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryWait() throws Exception {
 		int retryCount = 3;
@@ -102,6 +105,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（待機あり）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryWaitSqlState() throws Exception {
 		int retryCount = 3;
@@ -116,6 +120,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryOver() throws Exception {
 		int retryCount = 3;
@@ -136,6 +141,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryRetryOverSqlState() throws Exception {
 		int retryCount = 3;
@@ -158,6 +164,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryNoRetry() throws Exception {
 		int retryCount = 3;
@@ -178,6 +185,7 @@ public class SqlAgentRetryTest {
 	/**
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryNoRetrySqlState() throws Exception {
 		int retryCount = 3;

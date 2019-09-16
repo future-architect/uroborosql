@@ -10,8 +10,13 @@ import java.io.StringReader;
 import java.sql.JDBCType;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -20,9 +25,6 @@ import jp.co.future.uroborosql.parameter.StreamParameter;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class SqlContextImplTest {
 	private static SqlConfig config = null;
@@ -55,7 +57,8 @@ public class SqlContextImplTest {
 		assertEquals(replaceLineSep("select * from test where /* comment */ aaa = 1"), ctx3.getExecutableSql());
 
 		SqlContext ctx4 = getSqlContext("select * from test where -- /* comment */  [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1"), ctx4.getExecutableSql());
+		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1"),
+				ctx4.getExecutableSql());
 
 		SqlContext ctx5 = getSqlContext("select * from test where -- /* comment */  [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1"),
@@ -141,19 +144,24 @@ public class SqlContextImplTest {
 		SqlContext ctx2 = getSqlContext("insert into (, aaa, bbb, ccc) values (,111 ,222 ,333)");
 		assertEquals(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)"), ctx2.getExecutableSql());
 
-		SqlContext ctx3 = getSqlContext("insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
+		SqlContext ctx3 = getSqlContext(
+				"insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
 		assertEquals(
 				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"),
 				ctx3.getExecutableSql());
 
-		SqlContext ctx4 = getSqlContext("insert into ([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
+		SqlContext ctx4 = getSqlContext(
+				"insert into ([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
 		assertEquals(
-				replaceLineSep("insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
+				replaceLineSep(
+						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
 				ctx4.getExecutableSql());
 
-		SqlContext ctx5 = getSqlContext("insert into (--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
+		SqlContext ctx5 = getSqlContext(
+				"insert into (--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
 		assertEquals(
-				replaceLineSep("insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
+				replaceLineSep(
+						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
 				ctx5.getExecutableSql());
 	}
 
@@ -171,7 +179,8 @@ public class SqlContextImplTest {
 		assertEquals(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
 				ctx3.getExecutableSql());
 
-		SqlContext ctx4 = getSqlContext("update test set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		SqlContext ctx4 = getSqlContext(
+				"update test set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertEquals(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
 				ctx4.getExecutableSql());
 
@@ -188,6 +197,35 @@ public class SqlContextImplTest {
 		assertFalse(ctx.hasParam("key2"));
 	}
 
+	@SuppressWarnings("deprecation")
+	@Test
+	public void testParamList() throws Exception {
+		SqlContext ctx = null;
+
+		ctx = getSqlContext("select * from dummy");
+		ctx.paramList("key1", "value1");
+		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1")));
+
+		ctx = getSqlContext("select * from dummy");
+		ctx.paramList("key1", "value1", "value2");
+		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
+
+		Set<String> values = new HashSet<>();
+		values.add("value1");
+		values.add("value2");
+
+		ctx = getSqlContext("select * from dummy");
+		ctx.param("key1", values);
+		assertThat(ctx.getParam("key1").getValue(), is(values));
+
+		ctx = getSqlContext("select * from dummy");
+		ctx.paramList("key1", () -> {
+			return values;
+		});
+		assertThat(ctx.getParam("key1").getValue(), is(values));
+	}
+
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testIfAbsent() throws Exception {
 		SqlContext ctx = null;

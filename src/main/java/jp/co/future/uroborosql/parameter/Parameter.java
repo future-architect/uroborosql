@@ -12,7 +12,6 @@ import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLType;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -157,8 +156,8 @@ public class Parameter {
 	protected int setInParameter(final PreparedStatement preparedStatement, final int index,
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		int parameterIndex = index;
-		if (value instanceof List) {
-			for (Object e : (List<?>) value) {
+		if (value instanceof Iterable) {
+			for (Object e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
 
 				parameterLog(parameterIndex);
