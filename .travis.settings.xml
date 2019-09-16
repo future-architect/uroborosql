@@ -7,7 +7,7 @@
     <server>
       <id>ossrh-snapshot</id>
       <username>${env.OSSRH_USER}</username>
-      <password>${env.OSSRH_TOKEN}</password>
+      <password>${env.OSSRH_PASS}</password>
     </server>
   </servers>
 </settings>

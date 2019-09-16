@@ -5,27 +5,21 @@ cache:
   - "$HOME/.cache"
   - "$HOME/.m2"
 jdk:
-  - openjdk8
-
+- openjdk8
 before_install:
-  - export TZ=Asia/Tokyo
-
+- export TZ=Asia/Tokyo
 before_script:
-  - date
-
+- date
 after_success:
-  - mvn clean test jacoco:report coveralls:report
-
-# deploy:
-#   provider: script
-#   script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -Dmaven.test.skip=true"
-#   skip_cleanup: true
-#   on:
-#     branch: master
-
+- mvn clean test jacoco:report coveralls:report
+- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy -DskipTests --settings .travis.settings.xml"
 notifications:
   email:
     recipients:
-      - gr-tig-oss@future.co.jp
-    on_success: change # default: change
-    on_failure: always # default: always
+    - gr-tig-oss@future.co.jp
+    on_success: change
+    on_failure: always
+env:
+  global:
+  - secure: BsBTkCZROx0kdry6UX3M/pYIiIuN2UyusNhoK23cTLz/fjxg5USZ+9yuiwGYzr0BpCcMIzEpSu1Rl6sCkkKOQnNBmtTQDUWUiViwwJJfWQmv9QYBe1d0ClZ1ia3GpVMz9MKafhdLEND4Y+u+NAfIKej16der+3+26lmdihTBIna0RyP8Ot3djPt9w9sKydRefdPIRHTrWlKsig8U1aqw9bEjSf9l7y/cxWMhVTy7cumJnIQIVsjE7LPahkRQepmf9G3u7E7ZOhFQS8Hgh+on+AGCbeJJZW7TjZ08PqkhH7vM5ur/nbXyvDNKvqtgfmZztIorMcL5e3HpaaLQXHPI38OitQ+N4wLvatE0kWl02hhEn6AmA3ZQVoMVssFC2/d1TK0PJGiN3b9JcOnYpAzOe9kdUz3koZlc2gbik+IIEyz9/0CUuBE11nCZVkydxqYg6fIplJSphjACPlQGkP0wRjd+NZdPcSl0ersr2i7S+Eb6+ESMtAOUXjGNqAcXLqtY/zb2c0J8SGnqGHzuczfIpVDcn5PcB+4BR7QbrT2zb92j9DWuOL6wsBjWVL8CttUN+WrKgDQVGnlp7mrMH/jejU33WAIVfI0EwhpBCgxLH2IdFyeFmlxf6jGXBonkNARcb7JohIdhT/bOErFZUwloyvlT0itL3mu6eAnAAcswURs=
+  - secure: hdlrLYp7RlrDHNB9fpGECIR86J3V6D2YFtGFrS1XBStmrPwuUjly/6/Ulc11zm773w9/wCMTuUapCMCD7bZ2cR00Yj8hHHIiuy/+OUVu2fz8T73ZAbT+eXZBX+yfXPOLP1oO16tCShjac3WuLRBMVhBYz+oUfC5uo/RyFmcRXEgG3Ge5Vu+dW36uEbZ2oKuOCoNxj3atkuHMWU1zHPjdloSGvMcZOHWoVlQ5ynlaaH6Aepc4cA+mhbSmJbQhJp/e0D6y6+RKH5zmWuPXLUuvzzG+AGOu3TXX12KDi5ra9tgYrkDQkG1SPFWdaT0HizxLr918jxAeMD+RLB3fN7vUmaCUh5rz49RsGFcpmRL0y5MLgTpfkKpphgLN4NCCAjVamegNb/fvGja22k1v5pbr5R74o370RTFIjU84Ym/S57c08O8MNBax4Ted4nQmnwNZpqLT48D1Y6eL3lBRdZQR/0ZNEjX57tOt6F/FzWCVj6OtLqIcMRg/kinIHgno2r422wEqmty2ZxbSMFD9ec1355Ay9Oq6Kr+gZs1TK+QxGO8Em751Xdh9nS/g6dNdXRVdcv1RzXSCFmPzBW7ucJei0KeqSZToWsIiqGZrL6hTlcKSYL3fHIufTJi0mtY6U5TohDwL5EY+pUB9Z3YNMsnZxDHYxGTnH0V0ffg5Nb+4o/Q=
