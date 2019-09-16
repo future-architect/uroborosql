@@ -122,7 +122,7 @@ public class AuditLogSqlFilterTest {
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = agent.contextFrom("example/select_product")
-					.paramArray("product_id", new BigDecimal("0"), new BigDecimal("2"))
+					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 

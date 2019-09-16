@@ -52,11 +52,11 @@ public class AbstractSqlFluentTest {
 
 	@SuppressWarnings("deprecation")
 	@Test
-	public void testParamArray() throws Exception {
+	public void testparamList() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.paramArray("key1", "value1");
+			query.paramList("key1", "value1");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
 
 			query = agent.query("select * from dummy");
@@ -64,7 +64,7 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
 
 			query = agent.query("select * from dummy");
-			query.paramArray("key1", "value1", "value2");
+			query.paramList("key1", "value1", "value2");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 			query = agent.query("select * from dummy");
@@ -73,24 +73,25 @@ public class AbstractSqlFluentTest {
 
 			String[] values = { "value1", "value2" };
 			query = agent.query("select * from dummy");
-			query.paramArray("key1", () -> {
-				return values;
+			query.paramList("key1", () -> {
+				return Arrays.asList(values);
 			});
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 		}
 
 	}
 
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testParamList() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.paramList("key1", Arrays.asList("value1"));
+			query.paramList("key1", "value1");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", Arrays.asList("value1", "value2"));
+			query.paramList("key1", "value1", "value2");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 			Set<String> values = new HashSet<>();
@@ -98,7 +99,7 @@ public class AbstractSqlFluentTest {
 			values.add("value2");
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", values);
+			query.param("key1", values);
 			assertThat(query.context().getParam("key1").getValue(), is(values));
 
 			query = agent.query("select * from dummy");
@@ -109,6 +110,7 @@ public class AbstractSqlFluentTest {
 		}
 	}
 
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testIfAbsent() throws Exception {
 		try (SqlAgent agent = config.agent()) {
@@ -132,15 +134,9 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 
 			query = agent.query("select * from dummy");
-			query.paramArrayIfAbsent("key1", "value1", "value2");
+			query.paramListIfAbsent("key1", "value1", "value2");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-			query.paramArrayIfAbsent("key1", "value11", "value22");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-			query = agent.query("select * from dummy");
-			query.paramArrayIfAbsent("key1", "value1", "value2");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-			query.paramArrayIfAbsent("key1", "value11", "value22");
+			query.paramListIfAbsent("key1", "value11", "value22");
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 			query = agent.query("select * from dummy");
@@ -207,6 +203,7 @@ public class AbstractSqlFluentTest {
 		}
 	}
 
+	@SuppressWarnings({ "deprecation", })
 	@Test
 	public void testParamWithSupplier() throws Exception {
 		try (SqlAgent agent = config.agent()) {

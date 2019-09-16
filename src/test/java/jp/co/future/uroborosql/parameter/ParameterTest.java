@@ -123,11 +123,12 @@ public class ParameterTest {
 	 *
 	 * @throws SQLException SQL例外
 	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
 		try (SqlAgent agent = config.agent()) {
-			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramArray("targetStrs", "1", "2", "3");
+			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING3").paramList("targetStrs", "1", "2", "3");
 
 			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));

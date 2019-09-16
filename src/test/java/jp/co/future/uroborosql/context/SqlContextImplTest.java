@@ -197,37 +197,17 @@ public class SqlContextImplTest {
 		assertFalse(ctx.hasParam("key2"));
 	}
 
-	@Test
-	public void testParamArray() throws Exception {
-		SqlContext ctx = null;
-
-		ctx = getSqlContext("select * from dummy");
-		ctx.paramArray("key1", "value1");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1")));
-
-		ctx = getSqlContext("select * from dummy");
-		ctx.paramArray("key1", "value1", "value2");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-		String[] values = { "value1", "value2" };
-		ctx = getSqlContext("select * from dummy");
-		ctx.paramArray("key1", () -> {
-			return values;
-		});
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-	}
-
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParamList() throws Exception {
 		SqlContext ctx = null;
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramList("key1", Arrays.asList("value1"));
+		ctx.paramList("key1", "value1");
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1")));
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramList("key1", Arrays.asList("value1", "value2"));
+		ctx.paramList("key1", "value1", "value2");
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 		Set<String> values = new HashSet<>();
@@ -235,7 +215,7 @@ public class SqlContextImplTest {
 		values.add("value2");
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramList("key1", values);
+		ctx.param("key1", values);
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 
 		ctx = getSqlContext("select * from dummy");
@@ -269,21 +249,9 @@ public class SqlContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramArrayIfAbsent("key1", "value1", "value2");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-		ctx.paramArrayIfAbsent("key1", "value11", "value22");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-		ctx = getSqlContext("select * from dummy");
 		ctx.paramListIfAbsent("key1", "value1", "value2");
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 		ctx.paramListIfAbsent("key1", "value11", "value22");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-		ctx = getSqlContext("select * from dummy");
-		ctx.paramListIfAbsent("key1", Arrays.asList("value1", "value2"));
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-		ctx.paramListIfAbsent("key1", Arrays.asList("value11", "value22"));
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 		ctx = getSqlContext("select * from dummy");

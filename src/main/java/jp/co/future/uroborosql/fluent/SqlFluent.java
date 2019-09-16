@@ -79,40 +79,19 @@ public interface SqlFluent<T> {
 	 * @param value 配列として追加する
 	 * @return T
 	 */
-	<V> T paramArray(String paramName, @SuppressWarnings("unchecked") V... value);
+	@Deprecated
+	<V> T paramList(String paramName, @SuppressWarnings("unchecked") V... value);
 
 	/**
-	 * パラメータ配列の追加<br>
+	 * パラメータListの追加<br>
 	 *
 	 * @param <V> 値の型
 	 * @param paramName パラメータ名
-	 * @param supplier パラメータ値の配列を提供するSupplier
-	 * @return T
-	 */
-	<V> T paramArray(String paramName, Supplier<V[]> supplier);
-
-	/**
-	 * パラメータ配列の追加<br>
-	 *
-	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value 配列として追加する
-	 * @return T
-	 */
-	<V> T paramArrayIfAbsent(String paramName, @SuppressWarnings("unchecked") V... value);
-
-	/**
-	 * パラメータ配列の追加<br>
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value 配列として追加する
+	 * @param supplier パラメータ値を提供するSupplier
 	 * @return T
 	 */
 	@Deprecated
-	<V> T paramList(String paramName, @SuppressWarnings("unchecked") V... value);
+	<V> T paramList(String paramName, Supplier<Iterable<V>> supplier);
 
 	/**
 	 * パラメータ配列の追加<br>
@@ -126,38 +105,6 @@ public interface SqlFluent<T> {
 	 */
 	@Deprecated
 	<V> T paramListIfAbsent(String paramName, @SuppressWarnings("unchecked") V... value);
-
-	/**
-	 * パラメータListの追加<br>
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value Listとして追加する
-	 * @return T
-	 */
-	<V> T paramList(String paramName, Iterable<V> value);
-
-	/**
-	 * パラメータListの追加<br>
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param supplier パラメータ値のListを提供するSupplier
-	 * @return T
-	 */
-	<V> T paramList(String paramName, Supplier<Iterable<V>> supplier);
-
-	/**
-	 * パラメータListの追加<br>
-	 *
-	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value Listとして追加する
-	 * @return T
-	 */
-	<V> T paramListIfAbsent(String paramName, Iterable<V> value);
 
 	/**
 	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>

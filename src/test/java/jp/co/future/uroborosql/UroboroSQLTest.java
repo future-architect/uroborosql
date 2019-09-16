@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,7 @@ public class UroboroSQLTest {
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-			agent.query("example/select_product").paramArray("product_id", 0, 1)
+			agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 					.stream().forEach((m) -> {
 						assertTrue(m.containsKey("productId"));
 						assertTrue(m.containsKey("productName"));

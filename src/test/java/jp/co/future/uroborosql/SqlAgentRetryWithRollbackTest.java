@@ -76,12 +76,13 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryNoWait() throws Exception {
 		int retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount + 1);
+		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -89,12 +90,13 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（待機あり）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryWait() throws Exception {
 		int retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlQuery query = agent.query("example/select_product").paramArray("product_id", 0, 1)
+		SqlQuery query = agent.query("example/select_product").paramList("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -103,6 +105,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryRetryOver() throws Exception {
 		int retryCount = 3;
@@ -111,7 +114,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -123,6 +126,7 @@ public class SqlAgentRetryWithRollbackTest {
 	/**
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
+	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testQueryNoRetry() throws Exception {
 		int retryCount = 3;
@@ -131,7 +135,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").paramArray("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {

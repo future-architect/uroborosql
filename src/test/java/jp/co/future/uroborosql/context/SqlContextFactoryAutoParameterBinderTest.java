@@ -308,7 +308,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		SqlContextFactory factory = config.getSqlContextFactory();
 
 		final int productId = 2;
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramArrayIfAbsent("product_id", productId);
+		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 
 		try (SqlAgent agent = config.agent()) {

@@ -474,46 +474,23 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArray(java.lang.String, java.lang.Object[])
-	 */
-	@Override
-	public <V> SqlContext paramArray(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
-		return param(new Parameter(parameterName, Arrays.asList(value)));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArray(java.lang.String, java.util.function.Supplier)
-	 */
-	@Override
-	public <V> SqlContext paramArray(final String parameterName, final Supplier<V[]> supplier) {
-		return param(new Parameter(parameterName, Arrays.asList(supplier.get())));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramArrayIfAbsent(java.lang.String, java.lang.Object[])
-	 */
-	@Override
-	public <V> SqlContext paramArrayIfAbsent(final String parameterName,
-			@SuppressWarnings("unchecked") final V... value) {
-		if (!hasParam(parameterName)) {
-			paramArray(parameterName, value);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
 	 */
 	@Override
 	@Deprecated
 	public <V> SqlContext paramList(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
-		return paramArray(parameterName, value);
+		return param(parameterName, Arrays.asList(value));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
+	 */
+	@Override
+	@Deprecated
+	public <V> SqlContext paramList(final String parameterName, final Supplier<Iterable<V>> supplier) {
+		return param(parameterName, supplier);
 	}
 
 	/**
@@ -525,43 +502,7 @@ public class SqlContextImpl implements SqlContext {
 	@Deprecated
 	public <V> SqlContext paramListIfAbsent(final String parameterName,
 			@SuppressWarnings("unchecked") final V... value) {
-		if (!hasParam(parameterName)) {
-			paramArray(parameterName, value);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Iterable)
-	 */
-	@Override
-	public <V> SqlContext paramList(final String parameterName, final Iterable<V> value) {
-		return param(new Parameter(parameterName, value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Supplier)
-	 */
-	@Override
-	public <V> SqlContext paramList(final String parameterName, final Supplier<Iterable<V>> supplier) {
-		return param(new Parameter(parameterName, supplier.get()));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(java.lang.String, java.lang.Iterable)
-	 */
-	@Override
-	public <V> SqlContext paramListIfAbsent(final String parameterName, final Iterable<V> value) {
-		if (!hasParam(parameterName)) {
-			paramList(parameterName, value);
-		}
-		return this;
+		return paramIfAbsent(parameterName, Arrays.asList(value));
 	}
 
 	/**
