@@ -140,18 +140,6 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 			query = agent.query("select * from dummy");
-			query.inOutParamIfAbsent("key1", "value1", JDBCType.VARCHAR);
-			assertThat(query.context().getParam("key1").getValue(), is("value1"));
-			query.inOutParamIfAbsent("key1", "value2", JDBCType.VARCHAR);
-			assertThat(query.context().getParam("key1").getValue(), is("value1"));
-
-			query = agent.query("select * from dummy");
-			query.inOutParamIfAbsent("key1", "value1", JDBCType.VARCHAR.getVendorTypeNumber());
-			assertThat(query.context().getParam("key1").getValue(), is("value1"));
-			query.inOutParamIfAbsent("key1", "value2", JDBCType.VARCHAR.getVendorTypeNumber());
-			assertThat(query.context().getParam("key1").getValue(), is("value1"));
-
-			query = agent.query("select * from dummy");
 			InputStream is1 = new ByteArrayInputStream("value1".getBytes());
 			query.blobParamIfAbsent("key1", is1, "value1".length());
 			StreamParameter stream1 = (StreamParameter) query.context().getParam("key1");

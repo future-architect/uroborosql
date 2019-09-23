@@ -605,7 +605,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#outParam(java.lang.String, java.sql.SQLType)
 	 */
 	@Override
 	public SqlContext outParam(final String parameterName, final SQLType sqlType) {
@@ -615,7 +615,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#outParam(java.lang.String, int)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#outParam(java.lang.String, int)
 	 */
 	@Override
 	public SqlContext outParam(final String parameterName, final int sqlType) {
@@ -625,7 +625,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
 	public <V> SqlContext inOutParam(final String parameterName, final V value, final SQLType sqlType) {
@@ -645,7 +645,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
 	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
@@ -658,7 +658,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParam(java.lang.String, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParam(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
 	public <V> SqlContext inOutParam(final String parameterName, final V value, final int sqlType) {
@@ -678,7 +678,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
 	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final int sqlType) {
