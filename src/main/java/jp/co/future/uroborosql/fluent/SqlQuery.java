@@ -32,8 +32,8 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果の先頭行を取得（終端処理）
 	 *
-	 * @return 検索結果の先頭行をMapに詰めたもの. MapのキーはSnakeCase式に変換される.
-	 * @throws DataNotFoundException 検索結果が０件の場合
+	 * @return 検索結果の先頭行をMapに詰めたもの
+	 * @throws DataNotFoundException 検索結果が0件の場合
 	 */
 	Map<String, Object> first();
 
@@ -42,7 +42,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 *
 	 * @param caseFormat Mapのキーの変換書式
 	 * @return 検索結果の先頭行をMapに詰めたもの
-	 * @throws DataNotFoundException 検索結果が０件の場合
+	 * @throws DataNotFoundException 検索結果が0件の場合
 	 */
 	Map<String, Object> first(CaseFormat caseFormat);
 
@@ -52,14 +52,14 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @param <T> Entityの型
 	 * @param type 受け取りたいEntityの型
 	 * @return 検索結果の先頭行のEntity
-	 * @throws DataNotFoundException 検索結果が０件の場合
+	 * @throws DataNotFoundException 検索結果が0件の場合
 	 */
 	<T> T first(Class<T> type);
 
 	/**
 	 * 検索結果の先頭行を取得（終端処理）
 	 *
-	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却. MapのキーはSnakeCase式に変換される.
+	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却
 	 */
 	Optional<Map<String, Object>> findFirst();
 
@@ -81,56 +81,59 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	<T> Optional<T> findFirst(Class<T> type);
 
 	/**
-	 * 検索結果の先頭行を取得（終端処理）
+	 * 検索結果の先頭行を取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
-	 * @return 検索結果の先頭行をMapに詰めたもの. MapのキーはSnakeCase式に変換される.
-	 * @throws DataNotFoundException 検索結果が０件の場合
-	 * @throws DataNonUniqueException 検索結果が２件以上の場合
+	 * @return 検索結果の先頭行をMapに詰めたもの
+	 * @throws DataNotFoundException 検索結果が0件の場合
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	Map<String, Object> one();
 
 	/**
-	 * 検索結果の先頭行を取得（終端処理）
+	 * 検索結果の先頭行を取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
 	 * @param caseFormat Mapのキーの変換書式
 	 * @return 検索結果の先頭行をMapに詰めたもの
-	 * @throws DataNotFoundException 検索結果が０件の場合
-	 * @throws DataNonUniqueException 検索結果が２件以上の場合
+	 * @throws DataNotFoundException 検索結果が0件の場合
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	Map<String, Object> one(CaseFormat caseFormat);
 
 	/**
-	 * 検索結果の先頭行をEntityとして取得（終端処理）
+	 * 検索結果の先頭行をEntityとして取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
 	 * @param <T> Entityの型
 	 * @param type 受け取りたいEntityの型
 	 * @return 検索結果の先頭行のEntity
-	 * @throws DataNotFoundException 検索結果が０件の場合
-	 * @throws DataNonUniqueException 検索結果が２件以上の場合
+	 * @throws DataNotFoundException 検索結果が0件の場合
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	<T> T one(Class<T> type);
 
 	/**
-	 * 検索結果の先頭行を取得（終端処理）
+	 * 検索結果の先頭行を取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
-	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却. MapのキーはSnakeCase式に変換される.
+	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	Optional<Map<String, Object>> findOne();
 
 	/**
-	 * 検索結果の先頭行を取得（終端処理）
+	 * 検索結果の先頭行を取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
 	 * @param caseFormat Mapのキーの変換書式
 	 * @return 検索結果の先頭行をMapに詰めたものをOptionalとして返却
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	Optional<Map<String, Object>> findOne(CaseFormat caseFormat);
 
 	/**
-	 * 検索結果の先頭行をEntityとして取得（終端処理）
+	 * 検索結果の先頭行をEntityとして取得。検索結果が1件のみであることを検証する（終端処理）
 	 *
 	 * @param <T> Entityの型
 	 * @param type 受け取りたいEntityの型
 	 * @return 検索結果の先頭行のEntityをOptionalとして返却
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
 	 */
 	<T> Optional<T> findOne(Class<T> type);
 
@@ -145,7 +148,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果の取得（終端処理）
 	 *
-	 * @return 検索結果のリスト. MapのキーはSnakeCaseに変換される.
+	 * @return 検索結果のリスト
 	 * @see SqlAgent#query(String)
 	 */
 	List<Map<String, Object>> collect();
@@ -181,7 +184,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	/**
 	 * 検索結果をMapのStreamとして取得（終端処理）
 	 *
-	 * @return 検索結果を順次取得するStream. MapのキーはCamel式に変換される.
+	 * @return 検索結果を順次取得するStream
 	 */
 	Stream<Map<String, Object>> stream();
 
@@ -189,7 +192,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * 検索結果をMapのStreamとして取得（終端処理）
 	 *
 	 * @param caseFormat Mapのキーの変換書式
-	 * @return 検索結果を順次取得するStream. MapのキーはCamel式に変換される.
+	 * @return 検索結果を順次取得するStream
 	 */
 	Stream<Map<String, Object>> stream(CaseFormat caseFormat);
 
@@ -198,7 +201,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 *
 	 * @param <T> Streamの型
 	 * @param type 受け取りたいEntityの型
-	 * @return 検索結果を順次取得するStream.
+	 * @return 検索結果を順次取得するStream
 	 */
 	<T> Stream<T> stream(Class<T> type);
 }

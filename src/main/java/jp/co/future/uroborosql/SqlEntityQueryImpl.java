@@ -20,6 +20,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
@@ -87,6 +88,22 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public Optional<E> first() {
 		try (Stream<E> stream = stream()) {
 			return stream.findFirst();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#one()
+	 */
+	@Override
+	public Optional<E> one() {
+		try (Stream<E> stream = stream()) {
+			List<E> entities = stream.limit(2).collect(Collectors.toList());
+			if (entities.size() > 1) {
+				throw new DataNonUniqueException("two or more query results.");
+			}
+			return entities.stream().findFirst();
 		}
 	}
 
