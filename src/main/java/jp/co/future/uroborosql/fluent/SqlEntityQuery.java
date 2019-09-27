@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
+import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
@@ -27,7 +28,7 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	public enum Order {
 		ASCENDING("ASC"), DESCENDING("DESC");
 
-		private String alias;
+		private final String alias;
 
 		Order(final String alias) {
 			this.alias = alias;
@@ -66,6 +67,14 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 * @return 検索結果の先頭行をEntityに変換したもの.
 	 */
 	Optional<E> first();
+
+	/**
+	 * 検索結果の先頭行を取得。検索結果が1件のみであることを検証する（終端処理）
+	 *
+	 * @return 検索結果の先頭行をEntityに変換したもの.
+	 * @throws DataNonUniqueException 検索結果が2件以上の場合
+	 */
+	Optional<E> one();
 
 	/**
 	 * 検索結果をEntityのStreamとして取得（終端処理）

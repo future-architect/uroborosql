@@ -88,8 +88,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findFirst(final CaseFormat caseFormat) {
-		try (Stream<Map<String, Object>> stream = stream(
-				new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat))) {
+		try (Stream<Map<String, Object>> stream = stream(caseFormat)) {
 			return stream.findFirst();
 		}
 	}
@@ -101,7 +100,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Optional<T> findFirst(final Class<T> type) {
-		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
+		try (Stream<T> stream = stream(type)) {
 			return stream.findFirst();
 		}
 	}
@@ -148,8 +147,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 
 	@Override
 	public Optional<Map<String, Object>> findOne(final CaseFormat caseFormat) {
-		try (Stream<Map<String, Object>> stream = stream(
-				new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat))) {
+		try (Stream<Map<String, Object>> stream = stream(caseFormat)) {
 			List<Map<String, Object>> resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
@@ -160,7 +158,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 
 	@Override
 	public <T> Optional<T> findOne(final Class<T> type) {
-		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
+		try (Stream<T> stream = stream(type)) {
 			List<T> resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
@@ -214,7 +212,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> List<T> collect(final Class<T> type) {
-		try (Stream<T> stream = stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()))) {
+		try (Stream<T> stream = stream(type)) {
 			return stream.collect(Collectors.toList());
 		}
 	}
