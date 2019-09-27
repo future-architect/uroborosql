@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * @author H.Sugimoto
  */
-public interface Procedure extends SqlFluent<Procedure> {
+public interface Procedure extends SqlFluent<Procedure>, ProcedureFluent<Procedure> {
 	/**
 	 * Procedureの実行（終端処理）
 	 *

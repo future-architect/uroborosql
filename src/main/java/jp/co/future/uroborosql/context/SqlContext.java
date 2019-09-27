@@ -15,6 +15,7 @@ import java.sql.SQLType;
 import java.util.Map;
 
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.fluent.ProcedureFluent;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.parser.TransformContext;
 
@@ -24,7 +25,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  *
  */
-public interface SqlContext extends TransformContext, SqlFluent<SqlContext> {
+public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, ProcedureFluent<SqlContext> {
 
 	/**
 	 * 変換前SQL取得
