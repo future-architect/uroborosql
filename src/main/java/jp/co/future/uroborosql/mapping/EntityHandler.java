@@ -48,7 +48,8 @@ public interface EntityHandler<ENTITY> {
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return SELECT SQLコンテキスト
 	 */
-	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
+	SqlContext createSelectContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType,
+			boolean addCondition);
 
 	/**
 	 * EntityからINSERT SQLコンテキストを生成します。
@@ -103,7 +104,8 @@ public interface EntityHandler<ENTITY> {
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return UPDATE SQLコンテキスト
 	 */
-	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
+	SqlContext createUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType,
+			boolean addCondition);
 
 	/**
 	 * SqlContextのパラメーターににエンティティの値をセットします。
@@ -135,7 +137,8 @@ public interface EntityHandler<ENTITY> {
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
 	 * @return DELETE SQLコンテキスト
 	 */
-	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType, boolean addCondition);
+	SqlContext createDeleteContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType,
+			boolean addCondition);
 
 	/**
 	 * SqlContextのパラメーターににエンティティの値をセットします。
@@ -223,6 +226,28 @@ public interface EntityHandler<ENTITY> {
 	default int doBulkInsert(final SqlAgent agent, final SqlContext context)
 			throws SQLException {
 		return agent.update(context);
+	}
+
+	/**
+	 * エンティティタイプからバッチ用UPDATE SQLコンテキストを生成します。
+	 *
+	 * @param agent SqlAgent
+	 * @param metadata エンティティメタ情報
+	 * @param entityType エンティティタイプ
+	 * @return UPDATE SQLコンテキスト
+	 */
+	SqlContext createBatchUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+
+	/**
+	 * BATCH UPDATEを実行します。
+	 *
+	 * @param agent SqlAgent
+	 * @param context SQLコンテキスト
+	 * @return SQL実行結果
+	 * @throws SQLException SQL例外
+	 */
+	default int[] doBatchUpdate(final SqlAgent agent, final SqlContext context) throws SQLException {
+		return agent.batch(context);
 	}
 
 	/**

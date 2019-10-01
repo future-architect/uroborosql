@@ -106,7 +106,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
 				.setSqlId(createSqlId(metadata, entityType));
 	}
 
@@ -143,6 +143,18 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public SqlContext createBulkInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.context().setSqlId(createSqlId(metadata, entityType));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBatchUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 */
+	@Override
+	public SqlContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
+			final Class<? extends Object> entityType) {
+		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
+				.setSqlId(createSqlId(metadata, entityType));
 	}
 
 	/**
@@ -368,7 +380,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param metadata エンティティメタ情報
 	 * @param type エイティティタイプ
 	 * @param sqlConfig SQLコンフィグ
-	 * @param ignoreWhenEmpty 空白パラメータをSQLに含めない条件文を設定する
+	 * @param ignoreWhenEmpty 空のパラメータをSQLに含めない条件文を設定する
 	 * @return INSERT SQL
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
@@ -413,10 +425,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param type エイティティタイプ
 	 * @param sqlConfig SQLコンフィグ
 	 * @param addCondition 条件を追加するかどうか。追加する場合<code>true</code>
+	 * @param ignoreWhenEmpty 空のパラメータをSQLに含めない条件文を設定する
 	 * @return UPDATE SQL
 	 */
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
-			final SqlConfig sqlConfig, final boolean addCondition) {
+			final SqlConfig sqlConfig, final boolean addCondition, final boolean ignoreWhenEmpty) {
 		StringBuilder sql = new StringBuilder("UPDATE ").append("/* ")
 				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
@@ -425,6 +438,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty()
 				: MappingUtils.getVersionMappingColumn(type);
+
+		MappingColumn versionColumn = versionMappingColumn.orElse(null);
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
@@ -451,20 +466,34 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			} else {
 				parts.append(", ");
 			}
-			parts.append(col.getColumnIdentifier()).append(" = /*").append(camelColName).append("*/''");
-			versionMappingColumn.ifPresent(mappingColumn -> {
-				if (camelColName.equals(mappingColumn.getCamelName())) {
-					parts.append(" + 1");
-				}
-			});
+
+			boolean isVersionColumn = versionColumn != null
+					&& camelColName.equalsIgnoreCase(versionColumn.getCamelName());
+			if (isVersionColumn) {
+				parts.append(col.getColumnIdentifier());
+				parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
+			} else {
+				parts.append(col.getColumnIdentifier());
+				parts.append(" = /*").append(camelColName).append("*/''");
+			}
 			if (StringUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (col.isNullable()) {
-				wrapIfComment(sql, parts, col);
-			} else {
+			if (isVersionColumn) {
 				sql.append(parts);
+			} else if (addCondition) {
+				if (ignoreWhenEmpty && col.isNullable()) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
+			} else {
+				if (ignoreWhenEmpty) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
 			}
 		}
 
@@ -488,7 +517,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
 						.append("*/''")
 						.append(System.lineSeparator());
-				if (col.isNullable()) {
+				if (ignoreWhenEmpty && col.isNullable()) {
 					wrapIfComment(sql, parts, col);
 				} else {
 					sql.append(parts);

@@ -142,14 +142,12 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 				assertThat(list.get(2), is(test3));
 
 				list = agent.query(TestEntity.class)
-						.param("name", "name2")
+						.equal("name", "name2")
 						.collect();
 				assertThat(list.get(0), is(test2));
 			});
 		}
 	}
-
-
 
 	@Test
 	public void testUpdate1() throws Exception {
@@ -188,7 +186,6 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 		}
 	}
 
-
 	@Test
 	public void testBatchInsert() throws Exception {
 
@@ -212,7 +209,6 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 		}
 	}
 
-
 	@Test
 	public void testBulkInsert() throws Exception {
 
@@ -235,6 +231,5 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 			});
 		}
 	}
-
 
 }

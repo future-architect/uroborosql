@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 
 public class AbstractDbTest {
 
@@ -32,6 +33,7 @@ public class AbstractDbTest {
 		private String productDescription;
 		private Date insDatetime;
 		private Date updDatetime;
+		@Version
 		private int versionNo;
 
 		public Product() {

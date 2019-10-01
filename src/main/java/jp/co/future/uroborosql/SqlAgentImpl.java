@@ -44,6 +44,7 @@ import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
+import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -812,12 +813,54 @@ public class SqlAgentImpl extends AbstractAgent {
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
-			if (count == 0 && MappingUtils.getVersionMappingColumn(type).isPresent()) {
-				throw new OptimisticLockException(context);
-			}
+			MappingUtils.getVersionMappingColumn(type).ifPresent(versionColumn -> {
+				if (count == 0) {
+					throw new OptimisticLockException(context);
+				} else {
+					SqlContext findContext = handler.createSelectContext(this, metadata, type, true);
+					findContext.setSqlKind(SqlKind.SELECT);
+					MappingColumn[] idColumns = MappingUtils.getIdMappingColumns(type);
+					for (MappingColumn idColumn : idColumns) {
+						findContext.param(idColumn.getCamelName(), idColumn.getValue(entity));
+					}
+					try {
+						handler.doSelect(this, findContext, type).findFirst().ifPresent(e -> {
+							versionColumn.setValue(entity, versionColumn.getValue(e));
+						});
+					} catch (SQLException e) {
+						throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+					}
+				}
+			});
 			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Class)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> SqlEntityUpdate<E> update(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			SqlContext context = handler.createUpdateContext(this, metadata, entityType, false);
+			context.setSqlKind(SqlKind.UPDATE);
+
+			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
 	}
 
@@ -1051,6 +1094,53 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		return count;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchUpdate(java.lang.Class, java.util.stream.Stream, jp.co.future.uroborosql.SqlAgent.UpdatesCondition)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int batchUpdate(final Class<E> entityType, final Stream<E> entities,
+			final UpdatesCondition<? super E> condition) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBatchUpdateContext(this, metadata, entityType);
+			context.setSqlKind(SqlKind.BATCH_UPDATE);
+
+			int count = 0;
+			List<E> entityList = new ArrayList<>();
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				entityList.add(entity);
+
+				handler.setUpdateParams(context, entity);
+				context.addBatch();
+
+				if (condition.test(context, context.batchCount(), entity)) {
+					count += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
+					entityList.clear();
+				}
+			}
+			return count + (context.batchCount() != 0
+					? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
+					: 0);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.BATCH_UPDATE, e);
+		}
 	}
 
 	/**

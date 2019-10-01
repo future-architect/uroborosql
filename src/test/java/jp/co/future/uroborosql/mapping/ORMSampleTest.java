@@ -11,6 +11,13 @@ import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -18,13 +25,6 @@ import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.annotations.Table;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  * Mapperのサンプル実装
@@ -156,7 +156,7 @@ public class ORMSampleTest {
 
 			// 条件あり
 			list = agent.query(TestEntity.class)
-					.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+					.equal("birthday", LocalDate.of(1990, Month.MAY, 1))
 					.collect();
 			assertThat(list.size(), is(2));
 		}
