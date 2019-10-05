@@ -39,6 +39,20 @@ public class AbstractDbTest {
 		public Product() {
 		}
 
+		public Product(final int productId, final String productName, final String productKanaName,
+				final String janCode,
+				final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
+			super();
+			this.productId = productId;
+			this.productName = productName;
+			this.productKanaName = productKanaName;
+			this.janCode = janCode;
+			this.productDescription = productDescription;
+			this.insDatetime = insDatetime;
+			this.updDatetime = updDatetime;
+			this.versionNo = versionNo;
+		}
+
 		public int getProductId() {
 			return productId;
 		}

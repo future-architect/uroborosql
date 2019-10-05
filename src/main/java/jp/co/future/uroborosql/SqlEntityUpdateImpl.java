@@ -74,5 +74,4 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		param(paramName, value, sqlType);
 		return this;
 	}
-
 }
