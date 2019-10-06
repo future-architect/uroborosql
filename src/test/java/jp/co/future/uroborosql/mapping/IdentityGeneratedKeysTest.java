@@ -6,6 +6,9 @@ import static org.hamcrest.MatcherAssert.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -96,6 +99,124 @@ public class IdentityGeneratedKeysTest {
 				assertThat(data, is(test2));
 				data = agent.find(TestEntityWithId.class, test3.getId()).orElse(null);
 				assertThat(data, is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testInserts() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				List<TestEntityWithId> entites = new ArrayList<>();
+				TestEntityWithId test1 = new TestEntityWithId("name1");
+				entites.add(test1);
+
+				TestEntityWithId test2 = new TestEntityWithId("name2");
+				entites.add(test2);
+
+				TestEntityWithId test3 = new TestEntityWithId("name3");
+				entites.add(test3);
+
+				agent.inserts(entites.stream());
+				assertThat(test1.getId(), is(++currVal));
+				assertThat(test2.getId(), is(++currVal));
+				assertThat(test3.getId(), is(++currVal));
+
+				assertThat(agent.find(TestEntityWithId.class, test1.getId()).orElse(null), is(test1));
+				assertThat(agent.find(TestEntityWithId.class, test2.getId()).orElse(null), is(test2));
+				assertThat(agent.find(TestEntityWithId.class, test3.getId()).orElse(null), is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertsBatch() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				List<TestEntityWithId> entites = new ArrayList<>();
+				TestEntityWithId test1 = new TestEntityWithId("name1");
+				entites.add(test1);
+
+				TestEntityWithId test2 = new TestEntityWithId("name2");
+				entites.add(test2);
+
+				TestEntityWithId test3 = new TestEntityWithId("name3");
+				entites.add(test3);
+
+				agent.inserts(entites.stream(), InsertsType.BATCH);
+				assertThat(test1.getId(), is(++currVal));
+				assertThat(test2.getId(), is(++currVal));
+				assertThat(test3.getId(), is(++currVal));
+
+				assertThat(agent.find(TestEntityWithId.class, test1.getId()).orElse(null), is(test1));
+				assertThat(agent.find(TestEntityWithId.class, test2.getId()).orElse(null), is(test2));
+				assertThat(agent.find(TestEntityWithId.class, test3.getId()).orElse(null), is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertsAndReturn() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				List<TestEntityWithId> entites = new ArrayList<>();
+				TestEntityWithId test1 = new TestEntityWithId("name1");
+				entites.add(test1);
+
+				TestEntityWithId test2 = new TestEntityWithId("name2");
+				entites.add(test2);
+
+				TestEntityWithId test3 = new TestEntityWithId("name3");
+				entites.add(test3);
+
+				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entites.stream())
+						.collect(Collectors.toList());
+				assertThat(insertedEntities.get(0).getId(), is(++currVal));
+				assertThat(insertedEntities.get(1).getId(), is(++currVal));
+				assertThat(insertedEntities.get(2).getId(), is(++currVal));
+
+				assertThat(insertedEntities.get(0), is(test1));
+				assertThat(insertedEntities.get(1), is(test2));
+				assertThat(insertedEntities.get(2), is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertsAndReturnBatch() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+						.get("ID");
+
+				List<TestEntityWithId> entites = new ArrayList<>();
+				TestEntityWithId test1 = new TestEntityWithId("name1");
+				entites.add(test1);
+
+				TestEntityWithId test2 = new TestEntityWithId("name2");
+				entites.add(test2);
+
+				TestEntityWithId test3 = new TestEntityWithId("name3");
+				entites.add(test3);
+
+				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entites.stream(), InsertsType.BATCH)
+						.collect(Collectors.toList());
+				assertThat(insertedEntities.get(0).getId(), is(++currVal));
+				assertThat(insertedEntities.get(1).getId(), is(++currVal));
+				assertThat(insertedEntities.get(2).getId(), is(++currVal));
+
+				assertThat(insertedEntities.get(0), is(test1));
+				assertThat(insertedEntities.get(1), is(test2));
+				assertThat(insertedEntities.get(2), is(test3));
 			});
 		}
 	}

@@ -44,6 +44,7 @@ import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
+import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -61,7 +62,10 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected static final Logger LOG = LoggerFactory.getLogger(SqlAgentImpl.class);
 
 	/** 例外発生時のログ出力を行うかどうか デフォルトは<code>true</code> */
-	private boolean outputExceptionLog = true;
+	protected boolean outputExceptionLog = true;
+
+	/** IN句に渡すパラメータのMAXサイズ */
+	protected static final int IN_CLAUSE_MAX_PARAM_SIZE = 1000;
 
 	/**
 	 * コンストラクタ。
@@ -703,11 +707,15 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#insert(Object)
+	 * @see jp.co.future.uroborosql.SqlAgent#insert(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public int insert(final Object entity) {
+	public <E> int insert(final E entity) {
+		if (entity instanceof Stream) {
+			throw new IllegalArgumentException("Stream type not supported.");
+		}
+
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isInstance(entity)) {
@@ -744,12 +752,23 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#insertAndReturn(java.lang.Object)
+	 */
+	@Override
+	public <E> E insertAndReturn(final E entity) {
+		insert(entity);
+		return entity;
+	}
+
+	/**
 	 * IDカラムの自動採番結果を取得できるよう、対象となるIDカラムをSqlContextに設定する
 	 * @param context SqlContext
 	 * @param idColumns IDカラム名配列
 	 * @param metadata テーブルメタデータ
 	 */
-	private void setGeneratedKeyColumns(final SqlContext context, final MappingColumn[] idColumns,
+	protected void setGeneratedKeyColumns(final SqlContext context, final MappingColumn[] idColumns,
 			final TableMetadata metadata) {
 		// 実行結果から生成されたIDを取得できるようにPreparedStatementにIDカラムを渡す
 		if (idColumns != null && idColumns.length > 0) {
@@ -772,7 +791,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @param id ID値
 	 * @param column 設定する対象のカラム
 	 */
-	private void setEntityIdValue(final Object entity, final BigDecimal id, final MappingColumn column) {
+	protected void setEntityIdValue(final Object entity, final BigDecimal id, final MappingColumn column) {
 		Class<?> rawType = column.getJavaType().getRawType();
 		if (int.class.equals(rawType) || Integer.class.equals(rawType)) {
 			column.setValue(entity, id.intValue());
@@ -793,11 +812,15 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#update(Object)
+	 * @see jp.co.future.uroborosql.SqlAgent#update(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public int update(final Object entity) {
+	public <E> int update(final E entity) {
+		if (entity instanceof Stream) {
+			throw new IllegalArgumentException("Stream type not supported.");
+		}
+
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isInstance(entity)) {
@@ -812,9 +835,23 @@ public class SqlAgentImpl extends AbstractAgent {
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
-			if (count == 0 && MappingUtils.getVersionMappingColumn(type).isPresent()) {
-				throw new OptimisticLockException(context);
-			}
+			MappingUtils.getVersionMappingColumn(type).ifPresent(versionColumn -> {
+				if (count == 0) {
+					throw new OptimisticLockException(context);
+				} else {
+					Map<String, MappingColumn> columnMap = MappingUtils.getMappingColumnMap(type, SqlKind.NONE);
+					Object[] keys = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
+							.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
+							.map(c -> {
+								MappingColumn col = columnMap.get(c.getCamelColumnName());
+								return col.getValue(entity);
+							}).toArray();
+
+					find(type, keys).ifPresent(e -> {
+						versionColumn.setValue(entity, versionColumn.getValue(e));
+					});
+				}
+			});
 			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
@@ -824,11 +861,52 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#delete(Object)
+	 * @see jp.co.future.uroborosql.SqlAgent#updateAndReturn(java.lang.Object)
+	 */
+	@Override
+	public <E> E updateAndReturn(final E entity) {
+		update(entity);
+		return entity;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Class)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public int delete(final Object entity) {
+	public <E> SqlEntityUpdate<E> update(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+
+			SqlContext context = handler.createUpdateContext(this, metadata, entityType, false);
+			context.setSqlKind(SqlKind.UPDATE);
+
+			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> int delete(final E entity) {
+		if (entity instanceof Stream) {
+			throw new IllegalArgumentException("Stream type not supported.");
+		}
+
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isInstance(entity)) {
@@ -845,6 +923,17 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#deleteAndReturn(java.lang.Object)
+	 */
+	@Override
+	public <E> E deleteAndReturn(final E entity) {
+		delete(entity);
+		return entity;
 	}
 
 	/**
@@ -907,12 +996,12 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(java.lang.Class, java.util.stream.Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition, java.util.List)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
-			final InsertsCondition<? super E> condition) {
+	protected <E> int batchInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition, final List<E> insertedEntities) {
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isAssignableFrom(entityType)) {
@@ -939,6 +1028,9 @@ public class SqlAgentImpl extends AbstractAgent {
 				}
 
 				entityList.add(entity);
+				if (insertedEntities != null) {
+					insertedEntities.add(entity);
+				}
 
 				handler.setInsertParams(context, entity);
 				context.addBatch();
@@ -956,7 +1048,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	private <E> int[] doBatchInsert(final SqlContext context, final EntityHandler<E> handler, final List<E> entityList,
+	protected <E> int[] doBatchInsert(final SqlContext context, final EntityHandler<E> handler,
+			final List<E> entityList,
 			final MappingColumn[] idColumns)
 			throws SQLException {
 		int[] counts = handler.doBatchInsert(this, context);
@@ -976,12 +1069,12 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(Class, Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition)
+	 * @see jp.co.future.uroborosql.AbstractAgent#bulkInsert(java.lang.Class, java.util.stream.Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition, java.util.List)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
-			final InsertsCondition<? super E> condition) {
+	protected <E> int bulkInsert(final Class<E> entityType, final Stream<E> entities,
+			final InsertsCondition<? super E> condition, final List<E> insertedEntities) {
 		@SuppressWarnings("rawtypes")
 		EntityHandler handler = this.getEntityHandler();
 		if (!handler.getEntityType().isAssignableFrom(entityType)) {
@@ -1009,6 +1102,9 @@ public class SqlAgentImpl extends AbstractAgent {
 				}
 
 				entityList.add(entity);
+				if (insertedEntities != null) {
+					insertedEntities.add(entity);
+				}
 
 				handler.setBulkInsertParams(context, entity, frameCount);
 				frameCount++;
@@ -1034,7 +1130,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	private <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
+	protected <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
 			final TableMetadata metadata, final MappingColumn[] idColumns, final List<E> entityList)
 			throws SQLException {
 		int count = handler.doBulkInsert(this,
@@ -1051,6 +1147,104 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		return count;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.AbstractAgent#batchUpdate(java.lang.Class, java.util.stream.Stream, jp.co.future.uroborosql.SqlAgent.UpdatesCondition, java.util.List)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	protected <E> int batchUpdate(final Class<E> entityType, final Stream<E> entities,
+			final UpdatesCondition<? super E> condition, final List<E> updatedEntities) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = handler.createBatchUpdateContext(this, metadata, entityType);
+			context.setSqlKind(SqlKind.BATCH_UPDATE);
+
+			Optional<MappingColumn> versionColumn = updatedEntities != null
+					? MappingUtils.getVersionMappingColumn(entityType)
+					: null;
+
+			int count = 0;
+			List<E> entityList = new ArrayList<>();
+			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
+				E entity = iterator.next();
+
+				if (!entityType.isInstance(entity)) {
+					throw new IllegalArgumentException("Entity types do not match");
+				}
+
+				entityList.add(entity);
+				if (updatedEntities != null) {
+					updatedEntities.add(entity);
+				}
+
+				handler.setUpdateParams(context, entity);
+				context.addBatch();
+
+				if (condition.test(context, context.batchCount(), entity)) {
+					count += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
+					entityList.clear();
+				}
+			}
+			count = count + (context.batchCount() != 0
+					? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
+					: 0);
+
+			if (updatedEntities != null && versionColumn.isPresent()) {
+				MappingColumn vColumn = versionColumn.get();
+				List<MappingColumn> keyColumns = metadata.getColumns().stream()
+						.filter(TableMetadata.Column::isKey)
+						.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
+						.map(c -> MappingUtils.getMappingColumnMap(entityType, SqlKind.NONE)
+								.get(c.getCamelColumnName()))
+						.collect(Collectors.toList());
+
+				if (keyColumns.size() == 1) {
+					// 単一キーの場合はIN句で更新した行を一括取得し@Versionのついたフィールドを更新する
+					MappingColumn keyColumn = keyColumns.get(0);
+					Map<Object, List<E>> updatedEntityMap = updatedEntities.stream()
+							.collect(Collectors.groupingBy(e -> keyColumn.getValue(e)));
+
+					// updatedEntitesのサイズが大きいとin句の上限にあたるため、1000件ずつに分割して検索する
+					List<Object> keyList = new ArrayList<>(updatedEntityMap.keySet());
+					int entitySize = updatedEntities.size();
+
+					for (int start = 0; start < entitySize; start = start + IN_CLAUSE_MAX_PARAM_SIZE) {
+						int end = Math.min(start + IN_CLAUSE_MAX_PARAM_SIZE, entitySize);
+						List<Object> subList = keyList.subList(start, end);
+
+						query(entityType).in(keyColumn.getCamelName(), subList).stream()
+								.map(e -> {
+									E updatedEntity = updatedEntityMap.get(keyColumn.getValue(e)).get(0);
+									vColumn.setValue(updatedEntity, vColumn.getValue(e));
+									return updatedEntity;
+								}).count();
+					}
+				} else if (keyColumns.size() > 1) {
+					// 複合キーの場合はIN句で一括取得できないため1件ずつ取得して@Versionのついたフィールドを更新する
+					updatedEntities.stream()
+							.map(updatedEntity -> {
+								Object[] keyValues = keyColumns.stream().map(k -> k.getValue(updatedEntity)).toArray();
+								find(entityType, keyValues).ifPresent(e -> {
+									vColumn.setValue(updatedEntity, vColumn.getValue(e));
+								});
+								return updatedEntity;
+							}).count();
+				}
+			}
+			return count;
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.BATCH_UPDATE, e);
+		}
 	}
 
 	/**

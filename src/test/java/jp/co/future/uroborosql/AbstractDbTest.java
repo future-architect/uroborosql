@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 
 public class AbstractDbTest {
 
@@ -32,9 +33,24 @@ public class AbstractDbTest {
 		private String productDescription;
 		private Date insDatetime;
 		private Date updDatetime;
+		@Version
 		private int versionNo;
 
 		public Product() {
+		}
+
+		public Product(final int productId, final String productName, final String productKanaName,
+				final String janCode,
+				final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
+			super();
+			this.productId = productId;
+			this.productName = productName;
+			this.productKanaName = productKanaName;
+			this.janCode = janCode;
+			this.productDescription = productDescription;
+			this.insDatetime = insDatetime;
+			this.updDatetime = updDatetime;
+			this.versionNo = versionNo;
 		}
 
 		public int getProductId() {

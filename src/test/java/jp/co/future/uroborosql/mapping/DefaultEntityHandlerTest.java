@@ -174,7 +174,7 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(2), is(test3));
 
 				list = agent.query(TestEntity.class)
-						.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+						.equal("birthday", LocalDate.of(1990, Month.MAY, 1))
 						.collect();
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
@@ -200,7 +200,7 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(2), is(test3));
 
 				list = agent.query(TestEntity2.class)
-						.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+						.equal("birthday", LocalDate.of(1990, Month.MAY, 1))
 						.collect();
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
@@ -226,7 +226,7 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(2), is(test3));
 
 				list = agent.query(TestEntity3.class)
-						.param("birthday", LocalDate.of(1990, Month.MAY, 1))
+						.equal("birthday", LocalDate.of(1990, Month.MAY, 1))
 						.collect();
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
@@ -749,7 +749,6 @@ public class DefaultEntityHandlerTest {
 				agent.update(test);
 
 				TestEntity3 data = agent.find(TestEntity3.class, 1).orElse(null);
-				test.setLockVersion(test.getLockVersion() + 1);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -784,7 +783,6 @@ public class DefaultEntityHandlerTest {
 				agent.update(test);
 
 				TestEntityLockVersion data = agent.find(TestEntityLockVersion.class).orElse(null);
-				test.setLockVersion(test.getLockVersion() + 1);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});

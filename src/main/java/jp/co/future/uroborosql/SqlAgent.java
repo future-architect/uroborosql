@@ -22,6 +22,7 @@ import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
+import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.tx.TransactionManager;
@@ -35,12 +36,36 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 
 public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
-	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件
+	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件.<br>
+	 *
+	 * ex)<br>
+	 * (context, count, row) -&gt; count == 1000
 	 *
 	 * @param <E> エンティティ型
 	 */
 	@FunctionalInterface
 	interface InsertsCondition<E> {
+		/**
+		 * 一括更新用のフレームの判定
+		 *
+		 * @param context SqlContext
+		 * @param count パラメーターレコード数
+		 * @param entity エンティティ
+		 * @return `true`の場合、一括更新を実行します
+		 */
+		boolean test(SqlContext context, int count, E entity);
+	}
+
+	/**
+	 * {@link SqlAgent#updates(Stream, UpdatesCondition)}の一括更新用のフレームの判定条件.<br>
+	 *
+	 * ex)<br>
+	 * (context, count, row) -&gt; count == 1000
+	 *
+	 * @param <E> エンティティ型
+	 */
+	@FunctionalInterface
+	interface UpdatesCondition<E> {
 		/**
 		 * 一括更新用のフレームの判定
 		 *
@@ -327,26 +352,65 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	/**
 	 * エンティティのINSERTを実行
 	 *
+	 * @param <E> エンティティ型
 	 * @param entity エンティティ
 	 * @return SQL実行結果
 	 */
-	int insert(Object entity);
+	<E> int insert(E entity);
+
+	/**
+	 * エンティティのINSERTを実行し、INSERTしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return INSERTしたエンティティ
+	 */
+	<E> E insertAndReturn(E entity);
 
 	/**
 	 * エンティティのUPDATEを実行
 	 *
+	 * @param <E> エンティティ型
 	 * @param entity エンティティ
 	 * @return SQL実行結果
 	 */
-	int update(Object entity);
+	<E> int update(E entity);
+
+	/**
+	 * エンティティのUPDATEを実行し、UPDATEしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return UPDATEしたエンティティ
+	 */
+	<E> E updateAndReturn(E entity);
+
+	/**
+	 * エンティティのUPDATEを実行(条件指定)
+	 *
+	 * @param entityType エンティティタイプ
+	 * @param <E> エンティティ型
+	 * @return SqlEntityUpdate
+	 */
+	<E> SqlEntityUpdate<E> update(Class<? extends E> entityType);
 
 	/**
 	 * エンティティのDELETEを実行
 	 *
+	 * @param <E> エンティティ型
 	 * @param entity エンティティ
 	 * @return SQL実行結果
 	 */
-	int delete(Object entity);
+	<E> int delete(E entity);
+
+	/**
+	 * エンティティのDELETEを実行し、DELETEしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return DELETEしたエンティティ
+	 */
+	<E> E deleteAndReturn(E entity);
 
 	/**
 	 * エンティティのDELETEを実行(条件指定)
@@ -373,11 +437,24 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
 	 * @param entities エンティティ
-	 * @param condition 一括更新用のフレームの判定条件
+	 * @param condition 一括INSERT用のフレームの判定条件
 	 * @param insertsType INSERT処理方法
 	 * @return SQL実行結果
 	 */
 	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition,
+			InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括INSERT用のフレームの判定条件
+	 * @param insertsType INSERT処理方法
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition,
 			InsertsType insertsType);
 
 	/**
@@ -386,10 +463,21 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
 	 * @param entities エンティティ
-	 * @param condition 一括更新用のフレームの判定条件
+	 * @param condition 一括INSERT用のフレームの判定条件
 	 * @return SQL実行結果
 	 */
 	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括INSERT用のフレームの判定条件
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
 	 * 複数エンティティのINSERTを実行
@@ -400,6 +488,18 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @return SQL実行結果
 	 */
 	<E> int inserts(Class<E> entityType, Stream<E> entities);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Class, Stream)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities);
 
 	/**
 	 * 複数エンティティのINSERTを実行
@@ -413,40 +513,192 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsType insertsType);
 
 	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Class, Stream, InsertsType)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param insertsType INSERT処理方法
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities, InsertsType insertsType);
+
+	/**
 	 * 複数エンティティのINSERTを実行
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
-	 * @param condition 一括更新用のフレームの判定条件
+	 * @param condition 一括INSERT用のフレームの判定条件
 	 * @param insertsType INSERT処理方法
 	 * @return SQL実行結果
 	 */
 	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition, InsertsType insertsType);
 
 	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Stream, InsertsCondition, InsertsType)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括INSERT用のフレームの判定条件
+	 * @param insertsType INSERT処理方法
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsCondition<? super E> condition, InsertsType insertsType);
+
+	/**
 	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括INSERT用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Stream, InsertsCondition)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括INSERT用のフレームの判定条件
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Stream<E> entities);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Stream)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Stream<E> entities);
+
+	/**
+	 * 複数エンティティのINSERTを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param insertsType INSERT処理方法
+	 * @return SQL実行結果
+	 */
+	<E> int inserts(Stream<E> entities, InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * INSERTする件数が多い場合は{@link SqlAgent#inserts(Stream, InsertsType)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param insertsType INSERT処理方法
+	 * @return INSERTしたエンティティのStream
+	 */
+	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsType insertsType);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return SQL実行結果
+	 */
+	<E> int updates(Class<E> entityType, Stream<E> entities, UpdatesCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのUPDATEを実行しUPDATEしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * UPDATEする件数が多い場合は{@link SqlAgent#updates(Class, Stream, UpdatesCondition)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return UPDATEしたエンティティのStream
+	 */
+	<E> Stream<E> updatesAndReturn(Class<E> entityType, Stream<E> entities, UpdatesCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int updates(Class<E> entityType, Stream<E> entities);
+
+	/**
+	 * 複数エンティティのUPDATEを実行しUPDATEしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * UPDATEする件数が多い場合は{@link SqlAgent#updates(Class, Stream)}を利用してください.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType エンティティの型
+	 * @param entities エンティティ
+	 * @return UPDATEしたエンティティのStream
+	 */
+	<E> Stream<E> updatesAndReturn(Class<E> entityType, Stream<E> entities);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
 	 * @param condition 一括更新用のフレームの判定条件
 	 * @return SQL実行結果
 	 */
-	<E> int inserts(Stream<E> entities, InsertsCondition<? super E> condition);
+	<E> int updates(Stream<E> entities, UpdatesCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのUPDATEを実行しUPDATEしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * UPDATEする件数が多い場合は{@link SqlAgent#updates(Stream, UpdatesCondition)}を利用してください.
 	 *
+	 * @param <E> エンティティの型
+	 * @param entities エンティティ
+	 * @param condition 一括更新用のフレームの判定条件
+	 * @return UPDATEしたエンティティのStream
+	 */
+	<E> Stream<E> updatesAndReturn(Stream<E> entities, UpdatesCondition<? super E> condition);
+
+	/**
+	 * 複数エンティティのUPDATEを実行
+	 *
+	 * @param <E> エンティティの型
 	 * @param entities エンティティ
 	 * @return SQL実行結果
 	 */
-	int inserts(Stream<?> entities);
+	<E> int updates(Stream<E> entities);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのUPDATEを実行しUPDATEしたエンティティを返却する.<br>
+	 * 返却するエンティティはメモリ上に保持されるため、件数が多くなると{@link OutOfMemoryError}が発生する場合があります.
+	 * UPDATEする件数が多い場合は{@link SqlAgent#updates(Stream)}を利用してください.
 	 *
+	 * @param <E> エンティティの型
 	 * @param entities エンティティ
-	 * @param insertsType INSERT処理方法
-	 * @return SQL実行結果
+	 * @return UPDATEしたエンティティのStream
 	 */
-	int inserts(Stream<?> entities, InsertsType insertsType);
+	<E> Stream<E> updatesAndReturn(Stream<E> entities);
+
 }

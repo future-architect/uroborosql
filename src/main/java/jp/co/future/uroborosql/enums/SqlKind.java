@@ -22,6 +22,8 @@ public enum SqlKind {
 	BATCH_INSERT,
 	/** BULK_INSERT */
 	BULK_INSERT,
+	/** BATCH_UPDATE */
+	BATCH_UPDATE,
 	/** PROCEDURE */
 	PROCEDURE,
 	/** NONE */
