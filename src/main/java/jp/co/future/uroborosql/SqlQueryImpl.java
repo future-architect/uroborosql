@@ -248,7 +248,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(this.agent.getSqlConfig().getDialect(), caseFormat));
+		return stream(new MapResultSetConverter(this.agent.getSqlConfig(), caseFormat));
 	}
 
 	/**
@@ -258,7 +258,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(new EntityResultSetConverter<>(type, new PropertyMapperManager()));
+		return stream(
+				new EntityResultSetConverter<>(type, new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
 	}
 
 }

@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.mapping;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +39,19 @@ import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
-	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
+	private PropertyMapperManager propertyMapperManager;
 	private boolean emptyStringEqualsNull = true;
+	private SqlConfig sqlConfig;
+
+	public DefaultEntityHandler() {
+		this.propertyMapperManager = new PropertyMapperManager(Clock.systemDefaultZone());
+	}
+
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
+		this.propertyMapperManager = new PropertyMapperManager(this.propertyMapperManager, sqlConfig.getClock());
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -83,7 +95,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
 			throws SQLException {
 		return agent.query(context, new EntityResultSetConverter<>(entityType, new PropertyMapperManager(
-				propertyMapperManager)));
+				propertyMapperManager, sqlConfig.getClock())));
 	}
 
 	/**

@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.parameter.mapper;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.time.Clock;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -11,7 +12,7 @@ public class OptionalParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		String value = "ABC";
 
 		OptionalParameterMapper mapper = new OptionalParameterMapper();
@@ -24,7 +25,7 @@ public class OptionalParameterMapperTest {
 
 	@Test
 	public void testEmpty() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		OptionalParameterMapper mapper = new OptionalParameterMapper();
 		Optional<String> optional = Optional.empty();
 		assertThat(mapper.toJdbc(optional, null, parameterMapperManager), is(nullValue()));

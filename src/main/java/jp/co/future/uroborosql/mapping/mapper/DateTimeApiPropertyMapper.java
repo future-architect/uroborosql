@@ -22,13 +22,13 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
@@ -39,7 +39,22 @@ import jp.co.future.uroborosql.mapping.JavaType;
  * @author ota
  */
 public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccessor> {
+	/** 日時の変換に使用するClock. */
+	private final Clock clock;
 
+	/**
+	 * コンストラクタ.
+	 * @param clock 日時の変換に使用するClock
+	 */
+	public DateTimeApiPropertyMapper(final Clock clock) {
+		this.clock = clock;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.mapper.PropertyMapper#canAccept(java.lang.Class)
+	 */
 	@Override
 	public boolean canAccept(final Class<?> type) {
 		return LocalDateTime.class.equals(type)
@@ -85,6 +100,11 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.mapper.PropertyMapper#getValue(jp.co.future.uroborosql.mapping.JavaType, java.sql.ResultSet, int, jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager)
+	 */
 	@Override
 	public TemporalAccessor getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
@@ -97,13 +117,13 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		if (OffsetDateTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTimestamp(columnIndex))
 					.map(java.sql.Timestamp::toLocalDateTime)
-					.map(d -> OffsetDateTime.of(d, OffsetDateTime.now().getOffset()))
+					.map(d -> OffsetDateTime.of(d, OffsetDateTime.now(clock).getOffset()))
 					.orElse(null);
 		}
 		if (ZonedDateTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTimestamp(columnIndex))
 					.map(java.sql.Timestamp::toLocalDateTime)
-					.map(d -> ZonedDateTime.of(d, Clock.systemDefaultZone().getZone()))
+					.map(d -> ZonedDateTime.of(d, clock.getZone()))
 					.orElse(null);
 		}
 		if (LocalDate.class.equals(rawType)) {
@@ -113,12 +133,12 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		}
 		if (LocalTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTime(columnIndex))
-					.map(DateTimeApiPropertyMapper::sqlTimeToLocalTime)
+					.map(this::sqlTimeToLocalTime)
 					.orElse(null);
 		}
 		if (OffsetTime.class.equals(rawType)) {
 			return Optional.ofNullable(rs.getTime(columnIndex))
-					.map(DateTimeApiPropertyMapper::sqlTimeToOffsetTime)
+					.map(this::sqlTimeToOffsetTime)
 					.orElse(null);
 		}
 
@@ -166,27 +186,29 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			LocalDate localDate = date.toLocalDate();
 
 			try {
-				return (ChronoLocalDate) rawType.getMethod("of", int.class, int.class, int.class).invoke(null, localDate.getYear(),
+				return (ChronoLocalDate) rawType.getMethod("of", int.class, int.class, int.class).invoke(null,
+						localDate.getYear(),
 						localDate.getMonthValue(),
 						localDate.getDayOfMonth());
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| NoSuchMethodException | SecurityException e) {
 				throw new UroborosqlRuntimeException(e);
 			}
 		}
 		throw new UroborosqlRuntimeException();
 	}
 
-	private static OffsetTime sqlTimeToOffsetTime(final java.sql.Time time) {
+	private OffsetTime sqlTimeToOffsetTime(final java.sql.Time time) {
 		long milliseconds = time.getTime();
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
 		calendar.setTimeInMillis(milliseconds);
-		return OffsetDateTime.ofInstant(calendar.toInstant(), ZoneId.systemDefault()).toOffsetTime();
+		return OffsetDateTime.ofInstant(calendar.toInstant(), clock.getZone()).toOffsetTime();
 	}
 
-	private static LocalTime sqlTimeToLocalTime(final java.sql.Time time) {
+	private LocalTime sqlTimeToLocalTime(final java.sql.Time time) {
 		long milliseconds = time.getTime();
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
 		calendar.setTimeInMillis(milliseconds);
-		return LocalDateTime.ofInstant(calendar.toInstant(), ZoneId.systemDefault()).toLocalTime();
+		return LocalDateTime.ofInstant(calendar.toInstant(), clock.getZone()).toLocalTime();
 	}
 }

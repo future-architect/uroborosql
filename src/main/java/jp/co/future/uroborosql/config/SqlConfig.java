@@ -9,6 +9,8 @@
  */
 package jp.co.future.uroborosql.config;
 
+import java.time.Clock;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -27,14 +29,14 @@ import jp.co.future.uroborosql.store.SqlManager;
 public interface SqlConfig {
 
 	/**
-	 * SqlContextの生成
+	 * SqlContextの生成.
 	 *
 	 * @return 生成したSqlContext
 	 */
 	SqlContext context();
 
 	/**
-	 * ファイル指定のSqlContextの生成
+	 * ファイル指定のSqlContextの生成.
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
 	 * @return 生成したSqlContext
@@ -42,7 +44,7 @@ public interface SqlConfig {
 	SqlContext contextFrom(String sqlName);
 
 	/**
-	 * SQL文を指定したSqlContextの生成
+	 * SQL文を指定したSqlContextの生成.
 	 *
 	 * @param sql SQL文の文字列
 	 * @return 生成したSqlContext
@@ -50,7 +52,7 @@ public interface SqlConfig {
 	SqlContext contextWith(String sql);
 
 	/**
-	 * SqlAgentの生成
+	 * SqlAgentの生成.
 	 *
 	 * @deprecated Instead, use the agent() method.
 	 *
@@ -60,67 +62,65 @@ public interface SqlConfig {
 	SqlAgent createAgent();
 
 	/**
-	 * SqlAgentの生成
+	 * SqlAgentの生成.
 	 *
 	 * @return 生成したSqlAgent
 	 */
 	SqlAgent agent();
 
 	/**
-	 * sqlManager を取得します。
+	 * sqlManager を取得します.
 	 *
 	 * @return sqlManager
 	 */
 	SqlManager getSqlManager();
 
 	/**
-	 * sqlFilterManager を取得します。
+	 * sqlFilterManager を取得します.
 	 *
 	 * @return sqlFilterManager
 	 */
 	SqlFilterManager getSqlFilterManager();
 
 	/**
-	 * connectionSupplier を取得します。
+	 * connectionSupplier を取得します.
 	 *
 	 * @return connectionSupplier
 	 */
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
-	 * sqlContextFactory を取得します。
+	 * sqlContextFactory を取得します.
 	 *
 	 * @return sqlContextFactory
 	 */
 	SqlContextFactory getSqlContextFactory();
 
 	/**
-	 * sqlAgentFactory を取得します。
+	 * sqlAgentFactory を取得します.
 	 *
 	 * @return sqlAgentFactory
 	 */
 	SqlAgentFactory getSqlAgentFactory();
 
 	/**
-	 * dialect を取得します
+	 * dialect を取得します.
 	 *
 	 * @return dialect
 	 */
 	Dialect getDialect();
 
 	/**
-	 * entityHandler を取得します
+	 * entityHandler を取得します.
 	 *
 	 * @return entityHandler
 	 */
 	EntityHandler<?> getEntityHandler();
 
 	/**
-	 * entityHandler を設定します
+	 * Clock を取得します.
 	 *
-	 * @deprecated Insted, use {@link jp.co.future.uroborosql.UroboroSQL.UroboroSQLBuilder#setEntityHandler(EntityHandler)}
-	 * @param entityHandler entityHandler
+	 * @return clock
 	 */
-	@Deprecated
-	void setEntityHandler(EntityHandler<?> entityHandler);
+	Clock getClock();
 }

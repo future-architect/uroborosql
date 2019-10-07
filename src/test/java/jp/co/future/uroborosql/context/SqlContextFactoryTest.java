@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.context;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,24 +20,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.event.Level;
 
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 public class SqlContextFactoryTest {
 
 	private SqlContextFactory sqlContextFactory;
 
-	private SqlFilterManager sqlFilterManager;
-
 	@Before
 	public void setUp() throws Exception {
-		sqlFilterManager = new SqlFilterManagerImpl();
+		SqlConfig config = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.build();
 
-		sqlContextFactory = new SqlContextFactoryImpl();
-		sqlContextFactory.setSqlFilterManager(sqlFilterManager);
+		sqlContextFactory = config.getSqlContextFactory();
 	}
 
 	@Test

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
@@ -22,14 +23,21 @@ import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
  */
 public interface EntityHandler<ENTITY> {
 	/**
-	 * エンティティ型を返す
+	 * SqlConfigの設定.
+	 *
+	 * @param sqlConfig SqlConfig
+	 */
+	void setSqlConfig(SqlConfig sqlConfig);
+
+	/**
+	 * エンティティ型を返す.
 	 *
 	 * @return エンティティ型
 	 */
 	Class<ENTITY> getEntityType();
 
 	/**
-	 * エンティティ型からエンティティメタ情報を取得します。
+	 * エンティティ型からエンティティメタ情報を取得します.
 	 *
 	 * @param connectionManager コネクションマネージャー
 	 * @param entityType エンティティタイプ
@@ -40,7 +48,7 @@ public interface EntityHandler<ENTITY> {
 			throws SQLException;
 
 	/**
-	 * エンティティタイプからSELECT SQLコンテキストを生成します。
+	 * エンティティタイプからSELECT SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -52,7 +60,7 @@ public interface EntityHandler<ENTITY> {
 			boolean addCondition);
 
 	/**
-	 * EntityからINSERT SQLコンテキストを生成します。
+	 * EntityからINSERT SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -65,7 +73,7 @@ public interface EntityHandler<ENTITY> {
 			throws SQLException;
 
 	/**
-	 * エンティティタイプからINSERT SQLコンテキストを生成します。
+	 * エンティティタイプからINSERT SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -75,7 +83,7 @@ public interface EntityHandler<ENTITY> {
 	SqlContext createInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
-	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 * SqlContextのパラメーターににエンティティの値をセットします.
 	 *
 	 * @param context SQLコンテキスト
 	 * @param entity エンティティ
@@ -83,7 +91,7 @@ public interface EntityHandler<ENTITY> {
 	void setInsertParams(final SqlContext context, final ENTITY entity);
 
 	/**
-	 * INSERTを実行します。
+	 * INSERTを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -96,7 +104,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * エンティティタイプからUPDATE SQLコンテキストを生成します。
+	 * エンティティタイプからUPDATE SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -108,7 +116,7 @@ public interface EntityHandler<ENTITY> {
 			boolean addCondition);
 
 	/**
-	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 * SqlContextのパラメーターににエンティティの値をセットします.
 	 *
 	 * @param context SQLコンテキスト
 	 * @param entity エンティティ
@@ -116,7 +124,7 @@ public interface EntityHandler<ENTITY> {
 	void setUpdateParams(final SqlContext context, final ENTITY entity);
 
 	/**
-	 * UPDATEを実行します。
+	 * UPDATEを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -129,7 +137,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * エンティティタイプからDELETE SQLコンテキストを生成します。
+	 * エンティティタイプからDELETE SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -141,7 +149,7 @@ public interface EntityHandler<ENTITY> {
 			boolean addCondition);
 
 	/**
-	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 * SqlContextのパラメーターににエンティティの値をセットします.
 	 *
 	 * @param context SQLコンテキスト
 	 * @param entity エンティティ
@@ -149,7 +157,7 @@ public interface EntityHandler<ENTITY> {
 	void setDeleteParams(final SqlContext context, final ENTITY entity);
 
 	/**
-	 * DELETEを実行します。
+	 * DELETEを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -162,7 +170,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * エンティティタイプからバッチ用INSERT SQLコンテキストを生成します。
+	 * エンティティタイプからバッチ用INSERT SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -172,7 +180,7 @@ public interface EntityHandler<ENTITY> {
 	SqlContext createBatchInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
-	 * BATCH INSERTを実行します。
+	 * BATCH INSERTを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -184,7 +192,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * エンティティタイプからBULK INSERT SQLコンテキストを生成します。
+	 * エンティティタイプからBULK INSERT SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -194,7 +202,7 @@ public interface EntityHandler<ENTITY> {
 	SqlContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
-	 * SqlContextのパラメーターににエンティティの値をセットします。
+	 * SqlContextのパラメーターににエンティティの値をセットします.
 	 *
 	 * @param context SQLコンテキスト
 	 * @param entity エンティティ
@@ -203,7 +211,7 @@ public interface EntityHandler<ENTITY> {
 	void setBulkInsertParams(final SqlContext context, final ENTITY entity, int entityIndex);
 
 	/**
-	 * BULK INSERT SQLコンテキストにSQLを設定します。
+	 * BULK INSERT SQLコンテキストにSQLを設定します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SqlContext
@@ -216,7 +224,7 @@ public interface EntityHandler<ENTITY> {
 			Class<? extends ENTITY> entityType, int numberOfRecords);
 
 	/**
-	 * BULK INSERTを実行します。
+	 * BULK INSERTを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -229,7 +237,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * エンティティタイプからバッチ用UPDATE SQLコンテキストを生成します。
+	 * エンティティタイプからバッチ用UPDATE SQLコンテキストを生成します.
 	 *
 	 * @param agent SqlAgent
 	 * @param metadata エンティティメタ情報
@@ -239,7 +247,7 @@ public interface EntityHandler<ENTITY> {
 	SqlContext createBatchUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
 
 	/**
-	 * BATCH UPDATEを実行します。
+	 * BATCH UPDATEを実行します.
 	 *
 	 * @param agent SqlAgent
 	 * @param context SQLコンテキスト
@@ -251,7 +259,7 @@ public interface EntityHandler<ENTITY> {
 	}
 
 	/**
-	 * プロパティ変換クラス{@link PropertyMapper}を追加
+	 * プロパティ変換クラス{@link PropertyMapper}を追加.
 	 *
 	 * @param propertyMapper {@link PropertyMapper}
 	 * @return EntityHandler
@@ -267,14 +275,14 @@ public interface EntityHandler<ENTITY> {
 	EntityHandler<ENTITY> removePropertyMapper(PropertyMapper<?> propertyMapper);
 
 	/**
-	 * 空文字とNULLを同じに扱うかどうかを取得する
+	 * 空文字とNULLを同じに扱うかどうかを取得する.
 	 *
 	 * @return 空文字とNULLを同じに扱う場合<code>true</code>
 	 */
 	boolean isEmptyStringEqualsNull();
 
 	/**
-	 * 空文字とNULLを同じに扱うかどうかを設定する
+	 * 空文字とNULLを同じに扱うかどうかを設定する.
 	 *
 	 * @param emptyStringEqualsNull 空文字とNULLを同じに扱う場合に<code>true</code>を指定
 	 * @return EntityHandler

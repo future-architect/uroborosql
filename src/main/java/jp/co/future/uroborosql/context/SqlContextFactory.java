@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 
@@ -30,25 +30,18 @@ public interface SqlContextFactory {
 	void initialize();
 
 	/**
+	 * SqlConfigの設定.
+	 *
+	 * @param sqlConfig SqlConfig
+	 */
+	void setSqlConfig(SqlConfig sqlConfig);
+
+	/**
 	 * SQLコンテキスト生成メソッド
 	 *
 	 * @return SQLコンテキスト
 	 */
 	SqlContext createSqlContext();
-
-	/**
-	 * SQLフィルタ管理クラスを取得する
-	 *
-	 * @return SQLフィルタ管理クラス
-	 */
-	SqlFilterManager getSqlFilterManager();
-
-	/**
-	 * SQLフィルタ管理クラスを設定する
-	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 */
-	void setSqlFilterManager(SqlFilterManager sqlFilterManager);
 
 	/**
 	 * 定数パラメータプレフィックスを取得します。

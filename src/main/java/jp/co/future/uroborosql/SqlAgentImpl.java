@@ -237,7 +237,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
 			throws SQLException {
 		try (Stream<Map<String, Object>> stream = query(sqlContext,
-				new MapResultSetConverter(getSqlConfig().getDialect(), caseFormat))) {
+				new MapResultSetConverter(getSqlConfig(), caseFormat))) {
 			return stream.collect(Collectors.toList());
 		}
 	}

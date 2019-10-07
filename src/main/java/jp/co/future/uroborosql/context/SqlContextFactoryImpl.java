@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -58,14 +58,16 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 
 	/** 定数クラス名（FQDN） */
 	private List<String> constantClassNames = new ArrayList<>();
+
 	/** Enum定数パッケージ名 */
 	private List<String> enumConstantPackageNames = new ArrayList<>();
 
 	/** 定数パラメータマップ */
 	private Map<String, Parameter> constParameterMap = null;
 
-	/** SqlFilter管理クラス */
-	private SqlFilterManager sqlFilterManager;
+	/** SQL設定クラス */
+	private SqlConfig sqlConfig;
+
 	/** 自動バインド用パラメータ生成クラスのリスト */
 	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
 
@@ -88,7 +90,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private int defaultResultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** パラメータ変換マネージャ */
-	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+	private BindParameterMapperManager parameterMapperManager;
 
 	static {
 		OgnlRuntime.setPropertyAccessor(TransformContext.class, new TransformContextPropertyAccessor());
@@ -116,8 +118,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		}
 
 		sqlContext.setConstParameterMap(paramMap);
-		sqlContext.setSqlFilterManager(getSqlFilterManager());
-		sqlContext.setParameterMapperManager(new BindParameterMapperManager(parameterMapperManager));
+		sqlContext.setSqlFilterManager(this.sqlConfig.getSqlFilterManager());
+		sqlContext.setParameterMapperManager(
+				new BindParameterMapperManager(parameterMapperManager, this.sqlConfig.getClock()));
 		sqlContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
 		sqlContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 		sqlContext.setResultSetType(defaultResultSetType);
@@ -138,6 +141,13 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		paramMap.putAll(buildEnumConstParamMap());
 
 		constParameterMap = Collections.unmodifiableMap(paramMap);
+
+		parameterMapperManager = new BindParameterMapperManager(this.sqlConfig.getClock());
+	}
+
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
 	}
 
 	/**
@@ -282,26 +292,6 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public SqlContextFactory setEnumConstantPackageNames(final List<String> enumConstantPackageNames) {
 		this.enumConstantPackageNames = enumConstantPackageNames;
 		return this;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Override
-	public SqlFilterManager getSqlFilterManager() {
-		return sqlFilterManager;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Override
-	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-		this.sqlFilterManager = sqlFilterManager;
 	}
 
 	/**

@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,7 +19,6 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
@@ -26,6 +26,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Date and Time API用{@link BindParameterMapper}
@@ -33,12 +34,16 @@ import java.util.Calendar;
  * @author ota
  */
 public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalAccessor> {
-
 	/**
 	 * 標準時間フィールド群
 	 */
-	private static final ChronoField[] STANDARD_TARGET = { ChronoField.MILLI_OF_SECOND, ChronoField.SECOND_OF_MINUTE,
-			ChronoField.MINUTE_OF_HOUR, ChronoField.HOUR_OF_DAY, ChronoField.DAY_OF_MONTH, ChronoField.MONTH_OF_YEAR,
+	private static final ChronoField[] STANDARD_TARGET = {
+			ChronoField.MILLI_OF_SECOND,
+			ChronoField.SECOND_OF_MINUTE,
+			ChronoField.MINUTE_OF_HOUR,
+			ChronoField.HOUR_OF_DAY,
+			ChronoField.DAY_OF_MONTH,
+			ChronoField.MONTH_OF_YEAR,
 			ChronoField.YEAR, };
 
 	/**
@@ -52,6 +57,13 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	 */
 	private static final ChronoField[] TIME_TARGET = Arrays.stream(ChronoField.values())
 			.filter(ChronoField::isTimeBased).toArray(ChronoField[]::new);
+
+	/** 日時の変換に使用するClock */
+	private final Clock clock;
+
+	public DateTimeApiParameterMapper(final Clock clock) {
+		this.clock = clock;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -89,7 +101,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 			return new java.sql.Time(toTime(original));
 		}
 		if (original instanceof OffsetTime) {
-			Calendar calendar = Calendar.getInstance();
+			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
 			int year = calendar.get(Calendar.YEAR);
 			long thisYearDate = ((OffsetTime) original).atDate(LocalDate.of(year, Month.JANUARY, 1)).toInstant()
 					.toEpochMilli();
@@ -125,7 +137,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 		// JapaneseDate等のChronoLocalDateの変換 Dateに変換
 		if (original instanceof ChronoLocalDate) {
 			return new java.sql.Date(((ChronoLocalDate) original).atTime(LocalTime.MIDNIGHT)
-					.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+					.atZone(clock.getZone()).toInstant().toEpochMilli());
 		}
 
 		// その他の型
@@ -164,7 +176,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	 * @return カレンダー時間のミリ秒
 	 */
 	private long toTime(final TemporalAccessor temporalAccessor) {
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
 		setField(calendar, Calendar.YEAR, temporalAccessor, ChronoField.YEAR, 0, 1970);
 		setField(calendar, Calendar.MONTH, temporalAccessor, ChronoField.MONTH_OF_YEAR, -1, 0);
 		setField(calendar, Calendar.DATE, temporalAccessor, ChronoField.DAY_OF_MONTH, 0, 1);

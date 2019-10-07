@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
@@ -11,17 +12,21 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 
 public class SqlParamUtilsTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSetSqlParams() {
-		SqlContextFactory factory = new SqlContextFactoryImpl();
-		factory.initialize();
+	public void testSetSqlParams() throws Exception {
+		SqlConfig config = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.build();
+		SqlContextFactory factory = config.getSqlContextFactory();
+
 		String sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFALUT*/, /*$CLS_FLAG_OFF*/";
 		SqlContext ctx = factory.createSqlContext();
 		ctx.setSql(sql);
@@ -83,9 +88,11 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testSetSqlParamsIfNode() {
-		SqlContextFactory factory = new SqlContextFactoryImpl();
-		factory.initialize();
+	public void testSetSqlParamsIfNode() throws Exception {
+		SqlConfig config = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.build();
+		SqlContextFactory factory = config.getSqlContextFactory();
 		String sql = "/*IF check1 != null*/ /*key1*/ /*ELSE*/ /*key2*/ /*END*/";
 		SqlContext ctx = factory.createSqlContext();
 		ctx.setSql(sql);

@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Array;
 import java.sql.Connection;
+import java.time.Clock;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class LongArrayParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		Array jdbcArray = newProxy(Array.class);
 		long[] array = { 111L, 222L };
 

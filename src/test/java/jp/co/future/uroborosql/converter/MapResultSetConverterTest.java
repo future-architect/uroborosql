@@ -20,13 +20,14 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.dialect.Oracle12Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -38,9 +39,10 @@ public class MapResultSetConverterTest {
 
 	private SqlAgent agent;
 
-	@Before
-	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:MapResultSetConverterTest")).build();
+	public void setUpWithDialect(final Dialect dialect) throws Exception {
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:MapResultSetConverterTest"))
+				.setDialect(dialect)
+				.build();
 		agent = config.agent();
 
 		String sql = "create table if not exists COLUMN_TYPE_TEST2 (" +
@@ -68,6 +70,7 @@ public class MapResultSetConverterTest {
 				"	COL_ARRAY			ARRAY" +
 				");";
 		agent.updateWith(sql).count();
+		agent.updateWith("truncate table COLUMN_TYPE_TEST2").count();
 
 		agent.commit();
 	}
@@ -78,7 +81,9 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecord() throws Exception {
+	public void testCreateRecordH2() throws Exception {
+		setUpWithDialect(new H2Dialect());
+
 		String sql = "insert into COLUMN_TYPE_TEST2 (" +
 				"	COL_INT," +
 				"	COL_BOOLEAN," +
@@ -190,11 +195,99 @@ public class MapResultSetConverterTest {
 			assertThat(row.get("COL_BLOB"), is(blob));
 			assertThat(row.get("COL_ARRAY"), is(arr));
 		}
+	}
 
+	@Test
+	public void testCreateRecordOracle() throws Exception {
+		setUpWithDialect(new Oracle12Dialect());
+
+		String sql = "insert into COLUMN_TYPE_TEST2 (" +
+				"	COL_INT," +
+				"	COL_BOOLEAN," +
+				"	COL_TINYINT," +
+				"	COL_SMALLINT," +
+				"	COL_BIGINT," +
+				"	COL_DECIMAL," +
+				"	COL_DOUBLE," +
+				"	COL_REAL," +
+				"	COL_TIME," +
+				"	COL_DATE," +
+				"	COL_TIMESTAMP," +
+				//				"	COL_TIMESTAMPWTZ," +
+				"	COL_BINARY," +
+				"	COL_CHAR," +
+				"	COL_NCHAR," +
+				"	COL_VARCHAR," +
+				"	COL_NVARCHAR," +
+				"	COL_LONGVARCHAR," +
+				"	COL_CLOB," +
+				"	COL_NCLOB," +
+				"	COL_BLOB," +
+				"	COL_ARRAY" +
+				") VALUES (" +
+				"	/*int*/, " +
+				"	/*boolean*/, " +
+				"	/*tinyint*/, " +
+				"	/*smallint*/, " +
+				"	/*bigint*/, " +
+				"	/*decimal*/, " +
+				"	/*double*/, " +
+				"	/*real*/, " +
+				"	/*time*/, " +
+				"	/*date*/, " +
+				"	/*timestamp*/, " +
+				//				"	/*timestampwtz*/, " +
+				"	/*binary*/, " +
+				"	/*char*/, " +
+				"	/*nchar*/, " +
+				"	/*varchar*/, " +
+				"	/*nvarchar*/, " +
+				"	/*longvarchar*/, " +
+				"	/*clob*/, " +
+				"	/*nclob*/, " +
+				"	/*blob*/, " +
+				"	/*arr*/" +
+				")";
+
+		String clob = StringUtils.repeat('1', 10000);
+		String nclob = StringUtils.repeat('あ', 10000);
+		byte[] binary = StringUtils.repeat('y', 20000).getBytes();
+		byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+		int[] arr = { 1, 2 };
+		LocalTime time = LocalTime.of(10, 0, 0);
+		ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0), ZoneId.of("Asia/Tokyo"));
+		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
+
+		agent.updateWith(sql)
+				.param("int", 1)
+				.param("boolean", true)
+				.param("tinyint", 2)
+				.param("smallint", 3)
+				.param("bigint", 4l)
+				.param("decimal", new BigDecimal(5))
+				.param("double", 6d)
+				.param("real", 7f)
+				.param("time", time)
+				.param("date", date)
+				.param("timestamp", timestamp)
+				// h2db timestamp with time zone is not support rs.getTimestamp()
+				//				.param("timestampwtz",
+				//						ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 10, 45), ZoneId.of("Asia/Tokyo")))
+				.param("binary", binary)
+				.param("char", 'a')
+				.param("nchar", 'あ')
+				.param("varchar", "abc")
+				.param("nvarchar", "文字列")
+				.param("longvarchar", "abcabc")
+				.clobParam("clob", new StringReader(clob))
+				.clobParam("nclob", new StringReader(nclob))
+				.blobParam("blob", new ByteArrayInputStream(blob))
+				.param("arr", arr)
+				.count();
 		{
 			// constractor MapResultSetConverter(final Dialect dialect)
 			SqlContext context = config.contextWith("select * from COLUMN_TYPE_TEST2");
-			List<Map<String, Object>> result = agent.query(context, new MapResultSetConverter(new Oracle12Dialect()))
+			List<Map<String, Object>> result = agent.query(context, new MapResultSetConverter(config))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
 			Map<String, Object> row = result.get(0);
@@ -221,14 +314,102 @@ public class MapResultSetConverterTest {
 			assertThat(row.get("COL_BLOB"), is(blob));
 			assertThat(row.get("COL_ARRAY"), is(arr));
 		}
+	}
 
+	@Test
+	public void testCreateRecordPostgresql() throws Exception {
+		setUpWithDialect(new PostgresqlDialect());
+
+		String sql = "insert into COLUMN_TYPE_TEST2 (" +
+				"	COL_INT," +
+				"	COL_BOOLEAN," +
+				"	COL_TINYINT," +
+				"	COL_SMALLINT," +
+				"	COL_BIGINT," +
+				"	COL_DECIMAL," +
+				"	COL_DOUBLE," +
+				"	COL_REAL," +
+				"	COL_TIME," +
+				"	COL_DATE," +
+				"	COL_TIMESTAMP," +
+				//				"	COL_TIMESTAMPWTZ," +
+				"	COL_BINARY," +
+				"	COL_CHAR," +
+				"	COL_NCHAR," +
+				"	COL_VARCHAR," +
+				"	COL_NVARCHAR," +
+				"	COL_LONGVARCHAR," +
+				"	COL_CLOB," +
+				"	COL_NCLOB," +
+				"	COL_BLOB," +
+				"	COL_ARRAY" +
+				") VALUES (" +
+				"	/*int*/, " +
+				"	/*boolean*/, " +
+				"	/*tinyint*/, " +
+				"	/*smallint*/, " +
+				"	/*bigint*/, " +
+				"	/*decimal*/, " +
+				"	/*double*/, " +
+				"	/*real*/, " +
+				"	/*time*/, " +
+				"	/*date*/, " +
+				"	/*timestamp*/, " +
+				//				"	/*timestampwtz*/, " +
+				"	/*binary*/, " +
+				"	/*char*/, " +
+				"	/*nchar*/, " +
+				"	/*varchar*/, " +
+				"	/*nvarchar*/, " +
+				"	/*longvarchar*/, " +
+				"	/*clob*/, " +
+				"	/*nclob*/, " +
+				"	/*blob*/, " +
+				"	/*arr*/" +
+				")";
+
+		String clob = StringUtils.repeat('1', 10000);
+		String nclob = StringUtils.repeat('あ', 10000);
+		byte[] binary = StringUtils.repeat('y', 20000).getBytes();
+		byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+		int[] arr = { 1, 2 };
+		LocalTime time = LocalTime.of(10, 0, 0);
+		ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0), ZoneId.of("Asia/Tokyo"));
+		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
+
+		agent.updateWith(sql)
+				.param("int", 1)
+				.param("boolean", true)
+				.param("tinyint", 2)
+				.param("smallint", 3)
+				.param("bigint", 4l)
+				.param("decimal", new BigDecimal(5))
+				.param("double", 6d)
+				.param("real", 7f)
+				.param("time", time)
+				.param("date", date)
+				.param("timestamp", timestamp)
+				// h2db timestamp with time zone is not support rs.getTimestamp()
+				//				.param("timestampwtz",
+				//						ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 10, 45), ZoneId.of("Asia/Tokyo")))
+				.param("binary", binary)
+				.param("char", 'a')
+				.param("nchar", 'あ')
+				.param("varchar", "abc")
+				.param("nvarchar", "文字列")
+				.param("longvarchar", "abcabc")
+				.clobParam("clob", new StringReader(clob))
+				.clobParam("nclob", new StringReader(nclob))
+				.blobParam("blob", new ByteArrayInputStream(blob))
+				.param("arr", arr)
+				.count();
 		{
 			// constractor MapResultSetConverter(final Dialect dialect)
 			SqlContext context = config.contextWith("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent
 					.query(context,
-							new MapResultSetConverter(new PostgresqlDialect(), CaseFormat.UPPER_SNAKE_CASE,
-									new PropertyMapperManager()))
+							new MapResultSetConverter(config, CaseFormat.UPPER_SNAKE_CASE,
+									new PropertyMapperManager(config.getClock())))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
 			Map<String, Object> row = result.get(0);

@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql;
 
 import java.sql.Connection;
+import java.time.Clock;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -40,7 +41,7 @@ public final class UroboroSQL {
 	}
 
 	/**
-	 * Builderの生成
+	 * Builderの生成.
 	 *
 	 * @return UroboroSQLBuilder
 	 */
@@ -49,7 +50,7 @@ public final class UroboroSQL {
 	}
 
 	/**
-	 * DBコネクションを指定してSqlConfigを取得する
+	 * DBコネクションを指定してSqlConfigを取得する.
 	 *
 	 * @param conn DBコネクション
 	 * @return UroboroSQLBuilder
@@ -59,7 +60,7 @@ public final class UroboroSQL {
 	}
 
 	/**
-	 * DB接続情報を指定してSqlConfigを取得する
+	 * DB接続情報を指定してSqlConfigを取得する.
 	 *
 	 * @param url      JDBC接続URL
 	 * @param user     JDBC接続ユーザ
@@ -71,7 +72,7 @@ public final class UroboroSQL {
 	}
 
 	/**
-	 * DB接続情報を指定してSqlConfigを取得する
+	 * DB接続情報を指定してSqlConfigを取得する.
 	 *
 	 * @param url      JDBC接続URL
 	 * @param user     JDBC接続ユーザ
@@ -85,7 +86,7 @@ public final class UroboroSQL {
 	}
 
 	/**
-	 * データソースを指定してSqlConfigを取得する
+	 * データソースを指定してSqlConfigを取得する.
 	 *
 	 * @param dataSource データソース
 	 * @return UroboroSQLBuilder
@@ -101,6 +102,7 @@ public final class UroboroSQL {
 		private SqlContextFactory sqlContextFactory;
 		private SqlAgentFactory sqlAgentFactory;
 		private EntityHandler<?> entityHandler;
+		private Clock clock;
 		private Dialect dialect;
 
 		UroboroSQLBuilder() {
@@ -110,11 +112,12 @@ public final class UroboroSQL {
 			this.sqlContextFactory = new SqlContextFactoryImpl();
 			this.sqlAgentFactory = new SqlAgentFactoryImpl();
 			this.entityHandler = new DefaultEntityHandler();
+			this.clock = Clock.systemDefaultZone();
 			this.dialect = null;
 		}
 
 		/**
-		 * SqlManagerの設定
+		 * SqlManagerの設定.
 		 *
 		 * @param sqlManager sqlManager
 		 * @return UroboroSQLBuilder
@@ -125,7 +128,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlFilterManagerの設定
+		 * SqlFilterManagerの設定.
 		 *
 		 * @param sqlFilterManager sqlFilterManager
 		 * @return UroboroSQLBuilder
@@ -136,7 +139,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * ConnectionSupplierの設定
+		 * ConnectionSupplierの設定.
 		 *
 		 * @param connectionSupplier connectionSupplier
 		 * @return UroboroSQLBuilder
@@ -147,7 +150,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlContextFactoryの作成
+		 * SqlContextFactoryの作成.
 		 *
 		 * @param sqlContextFactory sqlContextFactory
 		 * @return UroboroSQLBuilder
@@ -158,7 +161,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlAgentFactoryの設定
+		 * SqlAgentFactoryの設定.
 		 *
 		 * @param sqlAgentFactory sqlAgentFactory
 		 * @return UroboroSQLBuilder
@@ -169,7 +172,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * EntityHandlerの設定
+		 * EntityHandlerの設定.
 		 *
 		 * @param entityHandler entityHandler
 		 * @return UroboroSQLBuilder
@@ -180,7 +183,18 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * Dialectの設定
+		 * Clockの設定.
+		 *
+		 * @param clock clock
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder setClock(final Clock clock) {
+			this.clock = clock;
+			return this;
+		}
+
+		/**
+		 * Dialectの設定.
 		 *
 		 * @param dialect dialect
 		 * @return UroboroSQLBuilder
@@ -191,7 +205,7 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * Builderに設定された内容を元にSqlConfigを構築する
+		 * Builderに設定された内容を元にSqlConfigを構築する.
 		 *
 		 * @return SqlConfig
 		 */
@@ -202,57 +216,67 @@ public final class UroboroSQL {
 			}
 
 			return new InternalConfig(this.connectionSupplier, this.sqlManager, this.sqlContextFactory,
-					this.sqlAgentFactory, this.sqlFilterManager, this.entityHandler, this.dialect);
+					this.sqlAgentFactory, this.sqlFilterManager, this.entityHandler, this.clock, this.dialect);
 		}
 
 	}
 
 	public static final class InternalConfig implements SqlConfig {
 		/**
-		 * コネクション提供クラス
+		 * コネクション提供クラス.
 		 */
 		private final ConnectionSupplier connectionSupplier;
 
 		/**
-		 * SQL管理クラス
+		 * SQL管理クラス.
 		 */
 		private final SqlManager sqlManager;
 
 		/**
-		 * SqlContextファクトリクラス
+		 * SqlContextファクトリクラス.
 		 */
 		private final SqlContextFactory sqlContextFactory;
 
 		/**
-		 * SqlAgentファクトリクラス
+		 * SqlAgentファクトリクラス.
 		 */
 		private final SqlAgentFactory sqlAgentFactory;
 
 		/**
-		 * SqlFilter管理クラス
+		 * SqlFilter管理クラス.
 		 */
 		private final SqlFilterManager sqlFilterManager;
 
 		/**
-		 * Entityハンドラ
+		 * Entityハンドラ.
 		 */
 		private final EntityHandler<?> entityHandler;
 
 		/**
-		 * Dialect
+		 * Clock.
+		 */
+		private final Clock clock;
+
+		/**
+		 * Dialect.
 		 */
 		private final Dialect dialect;
 
-		InternalConfig(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-				final SqlContextFactory sqlContextFactory, final SqlAgentFactory sqlAgentFactory,
+		InternalConfig(final ConnectionSupplier connectionSupplier,
+				final SqlManager sqlManager,
+				final SqlContextFactory sqlContextFactory,
+				final SqlAgentFactory sqlAgentFactory,
 				final SqlFilterManager sqlFilterManager,
-				final EntityHandler<?> entityHandler, final Dialect dialect) {
+				final EntityHandler<?> entityHandler,
+				final Clock clock,
+				final Dialect dialect) {
 			this.connectionSupplier = connectionSupplier;
 			this.sqlManager = sqlManager;
 			this.sqlContextFactory = sqlContextFactory;
 			this.sqlAgentFactory = sqlAgentFactory;
 			this.sqlFilterManager = sqlFilterManager;
 			this.entityHandler = entityHandler;
+			this.clock = clock;
 
 			if (dialect == null) {
 				this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
@@ -264,9 +288,10 @@ public final class UroboroSQL {
 			this.sqlManager.setDialect(this.dialect);
 			this.sqlManager.initialize();
 			this.sqlFilterManager.initialize();
-			this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);
+			this.sqlContextFactory.setSqlConfig(this);
 			this.sqlContextFactory.initialize();
 			this.sqlAgentFactory.setSqlConfig(this);
+			this.entityHandler.setSqlConfig(this);
 		}
 
 		/**
@@ -393,14 +418,12 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#setEntityHandler(EntityHandler)
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getClock()
 		 */
 		@Override
-		@Deprecated
-		public void setEntityHandler(final EntityHandler<?> entityHandler) {
-			throw new UnsupportedOperationException();
+		public Clock getClock() {
+			return clock;
 		}
-
 	}
 
 }

@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.parameter.mapper;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -24,12 +25,15 @@ public final class BindParameterMapperManager {
 	private final List<BindParameterMapper<?>> mappers;
 
 	/** デフォルトMapper */
-	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = { new DateParameterMapper(),
-			new DateTimeApiParameterMapper(), new BigIntegerParameterMapper(),
-			new OptionalParameterMapper(), new OptionalIntParameterMapper(), new OptionalLongParameterMapper(),
+	private static final BindParameterMapper<?>[] DEFAULT_MAPPERS = {
+			new DateParameterMapper(),
+			new BigIntegerParameterMapper(),
+			new OptionalParameterMapper(),
+			new OptionalIntParameterMapper(),
+			new OptionalLongParameterMapper(),
 			new OptionalDoubleParameterMapper(),
 			new DomainParameterMapper(),
-			new EnumParameterMapper(),// DomainParameterMapper・DateTimeApiParameterMapperより後に設定
+			new EnumParameterMapper(), // DomainParameterMapper・DateTimeApiParameterMapperより後に設定
 			new StringArrayParameterMapper(),
 			new IntArrayParameterMapper(),
 			new IntWrapperArrayParameterMapper(),
@@ -48,54 +52,57 @@ public final class BindParameterMapperManager {
 		return list;
 	}
 
+	private final DateTimeApiParameterMapper dateTimeApiParameterMapper;
+
 	/**
-	 * コンストラクタ
+	 * コンストラクタ.
 	 */
-	public BindParameterMapperManager() {
-		mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
+	public BindParameterMapperManager(final Clock clock) {
+		this.mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
+		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
 	}
 
 	/**
-	 * コピーコンストラクタ
+	 * コピーコンストラクタ.
 	 *
 	 * @param parameterMapperManager コピー元のパラメータ変換クラス
 	 */
-	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
-		mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
+	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager, final Clock clock) {
+		this.mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
+		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
 	}
 
 	/**
-	 * {@link BindParameterMapper}を追加
+	 * {@link BindParameterMapper}を追加.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
 	 */
 	public void addMapper(final BindParameterMapper<?> parameterMapper) {
-		mappers.add(parameterMapper);
+		this.mappers.add(parameterMapper);
 	}
 
 	/**
-	 * {@link BindParameterMapper}をremove
+	 * {@link BindParameterMapper}をremove.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
 	 */
 	public void removeMapper(final BindParameterMapper<?> parameterMapper) {
-		mappers.remove(parameterMapper);
+		this.mappers.remove(parameterMapper);
 	}
 
 	/**
-	 * 指定されたパラメータをPreparedStatementにセットするパラメータに変換
+	 * 指定されたパラメータをPreparedStatementにセットするパラメータに変換.
 	 *
 	 * @param object 指定パラメータ
 	 * @param connection パラメータ生成用にConnectionを渡す
 	 * @return PreparedStatementにセットするパラメータ
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object toJdbc(final Object object, final Connection connection) {
 		if (object == null) {
 			return null;
 		}
-		for (@SuppressWarnings("rawtypes")
-		BindParameterMapper parameterMapper : mappers) {
+		for (BindParameterMapper parameterMapper : mappers) {
 			if (parameterMapper.canAccept(object)) {
 				return parameterMapper.toJdbc(object, connection, this);
 			}
@@ -116,8 +123,11 @@ public final class BindParameterMapperManager {
 			return object;
 		}
 
-		for (@SuppressWarnings("rawtypes")
-		BindParameterMapper parameterMapper : DEFAULT_MAPPERS) {
+		if (dateTimeApiParameterMapper.canAccept(object)) {
+			return ((BindParameterMapper) dateTimeApiParameterMapper).toJdbc(object, connection, this);
+		}
+
+		for (BindParameterMapper parameterMapper : DEFAULT_MAPPERS) {
 			if (parameterMapper.canAccept(object)) {
 				return parameterMapper.toJdbc(object, connection, this);
 			}
@@ -126,7 +136,7 @@ public final class BindParameterMapperManager {
 	}
 
 	/**
-	 * 標準でパラメータとして受け入れ可能な値かを判定
+	 * 標準でパラメータとして受け入れ可能な値かを判定.
 	 *
 	 * @param object 指定パラメータ
 	 * @return 標準で受け入れ可能かどうか。可能な場合<code>true</code>
@@ -153,6 +163,10 @@ public final class BindParameterMapperManager {
 			if (parameterMapper.canAccept(object)) {
 				return true;
 			}
+		}
+
+		if (dateTimeApiParameterMapper.canAccept(object)) {
+			return true;
 		}
 
 		for (BindParameterMapper<?> parameterMapper : DEFAULT_MAPPERS) {

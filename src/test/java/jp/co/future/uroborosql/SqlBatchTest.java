@@ -56,7 +56,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(1, 2))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -97,7 +97,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(1, 2))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -131,7 +131,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(1, 2))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -167,7 +167,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -199,7 +199,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -229,7 +229,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -254,7 +254,7 @@ public class SqlBatchTest extends AbstractDbTest {
 
 		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
-						.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(),
+						.stream(new MapResultSetConverter(agent.getSqlConfig(),
 								CaseFormat.LOWER_SNAKE_CASE)))
 				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
@@ -293,7 +293,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		int workCount = agent.batch("example/insert_product_regist_work")
 				.paramStream(agent.query("example/select_product")
-						.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(),
+						.stream(new MapResultSetConverter(agent.getSqlConfig(),
 								CaseFormat.LOWER_SNAKE_CASE)))
 				.paramStream(paramList.stream())
 				.by((ctx, row) -> ctx.batchCount() == 10)

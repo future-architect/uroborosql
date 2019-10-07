@@ -18,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.Emp;
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
@@ -26,7 +28,6 @@ import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
@@ -38,12 +39,13 @@ public class SqlParserTest {
 
 	@Before
 	public void setUp() throws Exception {
-		sqlContextFactory = new SqlContextFactoryImpl();
-		((SqlContextFactoryImpl) sqlContextFactory).setSqlFilterManager(new SqlFilterManagerImpl());
+		SqlConfig config = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.setSqlContextFactory(new SqlContextFactoryImpl()
+						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+				.build();
 
-		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
-
-		sqlContextFactory.initialize();
+		sqlContextFactory = config.getSqlContextFactory();
 	}
 
 	private void sqlAssertion(final String original, final String expected) {
