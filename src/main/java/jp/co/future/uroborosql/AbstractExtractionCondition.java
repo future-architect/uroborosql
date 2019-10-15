@@ -9,6 +9,7 @@ package jp.co.future.uroborosql;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import jp.co.future.uroborosql.context.SqlContext;
@@ -38,10 +39,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	protected final TableMetadata tableMetadata;
 
 	/** where句文字列 */
-	private final List<CharSequence> rawStrings;
+	protected final List<CharSequence> rawStrings;
 
 	/** オペレータを使用したかどうか */
-	private boolean useOperator = false;
+	protected boolean useOperator = false;
 
 	/**
 	 * Constructor
@@ -67,13 +68,18 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		for (final TableMetadata.Column col : this.tableMetadata.getColumns()) {
 			final String camelColName = col.getCamelColumnName();
 
-			Parameter param = context().getParam(PREFIX + camelColName);
-			if (param != null) {
-				if (param.getValue() instanceof Operator) {
-					Operator ope = (Operator) param.getValue();
-					where.append("\t").append("AND ").append(col.getColumnIdentifier())
-							.append(ope.toConditionString()).append(System.lineSeparator());
-				} else if (!this.useOperator) {
+			if (this.useOperator) {
+				Parameter param = context().getParam(PREFIX + camelColName);
+				if (param != null) {
+					if (param.getValue() instanceof Operator) {
+						Operator ope = (Operator) param.getValue();
+						where.append("\t").append("AND ").append(col.getColumnIdentifier())
+								.append(ope.toConditionString()).append(System.lineSeparator());
+					}
+				}
+			} else {
+				Parameter param = context().getParam(camelColName);
+				if (param != null) {
 					where.append("\t").append("AND ").append(col.getColumnIdentifier())
 							.append(" = ").append("/*").append(camelColName).append("*/''")
 							.append(System.lineSeparator());
@@ -105,8 +111,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T equal(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Equal(col, value));
+	public <V> T equal(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Equal<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -118,8 +124,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T notEqual(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotEqual(col, value));
+	public <V> T notEqual(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotEqual<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -131,8 +137,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T greaterThan(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new GreaterThan(col, value));
+	public <V> T greaterThan(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new GreaterThan<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -144,8 +150,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T lessThan(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new LessThan(col, value));
+	public <V> T lessThan(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new LessThan<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -157,8 +163,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T greaterEqual(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new GreaterEqual(col, value));
+	public <V> T greaterEqual(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new GreaterEqual<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -170,8 +176,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T lessEqual(final String col, final Object value) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new LessEqual(col, value));
+	public <V> T lessEqual(final String col, final V value) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new LessEqual<>(col, value));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -183,8 +189,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T in(final String col, final Object... values) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new In(col, values));
+	public <V> T in(final String col, final V... values) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new In<>(col, values));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -196,8 +202,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T in(final String col, final Iterable<?> valueList) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new In(col, valueList));
+	public <V> T in(final String col, final Iterable<V> valueList) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new In<>(col, valueList));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -209,8 +215,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T notIn(final String col, final Object... values) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotIn(col, values));
+	public <V> T notIn(final String col, final V... values) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotIn<>(col, values));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -222,8 +228,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T notIn(final String col, final Iterable<?> valueList) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotIn(col, valueList));
+	public <V> T notIn(final String col, final Iterable<V> valueList) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotIn<>(col, valueList));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -366,8 +372,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T between(final String col, final Object fromValue, final Object toValue) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Between(col, fromValue, toValue));
+	public <V> T between(final String col, final V fromValue, final V toValue) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Between<>(col, fromValue, toValue));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -409,6 +415,28 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		this.rawStrings.add(rawString);
 		this.useOperator = true;
 		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#where(java.lang.CharSequence, java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public <V> T where(final CharSequence rawString, final String paramName, final V value) {
+		this.param(paramName, value);
+		return this.where(rawString);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#where(java.lang.CharSequence, java.util.Map)
+	 */
+	@Override
+	public T where(final CharSequence rawString, final Map<String, Object> paramMap) {
+		this.paramMap(paramMap);
+		return this.where(rawString);
 	}
 
 	/**
@@ -465,15 +493,15 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * 値を1つもつオペレータ
 	 */
-	public static abstract class SingleOperator extends Operator {
-		protected final Object value;
+	public static abstract class SingleOperator<V> extends Operator {
+		protected final V value;
 
 		/**
 		 * Constructor
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public SingleOperator(final String col, final Object value) {
+		public SingleOperator(final String col, final V value) {
 			super(col);
 			this.value = value;
 		}
@@ -482,7 +510,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * 値の取得
 		 * @return 値
 		 */
-		public Object getValue() {
+		public V getValue() {
 			return value;
 		}
 
@@ -500,8 +528,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Listを持つオペレータ
 	 */
-	public static abstract class ListOperator extends Operator {
-		protected final Iterable<?> valueList;
+	public static abstract class ListOperator<V> extends Operator {
+		protected final Iterable<V> valueList;
 
 		/**
 		 * Constructor
@@ -509,7 +537,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param valueList 値のリスト
 		 */
-		public ListOperator(final String col, final Iterable<?> valueList) {
+		public ListOperator(final String col, final Iterable<V> valueList) {
 			super(col);
 			this.valueList = valueList;
 		}
@@ -520,7 +548,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param values 値の配列
 		 */
-		public ListOperator(final String col, final Object... values) {
+		@SafeVarargs
+		public ListOperator(final String col, final V... values) {
 			super(col);
 			valueList = Arrays.asList(values);
 		}
@@ -548,14 +577,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Equal Operator
 	 */
-	public static class Equal extends SingleOperator {
+	public static class Equal<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public Equal(final String col, final Object value) {
+		public Equal(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -573,14 +602,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * NotEqual Operator
 	 */
-	public static class NotEqual extends SingleOperator {
+	public static class NotEqual<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public NotEqual(final String col, final Object value) {
+		public NotEqual(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -591,21 +620,21 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		@Override
 		public String getOperator() {
-			return "<>";
+			return "!=";
 		}
 	}
 
 	/**
 	 * Greater Than Operator
 	 */
-	public static class GreaterThan extends SingleOperator {
+	public static class GreaterThan<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public GreaterThan(final String col, final Object value) {
+		public GreaterThan(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -623,14 +652,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Less Than Operator
 	 */
-	public static class LessThan extends SingleOperator {
+	public static class LessThan<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public LessThan(final String col, final Object value) {
+		public LessThan(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -648,14 +677,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Greater Equal Operator
 	 */
-	public static class GreaterEqual extends SingleOperator {
+	public static class GreaterEqual<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public GreaterEqual(final String col, final Object value) {
+		public GreaterEqual(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -673,14 +702,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Less Than Operator
 	 */
-	public static class LessEqual extends SingleOperator {
+	public static class LessEqual<V> extends SingleOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public LessEqual(final String col, final Object value) {
+		public LessEqual(final String col, final V value) {
 			super(col, value);
 		}
 
@@ -698,14 +727,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * In Operator
 	 */
-	public static class In extends ListOperator {
+	public static class In<V> extends ListOperator<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param valueList 値リスト
 		 */
-		public In(final String col, final Iterable<?> valueList) {
+		public In(final String col, final Iterable<V> valueList) {
 			super(col, valueList);
 		}
 
@@ -715,7 +744,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param values 値の配列
 		 */
-		public In(final String col, final Object... values) {
+		@SafeVarargs
+		public In(final String col, final V... values) {
 			super(col, values);
 		}
 
@@ -733,14 +763,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Not In Operator
 	 */
-	public static class NotIn extends In {
+	public static class NotIn<V> extends In<V> {
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param valueList 値リスト
 		 */
-		public NotIn(final String col, final Iterable<?> valueList) {
+		public NotIn(final String col, final Iterable<V> valueList) {
 			super(col, valueList);
 		}
 
@@ -750,7 +780,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param values 値の配列
 		 */
-		public NotIn(final String col, final Object... values) {
+		@SafeVarargs
+		public NotIn(final String col, final V... values) {
 			super(col, values);
 		}
 
@@ -768,7 +799,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Like Operator
 	 */
-	public static class Like extends SingleOperator {
+	public static class Like extends SingleOperator<CharSequence> {
 		protected boolean prefix;
 		protected boolean suffix;
 
@@ -778,7 +809,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public Like(final String col, final Object value) {
+		public Like(final String col, final CharSequence value) {
 			this(col, true, value, true);
 		}
 
@@ -789,7 +820,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 */
-		public Like(final String col, final boolean prefix, final Object value) {
+		public Like(final String col, final boolean prefix, final CharSequence value) {
 			this(col, prefix, value, false);
 		}
 
@@ -800,7 +831,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
-		public Like(final String col, final Object value, final boolean suffix) {
+		public Like(final String col, final CharSequence value, final boolean suffix) {
 			this(col, false, value, suffix);
 		}
 
@@ -812,7 +843,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
-		public Like(final String col, final boolean prefix, final Object value, final boolean suffix) {
+		public Like(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
 			super(col, value);
 			this.prefix = prefix;
 			this.suffix = suffix;
@@ -824,8 +855,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.SingleOperator#getValue()
 		 */
 		@Override
-		public Object getValue() {
-			String searchValue = Objects.toString(super.getValue(), "");
+		public CharSequence getValue() {
+			CharSequence searchValue = Objects.toString(super.getValue(), "");
 			if (prefix) {
 				searchValue = "%" + searchValue;
 			}
@@ -856,7 +887,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 */
-		public NotLike(final String col, final Object value) {
+		public NotLike(final String col, final CharSequence value) {
 			super(col, value);
 		}
 
@@ -867,7 +898,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 */
-		public NotLike(final String col, final boolean prefix, final Object value) {
+		public NotLike(final String col, final boolean prefix, final CharSequence value) {
 			super(col, prefix, value);
 		}
 
@@ -878,7 +909,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
-		public NotLike(final String col, final Object value, final boolean suffix) {
+		public NotLike(final String col, final CharSequence value, final boolean suffix) {
 			super(col, value, suffix);
 		}
 
@@ -890,7 +921,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
 		 */
-		public NotLike(final String col, final boolean prefix, final Object value, final boolean suffix) {
+		public NotLike(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
 			super(col, prefix, value, suffix);
 		}
 
@@ -908,9 +939,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	/**
 	 * Between Operator
 	 */
-	public static class Between extends Operator {
-		protected final Object from;
-		protected final Object to;
+	public static class Between<V> extends Operator {
+		protected final V from;
+		protected final V to;
 
 		/**
 		 * Constructor
@@ -919,7 +950,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param from from value
 		 * @param to to value
 		 */
-		public Between(final String col, final Object from, final Object to) {
+		public Between(final String col, final V from, final V to) {
 			super(col);
 			this.from = from;
 			this.to = to;
@@ -930,7 +961,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 *
 		 * @return From値
 		 */
-		public Object getFrom() {
+		public V getFrom() {
 			return from;
 		}
 
@@ -939,7 +970,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 *
 		 * @return To値
 		 */
-		public Object getTo() {
+		public V getTo() {
 			return to;
 		}
 

@@ -120,4 +120,27 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(empty.isPresent(), is(false));
 	}
 
+	@Test
+	public void testCollectParam() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		@SuppressWarnings("deprecation")
+		List<Product> products = agent.query(Product.class)
+				.param("productId", 0)
+				.collect();
+
+		products.forEach(p -> {
+			assertNotNull(p.getProductId());
+			assertNotNull(p.getProductName());
+			assertNotNull(p.getProductKanaName());
+			assertNotNull(p.getJanCode());
+			assertNotNull(p.getProductDescription());
+			assertNotNull(p.getInsDatetime());
+			assertNotNull(p.getUpdDatetime());
+			assertNotNull(p.getVersionNo());
+		});
+		assertThat(products.size(), is(1));
+	}
+
 }
