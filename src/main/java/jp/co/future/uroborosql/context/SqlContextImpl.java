@@ -511,7 +511,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */
 	@Override
-	public SqlContext paramMap(final Map<String, ?> paramMap) {
+	public SqlContext paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
 		}

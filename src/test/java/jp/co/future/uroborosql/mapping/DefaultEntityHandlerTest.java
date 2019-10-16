@@ -13,7 +13,9 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -553,13 +555,21 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
+				// where with param(s)
+				Map<String, Object> paramMap = new HashMap<>();
+				paramMap.put("birthday1", LocalDate.of(1990, Month.APRIL, 15));
+				paramMap.put("birthday2", LocalDate.of(1990, Month.MAY, 15));
+				list = agent.query(TestEntity.class)
+						.where("birthday < /*birthday1*/ or BIRTHDAY > /*birthday2*/", paramMap)
+						.where("\"Age\" < /*age*/", "age", 21)
+						.collect();
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test3));
+
 				// where
 				list = agent.query(TestEntity.class)
-						.where("birthday < /*birthday1*/ or BIRTHDAY > /*birthday2*/")
-						.param("birthday1", LocalDate.of(1990, Month.APRIL, 15))
-						.param("birthday2", LocalDate.of(1990, Month.MAY, 15))
-						.where("\"Age\" < /*age*/")
-						.param("age", 21)
+						.where("birthday < /*birthday1*/ or BIRTHDAY > /*birthday2*/", paramMap)
+						.where("\"Age\" < 21")
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
@@ -567,6 +577,15 @@ public class DefaultEntityHandlerTest {
 				// order by asc
 				list = agent.query(TestEntity.class)
 						.asc("age")
+						.collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test3));
+				assertThat(list.get(1), is(test2));
+				assertThat(list.get(2), is(test1));
+
+				// order by asc
+				list = agent.query(TestEntity.class)
+						.asc("age", Nulls.FIRST)
 						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test3));
@@ -1103,10 +1122,12 @@ public class DefaultEntityHandlerTest {
 				agent.rollback("sp-isNotNull");
 
 				agent.setSavepoint("sp-where");
+				Map<String, Object> paramMap = new HashMap<>();
+				paramMap.put("birthdayFrom", LocalDate.of(1980, Month.MAY, 1));
+				paramMap.put("birthdayTo", LocalDate.of(1990, Month.APRIL, 1));
 				assertThat(agent.delete(TestEntity.class)
-						.where("BIRTHDAY > /*birthdayFrom*/ and BIRTHDAY <= /*birthdayTo*/")
-						.param("birthdayFrom", LocalDate.of(1980, Month.MAY, 1))
-						.param("birthdayTo", LocalDate.of(1990, Month.APRIL, 1)).count(), is(1));
+						.where("BIRTHDAY > /*birthdayFrom*/ and BIRTHDAY <= /*birthdayTo*/", paramMap)
+						.count(), is(1));
 				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
 				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
 				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
@@ -1646,7 +1667,7 @@ public class DefaultEntityHandlerTest {
 
 			ctx.param("id", 1).param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null).getName(), is("updatename"));
+			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null).getName(), is("updatename"));
 		}
 	}
 
@@ -1670,7 +1691,7 @@ public class DefaultEntityHandlerTest {
 
 			ctx.param("id", 1).param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null).getName(), is("updatename"));
+			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null).getName(), is("updatename"));
 
 			handler.setEmptyStringEqualsNull(true);
 		}
@@ -1691,7 +1712,7 @@ public class DefaultEntityHandlerTest {
 			SqlContext ctx = handler.createDeleteContext(agent, metadata, null, true);
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).param("id", 1).first().orElse(null), is(nullValue()));
+			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
 		}
 	}
 

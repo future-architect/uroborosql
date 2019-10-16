@@ -91,7 +91,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T paramMap(final Map<String, ?> paramMap) {
+	public T paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach((k, v) -> param(k, v));
 		}

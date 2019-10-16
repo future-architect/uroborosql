@@ -25,6 +25,7 @@ import jp.co.future.uroborosql.mapping.TableMetadata;
  */
 final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntityUpdate<E>>
 		implements SqlEntityUpdate<E> {
+	/** エンティティハンドラー */
 	private final EntityHandler<?> entityHandler;
 
 	/**
@@ -41,6 +42,11 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		this.entityHandler = entityHandler;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#count()
+	 */
 	@Override
 	public int count() {
 		try {
@@ -51,27 +57,47 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.lang.Object)
+	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String paramName, final V value) {
-		param(paramName, value);
+	public <V> SqlEntityUpdate<E> set(final String col, final V value) {
+		param(col, value);
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.util.function.Supplier)
+	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String paramName, final Supplier<V> supplier) {
-		param(paramName, supplier);
+	public <V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier) {
+		param(col, supplier);
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.lang.Object, int)
+	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String paramName, final V value, final int sqlType) {
-		param(paramName, value, sqlType);
+	public <V> SqlEntityUpdate<E> set(final String col, final V value, final int sqlType) {
+		param(col, value, sqlType);
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String paramName, final V value, final SQLType sqlType) {
-		param(paramName, value, sqlType);
+	public <V> SqlEntityUpdate<E> set(final String col, final V value, final SQLType sqlType) {
+		param(col, value, sqlType);
 		return this;
 	}
 }

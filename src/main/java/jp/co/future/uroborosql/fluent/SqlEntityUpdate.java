@@ -23,12 +23,42 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	 */
 	int count();
 
-	<V> SqlEntityUpdate<E> set(final String paramName, final V value);
+	/**
+	 * 更新する値の設定.
+	 *
+	 * @param col 更新するカラム名（キャメルケース）
+	 * @param value 更新する値
+	 * @return SqlEntityUpdate
+	 */
+	<V> SqlEntityUpdate<E> set(final String col, final V value);
 
-	<V> SqlEntityUpdate<E> set(final String paramName, final Supplier<V> supplier);
+	/**
+	 * 更新する値の設定.
+	 *
+	 * @param col 更新するカラム名（キャメルケース）
+	 * @param supplier 更新する値を提供するサプライヤ
+	 * @return SqlEntityUpdate
+	 */
+	<V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier);
 
-	<V> SqlEntityUpdate<E> set(final String paramName, final V value, final int sqlType);
+	/**
+	 * 更新する値の設定.
+	 *
+	 * @param col 更新するカラム名（キャメルケース）
+	 * @param value 更新する値
+	 * @param sqlType SQLタイプ
+	 * @return SqlEntityUpdate
+	 */
+	<V> SqlEntityUpdate<E> set(final String col, final V value, final int sqlType);
 
-	<V> SqlEntityUpdate<E> set(final String paramName, final V value, final SQLType sqlType);
+	/**
+	 * 更新する値の設定.
+	 *
+	 * @param col 更新するカラム名（キャメルケース）
+	 * @param value 更新する値
+	 * @param sqlType SQLタイプ
+	 * @return SqlEntityUpdate
+	 */
+	<V> SqlEntityUpdate<E> set(final String col, final V value, final SQLType sqlType);
 
 }
