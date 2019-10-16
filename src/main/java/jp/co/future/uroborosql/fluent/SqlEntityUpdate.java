@@ -26,6 +26,7 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	/**
 	 * 更新する値の設定.
 	 *
+	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
 	 * @param value 更新する値
 	 * @return SqlEntityUpdate
@@ -35,6 +36,7 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	/**
 	 * 更新する値の設定.
 	 *
+	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
 	 * @param supplier 更新する値を提供するサプライヤ
 	 * @return SqlEntityUpdate
@@ -44,6 +46,7 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	/**
 	 * 更新する値の設定.
 	 *
+	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
 	 * @param value 更新する値
 	 * @param sqlType SQLタイプ
@@ -54,6 +57,7 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	/**
 	 * 更新する値の設定.
 	 *
+	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
 	 * @param value 更新する値
 	 * @param sqlType SQLタイプ
