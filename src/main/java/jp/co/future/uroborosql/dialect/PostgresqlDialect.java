@@ -106,6 +106,12 @@ public class PostgresqlDialect extends AbstractDialect {
 				// JSON型の場合、文字列として扱う
 				return super.getJavaType(JDBCType.NVARCHAR, sqlTypeName);
 			}
+		} else if ("timestamptz".equalsIgnoreCase(sqlTypeName)
+				&& JDBCType.TIMESTAMP.getVendorTypeNumber().equals(sqlType)) {
+			return super.getJavaType(JDBCType.TIMESTAMP_WITH_TIMEZONE, sqlTypeName);
+		} else if ("timetz".equalsIgnoreCase(sqlTypeName)
+				&& JDBCType.TIME.getVendorTypeNumber().equals(sqlType)) {
+			return super.getJavaType(JDBCType.TIME_WITH_TIMEZONE, sqlTypeName);
 		}
 		return super.getJavaType(sqlType, sqlTypeName);
 	}

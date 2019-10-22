@@ -7,6 +7,10 @@ import static org.junit.Assert.*;
 
 import java.sql.Connection;
 import java.sql.JDBCType;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -97,6 +101,14 @@ public class PostgresqlDialectTest {
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), JavaType.of(Object.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
+				JavaType.of(ZonedDateTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
+				JavaType.of(Timestamp.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
+				JavaType.of(OffsetTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
+				JavaType.of(Time.class).getClass());
 	}
 
 	@Test
