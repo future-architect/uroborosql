@@ -52,8 +52,7 @@ public enum CaseFormat {
 					char ch = str.charAt(i);
 					if (i == 0 && ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9')) {
 						builder.append(Character.toUpperCase(str.charAt(i)));
-					}
-					else if (ch == '_') {
+					} else if (ch == '_') {
 						i++;
 						if (i < len) {
 							builder.append(Character.toUpperCase(str.charAt(i)));
@@ -162,6 +161,7 @@ public enum CaseFormat {
 				} else if (ch == '_') {
 					builder.append('_');
 				}
+				// does not support for multibyte characters
 			}
 			return builder.toString();
 		}
@@ -207,8 +207,33 @@ public enum CaseFormat {
 				} else if (ch == '_') {
 					builder.append('_');
 				}
+				// does not support for multibyte characters
 			}
 			return builder.toString();
+		}
+	},
+
+	/** 単純大文字化 */
+	UPPER_CASE {
+
+		@Override
+		public String convert(String original) {
+			if (original == null || "".equals(original)) {
+				return "";
+			}
+			return original.trim().toUpperCase();
+		}
+	},
+
+	/** 単純小文字化 */
+	LOWER_CASE {
+
+		@Override
+		public String convert(String original) {
+			if (original == null || "".equals(original)) {
+				return "";
+			}
+			return original.trim().toLowerCase();
 		}
 	};
 
