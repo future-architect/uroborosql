@@ -71,4 +71,32 @@ public class CaseFormatTest {
 		assertEquals("", CaseFormat.CAMEL_CASE.convert(" "));
 	}
 
+	@Test
+	public void testToUpper() {
+		assertEquals("SNAKE", CaseFormat.UPPER_CASE.convert("snake"));
+		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("convertToSnake"));
+		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("ConvertToSnake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_CASE.convert("convert_to_snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.UPPER_CASE.convert("SNAKE"));
+		assertEquals("TOSNAKE", CaseFormat.UPPER_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(null));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(""));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(" "));
+	}
+
+	@Test
+	public void testToLower() {
+		assertEquals("snake", CaseFormat.LOWER_CASE.convert("snake"));
+		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("convertToSnake"));
+		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("ConvertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_CASE.convert("convert_to_snake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("snake", CaseFormat.LOWER_CASE.convert("SNAKE"));
+		assertEquals("tosnake", CaseFormat.LOWER_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(null));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(""));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(" "));
+	}
+
 }
