@@ -33,6 +33,18 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
+	public void testCountByEntitySingleSnakeCase() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.required(() -> {
+			assertThat(agent.update(Product.class).set("product_name", "商品名_new").equal("product_id", 1).count(),
+					is(1));
+			assertThat(agent.query(Product.class).equal("product_id", 1).one().get().getProductName(), is("商品名_new"));
+		});
+	}
+
+	@Test
 	public void testCountByEntityMulti() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -70,6 +82,21 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
+	public void testCountByEntitySetSupplierSnakeCase() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.required(() -> {
+			assertThat(
+					agent.update(Product.class).set("product_name", () -> "商品名_new").greaterEqual("product_id", 0)
+							.count(),
+					is(2));
+			assertThat(agent.query(Product.class).equal("product_id", 0).one().get().getProductName(), is("商品名_new"));
+			assertThat(agent.query(Product.class).equal("product_id", 1).one().get().getProductName(), is("商品名_new"));
+		});
+	}
+
+	@Test
 	public void testCountByEntitySetIntType() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -86,6 +113,22 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
+	public void testCountByEntitySetIntTypeSnakeCase() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.required(() -> {
+			assertThat(
+					agent.update(Product.class).set("product_name", "商品名_new", JDBCType.VARCHAR.getVendorTypeNumber())
+							.greaterEqual("product_id", 0)
+							.count(),
+					is(2));
+			assertThat(agent.query(Product.class).equal("product_id", 0).one().get().getProductName(), is("商品名_new"));
+			assertThat(agent.query(Product.class).equal("product_id", 1).one().get().getProductName(), is("商品名_new"));
+		});
+	}
+
+	@Test
 	public void testCountByEntitySetType() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -98,6 +141,22 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 					is(2));
 			assertThat(agent.query(Product.class).equal("productId", 0).one().get().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("productId", 1).one().get().getProductName(), is("商品名_new"));
+		});
+	}
+
+	@Test
+	public void testCountByEntitySetTypeSnakeCase() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.required(() -> {
+			assertThat(
+					agent.update(Product.class).set("product_name", "商品名_new", JDBCType.VARCHAR)
+							.greaterEqual("product_id", 0)
+							.count(),
+					is(2));
+			assertThat(agent.query(Product.class).equal("product_id", 0).one().get().getProductName(), is("商品名_new"));
+			assertThat(agent.query(Product.class).equal("product_id", 1).one().get().getProductName(), is("商品名_new"));
 		});
 	}
 
