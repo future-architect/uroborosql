@@ -322,7 +322,8 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public boolean isForceUpdateWithinTransaction() {
 		return Boolean
-				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION, "FALSE"));
+				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
+						Boolean.FALSE.toString()));
 	}
 
 	/**
@@ -364,6 +365,28 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds) {
 		getDefaultProps().put(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, String.valueOf(defaultForUpdateWaitSeconds));
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#isStrictForUpdateType()
+	 */
+	@Override
+	public boolean isStrictForUpdateType() {
+		return Boolean.parseBoolean(
+				getDefaultProps().getOrDefault(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.FALSE.toString()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setStrictForUpdateType(boolean)
+	 */
+	@Override
+	public SqlAgentFactory setStrictForUpdateType(final boolean strictForUpdateType) {
+		getDefaultProps().put(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.toString(strictForUpdateType));
 		return this;
 	}
 
