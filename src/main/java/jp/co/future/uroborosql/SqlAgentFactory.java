@@ -8,7 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.util.List;
 
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  *
  * @author H.Sugimoto
  */
-public interface SqlAgentFactory {
+public interface SqlAgentFactory extends SqlConfigAware {
 	/** ファクトリBean名 */
 	String FACTORY_BEAN_NAME = "sqlAagentFactory";
 
@@ -120,13 +120,6 @@ public interface SqlAgentFactory {
 	 * @return ORM処理クラス
 	 */
 	EntityHandler<?> getEntityHandler();
-
-	/**
-	 * SqlConfigの設定[
-	 *
-	 * @param sqlConfig SqlConfig
-	 */
-	void setSqlConfig(final SqlConfig sqlConfig);
 
 	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。

@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -34,7 +34,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author H.Sugimoto
  */
 
-public interface SqlAgent extends AutoCloseable, TransactionManager {
+public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAware {
 	/**
 	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件.<br>
 	 *
@@ -144,14 +144,6 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	Map<String, Object> procedure(SqlContext sqlContext) throws SQLException;
 
 	/**
-	 * クローズ処理
-	 *
-	 * @see java.lang.AutoCloseable#close()
-	 */
-	@Override
-	void close();
-
-	/**
 	 * フェッチサイズ取得。
 	 *
 	 * @return フェッチサイズ
@@ -208,40 +200,6 @@ public interface SqlAgent extends AutoCloseable, TransactionManager {
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
 	void setDefaultInsertsType(InsertsType defaultInsertsType);
-
-	/**
-	 * トランザクションのコミット用API<br>
-	 * <br>
-	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
-	 *
-	 * @throws UnsupportedOperationException この操作を提供しない場合
-	 */
-	@Override
-	void commit();
-
-	/**
-	 * トランザクションのロールバック用API<br>
-	 * <br>
-	 * 実装はオプション。APIを提供しない場合は{@link UnsupportedOperationException}をスローすること
-	 *
-	 * @throws UnsupportedOperationException この操作を提供しない場合
-	 */
-	@Override
-	void rollback();
-
-	/**
-	 * SQL設定管理クラスの取得
-	 *
-	 * @return SQL設定管理クラスインスタンス
-	 */
-	SqlConfig getSqlConfig();
-
-	/**
-	 * SQL設定管理クラスの設定
-	 *
-	 * @param config SQL設定管理クラスインスタンス
-	 */
-	void setSqlConfig(SqlConfig config);
 
 	/**
 	 * 空のSqlContextの生成

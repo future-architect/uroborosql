@@ -267,6 +267,7 @@ public final class UroboroSQL {
 			this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);
 			this.sqlContextFactory.initialize();
 			this.sqlAgentFactory.setSqlConfig(this);
+			this.entityHandler.setSqlConfig(this);
 		}
 
 		/**

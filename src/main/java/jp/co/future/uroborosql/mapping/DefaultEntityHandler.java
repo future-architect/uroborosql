@@ -40,6 +40,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
 	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
 	private boolean emptyStringEqualsNull = true;
+	private SqlConfig sqlConfig = null;
 
 	/**
 	 * {@inheritDoc}
@@ -752,4 +753,25 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private String buildBulkParamName(final String base, final int entityIndex) {
 		return base + "$" + entityIndex;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
+	 */
+	@Override
+	public SqlConfig getSqlConfig() {
+		return this.sqlConfig;
+	}
+
 }
