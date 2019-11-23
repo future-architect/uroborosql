@@ -592,7 +592,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		StringBuilder sql = new StringBuilder("INSERT ").append("/* ")
 				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
-				.append(" INTO ").append(metadata.getTableIdentifier()).append("(").append(System.lineSeparator());
+				.append(" INTO ").append(metadata.getTableIdentifier()).append(" (").append(System.lineSeparator());
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
