@@ -87,35 +87,41 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	String PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS = "defaultForUpdateWaitSeconds";
 
 	/**
-	 * SQL実行クラス生成。
+	 * プロパティ:ForUpdateTypeの指定を厳格に扱うかどうか<br>
+	 * デフォルトは<code>false</code>
+	 */
+	String PROPS_KEY_STRICT_FOR_UPDATE_TYPE = "strictForUpdateType";
+
+	/**
+	 * SQL実行クラス生成.
 	 *
 	 * @return SqlAgent
 	 */
 	SqlAgent createSqlAgent();
 
 	/**
-	 * SQL管理クラスを取得します。
+	 * SQL管理クラスを取得する.
 	 *
-	 * @return SQL管理クラス。
+	 * @return SQL管理クラス
 	 */
 	SqlManager getSqlManager();
 
 	/**
-	 * SqlFilter管理クラスを取得します。
+	 * SqlFilter管理クラスを取得する.
 	 *
 	 * @return SqlFilter管理クラス
 	 */
 	SqlFilterManager getSqlFilterManager();
 
 	/**
-	 * コネクション供給クラスを取得します。
+	 * コネクション供給クラスを取得する.
 	 *
 	 * @return コネクション供給クラス
 	 */
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
-	 * ORM処理クラスを取得します。
+	 * ORM処理クラスを取得する.
 	 *
 	 * @return ORM処理クラス
 	 */
@@ -129,7 +135,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	boolean isOutputExceptionLog();
 
 	/**
-	 * 例外発生時のログ出力を行うかどうかを設定します。
+	 * 例外発生時のログ出力を行うかどうかを設定する.
 	 *
 	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
 	 * @return SqlAgentFactory
@@ -137,14 +143,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog);
 
 	/**
-	 * フェッチサイズを取得します
+	 * フェッチサイズを取得する.
 	 *
 	 * @return フェッチサイズ
 	 */
 	int getFetchSize();
 
 	/**
-	 * フェッチサイズを設定する
+	 * フェッチサイズを設定する.
 	 *
 	 * @param fetchSize フェッチサイズ
 	 * @return SqlAgentFactory
@@ -152,14 +158,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setFetchSize(final int fetchSize);
 
 	/**
-	 * フェッチサイズを取得します
+	 * フェッチサイズを取得する.
 	 *
 	 * @return フェッチサイズ
 	 */
 	int getQueryTimeout();
 
 	/**
-	 * クエリタイムアウトを設定する
+	 * クエリタイムアウトを設定する.
 	 *
 	 * @param queryTimeout クエリタイムアウト
 	 * @return SqlAgentFactory
@@ -167,14 +173,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setQueryTimeout(final int queryTimeout);
 
 	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を取得します
+	 * SQLをリトライ実行するSQLエラーコードのリスト を取得する.
 	 *
 	 * @return SQLをリトライ実行するSQLエラーコードのリスト
 	 */
 	List<String> getSqlRetryCodeList();
 
 	/**
-	 * SQLをリトライ実行するSQLエラーコードのリスト を設定します
+	 * SQLをリトライ実行するSQLエラーコードのリスト を設定する.
 	 *
 	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
 	 * @return SqlAgentFactory
@@ -182,14 +188,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList);
 
 	/**
-	 * 最大リトライカウントの初期値を取得します
+	 * 最大リトライカウントの初期値を取得する.
 	 *
 	 * @return 最大リトライカウントの初期値
 	 */
 	int getDefaultMaxRetryCount();
 
 	/**
-	 * 最大リトライカウントの初期値を設定する
+	 * 最大リトライカウントの初期値を設定する.
 	 *
 	 * @param defaultMaxRetryCount 最大リトライカウントの初期値
 	 * @return SqlAgentFactory
@@ -197,14 +203,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount);
 
 	/**
-	 * SQLリトライ時の待機時間（ms）の初期値を取得します
+	 * SQLリトライ時の待機時間（ms）の初期値を取得する.
 	 *
 	 * @return SQLリトライ時の待機時間（ms）の初期値
 	 */
 	int getDefaultSqlRetryWaitTime();
 
 	/**
-	 * SQLリトライ時の待機時間（ms）の初期値を設定する
+	 * SQLリトライ時の待機時間（ms）の初期値を設定する.
 	 *
 	 * @param defaultSqlRetryWaitTime SQLリトライ時の待機時間（ms）の初期値
 	 * @return SqlAgentFactory
@@ -212,14 +218,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime);
 
 	/**
-	 * SQL_IDを置換するためのKEY文字列を取得します
+	 * SQL_IDを置換するためのKEY文字列を取得する.
 	 *
 	 * @return SQL_IDを置換するためのKEY文字列
 	 */
 	String getSqlIdKeyName();
 
 	/**
-	 * SQL_IDを置換するためのKEY文字列を設定する
+	 * SQL_IDを置換するためのKEY文字列を設定する.
 	 *
 	 * @param sqlIdKeyName SQL_IDを置換するためのKEY文字列
 	 * @return SqlAgentFactory
@@ -227,14 +233,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName);
 
 	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する.
 	 *
 	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
 	 */
 	CaseFormat getDefaultMapKeyCaseFormat();
 
 	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する.
 	 *
 	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
 	 * @return SqlAgentFactory
@@ -242,7 +248,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
 
 	/**
-	 * デフォルトの{@link InsertsType}を取得する
+	 * デフォルトの{@link InsertsType}を取得する.
 	 *
 	 * @return insertsType
 	 * @see jp.co.future.uroborosql.enums.InsertsType
@@ -250,7 +256,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	InsertsType getDefaultInsertsType();
 
 	/**
-	 * デフォルトの{@link InsertsType}を設定する
+	 * デフォルトの{@link InsertsType}を設定する.
 	 *
 	 * @param defaultInsertsType デフォルトの{@link InsertsType}
 	 * @return SqlAgentFactory
@@ -259,13 +265,14 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
-	 * トランザクション内での更新を強制するかどうかを取得する
+	 * トランザクション内での更新を強制するかどうかを取得する.
+	 *
 	 * @return トランザクション内でのみ更新可能とする場合<code>true</code>
 	 */
 	boolean isForceUpdateWithinTransaction();
 
 	/**
-	 * トランザクション内での更新を強制するかどうかを設定する<br>
+	 * トランザクション内での更新を強制するかどうかを設定する.<br>
 	 * <code>true</code>を指定するとトランザクションを開始していない状態で SELECT文以外のSQLを発行すると {@link UroborosqlTransactionException}をスローする
 	 *
 	 * @param forceUpdateWithinTransaction トランザクション内でのみ更新可能とするかどうか。
@@ -274,18 +281,33 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgentFactory setForceUpdateWithinTransaction(boolean forceUpdateWithinTransaction);
 
 	/**
-	 * 明示的な行ロック時の待機時間(s)デフォルト値を取得します
+	 * 明示的な行ロック時の待機時間(s)デフォルト値を取得する.
 	 *
 	 * @return 明示的な行ロック時の待機時間(s)デフォルト値
 	 */
 	int getDefaultForUpdateWaitSeconds();
 
 	/**
-	 * 明示的な行ロック時の待機時間(s)デフォルト値を設定する
+	 * 明示的な行ロック時の待機時間(s)デフォルト値を設定する.
 	 *
 	 * @param defaultForUpdateWaitSeconds 明示的な行ロック時の待機時間(s)デフォルト値
 	 * @return SqlAgentFactory
 	 */
 	SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds);
+
+	/**
+	 * ForUpdateTypeの指定を厳格に扱うかどうかを取得する.
+	 *
+	 * @return ForUpdateTypeの指定を厳格に扱うかどうか
+	 */
+	boolean isStrictForUpdateType();
+
+	/**
+	 * ForUpdateTypeの指定を厳格に扱うかどうかを設定する.
+	 *
+	 * @param strictForUpdateType ForUpdateTypeの指定を厳格に扱うかどうか
+	 * @return SqlAgentFactory
+	 */
+	SqlAgentFactory setStrictForUpdateType(boolean strictForUpdateType);
 
 }

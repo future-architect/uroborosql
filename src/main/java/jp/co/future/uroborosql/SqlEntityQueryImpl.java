@@ -16,6 +16,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
@@ -38,9 +41,13 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author ota
  */
 final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
+	/** ロガー */
+	private static final Logger log = LoggerFactory.getLogger(SqlEntityQueryImpl.class);
+
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
 	private final List<SortOrder> sortOrders;
+	private final Dialect dialect;
 	private long limit;
 	private long offset;
 	private ForUpdateType forUpdateType;
@@ -65,6 +72,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.offset = -1;
 		this.forUpdateType = null;
 		this.waitSeconds = -1;
+		this.dialect = agent.getSqlConfig().getDialect();
 	}
 
 	/**
@@ -117,7 +125,6 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		try {
 			StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause())
 					.append(getOrderByClause());
-			Dialect dialect = agent().getSqlConfig().getDialect();
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
 			}
@@ -139,9 +146,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	private StringBuilder aggregationSourceSql() {
 		StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause());
-		Dialect dialect = agent().getSqlConfig().getDialect();
 		if (dialect.supportsLimitClause()) {
 			sql.append(dialect.getLimitClause(this.limit, this.offset));
+		}
+		if (this.forUpdateType != null) {
+			sql = dialect.addForUpdateClause(sql, this.forUpdateType, this.waitSeconds);
 		}
 		return sql;
 	}
@@ -344,7 +353,6 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 
 		if (!keys.isEmpty()) {
 			StringBuilder sql = new StringBuilder();
-			Dialect dialect = agent().getSqlConfig().getDialect();
 			sql.append("ORDER BY").append(System.lineSeparator());
 			firstFlag = true;
 			for (final TableMetadata.Column key : keys) {
@@ -423,7 +431,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> limit(final long limit) {
-		if (!agent().getSqlConfig().getDialect().supportsLimitClause()) {
+		if (!dialect.supportsLimitClause()) {
 			throw new UroborosqlRuntimeException("Unsupported limit clause.");
 		}
 		this.limit = limit;
@@ -437,7 +445,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> offset(final long offset) {
-		if (!agent().getSqlConfig().getDialect().supportsLimitClause()) {
+		if (!dialect.supportsLimitClause()) {
 			throw new UroborosqlRuntimeException("Unsupported offset clause.");
 		}
 		this.offset = offset;
@@ -451,7 +459,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> forUpdate() {
-		if (agent().getSqlConfig().getDialect().supportsForUpdate()) {
+		if (dialect.supportsForUpdate()) {
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -466,8 +474,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> forUpdateNoWait() {
-		if (agent().getSqlConfig().getDialect().supportsForUpdateNoWait()) {
+		if (dialect.supportsForUpdateNoWait()) {
 			this.forUpdateType = ForUpdateType.NOWAIT;
+			return this;
+		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+				&& dialect.supportsForUpdate()) {
+			log.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
+			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
 			throw new UroborosqlRuntimeException("Unsupported for update nowait clause.");
@@ -481,8 +494,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> forUpdateWait() {
-		if (agent().getSqlConfig().getDialect().supportsForUpdateWait()) {
+		if (dialect.supportsForUpdateWait()) {
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentFactory().getDefaultForUpdateWaitSeconds());
+		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+				&& dialect.supportsForUpdate()) {
+			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			this.forUpdateType = ForUpdateType.NORMAL;
+			return this;
 		} else {
 			throw new UroborosqlRuntimeException("Unsupported for update wait clause.");
 		}
@@ -495,9 +513,14 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> forUpdateWait(final int waitSeconds) {
-		if (agent().getSqlConfig().getDialect().supportsForUpdateWait()) {
+		if (dialect.supportsForUpdateWait()) {
 			this.forUpdateType = ForUpdateType.WAIT;
 			this.waitSeconds = waitSeconds;
+			return this;
+		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+				&& dialect.supportsForUpdate()) {
+			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
 			throw new UroborosqlRuntimeException("Unsupported for update wait clause.");
