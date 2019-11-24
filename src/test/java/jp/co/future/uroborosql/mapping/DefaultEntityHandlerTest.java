@@ -659,6 +659,10 @@ public class DefaultEntityHandlerTest {
 				config.getSqlAgentFactory().setDefaultForUpdateWaitSeconds(30);
 				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(30));
 
+				assertThat(config.getSqlAgentFactory().isStrictForUpdateType(), is(false));
+				config.getSqlAgentFactory().setStrictForUpdateType(true);
+				assertThat(config.getSqlAgentFactory().isStrictForUpdateType(), is(true));
+
 				agent.required(() -> {
 					List<TestEntity3> list = agent.query(TestEntity3.class).forUpdate().collect();
 					assertThat(list.size(), is(4));
@@ -696,6 +700,36 @@ public class DefaultEntityHandlerTest {
 				} catch (Throwable th) {
 					fail();
 				}
+
+				config.getSqlAgentFactory().setStrictForUpdateType(false);
+				try {
+					assertThat(agent.query(TestEntity3.class).forUpdateNoWait().first().isPresent(), is(true));
+				} catch (Throwable th) {
+					fail();
+				}
+
+				try {
+					assertThat(agent.query(TestEntity3.class).forUpdateWait().first().isPresent(), is(true));
+				} catch (Throwable th) {
+					fail();
+				}
+
+				try {
+					assertThat(agent.query(TestEntity3.class).forUpdateWait(10).first().isPresent(), is(true));
+				} catch (Throwable th) {
+					fail();
+				}
+
+				try {
+					agent.query(TestEntity3.class)
+							.equal("id", 3).forUpdate()
+							.notExists(() -> {
+								throw new IllegalStateException();
+							});
+				} catch (Throwable th) {
+					fail();
+				}
+
 			});
 		}
 	}
