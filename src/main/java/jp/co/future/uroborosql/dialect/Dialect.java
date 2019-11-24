@@ -183,4 +183,14 @@ public interface Dialect {
 	 * @return FOR UPDATE句を追加したSQL文
 	 */
 	StringBuilder addForUpdateClause(StringBuilder sql, ForUpdateType forUpdateType, int waitSeconds);
+
+	/**
+	 * 乗除を行うためのSQL文字列を取得する
+	 * @param dividend 除算される値
+	 * @param divisor 除算する値
+	 * @return 乗除を行うためのSQL文字列
+	 */
+	default String getModLiteral(final String dividend, final String divisor) {
+		return dividend + " % " + divisor;
+	}
 }

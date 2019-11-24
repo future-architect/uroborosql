@@ -29,6 +29,7 @@ public class TableMetadataImpl implements TableMetadata {
 		private String camelName;
 		private String identifier;
 		private int dataType;
+		private final int columnSize;
 		private Integer keySeq = null;
 		private final String identifierQuoteString;
 		private final String remarks;
@@ -40,14 +41,16 @@ public class TableMetadataImpl implements TableMetadata {
 		 *
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
+		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
 		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
-				final int ordinalPosition, final String identifierQuoteString) {
-			this(columnName, dataType.getVendorTypeNumber(), remarks, nullable, ordinalPosition, identifierQuoteString);
+		public Column(final String columnName, final SQLType dataType, final int columnSize, final String remarks,
+				final String nullable, final int ordinalPosition, final String identifierQuoteString) {
+			this(columnName, dataType.getVendorTypeNumber(), columnSize, remarks, nullable, ordinalPosition,
+					identifierQuoteString);
 		}
 
 		/**
@@ -55,15 +58,17 @@ public class TableMetadataImpl implements TableMetadata {
 		 *
 		 * @param columnName カラム名
 		 * @param dataType データタイプ
+		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
 		 * @param nullable NULL可かどうか
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
-				final int ordinalPosition, final String identifierQuoteString) {
+		public Column(final String columnName, final int dataType, final int columnSize, final String remarks,
+				final String nullable, final int ordinalPosition, final String identifierQuoteString) {
 			this.columnName = columnName;
 			this.dataType = dataType;
+			this.columnSize = columnSize;
 			this.remarks = remarks;
 			this.nullable = "YES".equalsIgnoreCase(nullable);
 			this.ordinalPosition = ordinalPosition;
@@ -76,40 +81,20 @@ public class TableMetadataImpl implements TableMetadata {
 		}
 
 		/**
-		 * コンストラクタ
+		 * {@inheritDoc}
 		 *
-		 * @param columnName カラム名
-		 * @param dataType データタイプ
-		 * @param remarks コメント文字列
-		 * @param nullable NULL可かどうか
-		 * @param ordinalPosition 列インデックス
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getColumnName()
 		 */
-		@Deprecated
-		public Column(final String columnName, final SQLType dataType, final String remarks, final String nullable,
-				final int ordinalPosition) {
-			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
-		}
-
-		/**
-		 * コンストラクタ
-		 *
-		 * @param columnName カラム名
-		 * @param dataType データタイプ
-		 * @param remarks コメント文字列
-		 * @param nullable NULL可かどうか
-		 * @param ordinalPosition 列インデックス
-		 */
-		@Deprecated
-		public Column(final String columnName, final int dataType, final String remarks, final String nullable,
-				final int ordinalPosition) {
-			this(columnName, dataType, remarks, nullable, ordinalPosition, null);
-		}
-
 		@Override
 		public String getColumnName() {
 			return this.columnName;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getCamelColumnName()
+		 */
 		@Override
 		public String getCamelColumnName() {
 			return this.camelName != null ? this.camelName
@@ -145,6 +130,16 @@ public class TableMetadataImpl implements TableMetadata {
 		 */
 		public void setDataType(final int dataType) {
 			this.dataType = dataType;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getColumnSize()
+		 */
+		@Override
+		public int getColumnSize() {
+			return columnSize;
 		}
 
 		/**

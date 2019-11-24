@@ -441,7 +441,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				: MappingUtils.getVersionMappingColumn(type);
 
 		MappingColumn versionColumn = versionMappingColumn.orElse(null);
-
+		OptimisticLockSupplier optimisticLockSupplier = Optional.ofNullable(versionColumn)
+				.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier()))
+				.orElse(null);
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
 			if (!mappingColumns.isEmpty()) {
@@ -471,8 +473,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			boolean isVersionColumn = versionColumn != null
 					&& camelColName.equalsIgnoreCase(versionColumn.getCamelName());
 			if (isVersionColumn) {
-				parts.append(col.getColumnIdentifier());
-				parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
+				parts.append(optimisticLockSupplier.getPart(col, getSqlConfig()));
 			} else {
 				parts.append(col.getColumnIdentifier());
 				parts.append(" = /*").append(camelColName).append("*/''");
@@ -538,6 +539,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			});
 		}
 		return sql.toString();
+	}
+
+	protected void addVersionColumn(final StringBuilder parts, final TableMetadata.Column col) {
+		parts.append(col.getColumnIdentifier());
+		parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
 	}
 
 	/**

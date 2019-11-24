@@ -69,6 +69,13 @@ public interface TableMetadata {
 		int getDataType();
 
 		/**
+		 * カラムサイズ取得
+		 *
+		 * @return カラムサイズ
+		 */
+		int getColumnSize();
+
+		/**
 		 * 主キー内の連番取得 (値1は主キーの最初の列、値2は主キーの2番目の列を表す)。
 		 *
 		 * @return 主キー内の連番
@@ -242,8 +249,10 @@ public interface TableMetadata {
 					String isNullable = rs.getString("IS_NULLABLE");
 					int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
-					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks,
-							isNullable, ordinalPosition, identifierQuoteString);
+					int columnSize = rs.getInt("COLUMN_SIZE");
+
+					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, columnSize,
+							remarks, isNullable, ordinalPosition, identifierQuoteString);
 					entityMetadata.addColumn(column);
 					columns.put(column.getColumnName(), column);
 				}
