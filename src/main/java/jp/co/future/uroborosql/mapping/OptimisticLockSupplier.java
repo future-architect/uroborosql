@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.mapping;
 
 import java.util.Map;
@@ -24,6 +30,7 @@ public abstract class OptimisticLockSupplier {
 	/**
 	 * 楽観ロックサプライヤの取得
 	 *
+	 * @param supplier 楽観ロックサプライヤクラス
 	 * @return 楽観ロックサプライヤ
 	 * @throws UroborosqlRuntimeException 指定した楽観ロックサプライヤがServiceLoaderに登録されていない場合
 	 */
