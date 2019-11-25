@@ -81,6 +81,9 @@ public class DefaultEntityHandlerTest {
 				stmt.execute("drop table if exists test_data_timestamp_lock_version");
 				stmt.execute(
 						"create table if not exists test_data_timestamp_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version BIGINT)");
+				stmt.execute("drop table if exists test_data_field_increment_lock_version");
+				stmt.execute(
+						"create table if not exists test_data_field_increment_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version SMALLINT)");
 			}
 		}
 
@@ -96,6 +99,9 @@ public class DefaultEntityHandlerTest {
 			agent.updateWith("delete from test_data_no_key").count();
 			agent.updateWith("delete from test_data_multi_key").count();
 			agent.updateWith("delete from test_data_lock_version").count();
+			agent.updateWith("delete from test_data_cyclic_lock_version").count();
+			agent.updateWith("delete from test_data_timestamp_lock_version").count();
+			agent.updateWith("delete from test_data_field_increment_lock_version").count();
 			agent.commit();
 		}
 	}
@@ -907,6 +913,46 @@ public class DefaultEntityHandlerTest {
 				assertThat(updatedData, is(test));
 				assertThat(updatedData.getName(), is("updatename"));
 				assertThat(updatedData.getLockVersion(), not(is(insertedData.getLockVersion())));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateFieldIncrementLockVersionMin() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				assertThat(test.getLockVersion(), is((short) 0));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+						.orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is((short) 1));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateFieldIncrementLockVersionMax() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				test.setLockVersion(Short.MAX_VALUE);
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+						.orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is(Short.MIN_VALUE));
 			});
 		}
 	}
