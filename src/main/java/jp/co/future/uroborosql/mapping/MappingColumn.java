@@ -10,6 +10,7 @@ import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 
 /**
  * カラムマッピングインターフェース
@@ -118,4 +119,11 @@ public interface MappingColumn {
 	 * @return バージョンカラムの場合は<code>true</code>
 	 */
 	boolean isVersion();
+
+	/**
+	 * {@link Version} の取得
+	 *
+	 * @return {@link Version}
+	 */
+	Version getVersion();
 }

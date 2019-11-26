@@ -40,6 +40,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
 	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
 	private boolean emptyStringEqualsNull = true;
+	private SqlConfig sqlConfig = null;
 
 	/**
 	 * {@inheritDoc}
@@ -440,7 +441,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				: MappingUtils.getVersionMappingColumn(type);
 
 		MappingColumn versionColumn = versionMappingColumn.orElse(null);
-
+		OptimisticLockSupplier optimisticLockSupplier = Optional.ofNullable(versionColumn)
+				.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier()))
+				.orElse(null);
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
 			if (!mappingColumns.isEmpty()) {
@@ -470,8 +473,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			boolean isVersionColumn = versionColumn != null
 					&& camelColName.equalsIgnoreCase(versionColumn.getCamelName());
 			if (isVersionColumn) {
-				parts.append(col.getColumnIdentifier());
-				parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
+				parts.append(optimisticLockSupplier.getPart(col, getSqlConfig()));
 			} else {
 				parts.append(col.getColumnIdentifier());
 				parts.append(" = /*").append(camelColName).append("*/''");
@@ -539,6 +541,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql.toString();
 	}
 
+	protected void addVersionColumn(final StringBuilder parts, final TableMetadata.Column col) {
+		parts.append(col.getColumnIdentifier());
+		parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
+	}
+
 	/**
 	 * DELETE SQL生成
 	 *
@@ -591,7 +598,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		StringBuilder sql = new StringBuilder("INSERT ").append("/* ")
 				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
-				.append(" INTO ").append(metadata.getTableIdentifier()).append("(").append(System.lineSeparator());
+				.append(" INTO ").append(metadata.getTableIdentifier()).append(" (").append(System.lineSeparator());
 
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
@@ -752,4 +759,25 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private String buildBulkParamName(final String base, final int entityIndex) {
 		return base + "$" + entityIndex;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
+	 */
+	@Override
+	public SqlConfig getSqlConfig() {
+		return this.sqlConfig;
+	}
+
 }

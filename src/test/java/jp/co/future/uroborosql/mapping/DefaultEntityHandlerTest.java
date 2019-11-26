@@ -54,7 +54,7 @@ public class DefaultEntityHandlerTest {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute(
-						"create table if not exists test( \"ID\" NUMERIC(4),name VARCHAR(10),\"Age\" NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version NUMERIC(4), primary key(id))");
+						"create table if not exists test( \"ID\" NUMERIC(4),name VARCHAR(10),\"Age\" NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version INTEGER, primary key(id))");
 				stmt.execute("comment on table test is 'test'");
 				stmt.execute("comment on column test.\"ID\" is 'id'");
 				stmt.execute("comment on column test.name is 'name'");
@@ -73,6 +73,17 @@ public class DefaultEntityHandlerTest {
 				stmt.execute("drop table if exists test_data_lock_version");
 				stmt.execute(
 						"create table if not exists test_data_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version NUMERIC(10))");
+
+				stmt.execute("drop table if exists test_data_cyclic_lock_version");
+				stmt.execute(
+						"create table if not exists test_data_cyclic_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version NUMERIC(10))");
+
+				stmt.execute("drop table if exists test_data_timestamp_lock_version");
+				stmt.execute(
+						"create table if not exists test_data_timestamp_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version BIGINT)");
+				stmt.execute("drop table if exists test_data_field_increment_lock_version");
+				stmt.execute(
+						"create table if not exists test_data_field_increment_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version SMALLINT)");
 			}
 		}
 
@@ -88,6 +99,9 @@ public class DefaultEntityHandlerTest {
 			agent.updateWith("delete from test_data_no_key").count();
 			agent.updateWith("delete from test_data_multi_key").count();
 			agent.updateWith("delete from test_data_lock_version").count();
+			agent.updateWith("delete from test_data_cyclic_lock_version").count();
+			agent.updateWith("delete from test_data_timestamp_lock_version").count();
+			agent.updateWith("delete from test_data_field_increment_lock_version").count();
 			agent.commit();
 		}
 	}
@@ -826,7 +840,6 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateLockVersionOnly() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityLockVersion test = new TestEntityLockVersion(1L, "name1");
@@ -838,6 +851,122 @@ public class DefaultEntityHandlerTest {
 				TestEntityLockVersion data = agent.find(TestEntityLockVersion.class).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateCyclicLockVersionMin() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityCyclicLockVersion test = new TestEntityCyclicLockVersion(1L, "name1");
+				assertThat(test.getLockVersion(), is(0));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityCyclicLockVersion data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is(1));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateCyclicLockVersionMax() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityCyclicLockVersion test = new TestEntityCyclicLockVersion(1L, "name1");
+				test.setLockVersion(1000000000);
+				assertThat(test.getLockVersion(), is(1000000000));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityCyclicLockVersion data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is(1));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateTimestampLockVersion() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityTimestampLockVersion test = new TestEntityTimestampLockVersion(1L, "name1");
+				assertThat(test.getLockVersion(), is(0L));
+				agent.insert(test);
+
+				TestEntityTimestampLockVersion insertedData = agent.find(TestEntityTimestampLockVersion.class)
+						.orElse(null);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityTimestampLockVersion updatedData = agent.find(TestEntityTimestampLockVersion.class)
+						.orElse(null);
+				assertThat(updatedData, is(test));
+				assertThat(updatedData.getName(), is("updatename"));
+				assertThat(updatedData.getLockVersion(), not(is(insertedData.getLockVersion())));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateFieldIncrementLockVersionMin() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				assertThat(test.getLockVersion(), is((short) 0));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+						.orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is((short) 1));
+			});
+		}
+	}
+
+	@Test
+	public void testUpdateFieldIncrementLockVersionMax() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				test.setLockVersion(Short.MAX_VALUE);
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
+
+				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+						.orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getName(), is("updatename"));
+				assertThat(data.getLockVersion(), is(Short.MIN_VALUE));
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testUpdateCustomLockVersionWithNoEntry() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntityCustomLockVersion test = new TestEntityCustomLockVersion(1L, "name1");
+				assertThat(test.getLockVersion(), is(0L));
+				agent.insert(test);
+
+				test.setName("updatename");
+				agent.update(test);
 			});
 		}
 	}

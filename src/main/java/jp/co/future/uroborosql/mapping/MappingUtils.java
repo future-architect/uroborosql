@@ -63,7 +63,7 @@ public final class MappingUtils {
 		private final GeneratedValue generatedValue;
 		private final SequenceGenerator sequenceGenerator;
 		private final Transient transientAnno;
-		private final boolean isVersion;
+		private final Version versionAnno;
 
 		MappingColumnImpl(final Field field, final JavaType javaType) {
 			this.field = field;
@@ -83,7 +83,7 @@ public final class MappingUtils {
 			this.generatedValue = field.getAnnotation(GeneratedValue.class);
 			this.sequenceGenerator = field.getAnnotation(SequenceGenerator.class);
 			this.transientAnno = field.getAnnotation(Transient.class);
-			this.isVersion = field.getAnnotation(Version.class) != null;
+			this.versionAnno = field.getAnnotation(Version.class);
 
 			if (this.isId && this.generatedValue == null) {
 				throw new UroborosqlRuntimeException("@Id annotation is set in the field [" + field.getName()
@@ -217,7 +217,17 @@ public final class MappingUtils {
 		 */
 		@Override
 		public boolean isVersion() {
-			return isVersion;
+			return this.versionAnno != null;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getVersion()
+		 */
+		@Override
+		public Version getVersion() {
+			return this.versionAnno;
 		}
 	}
 

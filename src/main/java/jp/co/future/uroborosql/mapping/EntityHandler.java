@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
@@ -20,7 +21,7 @@ import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
  * @param <ENTITY> エンティティクラス
  * @author ota
  */
-public interface EntityHandler<ENTITY> {
+public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	/**
 	 * エンティティ型を返す
 	 *

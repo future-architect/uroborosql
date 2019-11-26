@@ -1,0 +1,4 @@
+jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier
+jp.co.future.uroborosql.mapping.CyclicLockVersionOptimisticLockSupplier
+jp.co.future.uroborosql.mapping.TimestampOptimisticLockSupplier
+jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier

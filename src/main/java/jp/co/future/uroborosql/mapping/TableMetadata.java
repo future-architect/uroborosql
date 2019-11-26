@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,9 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author ota
  */
 public interface TableMetadata {
+	/** QuoteStringで囲む必要があるテーブルのパターン(大文字小文字混在、もしくは英数字以外を含む) */
+	Pattern TABLE_NAME_PATTERN = Pattern.compile("(?=.*[a-z])(?=.*[A-Z]).*|.*[^A-Za-z0-9_].*");
+
 	/**
 	 * カラム情報
 	 */
@@ -63,6 +67,13 @@ public interface TableMetadata {
 		 * @return カラム型を表す値
 		 */
 		int getDataType();
+
+		/**
+		 * カラムサイズ取得
+		 *
+		 * @return カラムサイズ
+		 */
+		int getColumnSize();
 
 		/**
 		 * 主キー内の連番取得 (値1は主キーの最初の列、値2は主キーの2番目の列を表す)。
@@ -238,8 +249,10 @@ public interface TableMetadata {
 					String isNullable = rs.getString("IS_NULLABLE");
 					int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
-					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, remarks,
-							isNullable, ordinalPosition, identifierQuoteString);
+					int columnSize = rs.getInt("COLUMN_SIZE");
+
+					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, columnSize,
+							remarks, isNullable, ordinalPosition, identifierQuoteString);
 					entityMetadata.addColumn(column);
 					columns.put(column.getColumnName(), column);
 				}
@@ -247,7 +260,11 @@ public interface TableMetadata {
 		}
 		entityMetadata.setSchema(schema);
 		entityMetadata.setTableName(tableName);
-		entityMetadata.setIdentifierQuoteString(identifierQuoteString);
+		if (TABLE_NAME_PATTERN.matcher(tableName).matches()) {
+			entityMetadata.setIdentifierQuoteString(identifierQuoteString);
+		} else {
+			entityMetadata.setIdentifierQuoteString("");
+		}
 		try (ResultSet rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
 			while (rs.next()) {
 				String columnName = rs.getString(4);

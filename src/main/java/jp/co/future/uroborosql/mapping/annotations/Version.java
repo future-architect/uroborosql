@@ -6,7 +6,13 @@
  */
 package jp.co.future.uroborosql.mapping.annotations;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier;
+import jp.co.future.uroborosql.mapping.OptimisticLockSupplier;
 
 /**
  * エンティティ バージョン情報アノテーション
@@ -16,4 +22,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Version {
+	/** @return 楽観ロックのサプライヤクラス */
+	Class<? extends OptimisticLockSupplier> supplier() default LockVersionOptimisticLockSupplier.class;
 }

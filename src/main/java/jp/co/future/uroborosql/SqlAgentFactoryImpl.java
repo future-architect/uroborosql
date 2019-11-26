@@ -109,7 +109,17 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
+	 */
+	@Override
+	public SqlConfig getSqlConfig() {
+		return this.sqlConfig;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
 	 */
 	@Override
 	public void setSqlConfig(final SqlConfig sqlConfig) {

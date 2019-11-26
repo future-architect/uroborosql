@@ -99,4 +99,13 @@ public abstract class OracleDialect extends AbstractDialect {
 	 */
 	protected abstract boolean isTargetVersion(int majorVersion);
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getModLiteral(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public String getModLiteral(final String dividend, final String divisor) {
+		return "MOD(" + dividend + ", " + divisor + ")";
+	}
 }
