@@ -24,14 +24,14 @@ Installation
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.15.2</version>
+    <version>0.16.0</version>
 </dependency>
 ```
 
 #### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.15.2'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.16.0'
 ```
 
 Documentation
