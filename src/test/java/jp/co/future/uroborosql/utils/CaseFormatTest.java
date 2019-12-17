@@ -48,8 +48,10 @@ public class CaseFormatTest {
 		assertEquals("Pascal", CaseFormat.PASCAL_CASE.convert("PASCAL"));
 		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("CONVERT_TO_PASCAL"));
 		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convert_to_pascal"));
-		assertEquals("Converttopascal", CaseFormat.PASCAL_CASE.convert("convertToPascal"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convertToPascal"));
 		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convert_to_pascal_"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("ConvertToPascal"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convertToPascal"));
 		assertEquals("ToPascal", CaseFormat.PASCAL_CASE.convert("_TO_PASCAL"));
 		assertEquals("ToPascal", CaseFormat.PASCAL_CASE.convert("_TO_PASCAL_"));
 		assertEquals("", CaseFormat.PASCAL_CASE.convert(null));
@@ -63,6 +65,7 @@ public class CaseFormatTest {
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("CONVERT_TO_CAMEL"));
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convert_to_camel"));
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convertToCamel"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("ConvertToCamel"));
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convert_to_camel_"));
 		assertEquals("ToCamel", CaseFormat.CAMEL_CASE.convert("_TO_CAMEL"));
 		assertEquals("ToCamel", CaseFormat.CAMEL_CASE.convert("_TO_CAMEL_"));
@@ -97,6 +100,20 @@ public class CaseFormatTest {
 		assertEquals("", CaseFormat.LOWER_CASE.convert(null));
 		assertEquals("", CaseFormat.LOWER_CASE.convert(""));
 		assertEquals("", CaseFormat.LOWER_CASE.convert(" "));
+	}
+
+	@Test
+	public void testNone() {
+		assertEquals("snake", CaseFormat.NONE.convert("snake"));
+		assertEquals("convertToSnake", CaseFormat.NONE.convert("convertToSnake"));
+		assertEquals("ConvertToSnake", CaseFormat.NONE.convert("ConvertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.NONE.convert("convert_to_snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.NONE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.NONE.convert("SNAKE"));
+		assertEquals("toSnake", CaseFormat.NONE.convert("toSnake"));
+		assertEquals("", CaseFormat.NONE.convert(null));
+		assertEquals("", CaseFormat.NONE.convert(""));
+		assertEquals("", CaseFormat.NONE.convert(" "));
 	}
 
 }

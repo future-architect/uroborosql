@@ -38,15 +38,18 @@ public enum CaseFormat {
 				return str;
 			}
 			StringBuilder builder = new StringBuilder();
-			str = str.toLowerCase();
 			int len = str.length();
 
 			if (!str.contains("_")) {
+				if (isUpperCase(str)) {
+					str = str.toLowerCase();
+				}
 				builder.append(Character.toUpperCase(str.charAt(0)));
 				if (len > 1) {
 					builder.append(str.substring(1));
 				}
 			} else {
+				str = str.toLowerCase();
 				int i = 0;
 				while (i < len) {
 					char ch = str.charAt(i);
@@ -93,17 +96,24 @@ public enum CaseFormat {
 			if (str.isEmpty()) {
 				return str;
 			}
+			int len = str.length();
 			if (!str.contains("_")) {
 				char ch = str.charAt(0);
 				if ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9') {
 					// 先頭小文字で"_"を含まない場合（つまりすでにCamelCaseの場合）、文字列変換せずにそのまま返す
 					return str;
+				} else if (!isUpperCase(str)) {
+					StringBuilder builder = new StringBuilder();
+					builder.append(Character.toLowerCase(str.charAt(0)));
+					if (len > 1) {
+						builder.append(str.substring(1));
+					}
+					return builder.toString();
 				}
 			}
 			StringBuilder builder = new StringBuilder();
 			str = str.toLowerCase();
 			int i = 0;
-			int len = str.length();
 			while (i < len) {
 				char ch = str.charAt(i);
 				if (ch == '_') {
@@ -217,7 +227,7 @@ public enum CaseFormat {
 	UPPER_CASE {
 
 		@Override
-		public String convert(String original) {
+		public String convert(final String original) {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
@@ -229,12 +239,24 @@ public enum CaseFormat {
 	LOWER_CASE {
 
 		@Override
-		public String convert(String original) {
+		public String convert(final String original) {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
 			return original.trim().toLowerCase();
 		}
+	},
+
+	/** 変換なし */
+	NONE {
+		@Override
+		public String convert(final String original) {
+			if (original == null || "".equals(original)) {
+				return "";
+			}
+			return original.trim();
+		}
+
 	};
 
 	/**
@@ -244,4 +266,18 @@ public enum CaseFormat {
 	 * @return 変換後文字列
 	 */
 	public abstract String convert(String original);
+
+	/**
+	 * 渡された文字列が大文字のみで構成されるかどうかを判定する.
+	 *
+	 * @param str 判定対象文字列
+	 * @return 大文字で構成される場合は<code>true</code>
+	 */
+	private static boolean isUpperCase(final String str) {
+		if (str == null || "".equals(str)) {
+			return false;
+		} else {
+			return str.equals(str.toUpperCase());
+		}
+	}
 }

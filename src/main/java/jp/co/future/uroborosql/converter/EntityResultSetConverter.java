@@ -12,13 +12,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
  * 検索結果の1行を任意型に変換する変換器
@@ -90,7 +91,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 
 	private void bindValue(final E rec, final ResultSet rs, final MappingColumn column) throws SQLException {
 		for (int i = 1; i <= columnCount; i++) {
-			if (columnLabels[i].equalsIgnoreCase(column.getName())) {
+			if (CaseFormat.UPPER_SNAKE_CASE.convert(columnLabels[i]).equalsIgnoreCase(column.getName())) {
 				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, i));
 				return;
 			}
