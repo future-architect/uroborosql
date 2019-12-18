@@ -26,6 +26,8 @@ public enum SqlKind {
 	BATCH_UPDATE,
 	/** PROCEDURE */
 	PROCEDURE,
+	/** TRUNCATE */
+	TRUNCATE,
 	/** NONE */
 	NONE,
 }

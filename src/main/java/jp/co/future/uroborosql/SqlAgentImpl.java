@@ -996,6 +996,30 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#truncate(java.lang.Class)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> SqlAgent truncate(final Class<? extends E> entityType) {
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isAssignableFrom(entityType)) {
+			throw new IllegalArgumentException("Entity type not supported");
+		}
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			SqlContext context = this.contextWith("truncate table " + metadata.getTableIdentifier());
+			context.setSqlKind(SqlKind.TRUNCATE);
+			update(context);
+			return this;
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.TRUNCATE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.AbstractAgent#batchInsert(java.lang.Class, java.util.stream.Stream, jp.co.future.uroborosql.SqlAgent.InsertsCondition, java.util.List)
 	 */
 	@SuppressWarnings("unchecked")

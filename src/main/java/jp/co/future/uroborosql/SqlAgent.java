@@ -659,4 +659,14 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	 */
 	<E> Stream<E> updatesAndReturn(Stream<E> entities);
 
+	/**
+	 * エンティティで指定されたテーブルのtruncateを行う.<br>
+	 * 引き続きSQL操作を行うため、戻り値としてSqlAgentを返却する.
+	 *
+	 * @param <E> エンティティの型
+	 * @param entityType truncateするテーブルのEntity型
+	 * @return SqlAgent
+	 */
+	<E> SqlAgent truncate(Class<? extends E> entityType);
+
 }
