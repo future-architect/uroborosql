@@ -10,37 +10,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 
 /**
- * SQLコンテキストファクトリインタフェース
+ * SQLコンテキストファクトリインタフェース.
  *
  * @author H.Sugimoto
  *
  */
-public interface SqlContextFactory {
+public interface SqlContextFactory extends SqlConfigAware {
 	/** BEAN名 */
 	String FACTORY_BEAN_NAME = "sqlContextFactory";
 
 	/**
-	 * 初期化処理
+	 * 初期化処理.
 	 */
 	void initialize();
 
 	/**
-	 * SQLコンテキスト生成メソッド
+	 * SQLコンテキスト生成メソッド.
 	 *
 	 * @return SQLコンテキスト
 	 */
 	SqlContext createSqlContext();
 
 	/**
-	 * SQLフィルタ管理クラスを取得する
+	 * 定数パラメータプレフィックスを取得.
 	 *
 	 * @return SQLフィルタ管理クラス
 	 */
+	@Deprecated
 	SqlFilterManager getSqlFilterManager();
 
 	/**
@@ -48,6 +50,7 @@ public interface SqlContextFactory {
 	 *
 	 * @param sqlFilterManager SQLフィルタ管理クラス
 	 */
+	@Deprecated
 	void setSqlFilterManager(SqlFilterManager sqlFilterManager);
 
 	/**
@@ -58,7 +61,7 @@ public interface SqlContextFactory {
 	String getConstParamPrefix();
 
 	/**
-	 * 定数パラメータプレフィックスを設定します。
+	 * 定数パラメータプレフィックスを設定.
 	 *
 	 * @param constParamPrefix
 	 *            定数パラメータプレフィックス
@@ -67,14 +70,14 @@ public interface SqlContextFactory {
 	SqlContextFactory setConstParamPrefix(String constParamPrefix);
 
 	/**
-	 * 定数クラス名（FQDN）を取得します。
+	 * 定数クラス名（FQDN）を取得.
 	 *
 	 * @return 定数クラス名（FQDN）
 	 */
 	List<String> getConstantClassNames();
 
 	/**
-	 * 定数クラス名（FQDN）を設定します。
+	 * 定数クラス名（FQDN）を設定.
 	 *
 	 * @param constantClassNames
 	 *            定数クラス名（FQDN）
@@ -83,14 +86,14 @@ public interface SqlContextFactory {
 	SqlContextFactory setConstantClassNames(List<String> constantClassNames);
 
 	/**
-	 * Enum定数パッケージ名を取得します。
+	 * Enum定数パッケージ名を取得.
 	 *
 	 * @return Enum定数パッケージ名
 	 */
 	List<String> getEnumConstantPackageNames();
 
 	/**
-	 * Enum定数パッケージ名（FQDN）を設定します。
+	 * Enum定数パッケージ名（FQDN）を設定.
 	 *
 	 * @param enumConstantPackageNames Enum定数パッケージ名
 	 * @return SqlContextFactory
@@ -98,14 +101,14 @@ public interface SqlContextFactory {
 	SqlContextFactory setEnumConstantPackageNames(List<String> enumConstantPackageNames);
 
 	/**
-	 * 定数クラスパラメータマップを取得します。
+	 * 定数クラスパラメータマップを取得.
 	 *
 	 * @return 定数クラスパラメータマップ
 	 */
 	Map<String, Parameter> getConstParameterMap();
 
 	/**
-	 * 自動バインド用パラメータ生成クラスのリストを取得します。
+	 * 自動バインド用パラメータ生成クラスのリストを取得.
 	 *
 	 * @return 自動バインド用パラメータ生成クラスのリスト
 	 */
@@ -113,7 +116,7 @@ public interface SqlContextFactory {
 	List<AutoBindParameterCreator> getAutoBindParameterCreators();
 
 	/**
-	 * 自動バインド用パラメータ生成クラスのリストを設定します。
+	 * 自動バインド用パラメータ生成クラスのリストを設定.
 	 *
 	 * use {@link #addQueryAutoParameterBinder(Consumer)} , {@link #addUpdateAutoParameterBinder(Consumer)}
 	 *
@@ -125,35 +128,39 @@ public interface SqlContextFactory {
 	SqlContextFactory setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
 
 	/**
-	 * 自動パラメータバインド関数(query用)の追加
+	 * 自動パラメータバインド関数(query用)の追加.
+	 *
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
 	SqlContextFactory addQueryAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
-	 * 自動パラメータバインド関数(query用)の削除
+	 * 自動パラメータバインド関数(query用)の削除.
+	 *
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
 	SqlContextFactory removeQueryAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の追加
+	 * 自動パラメータバインド関数(update/batch/proc用)の追加.
+	 *
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
 	SqlContextFactory addUpdateAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の削除
+	 * 自動パラメータバインド関数(update/batch/proc用)の削除.
+	 *
 	 * @param binder 自動パラメータバインド関数
 	 * @return SqlContextFactory
 	 */
 	SqlContextFactory removeUpdateAutoParameterBinder(Consumer<SqlContext> binder);
 
 	/**
-	 * パラメータ変換クラス{@link BindParameterMapper}を追加
+	 * パラメータ変換クラス{@link BindParameterMapper}を追加.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
 	 * @return SqlContextFactory
@@ -161,7 +168,7 @@ public interface SqlContextFactory {
 	SqlContextFactory addBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 	/**
-	 * パラメータ変換クラス{@link BindParameterMapper}をremove
+	 * パラメータ変換クラス{@link BindParameterMapper}をremove.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
 	 * @return SqlContextFactory
@@ -169,7 +176,7 @@ public interface SqlContextFactory {
 	SqlContextFactory removeBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 	/**
-	 * SqlContextに設定するResultSetTypeの初期値を指定する
+	 * SqlContextに設定するResultSetTypeの初期値を指定.
 	 *
 	 * @param resultSetType ResultSetTypeの初期値
 	 * @return SqlContextFactory
@@ -177,7 +184,7 @@ public interface SqlContextFactory {
 	SqlContextFactory setDefaultResultSetType(int resultSetType);
 
 	/**
-	 * SqlContextに設定するResultSetConcurrencyの初期値を指定する
+	 * SqlContextに設定するResultSetConcurrencyの初期値を指定.
 	 *
 	 * @param resultSetConcurrency ResultSetConcurrencyの初期値
 	 * @return SqlContextFactory

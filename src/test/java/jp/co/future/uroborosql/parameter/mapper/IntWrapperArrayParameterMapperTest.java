@@ -8,17 +8,25 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Array;
 import java.sql.Connection;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class IntWrapperArrayParameterMapperTest {
+	private Clock clock = null;
+
+	@Before
+	public void setUp() {
+		this.clock = Clock.systemDefaultZone();
+	}
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
 		Array jdbcArray = newProxy(Array.class);
 		Integer[] array = { Integer.valueOf(111), Integer.valueOf(222) };
 

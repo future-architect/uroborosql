@@ -8,6 +8,7 @@ import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.ParseException;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
@@ -16,10 +17,15 @@ import java.util.Date;
 import org.junit.Test;
 
 public class BindParameterMapperManagerTest {
+	private Clock clock;
+
+	public void setUp() {
+		this.clock = Clock.systemDefaultZone();
+	}
 
 	@Test
 	public void test() throws ParseException {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		assertThat(parameterMapperManager.toJdbc(null, null), is(nullValue()));
 
@@ -62,7 +68,7 @@ public class BindParameterMapperManagerTest {
 
 	@Test
 	public void testCustom() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		parameterMapperManager.addMapper(new BindParameterMapper<String>() {
 

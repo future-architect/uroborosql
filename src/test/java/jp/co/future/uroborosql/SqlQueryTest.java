@@ -1001,7 +1001,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.forEach((m) -> {
 					try {
 						agent.update("example/insert_product_regist_work").paramMap(m).count();

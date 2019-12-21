@@ -9,6 +9,8 @@
  */
 package jp.co.future.uroborosql.config;
 
+import java.time.Clock;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -21,21 +23,21 @@ import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
 
 /**
- * SQLを発行するための設定を管理するクラスのインタフェース
+ * SQLを発行するための設定を管理するクラスのインタフェース.
  *
  * @author H.Sugimoto
  */
 public interface SqlConfig {
 
 	/**
-	 * SqlContextの生成
+	 * SqlContextの生成.
 	 *
 	 * @return 生成したSqlContext
 	 */
 	SqlContext context();
 
 	/**
-	 * ファイル指定のSqlContextの生成
+	 * ファイル指定のSqlContextの生成.
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
 	 * @return 生成したSqlContext
@@ -43,7 +45,7 @@ public interface SqlConfig {
 	SqlContext contextFrom(String sqlName);
 
 	/**
-	 * SQL文を指定したSqlContextの生成
+	 * SQL文を指定したSqlContextの生成.
 	 *
 	 * @param sql SQL文の文字列
 	 * @return 生成したSqlContext
@@ -51,7 +53,7 @@ public interface SqlConfig {
 	SqlContext contextWith(String sql);
 
 	/**
-	 * SqlAgentの生成
+	 * SqlAgentの生成.
 	 *
 	 * @deprecated Instead, use the agent() method.
 	 *
@@ -61,9 +63,9 @@ public interface SqlConfig {
 	SqlAgent createAgent();
 
 	/**
-	 * SqlAgentの生成
+	 * SqlAgentの生成.
 	 *
-	 * @return 生成したSqlAgent
+	 * @return 生成したSqlAgent.
 	 */
 	SqlAgent agent();
 
@@ -101,6 +103,13 @@ public interface SqlConfig {
 	 * @return sqlAgentFactory
 	 */
 	SqlAgentFactory getSqlAgentFactory();
+
+	/**
+	 * clock を取得.
+	 *
+	 * @return clock
+	 */
+	Clock getClock();
 
 	/**
 	 * dialect を取得.

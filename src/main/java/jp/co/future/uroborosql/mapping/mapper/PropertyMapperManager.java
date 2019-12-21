@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.mapping.mapper;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +27,10 @@ import jp.co.future.uroborosql.mapping.JavaType;
 public final class PropertyMapperManager {
 	/** デフォルトMapper */
 	private static final PropertyMapper<?>[] DEFAULT_MAPPERS = {
-			new DateTimeApiPropertyMapper(), new BigIntegerPropertyMapper(),
-			new OptionalPropertyMapper(), new OptionalIntPropertyMapper(), new OptionalLongPropertyMapper(),
+			new BigIntegerPropertyMapper(),
+			new OptionalPropertyMapper(),
+			new OptionalIntPropertyMapper(),
+			new OptionalLongPropertyMapper(),
 			new OptionalDoublePropertyMapper(),
 			new DomainPropertyMapper(),
 			new EnumPropertyMapper(), // DomainPropertyMapper・DateTimeApiPropertyMapperより後に設定
@@ -46,20 +49,29 @@ public final class PropertyMapperManager {
 	/** プロパティMapperのリスト */
 	private final List<PropertyMapper<?>> mappers;
 
+	/** DateTimeApiPropertyMapper */
+	private final DateTimeApiPropertyMapper dateTimeApiPropertyMapper;
+
 	/**
-	 * コンストラクタ
+	 * コンストラクタ.
+	 *
+	 * @param clock Clock
 	 */
-	public PropertyMapperManager() {
+	public PropertyMapperManager(final Clock clock) {
 		this.mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
+		this.dateTimeApiPropertyMapper = new DateTimeApiPropertyMapper(clock);
+
 	}
 
 	/**
 	 * コピーコンストラクタ
 	 *
 	 * @param parameterMapperManager コピー元のパラメータ変換クラス
+	 * @param clock Clock
 	 */
-	public PropertyMapperManager(final PropertyMapperManager parameterMapperManager) {
+	public PropertyMapperManager(final PropertyMapperManager parameterMapperManager, final Clock clock) {
 		this.mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
+		this.dateTimeApiPropertyMapper = new DateTimeApiPropertyMapper(clock);
 	}
 
 	/**
@@ -206,6 +218,12 @@ public final class PropertyMapperManager {
 		if (java.sql.SQLXML.class.equals(rawType)) {
 			return rs.getSQLXML(columnIndex);
 		}
+
+		if (dateTimeApiPropertyMapper.canAccept(rawType)
+				&& dateTimeApiPropertyMapper.canAcceptTest(type, rs, columnIndex, this)) {
+			return dateTimeApiPropertyMapper.getValue(type, rs, columnIndex, this);
+		}
+
 		for (PropertyMapper<?> propertyMapper : DEFAULT_MAPPERS) {
 			if (propertyMapper.canAccept(rawType) && propertyMapper.canAcceptTest(type, rs, columnIndex, this)) {
 				return propertyMapper.getValue(type, rs, columnIndex, this);

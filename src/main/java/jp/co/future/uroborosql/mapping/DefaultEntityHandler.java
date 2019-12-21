@@ -37,9 +37,16 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
-	private final PropertyMapperManager propertyMapperManager = new PropertyMapperManager();
+	private PropertyMapperManager propertyMapperManager;
 	private boolean emptyStringEqualsNull = true;
 	private SqlConfig sqlConfig = null;
+
+	/**
+	 * コンストラクタ
+	 */
+	public DefaultEntityHandler() {
+		super();
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -82,8 +89,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
 			throws SQLException {
-		return agent.query(context, new EntityResultSetConverter<>(entityType, new PropertyMapperManager(
-				propertyMapperManager)));
+		return agent.query(context, new EntityResultSetConverter<>(entityType, propertyMapperManager));
 	}
 
 	/**
@@ -771,6 +777,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private String buildBulkParamName(final String base, final int entityIndex) {
 		return base + "$" + entityIndex;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#initialize()
+	 */
+	@Override
+	public void initialize() {
+		this.propertyMapperManager = new PropertyMapperManager(this.sqlConfig.getClock());
 	}
 
 	/**

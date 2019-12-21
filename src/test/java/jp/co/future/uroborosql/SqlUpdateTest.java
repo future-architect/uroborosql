@@ -39,7 +39,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
@@ -63,7 +63,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1))
-				.stream(new MapResultSetConverter(agent.getSqlConfig().getDialect(), CaseFormat.LOWER_SNAKE_CASE))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
 		assertEquals(expectedDataList.toString(), actualDataList.toString());
