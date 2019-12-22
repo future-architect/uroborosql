@@ -47,6 +47,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
 	private final List<SortOrder> sortOrders;
+	private final List<String> optimizerHints;
 	private final Dialect dialect;
 	private long limit;
 	private long offset;
@@ -68,6 +69,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.entityHandler = entityHandler;
 		this.entityType = entityType;
 		this.sortOrders = new ArrayList<>();
+		this.optimizerHints = new ArrayList<>();
 		this.limit = -1;
 		this.offset = -1;
 		this.forUpdateType = null;
@@ -130,6 +132,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			}
 			if (this.forUpdateType != null) {
 				sql = dialect.addForUpdateClause(sql, this.forUpdateType, this.waitSeconds);
+			}
+			if (!this.optimizerHints.isEmpty()) {
+				sql = dialect.addOptimizerHints(sql, this.optimizerHints);
 			}
 			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
@@ -528,6 +533,21 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#hint(java.lang.String)
+	 */
+	@Override
+	public SqlEntityQuery<E> hint(final String hint) {
+		if (dialect.supportsOptimizerHints()) {
+			this.optimizerHints.add(hint);
+		} else {
+			log.warn("Optimizer Hints is not supported.");
+		}
+		return this;
+	}
+
+	/**
 	 * Sort Order
 	 */
 	private static class SortOrder {
@@ -573,5 +593,4 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return nulls;
 		}
 	}
-
 }

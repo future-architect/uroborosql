@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -140,6 +142,7 @@ public class Oracle12DialectTest {
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(true));
+		assertThat(dialect.supportsOptimizerHints(), is(true));
 	}
 
 	@Test
@@ -160,4 +163,35 @@ public class Oracle12DialectTest {
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
+
+	@Test
+	public void testAddOptimizerHints1() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM test WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (test test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT /*+ INDEX (test test_ix) USE_NL */" + System.lineSeparator()
+						+ " * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+	}
+
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT /* SQL_ID */")
+				.append(System.lineSeparator())
+				.append(" * FROM test WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (test test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT /* SQL_ID */ /*+ INDEX (test test_ix) USE_NL */" + System.lineSeparator()
+						+ " * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+	}
+
 }

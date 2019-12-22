@@ -11,6 +11,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -121,4 +123,30 @@ public class PostgresqlDialectTest {
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
+
+	@Test
+	public void testAddOptimizerHints1() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM test")
+				.append(System.lineSeparator())
+				.append("WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (test test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("/*+" + System.lineSeparator() + "\t" + "INDEX (test test_ix)"
+						+ System.lineSeparator() + "\t"
+						+ "USE_NL"
+						+ System.lineSeparator() + " */"
+						+ System.lineSeparator() + "SELECT"
+						+ System.lineSeparator()
+						+ " * FROM test"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+	}
+
 }

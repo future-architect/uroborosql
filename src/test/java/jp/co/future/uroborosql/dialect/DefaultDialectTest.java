@@ -12,6 +12,8 @@ import java.sql.Timestamp;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -81,6 +83,7 @@ public class DefaultDialectTest {
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
+		assertThat(dialect.supportsOptimizerHints(), is(false));
 	}
 
 	@Test
@@ -240,5 +243,13 @@ public class DefaultDialectTest {
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE NOWAIT"));
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testAddOptimizerHints() {
+		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("USE_NL");
+		dialect.addOptimizerHints(sql, hints);
 	}
 }

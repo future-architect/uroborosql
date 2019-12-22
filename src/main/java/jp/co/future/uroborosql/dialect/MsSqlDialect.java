@@ -6,6 +6,10 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
@@ -68,6 +72,16 @@ public class MsSqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsOptimizerHints()
+	 */
+	@Override
+	public boolean supportsOptimizerHints() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override
@@ -83,15 +97,33 @@ public class MsSqlDialect extends AbstractDialect {
 	@Override
 	public StringBuilder addForUpdateClause(final StringBuilder sql, final ForUpdateType forUpdateType,
 			final int waitSeconds) {
-		StringBuilder forUpdate = new StringBuilder("$1 WITH (UPDLOCK, ROWLOCK");
-		if (forUpdateType == ForUpdateType.NORMAL) {
-			forUpdate.append(") ");
-		} else if (forUpdateType == ForUpdateType.NOWAIT) {
-			forUpdate.append(", NOWAIT) ");
+		List<String> hints = new ArrayList<>();
+		hints.add("UPDLOCK");
+		hints.add("ROWLOCK");
+		if (forUpdateType == ForUpdateType.NOWAIT) {
+			hints.add("NOWAIT");
 		}
-
-		String origSql = sql.toString();
-		return new StringBuilder(origSql.replaceFirst("((FROM|from)\\s+\\w+)\\s+", forUpdate.toString()));
-
+		String forUpdate = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+				+ System.lineSeparator();
+		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+\\w+)\\s+", forUpdate));
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addOptimizerHints(java.lang.StringBuilder, java.util.List)
+	 */
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		if (sql.indexOf("WITH (") > 0) {
+			// forUpdateのヒントが追加されている場合
+			String hintStr = "WITH ($1, " + hints.stream().collect(Collectors.joining(", ")) + ")";
+			return new StringBuilder(sql.toString().replaceFirst("WITH \\((.+)\\)", hintStr));
+		} else {
+			String hintStr = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+					+ System.lineSeparator();
+			return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+\\w+)\\s+", hintStr));
+		}
+	}
+
 }
