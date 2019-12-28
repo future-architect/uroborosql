@@ -149,4 +149,23 @@ public class PostgresqlDialectTest {
 						+ System.lineSeparator()));
 	}
 
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM PUBLIC.TEST_1");
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("/*+" + System.lineSeparator() + "\t" + "INDEX (PUBLIC.TEST_1 test_ix)"
+						+ System.lineSeparator() + "\t"
+						+ "USE_NL"
+						+ System.lineSeparator() + " */"
+						+ System.lineSeparator() + "SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1"));
+	}
+
 }

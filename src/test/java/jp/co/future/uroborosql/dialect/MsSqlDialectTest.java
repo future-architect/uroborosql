@@ -125,7 +125,7 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints() {
+	public void testAddOptimizerHints1() {
 		StringBuilder sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
@@ -150,6 +150,28 @@ public class MsSqlDialectTest {
 						+ " * FROM test WITH (UPDLOCK, ROWLOCK, NOWAIT, INDEX (test test_ix), USE_NL)"
 						+ System.lineSeparator()
 						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM PUBLIC.TEST_1");
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 WITH (INDEX (PUBLIC.TEST_1 test_ix), USE_NL)"
+						+ System.lineSeparator()));
+		assertThat(
+				dialect.addOptimizerHints(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1), hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 WITH (UPDLOCK, ROWLOCK, NOWAIT, INDEX (PUBLIC.TEST_1 test_ix), USE_NL)"
 						+ System.lineSeparator()));
 	}
 

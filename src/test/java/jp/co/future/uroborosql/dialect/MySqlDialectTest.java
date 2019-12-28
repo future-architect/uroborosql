@@ -132,4 +132,20 @@ public class MySqlDialectTest {
 						+ System.lineSeparator()));
 	}
 
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM PUBLIC.TEST_1");
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 INDEX (PUBLIC.TEST_1 test_ix) USE_NL"
+						+ System.lineSeparator()));
+	}
+
 }

@@ -105,7 +105,7 @@ public class MsSqlDialect extends AbstractDialect {
 		}
 		String forUpdate = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 				+ System.lineSeparator();
-		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+\\w+)\\s+", forUpdate));
+		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", forUpdate));
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class MsSqlDialect extends AbstractDialect {
 		} else {
 			String hintStr = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 					+ System.lineSeparator();
-			return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+\\w+)\\s+", hintStr));
+			return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
 		}
 	}
 

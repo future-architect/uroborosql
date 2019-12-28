@@ -175,15 +175,14 @@ public class Oracle10DialectTest {
 	public void testAddOptimizerHints2() {
 		StringBuilder sql = new StringBuilder("SELECT /* SQL_ID */")
 				.append(System.lineSeparator())
-				.append(" * FROM test WHERE 1 = 1 ORDER id")
-				.append(System.lineSeparator());
+				.append(" * FROM PUBLIC.TEST_1");
 		List<String> hints = new ArrayList<>();
-		hints.add("INDEX (test test_ix)");
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
 		hints.add("USE_NL");
 
 		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
-				is("SELECT /* SQL_ID */ /*+ INDEX (test test_ix) USE_NL */" + System.lineSeparator()
-						+ " * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+				is("SELECT /* SQL_ID */ /*+ INDEX (PUBLIC.TEST_1 test_ix) USE_NL */" + System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1"));
 	}
 
 }
