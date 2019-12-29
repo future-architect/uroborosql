@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +25,7 @@ import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * エラーハンドリングのテスト

@@ -940,7 +940,7 @@ public class SqlParserTest {
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			String msg = ex.getMessage();
-			assertEquals("1", "Parameter [val2] is not bound.", msg);
+			assertEquals("1", "Parameter [val2] is not found.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
 		}
@@ -966,7 +966,7 @@ public class SqlParserTest {
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			String msg = ex.getMessage();
-			assertEquals("1", "Parameter [val2, val3] is not bound.", msg);
+			assertEquals("1", "Parameter [val2, val3] is not found.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
 		}

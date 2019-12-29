@@ -13,7 +13,7 @@ import java.sql.Connection;
 
 import jp.co.future.uroborosql.SqlAgent;
 
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.After;
 import org.junit.Before;

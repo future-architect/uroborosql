@@ -13,6 +13,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -28,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -103,11 +105,10 @@ public class SqlAgentImpl extends AbstractAgent {
 		// INパラメータ設定
 		sqlContext.bindParams(stmt);
 
-		StopWatch watch = null;
+		Instant startTime = null;
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Execute search SQL.");
-			watch = new StopWatch();
-			watch.start();
+			startTime = Instant.now(Clock.systemDefaultZone());
 		}
 
 		// 前処理
@@ -183,9 +184,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			// 後処理
 			afterQuery(sqlContext);
-			if (LOG.isDebugEnabled() && watch != null) {
-				watch.stop();
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+			if (LOG.isDebugEnabled() && startTime != null) {
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -257,7 +258,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
-		StopWatch watch = null;
+		Instant startTime = null;
 
 		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
@@ -266,8 +267,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute update SQL.");
-				watch = new StopWatch();
-				watch.start();
+				startTime = Instant.now(Clock.systemDefaultZone());
 			}
 
 			// 前処理
@@ -345,9 +345,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			return 0;
 		} finally {
 			afterUpdate(sqlContext);
-			if (LOG.isDebugEnabled() && watch != null) {
-				watch.stop();
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+			if (LOG.isDebugEnabled() && startTime != null) {
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -384,7 +384,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
-		StopWatch watch = null;
+		Instant startTime = null;
 
 		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
 
@@ -393,8 +393,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute batch process.");
-				watch = new StopWatch();
-				watch.start();
+				startTime = Instant.now(Clock.systemDefaultZone());
 			}
 
 			// 前処理
@@ -473,9 +472,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			// 後処理
 			afterBatch(sqlContext);
-			if (LOG.isDebugEnabled() && watch != null) {
-				watch.stop();
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+			if (LOG.isDebugEnabled() && startTime != null) {
+				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -517,7 +516,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
-		StopWatch watch = null;
+		Instant startTime = null;
 
 		try (CallableStatement callableStatement = getCallableStatement(sqlContext)) {
 
@@ -526,8 +525,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute stored procedure.");
-				watch = new StopWatch();
-				watch.start();
+				startTime = Instant.now(Clock.systemDefaultZone());
 			}
 
 			beforeProcedure(sqlContext);
@@ -590,9 +588,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			handleException(sqlContext, ex);
 		} finally {
 			afterProcedure(sqlContext);
-			if (LOG.isDebugEnabled() && watch != null) {
-				watch.stop();
-				LOG.debug("Stored procedure execution time [{}] : [{}]", sqlContext.getSqlName(), watch.toString());
+			if (LOG.isDebugEnabled() && startTime != null) {
+				LOG.debug("Stored procedure execution time [{}] : [{}]", sqlContext.getSqlName(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -1361,7 +1359,24 @@ public class SqlAgentImpl extends AbstractAgent {
 				}
 			}
 		}
+	}
 
+	/**
+	 * 経過時間を計算し、HH:MM:SS.SSSにフォーマットする.
+	 *
+	 * @param start 開始時間
+	 * @param end 終了時間
+	 * @return フォーマットした経過時間
+	 */
+	private String formatElapsedTime(final Instant start, final Instant end) {
+		Duration duration = Duration.between(start, end);
+		long elapsed = duration.getSeconds();
+		long hours = elapsed / 3_600;
+		long minutes = elapsed % 3_600 / 60;
+		long seconds = elapsed % 60;
+		long micros = (duration.toNanos() - elapsed * 1_000_000_000) / 1_000;
+
+		return String.format("%02d:%02d:%02d.%06d", hours, minutes, seconds, micros);
 	}
 
 }

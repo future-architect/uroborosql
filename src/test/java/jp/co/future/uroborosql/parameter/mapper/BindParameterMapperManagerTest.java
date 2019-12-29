@@ -11,8 +11,9 @@ import java.text.ParseException;
 import java.time.Month;
 import java.util.Date;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.utils.DateUtils;
 
 public class BindParameterMapperManagerTest {
 
@@ -99,17 +100,17 @@ public class BindParameterMapperManagerTest {
 
 		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
-			if (getOriginal.equals(method)) {
-				return o;
-			}
+					if (getOriginal.equals(method)) {
+						return o;
+					}
 
-			for (int i = 0; i < args.length; i++) {
-				if (args[i] instanceof ProxyContainer) {
-					args[i] = ((ProxyContainer) args[i]).getOriginal();
-				}
-			}
-			return method.invoke(o, args);
-		});
+					for (int i = 0; i < args.length; i++) {
+						if (args[i] instanceof ProxyContainer) {
+							args[i] = ((ProxyContainer) args[i]).getOriginal();
+						}
+					}
+					return method.invoke(o, args);
+				});
 		return proxyInstance;
 	}
 }

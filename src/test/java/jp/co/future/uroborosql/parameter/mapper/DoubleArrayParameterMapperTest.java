@@ -8,8 +8,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Array;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 
 public class DoubleArrayParameterMapperTest {
@@ -43,8 +45,11 @@ public class DoubleArrayParameterMapperTest {
 	@SuppressWarnings("unchecked")
 	public static <I> I newProxy(final Class<I> interfaceType, final Class<?>[] interfaceTypes,
 			final InvocationHandler handler) {
+		List<Class<?>> types = new ArrayList<>(Arrays.asList(interfaceTypes));
+		types.add(interfaceType);
 		return (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-				ArrayUtils.add(interfaceTypes, interfaceType), handler);
+				types.toArray(new Class<?>[types.size()]), handler);
+
 	}
 
 	interface ProxyContainer {

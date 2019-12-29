@@ -16,20 +16,17 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Table;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import jp.co.future.uroborosql.utils.DateUtils;
 
 public class DateTimeTest {
 
@@ -91,17 +88,58 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			LocalTestEntity other = (LocalTestEntity) obj;
+			if (dateValue == null) {
+				if (other.dateValue != null) {
+					return false;
+				}
+			} else if (!dateValue.equals(other.dateValue)) {
+				return false;
+			}
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "LocalTestEntity [id=" + id + ", dateValue=" + dateValue + ", datetimeValue=" + datetimeValue
+					+ ", timeValue=" + timeValue + "]";
 		}
 	}
 
@@ -125,17 +163,58 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DateTestEntity other = (DateTestEntity) obj;
+			if (dateValue == null) {
+				if (other.dateValue != null) {
+					return false;
+				}
+			} else if (!dateValue.equals(other.dateValue)) {
+				return false;
+			}
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DateTestEntity [id=" + id + ", dateValue=" + dateValue + ", datetimeValue=" + datetimeValue
+					+ ", timeValue=" + timeValue + "]";
 		}
 	}
 
@@ -157,17 +236,49 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			OffsetTestEntity other = (OffsetTestEntity) obj;
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "OffsetTestEntity [id=" + id + ", datetimeValue=" + datetimeValue + ", timeValue=" + timeValue + "]";
 		}
 	}
 
@@ -187,17 +298,41 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			ZonedTestEntity other = (ZonedTestEntity) obj;
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "ZonedTestEntity [id=" + id + ", datetimeValue=" + datetimeValue + "]";
 		}
 	}
 

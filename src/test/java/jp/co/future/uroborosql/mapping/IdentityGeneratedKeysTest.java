@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -474,18 +471,43 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithId other = (TestEntityWithId) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithId [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 	@Table(name = "TEST")
@@ -519,18 +541,43 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithIdError other = (TestEntityWithIdError) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithIdError [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 	@Table(name = "TEST")
@@ -565,18 +612,45 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			long temp;
+			temp = Double.doubleToLongBits(id);
+			result = prime * result + (int) (temp ^ temp >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithIdError2 other = (TestEntityWithIdError2) obj;
+			if (Double.doubleToLongBits(id) != Double.doubleToLongBits(other.id)) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithIdError2 [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 	@Table(name = "TEST_MULTIKEY")
@@ -611,17 +685,46 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (int) (id2 ^ id2 >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithMultiId other = (TestEntityWithMultiId) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (id2 != other.id2) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithMultiId [id=" + id + ", id2=" + id2 + ", name=" + name + "]";
 		}
+
 	}
 }

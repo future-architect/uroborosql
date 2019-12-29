@@ -7,13 +7,12 @@
 package jp.co.future.uroborosql.filter;
 
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターのデフォルト実装.
@@ -37,7 +36,11 @@ public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
 		}
 		crypted = cipher.doFinal(input.getBytes(getCharset()));
 		if (isUseIV()) {
-			crypted = ArrayUtils.addAll(cipher.getIV(), crypted);
+			byte[] ivArray = cipher.getIV();
+			byte[] cryptedArray = crypted;
+			crypted = new byte[ivArray.length + cryptedArray.length];
+			System.arraycopy(ivArray, 0, crypted, 0, ivArray.length);
+			System.arraycopy(cryptedArray, 0, crypted, ivArray.length, cryptedArray.length);
 		}
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(crypted);
 	}
@@ -52,8 +55,8 @@ public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
 
 		if (isUseIV()) {
 			int blockSize = cipher.getBlockSize();
-			byte[] iv = ArrayUtils.subarray(secretData, 0, blockSize);
-			secretData = ArrayUtils.subarray(secretData, blockSize, secretData.length);
+			byte[] iv = Arrays.copyOfRange(secretData, 0, blockSize);
+			secretData = Arrays.copyOfRange(secretData, blockSize, secretData.length);
 			IvParameterSpec ips = new IvParameterSpec(iv);
 			cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
 		}

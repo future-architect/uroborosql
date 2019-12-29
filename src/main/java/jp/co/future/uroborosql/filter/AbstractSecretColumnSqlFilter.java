@@ -28,13 +28,13 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターの抽象クラス.

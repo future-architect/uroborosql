@@ -26,8 +26,9 @@ import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 import java.util.Date;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.utils.DateUtils;
 
 public class DateTimeApiParameterMapperTest {
 	@Test
@@ -47,7 +48,9 @@ public class DateTimeApiParameterMapperTest {
 		assertThat(
 				mapper.toJdbc(
 						OffsetDateTime.from(createDateTime("2000/01/01 10:10:10.010")).withOffsetSameInstant(
-								ZoneOffset.ofHours(0)), null, null), is(createTimestamp("2000/01/01 10:10:10.010")));
+								ZoneOffset.ofHours(0)),
+						null, null),
+				is(createTimestamp("2000/01/01 10:10:10.010")));
 	}
 
 	@Test

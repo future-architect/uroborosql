@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,6 +26,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
+import jp.co.future.uroborosql.utils.DateUtils;
 
 public class ParameterTest {
 	private SqlConfig config;

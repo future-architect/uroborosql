@@ -32,7 +32,6 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +47,7 @@ import jp.co.future.uroborosql.parameter.StreamParameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.BeanAccessor;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQLコンテキスト実装クラス
@@ -379,7 +379,7 @@ public class SqlContextImpl implements SqlContext {
 			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
 			return parameterMap.get(paramName);
 		} else {
-			String[] keys = StringUtils.split(paramName, ".");
+			String[] keys = paramName.split("\\.");
 			String baseName = keys[0];
 
 			Parameter parameter = parameterMap.get(baseName);
@@ -937,7 +937,7 @@ public class SqlContextImpl implements SqlContext {
 		if (!matchParams.containsAll(bindNames)) {
 			Set<String> missMatchParams = new LinkedHashSet<>(bindNames);
 			missMatchParams.removeAll(matchParams);
-			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not bound.");
+			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not found.");
 		}
 	}
 

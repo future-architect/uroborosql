@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.mapping.annotations.Version;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class AbstractDbTest {
 

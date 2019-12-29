@@ -7,9 +7,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -68,18 +65,51 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (firstName == null ? 0 : firstName.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (lastName == null ? 0 : lastName.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntity other = (TestEntity) obj;
+			if (firstName == null) {
+				if (other.firstName != null) {
+					return false;
+				}
+			} else if (!firstName.equals(other.firstName)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			if (lastName == null) {
+				if (other.lastName != null) {
+					return false;
+				}
+			} else if (!lastName.equals(other.lastName)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntity [id=" + id + ", lastName=" + lastName + ", firstName=" + firstName + "]";
 		}
+
 	}
 
 	@BeforeClass

@@ -9,11 +9,7 @@ package jp.co.future.uroborosql.filter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +26,10 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	private static final Logger LOG = LoggerFactory.getLogger(AuditLogSqlFilter.class);
 
 	/** 機能名取得用のパラメータキー名 */
-	private static final String FUNC_ID_KEY = "_funcId";
+	private String funcIdKey = "_funcId";
 
 	/** ユーザ名取得用のパラメータキー名 */
-	private static final String USER_NAME_KEY = "_userName";
+	private String userNameKey = "_userName";
 
 	/** ユーザ名の初期値 */
 	private static final String DEFAULT_USER_NAME = "UNKNOWN";
@@ -41,16 +37,39 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	/** 機能名の初期値 */
 	private static final String DEFAULT_FUNC_ID = "UNKNOWN";
 
-	/** ログ出力時のフォーマット */
-	private ToStringStyle toStringStyle = ToStringStyle.JSON_STYLE;
-
+	/**
+	 * コンストラクタ
+	 */
 	public AuditLogSqlFilter() {
 	}
 
-	public AuditLogSqlFilter(final ToStringStyle toStringStyle) {
-		this.toStringStyle = toStringStyle;
+	/**
+	 * バインドパラメータに設定した機能IDのキー名を設定する.
+	 *
+	 * @param funcIdKey 機能IDのキー名
+	 * @return AuditLogSqlFilter
+	 */
+	public AuditLogSqlFilter setFuncIdKey(final String funcIdKey) {
+		this.funcIdKey = funcIdKey;
+		return this;
 	}
 
+	/**
+	 * バインドパラメータに設定したユーザ名のキー名を設定する.
+	 *
+	 * @param userNameKey ユーザ名のキー名
+	 * @return AuditLogSqlFilter
+	 */
+	public AuditLogSqlFilter setUserNameKey(final String userNameKey) {
+		this.userNameKey = userNameKey;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+	 */
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
@@ -69,58 +88,62 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 		}
 
-		String userName = getParam(sqlContext, USER_NAME_KEY);
+		String userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, FUNC_ID_KEY);
+		String funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(ToStringBuilder.reflectionToString(
-				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), rowCount),
-				this.toStringStyle));
-
+		LOG.debug(new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+				.getExecutableSql(), rowCount).toString());
 		return resultSet;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int)
+	 */
 	@Override
 	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
-		String userName = getParam(sqlContext, USER_NAME_KEY);
+		String userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, FUNC_ID_KEY);
+		String funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(ToStringBuilder.reflectionToString(
-				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), result),
-				this.toStringStyle));
-
+		LOG.debug(new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+				.getExecutableSql(), result).toString());
 		return result;
 
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int[])
+	 */
 	@Override
 	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
-		String userName = getParam(sqlContext, USER_NAME_KEY);
+		String userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, FUNC_ID_KEY);
+		String funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
@@ -133,11 +156,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
 		}
-		LOG.debug(ToStringBuilder.reflectionToString(
-				new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
-						.getExecutableSql(), rowCount),
-				this.toStringStyle));
-
+		LOG.debug(new AuditData(userName, funcId, sqlContext.getSqlId(), sqlContext.getSqlName(), sqlContext
+				.getExecutableSql(), rowCount).toString());
 		return result;
 	}
 
@@ -159,43 +179,79 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 
 	/**
 	 * 監査用データ
-	 *
-	 * @author H.Sugimoto
 	 */
 	private static final class AuditData {
-		/** SQL文中の改行文字除去用正規表現 */
-		private static final Pattern PAT = Pattern.compile("(?m)(\r\n|\r|\n)");
+		/** SQL文中でJSONとして不正な文字を置換するためのMap */
+		private static final String[] ESC_CHARS = {
+				"\\\\:\\\\\\\\",
+				"\\\":\\\\\\\"",
+				"/:\\\\/",
+				"\\t:\\\\t",
+				"\\f:\\\\f",
+				"\\r\\n: ",
+				"\\n: ",
+				"\\r: "
+		};
 
-		@SuppressWarnings("unused")
 		private final String userName;
-		@SuppressWarnings("unused")
 		private final String funcId;
-		@SuppressWarnings("unused")
 		private final String sqlId;
-		@SuppressWarnings("unused")
 		private final String sqlName;
-		@SuppressWarnings("unused")
 		private final String sql;
-		@SuppressWarnings("unused")
 		private final int rowCount;
 
 		/**
+		 * コンストラクタ
+		 *
 		 * @param userName ユーザ名
-		 * @param funcId 機能I
+		 * @param funcId 機能ID
 		 * @param sqlId SQL-ID
 		 * @param sqlName SQL名
 		 * @param sql SQL文
-		 * @param rowCount
+		 * @param rowCount 件数
 		 */
 		private AuditData(final String userName, final String funcId, final String sqlId, final String sqlName,
 				final String sql, final int rowCount) {
-			super();
-			this.userName = StringEscapeUtils.escapeJson(userName);
-			this.funcId = StringEscapeUtils.escapeJson(funcId);
-			this.sqlId = StringEscapeUtils.escapeJson(sqlId);
-			this.sqlName = StringEscapeUtils.escapeJson(sqlName);
-			this.sql = StringEscapeUtils.escapeJson(PAT.matcher(sql).replaceAll(" "));
+			this.userName = userName;
+			this.funcId = funcId;
+			this.sqlId = sqlId;
+			this.sqlName = sqlName;
+			this.sql = sql;
 			this.rowCount = rowCount;
 		}
+
+		/**
+		 * JSONとして不正な文字をエスケープする.
+		 *
+		 * @param str エスケープ対象文字列
+		 * @return エスケープ後文字列
+		 */
+		private String escapeJson(final String str) {
+			if (str == null) {
+				return null;
+			}
+			String buff = str;
+			for (String escChar : ESC_CHARS) {
+				String[] parts = escChar.split(":");
+				buff = buff.replaceAll(parts[0], parts[1]);
+			}
+			return buff;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return "{\"userName\":\"" + escapeJson(userName)
+					+ "\",\"funcId\":\"" + escapeJson(funcId)
+					+ "\",\"sqlId\":\"" + escapeJson(sqlId)
+					+ "\",\"sqlName\":\"" + escapeJson(sqlName)
+					+ "\",\"sql\":\"" + escapeJson(sql)
+					+ "\",\"rowCount\":" + rowCount + "}";
+		}
+
 	}
 }

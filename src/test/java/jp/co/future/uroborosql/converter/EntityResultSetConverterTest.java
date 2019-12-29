@@ -10,7 +10,7 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -3,9 +3,10 @@ package jp.co.future.uroborosql.client;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
@@ -63,16 +64,128 @@ public class SqlParamUtilsTest {
 		SqlParamUtils.getSqlParams(ctx.getSql());
 		SqlParamUtils.setSqlParams(ctx, "key1=2019-01-01", "key2=10:15:20");
 		assertThat(ctx.hasParam("key1"), is(true));
-		assertThat((Date) ctx.getParam("key1").getValue(), is(instanceOf(Date.class)));
+		assertThat(ctx.getParam("key1").getValue(), is(instanceOf(LocalDate.class)));
 		assertThat(ctx.hasParam("key2"), is(true));
-		assertThat((Time) ctx.getParam("key2").getValue(), is(instanceOf(Time.class)));
+		assertThat(ctx.getParam("key2").getValue(), is(instanceOf(LocalTime.class)));
 
 		ctx = factory.createSqlContext();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql());
 		SqlParamUtils.setSqlParams(ctx, "key1=2019-01-01T10:15:20");
 		assertThat(ctx.hasParam("key1"), is(true));
-		assertThat((Timestamp) ctx.getParam("key1").getValue(), is(instanceOf(Timestamp.class)));
+		assertThat(ctx.getParam("key1").getValue(), is(instanceOf(LocalDateTime.class)));
+
+		// int
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=1000");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=+1000");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=-1000");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(-1000));
+
+		// 桁あふれ
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=" + Integer.MAX_VALUE + "0");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(new BigDecimal(Integer.MAX_VALUE + "0")));
+
+		// long
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=1000L");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000L));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=+1000L");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000L));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=-1000L");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(-1000L));
+
+		// 桁あふれ
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=" + Long.MAX_VALUE + "0");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(new BigDecimal(Long.MAX_VALUE + "0")));
+
+		// float
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=1000.01F");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000.01F));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=+1000.01f");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000.01F));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=-1000.01F");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(-1000.01F));
+
+		// double
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=1000.01D");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000.01D));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=+1000.01d");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(1000.01D));
+
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=-1000.01D");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is(-1000.01D));
+
+		// 数字の集合
+		ctx = factory.createSqlContext();
+		ctx.setSql(sql);
+		SqlParamUtils.getSqlParams(ctx.getSql());
+		SqlParamUtils.setSqlParams(ctx, "key1=0000010");
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.getParam("key1").getValue(), is("0000010"));
 
 		ctx = factory.createSqlContext();
 		ctx.setSql(sql);

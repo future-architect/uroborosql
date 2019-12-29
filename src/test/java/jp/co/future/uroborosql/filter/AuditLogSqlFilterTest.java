@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +30,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class AuditLogSqlFilterTest {
 	private SqlConfig config;
@@ -121,9 +121,10 @@ public class AuditLogSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		List<String> log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = agent.contextFrom("example/select_product")
+			SqlContext ctx = agent.contextFrom("example/select_product").setSqlId("111")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
-					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 			agent.query(ctx);
@@ -135,11 +136,37 @@ public class AuditLogSqlFilterTest {
 	}
 
 	@Test
+	public void testSetAuditLogKey() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		AuditLogSqlFilter filter = (AuditLogSqlFilter) config.getSqlFilterManager().getFilters().get(0);
+		filter.setFuncIdKey("_customFuncId").setUserNameKey("_customUserName");
+
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			SqlContext ctx = agent.contextFrom("example/select_product").setSqlId("111")
+					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
+					.param("_userName", "testUserName1")
+					.param("_funcId", "testFunction1")
+					.param("_customUserName", "testUserName2")
+					.param("_customFuncId", "testFunction2");
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+
+			agent.query(ctx);
+		});
+
+		assertThat(log, is(Files.readAllLines(
+				Paths.get("src/test/resources/data/expected/AuditLogSqlFilter",
+						"testExecuteQueryFilterCustomParam.txt"),
+				StandardCharsets.UTF_8)));
+	}
+
+	@Test
 	public void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
-					.param("_userName", "testUserName").param("_funcId", "testFunction")
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 					.param("jan_code", "1234567890123", Types.CHAR);
 
@@ -156,15 +183,28 @@ public class AuditLogSqlFilterTest {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<String> log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
-					.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
-					.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
-					.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
-					.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-					.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-					.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0))
-					.param("_userName", "testUserName").param("_funcId", "testFunction").addBatch();
+					// 1件目
+					.param("product_id", new BigDecimal(1))
+					.param("product_name", "商品名1")
+					.param("product_kana_name", "ショウヒンメイイチ")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "1番目の商品")
+					.param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0))
+					.addBatch()
+					// 2件目
+					.param("product_id", new BigDecimal(2))
+					.param("product_name", "商品名2")
+					.param("product_kana_name", "ショウヒンメイニ")
+					.param("jan_code", "1234567890124")
+					.param("product_description", "2番目の商品")
+					.param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0))
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction")
+					.addBatch();
 			agent.batch(ctx);
 		});
 		assertThat(log, is(Files.readAllLines(

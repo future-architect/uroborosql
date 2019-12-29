@@ -40,12 +40,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class NioSqlManagerImpl implements SqlManager {
 	/** ロガー */
@@ -641,7 +641,7 @@ public class NioSqlManagerImpl implements SqlManager {
 					try {
 						String body = new String(Files.readAllBytes(path), charset).trim();
 						if (body.endsWith("/") && !body.endsWith("*/")) {
-							body = StringUtils.stripEnd(body, "/");
+							body = StringUtils.removeEnd(body, "/");
 						} else {
 							body = body + System.lineSeparator();
 						}

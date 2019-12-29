@@ -6,8 +6,6 @@
  */
 package jp.co.future.uroborosql.node;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,9 +168,7 @@ public class IfNode extends BranchNode {
 					Object value = Ognl.getValue(prop, transformContext, null);
 					builder.append(prop)
 							.append(":[")
-							.append(value == null ? null
-									: ToStringBuilder.reflectionToString(value,
-											ToStringStyle.SIMPLE_STYLE))
+							.append(value == null ? null : value.toString())
 							.append("],");
 				} catch (OgnlException ex) {
 					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす

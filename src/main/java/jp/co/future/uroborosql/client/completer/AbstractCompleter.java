@@ -9,11 +9,11 @@ package jp.co.future.uroborosql.client.completer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.Completer;
 import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public abstract class AbstractCompleter implements Completer {
 	private final List<ReplCommand> commands;

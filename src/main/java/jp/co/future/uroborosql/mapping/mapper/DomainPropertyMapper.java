@@ -15,8 +15,7 @@ import java.sql.SQLException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
-
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * {@link Domain}用{@link PropertyMapper}
@@ -62,7 +61,8 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 			if (!Modifier.isStatic(method.getModifiers())) {
 				throw new IllegalStateException("not static method. [" + type.getSimpleName() + "#" + methodName + "]");
 			} else if (!type.isAssignableFrom(method.getReturnType())) {
-				throw new IllegalStateException("unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
+				throw new IllegalStateException(
+						"unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
 			}
 			return method.invoke(null, value);
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException

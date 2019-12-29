@@ -3,10 +3,6 @@ package jp.co.future.uroborosql.mapping;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 @Table(name = "TEST_DATA_LOCK_VERSION")
 public class TestEntityLockVersion {
 	private Long id;
@@ -58,17 +54,49 @@ public class TestEntityLockVersion {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, true);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (id == null ? 0 : id.hashCode());
+		result = prime * result + lockVersion;
+		result = prime * result + (name == null ? 0 : name.hashCode());
+		return result;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, true);
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		TestEntityLockVersion other = (TestEntityLockVersion) obj;
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
+			return false;
+		}
+		if (lockVersion != other.lockVersion) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return "TestEntityLockVersion [id=" + id + ", name=" + name + ", lockVersion=" + lockVersion + "]";
 	}
 
 }

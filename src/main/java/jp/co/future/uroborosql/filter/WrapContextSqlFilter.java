@@ -10,8 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.context.SqlContext;
-
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQL文字列の前後をWrapするSqlFilter

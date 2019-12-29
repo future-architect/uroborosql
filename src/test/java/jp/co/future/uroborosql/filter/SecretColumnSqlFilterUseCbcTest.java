@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

@@ -9,18 +9,15 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class ColumnTest {
 
@@ -85,17 +82,63 @@ public class ColumnTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ageAaaaAaaa;
+			result = prime * result + (birthdayAaaaAaaa == null ? 0 : birthdayAaaaAaaa.hashCode());
+			result = prime * result + (int) (idAaaaAaaa ^ idAaaaAaaa >>> 32);
+			result = prime * result + (memoAaaaAaaa == null ? 0 : memoAaaaAaaa.hashCode());
+			result = prime * result + (nameAaaaAaaa == null ? 0 : nameAaaaAaaa.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			ColumnAnnoTestEntity other = (ColumnAnnoTestEntity) obj;
+			if (ageAaaaAaaa != other.ageAaaaAaaa) {
+				return false;
+			}
+			if (birthdayAaaaAaaa == null) {
+				if (other.birthdayAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!birthdayAaaaAaaa.equals(other.birthdayAaaaAaaa)) {
+				return false;
+			}
+			if (idAaaaAaaa != other.idAaaaAaaa) {
+				return false;
+			}
+			if (memoAaaaAaaa == null) {
+				if (other.memoAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!memoAaaaAaaa.equals(other.memoAaaaAaaa)) {
+				return false;
+			}
+			if (nameAaaaAaaa == null) {
+				if (other.nameAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!nameAaaaAaaa.equals(other.nameAaaaAaaa)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "ColumnAnnoTestEntity [idAaaaAaaa=" + idAaaaAaaa + ", nameAaaaAaaa=" + nameAaaaAaaa
+					+ ", ageAaaaAaaa=" + ageAaaaAaaa + ", birthdayAaaaAaaa=" + birthdayAaaaAaaa + ", memoAaaaAaaa="
+					+ memoAaaaAaaa + "]";
 		}
 	}
 

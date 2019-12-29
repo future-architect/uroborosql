@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 
@@ -24,6 +23,7 @@ import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class UroboroSQLTest {
 	private List<Map<String, Object>> getDataFromFile(final Path path) {

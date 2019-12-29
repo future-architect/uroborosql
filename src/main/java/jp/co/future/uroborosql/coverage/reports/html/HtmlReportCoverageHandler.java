@@ -24,14 +24,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * カバレッジレポート出力ハンドラ<br>
@@ -72,20 +71,21 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	 *
 	 * @param reportDirPath レポートファイルPATH
 	 */
-	public HtmlReportCoverageHandler(Path reportDirPath) {
+	public HtmlReportCoverageHandler(final Path reportDirPath) {
 		this.reportDirPath = reportDirPath;
 	}
 
 	@Override
-	public synchronized void accept(CoverageData coverageData) {
+	public synchronized void accept(final CoverageData coverageData) {
 		if (StringUtils.isEmpty(coverageData.getSqlName())) {
 			// SQL名の設定されていないSQLは集約しない
 			return;
 		}
 		Map<String, SqlCoverageReport> map = coverages.computeIfAbsent(coverageData.getSqlName(),
 				k -> new ConcurrentHashMap<>());
-		SqlCoverageReport sqlCoverage = map.computeIfAbsent(coverageData.getMd5(), k -> new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
-				coverageData.getMd5(), this.reportDirPath, map.size()));
+		SqlCoverageReport sqlCoverage = map.computeIfAbsent(coverageData.getMd5(),
+				k -> new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
+						coverageData.getMd5(), this.reportDirPath, map.size()));
 
 		sqlCoverage.accept(coverageData.getPassRoute());
 	}
@@ -104,13 +104,16 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			Files.createDirectories(this.reportDirPath);
 			// copy resources
 			String packagePath = this.getClass().getPackage().getName().replace(".", "/");
-			Stream.of("style.css", "jquery-3.2.0.min.js", "stupidtable.min.js", "highlight.pack.js", "sqlcov.js", "icon.png").forEach(filename -> {
-				try (InputStream src = this.getClass().getClassLoader().getResourceAsStream(packagePath + "/" + filename)) {
-					Files.copy(src, Paths.get(this.reportDirPath + "/" + filename), StandardCopyOption.REPLACE_EXISTING);
-				} catch (IOException e) {
-					LOG.error(e.getMessage(), e);
-				}
-			});
+			Stream.of("style.css", "jquery-3.2.0.min.js", "stupidtable.min.js", "highlight.pack.js", "sqlcov.js",
+					"icon.png").forEach(filename -> {
+						try (InputStream src = this.getClass().getClassLoader()
+								.getResourceAsStream(packagePath + "/" + filename)) {
+							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
+									StandardCopyOption.REPLACE_EXISTING);
+						} catch (IOException e) {
+							LOG.error(e.getMessage(), e);
+						}
+					});
 			// write report
 			try (BufferedWriter writer = Files.newBufferedWriter(this.reportDirPath.resolve("index.html"),
 					StandardCharsets.UTF_8)) {
@@ -129,7 +132,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		}
 	}
 
-	private void writeTable(BufferedWriter writer) throws IOException {
+	private void writeTable(final BufferedWriter writer) throws IOException {
 		List<SqlCoverageReport> list = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
@@ -137,7 +140,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				.collect(Collectors.toList());
 		for (SqlCoverageReport sqlCoverageReport : list) {
 
-			String htmlName = StringEscapeUtils.escapeHtml4(sqlCoverageReport.getName());
+			String htmlName = sqlCoverageReport.getName();
 			String linkName = sqlCoverageReport.getName();
 			int lineCount = sqlCoverageReport.getLineValidSize();
 			int lineCovered = sqlCoverageReport.getLineCoveredSize();
@@ -176,7 +179,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		}
 	}
 
-	private void writePrefix(BufferedWriter writer) throws IOException {
+	private void writePrefix(final BufferedWriter writer) throws IOException {
 		writer.append("<!DOCTYPE html>");
 		writer.newLine();
 		writer.append("<html lang=\"en\">");
@@ -201,7 +204,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		writer.newLine();
 	}
 
-	private void writeHeaderSection(BufferedWriter writer) throws IOException {
+	private void writeHeaderSection(final BufferedWriter writer) throws IOException {
 		int lineCount = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
@@ -264,7 +267,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		writer.newLine();
 	}
 
-	private void writeTablePrefix(BufferedWriter writer) throws IOException {
+	private void writeTablePrefix(final BufferedWriter writer) throws IOException {
 		writer.append("<div class=\"inner\">");
 		writer.newLine();
 		writer.append("<table class=\"coverage-summary\">");
@@ -294,7 +297,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 	}
 
-	private void writeTableSuffix(BufferedWriter writer) throws IOException {
+	private void writeTableSuffix(final BufferedWriter writer) throws IOException {
 		writer.append("</tbody>");
 		writer.newLine();
 		writer.append("</table>");
@@ -308,7 +311,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		writer.newLine();
 	}
 
-	private void writeSuffix(BufferedWriter writer) throws IOException {
+	private void writeSuffix(final BufferedWriter writer) throws IOException {
 		writer.append("</body>");
 	}
 }

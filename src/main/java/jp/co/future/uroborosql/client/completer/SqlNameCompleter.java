@@ -11,13 +11,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQL Name の補完を行うCompleter

@@ -11,9 +11,6 @@ import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -118,17 +115,62 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + age;
+			result = prime * result + (birthday == null ? 0 : birthday.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (memo == null ? 0 : memo.hashCode());
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntity other = (TestEntity) obj;
+			if (age != other.age) {
+				return false;
+			}
+			if (birthday == null) {
+				if (other.birthday != null) {
+					return false;
+				}
+			} else if (!birthday.equals(other.birthday)) {
+				return false;
+			}
+			if (id != other.id) {
+				return false;
+			}
+			if (memo == null) {
+				if (other.memo != null) {
+					return false;
+				}
+			} else if (!memo.equals(other.memo)) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntity [id=" + id + ", name=" + name + ", age=" + age + ", birthday=" + birthday + ", memo="
+					+ memo + "]";
 		}
 
 	}
@@ -235,18 +277,39 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			NameDomain other = (NameDomain) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "NameDomain [name=" + name + "]";
 		}
+
 	}
 
 	@SuppressWarnings("unused")
@@ -261,18 +324,43 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DomainTestEntity other = (DomainTestEntity) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DomainTestEntity [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 	@Test

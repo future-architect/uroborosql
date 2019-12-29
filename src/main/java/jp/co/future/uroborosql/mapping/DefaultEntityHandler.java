@@ -17,8 +17,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionManager;
@@ -29,6 +27,7 @@ import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * デフォルトORM処理クラス

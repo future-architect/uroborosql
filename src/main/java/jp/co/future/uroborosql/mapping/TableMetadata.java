@@ -14,14 +14,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
 
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * テーブルメタ情報
@@ -211,7 +211,7 @@ public interface TableMetadata {
 		Connection connection = connectionManager.getConnection();
 		DatabaseMetaData metaData = connection.getMetaData();
 
-		String schema = StringUtils.defaultIfEmpty(table.getSchema(), connection.getSchema());
+		String schema = Objects.toString(table.getSchema(), connection.getSchema());
 		String tableName = table.getName();
 		String identifierQuoteString = metaData.getIdentifierQuoteString();
 

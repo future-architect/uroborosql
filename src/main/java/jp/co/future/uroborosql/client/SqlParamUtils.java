@@ -6,17 +6,16 @@
  */
 package jp.co.future.uroborosql.client;
 
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.ParseException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.node.BindVariableNode;
@@ -27,6 +26,7 @@ import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
+import jp.co.future.uroborosql.utils.StringUtils;
 import ognl.ASTProperty;
 import ognl.Ognl;
 import ognl.OgnlException;
@@ -40,6 +40,9 @@ import ognl.OgnlException;
 public final class SqlParamUtils {
 	/** バインドパラメータ中の定数指定を判定するための正規表現 */
 	private static final Pattern CONSTANT_PAT = Pattern.compile("^[A-Z][A-Z0-9_-]*$");
+
+	/** 数字かどうかを判定するための正規表現 */
+	private static final Pattern NUMBER_PAT = Pattern.compile("^[\\-\\+]?[1-9][0-9]*([Ll]|\\.\\d+[FfDd])?$");
 
 	/**
 	 * コンストラクタ
@@ -118,7 +121,7 @@ public final class SqlParamUtils {
 	 * @return 変換後オブジェクト
 	 */
 	private static Object convertSingleValue(final String val) {
-		String value = StringUtils.trim(val);
+		String value = val == null ? null : val.trim();
 		if (StringUtils.isEmpty(value)) {
 			return null;
 		} else if ("[NULL]".equalsIgnoreCase(value)) {
@@ -132,30 +135,92 @@ public final class SqlParamUtils {
 			return Boolean.TRUE;
 		} else if (Boolean.FALSE.toString().equalsIgnoreCase(value)) {
 			return Boolean.FALSE;
-		} else if (NumberUtils.isCreatable(value)) {
-			return NumberUtils.createNumber(value);
+		} else if (isNumber(value)) {
+			return createNumber(value);
 		} else {
 			try {
 				// 日時に変換できるか
-				return new Timestamp(DateUtils.parseDateStrictly(value, "yyyy-MM-dd'T'HH:mm:ss").getTime());
-			} catch (ParseException ex) {
+				return LocalDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
+			} catch (DateTimeParseException ex) {
 				// do nothing
 			}
 
 			try {
 				// 日付に変換できるか？
-				return new java.sql.Date(DateUtils.parseDateStrictly(value, "yyyy-MM-dd").getTime());
-			} catch (ParseException ex) {
+				return LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
+			} catch (DateTimeParseException ex) {
 				// do nothing
 			}
 
 			try {
 				// 時刻に変換できるか？
-				return new Time(DateUtils.parseDateStrictly(value, "HH:mm:ss").getTime());
-			} catch (ParseException ex) {
+				return LocalTime.parse(value, DateTimeFormatter.ISO_TIME);
+			} catch (DateTimeParseException ex) {
 				// do nothing
 			}
 			return value;
+		}
+	}
+
+	/**
+	 * 判定対象文字列が数字かどうかを判定する.
+	 *
+	 * @param val 判定対象文字列
+	 * @return 数字の場合は<code>true</code>
+	 */
+	private static boolean isNumber(final String val) {
+		if (StringUtils.isEmpty(val)) {
+			return false;
+		} else {
+			return NUMBER_PAT.matcher(val).matches();
+		}
+	}
+
+	/**
+	 * 指定された文字列から適切なNumber型のオブジェクトを生成する.<br>
+	 * <ul>
+	 * <li>1000 -> (Integer)1000</li>
+	 * <li>+1000 -> (Integer)1000</li>
+	 * <li>-1000 -> (Integer)-1000</li>
+	 * <li>1000L -> (Long)1000L</li>
+	 * <li>+1000L -> (Long)1000L</li>
+	 * <li>-1000L -> (Long)-1000L</li>
+	 * <li>1000.01F -> (Float)1000.01F</li>
+	 * <li>+1000.01F -> (Float)1000.01F</li>
+	 * <li>-1000.01F -> (Float)-1000.01F</li>
+	 * <li>1000.01D -> (Float)1000.01D</li>
+	 * <li>+1000.01D -> (Float)1000.01D</li>
+	 * <li>-1000.01D -> (Float)-1000.01D</li>
+	 * </ul>
+	 * （※）各Number型で桁あふれした場合はBigDecimal型が返却される
+	 *
+	 * @param val 変換対象文字列
+	 * @return Number型のオブジェクト
+	 */
+	private static Number createNumber(final String val) {
+		// suffixがある場合はsuffixと数値部分を分離する
+		String suffix = val.substring(val.length() - 1);
+		String num = val;
+		if ("0".compareTo(suffix) <= 0 && "9".compareTo(suffix) >= 0) {
+			suffix = "";
+		} else {
+			num = val.substring(0, val.length() - 1);
+		}
+
+		BigDecimal decimal = new BigDecimal(num);
+		try {
+			if ("L".equalsIgnoreCase(suffix)) {
+				return decimal.longValueExact();
+			} else if ("F".equalsIgnoreCase(suffix)) {
+				return decimal.floatValue();
+			} else if ("D".equalsIgnoreCase(suffix)) {
+				return decimal.doubleValue();
+			} else {
+				return decimal.intValueExact();
+			}
+		} catch (ArithmeticException ex) {
+			// BigDecimalから指定の型に変換できない場合はBigDecimalを返す
+			return decimal;
 		}
 	}
 
