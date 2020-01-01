@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.dialect;
 
 import java.sql.SQLType;
+import java.util.List;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
@@ -21,14 +22,14 @@ import jp.co.future.uroborosql.utils.StringFunction;
 public interface Dialect {
 
 	/**
-	 * OGNL式内で使用する式関数を取得する
+	 * OGNL式内で使用する式関数を取得.
 	 *
 	 * @return 式関数
 	 */
 	StringFunction getExpressionFunction();
 
 	/**
-	 * データベースを判別するための文字列を取得する。
+	 * データベースを判別するための文字列を取得.
 	 *
 	 * @return データベースを判別するための文字列
 	 */
@@ -39,7 +40,7 @@ public interface Dialect {
 	}
 
 	/**
-	 * 終端文字を削除するかどうか
+	 * 終端文字を削除するかどうか.
 	 *
 	 * @return 終端文字を削除する場合<code>true</code>
 	 */
@@ -48,7 +49,7 @@ public interface Dialect {
 	}
 
 	/**
-	 * リトライする前にSavepointまでロールバックするかどうか
+	 * リトライする前にSavepointまでロールバックするかどうか.
 	 *
 	 * @return ロールバックする場合<code>true</code>
 	 */
@@ -57,7 +58,8 @@ public interface Dialect {
 	}
 
 	/**
-	 * BULK INSERTをサポートするかどうか
+	 * BULK INSERTをサポートするかどうか.
+	 *
 	 * @return BULK INSERTをサポートする場合<code>true</code>
 	 */
 	default boolean supportsBulkInsert() {
@@ -65,7 +67,8 @@ public interface Dialect {
 	}
 
 	/**
-	 * LIMIT 句をサポートするかどうか
+	 * LIMIT 句をサポートするかどうか.
+	 *
 	 * @return LIMIT句をサポートする場合は<code>true</code>
 	 */
 	default boolean supportsLimitClause() {
@@ -73,7 +76,16 @@ public interface Dialect {
 	}
 
 	/**
-	 * SELECT句のORDER BY でNULL値の順序を指定できるか（NULLS FIRST/LAST）
+	 * オプティマイザーヒントをサポートするかどうか.
+	 *
+	 * @return オプティマイザーヒントの指定をサポートする場合は<code>true</code>
+	 */
+	default boolean supportsOptimizerHints() {
+		return false;
+	}
+
+	/**
+	 * SELECT句のORDER BY でNULL値の順序を指定できるか（NULLS FIRST/LAST）.
 	 *
 	 * @return NULL値の順序指定ができる場合<code>true</code>
 	 */
@@ -82,7 +94,7 @@ public interface Dialect {
 	}
 
 	/**
-	 * データベースのIDカラムを使用したID自動採番をサポートしているか
+	 * データベースのIDカラムを使用したID自動採番をサポートしているか.
 	 *
 	 * @return データベースのIDカラムを使用したID自動採番をサポートしている場合<code>true</code>
 	 */
@@ -91,7 +103,7 @@ public interface Dialect {
 	}
 
 	/**
-	 * データベースのシーケンスを使用したID自動採番をサポートしているか
+	 * データベースのシーケンスを使用したID自動採番をサポートしているか.
 	 *
 	 * @return データベースのシーケンスを使用したID自動採番をサポートしている場合<code>true</code>
 	 */
@@ -100,7 +112,8 @@ public interface Dialect {
 	}
 
 	/**
-	 * 明示的な行ロックをサポートしているか
+	 * 明示的な行ロックをサポートしているか.
+	 *
 	 * @return 明示的な行ロックをサポートしている場合<code>true</code>
 	 */
 	default boolean supportsForUpdate() {
@@ -108,7 +121,8 @@ public interface Dialect {
 	}
 
 	/**
-	 * 明示的な行ロック（待機なし）をサポートしているか
+	 * 明示的な行ロック（待機なし）をサポートしているか.
+	 *
 	 * @return 明示的な行ロック（待機なし）をサポートしている場合<code>true</code>
 	 */
 	default boolean supportsForUpdateNoWait() {
@@ -116,7 +130,8 @@ public interface Dialect {
 	}
 
 	/**
-	 * 明示的な行ロック（待機あり）をサポートしているか
+	 * 明示的な行ロック（待機あり）をサポートしているか.
+	 *
 	 * @return 明示的な行ロック（待機あり）をサポートしている場合<code>true</code>
 	 */
 	default boolean supportsForUpdateWait() {
@@ -126,7 +141,7 @@ public interface Dialect {
 	String getSequenceNextValSql(String sequenceName);
 
 	/**
-	 * LIMIT句（とOFFSET句）を取得する
+	 * LIMIT句（とOFFSET句）を取得.
 	 *
 	 * @param limit limit
 	 * @param offset offset
@@ -135,7 +150,7 @@ public interface Dialect {
 	String getLimitClause(long limit, long offset);
 
 	/**
-	 * LIKE 演算子のパターン文字列をエスケープする
+	 * LIKE 演算子のパターン文字列のエスケープ.
 	 *
 	 * @param pattern パターン文字列
 	 * @return エスケープ後のパターン文字列
@@ -143,7 +158,7 @@ public interface Dialect {
 	String escapeLikePattern(CharSequence pattern);
 
 	/**
-	 * {@link SQLType} を変換するJava型を取得する
+	 * {@link SQLType} を変換するJava型を取得.
 	 *
 	 * @param sqlType SQLType
 	 * @param sqlTypeName データベース固有の型名
@@ -152,7 +167,7 @@ public interface Dialect {
 	JavaType getJavaType(SQLType sqlType, String sqlTypeName);
 
 	/**
-	 * {@link SQLType} を変換するJava型を取得する
+	 * {@link SQLType} を変換するJava型を取得.
 	 *
 	 * @param sqlType SQLTypeを表す数値
 	 * @param sqlTypeName データベース固有の型名
@@ -161,21 +176,21 @@ public interface Dialect {
 	JavaType getJavaType(int sqlType, String sqlTypeName);
 
 	/**
-	 * Databaseの種別を表す名前を取得する
+	 * Databaseの種別を表す名前を取得.
 	 *
 	 * @return Database種別名
 	 */
 	String getDatabaseType();
 
 	/**
-	 * LIKE句で指定するエスケープキャラクタを取得する
+	 * LIKE句で指定するエスケープキャラクタを取得.
 	 *
 	 * @return エスケープキャラクタ
 	 */
 	char getEscapeChar();
 
 	/**
-	 * FOR UPDATE句の文字列をSQLに追加する
+	 * FOR UPDATE句の文字列をSQLに追加.
 	 *
 	 * @param sql 追加対象のSQL文
 	 * @param forUpdateType forUpdateのタイプ
@@ -185,7 +200,17 @@ public interface Dialect {
 	StringBuilder addForUpdateClause(StringBuilder sql, ForUpdateType forUpdateType, int waitSeconds);
 
 	/**
-	 * 乗除を行うためのSQL文字列を取得する
+	 * Optimizer Hint文字列をSQLに追加.
+	 *
+	 * @param sql 追加対象のSQL文
+	 * @param hints ヒント句のリスト
+	 * @return Hint句を追加したSQL文
+	 */
+	StringBuilder addOptimizerHints(StringBuilder sql, List<String> hints);
+
+	/**
+	 * 乗除を行うためのSQL文字列を取得.
+	 *
 	 * @param dividend 除算される値
 	 * @param divisor 除算する値
 	 * @return 乗除を行うためのSQL文字列

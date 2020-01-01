@@ -6,6 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * H2用のDialect
  *
@@ -82,6 +85,16 @@ public class H2Dialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsOptimizerHints()
+	 */
+	@Override
+	public boolean supportsOptimizerHints() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override
@@ -89,4 +102,10 @@ public class H2Dialect extends AbstractDialect {
 		return "nextval('" + sequenceName + "')";
 	}
 
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		String hintStr = "$1 USE INDEX " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+				+ System.lineSeparator();
+		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
+	}
 }

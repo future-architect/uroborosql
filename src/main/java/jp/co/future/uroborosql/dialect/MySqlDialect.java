@@ -6,6 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
@@ -74,11 +77,32 @@ public class MySqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsOptimizerHints()
+	 */
+	@Override
+	public boolean supportsOptimizerHints() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
 		throw new UroborosqlRuntimeException("MySql does not support Sequence.");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addOptimizerHints(java.lang.StringBuilder, java.util.List)
+	 */
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		String hintStr = "$1 " + hints.stream().collect(Collectors.joining(" ")) + System.lineSeparator();
+		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
 	}
 
 }

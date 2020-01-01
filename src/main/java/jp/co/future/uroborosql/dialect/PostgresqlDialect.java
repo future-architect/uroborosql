@@ -8,6 +8,8 @@ package jp.co.future.uroborosql.dialect;
 
 import java.sql.JDBCType;
 import java.sql.SQLType;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
@@ -87,6 +89,16 @@ public class PostgresqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsOptimizerHints()
+	 */
+	@Override
+	public boolean supportsOptimizerHints() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.AbstractDialect#getJavaType(java.sql.SQLType, java.lang.String)
 	 */
 	@Override
@@ -125,4 +137,17 @@ public class PostgresqlDialect extends AbstractDialect {
 	public String getSequenceNextValSql(final String sequenceName) {
 		return "nextval('" + sequenceName + "')";
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addOptimizerHints(java.lang.StringBuilder, java.util.List)
+	 */
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		String hintStr = "/*+" + hints.stream().collect(Collectors.joining(System.lineSeparator() + "\t",
+				System.lineSeparator() + "\t", System.lineSeparator())) + " */" + System.lineSeparator();
+		return sql.insert(0, hintStr);
+	}
+
 }

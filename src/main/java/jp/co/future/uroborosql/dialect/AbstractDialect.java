@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -233,6 +234,20 @@ public abstract class AbstractDialect implements Dialect {
 			return new StringBuilder().append(sql.toString()).append("FOR UPDATE NOWAIT");
 		default:
 			return new StringBuilder().append(sql.toString()).append("FOR UPDATE");
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addOptimizerHints(java.lang.StringBuilder, java.util.List)
+	 */
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		if (!supportsOptimizerHints()) {
+			throw new IllegalStateException("Optimizer Hints is not supported.");
+		} else {
+			return sql;
 		}
 	}
 }

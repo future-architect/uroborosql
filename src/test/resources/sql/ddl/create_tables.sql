@@ -11,6 +11,9 @@ create table if not exists PRODUCT (
 )
 ;
 
+create index if not exists IX_PRODUCT ON PRODUCT (JAN_CODE)
+;
+
 create table if not exists PRODUCT_REGIST_WORK (
 	PRODUCT_NAME		VARCHAR(100),
 	PRODUCT_KANA_NAME	VARCHAR(100),

@@ -6,6 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 
 /**
@@ -51,6 +54,16 @@ public abstract class OracleDialect extends AbstractDialect {
 	@Override
 	public boolean supportsIdentity() {
 		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsOptimizerHints()
+	 */
+	@Override
+	public boolean supportsOptimizerHints() {
+		return true;
 	}
 
 	/**
@@ -107,5 +120,16 @@ public abstract class OracleDialect extends AbstractDialect {
 	@Override
 	public String getModLiteral(final String dividend, final String divisor) {
 		return "MOD(" + dividend + ", " + divisor + ")";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#addOptimizerHints(java.lang.StringBuilder, java.util.List)
+	 */
+	@Override
+	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
+		String hintStr = "$1 /*+ " + hints.stream().collect(Collectors.joining(" ")) + " */";
+		return new StringBuilder(sql.toString().replaceFirst("(SELECT( /\\*.+\\*/)*)", hintStr));
 	}
 }

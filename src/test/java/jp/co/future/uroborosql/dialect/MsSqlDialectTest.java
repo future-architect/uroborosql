@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -87,6 +89,7 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
+		assertThat(dialect.supportsOptimizerHints(), is(true));
 	}
 
 	@Test
@@ -99,11 +102,77 @@ public class MsSqlDialectTest {
 
 	@Test
 	public void testAddForUpdateClause() {
-		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM test")
+				.append(System.lineSeparator())
+				.append("WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
-				is("SELECT * FROM test WITH (UPDLOCK, ROWLOCK) WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM test WITH (UPDLOCK, ROWLOCK)"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
-				is("SELECT * FROM test WITH (UPDLOCK, ROWLOCK, NOWAIT) WHERE 1 = 1 ORDER id" + System.lineSeparator()));
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM test WITH (UPDLOCK, ROWLOCK, NOWAIT)"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testAddOptimizerHints1() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM test")
+				.append(System.lineSeparator())
+				.append("WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (test test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM test WITH (INDEX (test test_ix), USE_NL)"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+		assertThat(
+				dialect.addOptimizerHints(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1), hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM test WITH (UPDLOCK, ROWLOCK, NOWAIT, INDEX (test test_ix), USE_NL)"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM PUBLIC.TEST_1");
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 WITH (INDEX (PUBLIC.TEST_1 test_ix), USE_NL)"
+						+ System.lineSeparator()));
+		assertThat(
+				dialect.addOptimizerHints(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1), hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 WITH (UPDLOCK, ROWLOCK, NOWAIT, INDEX (PUBLIC.TEST_1 test_ix), USE_NL)"
+						+ System.lineSeparator()));
 	}
 
 }
