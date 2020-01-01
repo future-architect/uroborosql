@@ -213,4 +213,13 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 */
 	SqlEntityQuery<E> forUpdateWait(int waitSeconds);
 
+	/**
+	 * オプティマイザーヒントを指定.<br>
+	 * DBがヒント句をサポートしていない場合は指定は無視される.
+	 *
+	 * @param hint オプティマイザーヒント
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> hint(String hint);
+
 }

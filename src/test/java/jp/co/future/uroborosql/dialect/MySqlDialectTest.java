@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -88,6 +90,7 @@ public class MySqlDialectTest {
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
+		assertThat(dialect.supportsOptimizerHints(), is(true));
 	}
 
 	@Test
@@ -108,4 +111,41 @@ public class MySqlDialectTest {
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.WAIT, 10).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
+
+	@Test
+	public void testAddOptimizerHints1() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM test")
+				.append(System.lineSeparator())
+				.append("WHERE 1 = 1 ORDER id")
+				.append(System.lineSeparator());
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (test test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT" + System.lineSeparator()
+						+ " * FROM test INDEX (test test_ix) USE_NL"
+						+ System.lineSeparator()
+						+ "WHERE 1 = 1 ORDER id"
+						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testAddOptimizerHints2() {
+		StringBuilder sql = new StringBuilder("SELECT")
+				.append(System.lineSeparator())
+				.append(" * FROM PUBLIC.TEST_1");
+		List<String> hints = new ArrayList<>();
+		hints.add("INDEX (PUBLIC.TEST_1 test_ix)");
+		hints.add("USE_NL");
+
+		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
+				is("SELECT"
+						+ System.lineSeparator()
+						+ " * FROM PUBLIC.TEST_1 INDEX (PUBLIC.TEST_1 test_ix) USE_NL"
+						+ System.lineSeparator()));
+	}
+
 }

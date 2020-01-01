@@ -125,9 +125,8 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		@SuppressWarnings("deprecation")
 		List<Product> products = agent.query(Product.class)
-				.param("productId", 0)
+				.equal("productId", 0)
 				.collect();
 
 		products.forEach(p -> {
@@ -141,6 +140,17 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 			assertNotNull(p.getVersionNo());
 		});
 		assertThat(products.size(), is(1));
+	}
+
+	@Test
+	public void testOptimizerHints() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Product> products = agent.query(Product.class)
+				.hint("IX_PRODUCT")
+				.collect();
+		assertThat(products.size(), is(2));
 	}
 
 }
