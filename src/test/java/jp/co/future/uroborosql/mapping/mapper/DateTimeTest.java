@@ -26,7 +26,6 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Table;
-import jp.co.future.uroborosql.utils.DateUtils;
 
 public class DateTimeTest {
 
@@ -377,12 +376,16 @@ public class DateTimeTest {
 				DateTestEntity date = agent.find(DateTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(date.datetimeValue.getTime(), is(test1.datetimeValue.getTime()));
-				assertThat(date.dateValue.getTime(), is(DateUtils.truncate(test1.dateValue, Calendar.DAY_OF_MONTH)
-						.getTime()));
+				assertThat(date.dateValue.getTime(), is(test1.dateValue.getTime()));
 				System.out.println(date.timeValue);
-				Date time = DateUtils.setYears(test1.timeValue, 1970);
-				time = DateUtils.setMonths(time, 0);
-				time = DateUtils.setDays(time, 1);
+
+				final Calendar c = Calendar.getInstance();
+				c.setLenient(false);
+				c.setTime(date.timeValue);
+				c.set(Calendar.YEAR, 1970);
+				c.set(Calendar.MONTH, 0);
+				c.set(Calendar.DAY_OF_MONTH, 1);
+				Date time = c.getTime();
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
 				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
 						.toLocalDateTime(),

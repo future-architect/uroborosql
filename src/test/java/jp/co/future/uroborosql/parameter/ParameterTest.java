@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.utils.DateUtils;
 
 public class ParameterTest {
 	private SqlConfig config;
@@ -39,7 +39,7 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_mapperForDate() throws ParseException, SQLException {
 
-		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
 
@@ -56,7 +56,7 @@ public class ParameterTest {
 	public void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
 
 		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
-		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
 
@@ -74,7 +74,7 @@ public class ParameterTest {
 	public void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
 
 		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
-		Date date = DateUtils.parseDate("2002-01-01", new String[] { "yyyy-MM-dd" });
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (SqlAgent agent = config.agent()) {
 			SqlContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
 
