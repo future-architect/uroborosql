@@ -8,10 +8,11 @@ import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneId;
 import java.util.Date;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
 
 public class BindParameterMapperManagerTest {
@@ -54,7 +55,7 @@ public class BindParameterMapperManagerTest {
 		Object object = new Object();
 		assertThat(parameterMapperManager.toJdbc(object, null), is(object));
 
-		Date date = DateUtils.parseDate("2000/01/01", new String[] { "yyyy/MM/dd" });
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		assertThat(parameterMapperManager.toJdbc(date, null), is(new java.sql.Timestamp(date.getTime())));
 		assertThat(parameterMapperManager.toJdbc(Month.APRIL, null), is(4));
 	}
@@ -99,17 +100,17 @@ public class BindParameterMapperManagerTest {
 
 		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
-			if (getOriginal.equals(method)) {
-				return o;
-			}
+					if (getOriginal.equals(method)) {
+						return o;
+					}
 
-			for (int i = 0; i < args.length; i++) {
-				if (args[i] instanceof ProxyContainer) {
-					args[i] = ((ProxyContainer) args[i]).getOriginal();
-				}
-			}
-			return method.invoke(o, args);
-		});
+					for (int i = 0; i < args.length; i++) {
+						if (args[i] instanceof ProxyContainer) {
+							args[i] = ((ProxyContainer) args[i]).getOriginal();
+						}
+					}
+					return method.invoke(o, args);
+				});
 		return proxyInstance;
 	}
 }

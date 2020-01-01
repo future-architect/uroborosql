@@ -16,14 +16,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * Describe table Command
@@ -68,7 +69,7 @@ public class DescCommand extends ReplCommand {
 				while (rs.next()) {
 					Map<String, String> column = new HashMap<>();
 					for (String label : DESC_COLUMN_LABELS) {
-						final String value = StringUtils.defaultString(rs.getString(label));
+						final String value = Objects.toString(rs.getString(label), "");
 						column.put(label, value);
 						labelLength.compute(
 								label,

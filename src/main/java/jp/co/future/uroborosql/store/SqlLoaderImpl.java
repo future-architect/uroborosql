@@ -22,11 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQL読み込みクラス<br>
@@ -210,7 +210,8 @@ public class SqlLoaderImpl implements SqlLoader {
 			JarEntry jarEntry = jarEnum.nextElement();
 			String fileName = jarEntry.getName();
 			if (fileName.startsWith(loadPath) && fileName.toLowerCase().endsWith(fileExtension)) {
-				String sql = trimSlash(read(new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry)))));
+				String sql = trimSlash(
+						read(new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry)))));
 				fileName = fileName.substring(loadPath.length() + 1, fileName.length() - 4);
 				sqlMap.put(fileName, sql);
 
@@ -386,7 +387,7 @@ public class SqlLoaderImpl implements SqlLoader {
 	private String trimSlash(final String sql) {
 		String trimedSql = sql.trim();
 		if (trimedSql.endsWith(PATH_SEPARATOR) && !trimedSql.endsWith("*/")) {
-			return StringUtils.stripEnd(trimedSql, PATH_SEPARATOR);
+			return StringUtils.removeEnd(trimedSql, PATH_SEPARATOR);
 		} else {
 			return sql;
 		}

@@ -33,13 +33,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * Coberturaカバレッジレポート出力ハンドラ<br>
@@ -154,7 +154,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		private final int[] hitLines;
 
 		private SqlCoverage(final String name, final String sql, final String md5, final Path sourcesDirPath,
-				int hashIndex)
+				final int hashIndex)
 				throws IOException {
 			this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
 			this.md5 = md5;

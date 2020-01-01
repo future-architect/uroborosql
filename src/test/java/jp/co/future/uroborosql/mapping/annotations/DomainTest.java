@@ -6,20 +6,16 @@ import static org.hamcrest.MatcherAssert.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
-import java.util.Objects;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class DomainTest {
 
@@ -70,17 +66,37 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			NameDomain other = (NameDomain) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "NameDomain [name=" + name + "]";
 		}
 	}
 
@@ -100,17 +116,41 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DomainTestEntity other = (DomainTestEntity) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DomainTestEntity [id=" + id + ", name=" + name + "]";
 		}
 	}
 
@@ -154,17 +194,34 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			NameDomain2 other = (NameDomain2) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "NameDomain2 [name=" + name + "]";
 		}
 	}
 
@@ -186,17 +243,41 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DomainTestEntity2 other = (DomainTestEntity2) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DomainTestEntity2 [id=" + id + ", name=" + name + "]";
 		}
 	}
 
@@ -240,20 +321,34 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hashCode(this.name);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			if (obj instanceof NameDomain3) {
-				return Objects.equals(this.name, ((NameDomain3) obj).name);
+			if (this == obj) {
+				return true;
 			}
-			return false;
+			if (obj == null) {
+				return false;
+			}
+			NameDomain3 other = (NameDomain3) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "NameDomain3 [name=" + name + "]";
 		}
 	}
 
@@ -281,17 +376,41 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DomainTestEntity3 other = (DomainTestEntity3) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DomainTestEntity3 [id=" + id + ", name=" + name + "]";
 		}
 	}
 
@@ -318,8 +437,8 @@ public class DomainTest {
 	}
 
 	@Domain(valueType = String.class, toJdbcMethod = "name")
-	public static enum NameDomain4 {
-		NAME1, NAME2, NAME3, ;
+	public enum NameDomain4 {
+		NAME1, NAME2, NAME3,;
 	}
 
 	@SuppressWarnings("unused")
@@ -338,17 +457,37 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DomainTestEntity4 other = (DomainTestEntity4) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name != other.name) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "DomainTestEntity4 [id=" + id + ", name=" + name + "]";
 		}
 	}
 

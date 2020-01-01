@@ -29,8 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -58,6 +56,7 @@ import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.store.NioSqlManagerImpl;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQL REPL実装クラス
@@ -224,7 +223,7 @@ public class SqlREPL {
 		String loadPath = p("sql.loadPath", "sql");
 		String fileExtension = p("sql.fileExtension", ".sql");
 		Charset charset = Charset.forName(p("sql.encoding", "UTF-8"));
-		boolean detectChanges = BooleanUtils.toBoolean(p("sql.detectChanges", "true"));
+		boolean detectChanges = Boolean.parseBoolean(p("sql.detectChanges", "true"));
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)

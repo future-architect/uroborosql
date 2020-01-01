@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,4 +102,176 @@ public class StringFunctionTest {
 		new StringFunction().endsWith("abc");
 	}
 
+	@Test
+	public void testIsBlank() throws Exception {
+		assertThat(expressionFunction.isBlank(null), is(true));
+		assertThat(expressionFunction.isBlank(""), is(true));
+		assertThat(expressionFunction.isBlank(" "), is(true));
+		assertThat(expressionFunction.isBlank("bob"), is(false));
+		assertThat(expressionFunction.isBlank("  bob  "), is(false));
+	}
+
+	@Test
+	public void testIsEmpty() throws Exception {
+		assertThat(expressionFunction.isEmpty(null), is(true));
+		assertThat(expressionFunction.isEmpty(""), is(true));
+		assertThat(expressionFunction.isEmpty(" "), is(false));
+		assertThat(expressionFunction.isEmpty("bob"), is(false));
+		assertThat(expressionFunction.isEmpty("  bob  "), is(false));
+	}
+
+	@Test
+	public void testIsNotBlank() throws Exception {
+		assertThat(expressionFunction.isNotBlank(null), is(false));
+		assertThat(expressionFunction.isNotBlank(""), is(false));
+		assertThat(expressionFunction.isNotBlank(" "), is(false));
+		assertThat(expressionFunction.isNotBlank("bob"), is(true));
+		assertThat(expressionFunction.isNotBlank("  bob  "), is(true));
+	}
+
+	@Test
+	public void testIsNotEmpty() throws Exception {
+		assertThat(expressionFunction.isNotEmpty(null), is(false));
+		assertThat(expressionFunction.isNotEmpty(""), is(false));
+		assertThat(expressionFunction.isNotEmpty(" "), is(true));
+		assertThat(expressionFunction.isNotEmpty("bob"), is(true));
+		assertThat(expressionFunction.isNotEmpty("  bob  "), is(true));
+	}
+
+	@Test
+	public void testTrim() throws Exception {
+		assertThat(expressionFunction.trim(null), nullValue());
+		assertThat(expressionFunction.trim(""), is(""));
+		assertThat(expressionFunction.trim(""), is(""));
+		assertThat(expressionFunction.trim("     "), is(""));
+		assertThat(expressionFunction.trim("abc"), is("abc"));
+		assertThat(expressionFunction.trim("    abc    "), is("abc"));
+	}
+
+	@Test
+	public void testTrimToEmpty() throws Exception {
+		assertThat(expressionFunction.trimToEmpty(null), is(""));
+		assertThat(expressionFunction.trimToEmpty(""), is(""));
+		assertThat(expressionFunction.trimToEmpty(""), is(""));
+		assertThat(expressionFunction.trimToEmpty("     "), is(""));
+		assertThat(expressionFunction.trimToEmpty("abc"), is("abc"));
+		assertThat(expressionFunction.trimToEmpty("    abc    "), is("abc"));
+	}
+
+	@Test
+	public void testLeft() throws Exception {
+		assertThat(expressionFunction.left(null, 1), nullValue());
+		assertThat(expressionFunction.left("abc", -1), is(""));
+		assertThat(expressionFunction.left("", 2), is(""));
+		assertThat(expressionFunction.left("abc", 0), is(""));
+		assertThat(expressionFunction.left("abc", 2), is("ab"));
+		assertThat(expressionFunction.left("abc", 4), is("abc"));
+	}
+
+	@Test
+	public void testRight() throws Exception {
+		assertThat(expressionFunction.right(null, 1), nullValue());
+		assertThat(expressionFunction.right("abc", -1), is(""));
+		assertThat(expressionFunction.right("", 2), is(""));
+		assertThat(expressionFunction.right("abc", 0), is(""));
+		assertThat(expressionFunction.right("abc", 2), is("bc"));
+		assertThat(expressionFunction.right("abc", 4), is("abc"));
+	}
+
+	@Test
+	public void testMid() throws Exception {
+		assertThat(expressionFunction.mid(null, 1, 2), nullValue());
+		assertThat(expressionFunction.mid("abc", 1, -1), is(""));
+		assertThat(expressionFunction.mid("", 0, 2), is(""));
+		assertThat(expressionFunction.mid("abc", 0, 2), is("ab"));
+		assertThat(expressionFunction.mid("abc", 0, 4), is("abc"));
+		assertThat(expressionFunction.mid("abc", 2, 4), is("c"));
+		assertThat(expressionFunction.mid("abc", 4, 2), is(""));
+		assertThat(expressionFunction.mid("abc", -2, 2), is("ab"));
+	}
+
+	@Test
+	public void testRightPad() throws Exception {
+		assertThat(expressionFunction.rightPad(null, 3), nullValue());
+		assertThat(expressionFunction.rightPad("", 3), is("   "));
+		assertThat(expressionFunction.rightPad("bat", 3), is("bat"));
+		assertThat(expressionFunction.rightPad("bat", 5), is("bat  "));
+		assertThat(expressionFunction.rightPad("bat", 1), is("bat"));
+		assertThat(expressionFunction.rightPad("bat", -1), is("bat"));
+	}
+
+	@Test
+	public void testRightPadWithChar() throws Exception {
+		assertThat(expressionFunction.rightPad(null, 3, ' '), nullValue());
+		assertThat(expressionFunction.rightPad("", 3, 'z'), is("zzz"));
+		assertThat(expressionFunction.rightPad("bat", 3, 'z'), is("bat"));
+		assertThat(expressionFunction.rightPad("bat", 5, 'z'), is("batzz"));
+		assertThat(expressionFunction.rightPad("bat", 1, 'z'), is("bat"));
+		assertThat(expressionFunction.rightPad("bat", -1, 'z'), is("bat"));
+	}
+
+	@Test
+	public void testLeftPad() throws Exception {
+		assertThat(expressionFunction.leftPad(null, 3), nullValue());
+		assertThat(expressionFunction.leftPad("", 3), is("   "));
+		assertThat(expressionFunction.leftPad("bat", 3), is("bat"));
+		assertThat(expressionFunction.leftPad("bat", 5), is("  bat"));
+		assertThat(expressionFunction.leftPad("bat", 1), is("bat"));
+		assertThat(expressionFunction.leftPad("bat", -1), is("bat"));
+	}
+
+	@Test
+	public void testLeftPadWithChar() throws Exception {
+		assertThat(expressionFunction.leftPad(null, 3, ' '), nullValue());
+		assertThat(expressionFunction.leftPad("", 3, 'z'), is("zzz"));
+		assertThat(expressionFunction.leftPad("bat", 3, 'z'), is("bat"));
+		assertThat(expressionFunction.leftPad("bat", 5, 'z'), is("zzbat"));
+		assertThat(expressionFunction.leftPad("bat", 1, 'z'), is("bat"));
+		assertThat(expressionFunction.leftPad("bat", -1, 'z'), is("bat"));
+	}
+
+	@Test
+	public void testSplit() throws Exception {
+		assertThat(expressionFunction.split(null), nullValue());
+		assertThat(expressionFunction.split(""), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split("abc def"), is(Matchers.arrayContaining("abc", "def")));
+		assertThat(expressionFunction.split("abc  def"), is(Matchers.arrayContaining("abc", "def")));
+		assertThat(expressionFunction.split(" abc "), is(Matchers.arrayContaining("abc")));
+	}
+
+	@Test
+	public void testSplitWithChar() throws Exception {
+		assertThat(expressionFunction.split(null, '.'), nullValue());
+		assertThat(expressionFunction.split("", '.'), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split("a.b.c", '.'), is(Matchers.arrayContaining("a", "b", "c")));
+		assertThat(expressionFunction.split("a..b.c", '.'), is(Matchers.arrayContaining("a", "b", "c")));
+		assertThat(expressionFunction.split("a:b:c", '.'), is(Matchers.arrayContaining("a:b:c")));
+		assertThat(expressionFunction.split("a b c", ' '), is(Matchers.arrayContaining("a", "b", "c")));
+	}
+
+	@Test
+	public void testSplitWithMax() throws Exception {
+		assertThat(expressionFunction.split(null, ".", 2), nullValue());
+		assertThat(expressionFunction.split("", ".", 2), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split("ab cd ef", null, 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split("ab   cd ef", null, 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split("ab:cd:ef", ":", 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split("ab:cd:ef", ":", 2), is(Matchers.arrayContaining("ab", "cd:ef")));
+	}
+
+	@Test
+	public void testCapitalize() throws Exception {
+		assertThat(expressionFunction.capitalize(null), nullValue());
+		assertThat(expressionFunction.capitalize(""), is(""));
+		assertThat(expressionFunction.capitalize("cat"), is("Cat"));
+		assertThat(expressionFunction.capitalize("cAt"), is("CAt"));
+	}
+
+	@Test
+	public void testUncapitalize() throws Exception {
+		assertThat(expressionFunction.uncapitalize(null), nullValue());
+		assertThat(expressionFunction.uncapitalize(""), is(""));
+		assertThat(expressionFunction.uncapitalize("Cat"), is("cat"));
+		assertThat(expressionFunction.uncapitalize("CAt"), is("cAt"));
+	}
 }

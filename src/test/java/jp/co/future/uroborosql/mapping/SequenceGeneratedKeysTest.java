@@ -8,9 +8,6 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -348,18 +345,43 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithSeq other = (TestEntityWithSeq) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithSeq [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 	@Table(name = "TEST_MULTIKEY")
@@ -407,18 +429,47 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (int) (id2 ^ id2 >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithSeqMultikey other = (TestEntityWithSeqMultikey) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (id2 != other.id2) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithSeqMultikey [id=" + id + ", id2=" + id2 + ", name=" + name + "]";
 		}
+
 	}
 
 	@Table(name = "TEST")
@@ -453,18 +504,43 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this, true);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(final Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj, true);
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			TestEntityWithSeqError other = (TestEntityWithSeqError) obj;
+			if (id != other.id) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return ToStringBuilder.reflectionToString(this);
+			return "TestEntityWithSeqError [id=" + id + ", name=" + name + "]";
 		}
+
 	}
 
 }

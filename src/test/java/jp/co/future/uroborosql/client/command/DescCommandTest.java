@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.LineReader;
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +20,7 @@ import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class DescCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;

@@ -28,7 +28,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

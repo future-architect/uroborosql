@@ -23,7 +23,6 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,7 @@ import jp.co.future.uroborosql.coverage.LineRange;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.coverage.Range;
 import jp.co.future.uroborosql.coverage.Ranges;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 class SqlCoverageReport {
 	protected static final Logger LOG = LoggerFactory.getLogger(SqlCoverageReport.class);
@@ -62,7 +62,8 @@ class SqlCoverageReport {
 	 */
 	private final Ranges passRanges = new Ranges();
 
-	SqlCoverageReport(String name, String sql, String md5, Path reportDirPath, int hashIndex) {
+	SqlCoverageReport(final String name, final String sql, final String md5, final Path reportDirPath,
+			final int hashIndex) {
 		this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
 		this.reportDirPath = reportDirPath;
 		this.path = reportDirPath.resolve(this.name + ".html");
@@ -78,7 +79,7 @@ class SqlCoverageReport {
 	 *
 	 * @param passRoute カバレッジ情報
 	 */
-	void accept(PassedRoute passRoute) {
+	void accept(final PassedRoute passRoute) {
 		//各行の通過情報を集計
 		for (LineRange range : lineRanges) {
 			if (passRoute.isHit(range)) {
@@ -131,7 +132,7 @@ class SqlCoverageReport {
 		updated = false;
 	}
 
-	private void writeLineNoSection(BufferedWriter writer) throws IOException {
+	private void writeLineNoSection(final BufferedWriter writer) throws IOException {
 		writer.append("<td class=\"line-no\">");
 		writer.newLine();
 		writer.append("<pre>");
@@ -146,7 +147,7 @@ class SqlCoverageReport {
 		writer.newLine();
 	}
 
-	private void writeHitsSection(BufferedWriter writer) throws IOException {
+	private void writeHitsSection(final BufferedWriter writer) throws IOException {
 		writer.append("<td class=\"line-coverage\">");
 		writer.append(IntStream.range(0, this.sqlLineCount)
 				.mapToObj(i -> {
@@ -162,13 +163,13 @@ class SqlCoverageReport {
 		writer.append("</td>");
 	}
 
-	private boolean isTargetLine(int index) {
+	private boolean isTargetLine(final int index) {
 		return lineRanges.stream()
 				.mapToInt(LineRange::getLineIndex)
 				.anyMatch(i -> i == index);
 	}
 
-	private void writeSourceSection(BufferedWriter writer) throws IOException {
+	private void writeSourceSection(final BufferedWriter writer) throws IOException {
 		writer.append("<td class=\"source\">");
 		writer.newLine();
 		writer.append("<pre>");
@@ -216,7 +217,8 @@ class SqlCoverageReport {
 		writer.newLine();
 	}
 
-	private int appendBranch(BufferedWriter writer, int start, RangeBranch branch) throws IOException {
+	private int appendBranch(final BufferedWriter writer, final int start, final RangeBranch branch)
+			throws IOException {
 		Range range = branch.getRange();
 		if (start < range.getStart()) {
 			appendNotCovered(writer, start, range.getStart());
@@ -228,12 +230,12 @@ class SqlCoverageReport {
 		String html = size <= covered
 				? buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1), "", "")
 				: buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1),
-				"<span class=\"not-covered-branch\" title=\"branch not covered\" >", "</span>");
+						"<span class=\"not-covered-branch\" title=\"branch not covered\" >", "</span>");
 		writer.append(html);
 		return range.getEnd() + 1;
 	}
 
-	private int appendPassed(BufferedWriter writer, int start, Range pass) throws IOException {
+	private int appendPassed(final BufferedWriter writer, final int start, final Range pass) throws IOException {
 
 		if (start < pass.getStart()) {
 			appendNotCovered(writer, start, pass.getStart());
@@ -244,20 +246,20 @@ class SqlCoverageReport {
 		return pass.getEnd() + 1;
 	}
 
-	private void appendNotCovered(BufferedWriter writer, int start, int end) throws IOException {
+	private void appendNotCovered(final BufferedWriter writer, final int start, final int end) throws IOException {
 		String html = buildLinesHtml(this.sql.substring(start, end),
 				"<span class=\"not-covered\" title=\"statement not covered\" >", "</span>");
 		writer.append(html);
 	}
 
-	private String buildLinesHtml(String linesText, String prefix, String suffix) {
+	private String buildLinesHtml(final String linesText, final String prefix, final String suffix) {
 		return toLines(linesText).stream()
-				.map(StringEscapeUtils::escapeHtml4)
+				.map(this::escapeHtml4)
 				.map(s -> prefix + s + suffix)
 				.collect(Collectors.joining("\n"));
 	}
 
-	private Range nextPassRange(Ranges passes, int start) {
+	private Range nextPassRange(final Ranges passes, final int start) {
 		return passes.stream()
 				.sorted()
 				.filter(r -> start <= r.getEnd())
@@ -265,7 +267,7 @@ class SqlCoverageReport {
 				.orElse(null);
 	}
 
-	private RangeBranch nextRangeBranch(int start) {
+	private RangeBranch nextRangeBranch(final int start) {
 		return branches.values().stream()
 				.sorted(Comparator.comparing(RangeBranch::getRange))
 				.filter(r -> start <= r.getRange().getEnd())
@@ -273,7 +275,7 @@ class SqlCoverageReport {
 				.orElse(null);
 	}
 
-	private static List<String> toLines(String text) {
+	private static List<String> toLines(final String text) {
 		List<String> ret = new ArrayList<>();
 		String s = text + "+";//最後の改行を検知するためダミー文字を付与
 		try (Scanner scanner = new Scanner(s)) {
@@ -289,7 +291,7 @@ class SqlCoverageReport {
 		return ret;
 	}
 
-	private void writePrefix(BufferedWriter writer) throws IOException {
+	private void writePrefix(final BufferedWriter writer) throws IOException {
 		writer.append("<!DOCTYPE html>");
 		writer.newLine();
 		writer.append("<html lang=\"en\">");
@@ -314,7 +316,7 @@ class SqlCoverageReport {
 		writer.newLine();
 	}
 
-	private void writeHeaderSection(BufferedWriter writer) throws IOException {
+	private void writeHeaderSection(final BufferedWriter writer) throws IOException {
 		int lineCount = getLineValidSize();
 		int lineCovered = getLineCoveredSize();
 		int branchesCount = getBranchValidSize();
@@ -328,7 +330,7 @@ class SqlCoverageReport {
 		writer.newLine();
 		writer.append("</div>");
 		writer.newLine();
-		writer.append("<h1>").append(StringEscapeUtils.escapeHtml4(this.name)).append("</h1>");
+		writer.append("<h1>").append(escapeHtml4(this.name)).append("</h1>");
 		writer.newLine();
 		writer.append("<div class=\"nav\">")
 				.append("<a href=\"").append(getAssetPath()).append("/index.html\">All Files</a>")
@@ -368,21 +370,21 @@ class SqlCoverageReport {
 		return this.path.getParent().relativize(this.reportDirPath).toString();
 	}
 
-	private void writeTablePrefix(BufferedWriter writer) throws IOException {
+	private void writeTablePrefix(final BufferedWriter writer) throws IOException {
 		writer.append("<table class=\"coverage\">");
 		writer.newLine();
 		writer.append("<tr>");
 		writer.newLine();
 	}
 
-	private void writeTableSuffix(BufferedWriter writer) throws IOException {
+	private void writeTableSuffix(final BufferedWriter writer) throws IOException {
 		writer.append("</tr>");
 		writer.newLine();
 		writer.append("</table>");
 		writer.newLine();
 	}
 
-	private void writeSuffix(BufferedWriter writer) throws IOException {
+	private void writeSuffix(final BufferedWriter writer) throws IOException {
 		writer.append("<div class=\"footer\">code coverage report generated by ")
 				.append("<a href=\"https://github.com/future-architect/uroborosql\" target=\"_blank\">uroboroSQL</a> at ")
 				.append(ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME))
@@ -414,6 +416,17 @@ class SqlCoverageReport {
 		return branches.values().stream()
 				.mapToInt(RangeBranch::coveredSize)
 				.sum();
+	}
+
+	private String escapeHtml4(final String str) {
+		if (StringUtils.isEmpty(str)) {
+			return "";
+		} else {
+			return str.replaceAll("\"", "&quot;")
+					.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;");
+		}
 	}
 
 }

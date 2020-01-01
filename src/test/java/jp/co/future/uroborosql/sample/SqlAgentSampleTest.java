@@ -11,9 +11,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,7 +44,8 @@ public class SqlAgentSampleTest {
 			conn.setAutoCommit(false);
 			// テーブル作成
 			try (Statement stmt = conn.createStatement()) {
-				stmt.execute("create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
+				stmt.execute(
+						"create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
 
 				try (PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)")) {
 					pstmt.setInt(1, 1);
@@ -127,7 +128,15 @@ public class SqlAgentSampleTest {
 	}
 
 	private String toString(final List<Map<String, Object>> obj) {
-		return ToStringBuilder.reflectionToString(obj, ToStringStyle.SHORT_PREFIX_STYLE);
+		if (obj == null) {
+			return "";
+		} else {
+			return obj.stream()
+					.map(m -> m.entrySet().stream()
+							.map(e -> e.getKey() + "=" + Objects.toString(e.getValue()))
+							.collect(Collectors.joining(",", "{", "}")))
+					.collect(Collectors.joining(",", "[", "]"));
+		}
 	}
 
 }

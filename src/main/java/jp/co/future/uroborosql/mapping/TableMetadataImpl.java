@@ -10,10 +10,9 @@ import java.sql.SQLType;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * テーブルメタ情報クラス

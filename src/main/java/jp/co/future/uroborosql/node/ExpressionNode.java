@@ -6,11 +6,10 @@
  */
 package jp.co.future.uroborosql.node;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jp.co.future.uroborosql.exception.OgnlRuntimeException;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
+import jp.co.future.uroborosql.utils.StringUtils;
 import ognl.Ognl;
 import ognl.OgnlException;
 

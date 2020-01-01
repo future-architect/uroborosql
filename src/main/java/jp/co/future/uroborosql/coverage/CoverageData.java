@@ -8,11 +8,10 @@ package jp.co.future.uroborosql.coverage;
 
 import java.security.MessageDigest;
 
-import jp.co.future.uroborosql.SqlAgent;
-
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.SqlAgent;
 
 /**
  * カバレッジログ出力用データクラス
@@ -74,7 +73,7 @@ public class CoverageData {
 	 * @return JSON
 	 */
 	public String toJSON() {
-		return "{\"sqlName\":" + StringEscapeUtils.escapeJson(sqlName) + ",\"md5\":" + md5 + ",\"passRoute\":"
+		return "{\"sqlName\":" + sqlName.replaceAll("/", "\\/") + ",\"md5\":" + md5 + ",\"passRoute\":"
 				+ passRoute + "}";
 	}
 

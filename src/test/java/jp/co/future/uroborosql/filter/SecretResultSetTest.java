@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;

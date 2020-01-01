@@ -21,8 +21,7 @@ import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.node.PrefixSqlNode;
 import jp.co.future.uroborosql.node.SqlNode;
-
-import org.apache.commons.lang3.StringUtils;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * SQL解析処理実装クラス
