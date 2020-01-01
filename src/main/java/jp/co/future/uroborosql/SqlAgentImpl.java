@@ -16,6 +16,8 @@ import java.sql.Statement;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -62,6 +64,9 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 public class SqlAgentImpl extends AbstractAgent {
 	/** ロガー */
 	protected static final Logger LOG = LoggerFactory.getLogger(SqlAgentImpl.class);
+
+	/** 経過時間のフォーマッタ */
+	private static final DateTimeFormatter ELAPSED_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
 	/** 例外発生時のログ出力を行うかどうか デフォルトは<code>true</code> */
 	protected boolean outputExceptionLog = true;
@@ -1362,21 +1367,14 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * 経過時間を計算し、HH:MM:SS.SSSにフォーマットする.
+	 * 経過時間を計算し、HH:mm:ss.SSSSSSにフォーマットする.
 	 *
 	 * @param start 開始時間
 	 * @param end 終了時間
 	 * @return フォーマットした経過時間
 	 */
-	private String formatElapsedTime(final Instant start, final Instant end) {
-		Duration duration = Duration.between(start, end);
-		long elapsed = duration.getSeconds();
-		long hours = elapsed / 3_600;
-		long minutes = elapsed % 3_600 / 60;
-		long seconds = elapsed % 60;
-		long micros = (duration.toNanos() - elapsed * 1_000_000_000) / 1_000;
-
-		return String.format("%02d:%02d:%02d.%06d", hours, minutes, seconds, micros);
+	private static String formatElapsedTime(final Instant start, final Instant end) {
+		return ELAPSED_TIME_FORMAT.format(LocalTime.MIDNIGHT.plus(Duration.between(start, end)));
 	}
 
 }
