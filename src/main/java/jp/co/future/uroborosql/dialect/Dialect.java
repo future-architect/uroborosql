@@ -20,9 +20,11 @@ import jp.co.future.uroborosql.utils.StringFunction;
  * @author H.Sugimoto
  */
 public interface Dialect {
+	/** エスケープ文字の置換文字列 */
+	String PARAM_KEY_ESCAPE_CHAR = "ESC_CHAR";
 
 	/**
-	 * OGNL式内で使用する式関数を取得.
+	 * 評価式内で使用する式関数を取得.
 	 *
 	 * @return 式関数
 	 */

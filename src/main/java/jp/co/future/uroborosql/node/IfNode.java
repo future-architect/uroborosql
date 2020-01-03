@@ -11,13 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
-import jp.co.future.uroborosql.exception.OgnlRuntimeException;
+import jp.co.future.uroborosql.expr.Expression;
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringFunction;
-import ognl.ASTProperty;
-import ognl.Node;
-import ognl.Ognl;
-import ognl.OgnlException;
 
 /**
  * IF句を表すノード
@@ -28,6 +24,7 @@ public class IfNode extends BranchNode {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(IfNode.class);
 
+	private final ExpressionParser expressionParser;
 	/** 評価式 */
 	private final String expression;
 
@@ -40,11 +37,13 @@ public class IfNode extends BranchNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param expressionParser ExpressionParser
 	 * @param position 開始位置
 	 * @param expression 評価式
 	 */
-	public IfNode(final int position, final String expression) {
+	public IfNode(final ExpressionParser expressionParser, final int position, final String expression) {
 		super(position, expression.length() + 6);
+		this.expressionParser = expressionParser;
 		this.expression = expression.trim();
 	}
 
@@ -95,14 +94,8 @@ public class IfNode extends BranchNode {
 
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Object result = null;
-		Node parsedExpression = null;
-		try {
-			parsedExpression = (Node) Ognl.parseExpression(expression);
-			result = Ognl.getValue(parsedExpression, transformContext, null);
-		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("Value could not be obtained.[" + expression + "]", ex);
-		}
+		Expression expr = expressionParser.parse(expression);
+		Object result = expr.getValue(transformContext);
 
 		if (result instanceof Boolean) {
 			boolean resultValue = ((Boolean) result).booleanValue();
@@ -111,12 +104,9 @@ public class IfNode extends BranchNode {
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					StringBuilder builder = new StringBuilder();
-					dumpNode(parsedExpression, transformContext, builder);
-
+					StringBuilder builder = expr.dumpNode(transformContext);
 					LOG.debug("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
-							builder.length() == 0 ? ""
-									: builder.substring(0, builder.length() - 1));
+							builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
 				}
 			}
 			passState(resultValue);
@@ -149,39 +139,4 @@ public class IfNode extends BranchNode {
 			elseNode.passed(passed);
 		}
 	}
-
-	/**
-	 * ExpressionのNodeを解析してパラメータの値をダンプします
-	 *
-	 * @param node expressionの各ノード
-	 * @param transformContext
-	 * @param builder パラメータの値を出力する先
-	 */
-	private void dumpNode(final Node node, final TransformContext transformContext, final StringBuilder builder) {
-		if (node == null) {
-			return;
-		}
-		if (node instanceof ASTProperty) {
-			ASTProperty prop = (ASTProperty) node;
-			if (!StringFunction.SHORT_NAME.equals(prop.toString())) {
-				try {
-					Object value = Ognl.getValue(prop, transformContext, null);
-					builder.append(prop)
-							.append(":[")
-							.append(value == null ? null : value.toString())
-							.append("],");
-				} catch (OgnlException ex) {
-					// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
-					ex.printStackTrace();
-				}
-			}
-		} else {
-			int childCount = node.jjtGetNumChildren();
-			for (int i = 0; i < childCount; i++) {
-				Node child = node.jjtGetChild(i);
-				dumpNode(child, transformContext, builder);
-			}
-		}
-	}
-
 }

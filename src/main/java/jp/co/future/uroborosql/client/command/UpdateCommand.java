@@ -54,7 +54,7 @@ public class UpdateCommand extends ReplCommand {
 					SqlContext ctx = agent.contextFrom(sqlName);
 					ctx.setSql(sqlConfig.getSqlManager().getSql(ctx.getSqlName()));
 					String[] params = Arrays.copyOfRange(parts, 2, parts.length);
-					SqlParamUtils.setSqlParams(ctx, params);
+					SqlParamUtils.setSqlParams(sqlConfig, ctx, params);
 					try {
 						int ans = agent.update(ctx);
 						agent.commit();

@@ -12,6 +12,9 @@ import java.util.stream.StreamSupport;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
@@ -22,6 +25,8 @@ import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.expr.ExpressionParser;
+import jp.co.future.uroborosql.expr.ExpressionParserFactory;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
@@ -36,6 +41,9 @@ import jp.co.future.uroborosql.store.SqlManagerImpl;
  * @since v0.4.0
  */
 public final class UroboroSQL {
+	/** ロガー */
+	private static final Logger log = LoggerFactory.getLogger(UroboroSQL.class);
+
 	private UroboroSQL() {
 	}
 
@@ -102,6 +110,7 @@ public final class UroboroSQL {
 		private SqlAgentFactory sqlAgentFactory;
 		private EntityHandler<?> entityHandler;
 		private Dialect dialect;
+		private ExpressionParser expressionParser;
 
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
@@ -111,6 +120,7 @@ public final class UroboroSQL {
 			this.sqlAgentFactory = new SqlAgentFactoryImpl();
 			this.entityHandler = new DefaultEntityHandler();
 			this.dialect = null;
+			this.expressionParser = null;
 		}
 
 		/**
@@ -191,6 +201,17 @@ public final class UroboroSQL {
 		}
 
 		/**
+		 * ExpressionParserの設定
+		 *
+		 * @param expressionParser ExpressionParser
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder setExpressionParser(final ExpressionParser expressionParser) {
+			this.expressionParser = expressionParser;
+			return this;
+		}
+
+		/**
 		 * Builderに設定された内容を元にSqlConfigを構築する
 		 *
 		 * @return SqlConfig
@@ -201,8 +222,14 @@ public final class UroboroSQL {
 						"ConnectionSupplier is mandatory. Please set ConnectionSupplier instance before calling build() method.");
 			}
 
-			return new InternalConfig(this.connectionSupplier, this.sqlManager, this.sqlContextFactory,
-					this.sqlAgentFactory, this.sqlFilterManager, this.entityHandler, this.dialect);
+			return new InternalConfig(this.connectionSupplier,
+					this.sqlManager,
+					this.sqlContextFactory,
+					this.sqlAgentFactory,
+					this.sqlFilterManager,
+					this.entityHandler,
+					this.dialect,
+					this.expressionParser);
 		}
 
 	}
@@ -243,10 +270,19 @@ public final class UroboroSQL {
 		 */
 		private final Dialect dialect;
 
-		InternalConfig(final ConnectionSupplier connectionSupplier, final SqlManager sqlManager,
-				final SqlContextFactory sqlContextFactory, final SqlAgentFactory sqlAgentFactory,
+		/**
+		 * ExpressionParser
+		 */
+		private final ExpressionParser expressionParser;
+
+		InternalConfig(final ConnectionSupplier connectionSupplier,
+				final SqlManager sqlManager,
+				final SqlContextFactory sqlContextFactory,
+				final SqlAgentFactory sqlAgentFactory,
 				final SqlFilterManager sqlFilterManager,
-				final EntityHandler<?> entityHandler, final Dialect dialect) {
+				final EntityHandler<?> entityHandler,
+				final Dialect dialect,
+				final ExpressionParser expressionParser) {
 			this.connectionSupplier = connectionSupplier;
 			this.sqlManager = sqlManager;
 			this.sqlContextFactory = sqlContextFactory;
@@ -261,13 +297,31 @@ public final class UroboroSQL {
 				this.dialect = dialect;
 			}
 
+			log.debug("SqlConfig - Dialect : " + this.dialect.getClass().getSimpleName() + " has been selected.");
+
+			if (expressionParser == null) {
+				ExpressionParserFactory expressionParserFactory = StreamSupport
+						.stream(ServiceLoader.load(ExpressionParserFactory.class).spliterator(), false)
+						.filter(e -> e.accept()).findFirst()
+						.orElseThrow(() -> new IllegalStateException("ExpressionParser not found."));
+				this.expressionParser = expressionParserFactory.create();
+			} else {
+				this.expressionParser = expressionParser;
+			}
+
+			log.debug("SqlConfig - ExpressionParser : " + this.expressionParser.getClass().getSimpleName()
+					+ " has been selected.");
+
 			this.sqlManager.setDialect(this.dialect);
+			this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);
+			this.sqlAgentFactory.setSqlConfig(this);
+			this.expressionParser.setSqlConfig(this);
+			this.entityHandler.setSqlConfig(this);
+
 			this.sqlManager.initialize();
 			this.sqlFilterManager.initialize();
-			this.sqlContextFactory.setSqlFilterManager(this.sqlFilterManager);
 			this.sqlContextFactory.initialize();
-			this.sqlAgentFactory.setSqlConfig(this);
-			this.entityHandler.setSqlConfig(this);
+			this.expressionParser.initialize();
 		}
 
 		/**
@@ -384,24 +438,21 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getExpressionParser()
+		 */
+		@Override
+		public ExpressionParser getExpressionParser() {
+			return expressionParser;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
 		 * @see jp.co.future.uroborosql.config.SqlConfig#getEntityHandler()
 		 */
 		@Override
 		public EntityHandler<?> getEntityHandler() {
 			return entityHandler;
 		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#setEntityHandler(EntityHandler)
-		 */
-		@Override
-		@Deprecated
-		public void setEntityHandler(final EntityHandler<?> entityHandler) {
-			throw new UnsupportedOperationException();
-		}
-
 	}
-
 }

@@ -358,6 +358,13 @@ LICENSE file in the root directory of this source tree.
 			<groupId>ognl</groupId>
 			<artifactId>ognl</artifactId>
 			<version>${ognl.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+			<version>5.2.2.RELEASE</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

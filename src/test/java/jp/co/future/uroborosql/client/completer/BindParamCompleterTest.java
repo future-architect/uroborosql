@@ -1,22 +1,25 @@
 package jp.co.future.uroborosql.client.completer;
 
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.store.NioSqlManagerImpl;
-import jp.co.future.uroborosql.store.SqlManager;
 
 public class BindParamCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
-	private static SqlManager sqlManager;
+	private SqlConfig sqlConfig;
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -24,15 +27,21 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
+	}
 
-		sqlManager = new NioSqlManagerImpl(false);
-		sqlManager.setDialect(new DefaultDialect());
-		sqlManager.initialize();
+	@Override
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.setSqlManager(new NioSqlManagerImpl(false))
+				.setDialect(new DefaultDialect())
+				.build();
 	}
 
 	@Test
 	public void testComplete() throws Exception {
-		BindParamCompleter completer = new BindParamCompleter(commands, sqlManager);
+		BindParamCompleter completer = new BindParamCompleter(commands, sqlConfig);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

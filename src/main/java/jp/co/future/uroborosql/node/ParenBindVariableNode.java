@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -22,9 +23,19 @@ public class ParenBindVariableNode extends ExpressionNode {
 	/** バインド変数置換後にバインド変数のコメント文字列を出力するかどうか */
 	private final boolean outputBindComment;
 
-	public ParenBindVariableNode(final int position, final String expression, final String tokenValue,
+	/**
+	 * コンストラクタ
+	 *
+	 * @param expressionParser ExpressionParser
+	 * @param position 開始位置
+	 * @param expression 評価式
+	 * @param tokenValue トークン上の値
+	 * @param outputBindComment バインドコメントを出力するかどうか
+	 */
+	public ParenBindVariableNode(final ExpressionParser expressionParser, final int position, final String expression,
+			final String tokenValue,
 			final boolean outputBindComment) {
-		super(position, 0, expression, tokenValue);
+		super(expressionParser, position, 0, expression, tokenValue);
 		this.outputBindComment = outputBindComment;
 	}
 

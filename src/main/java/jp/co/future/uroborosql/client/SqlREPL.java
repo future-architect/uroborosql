@@ -282,7 +282,7 @@ public class SqlREPL {
 		// SQL名のコード補完
 		completers.add(new SqlNameCompleter(commands, sqlConfig.getSqlManager()));
 		// バインドパラメータのコード補完
-		completers.add(new BindParamCompleter(commands, sqlConfig.getSqlManager()));
+		completers.add(new BindParamCompleter(commands, sqlConfig));
 		// テーブル名のコード補完
 		completers.add(new TableNameCompleter(commands, sqlConfig.getConnectionSupplier()));
 		// SQLキーワードのコード補完

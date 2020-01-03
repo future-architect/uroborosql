@@ -39,10 +39,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
-import ognl.OgnlRuntime;
 
 /**
  * SQLコンテキストファクトリ実装
@@ -89,11 +87,6 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 
 	/** パラメータ変換マネージャ */
 	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
-
-	static {
-		OgnlRuntime.setPropertyAccessor(TransformContext.class, new TransformContextPropertyAccessor());
-		OgnlRuntime.setPropertyAccessor(Parameter.class, new ParameterPropertyAccessor());
-	}
 
 	/**
 	 * {@inheritDoc}

@@ -22,8 +22,7 @@ public class FieldIncrementOptimisticLockSupplier extends OptimisticLockSupplier
 	 */
 	@Override
 	public String getPart(final TableMetadata.Column versionColumn, final SqlConfig sqlConfig) {
-		return versionColumn.getColumnIdentifier() + " = /*(" + versionColumn.getCamelColumnName()
-				+ " + @java.lang.Short@valueOf(1))*/";
+		return versionColumn.getColumnIdentifier() + " = /*SF.increment(" + versionColumn.getCamelColumnName() + ")*/";
 	}
 
 }

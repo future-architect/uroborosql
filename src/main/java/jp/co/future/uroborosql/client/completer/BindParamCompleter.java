@@ -16,7 +16,7 @@ import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.SqlParamUtils;
 import jp.co.future.uroborosql.client.command.ReplCommand;
-import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.config.SqlConfig;
 
 /**
  * バインドパラメータを補完するCompleter
@@ -25,17 +25,17 @@ import jp.co.future.uroborosql.store.SqlManager;
  *
  */
 public class BindParamCompleter extends AbstractCompleter {
-	private final SqlManager sqlManager;
+	private final SqlConfig sqlConfig;
 
 	/**
 	 * Constructor
 	 *
 	 * @param commands ReplCommand List
-	 * @param sqlManager sqlManager
+	 * @param sqlConfig SqlConfig
 	 */
-	public BindParamCompleter(final List<ReplCommand> commands, final SqlManager sqlManager) {
+	public BindParamCompleter(final List<ReplCommand> commands, final SqlConfig sqlConfig) {
 		super(commands);
-		this.sqlManager = sqlManager;
+		this.sqlConfig = sqlConfig;
 	}
 
 	/**
@@ -65,8 +65,8 @@ public class BindParamCompleter extends AbstractCompleter {
 		boolean isBlank = buffer.endsWith(" ");
 		// sqlNameが指定されている場合
 		String sqlName = parts[startArgNo - 1];
-		String sql = sqlManager.getSql(sqlName);
-		Set<String> params = SqlParamUtils.getSqlParams(sql);
+		String sql = sqlConfig.getSqlManager().getSql(sqlName);
+		Set<String> params = SqlParamUtils.getSqlParams(sql, sqlConfig);
 		if (len > startArgNo) {
 			// 最後のパラメータ以外ですでに指定されたバインドパラメータを候補から除去する
 			int lastPos = isBlank ? len : len - 1;

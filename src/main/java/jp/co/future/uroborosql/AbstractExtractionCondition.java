@@ -29,9 +29,6 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends AbstractSqlFluent<T>
 		implements ExtractionCondition<T> {
 
-	/** エスケープ文字の置換文字列 */
-	public static final String PARAM_KEY_ESCAPE_CHAR = "ESC_CHAR";
-
 	/** 抽出条件のパラメータ名に付与するプレフィックス */
 	protected static final String PREFIX = "_";
 
@@ -242,10 +239,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T like(final String col, final CharSequence searchValue) {
-		Dialect dialect = agent().getSqlConfig().getDialect();
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, searchValue)).param(
-				PARAM_KEY_ESCAPE_CHAR,
-				dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, searchValue));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -260,9 +254,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T startsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, escaped, true)).param(
-				PARAM_KEY_ESCAPE_CHAR,
-				dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, escaped, true));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -277,9 +269,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T endsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped)).param(
-				PARAM_KEY_ESCAPE_CHAR,
-				dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -294,8 +284,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T contains(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped, true))
-				.param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped, true));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -308,10 +297,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notLike(final String col, final CharSequence searchValue) {
-		Dialect dialect = agent().getSqlConfig().getDialect();
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, searchValue)).param(
-				PARAM_KEY_ESCAPE_CHAR,
-				dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, searchValue));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -326,8 +312,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notStartsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, escaped, true))
-				.param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, escaped, true));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -342,8 +327,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notEndsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped))
-				.param(PARAM_KEY_ESCAPE_CHAR, dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -358,9 +342,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notContains(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped, true)).param(
-				PARAM_KEY_ESCAPE_CHAR,
-				dialect.getEscapeChar());
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped, true));
 		this.useOperator = true;
 		return (T) this;
 	}

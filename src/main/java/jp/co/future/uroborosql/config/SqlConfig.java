@@ -15,6 +15,7 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -67,60 +68,58 @@ public interface SqlConfig {
 	SqlAgent agent();
 
 	/**
-	 * sqlManager を取得します。
+	 * sqlManager を取得.
 	 *
 	 * @return sqlManager
 	 */
 	SqlManager getSqlManager();
 
 	/**
-	 * sqlFilterManager を取得します。
+	 * sqlFilterManager を取得.
 	 *
 	 * @return sqlFilterManager
 	 */
 	SqlFilterManager getSqlFilterManager();
 
 	/**
-	 * connectionSupplier を取得します。
+	 * connectionSupplier を取得.
 	 *
 	 * @return connectionSupplier
 	 */
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
-	 * sqlContextFactory を取得します。
+	 * sqlContextFactory を取得.
 	 *
 	 * @return sqlContextFactory
 	 */
 	SqlContextFactory getSqlContextFactory();
 
 	/**
-	 * sqlAgentFactory を取得します。
+	 * sqlAgentFactory を取得.
 	 *
 	 * @return sqlAgentFactory
 	 */
 	SqlAgentFactory getSqlAgentFactory();
 
 	/**
-	 * dialect を取得します
+	 * dialect を取得.
 	 *
 	 * @return dialect
 	 */
 	Dialect getDialect();
 
 	/**
-	 * entityHandler を取得します
+	 * expressionParser を取得.
+	 *
+	 * @return expressionParser
+	 */
+	ExpressionParser getExpressionParser();
+
+	/**
+	 * entityHandler を取得.
 	 *
 	 * @return entityHandler
 	 */
 	EntityHandler<?> getEntityHandler();
-
-	/**
-	 * entityHandler を設定します
-	 *
-	 * @deprecated Insted, use {@link jp.co.future.uroborosql.UroboroSQL.UroboroSQLBuilder#setEntityHandler(EntityHandler)}
-	 * @param entityHandler entityHandler
-	 */
-	@Deprecated
-	void setEntityHandler(EntityHandler<?> entityHandler);
 }
