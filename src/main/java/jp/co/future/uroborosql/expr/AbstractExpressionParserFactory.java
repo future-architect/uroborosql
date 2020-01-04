@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.expr;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,10 +33,10 @@ public abstract class AbstractExpressionParserFactory implements ExpressionParse
 	}
 
 	/**
-	 * ExpressionParserを生成.<br>
+	 * ExpressionParserを生成.
 	 *
-	 * @param className
-	 * @return
+	 * @param className 生成するExpressionParserクラス名(FQDN)
+	 * @return 生成したExpressionParser
 	 */
 	protected ExpressionParser createExpressionParser(final String className) {
 		try {
