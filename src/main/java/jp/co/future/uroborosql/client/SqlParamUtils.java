@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.context.SqlContext;
@@ -49,6 +52,58 @@ public final class SqlParamUtils {
 	 */
 	private SqlParamUtils() {
 		// do nothing
+	}
+
+	/**
+	 * 入力内容を解析し、パラメータの配列に変換する.
+	 *
+	 * @param line 入力内容
+	 * @return 入力内容をパラメータに分割した配列
+	 */
+	public static String[] parseLine(final String line) {
+		Pattern pat = Pattern.compile("\\[(.+?)\\]");
+		Matcher matcher = pat.matcher(line);
+
+		StringBuffer buffer = new StringBuffer();
+
+		while (matcher.find()) {
+			String arrayPart = matcher.group();
+			matcher.appendReplacement(buffer, arrayPart.replaceAll("\\s*,\\s*", ","));
+		}
+		matcher.appendTail(buffer);
+
+		int idx = 0;
+		List<String> parts = new ArrayList<>();
+		boolean bracketFlag = false;
+		boolean singleQuoteFlag = false;
+		StringBuilder part = new StringBuilder();
+		while (buffer.length() > idx) {
+			char c = buffer.charAt(idx++);
+			if (Character.isWhitespace(c)) {
+				if (bracketFlag || singleQuoteFlag) {
+					// 囲み文字の中なのでそのまま追加する
+					part.append(c);
+				} else {
+					parts.add(part.toString());
+					part = new StringBuilder();
+				}
+			} else if (c == '[') {
+				bracketFlag = true;
+				part.append(c);
+			} else if (c == ']') {
+				bracketFlag = false;
+				part.append(c);
+			} else if (c == '\'') {
+				singleQuoteFlag = !singleQuoteFlag;
+				part.append(c);
+			} else {
+				part.append(c);
+			}
+		}
+		if (part.length() > 0) {
+			parts.add(part.toString());
+		}
+		return parts.toArray(new String[parts.size()]);
 	}
 
 	/**

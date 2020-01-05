@@ -328,7 +328,7 @@ public class SqlREPL {
 			return true;
 		}
 
-		String[] parts = line.split("\\s+");
+		String[] parts = SqlParamUtils.parseLine(line);
 		Optional<ReplCommand> command = commands.stream().filter(c -> c.is(parts[0])).findFirst();
 		if (command.isPresent()) {
 			return command.get().execute(reader, parts, sqlConfig, props);

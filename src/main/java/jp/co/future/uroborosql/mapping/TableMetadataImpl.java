@@ -33,6 +33,9 @@ public class TableMetadataImpl implements TableMetadata {
 		private final String identifierQuoteString;
 		private final String remarks;
 		private final boolean nullable;
+		private final boolean autoincrement;
+		private final boolean version;
+		private final Class<? extends OptimisticLockSupplier> optimisticLockType;
 		private final int ordinalPosition;
 
 		/**
@@ -43,13 +46,24 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
 		 * @param nullable NULL可かどうか
+		 * @param autoincrement 自動インクリメントされるかどうか
+		 * @param version バージョンカラムかどうか
+		 * @param optimisticLockType 楽観ロックタイプ
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final SQLType dataType, final int columnSize, final String remarks,
-				final String nullable, final int ordinalPosition, final String identifierQuoteString) {
-			this(columnName, dataType.getVendorTypeNumber(), columnSize, remarks, nullable, ordinalPosition,
-					identifierQuoteString);
+		public Column(final String columnName,
+				final SQLType dataType,
+				final int columnSize,
+				final String remarks,
+				final String nullable,
+				final String autoincrement,
+				final boolean version,
+				final Class<? extends OptimisticLockSupplier> optimisticLockType,
+				final int ordinalPosition,
+				final String identifierQuoteString) {
+			this(columnName, dataType.getVendorTypeNumber(), columnSize, remarks, nullable, autoincrement, version,
+					optimisticLockType, ordinalPosition, identifierQuoteString);
 		}
 
 		/**
@@ -60,16 +74,30 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
 		 * @param nullable NULL可かどうか
+		 * @param autoincrement 自動インクリメントされるかどうか
+		 * @param version バージョンカラムかどうか
+		 * @param optimisticLockType 楽観ロックタイプ
 		 * @param ordinalPosition 列インデックス
 		 * @param identifierQuoteString SQL識別子を引用するのに使用する文字列
 		 */
-		public Column(final String columnName, final int dataType, final int columnSize, final String remarks,
-				final String nullable, final int ordinalPosition, final String identifierQuoteString) {
+		public Column(final String columnName,
+				final int dataType,
+				final int columnSize,
+				final String remarks,
+				final String nullable,
+				final String autoincrement,
+				final boolean version,
+				final Class<? extends OptimisticLockSupplier> optimisticLockType,
+				final int ordinalPosition,
+				final String identifierQuoteString) {
 			this.columnName = columnName;
 			this.dataType = dataType;
 			this.columnSize = columnSize;
 			this.remarks = remarks;
 			this.nullable = "YES".equalsIgnoreCase(nullable);
+			this.autoincrement = "YES".equalsIgnoreCase(autoincrement);
+			this.version = version;
+			this.optimisticLockType = optimisticLockType;
 			this.ordinalPosition = ordinalPosition;
 
 			if (StringUtils.isEmpty(identifierQuoteString)) {
@@ -195,6 +223,36 @@ public class TableMetadataImpl implements TableMetadata {
 		/**
 		 * {@inheritDoc}
 		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#isAutoincrement()
+		 */
+		@Override
+		public boolean isAutoincrement() {
+			return this.autoincrement;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#isVersion()
+		 */
+		@Override
+		public boolean isVersion() {
+			return this.version;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getOptimisticLockType()
+		 */
+		@Override
+		public Class<? extends OptimisticLockSupplier> getOptimisticLockType() {
+			return this.optimisticLockType;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
 		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getOrdinalPosition()
 		 */
 		@Override
@@ -210,7 +268,6 @@ public class TableMetadataImpl implements TableMetadata {
 		public void setKeySeq(final int keySeq) {
 			this.keySeq = keySeq;
 		}
-
 	}
 
 	private String tableName;

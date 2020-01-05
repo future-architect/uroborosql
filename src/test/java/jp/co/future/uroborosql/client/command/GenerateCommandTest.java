@@ -57,18 +57,69 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecute() throws Exception {
+	public void testExecuteSelect() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "generate select PRODUCT".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(command.execute(reader, "generate select PRODUCT".split("\\s+"), sqlConfig, new Properties()),
+				is(true));
 		assertConsoleOutputContains("SELECT");
+	}
 
-		command.execute(reader, "generate insert PRODUCT".split("\\s+"), sqlConfig, new Properties());
+	@Test
+	public void testExecuteInsert() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		assertThat(command.execute(reader, "generate insert PRODUCT".split("\\s+"), sqlConfig, new Properties()),
+				is(true));
 		assertConsoleOutputContains("INSERT");
-		command.execute(reader, "generate update PRODUCT".split("\\s+"), sqlConfig, new Properties());
+	}
+
+	@Test
+	public void testExecuteInsertWithAutoIncrement() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		assertThat(command.execute(reader, "generate insert GEN_TEST".split("\\s+"), sqlConfig, new Properties()),
+				is(true));
+		assertThat(trimWhitespace(out.toString()), is(
+				"INSERT /* _SQL_ID_ */ INTO GEN_TEST ( /*IF SF.isNotEmpty(name) */  , \"NAME\" /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" /*END*/ ) VALUES ( /*IF SF.isNotEmpty(name) */  , /*name*/'' /*END*/ /*IF lockNo != null */  , /*lockNo*/'' /*END*/ )"));
+	}
+
+	private String trimWhitespace(final String str) {
+		return str.trim().replaceAll("\r\n|\t+|\\s+", " ");
+	}
+
+	@Test
+	public void testExecuteUpdate() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		assertThat(command.execute(reader, "generate update PRODUCT".split("\\s+"), sqlConfig, new Properties()),
+				is(true));
 		assertConsoleOutputContains("UPDATE");
-		command.execute(reader, "generate delete PRODUCT".split("\\s+"), sqlConfig, new Properties());
+	}
+
+	@Test
+	public void testExecuteDelete() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		assertThat(command.execute(reader, "generate delete PRODUCT".split("\\s+"), sqlConfig, new Properties()),
+				is(true));
 		assertConsoleOutputContains("DELETE");
+	}
+
+	@Test
+	public void testExecuteWithVersionColumn() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		Properties props = new Properties();
+		props.put("sql.versionColumnName", "lock_no");
+		props.put("sql.optimisticLockSupplier",
+				"jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier");
+		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
+		assertThat(trimWhitespace(out.toString()), is(
+				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/  , \"LOCK_NO\" = /*(lockNo + @java.lang.Short@valueOf(1))*/ WHERE   \"ID\" = /*id*/''  AND \"LOCK_NO\" = /*lockNo*/''"));
+	}
+
+	@Test
+	public void testExecuteWithoutVersionColumn() throws Exception {
+		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+		Properties props = new Properties();
+		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
+		assertThat(trimWhitespace(out.toString()), is(
+				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" = /*lockNo*/'' /*END*/ WHERE   \"ID\" = /*id*/''"));
 	}
 
 	@Test

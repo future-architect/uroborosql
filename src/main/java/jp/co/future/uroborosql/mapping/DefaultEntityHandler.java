@@ -436,13 +436,21 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.UPDATE);
 
-		Optional<MappingColumn> versionMappingColumn = type == null ? Optional.empty()
-				: MappingUtils.getVersionMappingColumn(type);
-
-		MappingColumn versionColumn = versionMappingColumn.orElse(null);
-		OptimisticLockSupplier optimisticLockSupplier = Optional.ofNullable(versionColumn)
-				.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier()))
-				.orElse(null);
+		String versionColumnName = null;
+		OptimisticLockSupplier optimisticLockSupplier = null;
+		if (type == null) {
+			TableMetadata.Column versionColumn = metadata.getColumns().stream().filter(Column::isVersion).findFirst()
+					.orElse(null);
+			if (versionColumn != null) {
+				versionColumnName = versionColumn.getCamelColumnName();
+				optimisticLockSupplier = OptimisticLockSupplier.getSupplier(versionColumn.getOptimisticLockType());
+			}
+		} else {
+			Optional<MappingColumn> versionColumn = MappingUtils.getVersionMappingColumn(type);
+			versionColumnName = versionColumn.map(MappingColumn::getCamelName).orElse(null);
+			optimisticLockSupplier = versionColumn
+					.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier())).orElse(null);
+		}
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
 			if (!mappingColumns.isEmpty()) {
@@ -452,6 +460,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					continue;
 				} else if (mappingColumn.isId()) {
 					// @Idが付与されたカラムは自動採番なので更新対象としないためスキップする
+					continue;
+				}
+			} else {
+				if (col.isAutoincrement()) {
+					// 自動採番カラムは更新対象としないためスキップする
 					continue;
 				}
 			}
@@ -469,8 +482,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append(", ");
 			}
 
-			boolean isVersionColumn = versionColumn != null
-					&& camelColName.equalsIgnoreCase(versionColumn.getCamelName());
+			boolean isVersionColumn = camelColName.equalsIgnoreCase(versionColumnName);
 			if (isVersionColumn) {
 				parts.append(optimisticLockSupplier.getPart(col, getSqlConfig()));
 			} else {
@@ -525,8 +537,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				}
 			}
 			final boolean first = firstFlag;
-			versionMappingColumn.ifPresent(mappingColumn -> {
-				TableMetadata.Column col = metadata.getColumn(mappingColumn.getCamelName());
+			if (versionColumnName != null) {
+				TableMetadata.Column col = metadata.getColumn(versionColumnName);
 				sql.append("\t");
 				if (first) {
 					sql.append("    ");
@@ -535,7 +547,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				}
 				sql.append(col.getColumnIdentifier()).append(" = ").append("/*").append(col.getCamelColumnName())
 						.append("*/''").append(System.lineSeparator());
-			});
+			}
 		}
 		return sql.toString();
 	}
@@ -607,7 +619,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				continue;
 			}
 			if (mappingColumn != null && mappingColumn.isId()
-					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy())) {
+					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy()) ||
+					col.isAutoincrement()) {
 				// AUTO_INCREMENT対象カラムの場合はスキップする
 				continue;
 			}
@@ -654,7 +667,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				continue;
 			}
 			if (mappingColumn != null && mappingColumn.isId()
-					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy())) {
+					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy()) ||
+					col.isAutoincrement()) {
 				// AUTO_INCREMENT対象カラムの場合はスキップする
 				continue;
 			}

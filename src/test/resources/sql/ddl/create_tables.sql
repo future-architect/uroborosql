@@ -47,3 +47,11 @@ create table if not exists COLUMN_TYPE_ARRAY (
 	COL_ARRAY			ARRAY
 )
 ;
+
+create table if not exists GEN_TEST (
+	ID			NUMERIC(10, 0) NOT NULL AUTO_INCREMENT,
+	NAME		VARCHAR(100),
+	LOCK_NO		NUMERIC(10, 0),
+	constraint PK_GEN_TEST primary key (ID)
+)
+;
