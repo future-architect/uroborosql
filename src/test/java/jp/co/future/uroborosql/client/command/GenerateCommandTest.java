@@ -82,7 +82,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	private String trimWhitespace(final String str) {
-		return str.trim().replaceAll("\r\n|\t+|\\s+", " ");
+		return str.trim().replaceAll("\r\n|\r|\n|\t+|\\s+", " ");
 	}
 
 	@Test
