@@ -47,6 +47,9 @@ public final class SqlParamUtils {
 	/** 数字かどうかを判定するための正規表現 */
 	private static final Pattern NUMBER_PAT = Pattern.compile("^[\\-\\+]?[1-9][0-9]*([Ll]|\\.\\d+[FfDd])?$");
 
+	/** 入力内容の中で[]で囲まれた値を置換するための正規表現 */
+	private static final Pattern PARAM_PAT = Pattern.compile("\\[(.+?)\\]");
+
 	/**
 	 * コンストラクタ
 	 */
@@ -61,24 +64,21 @@ public final class SqlParamUtils {
 	 * @return 入力内容をパラメータに分割した配列
 	 */
 	public static String[] parseLine(final String line) {
-		Pattern pat = Pattern.compile("\\[(.+?)\\]");
-		Matcher matcher = pat.matcher(line);
-
-		StringBuffer buffer = new StringBuffer();
-
+		StringBuffer sb = new StringBuffer();
+		Matcher matcher = PARAM_PAT.matcher(line);
 		while (matcher.find()) {
 			String arrayPart = matcher.group();
-			matcher.appendReplacement(buffer, arrayPart.replaceAll("\\s*,\\s*", ","));
+			matcher.appendReplacement(sb, arrayPart.replaceAll("\\s*,\\s*", ","));
 		}
-		matcher.appendTail(buffer);
+		matcher.appendTail(sb);
 
 		int idx = 0;
 		List<String> parts = new ArrayList<>();
 		boolean bracketFlag = false;
 		boolean singleQuoteFlag = false;
 		StringBuilder part = new StringBuilder();
-		while (buffer.length() > idx) {
-			char c = buffer.charAt(idx++);
+		while (sb.length() > idx) {
+			char c = sb.charAt(idx++);
 			if (Character.isWhitespace(c)) {
 				if (bracketFlag || singleQuoteFlag) {
 					// 囲み文字の中なのでそのまま追加する
