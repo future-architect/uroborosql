@@ -17,7 +17,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
@@ -27,9 +29,6 @@ import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
-import ognl.ASTProperty;
-import ognl.Ognl;
-import ognl.OgnlException;
 
 /**
  * Sqlのバインドパラメータを操作するユーティリティ
@@ -53,12 +52,12 @@ public final class SqlParamUtils {
 
 	/**
 	 * SQLバインドパラメータを設定する
-	 *
+	 * @param sqlConfig SqlConfig
 	 * @param ctx SQLコンテキスト
 	 * @param paramsArray パラメータ配列
 	 */
-	public static void setSqlParams(final SqlContext ctx, final String... paramsArray) {
-		Set<String> bindParams = getSqlParams(ctx.getSql());
+	public static void setSqlParams(final SqlConfig sqlConfig, final SqlContext ctx, final String... paramsArray) {
+		Set<String> bindParams = getSqlParams(ctx.getSql(), sqlConfig);
 
 		for (String element : paramsArray) {
 			String[] param = element.split("=");
@@ -228,15 +227,17 @@ public final class SqlParamUtils {
 	 * SQLパラメータの解析
 	 *
 	 * @param sql 解析対象SQL
+	 * @param sqlConfig SqlConfig
 	 * @return SQLを解析して取得したパラメータキーのセット
 	 */
-	public static Set<String> getSqlParams(final String sql) {
-		SqlParser parser = new SqlParserImpl(sql);
+	public static Set<String> getSqlParams(final String sql, final SqlConfig sqlConfig) {
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
 		ContextTransformer transformer = parser.parse();
 		Node rootNode = transformer.getRoot();
 
 		Set<String> params = new LinkedHashSet<>();
-		traverseNode(rootNode, params);
+		traverseNode(sqlConfig.getExpressionParser(), rootNode, params);
 		params.removeIf(s -> CONSTANT_PAT.matcher(s).matches());
 		return params;
 	}
@@ -244,10 +245,11 @@ public final class SqlParamUtils {
 	/**
 	 * SQLの探索
 	 *
+	 * @param parser ExpressionParser
 	 * @param node SQLノード
 	 * @param params パラメータが見つかった場合に格納するSetオブジェクト
 	 */
-	private static void traverseNode(final Node node, final Set<String> params) {
+	private static void traverseNode(final ExpressionParser parser, final Node node, final Set<String> params) {
 		if (node instanceof BindVariableNode) {
 			params.add(((BindVariableNode) node).getExpression());
 		} else if (node instanceof ParenBindVariableNode) {
@@ -255,40 +257,13 @@ public final class SqlParamUtils {
 		} else if (node instanceof EmbeddedValueNode) {
 			params.add(((EmbeddedValueNode) node).getExpression());
 		} else if (node instanceof IfNode) {
-			try {
-				String expression = ((IfNode) node).getExpression();
-				ognl.Node ognlNode = (ognl.Node) Ognl.parseExpression(expression);
-				traverseExpression(ognlNode, params);
-			} catch (OgnlException e) {
-				e.printStackTrace();
-			}
+			String expression = ((IfNode) node).getExpression();
+			parser.parse(expression).collectParams(params);
 		}
 
 		for (int i = 0; i < node.getChildSize(); i++) {
 			Node childNode = node.getChild(i);
-			traverseNode(childNode, params);
-		}
-	}
-
-	/**
-	 * 評価式の探索
-	 *
-	 * @param node SQLノード
-	 * @param params パラメータが見つかった場合に格納するSetオブジェクト
-	 */
-	private static void traverseExpression(final ognl.Node node, final Set<String> params) {
-		if (node == null) {
-			return;
-		}
-		if (node instanceof ASTProperty) {
-			ASTProperty prop = (ASTProperty) node;
-			params.add(prop.toString());
-		} else {
-			int childCount = node.jjtGetNumChildren();
-			for (int i = 0; i < childCount; i++) {
-				ognl.Node child = node.jjtGetChild(i);
-				traverseExpression(child, params);
-			}
+			traverseNode(parser, childNode, params);
 		}
 	}
 }

@@ -6,12 +6,10 @@
  */
 package jp.co.future.uroborosql.node;
 
-import jp.co.future.uroborosql.exception.OgnlRuntimeException;
+import jp.co.future.uroborosql.expr.Expression;
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringUtils;
-import ognl.Ognl;
-import ognl.OgnlException;
 
 /**
  * 値の評価を行うノードの親クラス
@@ -19,6 +17,8 @@ import ognl.OgnlException;
  * @author H.Sugimoto
  */
 public abstract class ExpressionNode extends AbstractNode {
+	protected final ExpressionParser expressionParser;
+
 	/** 評価式 */
 	protected final String expression;
 
@@ -28,41 +28,38 @@ public abstract class ExpressionNode extends AbstractNode {
 	/**
 	 * 評価を行うノード
 	 *
+	 * @param expressionParser ExpressionParser
 	 * @param position 開始位置
 	 * @param addLength 追加データ長
 	 * @param expression 評価式
 	 * @param tokenValue トークン上の値
 	 */
-	protected ExpressionNode(final int position, final int addLength, final String expression,
-			final String tokenValue) {
+	protected ExpressionNode(final ExpressionParser expressionParser, final int position, final int addLength,
+			final String expression, final String tokenValue) {
 		super(position, 2 + addLength + expression.length() + 2 + (tokenValue != null ? tokenValue.length() : 0));
+		this.expressionParser = expressionParser;
 		this.expression = expression;
 		this.tokenValue = tokenValue;
 	}
 
 	/**
-	 * OGNL式オブジェクトを取得する
+	 * 評価式オブジェクトを取得する
 	 *
 	 * @param expression 評価式
-	 * @return OGNL式オブジェクト
+	 * @return 評価式オブジェクト
 	 */
-	protected Object getParsedExpression(final String expression) {
-		try {
-			return Ognl.parseExpression(expression);
-		} catch (OgnlException ex) {
-			throw new OgnlRuntimeException("Failed to parse the expression.[" + expression + "]", ex);
-		}
+	protected Expression getParsedExpression(final String expression) {
+		return expressionParser.parse(expression);
 	}
 
 	/**
-	 * OGNL式として扱うかどうかを判定する
+	 * 評価式として扱うかどうかを判定する
 	 *
 	 * @param expression 評価式
-	 * @return OGNL式として扱う場合<code>true</code>
+	 * @return 評価式として扱う場合<code>true</code>
 	 */
-	protected boolean isOgnl(final String expression) {
-		// 中かっこ（）がある場合はメソッドとして扱う（paramName.methodName(args...))
-		return StringUtils.isNotEmpty(expression) && expression.contains("(") && expression.contains(")");
+	protected boolean isPropertyAccess(final String expression) {
+		return expressionParser.isPropertyAccess(expression);
 	}
 
 	/**
@@ -73,22 +70,18 @@ public abstract class ExpressionNode extends AbstractNode {
 	 */
 	protected Object eval(final TransformContext transformContext) {
 		Object value = null;
-		if (isOgnl(expression)) {
-			// OGNL式の場合はEvalした結果を取得
-			// OGNL式の評価は処理が重いため、必要な段階になってからParsedExpressionを取得する
-			try {
-				value = Ognl.getValue(getParsedExpression(expression), transformContext, null);
-				// OGNL式の場合は評価した値がバインドパラメータに登録されていないのでこのタイミングで登録する
-				transformContext.param(expression, value);
-			} catch (OgnlException ex) {
-				throw new OgnlRuntimeException("Acquire an object failed.[" + expression + "]", ex);
-			}
-		} else {
-			// キーの指定の場合は高速化のため、直接DaoContextから取得
+		if (isPropertyAccess(expression)) {
+			// キーの指定の場合は高速化のため、直接TransformContextから取得
 			Parameter parameter = transformContext.getParam(expression);
 			if (parameter != null) {
 				value = parameter.getValue();
 			}
+		} else {
+			// 評価式を評価した結果を取得
+			// 評価式の評価は処理が重いため、必要な段階になってからParsedExpressionを取得する
+			value = getParsedExpression(expression).getValue(transformContext);
+			// 評価式の場合は評価した値がバインドパラメータに登録されていないのでこのタイミングで登録する
+			transformContext.param(expression, value);
 		}
 		return value;
 	}

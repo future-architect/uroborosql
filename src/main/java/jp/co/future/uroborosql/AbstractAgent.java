@@ -29,6 +29,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
@@ -50,7 +51,6 @@ import jp.co.future.uroborosql.tx.SQLRunnable;
 import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringFunction;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -267,12 +267,8 @@ public abstract class AbstractAgent implements SqlAgent {
 			originalSql = originalSql.replace(keySqlId, sqlId);
 		}
 
-		// ユーザファンクション登録
-		if (sqlContext.getParam(StringFunction.SHORT_NAME) == null) {
-			sqlContext.param(StringFunction.SHORT_NAME, getSqlConfig().getDialect().getExpressionFunction());
-		}
-		sqlContext.param(AbstractExtractionCondition.PARAM_KEY_ESCAPE_CHAR,
-				getSqlConfig().getDialect().getEscapeChar());
+		// Dialectに合わせたエスケープキャラクタの設定
+		sqlContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getSqlConfig().getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (sqlContext.batchCount() == 0) {
@@ -286,8 +282,8 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
 			boolean outputBindComment = (boolean) sqlContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
-			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getDialect().isRemoveTerminator(),
-					outputBindComment);
+			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
+					sqlConfig.getDialect().isRemoveTerminator(), outputBindComment);
 			ContextTransformer contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 

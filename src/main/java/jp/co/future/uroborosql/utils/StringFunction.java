@@ -507,4 +507,55 @@ public final class StringFunction {
 		}
 	}
 
+	/**
+	 * 加算を行う. 最大値に対して加算した場合はオーバーフローする.<br>
+	 * 引数の型（short/int/longのいづれか）に合わせて計算を行う.
+	 *
+	 * @param <T> 引数の型
+	 * @param num 加算を行う数値
+	 * @return 加算後の数値（オーバーフローした場合は引数の型の最小値になる）
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends Number> T increment(final T num) {
+		if (num instanceof Short) {
+			return (T) incrementShort((Short) num);
+		} else if (num instanceof Integer) {
+			return (T) incrementInt((Integer) num);
+		} else if (num instanceof Long) {
+			return (T) incrementLong((Long) num);
+		} else {
+			throw new IllegalArgumentException("Invalid value type. num must be of type short/int/long.");
+		}
+	}
+
+	/**
+	 * short型で加算を行う. 最大値に対して加算した場合はオーバーフローする.
+	 *
+	 * @param num 加算を行う数値
+	 * @return 加算後の数値（オーバーフローした場合はshort型の最小値になる）
+	 */
+	public Short incrementShort(final Short num) {
+		return (short) (num + 1);
+	}
+
+	/**
+	 * int型で加算を行う. 最大値に対して加算した場合はオーバーフローする.
+	 *
+	 * @param num 加算を行う数値
+	 * @return 加算後の数値（オーバーフローした場合はint型の最小値になる）
+	 */
+	public Integer incrementInt(final Integer num) {
+		return num + 1;
+	}
+
+	/**
+	 * long型で加算を行う. 最大値に対して加算した場合はオーバーフローする.
+	 *
+	 * @param num 加算を行う数値
+	 * @return 加算後の数値（オーバーフローした場合はlong型の最小値になる）
+	 */
+	public Long incrementLong(final Long num) {
+		return num + 1L;
+	}
+
 }

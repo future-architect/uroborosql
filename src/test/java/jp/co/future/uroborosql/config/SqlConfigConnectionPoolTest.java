@@ -24,7 +24,7 @@ import org.junit.Test;
  *
  * @author H.Sugimoto
  */
-public class DefaultSqlConfigConnectionPoolTest {
+public class SqlConfigConnectionPoolTest {
 	private static final String JDBC_URL = "jdbc:h2:mem:SqlConfigConnectionPoolTest;DB_CLOSE_DELAY=-1";
 	private static final String JDBC_USER = "sa";
 	private static final String JDBC_PASSWORD = "sa";

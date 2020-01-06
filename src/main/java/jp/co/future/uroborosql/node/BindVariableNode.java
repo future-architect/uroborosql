@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.node;
 
+import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -20,14 +21,16 @@ public class BindVariableNode extends ExpressionNode {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param expressionParser ExpressionParser
 	 * @param position 開始位置
 	 * @param expression 評価式
 	 * @param tokenValue トークン上の値
 	 * @param outputBindComment バインド変数置換後にバインド変数のコメント文字列を出力するかどうか
 	 */
-	public BindVariableNode(final int position, final String expression, final String tokenValue,
+	public BindVariableNode(final ExpressionParser expressionParser, final int position, final String expression,
+			final String tokenValue,
 			final boolean outputBindComment) {
-		super(position, 0, expression, tokenValue);
+		super(expressionParser, position, 0, expression, tokenValue);
 		this.outputBindComment = outputBindComment;
 	}
 

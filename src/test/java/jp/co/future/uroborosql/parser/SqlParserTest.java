@@ -18,15 +18,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.Emp;
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
@@ -34,21 +34,20 @@ import jp.co.future.uroborosql.node.SqlNode;
 import jp.co.future.uroborosql.utils.StringFunction;
 
 public class SqlParserTest {
-	private SqlContextFactory sqlContextFactory;
+	private SqlConfig sqlConfig;
 
 	@Before
 	public void setUp() throws Exception {
-		sqlContextFactory = new SqlContextFactoryImpl();
-		((SqlContextFactoryImpl) sqlContextFactory).setSqlFilterManager(new SqlFilterManagerImpl());
-
-		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
-
-		sqlContextFactory.initialize();
+		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.setSqlContextFactory(new SqlContextFactoryImpl()
+						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+				.build();
 	}
 
 	private void sqlAssertion(final String original, final String expected) {
-		SqlParser parser = new SqlParserImpl(original);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(original, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -298,8 +297,9 @@ public class SqlParserTest {
 	@Test
 	public void testParse() throws Exception {
 		String sql = "SELECT * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		assertEquals("1", sql, ctx.getExecutableSql());
@@ -308,8 +308,9 @@ public class SqlParserTest {
 	@Test
 	public void testParseNormalComment() throws Exception {
 		String sql = "SELECT /* empの全件検索 */ * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		assertEquals("1", sql, ctx.getExecutableSql());
@@ -319,8 +320,9 @@ public class SqlParserTest {
 	public void testParseLineComment() throws Exception {
 		String sql = "SELECT -- empの全件検索  * FROM emp WHERE job = /*job*/'CLERK'";
 		String sql2 = "SELECT -- empの全件検索  * FROM emp WHERE job = ?/*job*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("job", "CLERK");
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -330,8 +332,9 @@ public class SqlParserTest {
 	@Test
 	public void testParseHintComment() throws Exception {
 		String sql = "SELECT /*+ FIRST_ROWS */ * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		assertEquals("1", sql, ctx.getExecutableSql());
@@ -346,8 +349,9 @@ public class SqlParserTest {
 
 	private void testParseEndSemicolon(final String endChar) {
 		String sql = "SELECT * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql + endChar);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql + endChar, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		assertEquals("1", sql, ctx.getExecutableSql());
@@ -356,7 +360,8 @@ public class SqlParserTest {
 	@Test
 	public void testCommentEndNotFound() throws Exception {
 		String sql = "SELECT * FROM emp/*hoge";
-		SqlParser parser = new SqlParserImpl(sql);
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
 		try {
 			parser.parse();
 			fail("1");
@@ -371,8 +376,9 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
 		String sql3 = "SELECT * FROM emp WHERE job = ";
 		String sql4 = " AND deptno = ";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		String job = "CLERK";
 		Integer deptno = new Integer(20);
 		ctx.param("job", job);
@@ -405,8 +411,9 @@ public class SqlParserTest {
 		String sql3 = "SELECT * FROM emp WHERE job = ";
 		String sql4 = "/* job*/";
 		String sql5 = "'CLERK'";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
@@ -426,8 +433,9 @@ public class SqlParserTest {
 		String sql = "SELECT * FROM emp WHERE empno = /*empno*/1 AND 1 = 1";
 		String sql2 = "SELECT * FROM emp WHERE empno = ?/*empno*/ AND 1 = 1";
 		String sql3 = " AND 1 = 1";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		Integer empno = new Integer(7788);
 		ctx.param("empno", empno);
 		ContextTransformer transformer = parser.parse();
@@ -444,8 +452,9 @@ public class SqlParserTest {
 		String sql = "SELECT * FROM emp/*IF job != null*/ WHERE job = /*job*/'CLERK'/*END*/";
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		String sql3 = "SELECT * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		String job = "CLERK";
 		ctx.param("job", job);
 		ContextTransformer transformer = parser.parse();
@@ -466,7 +475,7 @@ public class SqlParserTest {
 		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
 		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
 		assertEquals("9", "job", varNode.getExpression());
-		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		SqlContext ctx2 = sqlConfig.getSqlContextFactory().createSqlContext();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
 		assertEquals("10", sql3, ctx2.getExecutableSql());
@@ -475,8 +484,9 @@ public class SqlParserTest {
 	@Test
 	public void testParseIf2() throws Exception {
 		String sql = "/*IF aaa != null*/aaa/*IF bbb != null*/bbb/*END*//*END*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
@@ -491,7 +501,7 @@ public class SqlParserTest {
 		root.accept(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
 		assertEquals("3", "aaabbb", ctx.getExecutableSql());
-		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		SqlContext ctx2 = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx2.param("aaa", "hoge");
 		ctx2.param("bbb", null);
 		root.accept(ctx2);
@@ -504,8 +514,9 @@ public class SqlParserTest {
 		String sql = "SELECT * FROM emp/*IF emp != null && emp.job != null*/ WHERE job = /*emp.job*/'CLERK'/*END*/";
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/";
 		String sql3 = "SELECT * FROM emp";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		Emp emp = new Emp();
 		emp.setJob("CLERK");
 		ctx.param("emp", emp);
@@ -527,7 +538,7 @@ public class SqlParserTest {
 		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
 		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
 		assertEquals("9", "emp.job", varNode.getExpression());
-		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		SqlContext ctx2 = sqlConfig.getSqlContextFactory().createSqlContext();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
 		assertEquals("10", sql3, ctx2.getExecutableSql());
@@ -538,8 +549,9 @@ public class SqlParserTest {
 		String sql = "SELECT * FROM emp WHERE /*IF job != null*/job = /*job*/'CLERK'-- ELSE job is null/*END*/";
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		String sql3 = "SELECT * FROM emp WHERE job is null";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		String job = "CLERK";
 		ctx.param("job", job);
 		ContextTransformer transformer = parser.parse();
@@ -551,7 +563,7 @@ public class SqlParserTest {
 		Object[] vars = ctx.getBindVariables();
 		assertEquals("2", 1, vars.length);
 		assertEquals("3", job, vars[0]);
-		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		SqlContext ctx2 = sqlConfig.getSqlContextFactory().createSqlContext();
 		root.accept(ctx2);
 		System.out.println("[" + ctx2.getExecutableSql() + "]");
 		assertEquals("4", sql3, ctx2.getExecutableSql());
@@ -560,8 +572,9 @@ public class SqlParserTest {
 	@Test
 	public void testParseElse2() throws Exception {
 		String sql = "/*IF false*/aaa--ELSE bbb = /*bbb*/123/*END*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		Integer bbb = new Integer(123);
 		ctx.param("bbb", bbb);
 		ContextTransformer transformer = parser.parse();
@@ -576,8 +589,9 @@ public class SqlParserTest {
 	@Test
 	public void testParseElse3() throws Exception {
 		String sql = "/*IF false*/aaa--ELSE bbb/*IF false*/ccc--ELSE ddd/*END*//*END*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
@@ -588,8 +602,9 @@ public class SqlParserTest {
 	public void testElse4() throws Exception {
 		String sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF false*/aaa-- ELSE AND deptno = 10/*END*//*END*/";
 		String sql2 = "SELECT * FROM emp WHERE deptno = 10";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
@@ -603,9 +618,10 @@ public class SqlParserTest {
 		String sql3 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		String sql4 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
 		String sql5 = "SELECT * FROM emp WHERE  deptno = ?/*deptno*/";
-		SqlParser parser = new SqlParserImpl(sql);
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
 
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
@@ -614,7 +630,7 @@ public class SqlParserTest {
 		List<String> bNames = ctx.getBindNames();
 		assertEquals(0, bNames.size());
 
-		SqlContext ctx2 = sqlContextFactory.createSqlContext();
+		SqlContext ctx2 = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx2.param("job", "CLERK");
 		ctx2.param("deptno", null);
 		root.accept(ctx2);
@@ -623,7 +639,7 @@ public class SqlParserTest {
 		List<String> bNames2 = ctx2.getBindNames();
 		assertEquals(1, bNames2.size());
 
-		SqlContext ctx3 = sqlContextFactory.createSqlContext();
+		SqlContext ctx3 = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx3.param("job", "CLERK");
 		ctx3.param("deptno", new Integer(20));
 		root.accept(ctx3);
@@ -632,7 +648,7 @@ public class SqlParserTest {
 		List<String> bNames3 = ctx3.getBindNames();
 		assertEquals(2, bNames3.size());
 
-		SqlContext ctx4 = sqlContextFactory.createSqlContext();
+		SqlContext ctx4 = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx4.param("deptno", new Integer(20));
 		ctx4.param("job", null);
 		root.accept(ctx4);
@@ -646,8 +662,9 @@ public class SqlParserTest {
 	public void testBeginAnd() throws Exception {
 		String sql = "/*BEGIN*/WHERE /*IF true*/aaa BETWEEN /*bbb*/111 AND /*ccc*/123/*END*//*END*/";
 		String sql2 = "WHERE aaa BETWEEN ?/*bbb*/ AND ?/*ccc*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("bbb", "111");
 		ctx.param("ccc", "222");
 		ContextTransformer transformer = parser.parse();
@@ -664,8 +681,9 @@ public class SqlParserTest {
 	public void testIn() throws Exception {
 		String sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
 		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		List<Integer> deptnoList = new ArrayList<>();
 		deptnoList.add(new Integer(10));
 		deptnoList.add(new Integer(20));
@@ -684,8 +702,9 @@ public class SqlParserTest {
 	public void testIn2() throws Exception {
 		String sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
 		String sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		int[] deptnoArray = { 10, 20 };
 		ctx.param("deptnoList", deptnoArray);
 		ContextTransformer transformer = parser.parse();
@@ -702,8 +721,9 @@ public class SqlParserTest {
 	public void testIn3() throws Exception {
 		String sql = "SELECT * FROM emp WHERE ename IN /*enames*/('SCOTT','MARY') AND job IN /*jobs*/('ANALYST', 'FREE')";
 		String sql2 = "SELECT * FROM emp WHERE ename IN (?, ?)/*enames*/ AND job IN (?, ?)/*jobs*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		String[] enames = { "SCOTT", "MARY" };
 		String[] jobs = { "ANALYST", "FREE" };
 		ctx.param("enames", enames);
@@ -724,8 +744,9 @@ public class SqlParserTest {
 	public void testParseBindVariable3() throws Exception {
 		String sql = "BETWEEN sal ? AND ?";
 		String sql2 = "BETWEEN sal ?/*$1*/ AND ?/*$2*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("$1", new Integer(0));
 		ctx.param("$2", new Integer(1000));
 		ContextTransformer transformer = parser.parse();
@@ -744,8 +765,9 @@ public class SqlParserTest {
 		String sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/ AND deptno = ?/*emp.deptno*/";
 		String sql3 = "SELECT * FROM emp WHERE job = ";
 		String sql4 = " AND deptno = ";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		Emp emp = new Emp();
 		emp.setJob("CLERK");
 		emp.setDeptno(new Integer(20));
@@ -775,8 +797,9 @@ public class SqlParserTest {
 	public void testParseBindVariable5() throws Exception {
 		String sql = "/*(count + 1)*/";
 		String sql2 = "?/*(count + 1)*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("count", 3);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -791,8 +814,9 @@ public class SqlParserTest {
 	public void testParseBindVariable6() throws Exception {
 		String sql = "SELECT * FROM EMP WHERE ENAME IN /*SF.split(enames, ',')*/()";
 		String sql2 = "SELECT * FROM EMP WHERE ENAME IN (?, ?)/*SF.split(enames, ',')*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
 		ctx.param("enames", "SCOTT,MARY");
 		ContextTransformer transformer = parser.parse();
@@ -808,7 +832,8 @@ public class SqlParserTest {
 	@Test
 	public void testEndNotFound() throws Exception {
 		String sql = "/*BEGIN*/";
-		SqlParser parser = new SqlParserImpl(sql);
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
 		try {
 			parser.parse();
 			fail("1");
@@ -820,8 +845,9 @@ public class SqlParserTest {
 	@Test
 	public void testEndParent() throws Exception {
 		String sql = "INSERT INTO ITEM (ID, NUM) VALUES (/*id*/1, /*num*/20)";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("id", new Integer(0));
 		ctx.param("num", new Integer(1));
 		ContextTransformer transformer = parser.parse();
@@ -833,8 +859,9 @@ public class SqlParserTest {
 	@Test
 	public void testEmbeddedValue() throws Exception {
 		String sql = "xx /*#aaa*/ xx";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("aaa", new Integer(0));
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -845,8 +872,9 @@ public class SqlParserTest {
 	@Test
 	public void testEmbeddedValue2() throws Exception {
 		String sql = "/*$emp.deptno*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		Emp emp = new Emp();
 		emp.setDeptno(new Integer(0));
 		ctx.param("emp", emp);
@@ -864,8 +892,9 @@ public class SqlParserTest {
 	@Test
 	public void testEmbeddedValue3() throws Exception {
 		String sql = "xx /*#aaa*/ xx";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("aaa", "bb'bb");
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -876,8 +905,9 @@ public class SqlParserTest {
 	@Test
 	public void testStringFunction1() throws Exception {
 		String sql = "/*IF SF.isEmpty(val1)*/1=1 /*ELIF SF.containsAny(val2, val3)*/2=2 --ELSE 3=3/*END*/";
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("val1", null);
 		ctx.param("val2", "aaabbbccc");
 		ctx.param("val3", "ab");
@@ -927,8 +957,9 @@ public class SqlParserTest {
 			initData(conn);
 
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
-			SqlParser parser = new SqlParserImpl(sql);
-			SqlContext ctx = sqlContextFactory.createSqlContext();
+			SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+					sqlConfig.getDialect().isRemoveTerminator(), true);
+			SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 			ctx.param("val1", "1");
 			ctx.param("val3", "20");
 
@@ -954,8 +985,9 @@ public class SqlParserTest {
 			initData(conn);
 
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
-			SqlParser parser = new SqlParserImpl(sql);
-			SqlContext ctx = sqlContextFactory.createSqlContext();
+			SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+					sqlConfig.getDialect().isRemoveTerminator(), true);
+			SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 			ctx.param("val1", "1");
 
 			ContextTransformer transformer = parser.parse();
@@ -980,8 +1012,9 @@ public class SqlParserTest {
 			initData(conn);
 
 			String sql = "select * from test where id = /*val1*/1 and name = /*val2*/'' and age = /*val3*/1";
-			SqlParser parser = new SqlParserImpl(sql);
-			SqlContext ctx = sqlContextFactory.createSqlContext();
+			SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+					sqlConfig.getDialect().isRemoveTerminator(), true);
+			SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 			ctx.param("val1", "1");
 			ctx.param("val2", "aa");
 			ctx.param("val3", "20");
@@ -1000,8 +1033,9 @@ public class SqlParserTest {
 	public void testELSECOMMENT1() throws Exception {
 		String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT1.sql")),
 				StandardCharsets.UTF_8);
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("param1", "1");
 
 		ContextTransformer transformer = parser.parse();
@@ -1018,8 +1052,9 @@ public class SqlParserTest {
 	public void testELSECOMMENT2() throws Exception {
 		String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT2.sql")),
 				StandardCharsets.UTF_8);
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("param1", "2");
 
 		ContextTransformer transformer = parser.parse();
@@ -1036,8 +1071,9 @@ public class SqlParserTest {
 	public void testParseNodeDecrare() throws Exception {
 		String sql = "DECLARE /* _SQL_IDENTIFIER_ */	/*IF projectStage != \"dev\"*/	PRAGMA AUTONOMOUS_TRANSACTION;	/*END*/BEGIN	SELECT 'aaa' as AAA FROM DUAL;END;";
 
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("projectStage", "ci");
 
 		ContextTransformer transformer = parser.parse();
@@ -1050,8 +1086,9 @@ public class SqlParserTest {
 	public void testParseNode() throws Exception {
 		String sql = "aaa /*IF purCd != null*/1=1/*END*/ bbb";
 
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -1063,8 +1100,9 @@ public class SqlParserTest {
 	public void testParseEnumEq1() throws Exception {
 		String sql = "aaa /*IF CLS_TEST_ENUM1_A eq bindEnum*/1=1/*END*/ bbb";
 
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("bindEnum", TestEnum1.A);
 
 		ContextTransformer transformer = parser.parse();
@@ -1077,8 +1115,9 @@ public class SqlParserTest {
 	public void testParseEnumEq2() throws Exception {
 		String sql = "aaa /*IF CLS_TEST_ENUM1_A == bindEnum*/1=1/*END*/ bbb";
 
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 		ctx.param("bindEnum", TestEnum1.A);
 
 		ContextTransformer transformer = parser.parse();
@@ -1092,8 +1131,9 @@ public class SqlParserTest {
 		// OK Case
 		String sql = "aaa Where /*IF true*/And col1 = 1/*END*/ bbb";
 
-		SqlParser parser = new SqlParserImpl(sql);
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -1102,8 +1142,9 @@ public class SqlParserTest {
 		// OK Case in \r\n
 		sql = "aaa Where\r\n/*IF true*/or\r\ncol1 = 1/*END*/ bbb";
 
-		parser = new SqlParserImpl(sql);
-		ctx = sqlContextFactory.createSqlContext();
+		parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(), sqlConfig.getDialect().isRemoveTerminator(),
+				true);
+		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 
 		transformer = parser.parse();
 		transformer.transform(ctx);
@@ -1112,8 +1153,9 @@ public class SqlParserTest {
 		// NG Case
 		sql = "aaa WHERE /*IF true*/ORDER = 1/*END*/ bbb";
 
-		parser = new SqlParserImpl(sql);
-		ctx = sqlContextFactory.createSqlContext();
+		parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(), sqlConfig.getDialect().isRemoveTerminator(),
+				true);
+		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 
 		transformer = parser.parse();
 		transformer.transform(ctx);

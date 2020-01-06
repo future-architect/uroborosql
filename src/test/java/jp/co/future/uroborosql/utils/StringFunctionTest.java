@@ -274,4 +274,38 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.uncapitalize("Cat"), is("cat"));
 		assertThat(expressionFunction.uncapitalize("CAt"), is("cAt"));
 	}
+
+	@Test
+	public void testIncrementShort() throws Exception {
+		assertThat(expressionFunction.incrementShort((short) 1), is((short) 2));
+		assertThat(expressionFunction.incrementShort(Short.MAX_VALUE), is(Short.MIN_VALUE));
+	}
+
+	@Test
+	public void testIncrementInt() throws Exception {
+		assertThat(expressionFunction.incrementInt(1), is(2));
+		assertThat(expressionFunction.incrementInt(Integer.MAX_VALUE), is(Integer.MIN_VALUE));
+	}
+
+	@Test
+	public void testIncrementLong() throws Exception {
+		assertThat(expressionFunction.incrementLong(1L), is(2L));
+		assertThat(expressionFunction.incrementLong(Long.MAX_VALUE), is(Long.MIN_VALUE));
+	}
+
+	@Test
+	public void testIncrement() throws Exception {
+		assertThat(expressionFunction.increment((short) 1), is((short) 2));
+		assertThat(expressionFunction.increment(Short.MAX_VALUE), is(Short.MIN_VALUE));
+		assertThat(expressionFunction.increment(1), is(2));
+		assertThat(expressionFunction.increment(Integer.MAX_VALUE), is(Integer.MIN_VALUE));
+		assertThat(expressionFunction.increment(1L), is(2L));
+		assertThat(expressionFunction.increment(Long.MAX_VALUE), is(Long.MIN_VALUE));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIncrementWithException() throws Exception {
+		expressionFunction.increment(1f);
+	}
+
 }

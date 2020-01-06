@@ -500,7 +500,8 @@ public class SqlContextImplTest {
 	}
 
 	private void transform(final SqlContext ctx) {
-		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getDialect().isRemoveTerminator());
+		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getExpressionParser(),
+				config.getDialect().isRemoveTerminator(), true);
 		ContextTransformer contextTransformer = sqlParser.parse();
 		contextTransformer.transform(ctx);
 	}
