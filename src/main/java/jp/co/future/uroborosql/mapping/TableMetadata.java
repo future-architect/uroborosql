@@ -98,10 +98,37 @@ public interface TableMetadata {
 
 		/**
 		 * NULLが許可されるかどうかを取得
-		 * @return NULLが許可されるかどうか
+		 *
+		 * @return NULLが許可される場合<code>true</code>
 		 */
 		boolean isNullable();
 
+		/**
+		 * 自動インクリメントされるかどうかを取得
+		 *
+		 * @return 自動インクリメントの場合<code>true</code>
+		 */
+		boolean isAutoincrement();
+
+		/**
+		 * バージョンカラムかどうかを取得
+		 *
+		 * @return バージョンカラムの場合<code>true</code>
+		 */
+		boolean isVersion();
+
+		/**
+		 * 楽観ロック方法を取得
+		 *
+		 * @return 楽観ロック方法
+		 */
+		Class<? extends OptimisticLockSupplier> getOptimisticLockType();
+
+		/**
+		 * 列のインデックス(1から始まる)を取得
+		 *
+		 * @return 列のインデックス(1から始まる)
+		 */
 		int getOrdinalPosition();
 	}
 
@@ -237,6 +264,14 @@ public interface TableMetadata {
 					}
 				}
 			}
+			String versionColumnName = null;
+			Class<? extends OptimisticLockSupplier> optimisticLockType = null;
+			if (table instanceof MetaTable) {
+				MetaTable metaTable = (MetaTable) table;
+				versionColumnName = metaTable.getVersionColumnName();
+				optimisticLockType = metaTable.getOptimisticLockType();
+			}
+
 			try (ResultSet rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
 				while (rs.next()) {
 					String columnName = rs.getString("COLUMN_NAME");
@@ -247,12 +282,22 @@ public interface TableMetadata {
 					}
 					String remarks = rs.getString("REMARKS");
 					String isNullable = rs.getString("IS_NULLABLE");
+					String isAutoincrement = rs.getString("IS_AUTOINCREMENT");
+					boolean isVersion = columnName.equalsIgnoreCase(versionColumnName);
 					int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
 					int columnSize = rs.getInt("COLUMN_SIZE");
 
-					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName, sqlType, columnSize,
-							remarks, isNullable, ordinalPosition, identifierQuoteString);
+					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName,
+							sqlType,
+							columnSize,
+							remarks,
+							isNullable,
+							isAutoincrement,
+							isVersion,
+							isVersion ? optimisticLockType : null,
+							ordinalPosition,
+							identifierQuoteString);
 					entityMetadata.addColumn(column);
 					columns.put(column.getColumnName(), column);
 				}

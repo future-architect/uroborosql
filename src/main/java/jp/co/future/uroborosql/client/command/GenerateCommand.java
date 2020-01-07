@@ -20,6 +20,7 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter.SqlKeyword;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.mapping.MetaTable;
 import jp.co.future.uroborosql.mapping.Table;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 
@@ -53,22 +54,15 @@ public class GenerateCommand extends ReplCommand {
 			return true;
 		}
 
-		Optional<SqlKeyword> sqlKeyword = SqlKeyword.of(parts[1]);
-		String tableName = parts[2];
-
 		try (SqlAgent agent = sqlConfig.agent()) {
-			Table table = new Table() {
+			Optional<SqlKeyword> sqlKeyword = SqlKeyword.of(parts[1]);
+			final String tableName = parts[2];
+			final String versionColumnName = props.getProperty("sql.versionColumnName");
+			final String optimisticLockSupplier = props
+					.getProperty("sql.optimisticLockSupplier",
+							"jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier");
 
-				@Override
-				public String getSchema() {
-					return null;
-				}
-
-				@Override
-				public String getName() {
-					return tableName;
-				}
-			};
+			Table table = new MetaTable(tableName, null, versionColumnName, optimisticLockSupplier);
 			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent, table);
 			metadata.setSchema(null);
 

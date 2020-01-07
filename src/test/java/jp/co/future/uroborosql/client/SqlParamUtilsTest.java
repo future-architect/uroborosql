@@ -221,4 +221,16 @@ public class SqlParamUtilsTest {
 		assertThat(params, not(contains("CLS_AGE_DEFAULT")));
 	}
 
+	@Test
+	public void testParseLine() {
+		String[] parts = SqlParamUtils.parseLine("update /sss/bbb param1=[1, 2, 3] param2=3 param3=[1, 2]");
+		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=[1,2,3]", "param2=3", "param3=[1,2]"));
+
+		parts = SqlParamUtils.parseLine("update /sss/bbb param1=[NULL] param2=[EMPTY]");
+		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=[NULL]", "param2=[EMPTY]"));
+
+		parts = SqlParamUtils.parseLine("update /sss/bbb param1=['o n e', 't w o'] param2='s p a c e'");
+		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=['o n e','t w o']", "param2='s p a c e'"));
+	}
+
 }
