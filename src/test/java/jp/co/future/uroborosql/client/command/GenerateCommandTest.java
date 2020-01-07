@@ -110,7 +110,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 				"jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier");
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
 		assertThat(trimWhitespace(out.toString()), is(
-				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/  , \"LOCK_NO\" = /*(lockNo + @java.lang.Short@valueOf(1))*/ WHERE   \"ID\" = /*id*/''  AND \"LOCK_NO\" = /*lockNo*/''"));
+				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/  , \"LOCK_NO\" = /*SF.increment(lockNo)*/ WHERE   \"ID\" = /*id*/''  AND \"LOCK_NO\" = /*lockNo*/''"));
 	}
 
 	@Test
