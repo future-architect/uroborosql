@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -190,7 +191,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterQuery(sqlContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -351,7 +352,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			afterUpdate(sqlContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -478,7 +479,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterBatch(sqlContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}] : [{}]", sqlContext.getSqlName(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -594,8 +595,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			afterProcedure(sqlContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("Stored procedure execution time [{}] : [{}]", sqlContext.getSqlName(),
-						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(sqlContext),
+						sqlContext.getSqlKind(), formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -617,6 +618,19 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * @param sqlContext SQLコンテキスト
 	 */
 	protected void afterProcedure(final SqlContext sqlContext) {
+	}
+
+	/** 時間計測用のログに出力するSQL名を生成する.
+	 *
+	 * @param sqlContext SqlContext
+	 * @return SQL名. SQL名が取得できない場合はSQL_ID、または空文字を返却する
+	 */
+	protected String generateSqlName(final SqlContext sqlContext) {
+		if (sqlContext.getSqlName() != null) {
+			return sqlContext.getSqlName();
+		} else {
+			return Objects.toString(sqlContext.getSqlId(), "");
+		}
 	}
 
 	/**
