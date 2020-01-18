@@ -6,10 +6,12 @@ import static org.junit.Assert.*;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 public class SqlEntityQueryTest extends AbstractDbTest {
 
@@ -140,6 +142,44 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 			assertNotNull(p.getVersionNo());
 		});
 		assertThat(products.size(), is(1));
+	}
+
+	@Test
+	public void testSelect() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// camel case
+		String productName = agent.query(Product.class)
+				.equal("product_id", 1)
+				.select("productName", String.class).findFirst().get();
+		assertEquals(productName, "商品名1");
+
+		// snake case
+		String janCode = agent.query(Product.class)
+				.equal("product_id", 1)
+				.select("jan_code", String.class).findFirst().get();
+		assertEquals(janCode, "1234567890124");
+
+		// multiple case
+		List<String> productNames = agent.query(Product.class)
+				.select("productName", String.class)
+				.collect(Collectors.toList());
+		assertEquals(productNames.size(), 2);
+		assertEquals(productNames.get(0), "商品名0");
+		assertEquals(productNames.get(1), "商品名1");
+
+		// exception case
+		try {
+			agent.query(Product.class)
+					.equal("product_id", 1)
+					.select("noMatchField", String.class);
+			fail();
+		} catch (UroborosqlRuntimeException ex) {
+			assertEquals("field:noMatchField not found in Product.", ex.getMessage());
+		} catch (Exception ex) {
+			fail();
+		}
 	}
 
 	@Test

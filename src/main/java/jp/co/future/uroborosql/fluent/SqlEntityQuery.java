@@ -84,6 +84,16 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	Stream<E> stream();
 
 	/**
+	 * 検索結果から指定したカラムの値を取得した結果をStreamとして返却する（終端処理）
+	 *
+	 * @param <C> 取得するカラムの型
+	 * @param col 取得するカラム名
+	 * @param type 取得するカラムの型
+	 * @return 検索結果から指定したカラムの値を取得した結果のStream
+	 */
+	<C> Stream<C> select(String col, Class<C> type);
+
+	/**
 	 * 検索結果の件数を取得（終端処理）
 	 *
 	 * @return 検索結果件数.
