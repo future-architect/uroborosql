@@ -321,6 +321,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
 		// do nothing
+		LOG.warn(
+				"Do not use SqlContextFactory#setSqlFilterManager() method. Instead, set SqlFilterManager when generating SqlConfig.");
 	}
 
 	/**

@@ -40,6 +40,8 @@ public interface SqlContextFactory extends SqlConfigAware {
 	/**
 	 * 定数パラメータプレフィックスを取得.
 	 *
+	 * @deprecated Use getSqlConfig().getSqlFilterManager() instead.
+	 *
 	 * @return SQLフィルタ管理クラス
 	 */
 	@Deprecated
@@ -47,6 +49,8 @@ public interface SqlContextFactory extends SqlConfigAware {
 
 	/**
 	 * SQLフィルタ管理クラスを設定する
+	 *
+	 * @deprecated Please do not use this method and set SqlFilterManager instance when generating SqlConfig.
 	 *
 	 * @param sqlFilterManager SQLフィルタ管理クラス
 	 */
