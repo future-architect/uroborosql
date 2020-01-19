@@ -19,24 +19,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.event.Level;
 
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 public class SqlContextFactoryTest {
 
-	private SqlContextFactory sqlContextFactory;
+	private SqlConfig sqlConfig;
 
-	private SqlFilterManager sqlFilterManager;
+	private SqlContextFactory sqlContextFactory;
 
 	@Before
 	public void setUp() throws Exception {
-		sqlFilterManager = new SqlFilterManagerImpl();
-
-		sqlContextFactory = new SqlContextFactoryImpl();
-		sqlContextFactory.setSqlFilterManager(sqlFilterManager);
+		sqlConfig = UroboroSQL
+				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
+		sqlContextFactory = sqlConfig.getSqlContextFactory();
 	}
 
 	@Test

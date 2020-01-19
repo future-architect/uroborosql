@@ -23,6 +23,11 @@ import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
  */
 public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	/**
+	 * 初期化処理
+	 */
+	void initialize();
+
+	/**
 	 * エンティティ型を返す
 	 *
 	 * @return エンティティ型

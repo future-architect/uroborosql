@@ -31,7 +31,7 @@ public class SqlParamUtilsTest {
 	@Test
 	public void testSetSqlParams() {
 		String sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFALUT*/, /*$CLS_FLAG_OFF*/";
-		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		SqlContext ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1", "key2", "key3=[true, false]");
@@ -43,7 +43,7 @@ public class SqlParamUtilsTest {
 		assertThat((List<Boolean>) ctx.getParam("key3").getValue(), hasItem(true));
 		assertThat((List<Boolean>) ctx.getParam("key3").getValue(), hasItem(false));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=[NULL]", "key2=[EMPTY]");
@@ -52,7 +52,7 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.hasParam("key2"), is(true));
 		assertThat(ctx.getParam("key2").getValue(), is(""));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key3=[10, 20, 30]", "key1='multi word'");
@@ -66,7 +66,7 @@ public class SqlParamUtilsTest {
 		assertThat(val3, hasItem(20));
 		assertThat(val3, hasItem(30));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=2019-01-01", "key2=10:15:20");
@@ -75,7 +75,7 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.hasParam("key2"), is(true));
 		assertThat(ctx.getParam("key2").getValue(), is(instanceOf(LocalTime.class)));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=2019-01-01T10:15:20");
@@ -83,21 +83,21 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(instanceOf(LocalDateTime.class)));
 
 		// int
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1000");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=+1000");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=-1000");
@@ -105,7 +105,7 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(-1000));
 
 		// 桁あふれ
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=" + Integer.MAX_VALUE + "0");
@@ -113,21 +113,21 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(new BigDecimal(Integer.MAX_VALUE + "0")));
 
 		// long
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1000L");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000L));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=+1000L");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000L));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=-1000L");
@@ -135,7 +135,7 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(-1000L));
 
 		// 桁あふれ
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=" + Long.MAX_VALUE + "0");
@@ -143,21 +143,21 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(new BigDecimal(Long.MAX_VALUE + "0")));
 
 		// float
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1000.01F");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000.01F));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=+1000.01f");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000.01F));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=-1000.01F");
@@ -165,21 +165,21 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(-1000.01F));
 
 		// double
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1000.01D");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000.01D));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=+1000.01d");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is(1000.01D));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=-1000.01D");
@@ -187,14 +187,14 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.getParam("key1").getValue(), is(-1000.01D));
 
 		// 数字の集合
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=0000010");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.getParam("key1").getValue(), is("0000010"));
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=  ");
@@ -205,7 +205,7 @@ public class SqlParamUtilsTest {
 	@Test
 	public void testSetSqlParamsIfNode() {
 		String sql = "/*IF check1 != null*/ /*key1*/ /*ELSE*/ /*key2*/ /*END*/";
-		SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		SqlContext ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=value1", "key2=value2");

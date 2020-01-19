@@ -1,5 +1,6 @@
 package jp.co.future.uroborosql;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -8,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -53,7 +56,8 @@ public class UroboroSQLTest {
 
 	@Test
 	public void builderWithConnection() throws Exception {
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		SqlConfig config = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName())).build();
 		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
@@ -73,7 +77,8 @@ public class UroboroSQLTest {
 		SqlConfig config = UroboroSQL
 				.builder()
 				.setConnectionSupplier(
-						new DefaultConnectionSupplierImpl(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")))
+						new DefaultConnectionSupplierImpl(
+								DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName())))
 				.build();
 		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -91,7 +96,7 @@ public class UroboroSQLTest {
 
 	@Test
 	public void builderSetUrl() throws Exception {
-		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentTest", "", "").build();
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "").build();
 		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
@@ -108,7 +113,7 @@ public class UroboroSQLTest {
 
 	@Test
 	public void builderSetUrlWithSchema() throws Exception {
-		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentTest", "", "", null).build();
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null).build();
 		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
@@ -125,7 +130,7 @@ public class UroboroSQLTest {
 
 	@Test
 	public void builderSetSqlManager() throws Exception {
-		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentTest", "", "", null)
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
 				.setSqlManager(new SqlManagerImpl(false)).build();
 		try (SqlAgent agent = config.agent()) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -146,7 +151,7 @@ public class UroboroSQLTest {
 	@Test
 	public void builderWithDataSource() throws Exception {
 		JdbcDataSource ds = new JdbcDataSource();
-		ds.setURL("jdbc:h2:mem:SqlAgentTest");
+		ds.setURL("jdbc:h2:mem:" + this.getClass().getSimpleName());
 
 		SqlConfig config = UroboroSQL.builder(ds).build();
 		try (SqlAgent agent = config.agent()) {
@@ -167,7 +172,7 @@ public class UroboroSQLTest {
 
 	@Test
 	public void builderWithSqlAgentFactory() throws Exception {
-		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentTest", "", "")
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
 				.setSqlAgentFactory(new SqlAgentFactoryImpl().setDefaultMapKeyCaseFormat(CaseFormat.CAMEL_CASE))
 				.build();
 		try (SqlAgent agent = config.agent()) {
@@ -197,6 +202,17 @@ public class UroboroSQLTest {
 		}
 
 		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+	}
+
+	@Test
+	public void builderWithClock() throws Exception {
+		ZoneId zoneId = ZoneId.of("Asia/Singapore");
+		Clock clock = Clock.system(zoneId);
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
+				.setClock(clock)
+				.build();
+
+		assertThat(config.getClock().getZone(), is(zoneId));
 	}
 
 	@Test

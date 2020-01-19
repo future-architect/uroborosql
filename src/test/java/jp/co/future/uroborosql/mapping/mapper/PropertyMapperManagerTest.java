@@ -1,55 +1,76 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static jp.co.future.uroborosql.mapping.mapper.Helper.newProxy;
-import static jp.co.future.uroborosql.mapping.mapper.Helper.newResultSet;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Date;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
-import org.junit.Test;
-
 public class PropertyMapperManagerTest {
+	private Clock clock = null;
+
+	@Before
+	public void setUp() {
+		this.clock = Clock.systemDefaultZone();
+	}
 
 	@Test
 	public void test() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager();
+		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", "value"), 1), is("value"));
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", null), 1), nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(boolean.class), newResultSet("getBoolean", true), 1), is(true));
-		assertThat(mapper.getValue(JavaType.of(boolean.class), newResultSet("getBoolean", false, "wasNull", false), 1), is(false));
-		assertThat(mapper.getValue(JavaType.of(boolean.class), newResultSet("getBoolean", false, "wasNull", true), 1), is(false));
+		assertThat(mapper.getValue(JavaType.of(boolean.class), newResultSet("getBoolean", false, "wasNull", false), 1),
+				is(false));
+		assertThat(mapper.getValue(JavaType.of(boolean.class), newResultSet("getBoolean", false, "wasNull", true), 1),
+				is(false));
 
 		assertThat(mapper.getValue(JavaType.of(Boolean.class), newResultSet("getBoolean", true), 1), is(true));
-		assertThat(mapper.getValue(JavaType.of(Boolean.class), newResultSet("getBoolean", false, "wasNull", false), 1), is(false));
-		assertThat(mapper.getValue(JavaType.of(Boolean.class), newResultSet("getBoolean", false, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Boolean.class), newResultSet("getBoolean", false, "wasNull", false), 1),
+				is(false));
+		assertThat(mapper.getValue(JavaType.of(Boolean.class), newResultSet("getBoolean", false, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(byte.class), newResultSet("getByte", (byte) 1), 1), is((byte) 1));
-		assertThat(mapper.getValue(JavaType.of(byte.class), newResultSet("getByte", (byte) 0, "wasNull", false), 1), is((byte) 0));
-		assertThat(mapper.getValue(JavaType.of(byte.class), newResultSet("getByte", (byte) 0, "wasNull", true), 1), is((byte) 0));
+		assertThat(mapper.getValue(JavaType.of(byte.class), newResultSet("getByte", (byte) 0, "wasNull", false), 1),
+				is((byte) 0));
+		assertThat(mapper.getValue(JavaType.of(byte.class), newResultSet("getByte", (byte) 0, "wasNull", true), 1),
+				is((byte) 0));
 
 		assertThat(mapper.getValue(JavaType.of(Byte.class), newResultSet("getByte", (byte) 1), 1), is((byte) 1));
-		assertThat(mapper.getValue(JavaType.of(Byte.class), newResultSet("getByte", (byte) 0, "wasNull", false), 1), is((byte) 0));
-		assertThat(mapper.getValue(JavaType.of(Byte.class), newResultSet("getByte", (byte) 0, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Byte.class), newResultSet("getByte", (byte) 0, "wasNull", false), 1),
+				is((byte) 0));
+		assertThat(mapper.getValue(JavaType.of(Byte.class), newResultSet("getByte", (byte) 0, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(short.class), newResultSet("getShort", (short) 1), 1), is((short) 1));
-		assertThat(mapper.getValue(JavaType.of(short.class), newResultSet("getShort", (short) 0, "wasNull", false), 1), is((short) 0));
-		assertThat(mapper.getValue(JavaType.of(short.class), newResultSet("getShort", (short) 0, "wasNull", true), 1), is((short) 0));
+		assertThat(mapper.getValue(JavaType.of(short.class), newResultSet("getShort", (short) 0, "wasNull", false), 1),
+				is((short) 0));
+		assertThat(mapper.getValue(JavaType.of(short.class), newResultSet("getShort", (short) 0, "wasNull", true), 1),
+				is((short) 0));
 
 		assertThat(mapper.getValue(JavaType.of(Short.class), newResultSet("getShort", (short) 1), 1), is((short) 1));
-		assertThat(mapper.getValue(JavaType.of(Short.class), newResultSet("getShort", (short) 0, "wasNull", false), 1), is((short) 0));
-		assertThat(mapper.getValue(JavaType.of(Short.class), newResultSet("getShort", (short) 0, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Short.class), newResultSet("getShort", (short) 0, "wasNull", false), 1),
+				is((short) 0));
+		assertThat(mapper.getValue(JavaType.of(Short.class), newResultSet("getShort", (short) 0, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(int.class), newResultSet("getInt", 1), 1), is(1));
 		assertThat(mapper.getValue(JavaType.of(int.class), newResultSet("getInt", 0, "wasNull", false), 1), is(0));
@@ -57,7 +78,8 @@ public class PropertyMapperManagerTest {
 
 		assertThat(mapper.getValue(JavaType.of(Integer.class), newResultSet("getInt", 1), 1), is(1));
 		assertThat(mapper.getValue(JavaType.of(Integer.class), newResultSet("getInt", 0, "wasNull", false), 1), is(0));
-		assertThat(mapper.getValue(JavaType.of(Integer.class), newResultSet("getInt", 0, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Integer.class), newResultSet("getInt", 0, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(long.class), newResultSet("getLong", 1L), 1), is(1L));
 		assertThat(mapper.getValue(JavaType.of(long.class), newResultSet("getLong", 0L, "wasNull", false), 1), is(0L));
@@ -65,31 +87,44 @@ public class PropertyMapperManagerTest {
 
 		assertThat(mapper.getValue(JavaType.of(Long.class), newResultSet("getLong", 1L), 1), is(1L));
 		assertThat(mapper.getValue(JavaType.of(Long.class), newResultSet("getLong", 0L, "wasNull", false), 1), is(0L));
-		assertThat(mapper.getValue(JavaType.of(Long.class), newResultSet("getLong", 0L, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Long.class), newResultSet("getLong", 0L, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(float.class), newResultSet("getFloat", 1.2F), 1), is(1.2F));
-		assertThat(mapper.getValue(JavaType.of(float.class), newResultSet("getFloat", 0F, "wasNull", false), 1), is(0F));
+		assertThat(mapper.getValue(JavaType.of(float.class), newResultSet("getFloat", 0F, "wasNull", false), 1),
+				is(0F));
 		assertThat(mapper.getValue(JavaType.of(float.class), newResultSet("getFloat", 0F, "wasNull", true), 1), is(0F));
 
 		assertThat(mapper.getValue(JavaType.of(Float.class), newResultSet("getFloat", 1.2F), 1), is(1.2F));
-		assertThat(mapper.getValue(JavaType.of(Float.class), newResultSet("getFloat", 0F, "wasNull", false), 1), is(0F));
-		assertThat(mapper.getValue(JavaType.of(Float.class), newResultSet("getFloat", 0F, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Float.class), newResultSet("getFloat", 0F, "wasNull", false), 1),
+				is(0F));
+		assertThat(mapper.getValue(JavaType.of(Float.class), newResultSet("getFloat", 0F, "wasNull", true), 1),
+				nullValue());
 
 		assertThat(mapper.getValue(JavaType.of(double.class), newResultSet("getDouble", 1.2D), 1), is(1.2D));
-		assertThat(mapper.getValue(JavaType.of(double.class), newResultSet("getDouble", 0D, "wasNull", false), 1), is(0D));
-		assertThat(mapper.getValue(JavaType.of(double.class), newResultSet("getDouble", 0D, "wasNull", true), 1), is(0D));
+		assertThat(mapper.getValue(JavaType.of(double.class), newResultSet("getDouble", 0D, "wasNull", false), 1),
+				is(0D));
+		assertThat(mapper.getValue(JavaType.of(double.class), newResultSet("getDouble", 0D, "wasNull", true), 1),
+				is(0D));
 
 		assertThat(mapper.getValue(JavaType.of(Double.class), newResultSet("getDouble", 1.2D), 1), is(1.2D));
-		assertThat(mapper.getValue(JavaType.of(Double.class), newResultSet("getDouble", 0D, "wasNull", false), 1), is(0D));
-		assertThat(mapper.getValue(JavaType.of(Double.class), newResultSet("getDouble", 0D, "wasNull", true), 1), nullValue());
+		assertThat(mapper.getValue(JavaType.of(Double.class), newResultSet("getDouble", 0D, "wasNull", false), 1),
+				is(0D));
+		assertThat(mapper.getValue(JavaType.of(Double.class), newResultSet("getDouble", 0D, "wasNull", true), 1),
+				nullValue());
 
-		assertThat(mapper.getValue(JavaType.of(BigDecimal.class), newResultSet("getBigDecimal", BigDecimal.valueOf(123.123)), 1),
+		assertThat(
+				mapper.getValue(JavaType.of(BigDecimal.class),
+						newResultSet("getBigDecimal", BigDecimal.valueOf(123.123)), 1),
 				is(BigDecimal.valueOf(123.123)));
-		assertThat(mapper.getValue(JavaType.of(byte[].class), newResultSet("getBytes", "abc".getBytes(StandardCharsets.UTF_8)), 1),
+		assertThat(
+				mapper.getValue(JavaType.of(byte[].class),
+						newResultSet("getBytes", "abc".getBytes(StandardCharsets.UTF_8)), 1),
 				is("abc".getBytes(StandardCharsets.UTF_8)));
 
 		java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(LocalDateTime.now());
-		assertThat(mapper.getValue(JavaType.of(java.sql.Timestamp.class), newResultSet("getTimestamp", timestamp), 1), is(timestamp));
+		assertThat(mapper.getValue(JavaType.of(java.sql.Timestamp.class), newResultSet("getTimestamp", timestamp), 1),
+				is(timestamp));
 
 		java.sql.Time time = java.sql.Time.valueOf(LocalTime.now());
 		assertThat(mapper.getValue(JavaType.of(java.sql.Time.class), newResultSet("getTime", time), 1), is(time));
@@ -114,24 +149,36 @@ public class PropertyMapperManagerTest {
 		assertThat(mapper.getValue(JavaType.of(java.sql.NClob.class), newResultSet("getNClob", nclob), 1), is(nclob));
 
 		java.sql.SQLXML sqlxml = newProxy(java.sql.SQLXML.class);
-		assertThat(mapper.getValue(JavaType.of(java.sql.SQLXML.class), newResultSet("getSQLXML", sqlxml), 1), is(sqlxml));
+		assertThat(mapper.getValue(JavaType.of(java.sql.SQLXML.class), newResultSet("getSQLXML", sqlxml), 1),
+				is(sqlxml));
 
-		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 1), 1), is(OptionalInt.of(1)));
-		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 0, "wasNull", false), 1), is(OptionalInt.of(0)));
-		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 0, "wasNull", true), 1), is(OptionalInt.empty()));
+		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 1), 1),
+				is(OptionalInt.of(1)));
+		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 0, "wasNull", false), 1),
+				is(OptionalInt.of(0)));
+		assertThat(mapper.getValue(JavaType.of(OptionalInt.class), newResultSet("getInt", 0, "wasNull", true), 1),
+				is(OptionalInt.empty()));
 
-		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 1L), 1), is(OptionalLong.of(1L)));
-		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 0L, "wasNull", false), 1), is(OptionalLong.of(0L)));
-		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 0L, "wasNull", true), 1), is(OptionalLong.empty()));
+		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 1L), 1),
+				is(OptionalLong.of(1L)));
+		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 0L, "wasNull", false), 1),
+				is(OptionalLong.of(0L)));
+		assertThat(mapper.getValue(JavaType.of(OptionalLong.class), newResultSet("getLong", 0L, "wasNull", true), 1),
+				is(OptionalLong.empty()));
 
-		assertThat(mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 1.2D), 1), is(OptionalDouble.of(1.2D)));
-		assertThat(mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 0D, "wasNull", false), 1), is(OptionalDouble.of(0D)));
-		assertThat(mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 0D, "wasNull", true), 1), is(OptionalDouble.empty()));
+		assertThat(mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 1.2D), 1),
+				is(OptionalDouble.of(1.2D)));
+		assertThat(
+				mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 0D, "wasNull", false), 1),
+				is(OptionalDouble.of(0D)));
+		assertThat(
+				mapper.getValue(JavaType.of(OptionalDouble.class), newResultSet("getDouble", 0D, "wasNull", true), 1),
+				is(OptionalDouble.empty()));
 	}
 
 	@Test
 	public void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager();
+		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
 
 		mapper.addMapper(new PropertyMapper<String>() {
 
@@ -141,7 +188,8 @@ public class PropertyMapperManagerTest {
 			}
 
 			@Override
-			public String getValue(final JavaType type, final ResultSet rs, final int columnIndex, final PropertyMapperManager mapperManager)
+			public String getValue(final JavaType type, final ResultSet rs, final int columnIndex,
+					final PropertyMapperManager mapperManager)
 					throws SQLException {
 				return rs.getString(columnIndex).toUpperCase();
 			}

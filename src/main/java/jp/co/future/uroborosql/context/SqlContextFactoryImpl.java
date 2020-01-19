@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
@@ -62,8 +63,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/** 定数パラメータマップ */
 	private Map<String, Parameter> constParameterMap = null;
 
-	/** SqlFilter管理クラス */
-	private SqlFilterManager sqlFilterManager;
+	/** SQL設定クラス */
+	private SqlConfig sqlConfig = null;
+
 	/** 自動バインド用パラメータ生成クラスのリスト */
 	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
 
@@ -86,7 +88,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private int defaultResultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** パラメータ変換マネージャ */
-	private final BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+	private BindParameterMapperManager parameterMapperManager;
 
 	/**
 	 * {@inheritDoc}
@@ -109,14 +111,35 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		}
 
 		sqlContext.setConstParameterMap(paramMap);
-		sqlContext.setSqlFilterManager(getSqlFilterManager());
-		sqlContext.setParameterMapperManager(new BindParameterMapperManager(parameterMapperManager));
+		sqlContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
+		sqlContext.setParameterMapperManager(
+				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
 		sqlContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
 		sqlContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 		sqlContext.setResultSetType(defaultResultSetType);
 		sqlContext.setResultSetConcurrency(defaultResultSetConcurrency);
 
 		return sqlContext;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(final SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
+	 */
+	@Override
+	public SqlConfig getSqlConfig() {
+		return sqlConfig;
 	}
 
 	/**
@@ -131,6 +154,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		paramMap.putAll(buildEnumConstParamMap());
 
 		constParameterMap = Collections.unmodifiableMap(paramMap);
+		parameterMapperManager = new BindParameterMapperManager(getSqlConfig().getClock());
 	}
 
 	/**
@@ -282,9 +306,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
 	 */
+	@Deprecated
 	@Override
 	public SqlFilterManager getSqlFilterManager() {
-		return sqlFilterManager;
+		return getSqlConfig().getSqlFilterManager();
 	}
 
 	/**
@@ -292,9 +317,12 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 *
 	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
 	 */
+	@Deprecated
 	@Override
 	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-		this.sqlFilterManager = sqlFilterManager;
+		// do nothing
+		LOG.warn(
+				"Do not use SqlContextFactory#setSqlFilterManager() method. Instead, set SqlFilterManager when generating SqlConfig.");
 	}
 
 	/**
@@ -539,15 +567,26 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 		return Optional.empty();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#setDefaultResultSetType(int)
+	 */
 	@Override
 	public SqlContextFactory setDefaultResultSetType(final int resultSetType) {
 		defaultResultSetType = resultSetType;
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContextFactory#setDefaultResultSetConcurrency(int)
+	 */
 	@Override
 	public SqlContextFactory setDefaultResultSetConcurrency(final int resultSetConcurrency) {
 		defaultResultSetConcurrency = resultSetConcurrency;
 		return this;
 	}
+
 }

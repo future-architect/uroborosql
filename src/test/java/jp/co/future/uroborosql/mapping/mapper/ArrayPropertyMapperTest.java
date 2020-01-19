@@ -1,27 +1,35 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static jp.co.future.uroborosql.mapping.mapper.Helper.newResultSet;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.SQLException;
+import java.time.Clock;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
-import org.junit.Test;
-
 public class ArrayPropertyMapperTest {
+	private Clock clock = null;
+
+	@Before
+	public void setUp() {
+		this.clock = Clock.systemDefaultZone();
+	}
 
 	@Test
 	public void test() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager();
+		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
 		mapper.addMapper(new ArrayPropertyMapper());
 		java.sql.Array array = newDummyArray("a,b,c".split(","));
-		assertThat(mapper.getValue(JavaType.of(String[].class), newResultSet("getArray", array), 1), is("a,b,c".split(",")));
+		assertThat(mapper.getValue(JavaType.of(String[].class), newResultSet("getArray", array), 1),
+				is("a,b,c".split(",")));
 
 		array = newDummyArray(new Number[] { 1, 2, 3 });
 		assertThat(mapper.getValue(JavaType.of(Integer[].class), newResultSet(
@@ -44,6 +52,7 @@ public class ArrayPropertyMapperTest {
 				return null;
 			}
 		};
-		return (java.sql.Array) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { java.sql.Array.class }, handler);
+		return (java.sql.Array) Proxy.newProxyInstance(this.getClass().getClassLoader(),
+				new Class[] { java.sql.Array.class }, handler);
 	}
 }

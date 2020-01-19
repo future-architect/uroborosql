@@ -11,14 +11,22 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.time.Clock;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class StringArrayParameterMapperTest {
+	private Clock clock = null;
+
+	@Before
+	public void setUp() {
+		this.clock = Clock.systemDefaultZone();
+	}
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
 		Array jdbcArray = newProxy(Array.class);
 		String[] array = { "A" };
 

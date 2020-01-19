@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -25,42 +25,42 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class MapResultSetConverter implements ResultSetConverter<Map<String, Object>> {
 	private final PropertyMapperManager mapperManager;
-	private final Dialect dialect;
+	private final SqlConfig sqlConfig;
 	private final CaseFormat caseFormat;
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param dialect データベースDialect
+	 * @param sqlConfig SQL設定クラス
 	 */
-	public MapResultSetConverter(final Dialect dialect) {
-		this(dialect, CaseFormat.UPPER_SNAKE_CASE);
+	public MapResultSetConverter(final SqlConfig sqlConfig) {
+		this(sqlConfig, CaseFormat.UPPER_SNAKE_CASE);
 	}
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param dialect データベースDialect
+	 * @param sqlConfig SQL設定クラス
 	 * @param caseFormat 変換するMapのキーの書式
 	 */
-	public MapResultSetConverter(final Dialect dialect, final CaseFormat caseFormat) {
-		this.dialect = dialect;
+	public MapResultSetConverter(final SqlConfig sqlConfig, final CaseFormat caseFormat) {
+		this.sqlConfig = sqlConfig;
 		this.caseFormat = caseFormat;
-		this.mapperManager = new PropertyMapperManager();
+		this.mapperManager = new PropertyMapperManager(sqlConfig.getClock());
 	}
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param dialect データベースDialect
+	 * @param sqlConfig SQL設定クラス
 	 * @param caseFormat 変換するMapのキーの書式
 	 * @param mapperManager コピー元のパラメータ変換クラス
 	 */
-	public MapResultSetConverter(final Dialect dialect, final CaseFormat caseFormat,
+	public MapResultSetConverter(final SqlConfig sqlConfig, final CaseFormat caseFormat,
 			final PropertyMapperManager mapperManager) {
-		this.dialect = dialect;
+		this.sqlConfig = sqlConfig;
 		this.caseFormat = caseFormat;
-		this.mapperManager = new PropertyMapperManager(mapperManager);
+		this.mapperManager = new PropertyMapperManager(mapperManager, sqlConfig.getClock());
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	 */
 	private Object getValue(final ResultSet rs, final ResultSetMetaData rsmd, final int columnIndex)
 			throws SQLException {
-		JavaType javaType = this.dialect.getJavaType(rsmd.getColumnType(columnIndex),
+		JavaType javaType = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(columnIndex),
 				rsmd.getColumnTypeName(columnIndex));
 		return this.mapperManager.getValue(javaType, rs, columnIndex);
 	}

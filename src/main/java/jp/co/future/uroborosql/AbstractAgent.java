@@ -465,7 +465,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#getSqlConfig()
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
 	 */
 	@Override
 	public SqlConfig getSqlConfig() {
@@ -475,7 +475,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
 	 */
 	@Override
 	public void setSqlConfig(final SqlConfig config) {
