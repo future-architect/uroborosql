@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -238,7 +237,7 @@ public interface TableMetadata {
 		Connection connection = connectionManager.getConnection();
 		DatabaseMetaData metaData = connection.getMetaData();
 
-		String schema = Objects.toString(table.getSchema(), connection.getSchema());
+		String schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema() : connection.getSchema();
 		String tableName = table.getName();
 		String identifierQuoteString = metaData.getIdentifierQuoteString();
 
