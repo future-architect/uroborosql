@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql;
 
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
+import jp.co.future.uroborosql.utils.BeanAccessor;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -141,6 +143,23 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#select(java.lang.String, java.lang.Class)
+	 */
+	@Override
+	public <C> Stream<C> select(final String col, final Class<C> type) {
+		String fieldName = CaseFormat.CAMEL_CASE.convert(col);
+		Field field = BeanAccessor.fields(entityType).stream()
+				.filter(f -> f.getName().equalsIgnoreCase(fieldName))
+				.findFirst()
+				.orElseThrow(() -> new UroborosqlRuntimeException(
+						"field:" + fieldName + " not found in " + entityType.getSimpleName() + "."));
+
+		return stream().map(e -> type.cast(BeanAccessor.value(field, e)));
 	}
 
 	/**
