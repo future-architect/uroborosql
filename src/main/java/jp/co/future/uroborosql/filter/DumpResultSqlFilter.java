@@ -23,10 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jp.co.future.uroborosql.context.SqlContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * 実行結果をダンプ出力するSqlFilter.<br>
@@ -44,10 +45,6 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
-	/** 囲み用文字列 */
-	private static final String FRAME_STR = "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
-	/** 空白用文字列 */
-	private static final String SPACE_STR = "                                                                                                                                                                                                        ";
 
 	/**
 	 * {@inheritDoc}
@@ -59,7 +56,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			final ResultSet resultSet) {
 		try {
 			if (resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				LOG.warn("ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+				LOG.warn(
+						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
 			StringBuilder builder = displayResult(resultSet);
 			LOG.info(builder.toString());
@@ -106,7 +104,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			// ヘッダ部出力
 			builder.append("+");
 			for (String key : keys) {
-				builder.append(FRAME_STR.substring(0, maxLengthList.get(key))).append("+");
+				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 			builder.append(System.lineSeparator()).append("|");
 			for (String key : keys) {
@@ -114,7 +112,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			}
 			builder.append(System.lineSeparator()).append("+");
 			for (String key : keys) {
-				builder.append(FRAME_STR.substring(0, maxLengthList.get(key))).append("+");
+				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
 			// データ部出力
@@ -127,9 +125,9 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				}
 
 				if (len >= 13) {
-					builder.append("empty data.").append(SPACE_STR.substring(0, len - 13)).append("|");
+					builder.append("empty data.").append(StringUtils.repeat(' ', len - 13)).append("|");
 				} else {
-					builder.append("-").append(SPACE_STR.substring(0, len - 2)).append("|");
+					builder.append("-").append(StringUtils.repeat(' ', len - 3)).append("|");
 				}
 			} else {
 				for (Map<String, Object> row : rows) {
@@ -142,7 +140,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			}
 			builder.append(System.lineSeparator()).append("+");
 			for (String key : keys) {
-				builder.append(FRAME_STR.substring(0, maxLengthList.get(key))).append("+");
+				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
 			// カーソルを先頭の前に戻す
@@ -161,11 +159,11 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		int strLen = getByteLength(str);
 		int spaceSize = (length - strLen) / 2;
 
-		String spaceStr = SPACE_STR.substring(0, spaceSize);
+		String spaceStr = StringUtils.repeat(' ', spaceSize);
 		String ans = spaceStr + str + spaceStr;
 		int fillLen = getByteLength(ans);
 		if (length > fillLen) {
-			ans = ans + SPACE_STR.substring(0, (length - fillLen));
+			ans = ans + StringUtils.repeat(' ', length - fillLen);
 		}
 		return ans;
 	}
@@ -176,9 +174,9 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		int spaceSize = length - valLen;
 
 		if (val instanceof Number) {
-			return SPACE_STR.substring(0, spaceSize) + getSubstringByte(val, length);
+			return StringUtils.repeat(' ', spaceSize) + getSubstringByte(val, length);
 		} else {
-			return getSubstringByte(val, length) + SPACE_STR.substring(0, spaceSize);
+			return getSubstringByte(val, length) + StringUtils.repeat(' ', spaceSize);
 		}
 
 	}

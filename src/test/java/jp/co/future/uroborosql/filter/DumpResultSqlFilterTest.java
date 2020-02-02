@@ -13,12 +13,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +28,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class DumpResultSqlFilterTest {
 
@@ -51,6 +52,18 @@ public class DumpResultSqlFilterTest {
 				agent.updateWith(sql.trim()).count();
 			}
 		}
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("create table if not exists many_column_table (").append(System.lineSeparator());
+		for (int i = 1; i <= 100; i++) {
+			builder.append("col").append(i).append(" VARCHAR(100)");
+			if (i < 100) {
+				builder.append(",");
+			}
+			builder.append(System.lineSeparator());
+		}
+		builder.append(");");
+		agent.updateWith(builder.toString()).count();
 		agent.commit();
 	}
 
@@ -131,6 +144,94 @@ public class DumpResultSqlFilterTest {
 				log,
 				is(Files.readAllLines(
 						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter", "testExecuteQueryFilter.txt"),
+						StandardCharsets.UTF_8)));
+	}
+
+	@Test
+	public void testExecuteQueryFilterManyColumn() throws Exception {
+		// データのクリア
+		agent.updateWith("truncate table many_column_table").count();
+
+		// 結果の検証
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			SqlContext ctx = config.context();
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+			ctx.setSql("select * from many_column_table");
+
+			agent.query(ctx);
+		});
+
+		assertThat(
+				log,
+				is(Files.readAllLines(
+						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+								"testExecuteQueryFilterManyColumn.txt"),
+						StandardCharsets.UTF_8)));
+	}
+
+	@Test
+	public void testExecuteQueryFilterOneColumn() throws Exception {
+		// データのクリア
+		agent.updateWith("truncate table many_column_table").count();
+
+		// 結果の検証
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			SqlContext ctx = config.context();
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+			ctx.setSql("select col1 from many_column_table");
+
+			agent.query(ctx);
+		});
+
+		assertThat(
+				log,
+				is(Files.readAllLines(
+						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+								"testExecuteQueryFilterOneColumn.txt"),
+						StandardCharsets.UTF_8)));
+	}
+
+	@Test
+	public void testExecuteQueryFilterManyColumnWithData() throws Exception {
+		// データ投入
+		StringBuilder builder = new StringBuilder();
+		builder.append("insert into many_column_table").append(System.lineSeparator())
+				.append("(").append(System.lineSeparator())
+				.append("\t").append("col1");
+		for (int i = 2; i <= 100; i++) {
+			builder.append("\t").append(", col").append(i).append(System.lineSeparator());
+		}
+		builder.append(") values (").append(System.lineSeparator())
+				.append("\t").append("/*col1*/").append(System.lineSeparator());
+		for (int i = 2; i <= 100; i++) {
+			builder.append("\t").append(", /*col").append(i).append("*/''").append(System.lineSeparator());
+		}
+		builder.append(")").append(System.lineSeparator());
+
+		List<Map<String, Object>> params = new ArrayList<>();
+		for (int i = 1; i <= 10; i++) {
+			Map<String, Object> values = new HashMap<>();
+			for (int j = 1; j <= 100; j++) {
+				values.put("col" + j, "value" + i * j);
+			}
+			params.add(values);
+		}
+		agent.batchWith(builder.toString()).paramStream(params.stream()).count();
+
+		// select 結果の検証
+		List<String> log = TestAppender.getLogbackLogs(() -> {
+			SqlContext ctx = config.context();
+			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+			ctx.setSql("select * from many_column_table");
+
+			agent.query(ctx);
+		});
+
+		assertThat(
+				log,
+				is(Files.readAllLines(
+						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+								"testExecuteQueryFilterManyColumnWithData.txt"),
 						StandardCharsets.UTF_8)));
 	}
 
