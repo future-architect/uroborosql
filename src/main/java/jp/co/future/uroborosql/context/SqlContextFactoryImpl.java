@@ -149,12 +149,12 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	@Override
 	public void initialize() {
+		parameterMapperManager = new BindParameterMapperManager(getSqlConfig().getClock());
+
 		Map<String, Parameter> paramMap = new HashMap<>();
 		paramMap.putAll(buildConstParamMap());
 		paramMap.putAll(buildEnumConstParamMap());
-
 		constParameterMap = Collections.unmodifiableMap(paramMap);
-		parameterMapperManager = new BindParameterMapperManager(getSqlConfig().getClock());
 	}
 
 	/**

@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.Arrays;
+import java.util.Map;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.After;
@@ -18,6 +20,9 @@ import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.test.TestConsts;
+import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -95,6 +100,22 @@ public class SqlConfigTest {
 		try (SqlAgent agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 		}
-
 	}
+
+	@Test
+	public void testWithSqlContextFactoryConstantSettings() throws Exception {
+		SqlConfig config = UroboroSQL.builder(ds)
+				.setSqlContextFactory(new SqlContextFactoryImpl()
+						.setConstantClassNames(Arrays.asList(TestConsts.class.getName()))
+						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+				.build();
+		try (SqlAgent agent = config.agent()) {
+			Map<String, Object> ans = agent
+					.queryWith("select /*#CLS_INNER_CLASS_ISTRING*/'' as VAL, /*#CLS_TEST_ENUM1_A*/ as ENUM").one();
+
+			assertThat(ans.get("VAL"), is(TestConsts.InnerClass.ISTRING));
+			assertThat(ans.get("ENUM"), is(TestEnum1.A.toString()));
+		}
+	}
+
 }
