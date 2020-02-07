@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,7 +89,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	private int defaultResultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
 	/** パラメータ変換マネージャ */
-	private BindParameterMapperManager parameterMapperManager;
+	private BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(
+			Clock.systemDefaultZone());
 
 	/**
 	 * {@inheritDoc}
@@ -149,7 +151,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	@Override
 	public void initialize() {
-		parameterMapperManager = new BindParameterMapperManager(getSqlConfig().getClock());
+		parameterMapperManager = new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock());
 
 		Map<String, Parameter> paramMap = new HashMap<>();
 		paramMap.putAll(buildConstParamMap());
