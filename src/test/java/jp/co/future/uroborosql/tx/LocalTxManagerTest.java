@@ -333,33 +333,28 @@ public class LocalTxManagerTest {
 	public void testSavepointScopeRunnable() {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				try {
-					agent.savepointScope(() -> {
-						ins(agent, 1, "A");
-						try {
-							agent.savepointScope(() -> {
-								ins(agent, 2, "B");
-								try {
-									agent.savepointScope(() -> {
-										ins(agent, 3, "C");
-										assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
-										throw new UroborosqlRuntimeException();
-									});
-								} catch (UroborosqlRuntimeException ex) {
-									assertThat(select(agent), is(Arrays.asList("A", "B")));
+				agent.savepointScope(() -> {
+					ins(agent, 1, "A");
+					try {
+						agent.savepointScope(() -> {
+							ins(agent, 2, "B");
+							try {
+								agent.savepointScope(() -> {
+									ins(agent, 3, "C");
+									assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
 									throw new UroborosqlRuntimeException();
-								}
-								fail();
-							});
-						} catch (UroborosqlRuntimeException ex) {
-							assertThat(select(agent), is(Arrays.asList("A")));
-							throw new UroborosqlRuntimeException();
-						}
-						fail();
-					});
-				} catch (UroborosqlRuntimeException ex) {
-					assertThat(select(agent), is(Matchers.emptyCollectionOf(String.class)));
-				}
+								});
+							} catch (UroborosqlRuntimeException ex) {
+								assertThat(select(agent), is(Arrays.asList("A", "B")));
+								throw new UroborosqlRuntimeException();
+							}
+							fail();
+						});
+					} catch (UroborosqlRuntimeException ex) {
+						assertThat(select(agent), is(Arrays.asList("A")));
+					}
+				});
+				assertThat(select(agent), is(Arrays.asList("A")));
 			});
 		}
 	}
