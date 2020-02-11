@@ -12,10 +12,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * ローカルトランザクションマネージャ
@@ -389,6 +391,35 @@ public class LocalTransactionManager implements TransactionManager {
 		} else {
 			this.unmanagedTransaction.ifPresent(LocalTransactionContext::rollback);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 */
+	@Override
+	public <R> R savepointScope(final SQLSupplier<R> supplier) {
+		String savepointName = UUID.randomUUID().toString();
+		setSavepoint(savepointName);
+		try {
+			return supplier.get();
+		} catch (UroborosqlRuntimeException ex) {
+			rollback(savepointName);
+			throw ex;
+		} finally {
+			releaseSavepoint(savepointName);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 */
+	@Override
+	public void savepointScope(final SQLRunnable runnable) {
+		savepointScope(toSupplier(runnable));
 	}
 
 }
