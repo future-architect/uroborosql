@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * ローカルトランザクションマネージャ
@@ -334,9 +333,9 @@ public class LocalTransactionManager implements TransactionManager {
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();
-			} catch (Exception ex) {
+			} catch (Throwable th) {
 				txContext.setRollbackOnly();
-				throw ex;
+				throw th;
 			} finally {
 				try {
 					txContext.close();
@@ -404,9 +403,9 @@ public class LocalTransactionManager implements TransactionManager {
 		setSavepoint(savepointName);
 		try {
 			return supplier.get();
-		} catch (UroborosqlRuntimeException ex) {
+		} catch (Throwable th) {
 			rollback(savepointName);
-			throw ex;
+			throw th;
 		} finally {
 			releaseSavepoint(savepointName);
 		}

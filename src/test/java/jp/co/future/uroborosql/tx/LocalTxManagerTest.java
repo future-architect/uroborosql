@@ -342,16 +342,18 @@ public class LocalTxManagerTest {
 								agent.savepointScope(() -> {
 									ins(agent, 3, "C");
 									assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
-									throw new UroborosqlRuntimeException();
+									throw new IllegalStateException();
 								});
-							} catch (UroborosqlRuntimeException ex) {
+							} catch (Exception ex) {
 								assertThat(select(agent), is(Arrays.asList("A", "B")));
-								throw new UroborosqlRuntimeException();
+								assertThat(ex, is(instanceOf(IllegalStateException.class)));
+								throw ex;
 							}
 							fail();
 						});
-					} catch (UroborosqlRuntimeException ex) {
+					} catch (Exception ex) {
 						assertThat(select(agent), is(Arrays.asList("A")));
+						assertThat(ex, is(instanceOf(IllegalStateException.class)));
 					}
 				});
 				assertThat(select(agent), is(Arrays.asList("A")));
@@ -370,10 +372,11 @@ public class LocalTxManagerTest {
 							ins(agent, 2, "B");
 							return select(agent);
 						}), is(Arrays.asList("A", "B")));
-						throw new UroborosqlRuntimeException();
+						throw new IllegalAccessError();
 					});
-				} catch (UroborosqlRuntimeException ex) {
+				} catch (Throwable th) {
 					assertThat(select(agent), is(Matchers.emptyCollectionOf(String.class)));
+					assertThat(th, is(instanceOf(IllegalAccessError.class)));
 				}
 			});
 		}
