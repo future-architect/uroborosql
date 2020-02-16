@@ -103,4 +103,21 @@ public interface TransactionManager extends ConnectionManager {
 	 */
 	void rollback(String savepointName);
 
+	/**
+	 * セーブポイントを設定した上でsupplierの内容を実行する.<br>
+	 * 処理が成功した場合はセーブポイントを開放し、失敗した場合は設定したセーブポイントまでロールバックする.
+	 *
+	 * @param supplier 実行する処理
+	 * @param <R> 結果の型
+	 * @return supplierの処理結果
+	 */
+	<R> R savepointScope(SQLSupplier<R> supplier);
+
+	/**
+	 * セーブポイントを設定した上でrunnableの内容を実行する.<br>
+	 * 処理が成功した場合はセーブポイントを開放し、失敗した場合は設定したセーブポイントまでロールバックする.
+	 *
+	 * @param runnable 実行する処理
+	 */
+	void savepointScope(SQLRunnable runnable);
 }
