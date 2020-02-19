@@ -40,9 +40,6 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  */
 public final class SqlParamUtils {
-	/** バインドパラメータ中の定数指定を判定するための正規表現 */
-	private static final Pattern CONSTANT_PAT = Pattern.compile("^[A-Z][A-Z0-9_-]*$");
-
 	/** 数字かどうかを判定するための正規表現 */
 	private static final Pattern NUMBER_PAT = Pattern.compile("^[\\-\\+]?[1-9][0-9]*([Ll]|\\.\\d+[FfDd])?$");
 
@@ -293,7 +290,9 @@ public final class SqlParamUtils {
 
 		Set<String> params = new LinkedHashSet<>();
 		traverseNode(sqlConfig.getExpressionParser(), rootNode, params);
-		params.removeIf(s -> CONSTANT_PAT.matcher(s).matches());
+		Pattern constPattern = Pattern
+				.compile("^" + sqlConfig.getSqlContextFactory().getConstParamPrefix() + "[A-Z][A-Z0-9_-]*$");
+		params.removeIf(s -> constPattern.matcher(s).matches());
 		return params;
 	}
 
@@ -312,13 +311,28 @@ public final class SqlParamUtils {
 		} else if (node instanceof EmbeddedValueNode) {
 			params.add(((EmbeddedValueNode) node).getExpression());
 		} else if (node instanceof IfNode) {
-			String expression = ((IfNode) node).getExpression();
-			parser.parse(expression).collectParams(params);
+			traverseIfNode(parser, (IfNode) node, params);
 		}
 
 		for (int i = 0; i < node.getChildSize(); i++) {
-			Node childNode = node.getChild(i);
-			traverseNode(parser, childNode, params);
+			traverseNode(parser, node.getChild(i), params);
+		}
+	}
+
+	/**
+	 * SQLの探索（IF分岐）
+	 *
+	 * @param parser ExpressionParser
+	 * @param ifNode SQL IFノード
+	 * @param params パラメータが見つかった場合に格納するSetオブジェクト
+	 */
+	private static void traverseIfNode(final ExpressionParser parser, final IfNode ifNode, final Set<String> params) {
+		parser.parse(ifNode.getExpression()).collectParams(params);
+		if (ifNode.getElseIfNode() != null) {
+			traverseIfNode(parser, ifNode.getElseIfNode(), params);
+		}
+		if (ifNode.getElseNode() != null) {
+			traverseNode(parser, ifNode.getElseNode(), params);
 		}
 	}
 }

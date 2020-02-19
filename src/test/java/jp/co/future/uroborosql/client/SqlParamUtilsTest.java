@@ -222,6 +222,40 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
+	public void testGetSqlParamsIfNode() {
+		Set<String> params = SqlParamUtils
+				.getSqlParams(
+						"select * from test where /*IF id != null*/id = /*id*/1 /*ELIF name != null*/and name = /*name*/'name1' /*ELIF age != null*/and age = /*age*/0*/ /*ELSE*/and height = /*height*/0 /*END*/",
+						sqlConfig);
+		assertThat(params, contains("id", "name", "age", "height"));
+		assertThat(params, not(contains("CLS_AGE_DEFAULT")));
+	}
+
+	@Test
+	public void testGetSqlParamsParenExpression() {
+		Set<String> params = SqlParamUtils
+				.getSqlParams(
+						"select * from test /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
+						sqlConfig);
+		assertThat(params, contains("ids"));
+	}
+
+	@Test
+	public void testGetSqlParamsEmbeddedExpression() {
+		Set<String> params = SqlParamUtils
+				.getSqlParams(
+						"select * from /*$tableName*/ /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
+						sqlConfig);
+		assertThat(params, contains("tableName", "ids"));
+
+		params = SqlParamUtils
+				.getSqlParams(
+						"select * from /*$TABLE_NAME*/ /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
+						sqlConfig);
+		assertThat(params, contains("TABLE_NAME", "ids"));
+	}
+
+	@Test
 	public void testParseLine() {
 		String[] parts = SqlParamUtils.parseLine("update /sss/bbb param1=[1, 2, 3] param2=3 param3=[1, 2]");
 		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=[1,2,3]", "param2=3", "param3=[1,2]"));
