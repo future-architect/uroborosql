@@ -225,9 +225,9 @@ public class SqlParamUtilsTest {
 	public void testGetSqlParamsIfNode() {
 		Set<String> params = SqlParamUtils
 				.getSqlParams(
-						"select * from test where /*IF id != null*/id = /*id*/1 /*ELIF name != null*/and name = /*name*/'name1' /*ELIF age != null*/and age = /*age*/0*/ /*ELSE*/and height = /*height*/0 /*END*/",
+						"select * from test where /*IF id != null*/id = /*id*/1 and id2 = /*id2*/'' /*ELIF name != null*/and name = /*name*/'name1' and name2 = /*name2*/'name2' /*ELIF age != null*/and age = /*age*/0 and age2 = /*age2*/1 */ /*ELSE*/and height = /*height*/0 and height2 = /*height2*/1 /*END*/",
 						sqlConfig);
-		assertThat(params, contains("id", "name", "age", "height"));
+		assertThat(params, contains("id", "id2", "name", "name2", "age", "age2", "height", "height2"));
 		assertThat(params, not(contains("CLS_AGE_DEFAULT")));
 	}
 

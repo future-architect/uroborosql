@@ -312,10 +312,10 @@ public final class SqlParamUtils {
 			params.add(((EmbeddedValueNode) node).getExpression());
 		} else if (node instanceof IfNode) {
 			traverseIfNode(parser, (IfNode) node, params);
-		}
-
-		for (int i = 0; i < node.getChildSize(); i++) {
-			traverseNode(parser, node.getChild(i), params);
+		} else {
+			for (int i = 0; i < node.getChildSize(); i++) {
+				traverseNode(parser, node.getChild(i), params);
+			}
 		}
 	}
 
@@ -328,6 +328,10 @@ public final class SqlParamUtils {
 	 */
 	private static void traverseIfNode(final ExpressionParser parser, final IfNode ifNode, final Set<String> params) {
 		parser.parse(ifNode.getExpression()).collectParams(params);
+
+		for (int i = 0; i < ifNode.getChildSize(); i++) {
+			traverseNode(parser, ifNode.getChild(i), params);
+		}
 		if (ifNode.getElseIfNode() != null) {
 			traverseIfNode(parser, ifNode.getElseIfNode(), params);
 		}
