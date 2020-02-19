@@ -55,6 +55,7 @@ import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -705,6 +706,19 @@ public class SqlAgentImpl extends AbstractAgent {
 			if (keyNames.length != keys.length) {
 				throw new IllegalArgumentException("Number of keys does not match");
 			}
+
+			if (keys.length > 0 && useEntityQueryCache) {
+				// 検索結果キャッシュにヒットする場合はヒットした値を返却する
+				Optional<?> queryCache = getQueryCache(entityType, metadata);
+				if (queryCache.isPresent()) {
+					QueryCache<E> cache = (QueryCache<E>) queryCache.get();
+					List<Object> keyList = Arrays.asList(keys);
+					if (cache.containsKey(keyList)) {
+						return Optional.of(cache.getEntity(keyList));
+					}
+				}
+			}
+
 			Map<String, Object> params = new HashMap<>();
 			for (int i = 0; i < keys.length; i++) {
 				params.put(keyNames[i], keys[i]);
@@ -760,6 +774,10 @@ public class SqlAgentImpl extends AbstractAgent {
 					BigDecimal id = ids[idx++];
 					setEntityIdValue(entity, id, col);
 				}
+			}
+
+			if (useEntityQueryCache) {
+				updateEntityQueryCache(entity, metadata);
 			}
 
 			return count;
@@ -857,18 +875,30 @@ public class SqlAgentImpl extends AbstractAgent {
 					throw new OptimisticLockException(context);
 				} else {
 					Map<String, MappingColumn> columnMap = MappingUtils.getMappingColumnMap(type, SqlKind.NONE);
-					Object[] keys = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
-							.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
+					Object[] keys = metadata.getKeyColumns().stream()
 							.map(c -> {
 								MappingColumn col = columnMap.get(c.getCamelColumnName());
 								return col.getValue(entity);
 							}).toArray();
+
+					if (useEntityQueryCache) {
+						// Entityキャッシュが有効な場合、この後のfindでキャッシュが取得されてしまうため、先にキャッシュ上のオブジェクトを削除しておく
+						getQueryCache(type, metadata).ifPresent(c -> {
+							QueryCache<E> cache = (QueryCache<E>) c;
+							cache.remove(entity);
+						});
+					}
 
 					find(type, keys).ifPresent(e -> {
 						versionColumn.setValue(entity, versionColumn.getValue(e));
 					});
 				}
 			});
+
+			if (useEntityQueryCache) {
+				updateEntityQueryCache(entity, metadata);
+			}
+
 			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
@@ -936,7 +966,16 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createDeleteContext(this, metadata, type, true);
 			context.setSqlKind(SqlKind.DELETE);
 			handler.setDeleteParams(context, entity);
-			return handler.doDelete(this, context, entity);
+			int count = handler.doDelete(this, context, entity);
+
+			if (useEntityQueryCache) {
+				getQueryCache(type, metadata).ifPresent(c -> {
+					QueryCache<E> cache = (QueryCache<E>) c;
+					cache.remove(entity);
+				});
+			}
+
+			return count;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
 		}
@@ -1028,6 +1067,15 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = this.contextWith("truncate table " + metadata.getTableIdentifier());
 			context.setSqlKind(SqlKind.TRUNCATE);
 			update(context);
+
+			if (useEntityQueryCache) {
+				Optional<?> queryCache = getQueryCache(entityType, metadata);
+				if (queryCache.isPresent()) {
+					QueryCache<E> cache = (QueryCache<E>) queryCache.get();
+					cache.clear();
+				}
+			}
+
 			return this;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.TRUNCATE, e);
@@ -1286,6 +1334,14 @@ public class SqlAgentImpl extends AbstractAgent {
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.BATCH_UPDATE, e);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <E> void updateEntityQueryCache(final E entity, final TableMetadata metadata) {
+		getQueryCache(entity.getClass(), metadata).ifPresent(c -> {
+			QueryCache<E> cache = (QueryCache<E>) c;
+			cache.put(entity);
+		});
 	}
 
 	/**

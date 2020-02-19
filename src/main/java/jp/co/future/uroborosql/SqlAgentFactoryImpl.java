@@ -400,4 +400,26 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#isUseEntityQueryCache()
+	 */
+	@Override
+	public boolean isUseEntityQueryCache() {
+		return Boolean.parseBoolean(
+				getDefaultProps().getOrDefault(PROPS_KEY_USE_ENTITY_QUERY_CACHE, Boolean.FALSE.toString()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#setUseEntityQueryCache(boolean)
+	 */
+	@Override
+	public SqlAgentFactory setUseEntityQueryCache(final boolean useEntityQueryCache) {
+		getDefaultProps().put(PROPS_KEY_USE_ENTITY_QUERY_CACHE, Boolean.toString(useEntityQueryCache));
+		return this;
+	}
+
 }

@@ -16,13 +16,16 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.mapping.TableMetadata;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
+import jp.co.future.uroborosql.tx.cache.QueryCacheManager;
 
 /**
  * ローカルトランザクションマネージャ
  *
  * @author ota
  */
-public class LocalTransactionManager implements TransactionManager {
+public class LocalTransactionManager implements TransactionManager, QueryCacheManager {
 	/** SQL設定クラス */
 	private final SqlConfig sqlConfig;
 
@@ -329,6 +332,10 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
 		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true)) {
+			// 新しいトランザクションが開始されるので、前のトランザクションでキャッシュされていた検索結果を引き継ぐ
+			currentTxContext().ifPresent(ctx -> ctx.getCacheEntityTypes().stream()
+					.forEach(e -> txContext.copyQueryCache(ctx.findQueryCache(e))));
+
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();
@@ -388,6 +395,20 @@ public class LocalTransactionManager implements TransactionManager {
 			txContext.get().rollback();
 		} else {
 			this.unmanagedTransaction.ifPresent(LocalTransactionContext::rollback);
+		}
+	}
+
+	@Override
+	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, final TableMetadata metadata) {
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			return Optional.of(txContext.get().getQueryCache(entityType, metadata));
+		} else {
+			if (this.unmanagedTransaction.isPresent()) {
+				return Optional.of(this.unmanagedTransaction.get().getQueryCache(entityType, metadata));
+			} else {
+				return Optional.empty();
+			}
 		}
 	}
 

@@ -93,6 +93,12 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	String PROPS_KEY_STRICT_FOR_UPDATE_TYPE = "strictForUpdateType";
 
 	/**
+	 * プロパティ:Entityの検索結果をトランザクション内でキャッシュするかどうか<br>
+	 * デフォルトは<code>false</code>
+	 */
+	String PROPS_KEY_USE_ENTITY_QUERY_CACHE = "useEntityQueryCache";
+
+	/**
 	 * SQL実行クラス生成.
 	 *
 	 * @return SqlAgent
@@ -309,5 +315,20 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * @return SqlAgentFactory
 	 */
 	SqlAgentFactory setStrictForUpdateType(boolean strictForUpdateType);
+
+	/**
+	 * Entityの検索結果をトランザクション内でキャッシュするかどうかを取得する.
+	 *
+	 * @return Entityの検索結果をトランザクション内でキャッシュするかどうか
+	 */
+	boolean isUseEntityQueryCache();
+
+	/**
+	 * Entityの検索結果をトランザクション内でキャッシュするかどうかを設定する.
+	 *
+	 * @param useEntityQueryCache Entityの検索結果をトランザクション内でキャッシュするかどうか
+	 * @return SqlAgentFactory
+	 */
+	SqlAgentFactory setUseEntityQueryCache(boolean useEntityQueryCache);
 
 }

@@ -13,7 +13,10 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,6 +24,9 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
+import jp.co.future.uroborosql.mapping.TableMetadata;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
+import jp.co.future.uroborosql.tx.cache.StandardQueryCache;
 
 /**
  * ローカルトランザクションContext
@@ -44,7 +50,11 @@ class LocalTransactionContext implements AutoCloseable {
 	/** ロールバックフラグ */
 	private boolean rollbackOnly = false;
 
+	/** 更新（INSERT/UPDATE/DELETE）SQL発行可能かどうか */
 	private final boolean updatable;
+
+	/** エンティティ型毎の検索結果キャッシュ */
+	private Map<Class<?>, QueryCache<?>> queryCacheMap = null;
 
 	/**
 	 * コンストラクタ
@@ -292,6 +302,12 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	@Override
 	public void close() {
+		if (queryCacheMap != null && !queryCacheMap.isEmpty()) {
+			queryCacheMap.values().forEach(QueryCache::close);
+			queryCacheMap.clear();
+			queryCacheMap = null;
+		}
+
 		if (connection != null) {
 			try {
 				if (!isRollbackOnly()) {
@@ -308,9 +324,57 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
+	 * 検索結果キャッシュの取得
+	 *
+	 * @param E エンティティ
+	 * @param entityType エンティティ型
+	 * @return 検索結果キャッシュ
+	 */
+	@SuppressWarnings("unchecked")
+	public <E> QueryCache<E> getQueryCache(final Class<E> entityType, final TableMetadata metadata) {
+		if (queryCacheMap == null) {
+			queryCacheMap = new ConcurrentHashMap<>();
+		}
+		return (QueryCache<E>) queryCacheMap.computeIfAbsent(entityType, k -> {
+			return new StandardQueryCache<>(entityType, metadata);
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <E> QueryCache<E> findQueryCache(final Class<E> entityType) {
+		return (QueryCache<E>) queryCacheMap.get(entityType);
+	}
+
+	/**
+	 * 検索結果としてキャッシュされているエンティティの型のSetを取得する.
+	 *
+	 * @return 検索結果としてキャッシュされているエンティティの型のSet
+	 */
+	public Set<Class<?>> getCacheEntityTypes() {
+		if (queryCacheMap == null) {
+			return Collections.emptySet();
+		}
+		return queryCacheMap.keySet();
+	}
+
+	/**
+	 * 検索結果キャッシュの内容をコピーする
+	 *
+	 * @param original コピー元の検索結果キャッシュ
+	 * @return コピーした検索結果キャッシュ
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <E> void copyQueryCache(final QueryCache<E> original) {
+		if (queryCacheMap == null) {
+			queryCacheMap = new ConcurrentHashMap<>();
+		}
+		queryCacheMap.put(original.getEntityType(), new StandardQueryCache(original.getEntityType(), original));
+	}
+
+	/**
 	 * ステータスクリア
 	 */
-	void clearState() {
+	private void clearState() {
 		savepointNames.clear();
 		savepointMap.clear();
 		rollbackOnly = false;

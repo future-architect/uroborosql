@@ -1,35 +1,38 @@
 package jp.co.future.uroborosql.tx.cache;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface QueryCache<K, E> {
+import jp.co.future.uroborosql.mapping.TableMetadata;
+
+public interface QueryCache<E> {
 
 	Class<E> getEntityType();
 
-	Class<K> getKeyType();
+	TableMetadata getMetadata();
 
-	boolean containsKey(K key);
+	boolean containsKey(List<Object> key);
 
-	E get(K key);
+	List<Object> getKey(E entity);
 
-	Map<K, E> getAll();
+	E getEntity(List<Object> key);
 
-	Map<K, E> getAll(Set<K> keys);
+	Map<List<Object>, E> getAll();
 
-	void put(K key, E value);
+	Map<List<Object>, E> getAll(Set<List<Object>> keys);
 
-	void putAll(Map<? extends K, ? extends E> map);
+	void put(E entity);
 
-	boolean remove(K key);
+	void putAll(List<E> entities);
 
-	void removeAll(Set<K> keys);
+	boolean remove(List<Object> key);
+
+	boolean remove(E entity);
+
+	void removeAll(Set<List<Object>> keys);
 
 	void clear();
-
-	QueryCacheManager getCacheManager();
-
-	boolean isClosed();
 
 	void close();
 

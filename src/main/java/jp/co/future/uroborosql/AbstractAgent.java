@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,6 +51,8 @@ import jp.co.future.uroborosql.tx.LocalTransactionManager;
 import jp.co.future.uroborosql.tx.SQLRunnable;
 import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
+import jp.co.future.uroborosql.tx.cache.QueryCacheManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -122,6 +125,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** デフォルトの{@link InsertsType} */
 	protected InsertsType defaultInsertsType = InsertsType.BULK;
 
+	protected boolean useEntityQueryCache = true;
+
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
 		// クラス名が指定されている場合はそのクラス名を指定
@@ -187,6 +192,10 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
 			this.defaultInsertsType = InsertsType.valueOf(defaultProps
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE));
+		}
+		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_USE_ENTITY_QUERY_CACHE)) {
+			this.useEntityQueryCache = Boolean
+					.parseBoolean(defaultProps.get(SqlAgentFactory.PROPS_KEY_USE_ENTITY_QUERY_CACHE));
 		}
 	}
 
@@ -440,6 +449,23 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void rollback(final String savepointName) {
 		transactionManager.rollback(savepointName);
+	}
+
+	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType) {
+		try {
+			EntityHandler handler = this.getEntityHandler();
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType.getClass());
+			return this.getQueryCache(entityType, metadata);
+		} catch (SQLException e) {
+			throw new UroborosqlRuntimeException(e);
+		}
+	}
+
+	@Override
+	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, final TableMetadata metadata) {
+		return ((QueryCacheManager) transactionManager).getQueryCache(entityType, metadata);
 	}
 
 	/**

@@ -25,7 +25,9 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
+import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.tx.TransactionManager;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -668,5 +670,9 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	 * @return SqlAgent
 	 */
 	<E> SqlAgent truncate(Class<? extends E> entityType);
+
+	<E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType);
+
+	<E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, TableMetadata metadata);
 
 }

@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import jp.co.future.uroborosql.tx.cache.QueryCache;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -37,6 +39,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	private final MappingColumn[] columns;
 	private int columnCount;
 	private String[] columnLabels;
+	private final QueryCache<E> cache;
 
 	/**
 	 * コンストラクタ
@@ -45,7 +48,8 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	 * @param mapperManager PropertyMapperManager
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public EntityResultSetConverter(final Class<? extends E> entityType, final PropertyMapperManager mapperManager) {
+	public EntityResultSetConverter(final Class<? extends E> entityType, final PropertyMapperManager mapperManager,
+			final Optional<?> cache) {
 		this.mapperManager = mapperManager;
 		try {
 			this.constructor = (Constructor<E>) entityType.getConstructor();
@@ -54,6 +58,11 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 		}
 
 		this.columns = MappingUtils.getMappingColumns(entityType);
+		if (cache.isPresent()) {
+			this.cache = (QueryCache<E>) cache.get();
+		} else {
+			this.cache = null;
+		}
 	}
 
 	/**
@@ -79,6 +88,11 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 			for (MappingColumn column : columns) {
 				bindValue(rec, rs, column);
 			}
+
+			if (this.cache != null) {
+				this.cache.put(rec);
+			}
+
 			return rec;
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
 			LOG.error("Error!!", e);

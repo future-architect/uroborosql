@@ -1,17 +1,18 @@
 package jp.co.future.uroborosql.tx.cache;
 
-import java.sql.Connection;
+import java.util.Optional;
+
+import jp.co.future.uroborosql.mapping.TableMetadata;
 
 public interface QueryCacheManager {
-	<K, E> QueryCache<K, E> createCache(Connection conn, Class<E> entityType, Class<K> keyType);
+	/**
+	 * 検索結果キャッシュの取得
+	 *
+	 * @param E エンティティ
+	 * @param entityType エンティティ型
+	 * @param metadata TableMetadata
+	 * @return 検索結果キャッシュ
+	 */
+	<E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, TableMetadata metadata);
 
-	<K, E> QueryCache<K, E> createCache(Connection conn, QueryCache<K, E> originalCache);
-
-	<E> void destroyCache(Connection conn, Class<E> entityType);
-
-	<K, E> QueryCache<K, E> getCache(Connection conn, Class<E> entityType, Class<K> keyType);
-
-	boolean isClosed();
-
-	void close();
 }

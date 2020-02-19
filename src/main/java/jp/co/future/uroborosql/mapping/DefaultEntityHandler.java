@@ -89,7 +89,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
 			throws SQLException {
-		return agent.query(context, new EntityResultSetConverter<>(entityType, propertyMapperManager));
+		return agent.query(context,
+				new EntityResultSetConverter<>(entityType, propertyMapperManager,
+						agent.getQueryCache(entityType, CONTEXTS.get(entityType))));
 	}
 
 	/**
