@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -325,6 +326,59 @@ public class LocalTxManagerTest {
 				assertThat(select(agent), is(Arrays.asList("A", "B")));
 			});
 			assertThat(select(agent), is(Arrays.asList("A", "B")));
+		}
+	}
+
+	@Test
+	public void testSavepointScopeRunnable() {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.savepointScope(() -> {
+					ins(agent, 1, "A");
+					try {
+						agent.savepointScope(() -> {
+							ins(agent, 2, "B");
+							try {
+								agent.savepointScope(() -> {
+									ins(agent, 3, "C");
+									assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
+									throw new IllegalStateException();
+								});
+							} catch (Exception ex) {
+								assertThat(select(agent), is(Arrays.asList("A", "B")));
+								assertThat(ex, is(instanceOf(IllegalStateException.class)));
+								throw ex;
+							}
+							fail();
+						});
+					} catch (Exception ex) {
+						assertThat(select(agent), is(Arrays.asList("A")));
+						assertThat(ex, is(instanceOf(IllegalStateException.class)));
+					}
+				});
+				assertThat(select(agent), is(Arrays.asList("A")));
+			});
+		}
+	}
+
+	@Test
+	public void testSavepointScopeSupplier() {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					agent.savepointScope(() -> {
+						ins(agent, 1, "A");
+						assertThat(agent.savepointScope(() -> {
+							ins(agent, 2, "B");
+							return select(agent);
+						}), is(Arrays.asList("A", "B")));
+						throw new IllegalAccessError();
+					});
+				} catch (Throwable th) {
+					assertThat(select(agent), is(Matchers.emptyCollectionOf(String.class)));
+					assertThat(th, is(instanceOf(IllegalAccessError.class)));
+				}
+			});
 		}
 	}
 
