@@ -12,12 +12,20 @@ package jp.co.future.uroborosql.enums;
 public enum SqlKind {
 	/** INSERT */
 	INSERT,
+	/** ENTITY_INSERT */
+	ENTITY_INSERT,
 	/** UPDATE */
 	UPDATE,
+	/** ENTITY_UPDATE */
+	ENTITY_UPDATE,
 	/** DELETE */
 	DELETE,
+	/** ENTITY_DELETE */
+	ENTITY_DELETE,
 	/** SELECT */
 	SELECT,
+	/** ENTITY_SELECT */
+	ENTITY_SELECT,
 	/** BATCH_INSERT */
 	BATCH_INSERT,
 	/** BULK_INSERT */

@@ -55,7 +55,9 @@ import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.parameter.Parameter;
+import jp.co.future.uroborosql.tx.cache.CacheKey;
 import jp.co.future.uroborosql.tx.cache.QueryCache;
+import jp.co.future.uroborosql.tx.cache.QueryCacheManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -298,8 +300,8 @@ public class SqlAgentImpl extends AbstractAgent {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					int count = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
-					if ((SqlKind.INSERT.equals(sqlContext.getSqlKind()) ||
-							SqlKind.BULK_INSERT.equals(sqlContext.getSqlKind()))
+					// "INSERT"で終わるSqlKindで、かつ、生成キーカラムを持っている場合は生成キーの設定を行う
+					if (sqlContext.getSqlKind().toString().endsWith(SqlKind.INSERT.toString())
 							&& sqlContext.hasGeneratedKeyColumns()) {
 						try (ResultSet rs = stmt.getGeneratedKeys()) {
 							List<BigDecimal> generatedKeyValues = new ArrayList<>();
@@ -311,6 +313,9 @@ public class SqlAgentImpl extends AbstractAgent {
 							sqlContext.setGeneratedKeyValues(
 									generatedKeyValues.toArray(new BigDecimal[generatedKeyValues.size()]));
 						}
+					}
+					if (useEntityQueryCache && !sqlContext.getSqlKind().toString().startsWith("ENTITY")) {
+						clearQueryCache();
 					}
 					return count;
 				} catch (SQLException ex) {
@@ -555,6 +560,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
+					if (useEntityQueryCache) {
+						clearQueryCache();
+					}
 					break;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
@@ -712,9 +720,10 @@ public class SqlAgentImpl extends AbstractAgent {
 				Optional<?> queryCache = getQueryCache(entityType, metadata);
 				if (queryCache.isPresent()) {
 					QueryCache<E> cache = (QueryCache<E>) queryCache.get();
-					List<Object> keyList = Arrays.asList(keys);
-					if (cache.containsKey(keyList)) {
-						return Optional.of(cache.getEntity(keyList));
+					CacheKey key = new CacheKey(keys);
+					if (cache.containsKey(key)) {
+						LOG.trace("Hit the QueryCache. EntityType:{}, key:{}", entityType, key);
+						return Optional.of(cache.getEntity(key));
 					}
 				}
 			}
@@ -757,7 +766,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createInsertContext(this, metadata, type);
-			context.setSqlKind(SqlKind.INSERT);
+			context.setSqlKind(SqlKind.ENTITY_INSERT);
 
 			// IDアノテーションが付与されたカラム情報を取得する
 			MappingColumn[] idColumns = MappingUtils.getIdMappingColumns(type);
@@ -782,7 +791,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			return count;
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.INSERT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_INSERT, e);
 		}
 	}
 
@@ -866,7 +875,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createUpdateContext(this, metadata, type, true);
-			context.setSqlKind(SqlKind.UPDATE);
+			context.setSqlKind(SqlKind.ENTITY_UPDATE);
 			handler.setUpdateParams(context, entity);
 			int count = handler.doUpdate(this, context, entity);
 
@@ -883,6 +892,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 					if (useEntityQueryCache) {
 						// Entityキャッシュが有効な場合、この後のfindでキャッシュが取得されてしまうため、先にキャッシュ上のオブジェクトを削除しておく
+						LOG.trace("Remove from QueryCache. Entity:{}", entity);
 						getQueryCache(type, metadata).ifPresent(c -> {
 							QueryCache<E> cache = (QueryCache<E>) c;
 							cache.remove(entity);
@@ -901,7 +911,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			return count;
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, e);
 		}
 	}
 
@@ -934,11 +944,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
 			SqlContext context = handler.createUpdateContext(this, metadata, entityType, false);
-			context.setSqlKind(SqlKind.UPDATE);
+			context.setSqlKind(SqlKind.ENTITY_UPDATE);
 
 			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, e);
 		}
 	}
 
@@ -964,11 +974,12 @@ public class SqlAgentImpl extends AbstractAgent {
 			Class<?> type = entity.getClass();
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
 			SqlContext context = handler.createDeleteContext(this, metadata, type, true);
-			context.setSqlKind(SqlKind.DELETE);
+			context.setSqlKind(SqlKind.ENTITY_DELETE);
 			handler.setDeleteParams(context, entity);
 			int count = handler.doDelete(this, context, entity);
 
 			if (useEntityQueryCache) {
+				LOG.trace("Remove from QueryCache. Entity:{}", entity);
 				getQueryCache(type, metadata).ifPresent(c -> {
 					QueryCache<E> cache = (QueryCache<E>) c;
 					cache.remove(entity);
@@ -977,7 +988,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			return count;
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_DELETE, e);
 		}
 	}
 
@@ -1041,11 +1052,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
 
 			SqlContext context = handler.createDeleteContext(this, metadata, entityType, false);
-			context.setSqlKind(SqlKind.DELETE);
+			context.setSqlKind(SqlKind.ENTITY_DELETE);
 
 			return new SqlEntityDeleteImpl<>(this, handler, metadata, context);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_DELETE, e);
 		}
 	}
 
@@ -1069,11 +1080,10 @@ public class SqlAgentImpl extends AbstractAgent {
 			update(context);
 
 			if (useEntityQueryCache) {
-				Optional<?> queryCache = getQueryCache(entityType, metadata);
-				if (queryCache.isPresent()) {
-					QueryCache<E> cache = (QueryCache<E>) queryCache.get();
-					cache.clear();
-				}
+				getQueryCache(entityType, metadata).ifPresent(c -> {
+					LOG.trace("Clear the QueryCache. EntityType:{}", entityType);
+					c.clear();
+				});
 			}
 
 			return this;
@@ -1337,10 +1347,18 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <E> void updateEntityQueryCache(final E entity, final TableMetadata metadata) {
+	private <E> void updateEntityQueryCache(final E entity, final TableMetadata metadata) {
+		LOG.trace("Update the QueryCache. Entity:{}", entity);
 		getQueryCache(entity.getClass(), metadata).ifPresent(c -> {
 			QueryCache<E> cache = (QueryCache<E>) c;
 			cache.put(entity);
+		});
+	}
+
+	private void clearQueryCache() {
+		LOG.trace("Clear All QueryCache.");
+		((QueryCacheManager) transactionManager).getCacheEntityTypes().forEach(entityType -> {
+			getQueryCache(entityType).ifPresent(QueryCache::clear);
 		});
 	}
 

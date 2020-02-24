@@ -138,10 +138,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			if (!this.optimizerHints.isEmpty()) {
 				sql = dialect.addOptimizerHints(sql, this.optimizerHints);
 			}
-			context().setSql(sql.toString());
+			context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -204,12 +204,12 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try (ResultSet rs = agent().query(context())) {
 			rs.next();
 			return rs.getLong(1);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -239,12 +239,12 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -265,12 +265,12 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -291,12 +291,12 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -312,13 +312,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try (ResultSet rs = agent().query(context())) {
 			if (rs.next()) {
 				runnable.run();
 			}
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 
@@ -334,13 +334,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
-		context().setSql(sql.toString());
+		context().setSql(sql.toString()).setSqlKind(SqlKind.ENTITY_SELECT);
 		try (ResultSet rs = agent().query(context())) {
 			if (!rs.next()) {
 				runnable.run();
 			}
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 

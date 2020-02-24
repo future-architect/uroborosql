@@ -10,8 +10,10 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -343,11 +345,16 @@ public class LocalTransactionManager implements TransactionManager, QueryCacheMa
 				txContext.setRollbackOnly();
 				throw ex;
 			} finally {
-				try {
-					txContext.close();
-				} finally {
-					this.txCtxStack.pop();
+				this.txCtxStack.pop();
+
+				if (!txContext.isRollbackOnly()) {
+					// rollbackでない＝commitされる場合、新しいトランザクション内でキャッシュされた検索結果をひとつ前のトランザクションに書き戻す
+					currentTxContext().ifPresent(ctx -> {
+						txContext.getCacheEntityTypes().stream()
+								.forEach(e -> ctx.copyQueryCache(txContext.findQueryCache(e)));
+					});
 				}
+				txContext.close();
 			}
 		}
 	}
@@ -398,6 +405,11 @@ public class LocalTransactionManager implements TransactionManager, QueryCacheMa
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.cache.QueryCacheManager#getQueryCache(java.lang.Class, jp.co.future.uroborosql.mapping.TableMetadata)
+	 */
 	@Override
 	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, final TableMetadata metadata) {
 		Optional<LocalTransactionContext> txContext = currentTxContext();
@@ -408,6 +420,25 @@ public class LocalTransactionManager implements TransactionManager, QueryCacheMa
 				return Optional.of(this.unmanagedTransaction.get().getQueryCache(entityType, metadata));
 			} else {
 				return Optional.empty();
+			}
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.cache.QueryCacheManager#getCacheEntityTypes()
+	 */
+	@Override
+	public Set<Class<?>> getCacheEntityTypes() {
+		Optional<LocalTransactionContext> txContext = currentTxContext();
+		if (txContext.isPresent()) {
+			return txContext.get().getCacheEntityTypes();
+		} else {
+			if (this.unmanagedTransaction.isPresent()) {
+				return this.unmanagedTransaction.get().getCacheEntityTypes();
+			} else {
+				return Collections.emptySet();
 			}
 		}
 	}

@@ -451,6 +451,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		transactionManager.rollback(savepointName);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#getQueryCache(java.lang.Class)
+	 */
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType) {
@@ -463,6 +468,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#getQueryCache(java.lang.Class, jp.co.future.uroborosql.mapping.TableMetadata)
+	 */
 	@Override
 	public <E> Optional<QueryCache<E>> getQueryCache(final Class<E> entityType, final TableMetadata metadata) {
 		return ((QueryCacheManager) transactionManager).getQueryCache(entityType, metadata);
@@ -639,7 +649,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 			return new SqlEntityQueryImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_SELECT, e);
 		}
 	}
 

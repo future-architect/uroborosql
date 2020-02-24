@@ -1,8 +1,6 @@
 package jp.co.future.uroborosql.tx.cache;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import jp.co.future.uroborosql.mapping.TableMetadata;
 
@@ -12,25 +10,19 @@ public interface QueryCache<E> {
 
 	TableMetadata getMetadata();
 
-	boolean containsKey(List<Object> key);
+	boolean containsKey(CacheKey key);
 
-	List<Object> getKey(E entity);
+	CacheKey getKey(E entity);
 
-	E getEntity(List<Object> key);
+	E getEntity(CacheKey key);
 
-	Map<List<Object>, E> getAll();
-
-	Map<List<Object>, E> getAll(Set<List<Object>> keys);
+	Map<CacheKey, E> getAll();
 
 	void put(E entity);
 
-	void putAll(List<E> entities);
-
-	boolean remove(List<Object> key);
+	boolean remove(CacheKey key);
 
 	boolean remove(E entity);
-
-	void removeAll(Set<List<Object>> keys);
 
 	void clear();
 

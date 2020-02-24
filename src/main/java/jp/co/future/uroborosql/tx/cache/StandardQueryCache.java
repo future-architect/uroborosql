@@ -1,9 +1,7 @@
 package jp.co.future.uroborosql.tx.cache;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -11,7 +9,7 @@ import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 public class StandardQueryCache<E> implements QueryCache<E> {
-	private final Map<List<Object>, E> cache;
+	private final Map<CacheKey, E> cache;
 
 	private final Class<E> entityType;
 	private TableMetadata metadata;
@@ -26,8 +24,7 @@ public class StandardQueryCache<E> implements QueryCache<E> {
 
 	public StandardQueryCache(final Class<E> entityType, final QueryCache<? extends E> original) {
 		this(entityType, original.getMetadata());
-		cache.putAll(original.getAll());
-
+		original.getAll().values().stream().forEach(v -> this.put(v));
 	}
 
 	@Override
@@ -41,36 +38,29 @@ public class StandardQueryCache<E> implements QueryCache<E> {
 	}
 
 	@Override
-	public boolean containsKey(final List<Object> key) {
+	public boolean containsKey(final CacheKey key) {
+		if (key == null) {
+			return false;
+		}
 		return cache.containsKey(key);
 	}
 
 	@Override
-	public List<Object> getKey(final E entity) {
+	public CacheKey getKey(final E entity) {
 		Map<String, Object> entityMap = BeanAccessor.asMap(entity);
-		return keyColumns.stream()
+		return new CacheKey(keyColumns.stream()
 				.map(c -> entityMap.get(c.getCamelColumnName()))
-				.collect(Collectors.toList());
+				.collect(Collectors.toList()));
 	}
 
 	@Override
-	public E getEntity(final List<Object> key) {
+	public E getEntity(final CacheKey key) {
 		return cache.get(key);
 	}
 
 	@Override
-	public Map<List<Object>, E> getAll() {
-		return cache.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-	}
-
-	@Override
-	public Map<List<Object>, E> getAll(final Set<List<Object>> keys) {
-		if (keys == null || keys.isEmpty()) {
-			return Collections.emptyMap();
-		} else {
-			return cache.entrySet().stream().filter(e -> keys.contains(e.getKey()))
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		}
+	public Map<CacheKey, E> getAll() {
+		return cache.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), Map.Entry::getValue));
 	}
 
 	@Override
@@ -78,23 +68,11 @@ public class StandardQueryCache<E> implements QueryCache<E> {
 		if (entity == null) {
 			throw new IllegalArgumentException("entity does not allow null.");
 		}
-		List<Object> key = getKey(entity);
-		if (!key.isEmpty()) {
-			this.cache.put(key, entity);
-		}
+		this.cache.put(getKey(entity), entity);
 	}
 
 	@Override
-	public void putAll(final List<E> entities) {
-		if (entities == null) {
-			throw new IllegalArgumentException("entities does not allow null.");
-		}
-		entities.stream().forEach(this::put);
-
-	}
-
-	@Override
-	public boolean remove(final List<Object> key) {
+	public boolean remove(final CacheKey key) {
 		if (key != null) {
 			E value = this.cache.remove(key);
 			return value != null;
@@ -105,19 +83,7 @@ public class StandardQueryCache<E> implements QueryCache<E> {
 
 	@Override
 	public boolean remove(final E entity) {
-		List<Object> key = getKey(entity);
-		if (!key.isEmpty()) {
-			return this.remove(key);
-		} else {
-			return false;
-		}
-	}
-
-	@Override
-	public void removeAll(final Set<List<Object>> keys) {
-		if (keys != null) {
-			keys.forEach(k -> this.cache.remove(k));
-		}
+		return this.remove(getKey(entity));
 	}
 
 	@Override

@@ -89,7 +89,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 				bindValue(rec, rs, column);
 			}
 
-			if (this.cache != null) {
+			if (this.cache != null && !this.cache.getMetadata().getKeyColumns().isEmpty()) {
 				this.cache.put(rec);
 			}
 

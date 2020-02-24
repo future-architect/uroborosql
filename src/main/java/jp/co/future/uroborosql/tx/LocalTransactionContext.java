@@ -118,6 +118,7 @@ class LocalTransactionContext implements AutoCloseable {
 		PreparedStatement stmt = null;
 		switch (sqlContext.getSqlKind()) {
 		case INSERT:
+		case ENTITY_INSERT:
 		case BULK_INSERT:
 		case BATCH_INSERT:
 			if (updatable) {
@@ -131,6 +132,7 @@ class LocalTransactionContext implements AutoCloseable {
 			}
 			break;
 		case SELECT:
+		case ENTITY_SELECT:
 			stmt = conn.prepareStatement(sqlContext.getExecutableSql(),
 					sqlContext.getResultSetType(),
 					sqlContext.getResultSetConcurrency());

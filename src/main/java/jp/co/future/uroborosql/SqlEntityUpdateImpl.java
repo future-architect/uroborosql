@@ -19,7 +19,7 @@ import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
- * SqlEntityQuery実装
+ * SqlEntityUpdate実装
  *
  * @param <E> Entity型
  * @author ota
@@ -51,10 +51,11 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	@Override
 	public int count() {
 		try {
-			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
+			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString())
+					.setSqlKind(SqlKind.ENTITY_UPDATE);
 			return this.entityHandler.doUpdate(agent(), context(), null);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, e);
 		}
 	}
 
