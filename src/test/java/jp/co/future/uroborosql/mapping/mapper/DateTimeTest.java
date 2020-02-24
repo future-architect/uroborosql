@@ -21,10 +21,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.SqlAgentFactoryImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class DateTimeTest {
@@ -53,10 +54,10 @@ public class DateTimeTest {
 			}
 		}
 
-		config = UroboroSQL.builder(url, user, password).build();
-
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		config = UroboroSQL.builder(url, user, password)
+				.setSqlAgentFactory(new SqlAgentFactoryImpl().setUseEntityQueryCache(false))
+				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
+				.build();
 	}
 
 	@Before

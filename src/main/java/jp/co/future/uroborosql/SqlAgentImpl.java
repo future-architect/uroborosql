@@ -785,8 +785,15 @@ public class SqlAgentImpl extends AbstractAgent {
 				}
 			}
 
-			if (useEntityQueryCache) {
-				updateEntityQueryCache(entity, metadata);
+			if (useEntityQueryCache && !metadata.getKeyColumns().isEmpty()) {
+				MappingColumn[] allColumns = MappingUtils.getMappingColumns(type, SqlKind.NONE);
+				if (Stream.of(allColumns).anyMatch(col -> col.isTransient(SqlKind.NONE))) {
+					// INSERT時のTransient指定がある場合はInsertに使用されたオブジェクトとINSERT結果に差異ができるためキャッシュしない。
+					// すでにキャッシュに含まれる場合はキャッシュから削除する
+					removeEntityQueryCache(entity, metadata);
+				} else {
+					updateEntityQueryCache(entity, metadata);
+				}
 			}
 
 			return count;
@@ -890,13 +897,9 @@ public class SqlAgentImpl extends AbstractAgent {
 								return col.getValue(entity);
 							}).toArray();
 
-					if (useEntityQueryCache) {
+					if (useEntityQueryCache && !metadata.getKeyColumns().isEmpty()) {
 						// Entityキャッシュが有効な場合、この後のfindでキャッシュが取得されてしまうため、先にキャッシュ上のオブジェクトを削除しておく
-						LOG.trace("Remove from QueryCache. Entity:{}", entity);
-						getQueryCache(type, metadata).ifPresent(c -> {
-							QueryCache<E> cache = (QueryCache<E>) c;
-							cache.remove(entity);
-						});
+						removeEntityQueryCache(entity, metadata);
 					}
 
 					find(type, keys).ifPresent(e -> {
@@ -905,8 +908,16 @@ public class SqlAgentImpl extends AbstractAgent {
 				}
 			});
 
-			if (useEntityQueryCache) {
-				updateEntityQueryCache(entity, metadata);
+			if (useEntityQueryCache && !metadata.getKeyColumns().isEmpty()) {
+				// UPDATE時のTransient指定がある場合はUPDATEに使用されたオブジェクトとUPDATE結果に差異ができるためキャッシュしない。
+				MappingColumn[] allColumns = MappingUtils.getMappingColumns(type, SqlKind.NONE);
+				if (Stream.of(allColumns).anyMatch(col -> col.isTransient(SqlKind.NONE))) {
+					// UPDATE時のTransient指定がある場合はUPDATEに使用されたオブジェクトとUPDATE結果に差異ができるためキャッシュしない。
+					// すでにキャッシュに含まれる場合はキャッシュから削除する
+					removeEntityQueryCache(entity, metadata);
+				} else {
+					updateEntityQueryCache(entity, metadata);
+				}
 			}
 
 			return count;
@@ -946,7 +957,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createUpdateContext(this, metadata, entityType, false);
 			context.setSqlKind(SqlKind.ENTITY_UPDATE);
 
-			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
+			return new SqlEntityUpdateImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, e);
 		}
@@ -978,12 +989,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			handler.setDeleteParams(context, entity);
 			int count = handler.doDelete(this, context, entity);
 
-			if (useEntityQueryCache) {
-				LOG.trace("Remove from QueryCache. Entity:{}", entity);
-				getQueryCache(type, metadata).ifPresent(c -> {
-					QueryCache<E> cache = (QueryCache<E>) c;
-					cache.remove(entity);
-				});
+			if (useEntityQueryCache && !metadata.getKeyColumns().isEmpty()) {
+				removeEntityQueryCache(entity, metadata);
 			}
 
 			return count;
@@ -1054,7 +1061,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createDeleteContext(this, metadata, entityType, false);
 			context.setSqlKind(SqlKind.ENTITY_DELETE);
 
-			return new SqlEntityDeleteImpl<>(this, handler, metadata, context);
+			return new SqlEntityDeleteImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.ENTITY_DELETE, e);
 		}
@@ -1348,15 +1355,24 @@ public class SqlAgentImpl extends AbstractAgent {
 
 	@SuppressWarnings("unchecked")
 	private <E> void updateEntityQueryCache(final E entity, final TableMetadata metadata) {
-		LOG.trace("Update the QueryCache. Entity:{}", entity);
+		LOG.trace("Update the QueryCache entry. Entity:{}", entity);
 		getQueryCache(entity.getClass(), metadata).ifPresent(c -> {
 			QueryCache<E> cache = (QueryCache<E>) c;
 			cache.put(entity);
 		});
 	}
 
+	@SuppressWarnings("unchecked")
+	private <E> void removeEntityQueryCache(final E entity, final TableMetadata metadata) {
+		LOG.trace("Remove from QueryCache entry. Entity:{}", entity);
+		getQueryCache(entity.getClass(), metadata).ifPresent(c -> {
+			QueryCache<E> cache = (QueryCache<E>) c;
+			cache.remove(cache.getKey(entity));
+		});
+	}
+
 	private void clearQueryCache() {
-		LOG.trace("Clear All QueryCache.");
+		LOG.trace("Clear All QueryCache entry.");
 		((QueryCacheManager) transactionManager).getCacheEntityTypes().forEach(entityType -> {
 			getQueryCache(entityType).ifPresent(QueryCache::clear);
 		});

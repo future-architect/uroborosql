@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.tx.cache;
 
 import java.util.List;
@@ -79,11 +85,6 @@ public class StandardQueryCache<E> implements QueryCache<E> {
 		} else {
 			return false;
 		}
-	}
-
-	@Override
-	public boolean remove(final E entity) {
-		return this.remove(getKey(entity));
 	}
 
 	@Override

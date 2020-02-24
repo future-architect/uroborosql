@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.tx.cache;
 
 import java.util.Map;
@@ -21,8 +27,6 @@ public interface QueryCache<E> {
 	void put(E entity);
 
 	boolean remove(CacheKey key);
-
-	boolean remove(E entity);
 
 	void clear();
 

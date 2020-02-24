@@ -28,6 +28,8 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		implements SqlEntityUpdate<E> {
 	/** エンティティハンドラー */
 	private final EntityHandler<?> entityHandler;
+	/** エンティティタイプ */
+	private final Class<?> entityType;
 
 	/**
 	 * Constructor
@@ -36,11 +38,13 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 * @param entityHandler EntityHandler
 	 * @param tableMetadata TableMetadata
 	 * @param context SqlContext
+	 * @param entityType エンティティタイプ
 	 */
 	SqlEntityUpdateImpl(final SqlAgent agent, final EntityHandler<?> entityHandler,
-			final TableMetadata tableMetadata, final SqlContext context) {
+			final TableMetadata tableMetadata, final SqlContext context, final Class<?> entityType) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
+		this.entityType = entityType;
 	}
 
 	/**
@@ -53,7 +57,9 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		try {
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString())
 					.setSqlKind(SqlKind.ENTITY_UPDATE);
-			return this.entityHandler.doUpdate(agent(), context(), null);
+			int count = this.entityHandler.doUpdate(agent(), context(), null);
+			agent().getQueryCache(this.entityType).ifPresent(cache -> cache.clear());
+			return count;
 		} catch (final SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, e);
 		}

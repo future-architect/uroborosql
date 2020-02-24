@@ -324,7 +324,8 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	boolean isUseEntityQueryCache();
 
 	/**
-	 * Entityの検索結果をトランザクション内でキャッシュするかどうかを設定する.
+	 * Entityの検索結果をトランザクション内でキャッシュするかどうかを設定する.<br>
+	 * 実験的な実装（Experimental)
 	 *
 	 * @param useEntityQueryCache Entityの検索結果をトランザクション内でキャッシュするかどうか
 	 * @return SqlAgentFactory

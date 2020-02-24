@@ -125,6 +125,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** デフォルトの{@link InsertsType} */
 	protected InsertsType defaultInsertsType = InsertsType.BULK;
 
+	/** 検索結果のキャッシュを利用するかどうか (Experimental) */
 	protected boolean useEntityQueryCache = true;
 
 	static {

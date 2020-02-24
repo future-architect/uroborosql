@@ -46,6 +46,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param mapperManager PropertyMapperManager
+	 * @param cache QueryCache
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public EntityResultSetConverter(final Class<? extends E> entityType, final PropertyMapperManager mapperManager,
