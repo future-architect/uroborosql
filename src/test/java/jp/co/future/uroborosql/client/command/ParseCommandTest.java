@@ -3,6 +3,7 @@ package jp.co.future.uroborosql.client.command;
 import static org.junit.Assert.*;
 
 import java.sql.DriverManager;
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
@@ -13,6 +14,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
 import jp.co.future.uroborosql.store.NioSqlManagerImpl;
 
 public class ParseCommandTest extends ReaderTestSupport {
@@ -26,6 +28,9 @@ public class ParseCommandTest extends ReaderTestSupport {
 		super.setUp();
 
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.setSqlContextFactory(new SqlContextFactoryImpl()
+						.setConstantClassNames(Arrays.asList("jp.co.future.uroborosql.context.test.TestConsts"))
+						.setEnumConstantPackageNames(Arrays.asList("jp.co.future.uroborosql.context.test")))
 				.setSqlManager(new NioSqlManagerImpl())
 				.build();
 
@@ -40,22 +45,26 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader, "parse test/PARSE_TEST".split("\\s+"), sqlConfig, new Properties());
+		String sqlName = "test/PARSE_TEST";
+		String commandLine = "parse" + " " + sqlName;
+		boolean flag = command.execute(reader, commandLine.split("\\s+"), sqlConfig, new Properties());
 		assertTrue(flag);
 		assertConsoleOutputContains("PARSE:");
+		assertConsoleOutputContains("SQL :");
+
+		String[] sqlLine = sqlConfig.getSqlManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
+		for (String line : sqlLine) {
+			assertConsoleOutputContains(line);
+		}
+
 		assertConsoleOutputContains("BRANCHES :");
-		assertConsoleOutputContains("\tEmbeddedValue : TABLE_NAME");
-		assertConsoleOutputContains("\tBegin {");
-		assertConsoleOutputContains("\t\tif ( param11 != null ) {");
-		assertConsoleOutputContains("\t\t\tBindVariable : param11");
-		assertConsoleOutputContains("\t\t} else if ( param11 == null and param12 != null ) {");
-		assertConsoleOutputContains("\t\t\tBindVariable : param12");
-		assertConsoleOutputContains("\t\t} else {");
-		assertConsoleOutputContains("\t\t\tif ( SF.isNotEmpty(param21) ) {");
-		assertConsoleOutputContains("\t\t\t\tParenBindVariable : param21");
+		assertConsoleOutputContains("\tBEGIN {");
+		assertConsoleOutputContains("\t\tIF ( param11 != null ) {");
+		assertConsoleOutputContains("\t\t} ELIF ( param11 == null and param12 != null ) {");
+		assertConsoleOutputContains("\t\t} ELSE {");
+		assertConsoleOutputContains("\t\t\tIF ( SF.isNotEmpty(param21) ) {");
 		assertConsoleOutputContains(
-				"\t\t\t} else if ( SF.isEmpty(param21) and SF.isNotEmpty(param22) or SF.isNotEmpty(param23) ) {");
-		assertConsoleOutputContains("\t\t\t\tParenBindVariable : param22");
+				"\t\t\t} ELIF ( SF.isEmpty(param21) and SF.isNotEmpty(param22) or SF.isNotEmpty(param23) ) {");
 		assertConsoleOutputContains("\t\t\t}");
 		assertConsoleOutputContains("\t\t}");
 		assertConsoleOutputContains("\t}");
@@ -66,6 +75,11 @@ public class ParseCommandTest extends ReaderTestSupport {
 		assertConsoleOutputContains("\tparam21");
 		assertConsoleOutputContains("\tparam22");
 		assertConsoleOutputContains("\tparam23");
+		assertConsoleOutputContains("\tCLS_LONG (1)");
+		assertConsoleOutputContains("\tCLS_SQL_TIMESTAMP (1970-01-01 09:00:00.003)");
+		assertConsoleOutputContains("\tCLS_STRING ('AAA')");
+		assertConsoleOutputContains("\tCLS_TEST_ENUM1_A (A)");
+		assertConsoleOutputContains("\tCLS_TEST_ENUM1_D (not found)");
 	}
 
 	@Test

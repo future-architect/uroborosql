@@ -17,15 +17,15 @@ import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.node.BeginNode;
 import jp.co.future.uroborosql.node.ContainerNode;
 import jp.co.future.uroborosql.node.ElseNode;
-import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.ExpressionNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
-import jp.co.future.uroborosql.node.ParenBindVariableNode;
+import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
@@ -62,18 +62,53 @@ public class ParseCommand extends ReplCommand {
 					.filter(p -> p.equalsIgnoreCase(parts[1]))
 					.findFirst();
 			if (path.isPresent()) {
-				writer.println("BRANCHES :");
 				String sql = sqlConfig.getSqlManager().getSql(path.get());
+
+				// 対象SQLの出力
+				writer.println("");
+				writer.println("SQL :");
+				String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
+				for (String sqlLine : sqlLines) {
+					writer.println(sqlLine);
+				}
+
+				// IF分岐の出力
+				writer.println("");
+				writer.println("BRANCHES :");
 				SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 						sqlConfig.getDialect().isRemoveTerminator(), true);
 				ContextTransformer transformer = parser.parse();
 				Node rootNode = transformer.getRoot();
 				Set<String> bindParams = new LinkedHashSet<>();
 				traverseNode(writer, 0, sqlConfig.getExpressionParser(), rootNode, bindParams);
-				writer.println("");
 
+				// 利用されているバインドパラメータの出力
+				writer.println("");
+				String constPrefix = sqlConfig.getSqlContextFactory().getConstParamPrefix();
+				SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 				writer.println("BIND_PARAMS :");
-				bindParams.forEach(param -> write(writer, 1, null, param, null));
+				// 定数以外のバインドパラメータ
+				bindParams.stream().filter(param -> !param.startsWith(constPrefix))
+						.sorted()
+						.forEach(param -> write(writer, 1, null, param, null));
+				// 定数バインドパラメータ
+				bindParams.stream().filter(param -> param.startsWith(constPrefix))
+						.sorted().forEach(param -> {
+							// 定数についてはバインド値が取得できるので、実際の値を追加で表示
+							Parameter parameter = ctx.getParam(param);
+							if (parameter != null) {
+								Object value = parameter.getValue();
+								String suffix = null;
+								if (value instanceof String) {
+									suffix = String.format(" ('%s')", value);
+								} else {
+									suffix = String.format(" (%s)", value);
+								}
+								write(writer, 1, null, param, suffix);
+							} else {
+								write(writer, 1, null, param, " (not found)");
+							}
+						});
 			} else {
 				writer.println("sqlName : " + parts[1] + " not found.");
 			}
@@ -101,9 +136,9 @@ public class ParseCommand extends ReplCommand {
 				traverseIfNode(writer, tab, expressionParser, (IfNode) node, bindParams, false);
 			} else {
 				if (node instanceof BeginNode) {
-					write(writer, tab, null, "Begin", " {");
+					write(writer, tab, null, "BEGIN", " {");
 				} else if (node instanceof ElseNode) {
-					write(writer, tab, "} ", "else", " {");
+					write(writer, tab, "} ", "ELSE", " {");
 				}
 				for (int i = 0; i < node.getChildSize(); i++) {
 					traverseNode(writer, tab + 1, expressionParser, node.getChild(i), bindParams);
@@ -115,15 +150,6 @@ public class ParseCommand extends ReplCommand {
 		} else if (node instanceof ExpressionNode) {
 			String expression = ((ExpressionNode) node).getExpression();
 			bindParams.addAll(collectParams(expressionParser, expression));
-			String label = null;
-			if (node instanceof EmbeddedValueNode) {
-				label = "EmbeddedValue";
-			} else if (node instanceof ParenBindVariableNode) {
-				label = "ParenBindVariable";
-			} else {
-				label = "BindVariable";
-			}
-			writeExpression(writer, tab, expressionParser, label + " : ", expression, null);
 		}
 	}
 
@@ -140,7 +166,7 @@ public class ParseCommand extends ReplCommand {
 	private void traverseIfNode(final PrintWriter writer, final int tab, final ExpressionParser expressionParser,
 			final IfNode ifNode, final Set<String> bindParams, final boolean elseIf) {
 		bindParams.addAll(collectParams(expressionParser, ifNode.getExpression()));
-		write(writer, tab, elseIf ? "} else if ( " : "if ( ", ifNode.getExpression(), " ) {");
+		write(writer, tab, elseIf ? "} ELIF ( " : "IF ( ", ifNode.getExpression(), " ) {");
 		for (int i = 0; i < ifNode.getChildSize(); i++) {
 			traverseNode(writer, tab + 1, expressionParser, ifNode.getChild(i), bindParams);
 		}
@@ -169,25 +195,6 @@ public class ParseCommand extends ReplCommand {
 		expressionParser.parse(expression).collectParams(params);
 		return params;
 
-	}
-
-	/**
-	 * 評価式の出力.
-	 *
-	 * @param writer Writer
-	 * @param tab 階層
-	 * @param expressionParser ExpressionParsaer
-	 * @param prefix プレフィックス
-	 * @param expression 評価式
-	 * @param suffix サフィックス
-	 */
-	private void writeExpression(final PrintWriter writer, final int tab,
-			final ExpressionParser expressionParser, final String prefix, final String expression,
-			final String suffix) {
-		Set<String> params = collectParams(expressionParser, expression);
-		params.forEach(p -> {
-			write(writer, tab, prefix, p, suffix);
-		});
 	}
 
 	/**
