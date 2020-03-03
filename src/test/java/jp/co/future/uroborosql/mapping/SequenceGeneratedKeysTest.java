@@ -43,7 +43,7 @@ public class SequenceGeneratedKeysTest {
 				stmt.execute("drop sequence if exists test_id_seq");
 				stmt.execute("create sequence test_id_seq");
 				stmt.execute(
-						"create table if not exists test( id bigint not null default nextval('test_id_seq'), name text, primary key(id))");
+						"create table if not exists test( id bigint not null, name text, primary key(id))");
 
 				stmt.execute("drop table if exists test_multikey");
 				stmt.execute("drop sequence if exists test_multikey_id_seq");
@@ -51,7 +51,7 @@ public class SequenceGeneratedKeysTest {
 				stmt.execute("drop sequence if exists test_multikey_id2_seq");
 				stmt.execute("create sequence test_multikey_id2_seq start with 100");
 				stmt.execute(
-						"create table if not exists test_multikey( id bigint not null default nextval('test_multikey_id_seq'), id2 bigint not null default nextval('test_multikey_id2_seq'), name text, primary key(id, id2))");
+						"create table if not exists test_multikey( id bigint not null, id2 bigint not null, name text, primary key(id, id2))");
 			}
 		}
 
@@ -317,7 +317,7 @@ public class SequenceGeneratedKeysTest {
 		@Id
 		@GeneratedValue(strategy = GenerationType.SEQUENCE)
 		@SequenceGenerator(sequence = "test_id_seq")
-		private long id;
+		private Long id;
 		private String name;
 
 		public TestEntityWithSeq() {
@@ -327,7 +327,7 @@ public class SequenceGeneratedKeysTest {
 			this.name = name;
 		}
 
-		public long getId() {
+		public Long getId() {
 			return this.id;
 		}
 
@@ -335,7 +335,7 @@ public class SequenceGeneratedKeysTest {
 			return this.name;
 		}
 
-		public void setId(final long id) {
+		public void setId(final Long id) {
 			this.id = id;
 		}
 
@@ -347,7 +347,7 @@ public class SequenceGeneratedKeysTest {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (id == null ? 0 : id.hashCode());
 			result = prime * result + (name == null ? 0 : name.hashCode());
 			return result;
 		}
@@ -364,7 +364,11 @@ public class SequenceGeneratedKeysTest {
 				return false;
 			}
 			TestEntityWithSeq other = (TestEntityWithSeq) obj;
-			if (id != other.id) {
+			if (id == null) {
+				if (other.id != null) {
+					return false;
+				}
+			} else if (!id.equals(other.id)) {
 				return false;
 			}
 			if (name == null) {
@@ -389,11 +393,11 @@ public class SequenceGeneratedKeysTest {
 		@Id
 		@GeneratedValue(strategy = GenerationType.SEQUENCE)
 		@SequenceGenerator(sequence = "test_multikey_id_seq")
-		private long id;
+		private Long id;
 		@Id
 		@GeneratedValue(strategy = GenerationType.SEQUENCE)
 		@SequenceGenerator(sequence = "test_multikey_id2_seq")
-		private long id2;
+		private Long id2;
 		private String name;
 
 		public TestEntityWithSeqMultikey() {
@@ -403,19 +407,19 @@ public class SequenceGeneratedKeysTest {
 			this.name = name;
 		}
 
-		public long getId() {
+		public Long getId() {
 			return id;
 		}
 
-		public void setId(final long id) {
+		public void setId(final Long id) {
 			this.id = id;
 		}
 
-		public long getId2() {
+		public Long getId2() {
 			return id2;
 		}
 
-		public void setId2(final long id2) {
+		public void setId2(final Long id2) {
 			this.id2 = id2;
 		}
 
@@ -431,8 +435,8 @@ public class SequenceGeneratedKeysTest {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (int) (id2 ^ id2 >>> 32);
+			result = prime * result + (id == null ? 0 : id.hashCode());
+			result = prime * result + (id2 == null ? 0 : id2.hashCode());
 			result = prime * result + (name == null ? 0 : name.hashCode());
 			return result;
 		}
@@ -449,10 +453,18 @@ public class SequenceGeneratedKeysTest {
 				return false;
 			}
 			TestEntityWithSeqMultikey other = (TestEntityWithSeqMultikey) obj;
-			if (id != other.id) {
+			if (id == null) {
+				if (other.id != null) {
+					return false;
+				}
+			} else if (!id.equals(other.id)) {
 				return false;
 			}
-			if (id2 != other.id2) {
+			if (id2 == null) {
+				if (other.id2 != null) {
+					return false;
+				}
+			} else if (!id2.equals(other.id2)) {
 				return false;
 			}
 			if (name == null) {
@@ -476,7 +488,7 @@ public class SequenceGeneratedKeysTest {
 	public static class TestEntityWithSeqError {
 		@Id
 		@GeneratedValue(strategy = GenerationType.SEQUENCE)
-		private long id;
+		private Long id;
 		private String name;
 
 		public TestEntityWithSeqError() {
@@ -486,7 +498,7 @@ public class SequenceGeneratedKeysTest {
 			this.name = name;
 		}
 
-		public long getId() {
+		public Long getId() {
 			return this.id;
 		}
 
@@ -494,7 +506,7 @@ public class SequenceGeneratedKeysTest {
 			return this.name;
 		}
 
-		public void setId(final long id) {
+		public void setId(final Long id) {
 			this.id = id;
 		}
 
@@ -506,7 +518,7 @@ public class SequenceGeneratedKeysTest {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (id == null ? 0 : id.hashCode());
 			result = prime * result + (name == null ? 0 : name.hashCode());
 			return result;
 		}
@@ -523,7 +535,11 @@ public class SequenceGeneratedKeysTest {
 				return false;
 			}
 			TestEntityWithSeqError other = (TestEntityWithSeqError) obj;
-			if (id != other.id) {
+			if (id == null) {
+				if (other.id != null) {
+					return false;
+				}
+			} else if (!id.equals(other.id)) {
 				return false;
 			}
 			if (name == null) {

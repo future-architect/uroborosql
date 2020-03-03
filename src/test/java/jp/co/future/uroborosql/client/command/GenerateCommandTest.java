@@ -78,7 +78,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 		assertThat(command.execute(reader, "generate insert GEN_TEST".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
 		assertThat(trimWhitespace(out.toString()), is(
-				"INSERT /* _SQL_ID_ */ INTO GEN_TEST ( /*IF SF.isNotEmpty(name) */  , \"NAME\" /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" /*END*/ ) VALUES ( /*IF SF.isNotEmpty(name) */  , /*name*/'' /*END*/ /*IF lockNo != null */  , /*lockNo*/'' /*END*/ )"));
+				"INSERT /* _SQL_ID_ */ INTO GEN_TEST ( /*IF id != null */  , \"ID\" /*END*/ /*IF SF.isNotEmpty(name) */  , \"NAME\" /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" /*END*/ ) VALUES ( /*IF id != null */  , /*id*/'' /*END*/ /*IF SF.isNotEmpty(name) */  , /*name*/'' /*END*/ /*IF lockNo != null */  , /*lockNo*/'' /*END*/ )"));
 	}
 
 	private String trimWhitespace(final String str) {
