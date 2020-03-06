@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.mapping;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
+import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -624,16 +626,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				// Transient annotation のついているカラムをスキップ
 				continue;
 			}
-			if (mappingColumn != null && mappingColumn.isId()
+			boolean autoIncrementColumn = mappingColumn != null && mappingColumn.isId()
 					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy()) ||
-					col.isAutoincrement()) {
-				// AUTO_INCREMENT対象カラムの場合はスキップする
-				continue;
-			}
+					col.isAutoincrement();
 
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
-				if (col.isNullable()) {
+				if (col.isNullable() || autoIncrementColumn) {
 					parts.append(", ");
 				} else {
 					parts.append("  ");
@@ -648,7 +647,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (ignoreWhenEmpty && col.isNullable()) {
+			if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);
@@ -672,16 +671,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				// Transient annotation のついているカラムをスキップ
 				continue;
 			}
-			if (mappingColumn != null && mappingColumn.isId()
+			boolean autoIncrementColumn = mappingColumn != null && mappingColumn.isId()
 					&& GenerationType.IDENTITY.equals(mappingColumn.getGeneratedValue().strategy()) ||
-					col.isAutoincrement()) {
-				// AUTO_INCREMENT対象カラムの場合はスキップする
-				continue;
-			}
+					col.isAutoincrement();
 
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
-				if (col.isNullable()) {
+				if (col.isNullable() || autoIncrementColumn) {
 					parts.append(", ");
 				} else {
 					parts.append("  ");
@@ -698,7 +694,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(parts);
 			} else {
 				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-				if (ignoreWhenEmpty && col.isNullable()) {
+				if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {
 					sql.append(parts);
@@ -763,15 +759,18 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private void setFields(final SqlContext context, final Object entity, final SqlKind kind,
 			final Function<MappingColumn, String> getParamName) {
-		Class<?> type = entity.getClass();
-		for (MappingColumn column : MappingUtils.getMappingColumns(type, kind)) {
-			if (SqlKind.INSERT.equals(kind) && column.isId()
-					&& (GenerationType.IDENTITY.equals(column.getGeneratedValue().strategy())
-							|| GenerationType.SEQUENCE.equals(column.getGeneratedValue().strategy()))) {
+		List<String> generatedKeyColumns = new ArrayList<>();
+		if (context.getGeneratedKeyColumns() != null) {
+			for (String keyColumn : context.getGeneratedKeyColumns()) {
+				generatedKeyColumns.add(CaseFormat.CAMEL_CASE.convert(keyColumn));
+			}
+		}
+		for (MappingColumn column : MappingUtils.getMappingColumns(entity.getClass(), kind)) {
+			if (SqlKind.INSERT.equals(kind) && generatedKeyColumns.contains(column.getCamelName())) {
 				continue;
 			}
-			Object value = column.getValue(entity);
-			context.param(getParamName.apply(column), value);
+
+			context.param(getParamName.apply(column), column.getValue(entity));
 		}
 	}
 
