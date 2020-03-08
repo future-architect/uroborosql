@@ -459,28 +459,27 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			optimisticLockSupplier = versionColumn
 					.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier())).orElse(null);
 		}
+
 		boolean firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
-			if (!mappingColumns.isEmpty()) {
-				MappingColumn mappingColumn = mappingColumns.get(col.getCamelColumnName());
-				if (mappingColumn == null) {
-					// Transient annotation のついているカラムをスキップ
-					continue;
-				} else if (mappingColumn.isId()) {
-					// @Idが付与されたカラムは自動採番なので更新対象としないためスキップする
-					continue;
-				}
-			} else {
-				if (col.isAutoincrement()) {
-					// 自動採番カラムは更新対象としないためスキップする
-					continue;
-				}
+			MappingColumn mappingColumn = mappingColumns.get(col.getCamelColumnName());
+			boolean autoIncrementColumn = mappingColumn != null && mappingColumn.isId() ||
+					col.isAutoincrement();
+
+			if (!mappingColumns.isEmpty() && mappingColumn == null) {
+				// Transient annotation のついているカラムをスキップ
+				continue;
+			}
+
+			if (addCondition && autoIncrementColumn) {
+				// WHERE条件を追加する場合、自動採番カラムは更新対象としないためスキップする
+				continue;
 			}
 
 			String camelColName = col.getCamelColumnName();
 			StringBuilder parts = new StringBuilder().append("\t");
 			if (firstFlag) {
-				if (col.isNullable()) {
+				if (col.isNullable() || autoIncrementColumn) {
 					parts.append(", ");
 				} else {
 					parts.append("  ");
@@ -510,7 +509,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					sql.append(parts);
 				}
 			} else {
-				if (ignoreWhenEmpty) {
+				if (ignoreWhenEmpty || autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {
 					sql.append(parts);
@@ -558,11 +557,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 		}
 		return sql.toString();
-	}
-
-	protected void addVersionColumn(final StringBuilder parts, final TableMetadata.Column col) {
-		parts.append(col.getColumnIdentifier());
-		parts.append(" = ").append(col.getColumnIdentifier()).append(" + 1");
 	}
 
 	/**

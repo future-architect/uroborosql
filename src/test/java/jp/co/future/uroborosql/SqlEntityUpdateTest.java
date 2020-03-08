@@ -9,13 +9,17 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
+import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
@@ -380,21 +384,21 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	public void testEntityUpdatesMultiKey() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
-			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith("drop table if exists test_entity_multi_key cascade").count();
 			agent.updateWith(
-					"create table if not exists test_entity (id integer not null, end_at timestamp with time zone not null, name text not null, version integer not null, primary key (id, end_at))")
+					"create table if not exists test_entity_multi_key (id integer not null, end_at timestamp with time zone not null, name text not null, version integer not null, primary key (id, end_at))")
 					.count();
 
-			List<TestEntity> entites = IntStream.range(1, 10)
+			List<TestEntityMultiKey> entites = IntStream.range(1, 10)
 					.mapToObj(i -> {
-						TestEntity entity = new TestEntity();
+						TestEntityMultiKey entity = new TestEntityMultiKey();
 						entity.setId(i);
 						entity.setEndAt(LocalDate.now().plusDays(i));
 						entity.setName("名前" + i);
 						entity.setVersion(i);
 						return entity;
 					}).collect(Collectors.toList());
-			assertThat(agent.inserts(TestEntity.class, entites.stream()), is(9));
+			assertThat(agent.inserts(TestEntityMultiKey.class, entites.stream()), is(9));
 
 			agent.updatesAndReturn(entites.stream().map(e -> {
 				e.setName(e.getName() + "_new");
@@ -407,15 +411,85 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		});
 	}
 
+	/**
+	 * @IdをもつEntityを使った更新処理のテストケース。
+	 */
+	@Test
+	public void testEntityUpdateWithId() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entites = IntStream.range(1, 10)
+					.mapToObj(i -> {
+						TestEntity entity = new TestEntity();
+						entity.setName("名前" + i);
+						entity.setVersion(0);
+						return entity;
+					}).collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entites.stream()), is(9));
+
+			int newId = 100;
+			int count = agent.update(TestEntity.class)
+					.set("id", newId)
+					.equal("id", 3)
+					.count();
+			assertThat(count, is(1));
+
+			Optional<TestEntity> entity = agent.find(TestEntity.class, 100);
+			assertThat(entity.isPresent(), is(true));
+		});
+	}
+
 	@Table(name = "test_entity")
 	public static class TestEntity {
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY)
+		private int id;
+		private String name;
+		@Version
+		private int version;
+
+		public TestEntity() {
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public void setId(final int id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(final String name) {
+			this.name = name;
+		}
+
+		public int getVersion() {
+			return version;
+		}
+
+		public void setVersion(final int version) {
+			this.version = version;
+		}
+	}
+
+	@Table(name = "test_entity_multi_key")
+	public static class TestEntityMultiKey {
 		private int id;
 		private LocalDate endAt;
 		private String name;
 		@Version
 		private int version;
 
-		public TestEntity() {
+		public TestEntityMultiKey() {
 		}
 
 		public int getId() {
