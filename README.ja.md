@@ -24,14 +24,43 @@ Installation
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.17.0</version>
+    <version>0.18.0</version>
+</dependency>
+<dependency>
+    <groupId>ognl</groupId>
+    <artifactId>ognl</artifactId>
+    <version>3.1.23</version>
 </dependency>
 ```
+
+または
+
+```xml
+<dependency>
+    <groupId>jp.co.future</groupId>
+    <artifactId>uroborosql</artifactId>
+    <version>0.18.0</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-expression</artifactId>
+    <version>5.2.2.RELEASE</version>
+</dependency>
+```
+
 
 #### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.17.0'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.18.0'
+compile group: 'ognl', name: 'ognl', version: '3.1.23'
+```
+
+または
+
+```gradle
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.18.0'
+compile group: 'org.springframework', name: 'spring-expression', version: '5.2.2.RELEASE'
 ```
 
 Documentation
