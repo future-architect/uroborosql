@@ -78,11 +78,12 @@ public class SqlContextImpl implements SqlContext {
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
 	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(WHERE\\s+(--.*|/\\*.*\\*/\\s*)*\\s*)(AND\\s+|OR\\s+)");
+			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*.*\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
 	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
-			.compile("(?i)(((SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
+			.compile(
+					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
 	/** 不要な空白、改行を除去するための正規表現 */
 	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
@@ -222,7 +223,7 @@ public class SqlContextImpl implements SqlContext {
 					StringBuffer buff = new StringBuffer();
 					Matcher matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
 					while (matcher.find()) {
-						String whereClause = matcher.group(1);
+						String whereClause = matcher.group("clause");
 						matcher.appendReplacement(buff, whereClause);
 					}
 					matcher.appendTail(buff);
@@ -232,7 +233,7 @@ public class SqlContextImpl implements SqlContext {
 				StringBuffer buff = new StringBuffer();
 				Matcher removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
 				while (removeCommaMatcher.find()) {
-					String clauseWords = removeCommaMatcher.group(1);
+					String clauseWords = removeCommaMatcher.group("keyword");
 					removeCommaMatcher.appendReplacement(buff, clauseWords);
 				}
 				removeCommaMatcher.appendTail(buff);
