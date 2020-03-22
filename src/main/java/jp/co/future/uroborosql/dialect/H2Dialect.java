@@ -6,7 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -15,6 +17,15 @@ import java.util.stream.Collectors;
  * @author H.Sugimoto
  */
 public class H2Dialect extends AbstractDialect {
+	/**
+	 * 悲観ロックのErrorCode もしくは SqlState. H2DBの場合はSqlStateで判定する.
+	 * <pre>
+	 * テーブル {0} のロック試行がタイムアウトしました
+	 * Timeout trying to lock table {0}; SQL statement: [50200-199]
+	 * </pre>
+	 */
+	private static final Set<String> pessimisticLockingErrorCodes = Collections.singleton("50200");
+
 	/**
 	 * コンストラクタ
 	 */
@@ -107,5 +118,15 @@ public class H2Dialect extends AbstractDialect {
 		String hintStr = "$1 USE INDEX " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 				+ System.lineSeparator();
 		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getPessimisticLockingErrorCodes()
+	 */
+	@Override
+	public Set<String> getPessimisticLockingErrorCodes() {
+		return pessimisticLockingErrorCodes;
 	}
 }

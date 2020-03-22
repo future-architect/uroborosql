@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
@@ -166,6 +167,11 @@ public class PostgresqlDialectTest {
 						+ System.lineSeparator() + "SELECT"
 						+ System.lineSeparator()
 						+ " * FROM PUBLIC.TEST_1"));
+	}
+
+	@Test
+	public void testGetPessimisticLockingErrorCodes() {
+		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("55P03")));
 	}
 
 }

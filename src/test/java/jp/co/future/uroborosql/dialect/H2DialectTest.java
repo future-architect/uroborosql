@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
@@ -142,6 +143,11 @@ public class H2DialectTest {
 				is("SELECT /* SQL_ID */" + System.lineSeparator()
 						+ " * FROM PUBLIC.TEST_1 USE INDEX (test1_ix, test2_ix)"
 						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testGetPessimisticLockingErrorCodes() {
+		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("50200")));
 	}
 
 }

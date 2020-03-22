@@ -6,6 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.Collections;
+import java.util.Set;
+
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -70,5 +73,15 @@ public class DefaultDialect extends AbstractDialect {
 	@Override
 	public String getSequenceNextValSql(final String sequenceName) {
 		throw new UroborosqlRuntimeException("Sequence is not supported.");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getPessimisticLockingErrorCodes()
+	 */
+	@Override
+	public Set<String> getPessimisticLockingErrorCodes() {
+		return Collections.emptySet();
 	}
 }

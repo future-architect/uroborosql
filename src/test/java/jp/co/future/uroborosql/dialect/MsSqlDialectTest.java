@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
@@ -173,6 +174,11 @@ public class MsSqlDialectTest {
 						+ System.lineSeparator()
 						+ " * FROM PUBLIC.TEST_1 WITH (UPDLOCK, ROWLOCK, NOWAIT, INDEX (PUBLIC.TEST_1 test_ix), USE_NL)"
 						+ System.lineSeparator()));
+	}
+
+	@Test
+	public void testGetPessimisticLockingErrorCodes() {
+		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("1222")));
 	}
 
 }

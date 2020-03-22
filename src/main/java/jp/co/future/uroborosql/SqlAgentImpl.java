@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -44,9 +45,11 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
@@ -134,11 +137,12 @@ public class SqlAgentImpl extends AbstractAgent {
 				retryWaitTime = sqlContext.getRetryWaitTime();
 			}
 			int loopCount = 0;
+			Dialect dialect = getSqlConfig().getDialect();
 			ResultSet rs = null;
 			try {
 				do {
 					try {
-						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
 						rs = new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()),
@@ -146,13 +150,16 @@ public class SqlAgentImpl extends AbstractAgent {
 						stmt.closeOnCompletion();
 						return rs;
 					} catch (SQLException ex) {
-						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							rollback(RETRY_SAVEPOINT_NAME);
 						}
+						String errorCode = String.valueOf(ex.getErrorCode());
+						String sqlState = ex.getSQLState();
+						Set<String> pessimisticLockingErrorCodes = dialect.getPessimisticLockingErrorCodes();
 						if (maxRetryCount > loopCount) {
-							String errorCode = String.valueOf(ex.getErrorCode());
-							String sqlState = ex.getSQLState();
-							if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
+							if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)
+									|| pessimisticLockingErrorCodes.contains(errorCode)
+									|| pessimisticLockingErrorCodes.contains(sqlState)) {
 								if (LOG.isDebugEnabled()) {
 									LOG.debug(String.format(
 											"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -169,10 +176,15 @@ public class SqlAgentImpl extends AbstractAgent {
 								throw ex;
 							}
 						} else {
-							throw ex;
+							if (pessimisticLockingErrorCodes.contains(errorCode)
+									|| pessimisticLockingErrorCodes.contains(sqlState)) {
+								throw new PessimisticLockException(sqlContext, ex);
+							} else {
+								throw ex;
+							}
 						}
 					} finally {
-						if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							releaseSavepoint(RETRY_SAVEPOINT_NAME);
 						}
 						sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);

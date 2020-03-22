@@ -6,7 +6,9 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -17,6 +19,12 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
  * @author H.Sugimoto
  */
 public class MySqlDialect extends AbstractDialect {
+	/**
+	 * 悲観ロックのErrorCode もしくは SqlState. MySQLの場合はErrorCodeで判定する.
+	 * <pre>ERROR 3572 (HY000): Statement aborted because lock(s) could not be acquired immediately and NOWAIT is set.</pre>
+	 */
+	private static final Set<String> pessimisticLockingErrorCodes = Collections.singleton("3572");
+
 	/**
 	 * コンストラクタ
 	 */
@@ -103,6 +111,16 @@ public class MySqlDialect extends AbstractDialect {
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
 		String hintStr = "$1 " + hints.stream().collect(Collectors.joining(" ")) + System.lineSeparator();
 		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getPessimisticLockingErrorCodes()
+	 */
+	@Override
+	public Set<String> getPessimisticLockingErrorCodes() {
+		return pessimisticLockingErrorCodes;
 	}
 
 }

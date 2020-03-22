@@ -252,4 +252,9 @@ public class DefaultDialectTest {
 		hints.add("USE_NL");
 		dialect.addOptimizerHints(sql, hints);
 	}
+
+	@Test
+	public void testGetPessimisticLockingErrorCodes() {
+		assertThat(dialect.getPessimisticLockingErrorCodes().isEmpty(), is(true));
+	}
 }
