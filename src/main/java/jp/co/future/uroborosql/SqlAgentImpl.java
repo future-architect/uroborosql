@@ -157,9 +157,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						String sqlState = ex.getSQLState();
 						Set<String> pessimisticLockingErrorCodes = dialect.getPessimisticLockingErrorCodes();
 						if (maxRetryCount > loopCount) {
-							if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)
-									|| pessimisticLockingErrorCodes.contains(errorCode)
-									|| pessimisticLockingErrorCodes.contains(sqlState)) {
+							if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
 								if (LOG.isDebugEnabled()) {
 									LOG.debug(String.format(
 											"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -173,7 +171,12 @@ public class SqlAgentImpl extends AbstractAgent {
 									}
 								}
 							} else {
-								throw ex;
+								if (pessimisticLockingErrorCodes.contains(errorCode)
+										|| pessimisticLockingErrorCodes.contains(sqlState)) {
+									throw new PessimisticLockException(sqlContext, ex);
+								} else {
+									throw ex;
+								}
 							}
 						} else {
 							if (pessimisticLockingErrorCodes.contains(errorCode)

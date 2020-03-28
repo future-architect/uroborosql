@@ -225,7 +225,7 @@ public class SqlAgentRetryTest {
 			query.collect();
 			fail();
 		} catch (PessimisticLockException ex) {
-			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
+			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 		} catch (Exception ex) {
 			fail();
 		}
