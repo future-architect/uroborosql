@@ -288,7 +288,7 @@ LICENSE file in the root directory of this source tree.
 				</property>
 			</activation>
 			<build>
-				<defaultGoal>deploy</defaultGoal>
+				<defaultGoal>release:perform</defaultGoal>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
