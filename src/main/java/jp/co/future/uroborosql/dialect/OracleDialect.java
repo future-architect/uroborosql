@@ -6,7 +6,11 @@
  */
 package jp.co.future.uroborosql.dialect;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -17,6 +21,14 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
  * @author H.Sugimoto
  */
 public abstract class OracleDialect extends AbstractDialect {
+	/**
+	 * 悲観ロックのErrorCode もしくは SqlState. Oracleの場合errorCodeで判定する.
+	 * <pre>ORA-00054: リソース・ビジー。NOWAITが指定されているか、タイムアウトしました</pre>
+	 * <pre>ORA-30006: リソース・ビジー; WAITタイムアウトの期限に達しました。</pre>
+	 */
+	private static final Set<String> pessimisticLockingErrorCodes = Collections
+			.unmodifiableSet(new HashSet<>(Arrays.asList("54", "30006")));
+
 	/**
 	 * コンストラクタ
 	 * @param escapeChar like検索時のエスケープ文字
@@ -131,5 +143,15 @@ public abstract class OracleDialect extends AbstractDialect {
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
 		String hintStr = "$1 /*+ " + hints.stream().collect(Collectors.joining(" ")) + " */";
 		return new StringBuilder(sql.toString().replaceFirst("(SELECT( /\\*.+\\*/)*)", hintStr));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getPessimisticLockingErrorCodes()
+	 */
+	@Override
+	public Set<String> getPessimisticLockingErrorCodes() {
+		return pessimisticLockingErrorCodes;
 	}
 }

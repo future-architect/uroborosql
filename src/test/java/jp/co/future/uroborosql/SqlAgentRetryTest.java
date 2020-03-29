@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.junit.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
@@ -202,6 +204,30 @@ public class SqlAgentRetryTest {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
 			assertThat(ex.getSQLState(), is(sqlState));
+		}
+	}
+
+	/**
+	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
+	 */
+	@Test
+	public void testQueryRetryWithPessimisticLock() throws Exception {
+		int retryCount = 3;
+		int errorCode = 50200;
+		// SqlRetryCodeListを空にして、悲観ロック対象エラーコードで判定する
+		config.getSqlAgentFactory().setSqlRetryCodeList(Collections.emptyList());
+		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
+
+		SqlQuery query = null;
+		try {
+			query = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
+					.retry(retryCount - 1);
+			query.collect();
+			fail();
+		} catch (PessimisticLockException ex) {
+			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
+		} catch (Exception ex) {
+			fail();
 		}
 	}
 

@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.dialect;
 
 import java.sql.SQLType;
 import java.util.List;
+import java.util.Set;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
@@ -220,4 +221,6 @@ public interface Dialect {
 	default String getModLiteral(final String dividend, final String divisor) {
 		return dividend + " % " + divisor;
 	}
+
+	Set<String> getPessimisticLockingErrorCodes();
 }

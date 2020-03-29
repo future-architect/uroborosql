@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
@@ -183,6 +184,11 @@ public class Oracle11DialectTest {
 		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
 				is("SELECT /* SQL_ID */ /*+ INDEX (PUBLIC.TEST_1 test_ix) USE_NL */" + System.lineSeparator()
 						+ " * FROM PUBLIC.TEST_1"));
+	}
+
+	@Test
+	public void testGetPessimisticLockingErrorCodes() {
+		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("54", "30006")));
 	}
 
 }
