@@ -33,7 +33,7 @@ import java.util.TimeZone;
  *
  * @author ota
  */
-public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalAccessor> {
+public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<TemporalAccessor> {
 
 	/**
 	 * 標準時間フィールド群
@@ -64,7 +64,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	/**
 	 * 日時の変換に使用するClock
 	 */
-	private final Clock clock;
+	private Clock clock;
 
 	/**
 	 * コンストラクタ.
@@ -83,6 +83,16 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	@Override
 	public Class<TemporalAccessor> targetType() {
 		return TemporalAccessor.class;
+	}
+
+	@Override
+	public Clock getClock() {
+		return clock;
+	}
+
+	@Override
+	public void setClock(final Clock clock) {
+		this.clock = clock;
 	}
 
 	/**
@@ -111,7 +121,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 			return new java.sql.Time(toTime(original));
 		}
 		if (original instanceof OffsetTime) {
-			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
+			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(getClock().getZone()));
 			int year = calendar.get(Calendar.YEAR);
 			long thisYearDate = ((OffsetTime) original).atDate(LocalDate.of(year, Month.JANUARY, 1)).toInstant()
 					.toEpochMilli();
@@ -147,7 +157,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 		// JapaneseDate等のChronoLocalDateの変換 Dateに変換
 		if (original instanceof ChronoLocalDate) {
 			return new java.sql.Date(((ChronoLocalDate) original).atTime(LocalTime.MIDNIGHT)
-					.atZone(clock.getZone()).toInstant().toEpochMilli());
+					.atZone(getClock().getZone()).toInstant().toEpochMilli());
 		}
 
 		// その他の型
@@ -186,7 +196,7 @@ public class DateTimeApiParameterMapper implements BindParameterMapper<TemporalA
 	 * @return カレンダー時間のミリ秒
 	 */
 	private long toTime(final TemporalAccessor temporalAccessor) {
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(getClock().getZone()));
 		setField(calendar, Calendar.YEAR, temporalAccessor, ChronoField.YEAR, 0, 1970);
 		setField(calendar, Calendar.MONTH, temporalAccessor, ChronoField.MONTH_OF_YEAR, -1, 0);
 		setField(calendar, Calendar.DATE, temporalAccessor, ChronoField.DAY_OF_MONTH, 0, 1);

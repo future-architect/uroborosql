@@ -62,6 +62,9 @@ public final class BindParameterMapperManager {
 	public BindParameterMapperManager(final Clock clock) {
 		mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
 		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+
+		mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
+				.forEach(m -> ((BindParameterMapperWithClock<?>) m).setClock(clock));
 	}
 
 	/**
@@ -73,6 +76,9 @@ public final class BindParameterMapperManager {
 	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager, final Clock clock) {
 		mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
 		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+
+		mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
+				.forEach(m -> ((BindParameterMapperWithClock<?>) m).setClock(clock));
 	}
 
 	/**
