@@ -54,16 +54,19 @@ public final class BindParameterMapperManager {
 
 	private final DateTimeApiParameterMapper dateTimeApiParameterMapper;
 
+	private final Clock clock;
+
 	/**
 	 * コンストラクタ.
 	 *
 	 * @param clock Clock
 	 */
 	public BindParameterMapperManager(final Clock clock) {
-		mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
-		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+		this.mappers = new CopyOnWriteArrayList<>(LOADED_MAPPERS);
+		this.dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+		this.clock = clock;
 
-		mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
+		this.mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
 				.forEach(m -> ((BindParameterMapperWithClock<?>) m).setClock(clock));
 	}
 
@@ -74,10 +77,11 @@ public final class BindParameterMapperManager {
 	 * @param clock clock
 	 */
 	public BindParameterMapperManager(final BindParameterMapperManager parameterMapperManager, final Clock clock) {
-		mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
-		dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+		this.mappers = new CopyOnWriteArrayList<>(parameterMapperManager.mappers);
+		this.dateTimeApiParameterMapper = new DateTimeApiParameterMapper(clock);
+		this.clock = clock;
 
-		mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
+		this.mappers.stream().filter(BindParameterMapperWithClock.class::isInstance)
 				.forEach(m -> ((BindParameterMapperWithClock<?>) m).setClock(clock));
 	}
 
@@ -87,6 +91,9 @@ public final class BindParameterMapperManager {
 	 * @param parameterMapper {@link BindParameterMapper}
 	 */
 	public void addMapper(final BindParameterMapper<?> parameterMapper) {
+		if (parameterMapper instanceof BindParameterMapperWithClock) {
+			((BindParameterMapperWithClock<?>) parameterMapper).setClock(this.clock);
+		}
 		mappers.add(parameterMapper);
 	}
 

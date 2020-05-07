@@ -234,6 +234,13 @@ public class DateTimeApiParameterMapperTest {
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(temporalAccessor));
 	}
 
+	@Test
+	public void testClock() {
+		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		mapper.setClock(this.clock);
+		assertThat(mapper.getClock(), is(this.clock));
+	}
+
 	private java.sql.Timestamp createTimestamp(final String s) throws ParseException {
 		return java.sql.Timestamp.valueOf(LocalDateTime.parse(s));
 	}

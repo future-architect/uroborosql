@@ -11,8 +11,11 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAccessor;
 
 import org.junit.Test;
+
+import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 public class TimeToStringParameterMapperTest {
 
@@ -48,4 +51,22 @@ public class TimeToStringParameterMapperTest {
 		assertThat(mapper.canAccept(LocalDateTime.now()), is(false));
 		assertThat(mapper.canAccept(OffsetDateTime.now()), is(false));
 	}
+
+	@Test
+	public void testTargetType() throws Exception {
+		TimeToStringParameterMapper mapper = new TimeToStringParameterMapper();
+
+		assertThat(mapper.targetType(), sameInstance(TemporalAccessor.class));
+	}
+
+	@Test
+	public void testManagerToJdbc() throws Exception {
+		BindParameterMapperManager manager = new BindParameterMapperManager(Clock.systemDefaultZone());
+		manager.addMapper(new TimeToStringParameterMapper());
+
+		LocalTime localTime = LocalTime.of(11, 22, 33);
+
+		assertThat(manager.toJdbc(localTime, null), is("112233"));
+	}
+
 }

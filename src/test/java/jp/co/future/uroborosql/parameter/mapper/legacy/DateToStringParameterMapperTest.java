@@ -13,6 +13,8 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
+
 public class DateToStringParameterMapperTest {
 
 	@Test
@@ -42,6 +44,24 @@ public class DateToStringParameterMapperTest {
 		assertThat(mapper.canAccept(new java.sql.Date(new Date().getTime())), is(true));
 		assertThat(mapper.canAccept(new Time(new Date().getTime())), is(false));
 		assertThat(mapper.canAccept(new Timestamp(new Date().getTime())), is(false));
-
+		assertThat(mapper.canAccept("str"), is(false));
 	}
+
+	@Test
+	public void testTargetType() throws Exception {
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
+		mapper.setClock(Clock.systemDefaultZone());
+
+		assertThat(mapper.targetType(), sameInstance(Date.class));
+	}
+
+	@Test
+	public void testManagerToJdbc() throws Exception {
+		BindParameterMapperManager manager = new BindParameterMapperManager(Clock.systemDefaultZone());
+		manager.addMapper(new DateToStringParameterMapper());
+
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		assertThat(manager.toJdbc(date, null), is("20000101"));
+	}
+
 }
