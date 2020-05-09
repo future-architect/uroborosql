@@ -390,7 +390,7 @@ public class NioSqlManagerTest {
 			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefalutが有効になる
+			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefaultが有効になる
 
 			Thread.sleep(WAIT_TIME);
 
@@ -746,7 +746,7 @@ public class NioSqlManagerTest {
 			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefalutが有効になる
+			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefaultが有効になる
 
 			Thread.sleep(WAIT_TIME);
 

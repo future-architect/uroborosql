@@ -215,7 +215,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				log.debug("WatchService catched InterruptedException.");
 				break;
 			} catch (Throwable ex) {
-				log.error("Unexpected exception occured.", ex);
+				log.error("Unexpected exception occurred.", ex);
 				break;
 			}
 
@@ -532,7 +532,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						traverse(child, watch, remove);
 					}
 				} catch (IOException ex) {
-					throw new UroborosqlRuntimeException("I/O error occured.", ex);
+					throw new UroborosqlRuntimeException("I/O error occurred.", ex);
 				}
 			}
 		} else if (path.toString().endsWith(fileExtension)) {

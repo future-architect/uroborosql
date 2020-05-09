@@ -385,9 +385,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @return トリム後文字列
 	 */
 	private String trimSlash(final String sql) {
-		String trimedSql = sql.trim();
-		if (trimedSql.endsWith(PATH_SEPARATOR) && !trimedSql.endsWith("*/")) {
-			return StringUtils.removeEnd(trimedSql, PATH_SEPARATOR);
+		String trimmedSql = sql.trim();
+		if (trimmedSql.endsWith(PATH_SEPARATOR) && !trimmedSql.endsWith("*/")) {
+			return StringUtils.removeEnd(trimmedSql, PATH_SEPARATOR);
 		} else {
 			return sql;
 		}

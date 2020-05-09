@@ -24,7 +24,7 @@ import java.time.chrono.JapaneseEra;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.Calendar;
+import java.time.temporal.TemporalField;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class DateTimeApiPropertyMapperTest {
 		LocalDate localDate = localDateTime.toLocalDate();
 		java.sql.Date date = java.sql.Date.valueOf(localDate);
 		LocalTime localTime = localDateTime.toLocalTime();
-		java.sql.Time time = new java.sql.Time(toTime(localTime));
+		java.sql.Time time = new java.sql.Time(toEpochMilli(localTime));
 		OffsetTime offsetTime = offsetDateTime.toOffsetTime();
 
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class), newResultSet("getTimestamp", timestamp), 1),
@@ -242,21 +242,35 @@ public class DateTimeApiPropertyMapperTest {
 
 	}
 
-	private long toTime(final TemporalAccessor temporalAccessor) {
-		Calendar calendar = Calendar.getInstance();
-		setField(calendar, Calendar.YEAR, temporalAccessor, ChronoField.YEAR, 0, 1970);
-		setField(calendar, Calendar.MONTH, temporalAccessor, ChronoField.MONTH_OF_YEAR, -1, 0);
-		setField(calendar, Calendar.DATE, temporalAccessor, ChronoField.DAY_OF_MONTH, 0, 1);
-		setField(calendar, Calendar.HOUR_OF_DAY, temporalAccessor, ChronoField.HOUR_OF_DAY, 0, 0);
-		setField(calendar, Calendar.MINUTE, temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0, 0);
-		setField(calendar, Calendar.SECOND, temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0, 0);
-		setField(calendar, Calendar.MILLISECOND, temporalAccessor, ChronoField.MILLI_OF_SECOND, 0, 0);
-		return calendar.getTimeInMillis();
+	/**
+	 * エポック1970-01-01T00:00:00Zからのミリ秒数 に変換する
+	 *
+	 * @param temporalAccessor 時間的オブジェクト
+	 * @return エポック1970-01-01T00:00:00Zからのミリ秒数
+	 */
+	private long toEpochMilli(final TemporalAccessor temporalAccessor) {
+		int year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
+		int month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
+		int dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
+		int hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
+		int minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
+		int second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
+		int milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
+		int nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
+		return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond,
+				clock.getZone()).toInstant().toEpochMilli();
 	}
 
-	private void setField(final Calendar calendar, final int field, final TemporalAccessor temporalAccessor,
-			final ChronoField chronoField, final int offset, final int def) {
-		calendar.set(field, temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) + offset
-				: def);
+	/**
+	 * TemporalFieldの値を取得する
+	 *
+	 * @param temporalAccessor 時間的オブジェクト
+	 * @param chronoField 時間フィールド
+	 * @param def 時間的オブジェクトが時間フィールドをサポートしていない場合に取得する値
+	 * @return 指定した時間フィールドの値
+	 */
+	private int getTemporalField(final TemporalAccessor temporalAccessor, final TemporalField chronoField,
+			final int def) {
+		return temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) : def;
 	}
 }

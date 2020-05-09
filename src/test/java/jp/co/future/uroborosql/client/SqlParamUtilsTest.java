@@ -30,7 +30,7 @@ public class SqlParamUtilsTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSetSqlParams() {
-		String sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFALUT*/, /*$CLS_FLAG_OFF*/";
+		String sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFAULT*/, /*$CLS_FLAG_OFF*/";
 		SqlContext ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
@@ -215,7 +215,7 @@ public class SqlParamUtilsTest {
 	public void testGetSqlParams() {
 		Set<String> params = SqlParamUtils
 				.getSqlParams(
-						"select * from test where id = /*id*/1 and name = /*name*/'name1 age = /*CLS_AGE_DEFALUT*/0",
+						"select * from test where id = /*id*/1 and name = /*name*/'name1 age = /*CLS_AGE_DEFAULT*/0",
 						sqlConfig);
 		assertThat(params, contains("id", "name"));
 		assertThat(params, not(contains("CLS_AGE_DEFAULT")));

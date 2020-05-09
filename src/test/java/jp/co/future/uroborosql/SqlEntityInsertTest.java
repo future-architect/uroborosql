@@ -140,7 +140,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			List<Product> insertedEntites = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
+			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
 				e.setProductName(e.getProductName() + "_new");
 				e.setProductKanaName(e.getProductKanaName() + "_new");
@@ -148,8 +148,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				return e;
 			})).collect(Collectors.toList());
 
-			assertThat(insertedEntites.get(0).getProductName(), is("商品名1_new"));
-			assertThat(insertedEntites.get(1).getVersionNo(), is(0));
+			assertThat(insertedEntities.get(0).getProductName(), is("商品名1_new"));
+			assertThat(insertedEntities.get(1).getVersionNo(), is(0));
 		});
 	}
 
@@ -162,7 +162,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			List<Product> insertedEntites = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
+			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
 				e.setProductName(e.getProductName() + "_new");
 				e.setProductKanaName(e.getProductKanaName() + "_new");
@@ -170,8 +170,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				return e;
 			}), InsertsType.BATCH).collect(Collectors.toList());
 
-			assertThat(insertedEntites.get(0).getProductName(), is("商品名1_new"));
-			assertThat(insertedEntites.get(1).getVersionNo(), is(0));
+			assertThat(insertedEntities.get(0).getProductName(), is("商品名1_new"));
+			assertThat(insertedEntities.get(1).getVersionNo(), is(0));
 		});
 	}
 
@@ -184,7 +184,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			List<Product> insertedEntites = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
+			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
 				e.setProductName(e.getProductName() + "_new");
 				e.setProductKanaName(e.getProductKanaName() + "_new");
@@ -192,8 +192,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				return e;
 			}), InsertsType.BULK).collect(Collectors.toList());
 
-			assertThat(insertedEntites.get(0).getProductName(), is("商品名1_new"));
-			assertThat(insertedEntites.get(1).getVersionNo(), is(0));
+			assertThat(insertedEntities.get(0).getProductName(), is("商品名1_new"));
+			assertThat(insertedEntities.get(1).getVersionNo(), is(0));
 		});
 	}
 
@@ -206,7 +206,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			List<Product> insertedEntites = agent
+			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
 						e.setProductId(e.getProductId() + 10);
 						e.setProductName(e.getProductName() + "_new");
@@ -215,8 +215,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 						return e;
 					})).collect(Collectors.toList());
 
-			assertThat(insertedEntites.get(0).getProductName(), is("商品名1_new"));
-			assertThat(insertedEntites.get(1).getVersionNo(), is(0));
+			assertThat(insertedEntities.get(0).getProductName(), is("商品名1_new"));
+			assertThat(insertedEntities.get(1).getVersionNo(), is(0));
 		});
 	}
 

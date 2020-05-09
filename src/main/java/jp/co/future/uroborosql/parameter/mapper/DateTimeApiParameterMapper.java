@@ -7,6 +7,9 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -24,9 +27,8 @@ import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.TimeZone;
 
 /**
  * Date and Time API用{@link BindParameterMapper}
@@ -106,29 +108,22 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 
 		/* Dateに変換 */
 		if (original instanceof LocalDateTime) {
-			return java.sql.Timestamp.valueOf((LocalDateTime) original);
+			return Timestamp.valueOf((LocalDateTime) original);
 		}
 		if (original instanceof OffsetDateTime) {
-			return new java.sql.Timestamp(((OffsetDateTime) original).toInstant().toEpochMilli());
+			return new Timestamp(((OffsetDateTime) original).toInstant().toEpochMilli());
 		}
 		if (original instanceof ZonedDateTime) {
-			return new java.sql.Timestamp(((ZonedDateTime) original).toInstant().toEpochMilli());
+			return new Timestamp(((ZonedDateTime) original).toInstant().toEpochMilli());
 		}
 		if (original instanceof LocalDate) {
-			return java.sql.Date.valueOf((LocalDate) original);
+			return Date.valueOf((LocalDate) original);
 		}
 		if (original instanceof LocalTime) {
-			return new java.sql.Time(toTime(original));
+			return new Time(toEpochMilli(original));
 		}
 		if (original instanceof OffsetTime) {
-			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(getClock().getZone()));
-			int year = calendar.get(Calendar.YEAR);
-			long thisYearDate = ((OffsetTime) original).atDate(LocalDate.of(year, Month.JANUARY, 1)).toInstant()
-					.toEpochMilli();
-			calendar.setTimeInMillis(thisYearDate);
-			//yearを引いて1970年にする
-			calendar.add(Calendar.YEAR, 1970 - year);
-			return new java.sql.Time(calendar.getTimeInMillis());
+			return new Time(toEpochMilli(original));
 		}
 
 		/* 数値に変換 */
@@ -156,24 +151,24 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 
 		// JapaneseDate等のChronoLocalDateの変換 Dateに変換
 		if (original instanceof ChronoLocalDate) {
-			return new java.sql.Date(((ChronoLocalDate) original).atTime(LocalTime.MIDNIGHT)
+			return new Date(((ChronoLocalDate) original).atTime(LocalTime.MIDNIGHT)
 					.atZone(getClock().getZone()).toInstant().toEpochMilli());
 		}
 
 		// その他の型
 		if (original instanceof Instant) {
-			return new java.sql.Timestamp(((Instant) original).toEpochMilli());
+			return new Timestamp(((Instant) original).toEpochMilli());
 		}
 
 		if (isCastTarget(original)) {
 			boolean incDate = Arrays.stream(DATE_TARGET).anyMatch(original::isSupported);
 			boolean incTime = Arrays.stream(TIME_TARGET).anyMatch(original::isSupported);
 			if (incDate && incTime) {
-				return new java.sql.Timestamp(toTime(original));
+				return new Timestamp(toEpochMilli(original));
 			} else if (incDate) {
-				return new java.sql.Date(toTime(original));
+				return new Date(toEpochMilli(original));
 			} else {
-				return new java.sql.Time(toTime(original));
+				return new Time(toEpochMilli(original));
 			}
 		}
 
@@ -190,39 +185,34 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 	}
 
 	/**
-	 * 時間への変換
+	 * エポック1970-01-01T00:00:00Zからのミリ秒数 に変換する
 	 *
 	 * @param temporalAccessor 時間的オブジェクト
-	 * @return カレンダー時間のミリ秒
+	 * @return エポック1970-01-01T00:00:00Zからのミリ秒数
 	 */
-	private long toTime(final TemporalAccessor temporalAccessor) {
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(getClock().getZone()));
-		setField(calendar, Calendar.YEAR, temporalAccessor, ChronoField.YEAR, 0, 1970);
-		setField(calendar, Calendar.MONTH, temporalAccessor, ChronoField.MONTH_OF_YEAR, -1, 0);
-		setField(calendar, Calendar.DATE, temporalAccessor, ChronoField.DAY_OF_MONTH, 0, 1);
-		setField(calendar, Calendar.HOUR_OF_DAY, temporalAccessor, ChronoField.HOUR_OF_DAY, 0, 0);
-		setField(calendar, Calendar.MINUTE, temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0, 0);
-		setField(calendar, Calendar.SECOND, temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0, 0);
-		setField(calendar, Calendar.MILLISECOND, temporalAccessor, ChronoField.MILLI_OF_SECOND, 0, 0);
-		return calendar.getTimeInMillis();
+	private long toEpochMilli(final TemporalAccessor temporalAccessor) {
+		int year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
+		int month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
+		int dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
+		int hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
+		int minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
+		int second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
+		int milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
+		int nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
+		return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond,
+				clock.getZone()).toInstant().toEpochMilli();
 	}
 
 	/**
-	 * カレンダーへの値の設定
+	 * TemporalFieldの値を取得する
 	 *
-	 * 時間的オブジェクトが時間フィールドをサポートしている場合はchoronoFieldとoffsetから算出した値を設定する。
-	 * サポートしていない場合は、設定値を設定する。
-	 *
-	 * @param calendar 対象のカレンダー
-	 * @param field 対象フィールド
 	 * @param temporalAccessor 時間的オブジェクト
 	 * @param chronoField 時間フィールド
-	 * @param offset オフセット
-	 * @param def 設定値
+	 * @param def 時間的オブジェクトが時間フィールドをサポートしていない場合に取得する値
+	 * @return 指定した時間フィールドの値
 	 */
-	private void setField(final Calendar calendar, final int field, final TemporalAccessor temporalAccessor,
-			final ChronoField chronoField, final int offset, final int def) {
-		calendar.set(field,
-				temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) + offset : def);
+	private int getTemporalField(final TemporalAccessor temporalAccessor, final TemporalField chronoField,
+			final int def) {
+		return temporalAccessor.isSupported(chronoField) ? temporalAccessor.get(chronoField) : def;
 	}
 }

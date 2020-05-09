@@ -1341,7 +1341,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					Map<Object, List<E>> updatedEntityMap = updatedEntities.stream()
 							.collect(Collectors.groupingBy(e -> keyColumn.getValue(e)));
 
-					// updatedEntitesのサイズが大きいとin句の上限にあたるため、1000件ずつに分割して検索する
+					// updatedEntitiesのサイズが大きいとin句の上限にあたるため、1000件ずつに分割して検索する
 					List<Object> keyList = new ArrayList<>(updatedEntityMap.keySet());
 					int entitySize = updatedEntities.size();
 

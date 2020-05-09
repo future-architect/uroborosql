@@ -33,9 +33,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.Calendar;
 import java.util.Optional;
-import java.util.TimeZone;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
@@ -358,7 +356,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 					});
 		} else {
 			return Optional.ofNullable(rs.getTime(columnIndex))
-					.map(this::sqlTimeToLocalTime);
+					.map(time -> Instant.ofEpochMilli(time.getTime()).atZone(clock.getZone()).toLocalTime());
 		}
 	}
 
@@ -375,18 +373,5 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 				columnType == Types.NVARCHAR ||
 				columnType == Types.LONGVARCHAR ||
 				columnType == Types.LONGNVARCHAR;
-	}
-
-	/**
-	 * {@link java.sql.Time} から {@link LocalTime} への変換を行う.
-	 *
-	 * @param time 変換する{@link java.sql.Time}
-	 * @return 変換後の{@link LocalTime}
-	 */
-	private LocalTime sqlTimeToLocalTime(final java.sql.Time time) {
-		long milliseconds = time.getTime();
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
-		calendar.setTimeInMillis(milliseconds);
-		return LocalDateTime.ofInstant(calendar.toInstant(), clock.getZone()).toLocalTime();
 	}
 }

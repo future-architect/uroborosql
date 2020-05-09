@@ -37,7 +37,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * htmlのカバレッジレポートを出力する
  *
  * <pre>
- * sysytem property "uroborosql.sql.coverage" に "jp.co.future.uroborosql.coverage.reports.html.HtmlReportCoverageHandler" を指定することで
+ * system property "uroborosql.sql.coverage" に "jp.co.future.uroborosql.coverage.reports.html.HtmlReportCoverageHandler" を指定することで
  * 本機能を利用することができます。
  * </pre>
  *
@@ -53,7 +53,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	 * コンストラクタ<br>
 	 *
 	 * <pre>
-	 * sysytem property "uroborosql.sql.coverage.dir" が指定された場合、指定されたPATHに レポートを出力します。
+	 * system property "uroborosql.sql.coverage.dir" が指定された場合、指定されたPATHに レポートを出力します。
 	 * 指定の無い場合、デフォルトで "./target/coverage/sql" に レポートを出力します。
 	 * </pre>
 	 */

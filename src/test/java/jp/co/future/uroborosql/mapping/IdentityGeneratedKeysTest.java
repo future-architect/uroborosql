@@ -227,17 +227,17 @@ public class IdentityGeneratedKeysTest {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -260,17 +260,17 @@ public class IdentityGeneratedKeysTest {
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				List<TestAutoEntityWithNoId> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoId> entities = new ArrayList<>();
 				TestAutoEntityWithNoId test1 = new TestAutoEntityWithNoId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoId test2 = new TestAutoEntityWithNoId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoId test3 = new TestAutoEntityWithNoId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -293,17 +293,17 @@ public class IdentityGeneratedKeysTest {
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				List<TestAutoEntityWithNoIdObj> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
 				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -328,20 +328,20 @@ public class IdentityGeneratedKeysTest {
 
 				long idVal = currVal + 100;
 
-				List<TestAutoEntityWithNoIdObj> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
 				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
 				test1.id = idVal + 1;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
 				test2.id = idVal + 2;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
 				test3.id = idVal + 3;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(idVal + 1));
 				assertThat(test2.getId(), is(idVal + 2));
 				assertThat(test3.getId(), is(idVal + 3));
@@ -361,20 +361,20 @@ public class IdentityGeneratedKeysTest {
 						.get("ID");
 				long idVal = currVal + 100;
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
 				test1.id = idVal++;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
 				test2.id = idVal++;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
 				test3.id = idVal++;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -393,17 +393,17 @@ public class IdentityGeneratedKeysTest {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				List<TestEntityWithIdObj> entites = new ArrayList<>();
+				List<TestEntityWithIdObj> entities = new ArrayList<>();
 				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -423,20 +423,20 @@ public class IdentityGeneratedKeysTest {
 						.get("ID");
 				long idVal = currVal + 100;
 
-				List<TestEntityWithIdObj> entites = new ArrayList<>();
+				List<TestEntityWithIdObj> entities = new ArrayList<>();
 				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 1;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 2;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream());
+				agent.inserts(entities.stream());
 				assertThat(test1.getId(), is(idVal));
 				assertThat(test2.getId(), is(idVal + 1));
 				assertThat(test3.getId(), is(idVal + 2));
@@ -455,17 +455,17 @@ public class IdentityGeneratedKeysTest {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -488,17 +488,17 @@ public class IdentityGeneratedKeysTest {
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				List<TestAutoEntityWithNoId> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoId> entities = new ArrayList<>();
 				TestAutoEntityWithNoId test1 = new TestAutoEntityWithNoId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoId test2 = new TestAutoEntityWithNoId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoId test3 = new TestAutoEntityWithNoId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -521,17 +521,17 @@ public class IdentityGeneratedKeysTest {
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				List<TestAutoEntityWithNoIdObj> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
 				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -556,20 +556,20 @@ public class IdentityGeneratedKeysTest {
 
 				long idVal = currVal + 100;
 
-				List<TestAutoEntityWithNoIdObj> entites = new ArrayList<>();
+				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
 				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
 				test1.id = idVal + 1;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
 				test2.id = idVal + 2;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
 				test3.id = idVal + 3;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(idVal + 1));
 				assertThat(test2.getId(), is(idVal + 2));
 				assertThat(test3.getId(), is(idVal + 3));
@@ -589,20 +589,20 @@ public class IdentityGeneratedKeysTest {
 						.get("ID");
 				long idVal = currVal + 100;
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
 				test1.id = idVal;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
 				test2.id = idVal + 1;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
 				test3.id = idVal + 2;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(++currVal));
 				assertThat(test2.getId(), is(++currVal));
 				assertThat(test3.getId(), is(++currVal));
@@ -622,20 +622,20 @@ public class IdentityGeneratedKeysTest {
 						.get("ID");
 				long idVal = currVal + 100;
 
-				List<TestEntityWithIdObj> entites = new ArrayList<>();
+				List<TestEntityWithIdObj> entities = new ArrayList<>();
 				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal;
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 1;
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 2;
-				entites.add(test3);
+				entities.add(test3);
 
-				agent.inserts(entites.stream(), InsertsType.BATCH);
+				agent.inserts(entities.stream(), InsertsType.BATCH);
 				assertThat(test1.getId(), is(idVal));
 				assertThat(test2.getId(), is(idVal + 1));
 				assertThat(test3.getId(), is(idVal + 2));
@@ -654,17 +654,17 @@ public class IdentityGeneratedKeysTest {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entites.stream())
+				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entities.stream())
 						.collect(Collectors.toList());
 				assertThat(insertedEntities.get(0).getId(), is(++currVal));
 				assertThat(insertedEntities.get(1).getId(), is(++currVal));
@@ -684,17 +684,17 @@ public class IdentityGeneratedKeysTest {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				List<TestEntityWithId> entites = new ArrayList<>();
+				List<TestEntityWithId> entities = new ArrayList<>();
 				TestEntityWithId test1 = new TestEntityWithId("name1");
-				entites.add(test1);
+				entities.add(test1);
 
 				TestEntityWithId test2 = new TestEntityWithId("name2");
-				entites.add(test2);
+				entities.add(test2);
 
 				TestEntityWithId test3 = new TestEntityWithId("name3");
-				entites.add(test3);
+				entities.add(test3);
 
-				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entites.stream(), InsertsType.BATCH)
+				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entities.stream(), InsertsType.BATCH)
 						.collect(Collectors.toList());
 				assertThat(insertedEntities.get(0).getId(), is(++currVal));
 				assertThat(insertedEntities.get(1).getId(), is(++currVal));

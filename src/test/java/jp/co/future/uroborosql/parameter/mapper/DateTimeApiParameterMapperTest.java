@@ -3,6 +3,8 @@ package jp.co.future.uroborosql.parameter.mapper;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.DayOfWeek;
@@ -41,7 +43,7 @@ public class DateTimeApiParameterMapperTest {
 	public void testLocalDateTime() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(LocalDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
-				instanceOf(java.sql.Timestamp.class));
+				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(LocalDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				is(createTimestamp("2000-01-01T10:10:10")));
 	}
@@ -50,7 +52,7 @@ public class DateTimeApiParameterMapperTest {
 	public void testOffsetDateTime() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(OffsetDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
-				instanceOf(java.sql.Timestamp.class));
+				instanceOf(Timestamp.class));
 		assertThat(
 				mapper.toJdbc(
 						OffsetDateTime.from(createDateTime("2000-01-01T10:10:10")).withOffsetSameInstant(
@@ -63,7 +65,7 @@ public class DateTimeApiParameterMapperTest {
 	public void testZonedDateTime() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(createDateTime("2000-01-01T10:10:10"), null, null),
-				instanceOf(java.sql.Timestamp.class));
+				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(
 				createDateTime("2000-01-01T10:10:10").withZoneSameInstant(ZoneId.of("Europe/Monaco")), null,
 				null),
@@ -83,7 +85,7 @@ public class DateTimeApiParameterMapperTest {
 	public void testLocalTime() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(LocalTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
-				instanceOf(java.sql.Time.class));
+				instanceOf(Time.class));
 		assertThat(mapper.toJdbc(LocalTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				is(createTime("10:10:10")));
 	}
@@ -91,8 +93,8 @@ public class DateTimeApiParameterMapperTest {
 	@Test
 	public void testOffsetTime() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
-		assertThat(mapper.toJdbc(OffsetTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
-				instanceOf(java.sql.Time.class));
+		assertThat(mapper.toJdbc(OffsetTime.from(createDateTime("2000-01-01T10:10:10.123")), null, null),
+				instanceOf(Time.class));
 		assertThat(mapper.toJdbc(OffsetTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				is(createTime("10:10:10")));
 	}
@@ -158,7 +160,7 @@ public class DateTimeApiParameterMapperTest {
 	public void testInstant() throws ParseException {
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(Instant.from(createDateTime("2000-01-01T10:10:10")), null, null),
-				instanceOf(java.sql.Timestamp.class));
+				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(Instant.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				is(createTimestamp("2000-01-01T10:10:10")));
 	}
@@ -189,11 +191,40 @@ public class DateTimeApiParameterMapperTest {
 	}
 
 	@Test
+	public void testTemporalAccessorDateTime1() throws ParseException {
+		TemporalAccessor temporalAccessor = new TemporalAccessor() {
+
+			@Override
+			public boolean isSupported(final TemporalField field) {
+				return field == ChronoField.YEAR || field == ChronoField.DAY_OF_MONTH
+						|| field == ChronoField.MILLI_OF_SECOND;
+			}
+
+			@Override
+			public long getLong(final TemporalField field) {
+				if (field == ChronoField.YEAR) {
+					return 2000;
+				} else if (field == ChronoField.DAY_OF_MONTH) {
+					return 5;
+				} else if (field == ChronoField.MILLI_OF_SECOND) {
+					return 123;
+				}
+				return field.getFrom(this);
+			}
+		};
+
+		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Timestamp.class));
+		assertThat(mapper.toJdbc(temporalAccessor, null, null),
+				is(new Timestamp(createDateTime("2000-01-05T00:00:00.123").toInstant().toEpochMilli())));
+	}
+
+	@Test
 	public void testTemporalAccessorDate2() throws ParseException {
 		TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH").parse("2000-05-05 10");
 
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
-		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(java.sql.Timestamp.class));
+		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(createTimestamp("2000-05-05T10:00:00")));
 	}
 
@@ -202,7 +233,7 @@ public class DateTimeApiParameterMapperTest {
 		TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern("HH").parse("10");
 
 		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
-		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(java.sql.Time.class));
+		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Time.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(createTime("10:00:00")));
 	}
 
@@ -241,12 +272,18 @@ public class DateTimeApiParameterMapperTest {
 		assertThat(mapper.getClock(), is(this.clock));
 	}
 
-	private java.sql.Timestamp createTimestamp(final String s) throws ParseException {
-		return java.sql.Timestamp.valueOf(LocalDateTime.parse(s));
+	public void testTargetType() {
+		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		mapper.setClock(this.clock);
+		assertThat(mapper.targetType(), sameInstance(TemporalAccessor.class));
 	}
 
-	private java.sql.Time createTime(final String s) throws ParseException {
-		return java.sql.Time.valueOf(LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm:ss")));
+	private Timestamp createTimestamp(final String s) throws ParseException {
+		return Timestamp.valueOf(LocalDateTime.parse(s));
+	}
+
+	private Time createTime(final String s) throws ParseException {
+		return Time.valueOf(LocalTime.parse(s, DateTimeFormatter.ISO_LOCAL_TIME));
 	}
 
 	private java.sql.Date createDate(final String s) throws ParseException {

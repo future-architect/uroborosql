@@ -72,7 +72,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testWithCostom() throws ParseException {
+	public void testWithCustom() throws ParseException {
 		BindParameterMapperManager original = new BindParameterMapperManager(this.clock);
 		original.addMapper(new EmptyStringToNullParameterMapper());
 		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
