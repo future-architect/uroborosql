@@ -389,7 +389,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 					"create table if not exists test_entity_multi_key (id integer not null, end_at timestamp with time zone not null, name text not null, version integer not null, primary key (id, end_at))")
 					.count();
 
-			List<TestEntityMultiKey> entites = IntStream.range(1, 10)
+			List<TestEntityMultiKey> entities = IntStream.range(1, 10)
 					.mapToObj(i -> {
 						TestEntityMultiKey entity = new TestEntityMultiKey();
 						entity.setId(i);
@@ -398,9 +398,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 						entity.setVersion(i);
 						return entity;
 					}).collect(Collectors.toList());
-			assertThat(agent.inserts(TestEntityMultiKey.class, entites.stream()), is(9));
+			assertThat(agent.inserts(TestEntityMultiKey.class, entities.stream()), is(9));
 
-			agent.updatesAndReturn(entites.stream().map(e -> {
+			agent.updatesAndReturn(entities.stream().map(e -> {
 				e.setName(e.getName() + "_new");
 				return e;
 			})).peek(e -> {
@@ -423,14 +423,14 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 					"create table if not exists test_entity (id serial not null, name text not null, version integer not null, primary key (id))")
 					.count();
 
-			List<TestEntity> entites = IntStream.range(1, 10)
+			List<TestEntity> entities = IntStream.range(1, 10)
 					.mapToObj(i -> {
 						TestEntity entity = new TestEntity();
 						entity.setName("名前" + i);
 						entity.setVersion(0);
 						return entity;
 					}).collect(Collectors.toList());
-			assertThat(agent.inserts(TestEntity.class, entites.stream()), is(9));
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
 			int newId = 100;
 			int count = agent.update(TestEntity.class)

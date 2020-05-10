@@ -124,7 +124,7 @@ public class SqlContextImpl implements SqlContext {
 	private final List<String> bindNames = new ArrayList<>();
 
 	/** バインド変数リスト */
-	private final List<Object> bindValiables = new ArrayList<>();
+	private final List<Object> bindVariables = new ArrayList<>();
 
 	/** 有効フラグ（BEGIN句で使用） */
 	private boolean enabled = true;
@@ -881,8 +881,8 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.parser.TransformContext#addBindVariable(java.lang.Object)
 	 */
 	@Override
-	public TransformContext addBindVariable(final Object bindValiable) {
-		bindValiables.add(bindValiable);
+	public TransformContext addBindVariable(final Object bindVariable) {
+		bindVariables.add(bindVariable);
 		return this;
 	}
 
@@ -892,9 +892,9 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.parser.TransformContext#addBindVariables(java.lang.Object[])
 	 */
 	@Override
-	public TransformContext addBindVariables(final Object[] bindValiables) {
-		for (Object bindValiable : bindValiables) {
-			this.bindValiables.add(bindValiable);
+	public TransformContext addBindVariables(final Object[] bindVariables) {
+		for (Object bindVariable : bindVariables) {
+			this.bindVariables.add(bindVariable);
 		}
 		return this;
 	}
@@ -906,7 +906,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public Object[] getBindVariables() {
-		return bindValiables.toArray();
+		return bindVariables.toArray();
 	}
 
 	/**
@@ -1226,7 +1226,7 @@ public class SqlContextImpl implements SqlContext {
 	public String formatParams() {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < bindNames.size(); i++) {
-			sb.append(String.format("[%s=%s]", bindNames.get(i), bindValiables.get(i)));
+			sb.append(String.format("[%s=%s]", bindNames.get(i), bindVariables.get(i)));
 		}
 		return sb.toString();
 	}

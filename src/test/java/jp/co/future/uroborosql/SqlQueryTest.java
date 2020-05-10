@@ -953,7 +953,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryMapResuletSetConverter() throws Exception {
+	public void testQueryMapResultSetConverter() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 

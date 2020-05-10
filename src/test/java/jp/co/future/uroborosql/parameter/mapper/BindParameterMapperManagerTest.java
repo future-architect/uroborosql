@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -14,11 +15,15 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.parameter.mapper.legacy.DateToStringParameterMapper;
 
 public class BindParameterMapperManagerTest {
 	private Clock clock;
 
+	@Before
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
@@ -67,6 +72,23 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
+	public void testWithCustom() throws ParseException {
+		BindParameterMapperManager original = new BindParameterMapperManager(this.clock);
+		original.addMapper(new EmptyStringToNullParameterMapper());
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
+		original.addMapper(mapper);
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(original, this.clock);
+
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(this.clock.getZone()).toInstant());
+		assertThat(parameterMapperManager.toJdbc(date, null), is("20000101"));
+
+		assertThat(parameterMapperManager.canAcceptByStandard(date), is(true));
+
+		parameterMapperManager.removeMapper(mapper);
+		assertThat(parameterMapperManager.toJdbc(date, null), is(instanceOf(Timestamp.class)));
+	}
+
+	@Test
 	public void testCustom() {
 		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
 
@@ -81,6 +103,40 @@ public class BindParameterMapperManagerTest {
 			public Object toJdbc(final String original, final Connection connection,
 					final BindParameterMapperManager parameterMapperManager) {
 				return original.toLowerCase();
+			}
+		});
+		assertThat(parameterMapperManager.toJdbc("S", null), is("s"));
+
+		assertThat(parameterMapperManager.toJdbc(true, null), is(true));
+
+	}
+
+	@Test
+	public void testCustomWithClock() {
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
+
+		parameterMapperManager.addMapper(new BindParameterMapperWithClock<String>() {
+			private Clock clock;
+
+			@Override
+			public Class<String> targetType() {
+				return String.class;
+			}
+
+			@Override
+			public Object toJdbc(final String original, final Connection connection,
+					final BindParameterMapperManager parameterMapperManager) {
+				return original.toLowerCase();
+			}
+
+			@Override
+			public Clock getClock() {
+				return this.clock;
+			}
+
+			@Override
+			public void setClock(final Clock clock) {
+				this.clock = clock;
 			}
 		});
 		assertThat(parameterMapperManager.toJdbc("S", null), is("s"));

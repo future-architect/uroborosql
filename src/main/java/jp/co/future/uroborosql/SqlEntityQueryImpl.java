@@ -593,7 +593,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		 */
 		SortOrder(final String col, final Order order, final Nulls nulls) {
 			if (col == null) {
-				throw new UroborosqlRuntimeException("argment col is required.");
+				throw new UroborosqlRuntimeException("argument col is required.");
 			}
 			this.col = CaseFormat.CAMEL_CASE.convert(col);
 			this.order = order != null ? order : Order.ASCENDING;

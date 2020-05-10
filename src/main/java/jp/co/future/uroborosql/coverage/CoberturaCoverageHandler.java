@@ -48,7 +48,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * <pre>
  * デフォルトコンストラクタで生成される場合、レポートファイルの出力先は以下のように決定されます。
  *
- * sysytem property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+ * system property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
  * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
  * </pre>
  *
@@ -116,11 +116,11 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class LineBranch {
 		@SuppressWarnings("unused")
-		private final int rowIndxx;
+		private final int rowIndex;
 		private final Map<Range, PointBranch> branches = new HashMap<>();
 
-		private LineBranch(final int rowIndxx) {
-			this.rowIndxx = rowIndxx;
+		private LineBranch(final int rowIndex) {
+			this.rowIndex = rowIndex;
 		}
 
 		private void add(final Range idx, final BranchCoverageState state) {
@@ -228,7 +228,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * コンストラクタ<br>
 	 *
 	 * <pre>
-	 * sysytem property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
+	 * system property "uroborosql.sql.coverage.file" が指定された場合、指定されたPATHに xmlレポートを出力します。
 	 * 指定の無い場合、デフォルトで "./target/coverage/sql-cover.xml" に xmlレポートを出力します。
 	 * </pre>
 	 */

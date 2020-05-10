@@ -100,18 +100,18 @@ public interface TransformContext {
 	/**
 	 * バインド変数追加。
 	 *
-	 * @param bindValiable バインド変数
+	 * @param bindVariable バインド変数
 	 * @return TransformContext
 	 */
-	TransformContext addBindVariable(Object bindValiable);
+	TransformContext addBindVariable(Object bindVariable);
 
 	/**
 	 * バインド変数一括追加。
 	 *
-	 * @param bindValiables バインド変数配列
+	 * @param bindVariables バインド変数配列
 	 * @return TransformContext
 	 */
-	TransformContext addBindVariables(Object[] bindValiables);
+	TransformContext addBindVariables(Object[] bindVariables);
 
 	/**
 	 * バインド変数配列取得。

@@ -34,10 +34,10 @@ public class TestAppender extends AbstractEncodedAppender<ILoggingEvent> {
 		bufferedReader.lines().forEach(this::append);
 	}
 
-	private void append(String encodeedLog) {
+	private void append(String encodedLog) {
 		List<String> logs = LOGS_LIST.get();
 		if (logs != null) {
-			logs.add(encodeedLog);
+			logs.add(encodedLog);
 		}
 	}
 

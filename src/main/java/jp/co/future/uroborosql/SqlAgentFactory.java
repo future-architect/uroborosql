@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public interface SqlAgentFactory extends SqlConfigAware {
 	/** ファクトリBean名 */
-	String FACTORY_BEAN_NAME = "sqlAagentFactory";
+	String FACTORY_BEAN_NAME = "sqlAgentFactory";
 
 	/**
 	 * プロパティ:SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>

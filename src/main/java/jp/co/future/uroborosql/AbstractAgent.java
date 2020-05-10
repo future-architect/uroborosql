@@ -863,9 +863,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> Stream<E> updatesAndReturn(final Class<E> entityType, final Stream<E> entities,
 			final UpdatesCondition<? super E> condition) {
-		List<E> updatedEntites = new ArrayList<>();
-		batchUpdate(entityType, entities, condition, updatedEntites);
-		return updatedEntites.stream();
+		List<E> updatedEntities = new ArrayList<>();
+		batchUpdate(entityType, entities, condition, updatedEntities);
+		return updatedEntities.stream();
 	}
 
 	/**

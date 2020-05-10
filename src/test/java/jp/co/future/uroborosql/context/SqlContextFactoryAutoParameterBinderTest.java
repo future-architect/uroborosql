@@ -95,7 +95,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
-			// QueryAutoPrameterBinderはupdateでは適用されないためupdDateとなる
+			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
 			config.getSqlContextFactory().removeQueryAutoParameterBinder(binder);
@@ -133,7 +133,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
-			// UpdateAutoPrameterBinderのほうが後で設定されるため、上書きされる）
+			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
 			// UpdateAutoParameterBinderはQueryでは適用されない
@@ -255,7 +255,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
-			// UpdateAutoPrameterBinderのほうが後で設定されるため、上書きされる）
+			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
 		}
 
@@ -294,7 +294,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
-			// UpdateAutoPrameterBinderのほうが後で設定されるため、上書きされる）
+			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 		}
 

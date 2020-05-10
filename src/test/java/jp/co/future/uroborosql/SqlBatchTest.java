@@ -326,7 +326,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.batchWhen((agent, ctx) -> agent.commit())
 				.errorWhen((agent, ctx, ex) -> {
-					log.error("error occured. ex:{}", ex.getMessage());
+					log.error("error occurred. ex:{}", ex.getMessage());
 				})
 				.count();
 
