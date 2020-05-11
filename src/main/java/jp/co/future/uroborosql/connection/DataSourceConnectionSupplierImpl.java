@@ -17,6 +17,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
  * データソースを使用したコネクション供給クラス<br>
@@ -26,41 +27,42 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
  */
 public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
-	private String dataSourceName;
+	/** プロパティ：データソース名 */
+	public static final String PROPS_DATASOURCE_NAME = "datasource_name";
 
-	private final Map<String, DataSource> dsMap = new ConcurrentHashMap<>();
+	/** デフォルトデータソース名 */
+	public static final String DEFAULT_DATASOURCE_NAME = "java:comp/env/jdbc/default_datasource";
 
-	private final Map<String, Map<String, String>> connProps = new ConcurrentHashMap<>();
+	/** データソース名とデータソースのマップ */
+	private final Map<String, DataSource> datasources = new ConcurrentHashMap<>();
 
-	private static final String DEFAULT_DATA_SOURCE_NAME = "DEFAULT_DATA_SOURCE";
-	private static final String PROPS_AUTO_COMMIT = "AUTO_COMMIT";
-	private static final String PROPS_READ_ONLY = "READ_ONLY";
-	private static final String PROPS_TRANSACTION_ISOLATION = "TRANSACTION_ISOLATION";
+	/** デフォルトデータソース用のDB接続情報 */
+	private final Map<String, String> defaultConnProps = new ConcurrentHashMap<>();
 
 	/**
 	 * コンストラクタ。
 	 */
 	public DataSourceConnectionSupplierImpl() {
-		this(DEFAULT_DATA_SOURCE_NAME);
+		this(DEFAULT_DATASOURCE_NAME);
 	}
 
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param dataSourceName 取得するコネクションのデータソース名
+	 * @param defaultDataSourceName 取得するコネクションのデータソース名
 	 */
-	public DataSourceConnectionSupplierImpl(final String dataSourceName) {
-		this.dataSourceName = dataSourceName;
+	public DataSourceConnectionSupplierImpl(final String defaultDataSourceName) {
+		setDefaultDataSourceName(defaultDataSourceName);
 	}
 
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param dataSource 取得するコネクションのデータソース
+	 * @param defaultDataSource 取得するコネクションのデータソース
 	 */
-	public DataSourceConnectionSupplierImpl(final DataSource dataSource) {
-		this.dataSourceName = DEFAULT_DATA_SOURCE_NAME;
-		dsMap.put(this.dataSourceName, dataSource);
+	public DataSourceConnectionSupplierImpl(final DataSource defaultDataSource) {
+		this();
+		datasources.put(DEFAULT_DATASOURCE_NAME, defaultDataSource);
 
 	}
 
@@ -71,39 +73,33 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	@Override
 	public Connection getConnection() {
-		return getConnection(getDefaultDataSourceName());
+		return getConnection(defaultConnProps);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @param datasourceName 取得するコネクションのデータソース名
-	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.lang.String)
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.util.Map)
 	 */
 	@Override
-	public Connection getConnection(final String datasourceName) {
+	public Connection getConnection(final Map<String, String> connProps) {
+		String datasourceName = connProps.get(PROPS_DATASOURCE_NAME);
 		try {
-			DataSource ds = dsMap.computeIfAbsent(datasourceName, DataSourceConnectionSupplierImpl::getNewDataSource);
+			DataSource ds = datasources.computeIfAbsent(datasourceName,
+					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
 				connection = ds.getConnection();
 			}
-			boolean autoCommit = getAutoCommit(datasourceName);
-			if (connection.getAutoCommit() != autoCommit) {
-				connection.setAutoCommit(autoCommit);
-			}
-			boolean readOnly = getReadOnly(datasourceName);
-			if (connection.isReadOnly() != readOnly) {
-				connection.setReadOnly(readOnly);
-			}
-			int transactionIsolation = getTransactionIsolation(datasourceName);
-			if (transactionIsolation > 0 && connection.getTransactionIsolation() != transactionIsolation) {
+			connection.setAutoCommit(isAutoCommit(connProps));
+			connection.setReadOnly(isReadOnly(connProps));
+			int transactionIsolation = getTransactionIsolation(connProps);
+			if (transactionIsolation > 0) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}
 			return connection;
 		} catch (SQLException ex) {
-			throw new UroborosqlRuntimeException("Connection[" + datasourceName + "] can not be acquired.", ex);
+			throw new UroborosqlSQLException("Connection[" + datasourceName + "] can not be acquired.", ex);
 		}
 	}
 
@@ -125,19 +121,32 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * デフォルトデータソース名の取得
 	 *
-	 * @return データソース名
+	 * @return デフォルトデータソース名
 	 */
 	public String getDefaultDataSourceName() {
-		return dataSourceName;
+		return defaultConnProps.get(PROPS_DATASOURCE_NAME);
 	}
 
 	/**
 	 * デフォルトデータソース名の設定
 	 *
-	 * @param dataSourceName データソース名
+	 * @param defaultDataSourceName デフォルトデータソース名
 	 */
-	public void setDefaultDataSourceName(final String dataSourceName) {
-		this.dataSourceName = dataSourceName;
+	public void setDefaultDataSourceName(final String defaultDataSourceName) {
+		if (defaultDataSourceName == null) {
+			throw new IllegalArgumentException("defaultDataSourceName is null.");
+		}
+		defaultConnProps.put(PROPS_DATASOURCE_NAME, defaultDataSourceName);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するAutoCommitオプションの取得
+	 *
+	 * @return AutoCommitを行う場合は<code>true</code>. 初期値は<code>false</code>
+	 */
+	public boolean isDefaultAutoCommit() {
+		return isAutoCommit(defaultConnProps);
 	}
 
 	/**
@@ -147,86 +156,42 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param autoCommit AutoCommitを行う場合は<code>true</code>
 	 */
 	public void setDefaultAutoCommit(final boolean autoCommit) {
-		setAutoCommit(getDefaultDataSourceName(), autoCommit);
+		setAutoCommit(defaultConnProps, autoCommit);
 	}
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するAutoCommitオプションの取得
+	 * で指定したデータソースに対するReadOnlyオプションを指定
 	 *
-	 * @return AutoCommitを行う場合は<code>true</code>. 初期値は<code>false</code>
+	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */
-	public boolean getDefaultAutoCommit() {
-		return getAutoCommit(getDefaultDataSourceName());
-	}
-
-	/**
-	 * dataSourceNameで指定したデータソースに対するAutoCommitオプションの指定
-	 *
-	 * @param dataSourceName データソース名
-	 * @param autoCommit AutoCommitを行う場合は<code>true</code>
-	 */
-	public void setAutoCommit(final String dataSourceName, final boolean autoCommit) {
-		Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-		props.put(PROPS_AUTO_COMMIT, Boolean.toString(autoCommit));
-	}
-
-	/**
-	 * dataSourceNameで指定したデータソースに対するAutoCommitオプションの取得
-	 *
-	 * @param dataSourceName データソース名
-	 * @return AutoCommitを行う場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected boolean getAutoCommit(final String dataSourceName) {
-		Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-		return Boolean.parseBoolean(props.get(PROPS_AUTO_COMMIT));
+	public boolean isDefaultReadOnly() {
+		return isReadOnly(defaultConnProps);
 	}
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するReadOnlyオプションの指定
+	 * で指定したデータソースに対するReadOnlyオプションを指定
 	 *
 	 * @param readOnly readOnlyを指定する場合は<code>true</code>
 	 */
 	public void setDefaultReadOnly(final boolean readOnly) {
-		setReadOnly(getDefaultDataSourceName(), readOnly);
+		setReadOnly(defaultConnProps, readOnly);
 	}
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するReadOnlyオプションの指定
+	 * で指定したデータソースに対するtransactionIsolationオプションの取得
 	 *
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
+	 * @return transactionIsolationの指定がない場合は<code>-1</code>. 指定がある場合はその値
 	 */
-	public boolean getDefaultReadOnly() {
-		return getReadOnly(getDefaultDataSourceName());
-	}
-
-	/**
-	 * dataSourceNameで指定したデータソースに対するReadOnlyオプションの指定
-	 *
-	 * @param dataSourceName データソース名
-	 * @param readOnly readOnlyを指定する場合は<code>true</code>
-	 */
-	public void setReadOnly(final String dataSourceName, final boolean readOnly) {
-		Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-		props.put(PROPS_READ_ONLY, Boolean.toString(readOnly));
-	}
-
-	/**
-	 * dataSourceNameで指定したデータソースに対するReadOnlyオプションの指定
-	 *
-	 * @param dataSourceName データソース名
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected boolean getReadOnly(final String dataSourceName) {
-		Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-		return Boolean.parseBoolean(props.get(PROPS_READ_ONLY));
+	public int getDefaultTransactionIsolation() {
+		return getTransactionIsolation(defaultConnProps);
 	}
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するtransactionIsolationオプションの指定
+	 * で指定したデータソースに対するtransactionIsolationオプションを指定
 	 *
 	 * @see Connection#TRANSACTION_READ_UNCOMMITTED
 	 * @see Connection#TRANSACTION_READ_COMMITTED
@@ -237,65 +202,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 *
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
-		setTransactionIsolation(getDefaultDataSourceName(), transactionIsolation);
-	}
-
-	/**
-	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するtransactionIsolationオプションの取得
-	 *
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	public int getDefaultTransactionIsolation() {
-		return getTransactionIsolation(getDefaultDataSourceName());
-	}
-
-	/**
-	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するtransactionIsolationオプションの指定
-	 *
-	 * @see Connection#TRANSACTION_READ_UNCOMMITTED
-	 * @see Connection#TRANSACTION_READ_COMMITTED
-	 * @see Connection#TRANSACTION_REPEATABLE_READ
-	 * @see Connection#TRANSACTION_SERIALIZABLE
-	 *
-	 * @param dataSourceName データソース名
-	 * @param transactionIsolation transactionIsolationオプション
-	 *
-	 */
-	public void setTransactionIsolation(final String dataSourceName, final int transactionIsolation) {
-		if (Connection.TRANSACTION_READ_UNCOMMITTED == transactionIsolation
-				|| Connection.TRANSACTION_READ_COMMITTED == transactionIsolation
-				|| Connection.TRANSACTION_REPEATABLE_READ == transactionIsolation
-				|| Connection.TRANSACTION_SERIALIZABLE == transactionIsolation) {
-			Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-			props.put(PROPS_TRANSACTION_ISOLATION, String.valueOf(transactionIsolation));
-		} else {
-			throw new IllegalArgumentException("Unsupported level [" + transactionIsolation + "]");
-		}
-	}
-
-	/**
-	 * dataSourceNameで指定したデータソースに対するtransactionIsolationオプションの指定
-	 *
-	 * @param dataSourceName データソース名
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected int getTransactionIsolation(final String dataSourceName) {
-		Map<String, String> props = getConnPropsByDataSourceName(dataSourceName);
-		String val = props.get(PROPS_TRANSACTION_ISOLATION);
-		return val == null ? -1 : Integer.parseInt(val);
-	}
-
-	/**
-	 * データソース名を指定したプロパティの取得
-	 *
-	 * @param dataSourceName データソース名
-	 *
-	 * @return データソースに紐付くプロパティ
-	 */
-	protected Map<String, String> getConnPropsByDataSourceName(final String dataSourceName) {
-		return connProps.computeIfAbsent(dataSourceName, k -> new ConcurrentHashMap<>());
+		setTransactionIsolation(defaultConnProps, transactionIsolation);
 	}
 
 }

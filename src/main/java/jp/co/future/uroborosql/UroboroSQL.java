@@ -8,6 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.sql.Connection;
 import java.time.Clock;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -398,7 +399,17 @@ public final class UroboroSQL {
 		 */
 		@Override
 		public SqlAgent agent() {
-			return sqlAgentFactory.createSqlAgent();
+			return sqlAgentFactory.agent();
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.config.SqlConfig#agent(java.util.Map)
+		 */
+		@Override
+		public SqlAgent agent(final Map<String, String> props) {
+			return sqlAgentFactory.agent(props);
 		}
 
 		/**

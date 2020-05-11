@@ -227,20 +227,6 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	void setSqlKind(SqlKind sqlKind);
 
 	/**
-	 *  DB接続の別名（エイリアス）を設定する
-	 *
-	 * @param dbAlias DB接続の別名（エイリアス）
-	 */
-	void setDBAlias(String dbAlias);
-
-	/**
-	 * DB接続の別名（エイリアス）
-	 *
-	 * @return DB接続の別名（エイリアス）
-	 */
-	String getDbAlias();
-
-	/**
 	 * コンテキストが保持する属性を取得する
 	 * @return コンテキスト属性情報
 	 */

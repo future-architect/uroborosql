@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -31,12 +32,12 @@ public class H2DialectTest {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
-			public Connection getConnection(final String alias) {
+			public Connection getConnection() {
 				return null;
 			}
 
 			@Override
-			public Connection getConnection() {
+			public Connection getConnection(final Map<String, String> props) {
 				return null;
 			}
 

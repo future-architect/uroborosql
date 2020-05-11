@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.connection;
 
 import java.sql.Connection;
+import java.util.Map;
 
 /**
  * デフォルトコネクション供給クラス<br>
@@ -40,11 +41,11 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.lang.String)
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.util.Map)
 	 */
 	@Override
-	public Connection getConnection(final String alias) {
-		return connection;
+	public Connection getConnection(final Map<String, String> props) {
+		throw new UnsupportedOperationException();
 	}
 
 }

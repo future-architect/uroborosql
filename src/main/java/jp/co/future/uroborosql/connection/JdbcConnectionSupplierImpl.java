@@ -9,8 +9,10 @@ package jp.co.future.uroborosql.connection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
  * JDBCドライバーを使用したコネクション供給クラス<br>
@@ -20,20 +22,17 @@ import java.util.Map;
  */
 public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 
-	private static final Map<String, String> props = new HashMap<>();
+	public static final String PROPS_JDBC_URL = "jdbc.url";
+	public static final String PROPS_JDBC_USER = "jdbc.user";
+	public static final String PROPS_JDBC_PASSWORD = "jdbc.password";
+	public static final String PROPS_JDBC_SCHEMA = "jdbc.schema";
 
-	private static final String PROPS_JDBC_URL = "jdbc.url";
-	private static final String PROPS_JDBC_USER = "jdbc.user";
-	private static final String PROPS_JDBC_PASSWORD = "jdbc.password";
-	private static final String PROPS_JDBC_SCHEMA = "jdbc.schema";
-	private static final String PROPS_AUTO_COMMIT = "autocommit";
-	private static final String PROPS_READ_ONLY = "readonly";
-	private static final String PROPS_TRANSACTION_ISOLATION = "transactionisolation";
+	private final Map<String, String> defaultConnProps = new ConcurrentHashMap<>();
 
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param url JDBCURL
+	 * @param url JDBC URL(必須)
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
 	 */
@@ -44,7 +43,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param url JDBCURL
+	 * @param url JDBC URL(必須)
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
 	 * @param schema JDBCスキーマ名
@@ -56,7 +55,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * JDBCConnectionSupplierImplのコンストラクタ
 	 *
-	 * @param url JDBCURL
+	 * @param url JDBC URL(必須)
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
 	 * @param schema JDBCスキーマ名
@@ -65,13 +64,21 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public JdbcConnectionSupplierImpl(final String url, final String user, final String password, final String schema,
 			final boolean autoCommit, final boolean readOnly) {
-		props.put(PROPS_JDBC_URL, url);
-		props.put(PROPS_JDBC_USER, user);
-		props.put(PROPS_JDBC_PASSWORD, password);
-		props.put(PROPS_JDBC_SCHEMA, schema);
-
-		props.put(PROPS_AUTO_COMMIT, Boolean.toString(autoCommit));
-		props.put(PROPS_READ_ONLY, Boolean.toString(readOnly));
+		if (url == null) {
+			throw new IllegalArgumentException("url is required but null.");
+		}
+		defaultConnProps.put(PROPS_JDBC_URL, url);
+		if (user != null) {
+			defaultConnProps.put(PROPS_JDBC_USER, user);
+		}
+		if (password != null) {
+			defaultConnProps.put(PROPS_JDBC_PASSWORD, password);
+		}
+		if (schema != null) {
+			defaultConnProps.put(PROPS_JDBC_SCHEMA, schema);
+		}
+		setAutoCommit(defaultConnProps, autoCommit);
+		setReadOnly(defaultConnProps, readOnly);
 	}
 
 	/**
@@ -81,47 +88,36 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	@Override
 	public Connection getConnection() {
-		try {
-			String jdbcUrl = props.get(PROPS_JDBC_URL);
-			String jdbcUser = props.get(PROPS_JDBC_USER);
-			String jdbcPassword = props.get(PROPS_JDBC_PASSWORD);
-
-			Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword);
-
-			String schema = getSchema();
-			if (schema != null) {
-				connection.setSchema(schema);
-			}
-			connection.setAutoCommit(getAutoCommit());
-			connection.setReadOnly(getReadOnly());
-			int transactionIsolation = getTransactionIsolation();
-			if (transactionIsolation > 0) {
-				connection.setTransactionIsolation(transactionIsolation);
-			}
-			return connection;
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return null;
-		}
+		return getConnection(defaultConnProps);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.lang.String)
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.util.Map)
 	 */
 	@Override
-	public Connection getConnection(final String alias) {
-		throw new UnsupportedOperationException("Multiple DB connections are not supported.");
-	}
+	public Connection getConnection(final Map<String, String> props) {
+		String jdbcUrl = props.get(PROPS_JDBC_URL);
+		String jdbcUser = props.get(PROPS_JDBC_USER);
+		String jdbcPassword = props.get(PROPS_JDBC_PASSWORD);
+		try {
+			Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword);
 
-	/**
-	 * JDBCスキーマ名を取得
-	 *
-	 * @return JDBCスキーマ名
-	 */
-	protected String getSchema() {
-		return props.get(PROPS_JDBC_SCHEMA);
+			String schema = props.get(PROPS_JDBC_SCHEMA);
+			if (schema != null) {
+				connection.setSchema(schema);
+			}
+			connection.setAutoCommit(isAutoCommit(props));
+			connection.setReadOnly(isReadOnly(props));
+			int transactionIsolation = getTransactionIsolation(props);
+			if (transactionIsolation > 0) {
+				connection.setTransactionIsolation(transactionIsolation);
+			}
+			return connection;
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException("Connection[" + jdbcUrl + "] can not be acquired.", ex);
+		}
 	}
 
 	/**
@@ -129,50 +125,42 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 *
 	 * @param schema スキーマ名
 	 */
+	@Deprecated
 	public void setSchema(final String schema) {
-		props.put(PROPS_JDBC_SCHEMA, schema);
+		setDefaultSchema(schema);
 	}
 
 	/**
-	 * AutoCommitオプションの指定
+	 * デフォルトのDB接続情報にJDBCスキーマ名を設定
+	 *
+	 * @param schema スキーマ名
+	 */
+	public void setDefaultSchema(final String schema) {
+		defaultConnProps.put(PROPS_JDBC_SCHEMA, schema);
+	}
+
+	/**
+	 * デフォルトのDB接続情報にAutoCommitオプションの指定
 	 *
 	 * @param autoCommit
 	 *            AutoCommitを行う場合は<code>true</code>
 	 */
 	public void setDefaultAutoCommit(final boolean autoCommit) {
-		props.put(PROPS_AUTO_COMMIT, Boolean.toString(autoCommit));
+		setAutoCommit(defaultConnProps, autoCommit);
 	}
 
 	/**
-	 * AutoCommitオプションの取得
-	 *
-	 * @return AutoCommitを行う場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected boolean getAutoCommit() {
-		return Boolean.parseBoolean(props.get(PROPS_AUTO_COMMIT));
-	}
-
-	/**
-	 * ReadOnlyオプションの指定
+	 * デフォルトのDB接続情報にReadOnlyオプションを指定
 	 *
 	 * @param readOnly
 	 *            readOnlyを指定する場合は<code>true</code>
 	 */
 	public void setDefaultReadOnly(final boolean readOnly) {
-		props.put(PROPS_READ_ONLY, Boolean.toString(readOnly));
+		setReadOnly(defaultConnProps, readOnly);
 	}
 
 	/**
-	 * ReadOnlyオプションの指定
-	 *
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected boolean getReadOnly() {
-		return Boolean.parseBoolean(props.get(PROPS_READ_ONLY));
-	}
-
-	/**
-	 * transactionIsolationオプションの指定
+	 * デフォルトのDB接続情報にtransactionIsolationオプションを指定
 	 *
 	 * @see Connection#TRANSACTION_READ_UNCOMMITTED
 	 * @see Connection#TRANSACTION_READ_COMMITTED
@@ -182,23 +170,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param transactionIsolation transactionIsolationオプション
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
-		if (Connection.TRANSACTION_READ_UNCOMMITTED == transactionIsolation
-				|| Connection.TRANSACTION_READ_COMMITTED == transactionIsolation
-				|| Connection.TRANSACTION_REPEATABLE_READ == transactionIsolation
-				|| Connection.TRANSACTION_SERIALIZABLE == transactionIsolation) {
-			props.put(PROPS_TRANSACTION_ISOLATION, String.valueOf(transactionIsolation));
-		} else {
-			throw new IllegalArgumentException("Unsupported level [" + transactionIsolation + "]");
-		}
-	}
-
-	/**
-	 * transactionIsolationオプションの指定
-	 *
-	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
-	 */
-	protected int getTransactionIsolation() {
-		String val = props.get(PROPS_TRANSACTION_ISOLATION);
-		return val == null ? -1 : Integer.parseInt(val);
+		setTransactionIsolation(defaultConnProps, transactionIsolation);
 	}
 }

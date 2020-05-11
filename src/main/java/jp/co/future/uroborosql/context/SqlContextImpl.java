@@ -150,9 +150,6 @@ public class SqlContextImpl implements SqlContext {
 	/** 自動採番するキーカラム値の配列 */
 	private BigDecimal[] generatedKeyValues;
 
-	/** DBエイリアス名 */
-	private String dbAlias = null;
-
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
@@ -192,7 +189,6 @@ public class SqlContextImpl implements SqlContext {
 		resultSetType = parent.resultSetType;
 		resultSetConcurrency = parent.resultSetConcurrency;
 		sqlKind = parent.sqlKind;
-		dbAlias = parent.dbAlias;
 		contextAttributes.putAll(parent.contextAttributes);
 		queryAutoParameterBinder = parent.queryAutoParameterBinder;
 		parameterMapperManager = parent.parameterMapperManager;
@@ -1115,26 +1111,6 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public void setSqlKind(final SqlKind sqlKind) {
 		this.sqlKind = sqlKind;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setDBAlias(java.lang.String)
-	 */
-	@Override
-	public void setDBAlias(final String dbAlias) {
-		this.dbAlias = dbAlias;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getDbAlias()
-	 */
-	@Override
-	public String getDbAlias() {
-		return dbAlias;
 	}
 
 	/**

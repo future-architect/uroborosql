@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql;
 
 import java.util.List;
+import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -95,9 +96,27 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	/**
 	 * SQL実行クラス生成.
 	 *
+	 * @deprecated Instead, use the agent() method.
 	 * @return SqlAgent
 	 */
+	@Deprecated
 	SqlAgent createSqlAgent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @return SqlAgent
+	 */
+	SqlAgent agent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @param connProps DB接続プロパティ
+	 *
+	 * @return 生成したSqlAgent.
+	 */
+	SqlAgent agent(Map<String, String> connProps);
 
 	/**
 	 * SQL管理クラスを取得する.

@@ -14,6 +14,7 @@ import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -37,12 +38,12 @@ public class PostgresqlDialectTest {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
-			public Connection getConnection(final String alias) {
+			public Connection getConnection() {
 				return null;
 			}
 
 			@Override
-			public Connection getConnection() {
+			public Connection getConnection(final Map<String, String> props) {
 				return null;
 			}
 

@@ -15,6 +15,7 @@ import java.util.Map;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -33,7 +34,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	public static final String PROPS_KEY_OUTPUT_EXCEPTION_LOG = "outputExceptionLog";
 
 	/** デフォルト値を保持するプロパティ */
-	private final Map<String, String> defaultProps = new HashMap<>();
+	protected final Map<String, String> settings = new HashMap<>();
 
 	/** SqlConfig */
 	private SqlConfig sqlConfig;
@@ -53,17 +54,32 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	public SqlAgentFactoryImpl(final SqlConfig sqlConfig) {
 		this.sqlConfig = sqlConfig;
-		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.TRUE.toString());
+		settings.put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.TRUE.toString());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @deprecated Instead, use the agent() method.
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#createSqlAgent()
 	 */
+	@Deprecated
 	@Override
 	public SqlAgent createSqlAgent() {
-		return sqlConfig == null ? null : new SqlAgentImpl(sqlConfig, getDefaultProps());
+		return this.agent();
+	}
+
+	@Override
+	public SqlAgent agent() {
+		return this.agent(null);
+	}
+
+	@Override
+	public SqlAgent agent(final Map<String, String> props) {
+		if (sqlConfig == null) {
+			throw new UroborosqlRuntimeException();
+		}
+		return new SqlAgentImpl(sqlConfig, settings, props);
 	}
 
 	/**
@@ -133,7 +149,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public boolean isOutputExceptionLog() {
-		return Boolean.parseBoolean(getDefaultProps().get(PROPS_KEY_OUTPUT_EXCEPTION_LOG));
+		return Boolean.parseBoolean(settings.get(PROPS_KEY_OUTPUT_EXCEPTION_LOG));
 	}
 
 	/**
@@ -143,7 +159,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog) {
-		getDefaultProps().put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.toString(outputExceptionLog));
+		settings.put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.toString(outputExceptionLog));
 		return this;
 	}
 
@@ -154,7 +170,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public int getFetchSize() {
-		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_FETCH_SIZE, "-1"));
+		return Integer.parseInt(settings.getOrDefault(PROPS_KEY_FETCH_SIZE, "-1"));
 	}
 
 	/**
@@ -164,7 +180,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setFetchSize(final int fetchSize) {
-		getDefaultProps().put(PROPS_KEY_FETCH_SIZE, String.valueOf(fetchSize));
+		settings.put(PROPS_KEY_FETCH_SIZE, String.valueOf(fetchSize));
 		return this;
 	}
 
@@ -175,7 +191,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public int getQueryTimeout() {
-		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_QUERY_TIMEOUT, "-1"));
+		return Integer.parseInt(settings.getOrDefault(PROPS_KEY_QUERY_TIMEOUT, "-1"));
 	}
 
 	/**
@@ -185,7 +201,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setQueryTimeout(final int queryTimeout) {
-		getDefaultProps().put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
+		settings.put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
 		return this;
 	}
 
@@ -196,7 +212,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public List<String> getSqlRetryCodeList() {
-		String codes = getDefaultProps().get(PROPS_KEY_SQL_RETRY_CODES);
+		String codes = settings.get(PROPS_KEY_SQL_RETRY_CODES);
 		if (codes == null) {
 			return Collections.emptyList();
 		} else {
@@ -212,7 +228,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
 		if (sqlRetryCodeList != null && !sqlRetryCodeList.isEmpty()) {
-			getDefaultProps().put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
+			settings.put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
 		}
 		return this;
 	}
@@ -224,7 +240,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public int getDefaultMaxRetryCount() {
-		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, "0"));
+		return Integer.parseInt(settings.getOrDefault(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, "0"));
 	}
 
 	/**
@@ -234,7 +250,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, String.valueOf(defaultMaxRetryCount));
+		settings.put(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, String.valueOf(defaultMaxRetryCount));
 		return this;
 	}
 
@@ -245,7 +261,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public int getDefaultSqlRetryWaitTime() {
-		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, "0"));
+		return Integer.parseInt(settings.getOrDefault(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, "0"));
 	}
 
 	/**
@@ -255,7 +271,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, String.valueOf(defaultSqlRetryWaitTime));
+		settings.put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, String.valueOf(defaultSqlRetryWaitTime));
 		return this;
 	}
 
@@ -266,7 +282,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public String getSqlIdKeyName() {
-		return getDefaultProps().getOrDefault(PROPS_KEY_SQL_ID_KEY_NAME, "_SQL_ID_");
+		return settings.getOrDefault(PROPS_KEY_SQL_ID_KEY_NAME, "_SQL_ID_");
 	}
 
 	/**
@@ -276,7 +292,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName) {
-		getDefaultProps().put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
+		settings.put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
 		return this;
 	}
 
@@ -287,7 +303,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public CaseFormat getDefaultMapKeyCaseFormat() {
-		return CaseFormat.valueOf(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT,
+		return CaseFormat.valueOf(settings.getOrDefault(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT,
 				CaseFormat.UPPER_SNAKE_CASE.toString()));
 	}
 
@@ -298,7 +314,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
+		settings.put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
 		return this;
 	}
 
@@ -309,7 +325,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public InsertsType getDefaultInsertsType() {
-		return InsertsType.valueOf(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_INSERTS_TYPE,
+		return InsertsType.valueOf(settings.getOrDefault(PROPS_KEY_DEFAULT_INSERTS_TYPE,
 				InsertsType.BULK.toString()));
 	}
 
@@ -320,7 +336,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setDefaultInsertsType(final InsertsType defaultInsertsType) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_INSERTS_TYPE, defaultInsertsType.toString());
+		settings.put(PROPS_KEY_DEFAULT_INSERTS_TYPE, defaultInsertsType.toString());
 		return this;
 	}
 
@@ -332,7 +348,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public boolean isForceUpdateWithinTransaction() {
 		return Boolean
-				.parseBoolean(getDefaultProps().getOrDefault(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
+				.parseBoolean(settings.getOrDefault(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
 						Boolean.FALSE.toString()));
 	}
 
@@ -343,18 +359,9 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setForceUpdateWithinTransaction(final boolean forceUpdateWithinTransaction) {
-		getDefaultProps().put(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
+		settings.put(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
 				Boolean.toString(forceUpdateWithinTransaction));
 		return this;
-	}
-
-	/**
-	 * defaultProps を取得します
-	 *
-	 * @return defaultProps
-	 */
-	protected Map<String, String> getDefaultProps() {
-		return defaultProps;
 	}
 
 	/**
@@ -364,7 +371,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public int getDefaultForUpdateWaitSeconds() {
-		return Integer.parseInt(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, "10"));
+		return Integer.parseInt(settings.getOrDefault(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, "10"));
 	}
 
 	/**
@@ -374,7 +381,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds) {
-		getDefaultProps().put(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, String.valueOf(defaultForUpdateWaitSeconds));
+		settings.put(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, String.valueOf(defaultForUpdateWaitSeconds));
 		return this;
 	}
 
@@ -386,7 +393,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public boolean isStrictForUpdateType() {
 		return Boolean.parseBoolean(
-				getDefaultProps().getOrDefault(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.FALSE.toString()));
+				settings.getOrDefault(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.FALSE.toString()));
 	}
 
 	/**
@@ -396,7 +403,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public SqlAgentFactory setStrictForUpdateType(final boolean strictForUpdateType) {
-		getDefaultProps().put(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.toString(strictForUpdateType));
+		settings.put(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.toString(strictForUpdateType));
 		return this;
 	}
 

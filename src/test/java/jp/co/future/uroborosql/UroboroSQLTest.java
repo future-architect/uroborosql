@@ -8,21 +8,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
+import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -129,6 +137,34 @@ public class UroboroSQLTest {
 	}
 
 	@Test
+	public void builderSetUrlMultiConnection() throws Exception {
+		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null).build();
+
+		Map<String, String> props = new HashMap<>();
+		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_URL, "jdbc:h2:mem:" + this.getClass().getSimpleName() + "Sub1");
+		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_USER, "");
+		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_PASSWORD, "");
+
+		String checkSql = "select table_name from information_schema.tables where table_name = 'PRODUCT'";
+		try (SqlAgent agent = config.agent(props)) {
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+					StandardCharsets.UTF_8).split(";");
+			for (String sql : sqls) {
+				if (StringUtils.isNotBlank(sql)) {
+					agent.updateWith(sql.trim()).count();
+				}
+			}
+
+			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+			assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+		}
+
+		try (SqlAgent agent = config.agent()) {
+			assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+		}
+	}
+
+	@Test
 	public void builderSetSqlManager() throws Exception {
 		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
 				.setSqlManager(new SqlManagerImpl(false)).build();
@@ -168,6 +204,77 @@ public class UroboroSQLTest {
 		}
 
 		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+	}
+
+	@Test
+	public void builderWithMultiDataSource() throws Exception {
+		System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "jp.co.future.uroborosql.connection.LocalContextFactory");
+		System.setProperty(Context.URL_PKG_PREFIXES, "local");
+
+		JdbcDataSource ds1 = new JdbcDataSource();
+		ds1.setURL("jdbc:h2:mem:" + this.getClass().getSimpleName() + "1");
+		JdbcDataSource ds2 = new JdbcDataSource();
+		ds2.setURL("jdbc:h2:mem:" + this.getClass().getSimpleName() + "2");
+
+		Context ic = new InitialContext();
+		String dsName1 = DataSourceConnectionSupplierImpl.DEFAULT_DATASOURCE_NAME;
+		String dsName2 = "java:comp/env/jdbc/second_datasource";
+		ic.createSubcontext("java:comp");
+		ic.createSubcontext("java:comp/env");
+		ic.createSubcontext("java:comp/env/jdbc");
+		ic.bind(dsName1, ds1);
+		ic.bind(dsName2, ds2);
+
+		SqlConfig config = UroboroSQL.builder()
+				.setConnectionSupplier(new DataSourceConnectionSupplierImpl())
+				.build();
+
+		String checkSql = "select table_name from information_schema.tables where table_name = 'PRODUCT'";
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+				try {
+					String[] sqls = new String(
+							Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+							StandardCharsets.UTF_8).split(";");
+					for (String sql : sqls) {
+						if (StringUtils.isNotBlank(sql)) {
+							agent.updateWith(sql.trim()).count();
+						}
+					}
+				} catch (IOException e) {
+					fail(e.getMessage());
+				}
+				insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+				assertThat(agent.query("example/select_product").collect().size(), is(2));
+				assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+			});
+		}
+
+		Map<String, String> props = new HashMap<>();
+		props.put(DataSourceConnectionSupplierImpl.PROPS_DATASOURCE_NAME, dsName2);
+		props.put(ConnectionSupplier.PROPS_AUTO_COMMIT, Boolean.TRUE.toString());
+		props.put(ConnectionSupplier.PROPS_READ_ONLY, Boolean.TRUE.toString()); // H2はreadonlyの設定が適用されない
+		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
+				String.valueOf(Connection.TRANSACTION_READ_UNCOMMITTED));
+		try (SqlAgent agent = config.agent(props)) {
+			assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+			try {
+				String[] sqls = new String(
+						Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+						StandardCharsets.UTF_8).split(";");
+				for (String sql : sqls) {
+					if (StringUtils.isNotBlank(sql)) {
+						agent.updateWith(sql.trim()).count();
+					}
+				}
+			} catch (IOException e) {
+				fail(e.getMessage());
+			}
+			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+			assertThat(agent.query("example/select_product").collect().size(), is(2));
+			assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+		}
 	}
 
 	@Test

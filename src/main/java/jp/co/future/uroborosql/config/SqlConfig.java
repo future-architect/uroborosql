@@ -10,6 +10,7 @@
 package jp.co.future.uroborosql.config;
 
 import java.time.Clock;
+import java.util.Map;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
@@ -68,6 +69,14 @@ public interface SqlConfig {
 	 * @return 生成したSqlAgent.
 	 */
 	SqlAgent agent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @param props DB接続情報
+	 * @return 生成したSqlAgent.
+	 */
+	SqlAgent agent(Map<String, String> props);
 
 	/**
 	 * sqlManager を取得.
