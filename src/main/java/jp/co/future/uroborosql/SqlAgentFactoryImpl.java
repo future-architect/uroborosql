@@ -310,7 +310,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	@Override
 	public InsertsType getDefaultInsertsType() {
 		return InsertsType.valueOf(getDefaultProps().getOrDefault(PROPS_KEY_DEFAULT_INSERTS_TYPE,
-				InsertsType.BULK.toString()));
+				InsertsType.BATCH.toString()));
 	}
 
 	/**
