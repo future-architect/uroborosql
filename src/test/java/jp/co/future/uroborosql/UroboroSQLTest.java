@@ -14,7 +14,6 @@ import java.time.Clock;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,10 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
+import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
+import jp.co.future.uroborosql.connection.DataSourceConnectionContext;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
-import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.store.SqlManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -140,13 +139,9 @@ public class UroboroSQLTest {
 	public void builderSetUrlMultiConnection() throws Exception {
 		SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null).build();
 
-		Map<String, String> props = new HashMap<>();
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_URL, "jdbc:h2:mem:" + this.getClass().getSimpleName() + "Sub1");
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_USER, "");
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_PASSWORD, "");
-
 		String checkSql = "select table_name from information_schema.tables where table_name = 'PRODUCT'";
-		try (SqlAgent agent = config.agent(props)) {
+		try (SqlAgent agent = config.agent(
+				ConnectionContextBuilder.jdbc("jdbc:h2:mem:" + this.getClass().getSimpleName() + "Sub1", "", ""))) {
 			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
@@ -217,7 +212,7 @@ public class UroboroSQLTest {
 		ds2.setURL("jdbc:h2:mem:" + this.getClass().getSimpleName() + "2");
 
 		Context ic = new InitialContext();
-		String dsName1 = DataSourceConnectionSupplierImpl.DEFAULT_DATASOURCE_NAME;
+		String dsName1 = DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME;
 		String dsName2 = "java:comp/env/jdbc/second_datasource";
 		ic.createSubcontext("java:comp");
 		ic.createSubcontext("java:comp/env");
@@ -251,13 +246,11 @@ public class UroboroSQLTest {
 			});
 		}
 
-		Map<String, String> props = new HashMap<>();
-		props.put(DataSourceConnectionSupplierImpl.PROPS_DATASOURCE_NAME, dsName2);
-		props.put(ConnectionSupplier.PROPS_AUTO_COMMIT, Boolean.TRUE.toString());
-		props.put(ConnectionSupplier.PROPS_READ_ONLY, Boolean.TRUE.toString()); // H2はreadonlyの設定が適用されない
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_READ_UNCOMMITTED));
-		try (SqlAgent agent = config.agent(props)) {
+		try (SqlAgent agent = config.agent(ConnectionContextBuilder
+				.dataSource(dsName2)
+				.autoCommit(true)
+				.readOnly(true)
+				.transactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED))) {
 			assertThat(agent.queryWith(checkSql).collect().size(), is(0));
 			try {
 				String[] sqls = new String(

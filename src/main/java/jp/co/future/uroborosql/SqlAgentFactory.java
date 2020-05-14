@@ -7,9 +7,9 @@
 package jp.co.future.uroborosql;
 
 import java.util.List;
-import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
@@ -112,11 +112,11 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	/**
 	 * SqlAgentの生成.
 	 *
-	 * @param connProps DB接続プロパティ
+	 * @param connectionContext DB接続情報
 	 *
 	 * @return 生成したSqlAgent.
 	 */
-	SqlAgent agent(Map<String, String> connProps);
+	SqlAgent agent(ConnectionContext connectionContext);
 
 	/**
 	 * SQL管理クラスを取得する.

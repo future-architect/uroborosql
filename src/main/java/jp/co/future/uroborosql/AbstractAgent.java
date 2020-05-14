@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -154,12 +155,12 @@ public abstract class AbstractAgent implements SqlAgent {
 	 *
 	 * @param sqlConfig SQL設定管理クラス
 	 * @param settings 設定情報
-	 * @param connProps DB接続プロパティ
+	 * @param connectionContext DB接続情報
 	 */
 	protected AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> settings,
-			final Map<String, String> connProps) {
+			final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
-		this.transactionManager = new LocalTransactionManager(sqlConfig, connProps);
+		this.transactionManager = new LocalTransactionManager(sqlConfig, connectionContext);
 
 		// デフォルトプロパティ設定
 		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {

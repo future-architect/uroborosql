@@ -4,8 +4,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Test;
 
@@ -22,6 +20,7 @@ public class JdbcConnectionSupplierImplTest {
 		String user = "";
 		String password = "";
 
+		@SuppressWarnings("deprecation")
 		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -32,6 +31,7 @@ public class JdbcConnectionSupplierImplTest {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test(expected = IllegalArgumentException.class)
 	public void testJdbcConnectionNull() throws Exception {
 		new JdbcConnectionSupplierImpl(null, null, null);
@@ -44,6 +44,7 @@ public class JdbcConnectionSupplierImplTest {
 		String password = "";
 		String schema = "PUBLIC";
 
+		@SuppressWarnings("deprecation")
 		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password, schema);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -63,6 +64,7 @@ public class JdbcConnectionSupplierImplTest {
 		boolean autoCommit = true;
 		boolean readonly = true;
 
+		@SuppressWarnings("deprecation")
 		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit,
 				readonly);
 		try (Connection conn = supplier.getConnection()) {
@@ -75,23 +77,20 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetConnectionWithProps() throws Exception {
+	public void testGetConnectionWithContext() throws Exception {
 		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		String user = "";
 		String password = "";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 		}
 
-		Map<String, String> props = new HashMap<>();
 		String url2 = url + "_2";
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_URL, url2);
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_USER, "");
-		props.put(JdbcConnectionSupplierImpl.PROPS_JDBC_PASSWORD, "");
-
-		try (Connection conn = supplier.getConnection(props)) {
+		try (Connection conn = supplier.getConnection(
+				ConnectionContextBuilder.jdbc(url2, user, password))) {
 			assertThat(conn.getMetaData().getURL(), is(url2));
 		}
 	}
@@ -122,7 +121,8 @@ public class JdbcConnectionSupplierImplTest {
 		String password = "";
 		String schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultSchema(schema);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -142,7 +142,8 @@ public class JdbcConnectionSupplierImplTest {
 		boolean autoCommit = true;
 		boolean readonly = false;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultAutoCommit(autoCommit);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -162,7 +163,8 @@ public class JdbcConnectionSupplierImplTest {
 		boolean autoCommit = false;
 		boolean readonly = true;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultReadOnly(readonly);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -181,7 +183,8 @@ public class JdbcConnectionSupplierImplTest {
 		String password = "";
 		String schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password, schema);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password, schema));
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_UNCOMMITTED));
@@ -213,40 +216,9 @@ public class JdbcConnectionSupplierImplTest {
 		String user = "";
 		String password = "";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
-	}
-
-	@Test
-	public void testGetTransactionIsolation() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
-
-		Map<String, String> props = new HashMap<>();
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, String.valueOf(Connection.TRANSACTION_NONE));
-		assertThat(supplier.getTransactionIsolation(props), is(-1));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_READ_COMMITTED));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_READ_COMMITTED));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_READ_UNCOMMITTED));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_READ_UNCOMMITTED));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_REPEATABLE_READ));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_REPEATABLE_READ));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, String.valueOf(Connection.TRANSACTION_SERIALIZABLE));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_SERIALIZABLE));
-
-		try {
-			props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, "dummy");
-			supplier.getTransactionIsolation(props);
-			fail();
-		} catch (IllegalArgumentException ex) {
-			assertThat(ex.getMessage(), containsString("NumberFormatException"));
-		}
 	}
 
 }

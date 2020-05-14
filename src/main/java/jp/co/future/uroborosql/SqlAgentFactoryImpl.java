@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -69,17 +70,27 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 		return this.agent();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#agent()
+	 */
 	@Override
 	public SqlAgent agent() {
 		return this.agent(null);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgentFactory#agent(jp.co.future.uroborosql.connection.ConnectionContext)
+	 */
 	@Override
-	public SqlAgent agent(final Map<String, String> props) {
+	public SqlAgent agent(final ConnectionContext connectionContext) {
 		if (sqlConfig == null) {
 			throw new UroborosqlRuntimeException();
 		}
-		return new SqlAgentImpl(sqlConfig, settings, props);
+		return new SqlAgentImpl(sqlConfig, settings, connectionContext);
 	}
 
 	/**

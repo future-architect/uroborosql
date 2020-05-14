@@ -4,8 +4,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -24,7 +22,7 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 public class DataSourceConnectionSupplierImplTest {
 	private static final String URL1 = "jdbc:h2:mem:ds1";
 	private static final String URL2 = "jdbc:h2:mem:ds2";
-	private static final String DS_NAME1 = DataSourceConnectionSupplierImpl.DEFAULT_DATASOURCE_NAME;
+	private static final String DS_NAME1 = DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME;
 	private static final String DS_NAME2 = "java:comp/env/jdbc/second_datasource";
 
 	@BeforeClass
@@ -75,16 +73,13 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetConnectionWithProps() throws Exception {
+	public void testGetConnectionWithContext() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
 		try (Connection conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
 		}
 
-		Map<String, String> props = new HashMap<>();
-		props.put(DataSourceConnectionSupplierImpl.PROPS_DATASOURCE_NAME, DS_NAME2);
-
-		try (Connection conn = supplier.getConnection(props)) {
+		try (Connection conn = supplier.getConnection(ConnectionContextBuilder.dataSource(DS_NAME2))) {
 			assertThat(conn.getMetaData().getURL(), is(URL2));
 		}
 	}
@@ -92,16 +87,13 @@ public class DataSourceConnectionSupplierImplTest {
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testGetConnectionMissingName() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		Map<String, String> props = new HashMap<>();
-		props.put(DataSourceConnectionSupplierImpl.PROPS_DATASOURCE_NAME, "dummy");
-
-		supplier.getConnection(props);
+		supplier.getConnection(ConnectionContextBuilder.dataSource("dummy"));
 	}
 
 	@Test
 	public void testGetDefaultDataSourceName() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		assertThat(supplier.getDefaultDataSourceName(), is(DataSourceConnectionSupplierImpl.DEFAULT_DATASOURCE_NAME));
+		assertThat(supplier.getDefaultDataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		String dataSourceName = "changedDataSourceName";
 		supplier.setDefaultDataSourceName(dataSourceName);
 		assertThat(supplier.getDefaultDataSourceName(), is(dataSourceName));
@@ -180,33 +172,4 @@ public class DataSourceConnectionSupplierImplTest {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}
-
-	@Test
-	public void testGetTransactionIsolation() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-
-		Map<String, String> props = new HashMap<>();
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, String.valueOf(Connection.TRANSACTION_NONE));
-		assertThat(supplier.getTransactionIsolation(props), is(-1));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_READ_COMMITTED));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_READ_COMMITTED));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_READ_UNCOMMITTED));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_READ_UNCOMMITTED));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION,
-				String.valueOf(Connection.TRANSACTION_REPEATABLE_READ));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_REPEATABLE_READ));
-		props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, String.valueOf(Connection.TRANSACTION_SERIALIZABLE));
-		assertThat(supplier.getTransactionIsolation(props), is(Connection.TRANSACTION_SERIALIZABLE));
-
-		try {
-			props.put(ConnectionSupplier.PROPS_TRANSACTION_ISOLATION, "dummy");
-			supplier.getTransactionIsolation(props);
-			fail();
-		} catch (IllegalArgumentException ex) {
-			assertThat(ex.getMessage(), containsString("NumberFormatException"));
-		}
-	}
-
 }

@@ -27,23 +27,17 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
  */
 public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
-	/** プロパティ：データソース名 */
-	public static final String PROPS_DATASOURCE_NAME = "datasource_name";
-
-	/** デフォルトデータソース名 */
-	public static final String DEFAULT_DATASOURCE_NAME = "java:comp/env/jdbc/default_datasource";
-
 	/** データソース名とデータソースのマップ */
 	private final Map<String, DataSource> datasources = new ConcurrentHashMap<>();
 
 	/** デフォルトデータソース用のDB接続情報 */
-	private final Map<String, String> defaultConnProps = new ConcurrentHashMap<>();
+	private final DataSourceConnectionContext defaultConnectionContext;
 
 	/**
 	 * コンストラクタ。
 	 */
 	public DataSourceConnectionSupplierImpl() {
-		this(DEFAULT_DATASOURCE_NAME);
+		this(ConnectionContextBuilder.dataSource());
 	}
 
 	/**
@@ -51,8 +45,18 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 *
 	 * @param defaultDataSourceName 取得するコネクションのデータソース名
 	 */
+	@Deprecated
 	public DataSourceConnectionSupplierImpl(final String defaultDataSourceName) {
-		setDefaultDataSourceName(defaultDataSourceName);
+		this(ConnectionContextBuilder.dataSource(defaultDataSourceName));
+	}
+
+	/**
+	 * コンストラクタ。
+	 *
+	 * @param connectionContext DB接続情報
+	 */
+	public DataSourceConnectionSupplierImpl(final DataSourceConnectionContext connectionContext) {
+		this.defaultConnectionContext = connectionContext;
 	}
 
 	/**
@@ -62,7 +66,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public DataSourceConnectionSupplierImpl(final DataSource defaultDataSource) {
 		this();
-		datasources.put(DEFAULT_DATASOURCE_NAME, defaultDataSource);
+		this.datasources.put(this.defaultConnectionContext.dataSourceName(), defaultDataSource);
 
 	}
 
@@ -73,17 +77,20 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	@Override
 	public Connection getConnection() {
-		return getConnection(defaultConnProps);
+		return getConnection(defaultConnectionContext);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.util.Map)
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(jp.co.future.uroborosql.connection.ConnectionContext)
 	 */
 	@Override
-	public Connection getConnection(final Map<String, String> connProps) {
-		String datasourceName = connProps.get(PROPS_DATASOURCE_NAME);
+	public Connection getConnection(final ConnectionContext ctx) {
+		if (!(ctx instanceof DataSourceConnectionContext)) {
+			throw new IllegalArgumentException("ctx must be of type DataSourceConnectionContext.");
+		}
+		String datasourceName = ((DataSourceConnectionContext) ctx).dataSourceName();
 		try {
 			DataSource ds = datasources.computeIfAbsent(datasourceName,
 					DataSourceConnectionSupplierImpl::getNewDataSource);
@@ -91,9 +98,9 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 			synchronized (ds) {
 				connection = ds.getConnection();
 			}
-			connection.setAutoCommit(isAutoCommit(connProps));
-			connection.setReadOnly(isReadOnly(connProps));
-			int transactionIsolation = getTransactionIsolation(connProps);
+			connection.setAutoCommit(ctx.autoCommit());
+			connection.setReadOnly(ctx.readOnly());
+			int transactionIsolation = ctx.transactionIsolation();
 			if (transactionIsolation > 0) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}
@@ -124,7 +131,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @return デフォルトデータソース名
 	 */
 	public String getDefaultDataSourceName() {
-		return defaultConnProps.get(PROPS_DATASOURCE_NAME);
+		return defaultConnectionContext.dataSourceName();
 	}
 
 	/**
@@ -133,10 +140,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param defaultDataSourceName デフォルトデータソース名
 	 */
 	public void setDefaultDataSourceName(final String defaultDataSourceName) {
-		if (defaultDataSourceName == null) {
-			throw new IllegalArgumentException("defaultDataSourceName is null.");
-		}
-		defaultConnProps.put(PROPS_DATASOURCE_NAME, defaultDataSourceName);
+		defaultConnectionContext.dataSourceName(defaultDataSourceName);
 	}
 
 	/**
@@ -146,7 +150,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @return AutoCommitを行う場合は<code>true</code>. 初期値は<code>false</code>
 	 */
 	public boolean isDefaultAutoCommit() {
-		return isAutoCommit(defaultConnProps);
+		return defaultConnectionContext.autoCommit();
 	}
 
 	/**
@@ -156,7 +160,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param autoCommit AutoCommitを行う場合は<code>true</code>
 	 */
 	public void setDefaultAutoCommit(final boolean autoCommit) {
-		setAutoCommit(defaultConnProps, autoCommit);
+		defaultConnectionContext.autoCommit(autoCommit);
 	}
 
 	/**
@@ -166,7 +170,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */
 	public boolean isDefaultReadOnly() {
-		return isReadOnly(defaultConnProps);
+		return defaultConnectionContext.readOnly();
 	}
 
 	/**
@@ -176,7 +180,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param readOnly readOnlyを指定する場合は<code>true</code>
 	 */
 	public void setDefaultReadOnly(final boolean readOnly) {
-		setReadOnly(defaultConnProps, readOnly);
+		defaultConnectionContext.readOnly(readOnly);
 	}
 
 	/**
@@ -186,7 +190,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 * @return transactionIsolationの指定がない場合は<code>-1</code>. 指定がある場合はその値
 	 */
 	public int getDefaultTransactionIsolation() {
-		return getTransactionIsolation(defaultConnProps);
+		return defaultConnectionContext.transactionIsolation();
 	}
 
 	/**
@@ -202,7 +206,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 *
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
-		setTransactionIsolation(defaultConnProps, transactionIsolation);
+		defaultConnectionContext.transactionIsolation(transactionIsolation);
 	}
 
 }

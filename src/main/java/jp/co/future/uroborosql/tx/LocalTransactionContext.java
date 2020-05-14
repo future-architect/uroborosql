@@ -14,11 +14,11 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
@@ -49,19 +49,20 @@ class LocalTransactionContext implements AutoCloseable {
 	private final boolean updatable;
 
 	/** DB接続情報. ConnectionSupplierで指定したデフォルトの接続情報を使用する場合は<code>null</code>を指定する */
-	private final ConcurrentHashMap<String, String> connProps;
+	private final ConnectionContext connectionContext;
 
 	/**
 	 * コンストラクタ
 	 *
 	 * @param sqlConfig SQL設定クラス
 	 * @param updatable 更新（INSERT/UPDATE/DELETE）SQL発行可能かどうか
-	 * @param connProps DB接続情報. ConnectionSupplierで指定したデフォルトの接続情報を使用する場合は<code>null</code>を指定する
+	 * @param connectionContext DB接続情報. ConnectionSupplierで指定したデフォルトの接続情報を使用する場合は<code>null</code>を指定する
 	 */
-	LocalTransactionContext(final SqlConfig sqlConfig, final boolean updatable, final Map<String, String> connProps) {
+	LocalTransactionContext(final SqlConfig sqlConfig, final boolean updatable,
+			final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
 		this.updatable = updatable;
-		this.connProps = connProps != null ? new ConcurrentHashMap<>(connProps) : null;
+		this.connectionContext = connectionContext;
 	}
 
 	/**
@@ -72,10 +73,10 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	Connection getConnection() throws SQLException {
 		if (connection == null) {
-			if (connProps == null || connProps.isEmpty()) {
+			if (connectionContext == null) {
 				connection = this.sqlConfig.getConnectionSupplier().getConnection();
 			} else {
-				connection = this.sqlConfig.getConnectionSupplier().getConnection(connProps);
+				connection = this.sqlConfig.getConnectionSupplier().getConnection(connectionContext);
 			}
 			initSavepoints(connection);
 		}

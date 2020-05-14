@@ -10,12 +10,12 @@ import static org.junit.Assert.*;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
@@ -38,7 +38,7 @@ public class Oracle10DialectTest {
 			}
 
 			@Override
-			public Connection getConnection(final Map<String, String> props) {
+			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
 			}
 
@@ -64,7 +64,7 @@ public class Oracle10DialectTest {
 			}
 
 			@Override
-			public Connection getConnection(final Map<String, String> props) {
+			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
 			}
 
@@ -90,7 +90,7 @@ public class Oracle10DialectTest {
 			}
 
 			@Override
-			public Connection getConnection(final Map<String, String> props) {
+			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
 			}
 

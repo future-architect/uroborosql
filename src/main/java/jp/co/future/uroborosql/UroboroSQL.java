@@ -8,7 +8,6 @@ package jp.co.future.uroborosql;
 
 import java.sql.Connection;
 import java.time.Clock;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -18,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
+import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
@@ -77,7 +78,8 @@ public final class UroboroSQL {
 	 * @return UroboroSQLBuilder
 	 */
 	public static UroboroSQLBuilder builder(final String url, final String user, final String password) {
-		return builder().setConnectionSupplier(new JdbcConnectionSupplierImpl(url, user, password));
+		return builder().setConnectionSupplier(
+				new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password)));
 	}
 
 	/**
@@ -91,7 +93,8 @@ public final class UroboroSQL {
 	 */
 	public static UroboroSQLBuilder builder(final String url, final String user, final String password,
 			final String schema) {
-		return builder().setConnectionSupplier(new JdbcConnectionSupplierImpl(url, user, password, schema));
+		return builder().setConnectionSupplier(
+				new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password, schema)));
 	}
 
 	/**
@@ -405,11 +408,11 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#agent(java.util.Map)
+		 * @see jp.co.future.uroborosql.config.SqlConfig#agent(jp.co.future.uroborosql.connection.ConnectionContext)
 		 */
 		@Override
-		public SqlAgent agent(final Map<String, String> props) {
-			return sqlAgentFactory.agent(props);
+		public SqlAgent agent(final ConnectionContext connectionContext) {
+			return sqlAgentFactory.agent(connectionContext);
 		}
 
 		/**

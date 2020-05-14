@@ -11,12 +11,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Deque;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 
 /**
@@ -38,7 +38,7 @@ public class LocalTransactionManager implements TransactionManager {
 	private final boolean updatable;
 
 	/** DB接続情報. ConnectionSupplierで指定したデフォルトの接続情報を使用する場合は<code>null</code>を指定する */
-	private final Map<String, String> connProps;
+	private final ConnectionContext connectionContext;
 
 	/**
 	 * コンストラクタ
@@ -46,10 +46,10 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param sqlConfig SQL設定クラス
 	 * @param connProps DB接続情報
 	 */
-	public LocalTransactionManager(final SqlConfig sqlConfig, final Map<String, String> connProps) {
+	public LocalTransactionManager(final SqlConfig sqlConfig, final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
 		this.updatable = !sqlConfig.getSqlAgentFactory().isForceUpdateWithinTransaction();
-		this.connProps = connProps;
+		this.connectionContext = connectionContext;
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class LocalTransactionManager implements TransactionManager {
 			} else {
 				if (!this.unmanagedTransaction.isPresent()) {
 					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connProps));
+							.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 				}
 				return this.unmanagedTransaction.get().getConnection();
 			}
@@ -219,7 +219,7 @@ public class LocalTransactionManager implements TransactionManager {
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
 				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connProps));
+						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
 			return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
 		}
@@ -239,7 +239,7 @@ public class LocalTransactionManager implements TransactionManager {
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
 				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connProps));
+						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
 			return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
 		}
@@ -314,7 +314,8 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 処理の結果
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true, this.connProps)) {
+		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true,
+				this.connectionContext)) {
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();

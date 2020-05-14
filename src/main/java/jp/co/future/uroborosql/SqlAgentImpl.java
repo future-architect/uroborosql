@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -84,11 +85,11 @@ public class SqlAgentImpl extends AbstractAgent {
 	 *
 	 * @param sqlConfig SQL設定管理クラス
 	 * @param settings 設定情報
-	 * @param connProps DB接続プロパティ
+	 * @param connectionContext DB接続情報
 	 */
 	protected SqlAgentImpl(final SqlConfig sqlConfig, final Map<String, String> settings,
-			final Map<String, String> connProps) {
-		super(sqlConfig, settings, connProps);
+			final ConnectionContext connectionContext) {
+		super(sqlConfig, settings, connectionContext);
 		if (settings.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean
 					.parseBoolean(settings.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));

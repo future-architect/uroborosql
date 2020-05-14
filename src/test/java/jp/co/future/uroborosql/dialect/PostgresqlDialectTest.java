@@ -14,12 +14,12 @@ import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.mapping.JavaType;
@@ -43,7 +43,7 @@ public class PostgresqlDialectTest {
 			}
 
 			@Override
-			public Connection getConnection(final Map<String, String> props) {
+			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
 			}
 
