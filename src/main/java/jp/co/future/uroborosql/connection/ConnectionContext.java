@@ -1,19 +1,34 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.connection;
 
 import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ConnectionContext extends ConcurrentHashMap<String, Object> {
+/**
+ * DB接続情報を保持するクラス
+ *
+ * @author H.Sugimoto
+ * @since v0.19.0
+ */
+public abstract class ConnectionContext extends ConcurrentHashMap<String, Object> {
+
+	/** プロパティ：自動コミット・モード */
 	public static String PROPS_AUTO_COMMIT = "autocommit";
+	/** プロパティ：読込み専用モード */
 	public static String PROPS_READ_ONLY = "readonly";
+	/** プロパティ：トランザクション遮断レベル */
 	public static String PROPS_TRANSACTION_ISOLATION = "transactionisolation";
 
-	public ConnectionContext() {
+	/**
+	 * コンストラクタ
+	 */
+	protected ConnectionContext() {
 		super();
-	}
-
-	public ConnectionContext(final ConnectionContext connectionContext) {
-		super(connectionContext);
 	}
 
 	/**
@@ -41,7 +56,6 @@ public class ConnectionContext extends ConcurrentHashMap<String, Object> {
 	/**
 	 * 指定したDB接続情報からReadOnlyオプションを取得
 	 *
-	 * @param connProps DB接続情報
 	 * @return ReadOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */
 	public boolean readOnly() {
@@ -97,6 +111,20 @@ public class ConnectionContext extends ConcurrentHashMap<String, Object> {
 		} else {
 			throw new IllegalArgumentException("Unsupported level [" + transactionIsolation + "]");
 		}
+		return (T) this;
+	}
+
+	/**
+	 * DB接続時に渡すプロパティを設定する.
+	 *
+	 * @param <T> {@link ConnectionContext}の具象型
+	 * @param key プロパティ名
+	 * @param value 値
+	 * @return {@link ConnectionContext}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ConnectionContext> T set(final String key, final Object value) {
+		put(key, value);
 		return (T) this;
 	}
 }

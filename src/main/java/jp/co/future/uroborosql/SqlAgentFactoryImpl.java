@@ -98,6 +98,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#getConnectionSupplier()
 	 */
+	@Deprecated
 	@Override
 	public ConnectionSupplier getConnectionSupplier() {
 		return sqlConfig == null ? null : sqlConfig.getConnectionSupplier();
@@ -108,6 +109,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlManager()
 	 */
+	@Deprecated
 	@Override
 	public SqlManager getSqlManager() {
 		return sqlConfig == null ? null : sqlConfig.getSqlManager();
@@ -118,6 +120,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlFilterManager()
 	 */
+	@Deprecated
 	@Override
 	public SqlFilterManager getSqlFilterManager() {
 		return sqlConfig == null ? null : sqlConfig.getSqlFilterManager();
@@ -128,6 +131,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @see jp.co.future.uroborosql.SqlAgentFactory#getEntityHandler()
 	 */
+	@Deprecated
 	@Override
 	public EntityHandler<?> getEntityHandler() {
 		return sqlConfig == null ? null : sqlConfig.getEntityHandler();

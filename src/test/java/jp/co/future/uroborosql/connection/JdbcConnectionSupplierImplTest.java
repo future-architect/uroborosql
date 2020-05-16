@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import org.junit.Test;
 
@@ -31,10 +33,50 @@ public class JdbcConnectionSupplierImplTest {
 		}
 	}
 
+	@Test
+	public void testJdbcConnectionWithProps() throws Exception {
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+
+		String checkSql = "select current timestamp from SYSIBM.SYSDUMMY1";
+
+		@SuppressWarnings("deprecation")
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		try (Connection conn = supplier.getConnection()) {
+			conn.prepareStatement(checkSql);
+			fail();
+		} catch (SQLException ex) {
+			// OK
+		}
+
+		supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder
+				.jdbc("jdbc:h2:mem:db2?user=sa&password&sa")
+				.user("sa")
+				.password("sa")
+				.set("MODE", "DB2"));
+		try (Connection conn = supplier.getConnection()) {
+			PreparedStatement stmt = conn.prepareStatement(checkSql);
+			assertThat(stmt.executeQuery(), not(nullValue()));
+		}
+	}
+
 	@SuppressWarnings("deprecation")
 	@Test(expected = IllegalArgumentException.class)
 	public void testJdbcConnectionNull() throws Exception {
 		new JdbcConnectionSupplierImpl(null, null, null);
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test(expected = IllegalArgumentException.class)
+	public void testNotInstanceOfJdbcConnectionContext() throws Exception {
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+
+		ConnectionContext ctx = ConnectionContextBuilder.dataSource();
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		supplier.getConnection(ctx);
 	}
 
 	@Test
@@ -52,6 +94,17 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getAutoCommit(), is(false));
 			assertThat(conn.isReadOnly(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+
+		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
+				.transactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
+		try (Connection conn = supplier.getConnection(ctx)) {
+			assertThat(conn.getMetaData().getURL(), is(ctx.url()));
+			assertThat(conn.getSchema(), is(ctx.schema()));
+			assertThat(conn.getAutoCommit(), is(ctx.autoCommit()));
+			assertThat(conn.isReadOnly(), is(ctx.readOnly()));
+			assertThat(conn.getTransactionIsolation(), is(ctx.transactionIsolation()));
 		}
 	}
 

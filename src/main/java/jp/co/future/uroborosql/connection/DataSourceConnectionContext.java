@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.connection;
 
 /**
@@ -17,7 +23,7 @@ public class DataSourceConnectionContext extends ConnectionContext {
 	/**
 	 * コンストラクタ
 	 */
-	public DataSourceConnectionContext() {
+	DataSourceConnectionContext() {
 		this(DEFAULT_DATASOURCE_NAME);
 	}
 
@@ -26,7 +32,7 @@ public class DataSourceConnectionContext extends ConnectionContext {
 	 *
 	 * @param dataSourceName データソース名
 	 */
-	public DataSourceConnectionContext(final String dataSourceName) {
+	DataSourceConnectionContext(final String dataSourceName) {
 		super();
 		if (dataSourceName == null) {
 			throw new IllegalArgumentException("dataSourceName is required but null.");

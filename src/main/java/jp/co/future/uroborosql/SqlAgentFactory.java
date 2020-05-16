@@ -123,6 +123,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return SQL管理クラス
 	 */
+	@Deprecated
 	SqlManager getSqlManager();
 
 	/**
@@ -130,6 +131,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return SqlFilter管理クラス
 	 */
+	@Deprecated
 	SqlFilterManager getSqlFilterManager();
 
 	/**
@@ -137,6 +139,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return コネクション供給クラス
 	 */
+	@Deprecated
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
@@ -144,6 +147,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return ORM処理クラス
 	 */
+	@Deprecated
 	EntityHandler<?> getEntityHandler();
 
 	/**

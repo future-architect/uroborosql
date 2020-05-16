@@ -44,7 +44,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * コンストラクタ
 	 *
 	 * @param sqlConfig SQL設定クラス
-	 * @param connProps DB接続情報
+	 * @param connectionContext DB接続情報
 	 */
 	public LocalTransactionManager(final SqlConfig sqlConfig, final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;

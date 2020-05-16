@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.connection;
 
 import java.util.Properties;
@@ -9,6 +15,7 @@ import java.util.Properties;
  * @since v0.19.0
  */
 public class JdbcConnectionContext extends ConnectionContext {
+
 	/** プロパティキー：JDBC URL */
 	public static final String PROPS_JDBC_URL = "jdbc.url";
 	/** プロパティキー：JDBC 接続ユーザ名 */
@@ -23,7 +30,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 	 *
 	 * @param url 接続URL （必須）
 	 */
-	public JdbcConnectionContext(final String url) {
+	JdbcConnectionContext(final String url) {
 		this(url, null, null, null);
 	}
 
@@ -34,7 +41,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 	 * @param user 接続ユーザ名
 	 * @param password 接続パスワード
 	 */
-	public JdbcConnectionContext(final String url, final String user, final String password) {
+	JdbcConnectionContext(final String url, final String user, final String password) {
 		this(url, user, password, null);
 	}
 
@@ -46,7 +53,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 	 * @param password 接続パスワード
 	 * @param schema 接続スキーマ
 	 */
-	public JdbcConnectionContext(final String url, final String user, final String password, final String schema) {
+	JdbcConnectionContext(final String url, final String user, final String password, final String schema) {
 		super();
 		if (url == null) {
 			throw new IllegalArgumentException("url is required but null.");

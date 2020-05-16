@@ -57,6 +57,19 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
+	public void testDataSourceConnectionWithName() throws Exception {
+		@SuppressWarnings("deprecation")
+		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl(DS_NAME2);
+		try (Connection conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(URL2));
+			assertThat(conn.getSchema(), is("PUBLIC"));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
 	public void testDataSourceConnectionWithDataSource() throws Exception {
 		String url = "jdbc:h2:mem:ds";
 		JdbcDataSource dataSource = new JdbcDataSource();
@@ -172,4 +185,11 @@ public class DataSourceConnectionSupplierImplTest {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetConnectionMissingClass() throws Exception {
+		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		supplier.getConnection(ConnectionContextBuilder.jdbc("dummy"));
+	}
+
 }
