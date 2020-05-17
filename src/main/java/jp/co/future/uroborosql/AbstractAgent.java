@@ -79,16 +79,17 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** 例外発生にロールバックが必要なDBでリトライを実現するために設定するSavepointの名前 */
 	protected static final String RETRY_SAVEPOINT_NAME = "__retry_savepoint";
 
-	/** バッチカウントの初期値 */
-	protected static final int DEFAULT_BATCH_COUNT = 1000;
+	/** BATCH-INSERT用のバッチフレームの判定条件 */
+	protected static final InsertsCondition<Object> DEFAULT_BATCH_INSERTS_WHEN_CONDITION = (context, count,
+			row) -> count == 1000;
 
-	/** 一括INSERT用のバッチフレームの判定条件 */
-	protected static final InsertsCondition<Object> DEFAULT_INSERTS_WHEN_CONDITION = (context, count,
-			row) -> count == DEFAULT_BATCH_COUNT;
+	/** BULK-INSERT用のバッチフレームの判定条件 */
+	protected static final InsertsCondition<Object> DEFAULT_BULK_INSERTS_WHEN_CONDITION = (context, count,
+			row) -> count == 10;
 
 	/** 一括UPDATE用のバッチフレームの判定条件 */
 	protected static final UpdatesCondition<Object> DEFAULT_UPDATES_WHEN_CONDITION = (context, count,
-			row) -> count == DEFAULT_BATCH_COUNT;
+			row) -> count == 1000;
 
 	/** カバレッジハンドラ */
 	protected static AtomicReference<CoverageHandler> coverageHandlerRef = new AtomicReference<>();
@@ -121,7 +122,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected CaseFormat defaultMapKeyCaseFormat = CaseFormat.UPPER_SNAKE_CASE;
 
 	/** デフォルトの{@link InsertsType} */
-	protected InsertsType defaultInsertsType = InsertsType.BULK;
+	protected InsertsType defaultInsertsType = InsertsType.BATCH;
 
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
@@ -664,7 +665,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities) {
-		return inserts(entityType, entities, DEFAULT_INSERTS_WHEN_CONDITION);
+		return inserts(entityType, entities,
+				InsertsType.BATCH.equals(defaultInsertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+						: DEFAULT_BULK_INSERTS_WHEN_CONDITION);
 	}
 
 	/**
@@ -674,7 +677,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities, final InsertsType insertsType) {
-		return inserts(entityType, entities, DEFAULT_INSERTS_WHEN_CONDITION, insertsType);
+		return inserts(entityType, entities,
+				InsertsType.BATCH.equals(insertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+						: DEFAULT_BULK_INSERTS_WHEN_CONDITION,
+				insertsType);
 	}
 
 	/**
@@ -719,7 +725,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> int inserts(final Stream<E> entities) {
-		return inserts(entities, DEFAULT_INSERTS_WHEN_CONDITION);
+		return inserts(entities, InsertsType.BATCH.equals(defaultInsertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+				: DEFAULT_BULK_INSERTS_WHEN_CONDITION);
 	}
 
 	/**
@@ -729,7 +736,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> int inserts(final Stream<E> entities, final InsertsType insertsType) {
-		return inserts(entities, DEFAULT_INSERTS_WHEN_CONDITION, insertsType);
+		return inserts(entities, InsertsType.BATCH.equals(insertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+				: DEFAULT_BULK_INSERTS_WHEN_CONDITION, insertsType);
 	}
 
 	/**
@@ -768,7 +776,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> Stream<E> insertsAndReturn(final Class<E> entityType, final Stream<E> entities) {
-		return insertsAndReturn(entityType, entities, DEFAULT_INSERTS_WHEN_CONDITION);
+		return insertsAndReturn(entityType, entities,
+				InsertsType.BATCH.equals(defaultInsertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+						: DEFAULT_BULK_INSERTS_WHEN_CONDITION);
 	}
 
 	/**
@@ -779,7 +789,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> Stream<E> insertsAndReturn(final Class<E> entityType, final Stream<E> entities,
 			final InsertsType insertsType) {
-		return insertsAndReturn(entityType, entities, DEFAULT_INSERTS_WHEN_CONDITION, insertsType);
+		return insertsAndReturn(entityType, entities,
+				InsertsType.BATCH.equals(insertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+						: DEFAULT_BULK_INSERTS_WHEN_CONDITION,
+				insertsType);
 	}
 
 	/**
@@ -824,7 +837,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> Stream<E> insertsAndReturn(final Stream<E> entities) {
-		return insertsAndReturn(entities, DEFAULT_INSERTS_WHEN_CONDITION);
+		return insertsAndReturn(entities,
+				InsertsType.BATCH.equals(defaultInsertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+						: DEFAULT_BULK_INSERTS_WHEN_CONDITION);
 	}
 
 	/**
@@ -834,7 +849,8 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> Stream<E> insertsAndReturn(final Stream<E> entities, final InsertsType insertsType) {
-		return insertsAndReturn(entities, DEFAULT_INSERTS_WHEN_CONDITION, insertsType);
+		return insertsAndReturn(entities, InsertsType.BATCH.equals(insertsType) ? DEFAULT_BATCH_INSERTS_WHEN_CONDITION
+				: DEFAULT_BULK_INSERTS_WHEN_CONDITION, insertsType);
 	}
 
 	/**
