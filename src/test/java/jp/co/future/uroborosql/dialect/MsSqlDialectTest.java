@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
@@ -31,12 +32,12 @@ public class MsSqlDialectTest {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
-			public Connection getConnection(final String alias) {
+			public Connection getConnection() {
 				return null;
 			}
 
 			@Override
-			public Connection getConnection() {
+			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
 			}
 

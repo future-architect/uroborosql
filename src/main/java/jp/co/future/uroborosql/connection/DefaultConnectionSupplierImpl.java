@@ -40,11 +40,10 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(java.lang.String)
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#getConnection(jp.co.future.uroborosql.connection.ConnectionContext)
 	 */
 	@Override
-	public Connection getConnection(final String alias) {
-		return connection;
+	public Connection getConnection(final ConnectionContext ctx) {
+		throw new UnsupportedOperationException();
 	}
-
 }

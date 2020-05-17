@@ -23,6 +23,10 @@ public class UroborosqlSQLException extends UroborosqlRuntimeException {
 		super(cause);
 	}
 
+	public UroborosqlSQLException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
+
 	public int getErrorCode() {
 		return getCause() instanceof SQLException ? ((SQLException) getCause()).getErrorCode() : 0;
 	}

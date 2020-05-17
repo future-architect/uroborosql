@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -153,39 +154,41 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * コンストラクタ。
 	 *
 	 * @param sqlConfig SQL設定管理クラス
-	 * @param defaultProps デフォルト値プロパティ
+	 * @param settings 設定情報
+	 * @param connectionContext DB接続情報
 	 */
-	protected AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> defaultProps) {
+	protected AbstractAgent(final SqlConfig sqlConfig, final Map<String, String> settings,
+			final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
-		this.transactionManager = new LocalTransactionManager(sqlConfig);
+		this.transactionManager = new LocalTransactionManager(sqlConfig, connectionContext);
 
 		// デフォルトプロパティ設定
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
-			this.fetchSize = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
+			this.fetchSize = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
-			this.queryTimeout = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
+			this.queryTimeout = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
-			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(defaultProps.get(
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
+			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(settings.get(
 					SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
-			this.maxRetryCount = Integer.parseInt(defaultProps.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
+			this.maxRetryCount = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
-			this.retryWaitTime = Integer.parseInt(defaultProps
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
+			this.retryWaitTime = Integer.parseInt(settings
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
-			this.keySqlId = defaultProps.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
+			this.keySqlId = settings.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
-			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(defaultProps
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
+			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(settings
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
 		}
-		if (defaultProps.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
-			this.defaultInsertsType = InsertsType.valueOf(defaultProps
+		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
+			this.defaultInsertsType = InsertsType.valueOf(settings
 					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE));
 		}
 	}
@@ -198,16 +201,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public Connection getConnection() {
 		return transactionManager.getConnection();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionManager#getConnection(java.lang.String)
-	 */
-	@Override
-	public Connection getConnection(final String alias) {
-		return transactionManager.getConnection(alias);
 	}
 
 	/**

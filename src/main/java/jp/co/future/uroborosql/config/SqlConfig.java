@@ -13,6 +13,7 @@ import java.time.Clock;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactory;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.context.SqlContextFactory;
@@ -68,6 +69,14 @@ public interface SqlConfig {
 	 * @return 生成したSqlAgent.
 	 */
 	SqlAgent agent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @param ctx DB接続情報
+	 * @return 生成したSqlAgent.
+	 */
+	SqlAgent agent(ConnectionContext ctx);
 
 	/**
 	 * sqlManager を取得.

@@ -9,6 +9,7 @@ package jp.co.future.uroborosql;
 import java.util.List;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
@@ -95,15 +96,34 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	/**
 	 * SQL実行クラス生成.
 	 *
+	 * @deprecated Instead, use the agent() method.
 	 * @return SqlAgent
 	 */
+	@Deprecated
 	SqlAgent createSqlAgent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @return SqlAgent
+	 */
+	SqlAgent agent();
+
+	/**
+	 * SqlAgentの生成.
+	 *
+	 * @param connectionContext DB接続情報
+	 *
+	 * @return 生成したSqlAgent.
+	 */
+	SqlAgent agent(ConnectionContext connectionContext);
 
 	/**
 	 * SQL管理クラスを取得する.
 	 *
 	 * @return SQL管理クラス
 	 */
+	@Deprecated
 	SqlManager getSqlManager();
 
 	/**
@@ -111,6 +131,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return SqlFilter管理クラス
 	 */
+	@Deprecated
 	SqlFilterManager getSqlFilterManager();
 
 	/**
@@ -118,6 +139,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return コネクション供給クラス
 	 */
+	@Deprecated
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
@@ -125,6 +147,7 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 *
 	 * @return ORM処理クラス
 	 */
+	@Deprecated
 	EntityHandler<?> getEntityHandler();
 
 	/**

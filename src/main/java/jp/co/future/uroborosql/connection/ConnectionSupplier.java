@@ -18,7 +18,6 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
  * @author H.Sugimoto
  */
 public interface ConnectionSupplier {
-
 	/**
 	 * コネクション取得。
 	 * @return コネクション
@@ -27,10 +26,10 @@ public interface ConnectionSupplier {
 
 	/**
 	 * コネクション取得。
-	 * @param alias 取得したいDB接続の別名（エイリアス）
+	 * @param ctx DB接続に使用するコンテキスト
 	 * @return コネクション
 	 */
-	Connection getConnection(String alias);
+	Connection getConnection(ConnectionContext ctx);
 
 	/**
 	 * 接続しているDBプロダクト名+ バージョンを取得する
@@ -43,7 +42,7 @@ public interface ConnectionSupplier {
 			conn = getConnection();
 			DatabaseMetaData metaData = conn.getMetaData();
 			return metaData.getDatabaseProductName() + "-" + metaData.getDatabaseMajorVersion() + "."
-			+ metaData.getDatabaseMinorVersion();
+					+ metaData.getDatabaseMinorVersion();
 		} catch (SQLException ex) {
 			throw new UroborosqlSQLException(ex);
 		} finally {

@@ -20,7 +20,10 @@ public class DateToStringParameterMapperTest {
 	@Test
 	public void test() throws ParseException {
 		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
-		mapper.setClock(Clock.systemDefaultZone());
+		Clock clock = Clock.systemDefaultZone();
+		mapper.setClock(clock);
+		assertThat(mapper.getClock(), is(clock));
+
 		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 
 		assertThat(mapper.toJdbc(date, null, null), is("20000101"));

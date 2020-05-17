@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
 
 /**
@@ -33,16 +34,22 @@ public class LocalTransactionManager implements TransactionManager {
 	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
 	private Optional<LocalTransactionContext> unmanagedTransaction = Optional.empty();
 
+	/** トランザクション内での更新を強制するかどうか */
 	private final boolean updatable;
+
+	/** DB接続情報. ConnectionSupplierで指定したデフォルトの接続情報を使用する場合は<code>null</code>を指定する */
+	private final ConnectionContext connectionContext;
 
 	/**
 	 * コンストラクタ
 	 *
 	 * @param sqlConfig SQL設定クラス
+	 * @param connectionContext DB接続情報
 	 */
-	public LocalTransactionManager(final SqlConfig sqlConfig) {
+	public LocalTransactionManager(final SqlConfig sqlConfig, final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
 		this.updatable = !sqlConfig.getSqlAgentFactory().isForceUpdateWithinTransaction();
+		this.connectionContext = connectionContext;
 	}
 
 	/**
@@ -188,33 +195,9 @@ public class LocalTransactionManager implements TransactionManager {
 			} else {
 				if (!this.unmanagedTransaction.isPresent()) {
 					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
+							.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 				}
 				return this.unmanagedTransaction.get().getConnection();
-			}
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.connection.ConnectionManager#getConnection(java.lang.String)
-	 */
-	@Override
-	public Connection getConnection(final String alias) {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
-		try {
-			if (txContext.isPresent()) {
-				return txContext.get().getConnection(alias);
-			} else {
-				if (!this.unmanagedTransaction.isPresent()) {
-					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
-				}
-				return this.unmanagedTransaction.get().getConnection(alias);
 			}
 		} catch (SQLException ex) {
 			ex.printStackTrace();
@@ -235,7 +218,8 @@ public class LocalTransactionManager implements TransactionManager {
 			return txContext.get().getPreparedStatement(sqlContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
+				this.unmanagedTransaction = Optional
+						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
 			return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
 		}
@@ -254,7 +238,8 @@ public class LocalTransactionManager implements TransactionManager {
 			return txContext.get().getCallableStatement(sqlContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional.of(new LocalTransactionContext(this.sqlConfig, this.updatable));
+				this.unmanagedTransaction = Optional
+						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
 			return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
 		}
@@ -329,7 +314,8 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 処理の結果
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true)) {
+		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true,
+				this.connectionContext)) {
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();
