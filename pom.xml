@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.co.future</groupId>
 	<artifactId>uroborosql</artifactId>
-	<version>0.19.0-SNAPSHOT</version>
+	<version>0.19.0</version>
 	<packaging>jar</packaging>
 	<name>uroboroSQL</name>
 	<description>Developer-oriented and SQL centric database access library</description>
@@ -21,7 +21,7 @@
 		<connection>scm:git:https://github.com/future-architect/uroborosql.git</connection>
 		<developerConnection>scm:git:https://github.com/future-architect/uroborosql.git</developerConnection>
 		<url>https://github.com/future-architect/uroborosql</url>
-		<tag>HEAD</tag>
+		<tag>uroborosql-0.19.0</tag>
 	</scm>
 
 	<developers>
