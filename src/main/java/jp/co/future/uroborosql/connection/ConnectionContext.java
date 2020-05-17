@@ -21,7 +21,7 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 	public static String PROPS_AUTO_COMMIT = "autocommit";
 	/** プロパティ：読込み専用モード */
 	public static String PROPS_READ_ONLY = "readonly";
-	/** プロパティ：トランザクション遮断レベル */
+	/** プロパティ：トランザクション分離レベル */
 	public static String PROPS_TRANSACTION_ISOLATION = "transactionisolation";
 
 	/**
