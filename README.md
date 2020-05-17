@@ -26,7 +26,7 @@ Installation
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.18.2</version>
+    <version>0.19.0</version>
 </dependency>
 <dependency>
     <groupId>ognl</groupId>
@@ -41,7 +41,7 @@ or
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.18.2</version>
+    <version>0.19.0</version>
 </dependency>
 <dependency>
     <groupId>org.springframework</groupId>
@@ -53,14 +53,14 @@ or
 #### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.18.2'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.19.0'
 compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
 or
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.18.2'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.19.0'
 compile group: 'org.springframework', name: 'spring-expression', version: '5.2.2.RELEASE'
 ```
 
