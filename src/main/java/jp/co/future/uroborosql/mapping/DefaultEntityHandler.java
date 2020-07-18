@@ -38,10 +38,10 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DefaultEntityHandler implements EntityHandler<Object> {
 
-	private static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
-	private PropertyMapperManager propertyMapperManager;
-	private boolean emptyStringEqualsNull = true;
-	private SqlConfig sqlConfig = null;
+	protected static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
+	protected PropertyMapperManager propertyMapperManager;
+	protected boolean emptyStringEqualsNull = true;
+	protected SqlConfig sqlConfig = null;
 
 	/**
 	 * コンストラクタ
@@ -605,7 +605,16 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql.toString();
 	}
 
-	private StringBuilder buildInsertTargetBlock(final TableMetadata metadata,
+	/**
+	 * INSERT文の中で 挿入対象カラムを構成するブロックを生成する.
+	 *
+	 * @param metadata エンティティメタ情報
+	 * @param mappingColumns マッピングカラム情報
+	 * @param sqlConfig SQLコンフィグ
+	 * @param ignoreWhenEmpty 空の場合無視するかどうか
+	 * @return 生成したSQLパーツ
+	 */
+	protected StringBuilder buildInsertTargetBlock(final TableMetadata metadata,
 			final Map<String, MappingColumn> mappingColumns,
 			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
 
@@ -652,7 +661,17 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return sql;
 	}
 
-	private StringBuilder buildInsertRowBlock(final TableMetadata metadata,
+	/**
+	 * INSERT文の中で、挿入する値を構成するブロックを生成する.
+	 *
+	 * @param metadata エンティティメタ情報
+	 * @param mappingColumns マッピングカラム情報
+	 * @param sqlConfig SQLコンフィグ
+	 * @param ignoreWhenEmpty 空の場合無視するかどうか
+	 * @param getParamName パラメータ名取得関数
+	 * @return 生成したSQLパーツ
+	 */
+	protected StringBuilder buildInsertRowBlock(final TableMetadata metadata,
 			final Map<String, MappingColumn> mappingColumns,
 			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty,
 			final Function<TableMetadata.Column, String> getParamName) {
@@ -707,7 +726,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param entityType エイティティタイプ
 	 * @return SQL_ID文字列
 	 */
-	private String createSqlId(final TableMetadata metadata, final Class<? extends Object> entityType) {
+	protected String createSqlId(final TableMetadata metadata, final Class<? extends Object> entityType) {
 		return "mapping @ " + (entityType != null ? entityType.getSimpleName() : metadata.getTableName());
 	}
 
@@ -717,7 +736,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param type JDBC上の型
 	 * @return 文字列型の場合<code>true</code>
 	 */
-	private boolean isStringType(final int type) {
+	protected boolean isStringType(final int type) {
 		return JDBCType.CHAR.getVendorTypeNumber().equals(type) || JDBCType.NCHAR.getVendorTypeNumber().equals(type)
 				|| JDBCType.VARCHAR.getVendorTypeNumber().equals(type)
 				|| JDBCType.NVARCHAR.getVendorTypeNumber().equals(type)
@@ -732,7 +751,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @param col カラム情報
 	 * @return SQL
 	 */
-	private StringBuilder wrapIfComment(final StringBuilder original, final StringBuilder addParts,
+	protected StringBuilder wrapIfComment(final StringBuilder original, final StringBuilder addParts,
 			final TableMetadata.Column col) {
 		String camelColName = col.getCamelColumnName();
 		// フィールドがセットされていない場合はカラム自体を削る
@@ -751,7 +770,15 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return original;
 	}
 
-	private void setFields(final SqlContext context, final Object entity, final SqlKind kind,
+	/**
+	 * entityのフィールドの値をSqlContextにバインドする.
+	 *
+	 * @param context SqlContext
+	 * @param entity フィールドをバインドするEntityオブジェクト
+	 * @param kind SQL種別
+	 * @param getParamName パラメータ名取得関数
+	 */
+	protected void setFields(final SqlContext context, final Object entity, final SqlKind kind,
 			final Function<MappingColumn, String> getParamName) {
 		List<String> generatedKeyColumns = new ArrayList<>();
 		if (context.getGeneratedKeyColumns() != null) {
@@ -768,7 +795,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		}
 	}
 
-	private String buildBulkParamName(final String base, final int entityIndex) {
+	/**
+	 * 一括実行時に設定するバインドパラメータ名を取得する.
+	 *
+	 * @param base 生成の元となるパラメータ名
+	 * @param entityIndex エンティティのインデックス
+	 * @return 生成したバンドパラメータ名
+	 */
+	protected String buildBulkParamName(final String base, final int entityIndex) {
 		return base + "$" + entityIndex;
 	}
 

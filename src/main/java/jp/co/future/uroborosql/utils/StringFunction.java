@@ -6,18 +6,19 @@
  */
 package jp.co.future.uroborosql.utils;
 
+import java.util.Objects;
+
 import jp.co.future.uroborosql.dialect.Dialect;
 
 /**
- * OGNL式内で{@link StringUtils}
- * の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br>
+ * 評価式内で{@link StringUtils} の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br>
  *
  * 利用する際はstatic final なフィールドに格納するなどして複数のインスタンスを生成しないようにすること
  *
  * @author H.Sugimoto
  */
 public final class StringFunction {
-	/** OGNL式から呼び出す際の略称名 {@value} */
+	/** 評価式から呼び出す際の略称名 {@value} */
 	public static final String SHORT_NAME = "SF";
 
 	/** dialect */
@@ -53,11 +54,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#isEmpty(CharSequence)
 	 *
-	 * @param str 対象文字列
-	 * @return 空文字の場合<code>true</code>
+	 * @param obj 対象オブジェクト
+	 * @return null または 空文字の場合<code>true</code>
 	 */
-	public boolean isEmpty(final String str) {
-		return StringUtils.isEmpty(str);
+	public boolean isEmpty(final Object obj) {
+		return StringUtils.isEmpty(Objects.toString(obj, ""));
 	}
 
 	/**
@@ -73,11 +74,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#isNotEmpty(CharSequence)
 	 *
-	 * @param str 対象文字列
-	 * @return 空文字でない場合<code>true</code>
+	 * @param obj 対象オブジェクト
+	 * @return null、空文字のいずれでもない場合<code>true</code>
 	 */
-	public boolean isNotEmpty(final String str) {
-		return StringUtils.isNotEmpty(str);
+	public boolean isNotEmpty(final Object obj) {
+		return StringUtils.isNotEmpty(Objects.toString(obj, ""));
 	}
 
 	/**
@@ -93,11 +94,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#isBlank(CharSequence)
 	 *
-	 * @param str 対象文字列
-	 * @return 空文字もしくは空白の場合<code>true</code>
+	 * @param obj 対象オブジェクト
+	 * @return null または 空文字もしくは空白の場合<code>true</code>
 	 */
-	public boolean isBlank(final String str) {
-		return StringUtils.isBlank(str);
+	public boolean isBlank(final Object obj) {
+		return StringUtils.isBlank(Objects.toString(obj, ""));
 	}
 
 	/**
@@ -114,10 +115,10 @@ public final class StringFunction {
 	 * @see StringUtils#isNotBlank(CharSequence)
 	 *
 	 * @param str 対象文字列
-	 * @return 空文字もしくは空白以外の場合<code>true</code>
+	 * @return null、空文字、空白のいずれでもない場合<code>true</code>
 	 */
-	public boolean isNotBlank(final String str) {
-		return StringUtils.isNotBlank(str);
+	public boolean isNotBlank(final Object obj) {
+		return StringUtils.isNotBlank(Objects.toString(obj, ""));
 	}
 
 	/**
@@ -509,7 +510,7 @@ public final class StringFunction {
 
 	/**
 	 * 加算を行う. 最大値に対して加算した場合はオーバーフローする.<br>
-	 * 引数の型（short/int/longのいづれか）に合わせて計算を行う.
+	 * 引数の型（short/int/longのいずれか）に合わせて計算を行う.
 	 *
 	 * @param <T> 引数の型
 	 * @param num 加算を行う数値
