@@ -31,6 +31,9 @@ public interface TableMetadata {
 	/** QuoteStringで囲む必要があるテーブルのパターン(大文字小文字混在、もしくは英数字以外を含む) */
 	Pattern TABLE_NAME_PATTERN = Pattern.compile("(?=.*[a-z])(?=.*[A-Z]).*|.*[^A-Za-z0-9_].*");
 
+	/** remark中の改行文字を除外するためのパターン */
+	Pattern NEWLINE_CHARS_PATTERN = Pattern.compile("\r\n|\r|\n");
+
 	/**
 	 * カラム情報
 	 */
@@ -280,6 +283,9 @@ public interface TableMetadata {
 						sqlType = rs.getInt("SOURCE_DATA_TYPE");
 					}
 					String remarks = rs.getString("REMARKS");
+					if (remarks != null) {
+						remarks = NEWLINE_CHARS_PATTERN.matcher(remarks).replaceAll(" ");
+					}
 					String isNullable = rs.getString("IS_NULLABLE");
 					String isAutoincrement = rs.getString("IS_AUTOINCREMENT");
 					boolean isVersion = columnName.equalsIgnoreCase(versionColumnName);
