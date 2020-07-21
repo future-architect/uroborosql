@@ -109,6 +109,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isBlank(" "), is(true));
 		assertThat(expressionFunction.isBlank("bob"), is(false));
 		assertThat(expressionFunction.isBlank("  bob  "), is(false));
+		assertThat(expressionFunction.isBlank(123), is(false));
 	}
 
 	@Test
@@ -118,6 +119,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isEmpty(" "), is(false));
 		assertThat(expressionFunction.isEmpty("bob"), is(false));
 		assertThat(expressionFunction.isEmpty("  bob  "), is(false));
+		assertThat(expressionFunction.isEmpty(123), is(false));
 	}
 
 	@Test
@@ -127,6 +129,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isNotBlank(" "), is(false));
 		assertThat(expressionFunction.isNotBlank("bob"), is(true));
 		assertThat(expressionFunction.isNotBlank("  bob  "), is(true));
+		assertThat(expressionFunction.isNotBlank(123), is(true));
 	}
 
 	@Test
@@ -136,6 +139,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isNotEmpty(" "), is(true));
 		assertThat(expressionFunction.isNotEmpty("bob"), is(true));
 		assertThat(expressionFunction.isNotEmpty("  bob  "), is(true));
+		assertThat(expressionFunction.isNotEmpty(123), is(true));
 	}
 
 	@Test
