@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.context;
 
-import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -258,7 +257,7 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 *
 	 * @return 自動採番するキーカラム値の配列
 	 */
-	BigDecimal[] getGeneratedKeyValues();
+	Object[] getGeneratedKeyValues();
 
 	/**
 	 * 自動採番するキーカラム名の配列に値が設定されているか
@@ -272,5 +271,5 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 *
 	 * @param generatedKeyValues 自動採番するキーカラム値の配列
 	 */
-	void setGeneratedKeyValues(BigDecimal[] generatedKeyValues);
+	void setGeneratedKeyValues(Object[] generatedKeyValues);
 }

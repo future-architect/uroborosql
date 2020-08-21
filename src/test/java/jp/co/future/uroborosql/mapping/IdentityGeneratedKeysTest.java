@@ -3,12 +3,16 @@ package jp.co.future.uroborosql.mapping;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +51,10 @@ public class IdentityGeneratedKeysTest {
 				stmt.execute("create sequence test_id_seq");
 				stmt.execute(
 						"create table if not exists test( id bigint not null default nextval('test_id_seq'), name text, primary key(id))");
+
+				stmt.execute("drop table if exists test_ids cascade");
+				stmt.execute(
+						"create table if not exists test_ids (id_str uuid not null default random_uuid(), id_uuid uuid not null default random_uuid(), id_int integer not null default 0 auto_increment, id_bigint bigint not null default 0 auto_increment, id_decimal decimal not null default 0 auto_increment)");
 
 				stmt.execute("drop table if exists test_auto cascade");
 				stmt.execute(
@@ -110,7 +118,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -143,7 +151,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -254,7 +262,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -287,7 +295,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -482,7 +490,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -515,7 +523,7 @@ public class IdentityGeneratedKeysTest {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = agent.queryWith(
-						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
+						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
@@ -826,6 +834,186 @@ public class IdentityGeneratedKeysTest {
 				assertThat(data, is(test2));
 				data = agent.find(TestEntityWithMultiId.class, test3.getId(), test3.getId2()).orElse(null);
 				assertThat(data, is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdType() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIds test1 = new TestIds();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdUuid(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIds test2 = new TestIds();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdUuid(), not(test1.getIdUuid()));
+				assertThat(test2.getIdInt(), is(test1.getIdInt() + 1));
+				assertThat(test2.getIdBigint(), is(test1.getIdBigint() + 1));
+				assertThat(test2.getIdDecimal(), is(test1.getIdDecimal().add(BigDecimal.ONE)));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdTypeStr() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsStr test1 = new TestIdsStr();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIdsStr test2 = new TestIdsStr();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdInt(), is(String.valueOf(Integer.valueOf(test1.getIdInt()) + 1)));
+				assertThat(test2.getIdBigint(), is(String.valueOf(Integer.valueOf(test1.getIdBigint()) + 1)));
+				assertThat(test2.getIdDecimal(), is(String.valueOf(Integer.valueOf(test1.getIdDecimal()) + 1)));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdTypeInteger() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsInteger test1 = new TestIdsInteger();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIdsInteger test2 = new TestIdsInteger();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdInt(), is(test1.getIdInt() + 1));
+				assertThat(test2.getIdBigint(), is(test1.getIdBigint() + 1));
+				assertThat(test2.getIdDecimal(), is(test1.getIdDecimal() + 1));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdTypeLong() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsLong test1 = new TestIdsLong();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIdsLong test2 = new TestIdsLong();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdInt(), is(test1.getIdInt() + 1));
+				assertThat(test2.getIdBigint(), is(test1.getIdBigint() + 1));
+				assertThat(test2.getIdDecimal(), is(test1.getIdDecimal() + 1));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdTypeBigInteger() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsBigInteger test1 = new TestIdsBigInteger();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIdsBigInteger test2 = new TestIdsBigInteger();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdInt(), is(test1.getIdInt().add(BigInteger.ONE)));
+				assertThat(test2.getIdBigint(), is(test1.getIdBigint().add(BigInteger.ONE)));
+				assertThat(test2.getIdDecimal(), is(test1.getIdDecimal().add(BigInteger.ONE)));
+			});
+		}
+	}
+
+	@Test
+	public void testInsertIdTypeBigDecimal() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsBigDecimal test1 = new TestIdsBigDecimal();
+
+				agent.insert(test1);
+				assertThat(test1.getIdStr(), not(nullValue()));
+				assertThat(test1.getIdInt(), not(nullValue()));
+				assertThat(test1.getIdBigint(), not(nullValue()));
+				assertThat(test1.getIdDecimal(), not(nullValue()));
+
+				TestIdsBigDecimal test2 = new TestIdsBigDecimal();
+
+				agent.insert(test2);
+				assertThat(test2.getIdStr(), not(test1.getIdStr()));
+				assertThat(test2.getIdInt(), is(test1.getIdInt().add(BigDecimal.ONE)));
+				assertThat(test2.getIdBigint(), is(test1.getIdBigint().add(BigDecimal.ONE)));
+				assertThat(test2.getIdDecimal(), is(test1.getIdDecimal().add(BigDecimal.ONE)));
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testInsertIdTypeErrInteger() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsErrInteger test1 = new TestIdsErrInteger();
+				agent.insert(test1);
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testInsertIdTypeErrBigint() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsErrBigint test1 = new TestIdsErrBigint();
+				agent.insert(test1);
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testInsertIdTypeErrBigInteger() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsErrBigInteger test1 = new TestIdsErrBigInteger();
+				agent.insert(test1);
+			});
+		}
+	}
+
+	@Test(expected = UroborosqlRuntimeException.class)
+	public void testInsertIdTypeErrBigDecimal() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestIdsErrBigDecimal test1 = new TestIdsErrBigDecimal();
+				agent.insert(test1);
 			});
 		}
 	}
@@ -1852,7 +2040,7 @@ public class IdentityGeneratedKeysTest {
 	public static class TestEntityWithIdError2 {
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		private double id;
+		private Clob id;
 		private String name;
 
 		public TestEntityWithIdError2() {
@@ -1862,7 +2050,7 @@ public class IdentityGeneratedKeysTest {
 			this.name = name;
 		}
 
-		public double getId() {
+		public Clob getId() {
 			return this.id;
 		}
 
@@ -1870,48 +2058,12 @@ public class IdentityGeneratedKeysTest {
 			return this.name;
 		}
 
-		public void setId(final double id) {
+		public void setId(final Clob id) {
 			this.id = id;
 		}
 
 		public void setName(final String name) {
 			this.name = name;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			long temp;
-			temp = Double.doubleToLongBits(id);
-			result = prime * result + (int) (temp ^ temp >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntityWithIdError2 other = (TestEntityWithIdError2) obj;
-			if (Double.doubleToLongBits(id) != Double.doubleToLongBits(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
-				return false;
-			}
-			return true;
 		}
 
 		@Override
@@ -2075,6 +2227,598 @@ public class IdentityGeneratedKeysTest {
 		@Override
 		public String toString() {
 			return "TestEntityWithMultiIdObj [id=" + id + ", id2=" + id2 + ", name=" + name + "]";
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIds {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private Long idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public Long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final Long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsStr {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private String idInt;
+		@Id
+		@GeneratedValue
+		private String idBigint;
+		@Id
+		@GeneratedValue
+		private String idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public String getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final String idInt) {
+			this.idInt = idInt;
+		}
+
+		public String getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final String idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public String getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final String idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsInteger {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private int idBigint;
+		@Id
+		@GeneratedValue
+		private Integer idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public int getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final int idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public Integer getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final Integer idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsLong {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Long idInt;
+		@Id
+		@GeneratedValue
+		private long idBigint;
+		@Id
+		@GeneratedValue
+		private Long idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public Long getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Long idInt) {
+			this.idInt = idInt;
+		}
+
+		public long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public Long getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final Long idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsBigInteger {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private BigInteger idInt;
+		@Id
+		@GeneratedValue
+		private BigInteger idBigint;
+		@Id
+		@GeneratedValue
+		private BigInteger idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public BigInteger getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final BigInteger idInt) {
+			this.idInt = idInt;
+		}
+
+		public BigInteger getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final BigInteger idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigInteger getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigInteger idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsBigDecimal {
+		@Id
+		@GeneratedValue
+		private String idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private BigDecimal idInt;
+		@Id
+		@GeneratedValue
+		private BigDecimal idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public String getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final String idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public BigDecimal getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final BigDecimal idInt) {
+			this.idInt = idInt;
+		}
+
+		public BigDecimal getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final BigDecimal idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsErrInteger {
+		@Id
+		@GeneratedValue
+		private Integer idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private Long idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public Integer getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final Integer idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public Long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final Long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsErrBigint {
+		@Id
+		@GeneratedValue
+		private Long idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private Long idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public Long getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final Long idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public Long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final Long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsErrBigInteger {
+		@Id
+		@GeneratedValue
+		private BigInteger idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private Long idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public BigInteger getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final BigInteger idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public Long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final Long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
+		}
+
+	}
+
+	@Table(name = "TEST_IDS")
+	public static class TestIdsErrBigDecimal {
+		@Id
+		@GeneratedValue
+		private BigDecimal idStr;
+		@Id
+		@GeneratedValue
+		private UUID idUuid;
+		@Id
+		@GeneratedValue
+		private Integer idInt;
+		@Id
+		@GeneratedValue
+		private Long idBigint;
+		@Id
+		@GeneratedValue
+		private BigDecimal idDecimal;
+
+		public BigDecimal getIdStr() {
+			return idStr;
+		}
+
+		public void setIdStr(final BigDecimal idStr) {
+			this.idStr = idStr;
+		}
+
+		public UUID getIdUuid() {
+			return idUuid;
+		}
+
+		public void setIdUuid(final UUID idUuid) {
+			this.idUuid = idUuid;
+		}
+
+		public Integer getIdInt() {
+			return idInt;
+		}
+
+		public void setIdInt(final Integer idInt) {
+			this.idInt = idInt;
+		}
+
+		public Long getIdBigint() {
+			return idBigint;
+		}
+
+		public void setIdBigint(final Long idBigint) {
+			this.idBigint = idBigint;
+		}
+
+		public BigDecimal getIdDecimal() {
+			return idDecimal;
+		}
+
+		public void setIdDecimal(final BigDecimal idDecimal) {
+			this.idDecimal = idDecimal;
 		}
 
 	}
