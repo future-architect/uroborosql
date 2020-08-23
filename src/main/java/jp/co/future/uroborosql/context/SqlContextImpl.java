@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.context;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
@@ -148,7 +147,7 @@ public class SqlContextImpl implements SqlContext {
 	private String[] generatedKeyColumns;
 
 	/** 自動採番するキーカラム値の配列 */
-	private BigDecimal[] generatedKeyValues;
+	private Object[] generatedKeyValues;
 
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
@@ -1233,17 +1232,17 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.context.SqlContext#getGeneratedKeyValues()
 	 */
 	@Override
-	public BigDecimal[] getGeneratedKeyValues() {
+	public Object[] getGeneratedKeyValues() {
 		return this.generatedKeyValues;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyValues(java.math.BigDecimal[])
+	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyValues(java.lang.Object[])
 	 */
 	@Override
-	public void setGeneratedKeyValues(final BigDecimal[] generatedKeyValues) {
+	public void setGeneratedKeyValues(final Object[] generatedKeyValues) {
 		this.generatedKeyValues = generatedKeyValues;
 	}
 
