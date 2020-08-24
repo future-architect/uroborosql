@@ -11,7 +11,8 @@ before_install:
 before_script:
 - date
 before_deploy:
-- openssl aes-256-cbc -K $encrypted_c0fddd6d7622_key -iv $encrypted_c0fddd6d7622_iv -in .travis.key.gpg.enc -out .travis.key.gpg -d
+- openssl aes-256-cbc -K $encrypted_c0fddd6d7622_key -iv $encrypted_c0fddd6d7622_iv
+  -in .travis.key.gpg.enc -out .travis.key.gpg -d
 - chmod 600 .travis.key.gpg
 - gpg --import .travis.key.gpg
 deploy:
@@ -22,7 +23,8 @@ deploy:
     tags: true
 after_success:
 - mvn clean test jacoco:report coveralls:report
-- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy -DskipTests --settings .travis.settings.xml"
+- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy
+  -DskipTests --settings .travis.settings.xml"
 notifications:
   email:
     recipients:
