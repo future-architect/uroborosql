@@ -114,7 +114,7 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#isNotBlank(CharSequence)
 	 *
-	 * @param str 対象文字列
+	 * @param obj 対象オブジェクト
 	 * @return null、空文字、空白のいずれでもない場合<code>true</code>
 	 */
 	public boolean isNotBlank(final Object obj) {
