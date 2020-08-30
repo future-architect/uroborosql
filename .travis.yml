@@ -8,10 +8,23 @@ jdk:
 - openjdk8
 before_install:
 - export TZ=Asia/Tokyo
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_c0fddd6d7622_key -iv $encrypted_c0fddd6d7622_iv
+  -in .travis.key.gpg.enc -out .travis.key.gpg -d
+- chmod 600 .travis.key.gpg
+- gpg --import .travis.key.gpg
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: mvn -DperformRelease=true clean deploy --settings .travis.settings.xml
+  on:
+    tags: true
+after_deploy:
+- rm -f .travis.key.gpg
 before_script:
 - date
 after_success:
-- mvn clean test jacoco:report coveralls:report
+- mvn -q -B clean install jacoco:report coveralls:report
 - "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy
   -DskipTests --settings .travis.settings.xml"
 notifications:
@@ -24,3 +37,4 @@ env:
   global:
   - secure: bQ+Hu6gXdWlyE12rDjycf17V872uFlJi56Ebg5MHKrRlJDCUr3aG1BKgr5DlClJzuPNsx0NtCyowrMm40hwQJL0G3FWc317amCIjpcLnf3Dw0Vz/YpVTHfZxmCvDTHcZYh0cKavauFFnYcZb1g0hGn4hMsg3paU/5YsH6o8EKQC4OR29aWyXImnpGmYCzf5/Xo235stmnv9ksH1SttjsfZQli1/SUlK+Lj/vPP7atjbsH3h8AjfrSp6BcZ4o8PpI331iyBNZQZeyNfsdKF4sUQypVkI5UkQiGQbjloE+LCY2oBjSOTT6/VjP4YV4LAveLpVAf1KxJAyA0/pQMhpOuvY2Bw2UdNueg/euEbUBSBnmjmtSNMVDCoFpuZk4WNqdhkmTvG0mpjVBxmXvhS+lpFrRs1gOr+hLhJVK0RVp77F4y7IOkwnK2mo2fJtXufK9ccQI3cQMLt0yxnYbRHqhlGc1padnPh1Oo/fvU0WieNoiAkz5CISNkppr2RhVuSGnSgVhaf618q6xA84sPN6BpoHbf69dxc7NNgb2izMSxJqPW2bjysZnuX7VNKXyBfAjURle4roqZ9yY3hu10OH1USOe58NXSUc45EWDCGYZEsSbbLdJYAIqbDbbnBzDnR9QF+kKbFHXkCx5VkCskBpnALMCUp51fNd/vskh5FUstBU=
   - secure: NYp21lc1HBVp3PAdt1j2oIY2ecLAucYUYWezjQZw62uaTR+Nh8zhdwsj/M3edEscaTrttzvIlk3uKrgHlMYS4pJ8Vm1FDpIR/OCuFrIbtP1EgnBJDl+1J3tkuuaavfXFQetdiFRPO3TTxlcEKOhe1zoXlp7eCZB9o1O+XtmUrei5NNw8QdGlzDY+m9oZ+WnDXgOWAyW7I377qXB2POzmhszsQqys804ZH3M6ltWzge9CJiTVmDgk1Qj4rS8Guki/vQEb19UBdvbR8rCl9iCQ1xK/o3xFgLOaFi4cuQp8wKKcbysLCMDwKZE99BUJEoX/fNDB6qZ0dOv61vVnaeIdR7YnGWQjPbC0da23CSoM4pWqoPx0yTWQj5kr1HTixi2cE6XgUlaUJUh02CcpC0hzXQ8o8AGzUhzTYyQCWDohovznNWCtXLu372xDEo7uxrR7JjHZzg01UpiqA0BpZpaQDJSl+89D+srFibPGZsyM5iDCWL5B5rLKunb4N+HOUfGDlZOyJVxFc4PehxDoDo1/0KFd+31xfh36iZRucjUxpf3BvqONwZLbgQv4l2gpFxpfeApjBkqUn0yJGMVMkLfT8x0TblK7rz9A7jLJCDO8wH/l8Zdv6kNOB83kAd0vWBYL0/ftlmW64MCxPXfjmAj4l5k5Ind9zkxR8ZQo0B8YFOM=
+  - secure: IurX/AXY2ulDBIyvHerCvxk2U8SYUhk+pt9gyRboOOMmkIUqPq8tliHwey20iEQ+ngMufL9OgQdGYBdm3hdyCDFFUsh5/22v5NUgr9SapqNhpR6crP2vilaGKdCkYlqccSGid6z7WK6URD+Cq9sQ9tEl0isv1LwqBOK9RplBQb78WaX+W6jLyeRn60OSljP6kvWYLFLQtTAzBq2rKH10Z+ov7s8+zFv/MMv7Wzp4OpGjTvPCpun/UrlTgEuyBEqOZYVxsMmcIEllgv4pVX/q3oAiA2vGUfIm45OhW8xkXsDq4e89pda/IjyerGtkE3TAnOHuFhnrBV5dG7OKrYUIHp8q/g+sVoPJfxn5WlaYTp87UCESLKFpcXNlq3QJ2bIFfeTXx1Zfig9Mk1wSgSsofPYjH/R9ttyMFvVthm+re63sim0e4474ovG0fgA6UwgTsHCpsi1+/N96O2gjWCUEEcZXCusRLTkMUABVbhIx1MaMgAviE9oJcv7Zj6IbzO38THbBPcvlt5q+fWD4E+JkYB9LCQ36sp3BoYBa26PK6h16vKk6tifTKfloPkfwp4MJWK4HuoSXwpZrnUklfwfv7E3H0GA2n8aR8St1KvazZYSOnkJflkhakRzuHHTEQDetaq7CKY+Y5ikILNVA6GA5/V1eiPUltxZDBUr44xs9yD8=
