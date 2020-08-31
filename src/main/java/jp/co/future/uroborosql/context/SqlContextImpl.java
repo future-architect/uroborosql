@@ -431,17 +431,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext param(final String parameterName, final V value) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new Parameter(parameterName, optionalValue.get()));
-			} else {
-				param(new Parameter(parameterName, null));
-			}
-			return this;
-		} else {
-			return param(new Parameter(parameterName, value));
-		}
+		return param(new Parameter(parameterName, value));
 	}
 
 	/**

@@ -469,7 +469,7 @@ public class SqlContextImplTest {
 
 		transform(ctx);
 
-		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1"));
+		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
 		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
@@ -536,7 +536,7 @@ public class SqlContextImplTest {
 		transform(ctx);
 
 		assertThat(ctx.getExecutableSql(),
-				is("insert into test ( id, name, age) values ( ?/*id*/, ?/*name*/, ?/*age*/)"));
+				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
 		ctx = config.contextWith(sql);
 
@@ -588,7 +588,7 @@ public class SqlContextImplTest {
 		transform(ctx);
 
 		assertThat(ctx.getExecutableSql(),
-				is("insert into test ( id, name, age) values ( ?/*id*/, ?/*name*/, ?/*age*/)"));
+				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
 		ctx = config.contextWith(sql);
 
