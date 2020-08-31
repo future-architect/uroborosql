@@ -3,6 +3,8 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.sql.JDBCType;
+
 import org.junit.Test;
 
 public class ArrayTypeTest extends AbstractDbTest {
@@ -74,5 +76,15 @@ public class ArrayTypeTest extends AbstractDbTest {
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
+		try {
+			truncateTable("COLUMN_TYPE_ARRAY");
+			String[] vals = { "aaa", "bbb" };
+			agent.updateWith("insert into COLUMN_TYPE_ARRAY (COL_ARRAY) values (/*col_array*/)")
+					.param("col_array", vals, JDBCType.ARRAY).count();
+			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+
 	}
 }
