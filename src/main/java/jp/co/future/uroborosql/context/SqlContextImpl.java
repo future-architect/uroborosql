@@ -9,7 +9,6 @@ package jp.co.future.uroborosql.context;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.CallableStatement;
-import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -431,17 +429,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext param(final String parameterName, final V value) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new Parameter(parameterName, optionalValue.get()));
-			} else {
-				param(new Parameter(parameterName, null));
-			}
-			return this;
-		} else {
-			return param(new Parameter(parameterName, value));
-		}
+		return param(new Parameter(parameterName, value));
 	}
 
 	/**
@@ -530,17 +518,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext param(final String parameterName, final V value, final SQLType sqlType) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new Parameter(parameterName, optionalValue.get(), sqlType));
-			} else {
-				param(new Parameter(parameterName, null));
-			}
-			return this;
-		} else {
-			return param(new Parameter(parameterName, value, sqlType));
-		}
+		return param(new Parameter(parameterName, value, sqlType));
 	}
 
 	/**
@@ -563,17 +541,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext param(final String parameterName, final V value, final int sqlType) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new Parameter(parameterName, optionalValue.get(), sqlType));
-			} else {
-				param(new Parameter(parameterName, null));
-			}
-			return this;
-		} else {
-			return param(new Parameter(parameterName, value, sqlType));
-		}
+		return param(new Parameter(parameterName, value, sqlType));
 	}
 
 	/**
@@ -625,17 +593,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext inOutParam(final String parameterName, final V value, final SQLType sqlType) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new InOutParameter(parameterName, optionalValue.get(), sqlType));
-			} else {
-				param(new InOutParameter(parameterName, null, JDBCType.NULL));
-			}
-			return this;
-		} else {
-			return param(new InOutParameter(parameterName, value, sqlType));
-		}
+		return param(new InOutParameter(parameterName, value, sqlType));
 	}
 
 	/**
@@ -658,17 +616,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public <V> SqlContext inOutParam(final String parameterName, final V value, final int sqlType) {
-		if (value instanceof Optional) {
-			Optional<?> optionalValue = (Optional<?>) value;
-			if (optionalValue.isPresent()) {
-				param(new InOutParameter(parameterName, optionalValue.get(), sqlType));
-			} else {
-				param(new InOutParameter(parameterName, null, JDBCType.NULL));
-			}
-			return this;
-		} else {
-			return param(new InOutParameter(parameterName, value, sqlType));
-		}
+		return param(new InOutParameter(parameterName, value, sqlType));
 	}
 
 	/**

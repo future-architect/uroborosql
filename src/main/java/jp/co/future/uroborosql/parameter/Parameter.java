@@ -261,7 +261,11 @@ public class Parameter {
 			if (jdbcParam instanceof java.sql.Array) {
 				preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
 			} else {
-				preparedStatement.setObject(parameterIndex, jdbcParam);
+				if (jdbcParam != null) {
+					preparedStatement.setObject(parameterIndex, jdbcParam);
+				} else {
+					preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
+				}
 			}
 		} else {
 			int targetSqlType = sqlType.getVendorTypeNumber();//各JDBCの対応状況が怪しいのでintで扱う

@@ -70,6 +70,27 @@ public class SqlUpdateTest extends AbstractDbTest {
 	}
 
 	/**
+	 * DB更新処理のテストケース(NULLに設定)。
+	 */
+	@Test
+	public void testExecuteUpdateToNull() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
+
+		int updateCount = agent
+				.updateWith("update product set jan_code = /*jan_code*/ where product_id = /*product_id*/")
+				.param("product_id", 1, JDBCType.INTEGER)
+				.param("jan_code", null, Types.CHAR)
+				.count();
+		assertEquals("データの登録に失敗しました。", 1, updateCount);
+
+		assertNull(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
+				.param("product_id", 1, JDBCType.INTEGER)
+				.one()
+				.get("JAN_CODE"));
+	}
+
+	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test

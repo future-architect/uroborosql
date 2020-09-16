@@ -763,6 +763,21 @@ public class DefaultEntityHandlerTest {
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
+
+				// Optionalなフィールドにnullを設定（更新されない）
+				test.setMemo(null);
+				agent.update(test);
+
+				data = agent.find(TestEntity.class, 1).orElse(null);
+				assertThat(data.getMemo(), is(Optional.of("memo1")));
+
+				// null へ更新
+				test.setMemo(Optional.empty());
+				agent.update(test);
+
+				data = agent.find(TestEntity.class, 1).orElse(null);
+				assertThat(data, is(test));
+				assertThat(data.getMemo(), is(Optional.empty()));
 			});
 		}
 	}
