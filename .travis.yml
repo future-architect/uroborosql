@@ -21,7 +21,7 @@ before_deploy:
 deploy:
   provider: script
   skip_cleanup: true
-  script: mvn -DskipTests -DperformRelease=true clean deploy --settings .travis.settings.xml
+  script: mvn -B -DskipTests -DperformRelease=true clean deploy --settings .travis.settings.xml
   on:
     tags: true
 after_deploy:
