@@ -8,6 +8,11 @@ jdk:
 - openjdk8
 before_install:
 - export TZ=Asia/Tokyo
+before_script:
+- date
+after_success:
+- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn -q -B clean install jacoco:report coveralls:report"
+- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy -DskipTests -B -V --settings .travis.settings.xml"
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_c0fddd6d7622_key -iv $encrypted_c0fddd6d7622_iv
   -in .travis.key.gpg.enc -out .travis.key.gpg -d
@@ -16,17 +21,11 @@ before_deploy:
 deploy:
   provider: script
   skip_cleanup: true
-  script: mvn -DperformRelease=true clean deploy --settings .travis.settings.xml
+  script: mvn -DskipTests -DperformRelease=true clean deploy --settings .travis.settings.xml
   on:
     tags: true
 after_deploy:
 - rm -f .travis.key.gpg
-before_script:
-- date
-after_success:
-- mvn -q -B clean install jacoco:report coveralls:report
-- "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy
-  -DskipTests --settings .travis.settings.xml"
 notifications:
   email:
     recipients:
