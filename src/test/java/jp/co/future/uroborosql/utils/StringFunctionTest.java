@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -46,6 +47,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.startsWith("a%bc"), is("a$%bc%"));
 		assertThat(expressionFunction.startsWith(""), is("%"));
 		assertThat(expressionFunction.startsWith(null), is("%"));
+		assertThat(expressionFunction.startsWith(123), is("123%"));
+		assertThat(expressionFunction.startsWith(Optional.empty()), is("%"));
+		assertThat(expressionFunction.startsWith(Optional.of("")), is("%"));
+		assertThat(expressionFunction.startsWith(Optional.of("abc")), is("abc%"));
+		assertThat(expressionFunction.startsWith(Optional.of(123)), is("123%"));
 
 		Map<Object, Object> root = new HashMap<>();
 		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
@@ -67,6 +73,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.contains("a%bc"), is("%a$%bc%"));
 		assertThat(expressionFunction.contains(""), is("%"));
 		assertThat(expressionFunction.contains(null), is("%"));
+		assertThat(expressionFunction.contains(123), is("%123%"));
+		assertThat(expressionFunction.contains(Optional.empty()), is("%"));
+		assertThat(expressionFunction.contains(Optional.of("")), is("%"));
+		assertThat(expressionFunction.contains(Optional.of("abc")), is("%abc%"));
+		assertThat(expressionFunction.contains(Optional.of(123)), is("%123%"));
 
 		Map<Object, Object> root = new HashMap<>();
 		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
@@ -88,6 +99,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.endsWith("a%bc"), is("%a$%bc"));
 		assertThat(expressionFunction.endsWith(""), is("%"));
 		assertThat(expressionFunction.endsWith(null), is("%"));
+		assertThat(expressionFunction.endsWith(123), is("%123"));
+		assertThat(expressionFunction.endsWith(Optional.empty()), is("%"));
+		assertThat(expressionFunction.endsWith(Optional.of("")), is("%"));
+		assertThat(expressionFunction.endsWith(Optional.of("abc")), is("%abc"));
+		assertThat(expressionFunction.endsWith(Optional.of(123)), is("%123"));
 
 		Map<Object, Object> root = new HashMap<>();
 		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
@@ -110,6 +126,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isBlank("bob"), is(false));
 		assertThat(expressionFunction.isBlank("  bob  "), is(false));
 		assertThat(expressionFunction.isBlank(123), is(false));
+		assertThat(expressionFunction.isBlank(Optional.empty()), is(true));
+		assertThat(expressionFunction.isBlank(Optional.of("")), is(true));
+		assertThat(expressionFunction.isBlank(Optional.of(" ")), is(true));
+		assertThat(expressionFunction.isBlank(Optional.of("bob")), is(false));
+		assertThat(expressionFunction.isBlank(Optional.of(123)), is(false));
 	}
 
 	@Test
@@ -120,6 +141,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isEmpty("bob"), is(false));
 		assertThat(expressionFunction.isEmpty("  bob  "), is(false));
 		assertThat(expressionFunction.isEmpty(123), is(false));
+		assertThat(expressionFunction.isEmpty(Optional.empty()), is(true));
+		assertThat(expressionFunction.isEmpty(Optional.of("")), is(true));
+		assertThat(expressionFunction.isEmpty(Optional.of(" ")), is(false));
+		assertThat(expressionFunction.isEmpty(Optional.of("bob")), is(false));
+		assertThat(expressionFunction.isEmpty(Optional.of(123)), is(false));
 	}
 
 	@Test
@@ -130,6 +156,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isNotBlank("bob"), is(true));
 		assertThat(expressionFunction.isNotBlank("  bob  "), is(true));
 		assertThat(expressionFunction.isNotBlank(123), is(true));
+		assertThat(expressionFunction.isNotBlank(Optional.empty()), is(false));
+		assertThat(expressionFunction.isNotBlank(Optional.of("")), is(false));
+		assertThat(expressionFunction.isNotBlank(Optional.of(" ")), is(false));
+		assertThat(expressionFunction.isNotBlank(Optional.of("bob")), is(true));
+		assertThat(expressionFunction.isNotBlank(Optional.of(123)), is(true));
 	}
 
 	@Test
@@ -140,26 +171,41 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.isNotEmpty("bob"), is(true));
 		assertThat(expressionFunction.isNotEmpty("  bob  "), is(true));
 		assertThat(expressionFunction.isNotEmpty(123), is(true));
+		assertThat(expressionFunction.isNotEmpty(Optional.empty()), is(false));
+		assertThat(expressionFunction.isNotEmpty(Optional.of("")), is(false));
+		assertThat(expressionFunction.isNotEmpty(Optional.of(" ")), is(true));
+		assertThat(expressionFunction.isNotEmpty(Optional.of("bob")), is(true));
+		assertThat(expressionFunction.isNotEmpty(Optional.of(123)), is(true));
 	}
 
 	@Test
 	public void testTrim() throws Exception {
 		assertThat(expressionFunction.trim(null), nullValue());
 		assertThat(expressionFunction.trim(""), is(""));
-		assertThat(expressionFunction.trim(""), is(""));
 		assertThat(expressionFunction.trim("     "), is(""));
 		assertThat(expressionFunction.trim("abc"), is("abc"));
 		assertThat(expressionFunction.trim("    abc    "), is("abc"));
+		assertThat(expressionFunction.trim(Optional.empty()), is(nullValue()));
+		assertThat(expressionFunction.trim(Optional.of("")), is(""));
+		assertThat(expressionFunction.trim(Optional.of("    ")), is(""));
+		assertThat(expressionFunction.trim(Optional.of("abc")), is("abc"));
+		assertThat(expressionFunction.trim(Optional.of("   abc   ")), is("abc"));
+		assertThat(expressionFunction.trim(Optional.of(123)), is("123"));
 	}
 
 	@Test
 	public void testTrimToEmpty() throws Exception {
 		assertThat(expressionFunction.trimToEmpty(null), is(""));
 		assertThat(expressionFunction.trimToEmpty(""), is(""));
-		assertThat(expressionFunction.trimToEmpty(""), is(""));
 		assertThat(expressionFunction.trimToEmpty("     "), is(""));
 		assertThat(expressionFunction.trimToEmpty("abc"), is("abc"));
 		assertThat(expressionFunction.trimToEmpty("    abc    "), is("abc"));
+		assertThat(expressionFunction.trimToEmpty(Optional.empty()), is(""));
+		assertThat(expressionFunction.trimToEmpty(Optional.of("")), is(""));
+		assertThat(expressionFunction.trimToEmpty(Optional.of(" ")), is(""));
+		assertThat(expressionFunction.trimToEmpty(Optional.of("abc")), is("abc"));
+		assertThat(expressionFunction.trimToEmpty(Optional.of("   abc  ")), is("abc"));
+		assertThat(expressionFunction.trimToEmpty(Optional.of(123)), is("123"));
 	}
 
 	@Test
@@ -170,6 +216,13 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.left("abc", 0), is(""));
 		assertThat(expressionFunction.left("abc", 2), is("ab"));
 		assertThat(expressionFunction.left("abc", 4), is("abc"));
+		assertThat(expressionFunction.left(123, 4), is("123"));
+		assertThat(expressionFunction.left(Optional.empty(), 4), is(nullValue()));
+		assertThat(expressionFunction.left(Optional.of(""), 2), is(""));
+		assertThat(expressionFunction.left(Optional.of("abc"), 0), is(""));
+		assertThat(expressionFunction.left(Optional.of("abc"), 2), is("ab"));
+		assertThat(expressionFunction.left(Optional.of("abc"), 4), is("abc"));
+		assertThat(expressionFunction.left(Optional.of(123), 4), is("123"));
 	}
 
 	@Test
@@ -180,6 +233,13 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.right("abc", 0), is(""));
 		assertThat(expressionFunction.right("abc", 2), is("bc"));
 		assertThat(expressionFunction.right("abc", 4), is("abc"));
+		assertThat(expressionFunction.right(123, 4), is("123"));
+		assertThat(expressionFunction.right(Optional.empty(), 4), is(nullValue()));
+		assertThat(expressionFunction.right(Optional.of(""), 2), is(""));
+		assertThat(expressionFunction.right(Optional.of("abc"), 0), is(""));
+		assertThat(expressionFunction.right(Optional.of("abc"), 2), is("bc"));
+		assertThat(expressionFunction.right(Optional.of("abc"), 4), is("abc"));
+		assertThat(expressionFunction.right(Optional.of(123), 4), is("123"));
 	}
 
 	@Test
@@ -192,6 +252,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.mid("abc", 2, 4), is("c"));
 		assertThat(expressionFunction.mid("abc", 4, 2), is(""));
 		assertThat(expressionFunction.mid("abc", -2, 2), is("ab"));
+		assertThat(expressionFunction.mid(123, -2, 2), is("12"));
+		assertThat(expressionFunction.mid(Optional.empty(), 1, 2), is(nullValue()));
+		assertThat(expressionFunction.mid(Optional.of("abc"), 1, -1), is(""));
+		assertThat(expressionFunction.mid(Optional.of("abc"), 0, 4), is("abc"));
+		assertThat(expressionFunction.mid(Optional.of(123), 0, 4), is("123"));
 	}
 
 	@Test
@@ -202,6 +267,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.rightPad("bat", 5), is("bat  "));
 		assertThat(expressionFunction.rightPad("bat", 1), is("bat"));
 		assertThat(expressionFunction.rightPad("bat", -1), is("bat"));
+		assertThat(expressionFunction.rightPad(123, -1), is("123"));
+		assertThat(expressionFunction.rightPad(Optional.empty(), 3), is(nullValue()));
+		assertThat(expressionFunction.rightPad(Optional.of(""), 3), is("   "));
+		assertThat(expressionFunction.rightPad(Optional.of("bat"), 3), is("bat"));
+		assertThat(expressionFunction.rightPad(Optional.of(123), 5), is("123  "));
 	}
 
 	@Test
@@ -212,6 +282,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.rightPad("bat", 5, 'z'), is("batzz"));
 		assertThat(expressionFunction.rightPad("bat", 1, 'z'), is("bat"));
 		assertThat(expressionFunction.rightPad("bat", -1, 'z'), is("bat"));
+		assertThat(expressionFunction.rightPad(123, -1, 'z'), is("123"));
+		assertThat(expressionFunction.rightPad(Optional.empty(), 3, 'z'), is(nullValue()));
+		assertThat(expressionFunction.rightPad(Optional.of(""), 3, 'z'), is("zzz"));
+		assertThat(expressionFunction.rightPad(Optional.of("bat"), 3, 'z'), is("bat"));
+		assertThat(expressionFunction.rightPad(Optional.of(123), 5, 'z'), is("123zz"));
 	}
 
 	@Test
@@ -222,6 +297,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.leftPad("bat", 5), is("  bat"));
 		assertThat(expressionFunction.leftPad("bat", 1), is("bat"));
 		assertThat(expressionFunction.leftPad("bat", -1), is("bat"));
+		assertThat(expressionFunction.leftPad(123, -1), is("123"));
+		assertThat(expressionFunction.leftPad(Optional.empty(), 3), is(nullValue()));
+		assertThat(expressionFunction.leftPad(Optional.of(""), 3), is("   "));
+		assertThat(expressionFunction.leftPad(Optional.of("bat"), 3), is("bat"));
+		assertThat(expressionFunction.leftPad(Optional.of(123), 5), is("  123"));
 	}
 
 	@Test
@@ -232,6 +312,11 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.leftPad("bat", 5, 'z'), is("zzbat"));
 		assertThat(expressionFunction.leftPad("bat", 1, 'z'), is("bat"));
 		assertThat(expressionFunction.leftPad("bat", -1, 'z'), is("bat"));
+		assertThat(expressionFunction.leftPad(123, -1, 'z'), is("123"));
+		assertThat(expressionFunction.leftPad(Optional.empty(), 3, 'z'), is(nullValue()));
+		assertThat(expressionFunction.leftPad(Optional.of(""), 3, 'z'), is("zzz"));
+		assertThat(expressionFunction.leftPad(Optional.of("bat"), 3, 'z'), is("bat"));
+		assertThat(expressionFunction.leftPad(Optional.of(123), 5, 'z'), is("zz123"));
 	}
 
 	@Test
@@ -241,6 +326,13 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.split("abc def"), is(Matchers.arrayContaining("abc", "def")));
 		assertThat(expressionFunction.split("abc  def"), is(Matchers.arrayContaining("abc", "def")));
 		assertThat(expressionFunction.split(" abc "), is(Matchers.arrayContaining("abc")));
+		assertThat(expressionFunction.split(123), is(Matchers.arrayContaining("123")));
+		assertThat(expressionFunction.split(Optional.empty()), nullValue());
+		assertThat(expressionFunction.split(Optional.of("")), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split(Optional.of("abc def")), is(Matchers.arrayContaining("abc", "def")));
+		assertThat(expressionFunction.split(Optional.of("abc  def")), is(Matchers.arrayContaining("abc", "def")));
+		assertThat(expressionFunction.split(Optional.of(" abc ")), is(Matchers.arrayContaining("abc")));
+		assertThat(expressionFunction.split(Optional.of(123)), is(Matchers.arrayContaining("123")));
 	}
 
 	@Test
@@ -251,6 +343,12 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.split("a..b.c", '.'), is(Matchers.arrayContaining("a", "b", "c")));
 		assertThat(expressionFunction.split("a:b:c", '.'), is(Matchers.arrayContaining("a:b:c")));
 		assertThat(expressionFunction.split("a b c", ' '), is(Matchers.arrayContaining("a", "b", "c")));
+		assertThat(expressionFunction.split(Optional.empty(), '.'), nullValue());
+		assertThat(expressionFunction.split(Optional.of(""), '.'), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split(Optional.of("a.b.c"), '.'), is(Matchers.arrayContaining("a", "b", "c")));
+		assertThat(expressionFunction.split(Optional.of("a..b.c"), '.'), is(Matchers.arrayContaining("a", "b", "c")));
+		assertThat(expressionFunction.split(Optional.of("a:b:c"), '.'), is(Matchers.arrayContaining("a:b:c")));
+		assertThat(expressionFunction.split(Optional.of("a b c"), ' '), is(Matchers.arrayContaining("a", "b", "c")));
 	}
 
 	@Test
@@ -261,6 +359,16 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.split("ab   cd ef", null, 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
 		assertThat(expressionFunction.split("ab:cd:ef", ":", 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
 		assertThat(expressionFunction.split("ab:cd:ef", ":", 2), is(Matchers.arrayContaining("ab", "cd:ef")));
+		assertThat(expressionFunction.split(Optional.empty(), ".", 2), nullValue());
+		assertThat(expressionFunction.split(Optional.of(""), ".", 2), is(Matchers.emptyArray()));
+		assertThat(expressionFunction.split(Optional.of("ab cd ef"), null, 0),
+				is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split(Optional.of("ab   cd ef"), null, 0),
+				is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split(Optional.of("ab:cd:ef"), ":", 0),
+				is(Matchers.arrayContaining("ab", "cd", "ef")));
+		assertThat(expressionFunction.split(Optional.of("ab:cd:ef"), ":", 2),
+				is(Matchers.arrayContaining("ab", "cd:ef")));
 	}
 
 	@Test
@@ -269,6 +377,12 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.capitalize(""), is(""));
 		assertThat(expressionFunction.capitalize("cat"), is("Cat"));
 		assertThat(expressionFunction.capitalize("cAt"), is("CAt"));
+		assertThat(expressionFunction.capitalize(123), is("123"));
+		assertThat(expressionFunction.capitalize(Optional.empty()), nullValue());
+		assertThat(expressionFunction.capitalize(Optional.of("")), is(""));
+		assertThat(expressionFunction.capitalize(Optional.of("cat")), is("Cat"));
+		assertThat(expressionFunction.capitalize(Optional.of("cAt")), is("CAt"));
+		assertThat(expressionFunction.capitalize(Optional.of(123)), is("123"));
 	}
 
 	@Test
@@ -277,6 +391,12 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.uncapitalize(""), is(""));
 		assertThat(expressionFunction.uncapitalize("Cat"), is("cat"));
 		assertThat(expressionFunction.uncapitalize("CAt"), is("cAt"));
+		assertThat(expressionFunction.uncapitalize(123), is("123"));
+		assertThat(expressionFunction.uncapitalize(Optional.empty()), nullValue());
+		assertThat(expressionFunction.uncapitalize(Optional.of("")), is(""));
+		assertThat(expressionFunction.uncapitalize(Optional.of("Cat")), is("cat"));
+		assertThat(expressionFunction.uncapitalize(Optional.of("CAt")), is("cAt"));
+		assertThat(expressionFunction.uncapitalize(Optional.of(123)), is("123"));
 	}
 
 	@Test

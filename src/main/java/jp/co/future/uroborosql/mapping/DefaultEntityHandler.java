@@ -756,7 +756,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		String camelColName = col.getCamelColumnName();
 		// フィールドがセットされていない場合はカラム自体を削る
 		if (isStringType(col.getDataType())) {
-			if (emptyStringEqualsNull) {
+			if (emptyStringEqualsNull && !col.isNullable()) {
 				original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
 						.append(System.lineSeparator());
 			} else {

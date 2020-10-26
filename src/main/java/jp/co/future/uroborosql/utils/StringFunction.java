@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.utils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 
@@ -58,7 +59,7 @@ public final class StringFunction {
 	 * @return null または 空文字の場合<code>true</code>
 	 */
 	public boolean isEmpty(final Object obj) {
-		return StringUtils.isEmpty(Objects.toString(obj, ""));
+		return StringUtils.isEmpty(getStringValue(obj, ""));
 	}
 
 	/**
@@ -78,7 +79,7 @@ public final class StringFunction {
 	 * @return null、空文字のいずれでもない場合<code>true</code>
 	 */
 	public boolean isNotEmpty(final Object obj) {
-		return StringUtils.isNotEmpty(Objects.toString(obj, ""));
+		return StringUtils.isNotEmpty(getStringValue(obj, ""));
 	}
 
 	/**
@@ -98,7 +99,7 @@ public final class StringFunction {
 	 * @return null または 空文字もしくは空白の場合<code>true</code>
 	 */
 	public boolean isBlank(final Object obj) {
-		return StringUtils.isBlank(Objects.toString(obj, ""));
+		return StringUtils.isBlank(getStringValue(obj, ""));
 	}
 
 	/**
@@ -118,7 +119,7 @@ public final class StringFunction {
 	 * @return null、空文字、空白のいずれでもない場合<code>true</code>
 	 */
 	public boolean isNotBlank(final Object obj) {
-		return StringUtils.isNotBlank(Objects.toString(obj, ""));
+		return StringUtils.isNotBlank(getStringValue(obj, ""));
 	}
 
 	/**
@@ -134,11 +135,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#trim(String)
 	 *
-	 * @param str トリムする文字列
+	 * @param obj トリムする文字列を表すオブジェクト
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は<code>null</code>
 	 */
-	public String trim(final String str) {
-		return StringUtils.trim(str);
+	public String trim(final Object obj) {
+		return StringUtils.trim(getStringValue(obj));
 	}
 
 	/**
@@ -155,11 +156,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#trimToEmpty(String)
 	 *
-	 * @param str トリムする文字列
+	 * @param obj トリムする文字列を表すオブジェクト
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は空文字となる
 	 */
-	public String trimToEmpty(final String str) {
-		return StringUtils.trimToEmpty(str);
+	public String trimToEmpty(final Object obj) {
+		return StringUtils.trimToEmpty(getStringValue(obj));
 	}
 
 	/**
@@ -176,12 +177,12 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#left(String, int)
 	 *
-	 * @param str 対象文字列
+	 * @param obj 対象文字列を表すオブジェクト
 	 * @param len 文字数
 	 * @return 文字列の先頭から文字数で指定した長さの文字列
 	 */
-	public String left(final String str, final int len) {
-		return StringUtils.left(str, len);
+	public String left(final Object obj, final int len) {
+		return StringUtils.left(getStringValue(obj), len);
 	}
 
 	/**
@@ -198,12 +199,12 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#right(String, int)
 	 *
-	 * @param str 対象文字列
+	 * @param obj 対象文字列を表すオブジェクト
 	 * @param len 文字数
 	 * @return 文字列の最後から文字数で指定した長さの文字列
 	 */
-	public String right(final String str, final int len) {
-		return StringUtils.right(str, len);
+	public String right(final Object obj, final int len) {
+		return StringUtils.right(getStringValue(obj), len);
 	}
 
 	/**
@@ -222,13 +223,13 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#mid(String, int, int)
 	 *
-	 * @param str 対象文字列
+	 * @param obj 対象文字列を表すオブジェクト
 	 * @param pos 開始位置
 	 * @param len 文字数
 	 * @return 文字列の開始位置から文字数で指定した長さの文字列
 	 */
-	public String mid(final String str, final int pos, final int len) {
-		return StringUtils.mid(str, pos, len);
+	public String mid(final Object obj, final int pos, final int len) {
+		return StringUtils.mid(getStringValue(obj), pos, len);
 	}
 
 	/**
@@ -245,12 +246,12 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#rightPad(String, int)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @return 指定した長さになるまで末尾に空白を埋めた文字列
 	 */
-	public String rightPad(final String str, final int size) {
-		return StringUtils.rightPad(str, size);
+	public String rightPad(final Object obj, final int size) {
+		return StringUtils.rightPad(getStringValue(obj), size);
 	}
 
 	/**
@@ -267,13 +268,13 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#rightPad(String, int, char)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @param padChar 埋め込み文字
 	 * @return 指定した長さになるまで末尾に埋め込み文字を埋めた文字列
 	 */
-	public String rightPad(final String str, final int size, final char padChar) {
-		return StringUtils.rightPad(str, size, padChar);
+	public String rightPad(final Object obj, final int size, final char padChar) {
+		return StringUtils.rightPad(getStringValue(obj), size, padChar);
 	}
 
 	/**
@@ -290,12 +291,12 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#leftPad(String, int)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @return 指定した長さになるまで先頭に空白を埋めた文字列
 	 */
-	public String leftPad(final String str, final int size) {
-		return StringUtils.leftPad(str, size);
+	public String leftPad(final Object obj, final int size) {
+		return StringUtils.leftPad(getStringValue(obj), size);
 	}
 
 	/**
@@ -312,13 +313,13 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#leftPad(String, int, char)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @param padChar 埋め込み文字
 	 * @return 指定した長さになるまで末尾に埋め込み文字を埋めた文字列
 	 */
-	public String leftPad(final String str, final int size, final char padChar) {
-		return StringUtils.leftPad(str, size, padChar);
+	public String leftPad(final Object obj, final int size, final char padChar) {
+		return StringUtils.leftPad(getStringValue(obj), size, padChar);
 	}
 
 	/**
@@ -336,11 +337,11 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#split(String)
 	 *
-	 * @param str  変換元文字列 または {@code null}
+	 * @param obj  変換元文字列を表すオブジェクト または {@code null}
 	 * @return 空白で区切った文字列配列
 	 */
-	public String[] split(final String str) {
-		return StringUtils.split(str);
+	public String[] split(final Object obj) {
+		return StringUtils.split(getStringValue(obj));
 	}
 
 	/**
@@ -358,12 +359,12 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#split(String, char)
 	 *
-	 * @param str 変換元文字列 または {@code null}
+	 * @param obj 変換元文字列を表すオブジェクト または {@code null}
 	 * @param separatorChar 区切り文字
 	 * @return 区切り文字で区切った文字列配列
 	 */
-	public String[] split(final String str, final char separatorChar) {
-		return StringUtils.split(str, separatorChar);
+	public String[] split(final Object obj, final char separatorChar) {
+		return StringUtils.split(getStringValue(obj), separatorChar);
 	}
 
 	/**
@@ -381,13 +382,13 @@ public final class StringFunction {
 	 *
 	 * @see StringUtils#split(String, String, int)
 	 *
-	 * @param str 変換元文字列 または {@code null}
+	 * @param obj 変換元文字列を表すオブジェクト または {@code null}
 	 * @param separatorChars 区切り文字
 	 * @param max 作成する配列の最大値。最大値を超える場合は最後の要素に残りのすべての文字列が入る
 	 * @return 区切り文字で区切った文字列配列
 	 */
-	public String[] split(final String str, final String separatorChars, final int max) {
-		return StringUtils.split(str, separatorChars, max);
+	public String[] split(final Object obj, final String separatorChars, final int max) {
+		return StringUtils.split(getStringValue(obj), separatorChars, max);
 	}
 
 	/**
@@ -403,11 +404,11 @@ public final class StringFunction {
 	 * @see StringUtils#capitalize(String)
 	 * @see #uncapitalize(String)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を大文字にした文字列
 	 */
-	public String capitalize(final String str) {
-		return StringUtils.capitalize(str);
+	public String capitalize(final Object obj) {
+		return StringUtils.capitalize(getStringValue(obj));
 	}
 
 	/**
@@ -423,11 +424,11 @@ public final class StringFunction {
 	 * @see StringUtils#uncapitalize(String)
 	 * @see #capitalize(String)
 	 *
-	 * @param str 文字列
+	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を小文字にした文字列
 	 */
-	public String uncapitalize(final String str) {
-		return StringUtils.uncapitalize(str);
+	public String uncapitalize(final Object obj) {
+		return StringUtils.uncapitalize(getStringValue(obj));
 	}
 
 	/**
@@ -442,17 +443,18 @@ public final class StringFunction {
 	 *  - null -&gt; %
 	 * </pre>
 	 *
-	 * @param text テキスト
+	 * @param obj テキストを表すオブジェクト
 	 * @return 指定されたテキストで始まるLIKE句用の検索文字列
 	 */
-	public String startsWith(final CharSequence text) {
+	public String startsWith(final Object obj) {
 		if (dialect == null) {
 			throw new IllegalStateException("dialect is not set.");
 		}
-		if (StringUtils.isEmpty(text)) {
+		CharSequence val = getStringValue(obj);
+		if (StringUtils.isEmpty(val)) {
 			return "%";
 		} else {
-			return dialect.escapeLikePattern(text) + "%";
+			return dialect.escapeLikePattern(val) + "%";
 		}
 	}
 
@@ -468,17 +470,18 @@ public final class StringFunction {
 	 *  - null -&gt; %
 	 * </pre>
 	 *
-	 * @param text テキスト
+	 * @param obj テキストを表すオブジェクト
 	 * @return 指定されたテキストを含むLIKE句用の検索文字列
 	 */
-	public String contains(final CharSequence text) {
+	public String contains(final Object obj) {
 		if (dialect == null) {
 			throw new IllegalStateException("dialect is not set.");
 		}
-		if (StringUtils.isEmpty(text)) {
+		CharSequence val = getStringValue(obj);
+		if (StringUtils.isEmpty(val)) {
 			return "%";
 		} else {
-			return "%" + dialect.escapeLikePattern(text) + "%";
+			return "%" + dialect.escapeLikePattern(val) + "%";
 		}
 	}
 
@@ -494,17 +497,18 @@ public final class StringFunction {
 	 *  - null -&gt; %
 	 * </pre>
 	 *
-	 * @param text テキスト
+	 * @param obj テキストを表すオブジェクト
 	 * @return 指定されたテキストで終わるLIKE句用の検索文字列
 	 */
-	public String endsWith(final CharSequence text) {
+	public String endsWith(final Object obj) {
 		if (dialect == null) {
 			throw new IllegalStateException("dialect is not set.");
 		}
-		if (StringUtils.isEmpty(text)) {
+		CharSequence val = getStringValue(obj);
+		if (StringUtils.isEmpty(val)) {
 			return "%";
 		} else {
-			return "%" + dialect.escapeLikePattern(text);
+			return "%" + dialect.escapeLikePattern(val);
 		}
 	}
 
@@ -557,6 +561,32 @@ public final class StringFunction {
 	 */
 	public Long incrementLong(final Long num) {
 		return num + 1L;
+	}
+
+	/**
+	 * 引数のオブジェクトを文字列に変換した値を取得する.
+	 *
+	 * @param obj 変換対象オブジェクト
+	 * @return オブジェクトの文字列表現
+	 */
+	private String getStringValue(final Object obj) {
+		return getStringValue(obj, null);
+	}
+
+	/**
+	 * 引数のオブジェクトを文字列に変換した値を取得する.
+	 *
+	 * @param obj 変換対象オブジェクト
+	 * @param nullDefault objが<code>null</code>の場合の初期値
+	 * @return オブジェクトの文字列表現
+	 */
+	private String getStringValue(final Object obj, final String nullDefault) {
+		Object val = obj instanceof Optional ? ((Optional<?>) obj).orElse(null) : obj;
+		if (val instanceof String) {
+			return String.class.cast(val);
+		} else {
+			return Objects.toString(val, nullDefault);
+		}
 	}
 
 }
