@@ -518,7 +518,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
-			assertThat(sql, containsString("SF.isNotEmpty"));
+			assertThat(sql, containsString("IF memo != null"));
 
 			try (ResultSet rs = agent.query(ctx)) {
 				assertThat(rs.next(), is(true));
@@ -535,7 +535,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
 
 			String sql = ctx.getSql();
-			assertThat(sql, containsString("SF.isNotEmpty"));
+			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
 					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
@@ -578,7 +578,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
 
 			String sql = ctx.getSql();
-			assertThat(sql, containsString("SF.isNotEmpty"));
+			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
