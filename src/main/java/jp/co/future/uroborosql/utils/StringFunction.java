@@ -402,7 +402,7 @@ public final class StringFunction {
 	 * </pre>
 	 *
 	 * @see StringUtils#capitalize(String)
-	 * @see #uncapitalize(String)
+	 * @see #uncapitalize(Object)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を大文字にした文字列
@@ -422,7 +422,7 @@ public final class StringFunction {
 	 * </pre>
 	 *
 	 * @see StringUtils#uncapitalize(String)
-	 * @see #capitalize(String)
+	 * @see #capitalize(Object)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を小文字にした文字列
