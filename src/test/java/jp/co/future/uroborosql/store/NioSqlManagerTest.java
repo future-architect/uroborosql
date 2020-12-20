@@ -35,7 +35,23 @@ public class NioSqlManagerTest {
 		manager.initialize();
 
 		assertThat(manager.getDialect(), is(dialect));
+	}
 
+	@Test
+	public void testConstructorMultiSqlPaths() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
+
+		Dialect dialect = new H2Dialect();
+		manager.setDialect(dialect);
+		manager.initialize();
+
+		assertThat(manager.getDialect(), is(dialect));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testConstructorMultiSqlPathsNull() throws Exception {
+		new NioSqlManagerImpl(Arrays.asList(null, "secondary_sql"));
 	}
 
 	@Test
@@ -84,6 +100,58 @@ public class NioSqlManagerTest {
 
 		try {
 			manager.getSql("example/select_test");
+		} catch (Exception ex) {
+			fail();
+		}
+		try {
+			manager.getSql("example/select_test_no_file");
+			fail();
+		} catch (UroborosqlRuntimeException ex) {
+			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
+		} catch (Exception ex) {
+			fail();
+		}
+	}
+
+	@Test
+	public void testGetSqlWithMultiSqlPaths() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		manager.setDialect(new H2Dialect());
+		manager.initialize();
+
+		try {
+			manager.getSql("example/select_test");
+			assertThat(manager.getSql("example/select_product"), is(containsString("SELECT /* _SQL_ID_ */")));
+			assertThat(manager.getSql("example/select_in_secondary_sql_folder"),
+					is(containsString("secondary_sql/example file")));
+			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
+					is(containsString("secondary_sql/other file")));
+		} catch (Exception ex) {
+			fail();
+		}
+		try {
+			manager.getSql("example/select_test_no_file");
+			fail();
+		} catch (UroborosqlRuntimeException ex) {
+			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
+		} catch (Exception ex) {
+			fail();
+		}
+	}
+
+	@Test
+	public void testGetSqlWithMultiSqlPathsReverse() throws Exception {
+		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("secondary_sql", "sql"));
+		manager.setDialect(new H2Dialect());
+		manager.initialize();
+
+		try {
+			manager.getSql("example/select_test");
+			assertThat(manager.getSql("example/select_product"), is(containsString("secondary_sql folder")));
+			assertThat(manager.getSql("example/select_in_secondary_sql_folder"),
+					is(containsString("secondary_sql/example file")));
+			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
+					is(containsString("secondary_sql/other file")));
 		} catch (Exception ex) {
 			fail();
 		}

@@ -6,11 +6,13 @@
  */
 package jp.co.future.uroborosql.store;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
  * SQL管理実装クラス
@@ -20,10 +22,13 @@ import jp.co.future.uroborosql.dialect.Dialect;
 public class SqlManagerImpl implements SqlManager {
 
 	/** SQLキャッシュ */
-	private ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
 
 	/** SQL読み込みクラス */
-	private SqlLoader sqlLoader;
+	private final List<SqlLoader> sqlLoaders = new ArrayList<>();
+
+	/** SQLファイル拡張子 */
+	private String fileExtension;
 
 	/** 起動時にSQLファイルをキャッシュするかどうか */
 	private boolean cache = true;
@@ -32,7 +37,7 @@ public class SqlManagerImpl implements SqlManager {
 
 	/** コンストラクタ */
 	public SqlManagerImpl() {
-		sqlLoader = new SqlLoaderImpl();
+		this(new SqlLoaderImpl());
 	}
 
 	/**
@@ -41,7 +46,8 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param sqlLoader SQLローダー
 	 */
 	public SqlManagerImpl(final SqlLoader sqlLoader) {
-		this.sqlLoader = sqlLoader;
+		this.sqlLoaders.add(sqlLoader);
+		this.fileExtension = sqlLoader.getFileExtension();
 	}
 
 	/**
@@ -50,10 +56,12 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param loadPath SQLをロードするルートパス
 	 */
 	public SqlManagerImpl(final String loadPath) {
-		this();
+		SqlLoader sqlLoader = new SqlLoaderImpl();
 		if (loadPath != null) {
 			sqlLoader.setLoadPath(loadPath);
 		}
+		this.sqlLoaders.add(sqlLoader);
+		this.fileExtension = sqlLoader.getFileExtension();
 	}
 
 	/**
@@ -63,10 +71,15 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param fileExtension SQL拡張子
 	 */
 	public SqlManagerImpl(final String loadPath, final String fileExtension) {
-		this(loadPath);
+		SqlLoader sqlLoader = new SqlLoaderImpl();
+		if (loadPath != null) {
+			sqlLoader.setLoadPath(loadPath);
+		}
 		if (fileExtension != null) {
 			sqlLoader.setFileExtension(fileExtension);
 		}
+		this.sqlLoaders.add(sqlLoader);
+		this.fileExtension = sqlLoader.getFileExtension();
 	}
 
 	/**
@@ -91,6 +104,39 @@ public class SqlManagerImpl implements SqlManager {
 	}
 
 	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLをロードするルートパスのリスト
+	 */
+	public SqlManagerImpl(final List<String> loadPaths) {
+		this(loadPaths, null);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLをロードするルートパスのリスト
+	 * @param fileExtension SQL拡張子
+	 */
+	public SqlManagerImpl(final List<String> loadPaths, final String fileExtension) {
+		if (loadPaths == null || loadPaths.isEmpty()) {
+			throw new IllegalArgumentException("loadPaths is required. loadPaths=" + loadPaths);
+		}
+
+		for (String loadPath : loadPaths) {
+			if (loadPath != null) {
+				if (fileExtension != null) {
+					this.sqlLoaders.add(new SqlLoaderImpl(loadPath, fileExtension));
+				} else {
+					this.sqlLoaders.add(new SqlLoaderImpl(loadPath));
+				}
+			}
+		}
+		this.fileExtension = this.sqlLoaders.get(0).getFileExtension();
+
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()
@@ -98,7 +144,9 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public void initialize() {
 		if (cache) {
-			sqlMap = sqlLoader.load();
+			for (SqlLoader sqlLoader : sqlLoaders) {
+				sqlMap.putAll(sqlLoader.load());
+			}
 		} else {
 			sqlMap.clear();
 		}
@@ -122,7 +170,15 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public String getSql(final String sqlPath) {
 		if (!cache) {
-			return sqlLoader.load(sqlPath);
+			UroborosqlRuntimeException cacheException = null;
+			for (SqlLoader sqlLoader : sqlLoaders) {
+				try {
+					return sqlLoader.load(sqlPath);
+				} catch (UroborosqlRuntimeException ex) {
+					cacheException = ex;
+				}
+			}
+			throw cacheException;
 		} else {
 			return sqlMap.get(sqlPath.replace(".", "/"));
 		}
@@ -136,7 +192,11 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public boolean existSql(final String sqlPath) {
 		if (!cache) {
-			return sqlLoader.existSql(sqlPath);
+			boolean exists = false;
+			for (SqlLoader sqlLoader : sqlLoaders) {
+				exists = exists || sqlLoader.existSql(sqlPath);
+			}
+			return exists;
 		} else {
 			return sqlMap.get(sqlPath.replace(".", "/")) != null;
 		}
@@ -159,7 +219,7 @@ public class SqlManagerImpl implements SqlManager {
 	 */
 	@Override
 	public SqlLoader getSqlLoader() {
-		return this.sqlLoader;
+		return this.sqlLoaders.get(0);
 	}
 
 	/**
@@ -169,7 +229,7 @@ public class SqlManagerImpl implements SqlManager {
 	 */
 	@Override
 	public void setSqlLoader(final SqlLoader sqlLoader) {
-		this.sqlLoader = sqlLoader;
+		this.sqlLoaders.set(0, sqlLoader);
 	}
 
 	/**
@@ -178,7 +238,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @return SQLファイルロードパス
 	 */
 	public String getLoadPath() {
-		return sqlLoader.getLoadPath();
+		return sqlLoaders.get(0).getLoadPath();
 	}
 
 	/**
@@ -187,7 +247,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param loadPath SQLファイルロードパス
 	 */
 	public void setLoadPath(final String loadPath) {
-		sqlLoader.setLoadPath(loadPath);
+		sqlLoaders.get(0).setLoadPath(loadPath);
 	}
 
 	/**
@@ -196,7 +256,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @return SQLファイル拡張子
 	 */
 	public String getFileExtension() {
-		return sqlLoader.getFileExtension();
+		return this.fileExtension;
 	}
 
 	/**
@@ -205,7 +265,10 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param fileExtension SQLファイル拡張子
 	 */
 	public void setFileExtension(final String fileExtension) {
-		sqlLoader.setFileExtension(fileExtension);
+		this.fileExtension = fileExtension;
+		for (SqlLoader sqlLoader : sqlLoaders) {
+			sqlLoader.setFileExtension(fileExtension);
+		}
 	}
 
 	/**
