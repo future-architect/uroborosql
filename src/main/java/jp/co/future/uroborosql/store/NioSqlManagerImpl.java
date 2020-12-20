@@ -56,16 +56,19 @@ public class NioSqlManagerImpl implements SqlManager {
 	/** ファイルシステム上のファイルのscheme */
 	private static final String SCHEME_FILE = "file";
 
+	/** SQLファイルロードのデフォルトルートパス */
+	private static final String DEFAULT_LOAD_PATH = "sql";
+
 	/** 有効なDialectのSet */
 	private static final Set<String> dialects = StreamSupport
 			.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 			.map(Dialect::getDatabaseType).collect(Collectors.toSet());
 
-	/** SQLファイルをロードするルートパス */
-	private final Path loadPath;
+	/** SQLファイルをロードするルートパスのリスト */
+	private final List<Path> loadPaths;
 
 	/** SQLファイルをロードするルートパスの各階層を保持する配列（ルートパス特定用） */
-	private final String[] loadPathParts;
+	private final List<String[]> loadPathPartsList;
 
 	/** SQLファイル拡張子 */
 	private final String fileExtension;
@@ -95,7 +98,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * コンストラクタ
 	 */
 	public NioSqlManagerImpl() {
-		this(null);
+		this(DEFAULT_LOAD_PATH);
 	}
 
 	/**
@@ -104,7 +107,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param detectChanges SQLファイルの変更を検知するかどうか
 	 */
 	public NioSqlManagerImpl(final boolean detectChanges) {
-		this(null, null, null, detectChanges);
+		this(DEFAULT_LOAD_PATH, null, null, detectChanges);
 	}
 
 	/**
@@ -147,12 +150,66 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
-		this.loadPath = Paths.get(loadPath != null ? loadPath : "sql");
-		List<String> pathList = new ArrayList<>();
-		for (Path part : this.loadPath) {
-			pathList.add(part.toString());
+		this(Arrays.asList(loadPath), fileExtension, charset, detectChanges);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLファイルをロードするルートパスのリスト
+	 */
+	public NioSqlManagerImpl(final List<String> loadPaths) {
+		this(loadPaths, null);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLファイルをロードするルートパスのリスト
+	 * @param fileExtension SQLファイル拡張子
+	 */
+	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension) {
+		this(loadPaths, fileExtension, null);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLファイルをロードするルートパスのリスト
+	 * @param fileExtension SQLファイル拡張子
+	 * @param charset SQLファイルエンコーディング
+	 */
+	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset) {
+		this(loadPaths, fileExtension, charset, false);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
+	 * @param loadPaths SQLファイルをロードするルートパスのリスト
+	 * @param fileExtension SQLファイル拡張子
+	 * @param charset SQLファイルエンコーディング
+	 * @param detectChanges SQLファイルの変更を検知するかどうか
+	 *
+	 * @throws IllegalArgumentException loadPathsに<code>null</code>が含まれる場合
+	 */
+	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset,
+			final boolean detectChanges) {
+		this.loadPaths = new ArrayList<>();
+		for (String loadPath : loadPaths) {
+			if (loadPath == null) {
+				throw new IllegalArgumentException("loadPath is required.");
+			}
+			this.loadPaths.add(Paths.get(loadPath));
 		}
-		this.loadPathParts = pathList.toArray(new String[pathList.size()]);
+		this.loadPathPartsList = new ArrayList<>();
+		for (Path loadPath : this.loadPaths) {
+			List<String> pathList = new ArrayList<>();
+			for (Path part : loadPath) {
+				pathList.add(part.toString());
+			}
+			this.loadPathPartsList.add(pathList.toArray(new String[pathList.size()]));
+		}
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
 		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
 		this.detectChanges = detectChanges;
@@ -373,25 +430,27 @@ public class NioSqlManagerImpl implements SqlManager {
 	 */
 	private void generateSqlInfos() {
 		try {
-			String loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
-			Enumeration<URL> root = Thread.currentThread().getContextClassLoader()
-					.getResources(loadPathSlash);
+			for (Path loadPath : this.loadPaths) {
+				String loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
+				Enumeration<URL> root = Thread.currentThread().getContextClassLoader()
+						.getResources(loadPathSlash);
 
-			while (root.hasMoreElements()) {
-				URI uri = root.nextElement().toURI();
-				String scheme = uri.getScheme();
-				if (SCHEME_FILE.equals(scheme)) {
-					traverse(Paths.get(uri), detectChanges && true, false);
-				} else if (SCHEME_JAR.equals(scheme)) {
-					FileSystem fs = null;
-					try {
-						fs = FileSystems.getFileSystem(uri);
-					} catch (FileSystemNotFoundException ex) {
-						Map<String, String> env = new HashMap<>();
-						env.put("create", "false");
-						fs = FileSystems.newFileSystem(uri, env);
+				while (root.hasMoreElements()) {
+					URI uri = root.nextElement().toURI();
+					String scheme = uri.getScheme();
+					if (SCHEME_FILE.equals(scheme)) {
+						traverse(Paths.get(uri), detectChanges && true, false);
+					} else if (SCHEME_JAR.equals(scheme)) {
+						FileSystem fs = null;
+						try {
+							fs = FileSystems.getFileSystem(uri);
+						} catch (FileSystemNotFoundException ex) {
+							Map<String, String> env = new HashMap<>();
+							env.put("create", "false");
+							fs = FileSystems.newFileSystem(uri, env);
+						}
+						traverse(fs.getPath(loadPathSlash), false, false);
 					}
-					traverse(fs.getPath(loadPathSlash), false, false);
 				}
 			}
 		} catch (IOException | URISyntaxException e) {
@@ -406,6 +465,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * SqlNameは以下のルールで生成する
 	 * 1. loadPathで指定されたフォルダの下のフォルダ名とファイル名を"/"でつなげた文字列とする
 	 * 2. loadPathの直下にdialectと一致するフォルダがある場合は、dialectフォルダの下のフォルダとファイル名を"/"でつなげた文字列とする
+	 * 3. loadPathが複数指定されていて、同名のsqlNameがある場合、loadPathの並び順で先になるものを優先する
 	 *
 	 * ex)
 	 *
@@ -413,12 +473,17 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *    example/
 	 *      test1.sql
 	 *      test2.sql
+	 *      test3.sql
 	 *    oracle/
 	 *      example/
 	 *        test1.sql
 	 *    postgresql/
 	 *      example/
 	 *        test2.sql
+	 *  secondary_sql/
+	 *    example/
+	 *      test3.sql
+	 *      test4.sql
 	 *
 	 *   上記のフォルダ構成で
 	 *   - loadPath=sql, dialect=oracleの場合は以下のSqlNameが生成される
@@ -427,6 +492,16 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *   - loadPath=sql, dialect=postgresqlの場合は以下のSqlNameが生成される
 	 *     example/test1
 	 *     example/test2 ( 実際はpostgresql/example/test2 )
+	 *   - loadPath=[sql, secondary_sql], dialect=postgresqlの場合は以下のSqlNameが生成される
+	 *     example/test1
+	 *     example/test2 ( 実際はpostgresql/example/test2 )
+	 *     example/test3
+	 *     example/test4
+	 *   - loadPath=[secondary_sql, sql], dialect=postgresqlの場合は以下のSqlNameが生成される
+	 *     example/test1
+	 *     example/test2 ( 実際はpostgresql/example/test2 )
+	 *     example/test3 ( 実際はsecondary_sql/example/test3 )
+	 *     example/test4
 	 *
 	 * </pre>
 	 *
@@ -465,14 +540,17 @@ public class NioSqlManagerImpl implements SqlManager {
 			pathList.add(part);
 		}
 
-		int loadPathSize = this.loadPathParts.length;
+		for (String[] loadPathParts : this.loadPathPartsList) {
+			int loadPathSize = loadPathParts.length;
 
-		// loadPathのフォルダの並びと一致する場所を特定し、その下を相対パスとして返却する
-		for (int i = 0; i < pathList.size() - loadPathSize; i++) {
-			String[] paths = pathList.subList(i, i + loadPathSize).stream().map(Path::toString)
-					.collect(Collectors.toList()).toArray(new String[loadPathSize]);
-			if (Arrays.equals(this.loadPathParts, paths)) {
-				return path.subpath(i + loadPathSize, path.getNameCount());
+			// loadPathのフォルダの並びと一致する場所を特定し、その下を相対パスとして返却する
+			for (int i = 0; i < pathList.size() - loadPathSize; i++) {
+				String[] paths = pathList.subList(i, i + loadPathSize).stream()
+						.map(Path::toString)
+						.toArray(String[]::new);
+				if (Arrays.equals(loadPathParts, paths)) {
+					return path.subpath(i + loadPathSize, path.getNameCount());
+				}
 			}
 		}
 		// loadPathと一致しなかった場合は元のpathを返却する
@@ -538,7 +616,8 @@ public class NioSqlManagerImpl implements SqlManager {
 		} else if (path.toString().endsWith(fileExtension)) {
 			String sqlName = getSqlName(path);
 			this.sqlInfos.compute(sqlName,
-					(k, v) -> v == null ? new SqlInfo(sqlName, path, dialect, charset) : v.computePath(path, remove));
+					(k, v) -> v == null ? new SqlInfo(sqlName, path, loadPaths, dialect, charset)
+							: v.computePath(path, remove));
 		}
 	}
 
@@ -555,6 +634,8 @@ public class NioSqlManagerImpl implements SqlManager {
 		private final Charset charset;
 		/** sqlNameに対応するPathのList. ソートされて優先度が高いものから順に並んでいる. 適用されるのは先頭のPathになる. */
 		private final List<Path> pathList = new ArrayList<>();
+		/** SQLファイルをロードするルートパスのリスト */
+		private final List<Path> loadPaths;
 		/** SQLファイルの内容. <code>null</code>の場合、getSqlBody()が呼び出された段階でロードして格納する. */
 		private String sqlBody;
 		/** 適用されたPathの最終更新日時。SQLファイルが更新されたかどうかの判定に利用する */
@@ -567,12 +648,14 @@ public class NioSqlManagerImpl implements SqlManager {
 		 * @param dialect dialect
 		 * @param charset charset
 		 */
-		SqlInfo(final String sqlName, final Path path, final Dialect dialect, final Charset charset) {
+		SqlInfo(final String sqlName, final Path path, final List<Path> loadPaths, final Dialect dialect,
+				final Charset charset) {
 			super();
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
 			this.pathList.add(path);
+			this.loadPaths = loadPaths;
 			this.lastModified = getLastModifiedTime(path);
 			this.sqlBody = null;
 		}
@@ -719,6 +802,35 @@ public class NioSqlManagerImpl implements SqlManager {
 							} else {
 								return 1;
 							}
+						}
+
+						// LoadPathsの並び順にソート
+						int p1Pos = 0;
+						int p2Pos = 0;
+						for (int pos = 0; pos < this.loadPaths.size(); pos++) {
+							Path loadPath = this.loadPaths.get(pos);
+							int loadPathSize = loadPath.getNameCount();
+
+							for (int i = 0; i < p1.getNameCount() - loadPathSize; i++) {
+								Path p1SubPath = p1.subpath(i, i + loadPathSize);
+								if (p1SubPath.equals(loadPath)) {
+									p1Pos = pos + 1;
+									break;
+								}
+							}
+							for (int i = 0; i < p2.getNameCount() - loadPathSize; i++) {
+								Path p2SubPath = p2.subpath(i, i + loadPathSize);
+								if (p2SubPath.equals(loadPath)) {
+									p2Pos = pos + 1;
+									break;
+								}
+							}
+							if (p1Pos > 0 && p2Pos > 0) {
+								break;
+							}
+						}
+						if (p1Pos != p2Pos) {
+							return p1Pos - p2Pos;
 						}
 
 						return p1.compareTo(p2);

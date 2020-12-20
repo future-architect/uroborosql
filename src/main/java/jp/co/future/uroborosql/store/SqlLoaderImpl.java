@@ -60,6 +60,15 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * コンストラクタ<br>
 	 *
 	 * @param loadPath SQLファイルをロードするルートパス
+	 */
+	public SqlLoaderImpl(final String loadPath) {
+		setLoadPath(loadPath);
+	}
+
+	/**
+	 * コンストラクタ<br>
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
 	 * @param fileExtension SQLファイル拡張子
 	 */
 	public SqlLoaderImpl(final String loadPath, final String fileExtension) {
