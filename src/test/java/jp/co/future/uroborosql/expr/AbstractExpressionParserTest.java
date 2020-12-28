@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
@@ -84,7 +85,7 @@ public abstract class AbstractExpressionParserTest {
 		sqlAssertion(sql, sql2);
 	}
 
-	// IF FALSE ELIF (TRUE) ELSE
+	// IF TRUE ELSE FALSE
 	@Test
 	public void testFunction() throws Exception {
 		ctx.param("param1", 1);
@@ -93,10 +94,45 @@ public abstract class AbstractExpressionParserTest {
 		sqlAssertion(sql, sql2);
 	}
 
+	// IF TRUE ELSE FALSE
+	@Test
+	public void testFunctionWithOptional() throws Exception {
+		ctx.param("param1", Optional.of("text"));
+		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		String sql2 = "?/*param1*/";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELSE TRUE
+	@Test
+	public void testFunctionWithOptionalNull() throws Exception {
+		ctx.param("param1", Optional.ofNullable(null));
+		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		String sql2 = "false";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF FALSE ELSE TRUE
+	@Test
+	public void testFunctionWithOptionalEmpty() throws Exception {
+		ctx.param("param1", Optional.of(""));
+		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		String sql2 = "false";
+		sqlAssertion(sql, sql2);
+	}
+
+	// IF TRUE ELSE FALSE
+	@Test
+	public void testFunctionWithOptionalBlank() throws Exception {
+		ctx.param("param1", Optional.of(" "));
+		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		String sql2 = "?/*param1*/";
+		sqlAssertion(sql, sql2);
+	}
+
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
 	public void testEscChar() throws Exception {
-		ctx.param("param1", 1);
 		ctx.param(Dialect.PARAM_KEY_ESCAPE_CHAR, sqlConfig.getDialect().getEscapeChar());
 		String sql = "select * from test like 'a%' escape /*#ESC_CHAR*/";
 		String sql2 = "select * from test like 'a%' escape '$'/*#ESC_CHAR*/";
@@ -119,6 +155,20 @@ public abstract class AbstractExpressionParserTest {
 		ExpressionParser parser = sqlConfig.getExpressionParser();
 		assertThat(parser.parse("param1").getValue(ctx), is(1));
 		assertThat(parser.parse("param2").getValue(ctx), is(nullValue()));
+	}
+
+	@Test
+	public void testGetValueWithOptional() {
+		ctx.param("paramNull", Optional.ofNullable(null));
+		ctx.param("param1", Optional.of(1));
+		ctx.param("paramEmpty", Optional.of(""));
+		ctx.param("paramBlank", Optional.of(" "));
+		ExpressionParser parser = sqlConfig.getExpressionParser();
+		assertThat(parser.parse("paramNull").getValue(ctx), is(Optional.empty()));
+		assertThat(parser.parse("param1").getValue(ctx), is(Optional.of(1)));
+		assertThat(parser.parse("param2").getValue(ctx), is(nullValue()));
+		assertThat(parser.parse("paramEmpty").getValue(ctx), is(Optional.of("")));
+		assertThat(parser.parse("paramBlank").getValue(ctx), is(Optional.of(" ")));
 	}
 
 	@Test

@@ -78,7 +78,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 		assertThat(command.execute(reader, "generate insert GEN_TEST".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
 		assertThat(trimWhitespace(out.toString()), is(
-				"INSERT /* _SQL_ID_ */ INTO GEN_TEST ( /*IF id != null */  , \"ID\" /*END*/ /*IF SF.isNotEmpty(name) */  , \"NAME\" /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" /*END*/ ) VALUES ( /*IF id != null */  , /*id*/'' /*END*/ /*IF SF.isNotEmpty(name) */  , /*name*/'' /*END*/ /*IF lockNo != null */  , /*lockNo*/'' /*END*/ )"));
+				"INSERT /* _SQL_ID_ */ INTO GEN_TEST ( /*IF id != null */  , \"ID\" /*END*/ /*IF name != null */  , \"NAME\" /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" /*END*/ ) VALUES ( /*IF id != null */  , /*id*/'' /*END*/ /*IF name != null */  , /*name*/'' /*END*/ /*IF lockNo != null */  , /*lockNo*/'' /*END*/ )"));
 	}
 
 	private String trimWhitespace(final String str) {
@@ -110,7 +110,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 				"jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier");
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
 		assertThat(trimWhitespace(out.toString()), is(
-				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/  , \"LOCK_NO\" = /*SF.increment(lockNo)*/ WHERE   \"ID\" = /*id*/''  AND \"LOCK_NO\" = /*lockNo*/''"));
+				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF name != null */  , \"NAME\" = /*name*/'' /*END*/  , \"LOCK_NO\" = /*SF.increment(lockNo)*/ WHERE   \"ID\" = /*id*/''  AND \"LOCK_NO\" = /*lockNo*/''"));
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 		Properties props = new Properties();
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
 		assertThat(trimWhitespace(out.toString()), is(
-				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF SF.isNotEmpty(name) */  , \"NAME\" = /*name*/'' /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" = /*lockNo*/'' /*END*/ WHERE   \"ID\" = /*id*/''"));
+				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF name != null */  , \"NAME\" = /*name*/'' /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" = /*lockNo*/'' /*END*/ WHERE   \"ID\" = /*id*/''"));
 	}
 
 	@Test
