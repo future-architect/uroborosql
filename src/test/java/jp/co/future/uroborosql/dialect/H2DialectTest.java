@@ -92,6 +92,7 @@ public class H2DialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(false));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test

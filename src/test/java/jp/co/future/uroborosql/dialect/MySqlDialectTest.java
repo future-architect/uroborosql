@@ -93,6 +93,7 @@ public class MySqlDialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test

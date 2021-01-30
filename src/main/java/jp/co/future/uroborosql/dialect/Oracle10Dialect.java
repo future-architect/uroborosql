@@ -29,4 +29,14 @@ public class Oracle10Dialect extends OracleDialect {
 		return majorVersion < 11;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsEntityBulkUpdateOptimisticLock()
+	 */
+	@Override
+	public boolean supportsEntityBulkUpdateOptimisticLock() {
+		return false;
+	}
+
 }

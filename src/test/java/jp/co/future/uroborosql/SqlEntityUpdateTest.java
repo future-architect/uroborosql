@@ -354,6 +354,30 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	/**
+	 * Entityを使った一括更新処理で楽観ロックエラーが発生するケース
+	 */
+	@Test(expected = OptimisticLockException.class)
+	public void testEntityUpdatesOptimisticLockException() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
+
+		agent.required(() -> {
+
+			List<Product> products = agent.query(Product.class).stream().map(p -> {
+				p.setProductName(p.getProductName() + "_new");
+				p.setProductKanaName(null);
+				return p;
+			}).collect(Collectors.toList());
+
+			// ロック番号を加算し、更新されないようにする
+			Product product1 = products.get(0);
+			product1.setVersionNo(product1.getVersionNo() + 1);
+
+			agent.updates(Product.class, products.stream());
+		});
+	}
+
+	/**
 	 * Entityを使った一括更新処理(IN句の上限を超える場合)のテストケース。
 	 */
 	@Test

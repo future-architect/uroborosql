@@ -84,6 +84,7 @@ public class DefaultDialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(false));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test
