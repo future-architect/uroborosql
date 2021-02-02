@@ -1342,11 +1342,9 @@ public class SqlAgentImpl extends AbstractAgent {
 			SqlContext context = handler.createBatchUpdateContext(this, metadata, entityType);
 			context.setSqlKind(SqlKind.BATCH_UPDATE);
 
-			Optional<MappingColumn> versionColumn = updatedEntities != null
-					? MappingUtils.getVersionMappingColumn(entityType)
-					: null;
-
-			int count = 0;
+			Optional<MappingColumn> versionColumn = MappingUtils.getVersionMappingColumn(entityType);
+			int entityCount = 0;
+			int updateCount = 0;
 			List<E> entityList = new ArrayList<>();
 			for (Iterator<E> iterator = entities.iterator(); iterator.hasNext();) {
 				E entity = iterator.next();
@@ -1359,16 +1357,17 @@ public class SqlAgentImpl extends AbstractAgent {
 				if (updatedEntities != null) {
 					updatedEntities.add(entity);
 				}
+				entityCount++;
 
 				handler.setUpdateParams(context, entity);
 				context.addBatch();
 
 				if (condition.test(context, context.batchCount(), entity)) {
-					count += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
+					updateCount += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
 					entityList.clear();
 				}
 			}
-			count = count + (context.batchCount() != 0
+			updateCount = updateCount + (context.batchCount() != 0
 					? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
 					: 0);
 
@@ -1414,7 +1413,16 @@ public class SqlAgentImpl extends AbstractAgent {
 							}).count();
 				}
 			}
-			return count;
+			if (versionColumn.isPresent()) {
+				if (getSqlConfig().getDialect().supportsEntityBulkUpdateOptimisticLock()
+						&& updateCount != entityCount) {
+					// バージョンカラムの指定があり、更新件数と更新対象Entityの件数が不一致の場合は楽観ロックエラーとする
+					throw new OptimisticLockException(String.format(
+							"An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nBatch Entity Count: %d, Update Count: %d.",
+							context.getExecutableSql(), entityCount, updateCount));
+				}
+			}
+			return updateCount;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.BATCH_UPDATE, e);
 		}

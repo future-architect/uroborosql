@@ -141,6 +141,15 @@ public interface Dialect {
 		return true;
 	}
 
+	/**
+	 * Entityバルクアップデートでの楽観ロックチェックをサポートしているか.
+	 *
+	 * @return Entityバルクアップデートでの楽観ロックチェックをサポートしている場合<code>true</code>
+	 */
+	default boolean supportsEntityBulkUpdateOptimisticLock() {
+		return true;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**
