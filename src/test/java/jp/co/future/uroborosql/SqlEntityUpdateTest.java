@@ -356,7 +356,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	/**
 	 * Entityを使った一括更新処理で楽観ロックエラーが発生するケース
 	 */
-	@Test(expected = OptimisticLockException.class)
+	@Test
 	public void testEntityUpdatesOptimisticLockException() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
@@ -373,7 +373,20 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			Product product1 = products.get(0);
 			product1.setVersionNo(product1.getVersionNo() + 1);
 
-			agent.updates(Product.class, products.stream());
+			try {
+				agent.updates(Product.class, products.stream());
+				fail();
+			} catch (OptimisticLockException ex) {
+				String sql = "UPDATE /* mapping @ Product */ PUBLIC.PRODUCT SET \r\n\t  \"PRODUCT_ID\" = ?/*productId*/\r\n\t, \"PRODUCT_NAME\" = ?/*productName*/\r\n\t, \"PRODUCT_KANA_NAME\" = ?/*productKanaName*/\r\n\t, \"JAN_CODE\" = ?/*janCode*/\r\n\t, \"PRODUCT_DESCRIPTION\" = ?/*productDescription*/\r\n\t, \"INS_DATETIME\" = ?/*insDatetime*/\r\n\t, \"UPD_DATETIME\" = ?/*updDatetime*/\r\n\t, \"VERSION_NO\" = \"VERSION_NO\" + 1\r\nWHERE\r\n\t    \"PRODUCT_ID\" = ?/*productId*/\r\n\tAND \"VERSION_NO\" = ?/*versionNo*/";
+				int entityCount = 2;
+				int updateCount = 1;
+				assertThat(ex.getMessage(), is(
+						String.format(
+								"An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nBatch Entity Count: %d, Update Count: %d.",
+								sql, entityCount, updateCount)));
+			} catch (Exception ex) {
+				fail();
+			}
 		});
 	}
 
