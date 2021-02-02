@@ -36,7 +36,7 @@ public class PessimisticLockException extends UroborosqlRuntimeException {
 	}
 
 	private static String createMessage(final SqlContext context) {
-		return String.format("An error occurred due to pessimistic locking.\nExecuted SQL [\n%s]\nparams:%s",
+		return String.format("An error occurred due to pessimistic locking.%nExecuted SQL [%n%s]\nparams:%s",
 				context.getExecutableSql(), context.formatParams());
 	}
 

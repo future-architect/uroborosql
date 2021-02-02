@@ -1418,7 +1418,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						&& updateCount != entityCount) {
 					// バージョンカラムの指定があり、更新件数と更新対象Entityの件数が不一致の場合は楽観ロックエラーとする
 					throw new OptimisticLockException(String.format(
-							"An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nBatch Entity Count: %d, Update Count: %d.",
+							"An error occurred due to optimistic locking.%nExecuted SQL [%n%s]%nBatch Entity Count: %d, Update Count: %d.",
 							context.getExecutableSql(), entityCount, updateCount));
 				}
 			}

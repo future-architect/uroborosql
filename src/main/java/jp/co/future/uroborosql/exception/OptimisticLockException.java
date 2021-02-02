@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.exception;
 
-import jp.co.future.uroborosql.context.*;
+import jp.co.future.uroborosql.context.SqlContext;
 
 /**
  * 楽観的排他制御の実行時例外
@@ -15,8 +15,9 @@ import jp.co.future.uroborosql.context.*;
  */
 public class OptimisticLockException extends UroborosqlRuntimeException {
 
-	public OptimisticLockException(SqlContext context) {
-		super(String.format("An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nparams:%s", context.getExecutableSql(), context.formatParams()));
+	public OptimisticLockException(final SqlContext context) {
+		super(String.format("An error occurred due to optimistic locking.\nExecuted SQL [%n%s]%nparams:%s",
+				context.getExecutableSql(), context.formatParams()));
 	}
 
 	public OptimisticLockException(final String message) {

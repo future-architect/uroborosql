@@ -377,12 +377,13 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 				agent.updates(Product.class, products.stream());
 				fail();
 			} catch (OptimisticLockException ex) {
-				String sql = "UPDATE /* mapping @ Product */ PUBLIC.PRODUCT SET \r\n\t  \"PRODUCT_ID\" = ?/*productId*/\r\n\t, \"PRODUCT_NAME\" = ?/*productName*/\r\n\t, \"PRODUCT_KANA_NAME\" = ?/*productKanaName*/\r\n\t, \"JAN_CODE\" = ?/*janCode*/\r\n\t, \"PRODUCT_DESCRIPTION\" = ?/*productDescription*/\r\n\t, \"INS_DATETIME\" = ?/*insDatetime*/\r\n\t, \"UPD_DATETIME\" = ?/*updDatetime*/\r\n\t, \"VERSION_NO\" = \"VERSION_NO\" + 1\r\nWHERE\r\n\t    \"PRODUCT_ID\" = ?/*productId*/\r\n\tAND \"VERSION_NO\" = ?/*versionNo*/";
+				String sql = String.format(
+						"UPDATE /* mapping @ Product */ PUBLIC.PRODUCT SET %n\t  \"PRODUCT_ID\" = ?/*productId*/%n\t, \"PRODUCT_NAME\" = ?/*productName*/%n\t, \"PRODUCT_KANA_NAME\" = ?/*productKanaName*/%n\t, \"JAN_CODE\" = ?/*janCode*/%n\t, \"PRODUCT_DESCRIPTION\" = ?/*productDescription*/%n\t, \"INS_DATETIME\" = ?/*insDatetime*/%n\t, \"UPD_DATETIME\" = ?/*updDatetime*/%n\t, \"VERSION_NO\" = \"VERSION_NO\" + 1%nWHERE%n\t    \"PRODUCT_ID\" = ?/*productId*/%n\tAND \"VERSION_NO\" = ?/*versionNo*/");
 				int entityCount = 2;
 				int updateCount = 1;
 				assertThat(ex.getMessage(), is(
 						String.format(
-								"An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nBatch Entity Count: %d, Update Count: %d.",
+								"An error occurred due to optimistic locking.%nExecuted SQL [%n%s]%nBatch Entity Count: %d, Update Count: %d.",
 								sql, entityCount, updateCount)));
 			} catch (Exception ex) {
 				fail();
