@@ -139,7 +139,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (sqlCoverageClassName != null) {
 			try {
 				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
-						Thread.currentThread().getContextClassLoader()).newInstance();
+						Thread.currentThread().getContextClassLoader()).getConstructor().newInstance();
 			} catch (Exception ex) {
 				LOG.warn("Failed to generate CoverageHandler class. Class:{}, Cause:{}", sqlCoverageClassName,
 						ex.getMessage());

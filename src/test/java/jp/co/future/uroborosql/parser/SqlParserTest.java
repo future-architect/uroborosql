@@ -380,7 +380,7 @@ public class SqlParserTest {
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
 		String job = "CLERK";
-		Integer deptno = new Integer(20);
+		Integer deptno = Integer.valueOf(20);
 		ctx.param("job", job);
 		ctx.param("deptno", deptno);
 		ContextTransformer transformer = parser.parse();
@@ -436,7 +436,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
-		Integer empno = new Integer(7788);
+		Integer empno = Integer.valueOf(7788);
 		ctx.param("empno", empno);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -575,7 +575,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
-		Integer bbb = new Integer(123);
+		Integer bbb = Integer.valueOf(123);
 		ctx.param("bbb", bbb);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -641,7 +641,7 @@ public class SqlParserTest {
 
 		SqlContext ctx3 = sqlConfig.context();
 		ctx3.param("job", "CLERK");
-		ctx3.param("deptno", new Integer(20));
+		ctx3.param("deptno", Integer.valueOf(20));
 		root.accept(ctx3);
 		System.out.println(ctx3.getExecutableSql());
 		assertEquals("3", sql4, ctx3.getExecutableSql());
@@ -649,7 +649,7 @@ public class SqlParserTest {
 		assertEquals(2, bNames3.size());
 
 		SqlContext ctx4 = sqlConfig.context();
-		ctx4.param("deptno", new Integer(20));
+		ctx4.param("deptno", Integer.valueOf(20));
 		ctx4.param("job", null);
 		root.accept(ctx4);
 		System.out.println(ctx4.getExecutableSql());
@@ -685,8 +685,8 @@ public class SqlParserTest {
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
 		List<Integer> deptnoList = new ArrayList<>();
-		deptnoList.add(new Integer(10));
-		deptnoList.add(new Integer(20));
+		deptnoList.add(Integer.valueOf(10));
+		deptnoList.add(Integer.valueOf(20));
 		ctx.param("deptnoList", deptnoList);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -694,8 +694,8 @@ public class SqlParserTest {
 		assertEquals("1", sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
 		assertEquals("2", 2, vars.length);
-		assertEquals("3", new Integer(10), vars[0]);
-		assertEquals("4", new Integer(20), vars[1]);
+		assertEquals("3", Integer.valueOf(10), vars[0]);
+		assertEquals("4", Integer.valueOf(20), vars[1]);
 	}
 
 	@Test
@@ -713,8 +713,8 @@ public class SqlParserTest {
 		assertEquals("1", sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
 		assertEquals("2", 2, vars.length);
-		assertEquals("3", new Integer(10), vars[0]);
-		assertEquals("4", new Integer(20), vars[1]);
+		assertEquals("3", Integer.valueOf(10), vars[0]);
+		assertEquals("4", Integer.valueOf(20), vars[1]);
 	}
 
 	@Test
@@ -747,16 +747,16 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
-		ctx.param("$1", new Integer(0));
-		ctx.param("$2", new Integer(1000));
+		ctx.param("$1", Integer.valueOf(0));
+		ctx.param("$2", Integer.valueOf(1000));
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
 		assertEquals("1", sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
 		assertEquals("2", 2, vars.length);
-		assertEquals("3", new Integer(0), vars[0]);
-		assertEquals("4", new Integer(1000), vars[1]);
+		assertEquals("3", Integer.valueOf(0), vars[0]);
+		assertEquals("4", Integer.valueOf(1000), vars[1]);
 	}
 
 	@Test
@@ -770,7 +770,7 @@ public class SqlParserTest {
 		SqlContext ctx = sqlConfig.context();
 		Emp emp = new Emp();
 		emp.setJob("CLERK");
-		emp.setDeptno(new Integer(20));
+		emp.setDeptno(Integer.valueOf(20));
 		ctx.param("emp", emp);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
@@ -848,8 +848,8 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
-		ctx.param("id", new Integer(0));
-		ctx.param("num", new Integer(1));
+		ctx.param("id", Integer.valueOf(0));
+		ctx.param("num", Integer.valueOf(1));
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
@@ -862,7 +862,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
-		ctx.param("aaa", new Integer(0));
+		ctx.param("aaa", Integer.valueOf(0));
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
@@ -876,7 +876,7 @@ public class SqlParserTest {
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		SqlContext ctx = sqlConfig.context();
 		Emp emp = new Emp();
-		emp.setDeptno(new Integer(0));
+		emp.setDeptno(Integer.valueOf(0));
 		ctx.param("emp", emp);
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);

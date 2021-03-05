@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -67,7 +68,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class LocalTestEntity {
 		private long id;
@@ -142,7 +142,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DateTestEntity {
 		private long id;
@@ -217,7 +216,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class OffsetTestEntity {
 		private long id;
@@ -281,7 +279,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class ZonedTestEntity {
 		private long id;
@@ -344,7 +341,7 @@ public class DateTimeTest {
 				agent.insert(test1);
 				ZonedTestEntity zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(zoned.datetimeValue, is(test1.datetimeValue));
+				assertThat(zoned.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
 		}
@@ -357,6 +354,7 @@ public class DateTimeTest {
 			agent.required(() -> {
 				OffsetTestEntity test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
+				test1.datetimeValue = test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				OffsetTestEntity offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(offset.datetimeValue, is(test1.datetimeValue));

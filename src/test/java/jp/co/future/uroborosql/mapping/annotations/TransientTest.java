@@ -255,7 +255,6 @@ public class TransientTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoInsTestEntity {
 		private long id;
@@ -328,7 +327,6 @@ public class TransientTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoUpdTestEntity {
 		private long id;

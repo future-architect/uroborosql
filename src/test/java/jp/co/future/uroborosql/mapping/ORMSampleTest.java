@@ -76,7 +76,6 @@ public class ORMSampleTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private String name;
@@ -312,7 +311,6 @@ public class ORMSampleTest {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;
