@@ -23,6 +23,7 @@ import java.time.chrono.JapaneseDate;
 import java.time.chrono.JapaneseEra;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 
@@ -42,7 +43,7 @@ public class DateTimeApiPropertyMapperTest {
 	@Test
 	public void test() throws NoSuchMethodException, SecurityException, SQLException {
 		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
-		LocalDateTime localDateTime = LocalDateTime.now(this.clock);
+		LocalDateTime localDateTime = LocalDateTime.now(this.clock).truncatedTo(ChronoUnit.MILLIS);
 		OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, OffsetDateTime.now(this.clock).getOffset());
 		ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, this.clock.getZone());
 

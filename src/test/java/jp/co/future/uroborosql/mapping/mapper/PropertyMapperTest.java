@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -75,7 +76,6 @@ public class PropertyMapperTest {
 		A_VALUE, B_VALUE,
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class PropertyMapperTestEntity {
 		private long id;
@@ -204,7 +204,9 @@ public class PropertyMapperTest {
 			agent.required(() -> {
 				PropertyMapperTestEntity test1 = new PropertyMapperTestEntity(1);
 				agent.insert(test1);
+				test1.datetimeValue = test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				PropertyMapperTestEntity data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
+				data.datetimeValue = data.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				assertThat(data, is(test1));
 			});
 		}

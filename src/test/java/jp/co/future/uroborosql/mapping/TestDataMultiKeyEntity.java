@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.mapping;
 
-@SuppressWarnings("unused")
 public class TestDataMultiKeyEntity {
 	private long id;
 	private String key;

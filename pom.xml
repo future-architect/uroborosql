@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.co.future</groupId>
 	<artifactId>uroborosql</artifactId>
-	<version>0.20.3-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uroboroSQL</name>
 	<description>Developer-oriented and SQL centric database access library</description>
@@ -432,7 +432,7 @@ LICENSE file in the root directory of this source tree.
 	</distributionManagement>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<src.encoding>${project.build.sourceEncoding}</src.encoding>

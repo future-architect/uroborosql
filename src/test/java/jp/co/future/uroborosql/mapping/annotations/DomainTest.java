@@ -100,7 +100,6 @@ public class DomainTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;
@@ -225,7 +224,6 @@ public class DomainTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity2 {
 		private long id;
@@ -358,7 +356,6 @@ public class DomainTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity3 {
 		private long id;
@@ -441,7 +438,6 @@ public class DomainTest {
 		NAME1, NAME2, NAME3,;
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity4 {
 		private long id;
