@@ -21,7 +21,7 @@ public class BeginNode extends BranchNode {
 	 *
 	 * @param position 開始位置
 	 */
-	public BeginNode(int position) {
+	public BeginNode(final int position) {
 		super(position, 9);
 	}
 

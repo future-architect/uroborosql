@@ -134,7 +134,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 
 		private int coveredSize() {
-			return branches.values().stream().mapToInt(p -> p.coveredSize()).sum();
+			return branches.values().stream().mapToInt(PointBranch::coveredSize).sum();
 		}
 	}
 
@@ -179,7 +179,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			}
 			//各行のブランチ情報を集計
 			passRoute.getRangeBranchStatus().forEach((range, state) -> {
-				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(range), k -> new LineBranch(k));
+				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(range), LineBranch::new);
 				lineBranch.add(range, state);
 			});
 		}

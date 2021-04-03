@@ -83,7 +83,6 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * @param clock 日時の変換に使用するClock
 	 */
 	public DateTimeApiPropertyMapper(final Clock clock) {
-		super();
 		this.clock = clock;
 	}
 

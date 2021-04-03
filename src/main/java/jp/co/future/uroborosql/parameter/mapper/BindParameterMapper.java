@@ -25,7 +25,9 @@ public interface BindParameterMapper<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	default Class<T> targetType() {
-		return (Class<T>) JavaType.of(new JavaType.ImplementClass(this.getClass()), BindParameterMapper.class.getTypeParameters()[0]).getRawType();
+		return (Class<T>) JavaType
+				.of(new JavaType.ImplementClass(this.getClass()), BindParameterMapper.class.getTypeParameters()[0])
+				.getRawType();
 	}
 
 	/**

@@ -27,7 +27,7 @@ public class BranchNode extends ContainerNode {
 	 * @param position 開始位置
 	 * @param length データ長
 	 */
-	public BranchNode(int position, int length) {
+	public BranchNode(final int position, final int length) {
 		super(position, length);
 	}
 
@@ -42,7 +42,7 @@ public class BranchNode extends ContainerNode {
 	 *
 	 * @param bool 分岐結果
 	 */
-	protected void passState(boolean bool) {
+	protected void passState(final boolean bool) {
 		pass();
 		this.state = bool ? BranchCoverageState.TRUE : BranchCoverageState.FALSE;
 	}

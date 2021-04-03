@@ -305,9 +305,7 @@ public class NioSqlManagerImpl implements SqlManager {
 						traverse(path, true, false);
 					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
 						String sqlName = getSqlName(path);
-						sqlInfos.computeIfPresent(sqlName, (k, v) -> {
-							return v.computePath(path, kind == ENTRY_DELETE);
-						});
+						sqlInfos.computeIfPresent(sqlName, (k, v) -> v.computePath(path, kind == ENTRY_DELETE));
 					}
 				}
 			}
@@ -650,7 +648,6 @@ public class NioSqlManagerImpl implements SqlManager {
 		 */
 		SqlInfo(final String sqlName, final Path path, final List<Path> loadPaths, final Dialect dialect,
 				final Charset charset) {
-			super();
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
@@ -758,13 +755,11 @@ public class NioSqlManagerImpl implements SqlManager {
 					if (!remove) {
 						pathList.add(newPath);
 					}
-				} else {
-					if (remove) {
-						pathList.remove(newPath);
-						if (pathList.isEmpty()) {
-							// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
-							return null;
-						}
+				} else if (remove) {
+					pathList.remove(newPath);
+					if (pathList.isEmpty()) {
+						// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
+						return null;
 					}
 				}
 
@@ -845,12 +840,10 @@ public class NioSqlManagerImpl implements SqlManager {
 					replaceFlag = true;
 					log.trace("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
 							oldPath, currentPath, currentTimeStamp.toString());
-				} else {
-					if (!this.lastModified.equals(currentTimeStamp)) {
-						replaceFlag = true;
-						log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
-								currentTimeStamp.toString());
-					}
+				} else if (!this.lastModified.equals(currentTimeStamp)) {
+					replaceFlag = true;
+					log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+							currentTimeStamp.toString());
 				}
 
 				if (replaceFlag) {

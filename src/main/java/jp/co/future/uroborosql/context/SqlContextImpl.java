@@ -16,6 +16,7 @@ import java.sql.SQLType;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -497,7 +498,7 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
-			paramMap.forEach((k, v) -> param(k, v));
+			paramMap.forEach(this::param);
 		}
 		return this;
 	}
@@ -836,9 +837,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public TransformContext addBindVariables(final Object[] bindVariables) {
-		for (Object bindVariable : bindVariables) {
-			this.bindVariables.add(bindVariable);
-		}
+		Collections.addAll(this.bindVariables, bindVariables);
 		return this;
 	}
 

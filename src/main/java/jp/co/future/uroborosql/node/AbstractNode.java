@@ -37,7 +37,7 @@ public abstract class AbstractNode implements Node {
 	 * @param position 開始位置
 	 * @param length データ長
 	 */
-	public AbstractNode(int position, int length) {
+	public AbstractNode(final int position, final int length) {
 		this.position = position;
 		this.length = length;
 	}

@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class SecretResultSet extends AbstractResultSetWrapper {
 
-	private Function<Object, String> decode;
+	private final Function<Object, String> decode;
 
 	/**
 	 * キャラクタセット（デフォルトUTF-8）

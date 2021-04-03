@@ -33,7 +33,6 @@ public class DataSourceConnectionContext extends ConnectionContext {
 	 * @param dataSourceName データソース名
 	 */
 	DataSourceConnectionContext(final String dataSourceName) {
-		super();
 		if (dataSourceName == null) {
 			throw new IllegalArgumentException("dataSourceName is required but null.");
 		}

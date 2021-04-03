@@ -22,7 +22,6 @@ public class DefaultDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public DefaultDialect() {
-		super();
 	}
 
 	/**

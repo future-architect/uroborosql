@@ -250,7 +250,8 @@ public abstract class JavaType {
 
 		private JavaType getUpper(final int index) {
 			return this.upperBounds[index] != null ? this.upperBounds[index]
-					: (this.upperBounds[index] = create(this.implementClass, this.wildcardType.getUpperBounds()[index]));
+					: (this.upperBounds[index] = create(this.implementClass,
+							this.wildcardType.getUpperBounds()[index]));
 		}
 
 		@Override
@@ -260,7 +261,8 @@ public abstract class JavaType {
 
 		private JavaType getLower(final int index) {
 			return this.lowerBounds[index] != null ? this.lowerBounds[index]
-					: (this.lowerBounds[index] = create(this.implementClass, this.wildcardType.getLowerBounds()[index]));
+					: (this.lowerBounds[index] = create(this.implementClass,
+							this.wildcardType.getLowerBounds()[index]));
 		}
 
 		private boolean isLowerBounds() {
@@ -279,12 +281,12 @@ public abstract class JavaType {
 
 		@Override
 		public String toString() {
-			return toString(type -> type.toString());
+			return toString(JavaType::toString);
 		}
 
 		@Override
 		protected String toParamString() {
-			return toString(type -> type.toParamString());
+			return toString(JavaType::toParamString);
 		}
 
 		private String toString(final Function<JavaType, String> toString) {
@@ -349,12 +351,12 @@ public abstract class JavaType {
 
 		@Override
 		public String toString() {
-			return toString(type -> type.toString());
+			return toString(JavaType::toString);
 		}
 
 		@Override
 		protected String toParamString() {
-			return toString(type -> type.toParamString());
+			return toString(JavaType::toParamString);
 		}
 
 		private String toString(final Function<JavaType, String> toString) {

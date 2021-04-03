@@ -181,13 +181,11 @@ public class SqlAgentImpl extends AbstractAgent {
 									throw ex;
 								}
 							}
+						} else if (pessimisticLockingErrorCodes.contains(errorCode)
+								|| pessimisticLockingErrorCodes.contains(sqlState)) {
+							throw new PessimisticLockException(sqlContext, ex);
 						} else {
-							if (pessimisticLockingErrorCodes.contains(errorCode)
-									|| pessimisticLockingErrorCodes.contains(sqlState)) {
-								throw new PessimisticLockException(sqlContext, ex);
-							} else {
-								throw ex;
-							}
+							throw ex;
 						}
 					} finally {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
@@ -1178,7 +1176,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							.filter(col -> !excludeColumns.contains(col)
 									&& !col.getJavaType().getRawType().isPrimitive()
 									&& col.getValue(entity) != null)
-							.collect(Collectors.toMap(col -> col.getCamelName(), col -> true));
+							.collect(Collectors.toMap(MappingColumn::getCamelName, col -> true));
 				}
 
 				entityList.add(entity);
@@ -1266,7 +1264,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							.filter(col -> !excludeColumns.contains(col)
 									&& !col.getJavaType().getRawType().isPrimitive()
 									&& col.getValue(entity) != null)
-							.collect(Collectors.toMap(col -> col.getCamelName(), col -> true));
+							.collect(Collectors.toMap(MappingColumn::getCamelName, col -> true));
 				}
 				// 退避しておいたid値をこのタイミングで設定する
 				if (nonNullObjectIdFlags != null && !nonNullObjectIdFlags.isEmpty()) {

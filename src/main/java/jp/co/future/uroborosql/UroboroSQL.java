@@ -332,7 +332,7 @@ public final class UroboroSQL {
 			if (expressionParser == null) {
 				ExpressionParserFactory expressionParserFactory = StreamSupport
 						.stream(ServiceLoader.load(ExpressionParserFactory.class).spliterator(), false)
-						.filter(e -> e.accept()).findFirst()
+						.filter(ExpressionParserFactory::accept).findFirst()
 						.orElseThrow(() -> new IllegalStateException("ExpressionParser not found."));
 				this.expressionParser = expressionParserFactory.create();
 			} else {

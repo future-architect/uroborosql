@@ -341,7 +341,7 @@ public class LocalTransactionManager implements TransactionManager {
 	public void close() {
 		Optional<LocalTransactionContext> txContext = currentTxContext();
 		if (txContext.isPresent()) {
-			this.txCtxStack.forEach((elem) -> elem.close());
+			this.txCtxStack.forEach(LocalTransactionContext::close);
 			this.txCtxStack.clear();
 		} else {
 			this.unmanagedTransaction.ifPresent(LocalTransactionContext::close);

@@ -38,7 +38,6 @@ public final class StringFunction {
 	 * @param dialect Dialect
 	 */
 	public StringFunction(final Dialect dialect) {
-		super();
 		this.dialect = dialect;
 	}
 

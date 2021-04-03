@@ -260,12 +260,10 @@ public class Parameter {
 		if (Objects.equals(sqlType, SQL_TYPE_NOT_SET)) {
 			if (jdbcParam instanceof java.sql.Array) {
 				preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
+			} else if (jdbcParam != null) {
+				preparedStatement.setObject(parameterIndex, jdbcParam);
 			} else {
-				if (jdbcParam != null) {
-					preparedStatement.setObject(parameterIndex, jdbcParam);
-				} else {
-					preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
-				}
+				preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
 			}
 		} else {
 			int targetSqlType = sqlType.getVendorTypeNumber();//各JDBCの対応状況が怪しいのでintで扱う

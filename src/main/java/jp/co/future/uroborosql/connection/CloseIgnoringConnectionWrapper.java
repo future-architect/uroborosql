@@ -198,7 +198,7 @@ public class CloseIgnoringConnectionWrapper implements Connection {
 	@Override
 	public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
 			final int resultSetHoldability)
-					throws SQLException {
+			throws SQLException {
 		return original.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 

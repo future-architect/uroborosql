@@ -52,9 +52,11 @@ public class DomainParameterMapper implements BindParameterMapper<Object> {
 			try {
 				Method method = type.getMethod(methodName);
 				if (Modifier.isStatic(method.getModifiers())) {
-					throw new IllegalStateException("not class method. [" + type.getSimpleName() + "#" + methodName + "]");
+					throw new IllegalStateException(
+							"not class method. [" + type.getSimpleName() + "#" + methodName + "]");
 				} else if (!domain.valueType().isAssignableFrom(method.getReturnType())) {
-					throw new IllegalStateException("unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
+					throw new IllegalStateException(
+							"unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
 				}
 				return method.invoke(original);
 			} catch (NoSuchMethodException e) {
@@ -62,9 +64,11 @@ public class DomainParameterMapper implements BindParameterMapper<Object> {
 					// static?
 					Method method = type.getMethod(methodName, type);
 					if (!Modifier.isStatic(method.getModifiers())) {
-						throw new IllegalStateException("not static method. [" + type.getSimpleName() + "#" + methodName + "]");
+						throw new IllegalStateException(
+								"not static method. [" + type.getSimpleName() + "#" + methodName + "]");
 					} else if (!domain.valueType().isAssignableFrom(method.getReturnType())) {
-						throw new IllegalStateException("unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
+						throw new IllegalStateException(
+								"unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
 					}
 					return method.invoke(null, original);
 				} catch (NoSuchMethodException e2) {

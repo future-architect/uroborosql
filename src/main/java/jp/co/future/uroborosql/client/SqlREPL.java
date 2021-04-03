@@ -234,14 +234,14 @@ public class SqlREPL {
 		SqlContextFactory contextFactory = sqlConfig.getSqlContextFactory();
 		List<String> constantClassNames = Arrays
 				.asList(p("sqlContextFactory.constantClassNames", "").split("\\s*,\\s*")).stream()
-				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!constantClassNames.isEmpty()) {
 			contextFactory.setConstantClassNames(constantClassNames);
 		}
 
 		List<String> enumConstantPackageNames = Arrays
 				.asList(p("sqlContextFactory.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
-				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!enumConstantPackageNames.isEmpty()) {
 			contextFactory.setEnumConstantPackageNames(enumConstantPackageNames);
 		}

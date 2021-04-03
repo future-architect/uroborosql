@@ -47,7 +47,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * コンストラクタ
 	 */
 	public DefaultEntityHandler() {
-		super();
 	}
 
 	/**
@@ -508,12 +507,10 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				} else {
 					sql.append(parts);
 				}
+			} else if (ignoreWhenEmpty || autoIncrementColumn) {
+				wrapIfComment(sql, parts, col);
 			} else {
-				if (ignoreWhenEmpty || autoIncrementColumn) {
-					wrapIfComment(sql, parts, col);
-				} else {
-					sql.append(parts);
-				}
+				sql.append(parts);
 			}
 		}
 

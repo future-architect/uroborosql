@@ -43,7 +43,6 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 * @param wrapped 元となるResultSet
 	 */
 	public AbstractResultSetWrapper(final ResultSet wrapped) {
-		super();
 		this.wrapped = wrapped;
 	}
 
@@ -1114,7 +1113,8 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 * @see java.sql.ResultSet#updateBinaryStream(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
-	public void updateBinaryStream(final String columnLabel, final InputStream x, final int length) throws SQLException {
+	public void updateBinaryStream(final String columnLabel, final InputStream x, final int length)
+			throws SQLException {
 		wrapped.updateBinaryStream(columnLabel, x, length);
 	}
 
@@ -1746,7 +1746,8 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 * @see java.sql.ResultSet#updateAsciiStream(java.lang.String, java.io.InputStream, long)
 	 */
 	@Override
-	public void updateAsciiStream(final String columnLabel, final InputStream x, final long length) throws SQLException {
+	public void updateAsciiStream(final String columnLabel, final InputStream x, final long length)
+			throws SQLException {
 		wrapped.updateAsciiStream(columnLabel, x, length);
 	}
 
@@ -1778,7 +1779,8 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 * @see java.sql.ResultSet#updateBlob(int, java.io.InputStream, long)
 	 */
 	@Override
-	public void updateBlob(final int columnIndex, final InputStream inputStream, final long length) throws SQLException {
+	public void updateBlob(final int columnIndex, final InputStream inputStream, final long length)
+			throws SQLException {
 		wrapped.updateBlob(columnIndex, inputStream, length);
 	}
 

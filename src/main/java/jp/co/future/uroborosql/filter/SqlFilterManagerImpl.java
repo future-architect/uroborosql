@@ -41,7 +41,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 */
 	@Override
 	public void initialize() {
-		filters.forEach(filter -> filter.initialize());
+		filters.forEach(SqlFilter::initialize);
 	}
 
 	/**

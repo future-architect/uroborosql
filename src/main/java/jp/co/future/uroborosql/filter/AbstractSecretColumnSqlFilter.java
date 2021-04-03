@@ -84,7 +84,6 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
 	public AbstractSecretColumnSqlFilter() {
-		super();
 	}
 
 	/**
@@ -177,7 +176,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			String key = parameter.getParameterName();
 			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
 				Object obj = parameter.getValue();
-				if (obj != null && obj instanceof String) {
+				if (obj instanceof String) {
 					String objStr = obj.toString();
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {

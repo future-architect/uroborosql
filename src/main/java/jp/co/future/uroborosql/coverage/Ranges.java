@@ -36,7 +36,7 @@ public class Ranges extends AbstractSet<Range> {
 	 * @param start 開始位置
 	 * @param end 終了位置
 	 */
-	public Ranges(int start, int end) {
+	public Ranges(final int start, final int end) {
 		add(new Range(start, end));
 	}
 
@@ -45,7 +45,7 @@ public class Ranges extends AbstractSet<Range> {
 	 *
 	 * @param ranges 初期データ
 	 */
-	public Ranges(Collection<? extends Range> ranges) {
+	public Ranges(final Collection<? extends Range> ranges) {
 		addAll(ranges);
 	}
 
@@ -65,7 +65,7 @@ public class Ranges extends AbstractSet<Range> {
 	}
 
 	@Override
-	public boolean add(Range range) {
+	public boolean add(final Range range) {
 		Range target = range;
 		for (Iterator<Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
 			Range r = iterator.next();
@@ -102,7 +102,7 @@ public class Ranges extends AbstractSet<Range> {
 	 *
 	 * @param ranges Rangeコレクション
 	 */
-	public void minus(Collection<? extends Range> ranges) {
+	public void minus(final Collection<? extends Range> ranges) {
 		ranges.forEach(this::minus);
 	}
 
@@ -111,7 +111,7 @@ public class Ranges extends AbstractSet<Range> {
 	 *
 	 * @param range Range
 	 */
-	public void minus(Range range) {
+	public void minus(final Range range) {
 		List<Range> newList = new ArrayList<>();
 		Range target = range;
 		for (Iterator<Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
@@ -145,7 +145,7 @@ public class Ranges extends AbstractSet<Range> {
 	 *
 	 * @param ranges Rangeコレクション
 	 */
-	public void intersect(Collection<? extends Range> ranges) {
+	public void intersect(final Collection<? extends Range> ranges) {
 		Ranges targetRanges;
 		if (ranges instanceof Ranges) {
 			targetRanges = (Ranges) ranges;
@@ -180,7 +180,7 @@ public class Ranges extends AbstractSet<Range> {
 		return ranges.size();
 	}
 
-	private List<Range> getHasIntersections(Collection<Range> targetRanges, Range r) {
+	private List<Range> getHasIntersections(final Collection<Range> targetRanges, final Range r) {
 		List<Range> ret = new ArrayList<>();
 		for (Range range : targetRanges) {
 			if (range.hasIntersection(r)) {

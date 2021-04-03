@@ -29,7 +29,6 @@ public class MySqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public MySqlDialect() {
-		super();
 	}
 
 	/**
