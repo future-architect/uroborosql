@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql.parser;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -36,7 +36,7 @@ import jp.co.future.uroborosql.utils.StringFunction;
 public class SqlParserTest {
 	private SqlConfig sqlConfig;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.setSqlContextFactory(new SqlContextFactoryImpl()
@@ -52,7 +52,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		String transformed = ctx.getExecutableSql().trim().replaceAll("\\s+", " ");
-		assertEquals("結果が一致しません。", expected, transformed);
+		assertEquals(expected, transformed);
 	}
 
 	// IF FALSE ELIF (TRUE) ELSE
@@ -302,7 +302,7 @@ public class SqlParserTest {
 		SqlContext ctx = sqlConfig.context();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
-		assertEquals("1", sql, ctx.getExecutableSql());
+		assertEquals(sql, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -313,7 +313,7 @@ public class SqlParserTest {
 		SqlContext ctx = sqlConfig.context();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
-		assertEquals("1", sql, ctx.getExecutableSql());
+		assertEquals(sql, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -326,7 +326,7 @@ public class SqlParserTest {
 		ctx.param("job", "CLERK");
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -337,7 +337,7 @@ public class SqlParserTest {
 		SqlContext ctx = sqlConfig.context();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
-		assertEquals("1", sql, ctx.getExecutableSql());
+		assertEquals(sql, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -354,7 +354,7 @@ public class SqlParserTest {
 		SqlContext ctx = sqlConfig.context();
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
-		assertEquals("1", sql, ctx.getExecutableSql());
+		assertEquals(sql, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -387,21 +387,21 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", job, vars[0]);
-		assertEquals("4", deptno, vars[1]);
-		assertEquals("5", 4, root.getChildSize());
+		assertEquals(2, vars.length);
+		assertEquals(job, vars[0]);
+		assertEquals(deptno, vars[1]);
+		assertEquals(4, root.getChildSize());
 		SqlNode sqlNode = (SqlNode) root.getChild(0);
-		assertEquals("6", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 		BindVariableNode varNode = (BindVariableNode) root.getChild(1);
-		assertEquals("7", "job", varNode.getExpression());
+		assertEquals("job", varNode.getExpression());
 		SqlNode sqlNode2 = (SqlNode) root.getChild(2);
-		assertEquals("8", sql4, sqlNode2.getSql());
+		assertEquals(sql4, sqlNode2.getSql());
 		BindVariableNode varNode2 = (BindVariableNode) root.getChild(3);
-		assertEquals("9", "deptno", varNode2.getExpression());
+		assertEquals("deptno", varNode2.getExpression());
 	}
 
 	@Test
@@ -418,14 +418,14 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
-		assertEquals("2", 3, root.getChildSize());
+		assertEquals(sql2, ctx.getExecutableSql());
+		assertEquals(3, root.getChildSize());
 		SqlNode sqlNode = (SqlNode) root.getChild(0);
-		assertEquals("3", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 		SqlNode sqlNode2 = (SqlNode) root.getChild(1);
-		assertEquals("4", sql4, sqlNode2.getSql());
+		assertEquals(sql4, sqlNode2.getSql());
 		SqlNode sqlNode3 = (SqlNode) root.getChild(2);
-		assertEquals("5", sql5, sqlNode3.getSql());
+		assertEquals(sql5, sqlNode3.getSql());
 	}
 
 	@Test
@@ -442,9 +442,9 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		SqlNode sqlNode = (SqlNode) root.getChild(2);
-		assertEquals("2", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 	}
 
 	@Test
@@ -461,24 +461,24 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 1, vars.length);
-		assertEquals("3", job, vars[0]);
-		assertEquals("4", 2, root.getChildSize());
+		assertEquals(1, vars.length);
+		assertEquals(job, vars[0]);
+		assertEquals(2, root.getChildSize());
 		SqlNode sqlNode = (SqlNode) root.getChild(0);
-		assertEquals("5", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 		IfNode ifNode = (IfNode) root.getChild(1);
-		assertEquals("6", "job != null", ifNode.getExpression());
-		assertEquals("7", 2, ifNode.getChildSize());
+		assertEquals("job != null", ifNode.getExpression());
+		assertEquals(2, ifNode.getChildSize());
 		SqlNode sqlNode2 = (SqlNode) ifNode.getChild(0);
-		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
+		assertEquals(" WHERE job = ", sqlNode2.getSql());
 		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
-		assertEquals("9", "job", varNode.getExpression());
+		assertEquals("job", varNode.getExpression());
 		SqlContext ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertEquals("10", sql3, ctx2.getExecutableSql());
+		assertEquals(sql3, ctx2.getExecutableSql());
 	}
 
 	@Test
@@ -491,22 +491,22 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("1", "", ctx.getExecutableSql());
+		assertEquals("", ctx.getExecutableSql());
 		ctx.param("aaa", null);
 		ctx.param("bbb", "hoge");
 		root.accept(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("2", "", ctx.getExecutableSql());
+		assertEquals("", ctx.getExecutableSql());
 		ctx.param("aaa", "hoge");
 		root.accept(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("3", "aaabbb", ctx.getExecutableSql());
+		assertEquals("aaabbb", ctx.getExecutableSql());
 		SqlContext ctx2 = sqlConfig.context();
 		ctx2.param("aaa", "hoge");
 		ctx2.param("bbb", null);
 		root.accept(ctx2);
 		System.out.println("[" + ctx2.getExecutableSql() + "]");
-		assertEquals("4", "aaa", ctx2.getExecutableSql());
+		assertEquals("aaa", ctx2.getExecutableSql());
 	}
 
 	@Test
@@ -524,24 +524,24 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 1, vars.length);
-		assertEquals("3", emp.getJob(), vars[0]);
-		assertEquals("4", 2, root.getChildSize());
+		assertEquals(1, vars.length);
+		assertEquals(emp.getJob(), vars[0]);
+		assertEquals(2, root.getChildSize());
 		SqlNode sqlNode = (SqlNode) root.getChild(0);
-		assertEquals("5", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 		IfNode ifNode = (IfNode) root.getChild(1);
-		assertEquals("6", "emp != null && emp.job != null", ifNode.getExpression());
-		assertEquals("7", 2, ifNode.getChildSize());
+		assertEquals("emp != null && emp.job != null", ifNode.getExpression());
+		assertEquals(2, ifNode.getChildSize());
 		SqlNode sqlNode2 = (SqlNode) ifNode.getChild(0);
-		assertEquals("8", " WHERE job = ", sqlNode2.getSql());
+		assertEquals(" WHERE job = ", sqlNode2.getSql());
 		BindVariableNode varNode = (BindVariableNode) ifNode.getChild(1);
-		assertEquals("9", "emp.job", varNode.getExpression());
+		assertEquals("emp.job", varNode.getExpression());
 		SqlContext ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertEquals("10", sql3, ctx2.getExecutableSql());
+		assertEquals(sql3, ctx2.getExecutableSql());
 	}
 
 	@Test
@@ -558,15 +558,15 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 1, vars.length);
-		assertEquals("3", job, vars[0]);
+		assertEquals(1, vars.length);
+		assertEquals(job, vars[0]);
 		SqlContext ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println("[" + ctx2.getExecutableSql() + "]");
-		assertEquals("4", sql3, ctx2.getExecutableSql());
+		assertEquals(sql3, ctx2.getExecutableSql());
 	}
 
 	@Test
@@ -580,10 +580,10 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("1", "bbb = ?/*bbb*/", ctx.getExecutableSql());
+		assertEquals("bbb = ?/*bbb*/", ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 1, vars.length);
-		assertEquals("3", bbb, vars[0]);
+		assertEquals(1, vars.length);
+		assertEquals(bbb, vars[0]);
 	}
 
 	@Test
@@ -595,7 +595,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("1", "bbbddd", ctx.getExecutableSql());
+		assertEquals("bbbddd", ctx.getExecutableSql());
 	}
 
 	@Test
@@ -608,7 +608,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 	}
 
 	@Test
@@ -626,7 +626,7 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		List<String> bNames = ctx.getBindNames();
 		assertEquals(0, bNames.size());
 
@@ -635,7 +635,7 @@ public class SqlParserTest {
 		ctx2.param("deptno", null);
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertEquals("2", sql3, ctx2.getExecutableSql());
+		assertEquals(sql3, ctx2.getExecutableSql());
 		List<String> bNames2 = ctx2.getBindNames();
 		assertEquals(1, bNames2.size());
 
@@ -644,7 +644,7 @@ public class SqlParserTest {
 		ctx3.param("deptno", Integer.valueOf(20));
 		root.accept(ctx3);
 		System.out.println(ctx3.getExecutableSql());
-		assertEquals("3", sql4, ctx3.getExecutableSql());
+		assertEquals(sql4, ctx3.getExecutableSql());
 		List<String> bNames3 = ctx3.getBindNames();
 		assertEquals(2, bNames3.size());
 
@@ -653,7 +653,7 @@ public class SqlParserTest {
 		ctx4.param("job", null);
 		root.accept(ctx4);
 		System.out.println(ctx4.getExecutableSql());
-		assertEquals("4", sql5, ctx4.getExecutableSql());
+		assertEquals(sql5, ctx4.getExecutableSql());
 		List<String> bNames4 = ctx4.getBindNames();
 		assertEquals(1, bNames4.size());
 	}
@@ -670,7 +670,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		List<String> bNames = ctx.getBindNames();
 		assertEquals(2, bNames.size());
 		assertEquals("bbb", bNames.get(0));
@@ -691,11 +691,11 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", Integer.valueOf(10), vars[0]);
-		assertEquals("4", Integer.valueOf(20), vars[1]);
+		assertEquals(2, vars.length);
+		assertEquals(Integer.valueOf(10), vars[0]);
+		assertEquals(Integer.valueOf(20), vars[1]);
 	}
 
 	@Test
@@ -710,11 +710,11 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", Integer.valueOf(10), vars[0]);
-		assertEquals("4", Integer.valueOf(20), vars[1]);
+		assertEquals(2, vars.length);
+		assertEquals(Integer.valueOf(10), vars[0]);
+		assertEquals(Integer.valueOf(20), vars[1]);
 	}
 
 	@Test
@@ -731,13 +731,13 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 4, vars.length);
-		assertEquals("3", "SCOTT", vars[0]);
-		assertEquals("4", "MARY", vars[1]);
-		assertEquals("5", "ANALYST", vars[2]);
-		assertEquals("6", "FREE", vars[3]);
+		assertEquals(4, vars.length);
+		assertEquals("SCOTT", vars[0]);
+		assertEquals("MARY", vars[1]);
+		assertEquals("ANALYST", vars[2]);
+		assertEquals("FREE", vars[3]);
 	}
 
 	@Test
@@ -752,11 +752,11 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", Integer.valueOf(0), vars[0]);
-		assertEquals("4", Integer.valueOf(1000), vars[1]);
+		assertEquals(2, vars.length);
+		assertEquals(Integer.valueOf(0), vars[0]);
+		assertEquals(Integer.valueOf(1000), vars[1]);
 	}
 
 	@Test
@@ -776,21 +776,21 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		Node root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", emp.getJob(), vars[0]);
-		assertEquals("4", emp.getDeptno(), vars[1]);
-		assertEquals("5", 4, root.getChildSize());
+		assertEquals(2, vars.length);
+		assertEquals(emp.getJob(), vars[0]);
+		assertEquals(emp.getDeptno(), vars[1]);
+		assertEquals(4, root.getChildSize());
 		SqlNode sqlNode = (SqlNode) root.getChild(0);
-		assertEquals("6", sql3, sqlNode.getSql());
+		assertEquals(sql3, sqlNode.getSql());
 		BindVariableNode varNode = (BindVariableNode) root.getChild(1);
-		assertEquals("7", "emp.job", varNode.getExpression());
+		assertEquals("emp.job", varNode.getExpression());
 		SqlNode sqlNode2 = (SqlNode) root.getChild(2);
-		assertEquals("8", sql4, sqlNode2.getSql());
+		assertEquals(sql4, sqlNode2.getSql());
 		BindVariableNode varNode2 = (BindVariableNode) root.getChild(3);
-		assertEquals("9", "emp.deptno", varNode2.getExpression());
+		assertEquals("emp.deptno", varNode2.getExpression());
 	}
 
 	@Test
@@ -804,10 +804,10 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 1, vars.length);
-		assertEquals("3", 4, vars[0]);
+		assertEquals(1, vars.length);
+		assertEquals(4, vars[0]);
 	}
 
 	@Test
@@ -822,11 +822,11 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 		Object[] vars = ctx.getBindVariables();
-		assertEquals("2", 2, vars.length);
-		assertEquals("3", "SCOTT", vars[0]);
-		assertEquals("4", "MARY", vars[1]);
+		assertEquals(2, vars.length);
+		assertEquals("SCOTT", vars[0]);
+		assertEquals("MARY", vars[1]);
 	}
 
 	@Test
@@ -853,7 +853,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", true, ctx.getExecutableSql().endsWith(")"));
+		assertEquals(true, ctx.getExecutableSql().endsWith(")"));
 	}
 
 	@Test
@@ -866,7 +866,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", "xx '0'/*#aaa*/ xx", ctx.getExecutableSql());
+		assertEquals("xx '0'/*#aaa*/ xx", ctx.getExecutableSql());
 	}
 
 	@Test
@@ -881,7 +881,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", "0/*$emp.deptno*/", ctx.getExecutableSql());
+		assertEquals("0/*$emp.deptno*/", ctx.getExecutableSql());
 	}
 
 	/**
@@ -899,7 +899,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", "xx 'bb''bb'/*#aaa*/ xx", ctx.getExecutableSql());
+		assertEquals("xx 'bb''bb'/*#aaa*/ xx", ctx.getExecutableSql());
 	}
 
 	@Test
@@ -917,7 +917,7 @@ public class SqlParserTest {
 		ContextTransformer transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertEquals("1", sql2, ctx.getExecutableSql());
+		assertEquals(sql2, ctx.getExecutableSql());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -971,7 +971,7 @@ public class SqlParserTest {
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			String msg = ex.getMessage();
-			assertEquals("1", "Parameter [val2] is not found.", msg);
+			assertEquals("Parameter [val2] is not found.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
 		}
@@ -998,7 +998,7 @@ public class SqlParserTest {
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			String msg = ex.getMessage();
-			assertEquals("1", "Parameter [val2, val3] is not found.", msg);
+			assertEquals("Parameter [val2, val3] is not found.", msg);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
 		}

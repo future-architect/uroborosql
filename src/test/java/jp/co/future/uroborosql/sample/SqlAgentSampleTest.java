@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql.sample;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * SqlAgentSampleクラスのテストケース
@@ -34,7 +34,7 @@ public class SqlAgentSampleTest {
 	private static Map<String, Object> row3 = new LinkedHashMap<>();
 
 	@SuppressWarnings("deprecation")
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		String url = "jdbc:h2:mem:SqlAgentSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;

@@ -1,16 +1,17 @@
 package jp.co.future.uroborosql.utils;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import ognl.Ognl;
@@ -19,12 +20,12 @@ import ognl.OgnlContext;
 public class StringFunctionTest {
 	private StringFunction expressionFunction;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		expressionFunction = new StringFunction(new DefaultDialect());
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 
@@ -61,9 +62,9 @@ public class StringFunctionTest {
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.startsWith(val)"), context, root), is("abc%"));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testStartsWithNoDialect() throws Exception {
-		new StringFunction().startsWith("abc");
+		assertThrows(IllegalStateException.class, () -> new StringFunction().startsWith("abc"));
 	}
 
 	@Test
@@ -87,9 +88,9 @@ public class StringFunctionTest {
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.contains(val)"), context, root), is("%abc%"));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testContainsNoDialect() throws Exception {
-		new StringFunction().contains("abc");
+		assertThrows(IllegalStateException.class, () -> new StringFunction().contains("abc"));
 	}
 
 	@Test
@@ -113,9 +114,9 @@ public class StringFunctionTest {
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.endsWith(val)"), context, root), is("%abc"));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testEndsWithNoDialect() throws Exception {
-		new StringFunction().endsWith("abc");
+		assertThrows(IllegalStateException.class, () -> new StringFunction().endsWith("abc"));
 	}
 
 	@Test
@@ -427,9 +428,9 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.increment(Long.MAX_VALUE), is(Long.MIN_VALUE));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testIncrementWithException() throws Exception {
-		expressionFunction.increment(1f);
+		assertThrows(IllegalArgumentException.class, () -> expressionFunction.increment(1f));
 	}
 
 }

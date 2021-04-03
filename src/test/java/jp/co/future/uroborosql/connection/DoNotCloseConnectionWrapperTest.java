@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -22,23 +23,23 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DoNotCloseConnectionWrapperTest {
 	private Connection target;
 	private Connection conn;
 
 	@SuppressWarnings("deprecation")
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		conn = DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
 				"sa", "sa");
 		target = new DoNotCloseConnectionWrapper(conn);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		conn.close();
 	}
@@ -191,9 +192,9 @@ public class DoNotCloseConnectionWrapperTest {
 		assertThat(target.createSQLXML(), is(instanceOf(SQLXML.class)));
 	}
 
-	@Test(expected = SQLFeatureNotSupportedException.class)
+	@Test
 	public void testCreateStruct() throws Exception {
-		target.createStruct("char", new Object[] {});
+		assertThrows(SQLFeatureNotSupportedException.class, () -> target.createStruct("char", new Object[] {}));
 	}
 
 	@Test

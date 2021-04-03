@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -16,9 +17,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -36,7 +37,7 @@ public class IdentityGeneratedKeysTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		String url = "jdbc:h2:mem:IdentityGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -75,7 +76,7 @@ public class IdentityGeneratedKeysTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -739,22 +740,22 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testEntityNotGeneratedValue() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityWithIdError test1 = new TestEntityWithIdError("name1");
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testEntityInvalidTypeGeneratedValue() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityWithIdError2 test1 = new TestEntityWithIdError2("name1");
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}
@@ -978,42 +979,42 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testInsertIdTypeErrInteger() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestIdsErrInteger test1 = new TestIdsErrInteger();
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testInsertIdTypeErrBigint() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestIdsErrBigint test1 = new TestIdsErrBigint();
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testInsertIdTypeErrBigInteger() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestIdsErrBigInteger test1 = new TestIdsErrBigInteger();
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testInsertIdTypeErrBigDecimal() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestIdsErrBigDecimal test1 = new TestIdsErrBigDecimal();
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}

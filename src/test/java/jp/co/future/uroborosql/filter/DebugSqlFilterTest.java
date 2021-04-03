@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -29,9 +30,9 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
 import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DebugSqlFilterTest {
 
@@ -39,7 +40,7 @@ public class DebugSqlFilterTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws SQLException, IOException {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DebugSqlFilterTest")).build();
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
@@ -59,7 +60,7 @@ public class DebugSqlFilterTest {
 
 	;
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}

@@ -1,8 +1,9 @@
 package jp.co.future.uroborosql.store;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.H2Dialect;
@@ -49,9 +50,9 @@ public class NioSqlManagerTest {
 		assertThat(manager.getDialect(), is(dialect));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testConstructorMultiSqlPathsNull() throws Exception {
-		new NioSqlManagerImpl(Arrays.asList(null, "secondary_sql"));
+		assertThrows(IllegalArgumentException.class, () -> new NioSqlManagerImpl(Arrays.asList(null, "secondary_sql")));
 	}
 
 	@Test
@@ -68,28 +69,28 @@ public class NioSqlManagerTest {
 		assertThat(pathList, hasItem("example/select_test3"));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetSqlLoader() throws Exception {
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.getSqlLoader();
+		assertThrows(UnsupportedOperationException.class, () -> manager.getSqlLoader());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testSetSqlLoader() throws Exception {
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.setSqlLoader(null);
+		assertThrows(UnsupportedOperationException.class, () -> manager.setSqlLoader(null));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testIsCache() throws Exception {
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.isCache();
+		assertThrows(UnsupportedOperationException.class, () -> manager.isCache());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testSetCache() throws Exception {
 		NioSqlManagerImpl manager = new NioSqlManagerImpl();
-		manager.setCache(false);
+		assertThrows(UnsupportedOperationException.class, () -> manager.setCache(false));
 	}
 
 	@Test

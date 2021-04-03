@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.sql.JDBCType;
@@ -15,8 +16,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -25,7 +26,7 @@ import jp.co.future.uroborosql.mapping.JavaType;
 public class DefaultDialectTest {
 	private Dialect dialect;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		dialect = new DefaultDialect();
 	}
@@ -40,9 +41,9 @@ public class DefaultDialectTest {
 		assertThat(dialect.accept(null), is(true));
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testGetSequenceNextValSql() {
-		dialect.getSequenceNextValSql("test_sequence");
+		assertThrows(UroborosqlRuntimeException.class, () -> dialect.getSequenceNextValSql("test_sequence"));
 	}
 
 	@Test
@@ -245,12 +246,12 @@ public class DefaultDialectTest {
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testAddOptimizerHints() {
 		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		List<String> hints = new ArrayList<>();
 		hints.add("USE_NL");
-		dialect.addOptimizerHints(sql, hints);
+		assertThrows(IllegalStateException.class, () -> dialect.addOptimizerHints(sql, hints));
 	}
 
 	@Test

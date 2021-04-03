@@ -1,8 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
@@ -11,15 +10,15 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SecretColumnSqlFilterInitializeTest {
 	private SqlConfig config;
 	private SqlFilterManager sqlFilterManager;
 	private SecretColumnSqlFilter filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterInitializeTest"))
 				.build();

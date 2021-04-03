@@ -1,15 +1,15 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
@@ -23,7 +23,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -37,7 +37,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		command = new ParseCommand();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 

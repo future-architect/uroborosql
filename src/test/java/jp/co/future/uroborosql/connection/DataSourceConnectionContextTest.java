@@ -1,11 +1,12 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DataSourceConnectionContextTest {
 
@@ -27,9 +28,9 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testDataSourceConnectionContextWithDataSourceNameNull() {
-		ConnectionContextBuilder.dataSource(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource(null));
 	}
 
 	@Test
@@ -43,8 +44,8 @@ public class DataSourceConnectionContextTest {
 				is(Connection.TRANSACTION_REPEATABLE_READ));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testSetDataSourceNameNull() {
-		ConnectionContextBuilder.dataSource().dataSourceName(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource().dataSourceName(null));
 	}
 }

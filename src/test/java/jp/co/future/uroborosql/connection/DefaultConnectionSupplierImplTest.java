@@ -1,12 +1,13 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testcase of {@link DefaultConnectionSupplierImpl}
@@ -26,7 +27,7 @@ public class DefaultConnectionSupplierImplTest {
 		assertThat(supplier.getConnection(), instanceOf(CloseIgnoringConnectionWrapper.class));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetConnectionWithProps() throws Exception {
 		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		String user = "";
@@ -34,7 +35,7 @@ public class DefaultConnectionSupplierImplTest {
 		Connection conn = DriverManager.getConnection(url, user, password);
 
 		DefaultConnectionSupplierImpl supplier = new DefaultConnectionSupplierImpl(conn);
-		supplier.getConnection(null);
+		assertThrows(UnsupportedOperationException.class, () -> supplier.getConnection(null));
 	}
 
 }

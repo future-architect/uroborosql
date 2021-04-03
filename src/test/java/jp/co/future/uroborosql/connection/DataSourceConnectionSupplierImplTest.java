@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 
@@ -9,8 +10,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -25,7 +26,7 @@ public class DataSourceConnectionSupplierImplTest {
 	private static final String DS_NAME1 = DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME;
 	private static final String DS_NAME2 = "java:comp/env/jdbc/second_datasource";
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "jp.co.future.uroborosql.connection.LocalContextFactory");
 		System.setProperty(Context.URL_PKG_PREFIXES, "local");
@@ -97,10 +98,11 @@ public class DataSourceConnectionSupplierImplTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testGetConnectionMissingName() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		supplier.getConnection(ConnectionContextBuilder.dataSource("dummy"));
+		assertThrows(UroborosqlRuntimeException.class,
+				() -> supplier.getConnection(ConnectionContextBuilder.dataSource("dummy")));
 	}
 
 	@Test
@@ -112,10 +114,10 @@ public class DataSourceConnectionSupplierImplTest {
 		assertThat(supplier.getDefaultDataSourceName(), is(dataSourceName));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testSetDefaultDataSourceNameIsNull() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		supplier.setDefaultDataSourceName(null);
+		assertThrows(IllegalArgumentException.class, () -> supplier.setDefaultDataSourceName(null));
 	}
 
 	@Test
@@ -186,10 +188,11 @@ public class DataSourceConnectionSupplierImplTest {
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetConnectionMissingClass() throws Exception {
 		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		supplier.getConnection(ConnectionContextBuilder.jdbc("dummy"));
+		assertThrows(IllegalArgumentException.class,
+				() -> supplier.getConnection(ConnectionContextBuilder.jdbc("dummy")));
 	}
 
 }

@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +47,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 2, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
-		assertEquals("2行目のデータの登録に失敗しました。", 1, count[1]);
+		assertEquals(2, count.length);
+		assertEquals(1, count[0]);
+		assertEquals(1, count[1]);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -80,8 +80,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 1, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+		assertEquals(1, count.length);
+		assertEquals(1, count[0]);
 
 		ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
 				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
@@ -89,8 +89,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 1, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+		assertEquals(1, count.length);
+		assertEquals(1, count[0]);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -123,9 +123,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 2, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
-		assertEquals("2行目のデータの登録に失敗しました。", 1, count[1]);
+		assertEquals(2, count.length);
+		assertEquals(1, count[0]);
+		assertEquals(1, count[1]);
 
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
@@ -145,7 +145,7 @@ public class SqlBatchTest extends AbstractDbTest {
 
 		// 処理実行
 		int[] count = agent.update("example/insert_product").batch();
-		assertEquals("データの登録件数が不正です。", 0, count.length);
+		assertEquals(0, count.length);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int count = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -193,7 +193,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		int count = agent.batch("example/insert_product_for_bean").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -223,7 +223,7 @@ public class SqlBatchTest extends AbstractDbTest {
 					return pre != null && !current.equals(pre);
 				}).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count);
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -248,7 +248,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount);
+		assertEquals(100, productCount);
 
 		agent.commit();
 
@@ -258,7 +258,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 100, workCount);
+		assertEquals(100, workCount);
 	}
 
 	/**
@@ -273,7 +273,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount);
+		assertEquals(100, productCount);
 
 		agent.commit();
 
@@ -297,7 +297,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 150, workCount);
+		assertEquals(150, workCount);
 	}
 
 	/**
@@ -330,7 +330,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				})
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 60, count);
+		assertEquals(60, count);
 	}
 
 	/**
@@ -355,7 +355,7 @@ public class SqlBatchTest extends AbstractDbTest {
 			// 処理実行
 			int count = agent.update("example/insert_product")
 					.paramMap(row).count();
-			assertEquals("データの登録件数が不正です。", 1, count);
+			assertEquals(1, count);
 		}
 	}
 

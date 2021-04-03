@@ -1,8 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -17,8 +16,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -80,7 +79,7 @@ public class MapResultSetConverterTest {
 			"	/*arr*/" +
 			")";
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		url = "jdbc:h2:mem:" + this.getClass().getSimpleName() + System.currentTimeMillis();
 	}

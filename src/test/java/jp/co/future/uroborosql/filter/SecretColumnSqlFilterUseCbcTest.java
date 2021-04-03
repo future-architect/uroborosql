@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,16 +23,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * Test case of SecretColumnSqlFilter when using CBC mode
@@ -47,7 +48,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	private AbstractSecretColumnSqlFilter filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
 		sqlFilterManager = config.getSqlFilterManager();
@@ -192,8 +193,6 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 	}
 
-	;
-
 	@Test
 	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -214,8 +213,6 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 	}
 
-	;
-
 	@Test
 	public void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -232,8 +229,6 @@ public class SecretColumnSqlFilterUseCbcTest {
 			result.close();
 		}
 	}
-
-	;
 
 	@Test
 	public void testSecretResultSet03() throws Exception {
@@ -273,7 +268,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testSecretResultSetPerformance01() throws Exception {
 		for (int i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");

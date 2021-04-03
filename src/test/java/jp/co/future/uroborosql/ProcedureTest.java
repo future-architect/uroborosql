@@ -1,15 +1,15 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 
@@ -19,7 +19,7 @@ public class ProcedureTest {
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
 		try (SqlAgent agent = config.agent()) {
@@ -45,7 +45,7 @@ public class ProcedureTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 
@@ -55,7 +55,7 @@ public class ProcedureTest {
 							.outParam("ret", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 
@@ -67,7 +67,7 @@ public class ProcedureTest {
 							.inOutParam("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 
@@ -78,7 +78,7 @@ public class ProcedureTest {
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 
@@ -88,7 +88,7 @@ public class ProcedureTest {
 							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 
@@ -100,7 +100,7 @@ public class ProcedureTest {
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}

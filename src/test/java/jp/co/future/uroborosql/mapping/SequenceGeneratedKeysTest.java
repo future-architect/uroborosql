@@ -1,16 +1,17 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -29,7 +30,7 @@ public class SequenceGeneratedKeysTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		String url = "jdbc:h2:mem:SequenceGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -60,7 +61,7 @@ public class SequenceGeneratedKeysTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -158,12 +159,12 @@ public class SequenceGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testEntityNotSequenceGenerator() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityWithSeqError test1 = new TestEntityWithSeqError("name1");
-				agent.insert(test1);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
 			});
 		}
 	}

@@ -1,9 +1,8 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.Test;
 
 public class EnumParameterMapperTest {
 	enum TestEnum {

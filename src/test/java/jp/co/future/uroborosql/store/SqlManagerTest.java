@@ -1,13 +1,13 @@
 package jp.co.future.uroborosql.store;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
@@ -120,7 +120,7 @@ public class SqlManagerTest {
 		assertThat(manager.existSql("other/no_file"), is(false));
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testGetSql() throws Exception {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
@@ -133,7 +133,7 @@ public class SqlManagerTest {
 		assertThat(manager.getSql("example/select_in_secondary_sql_folder"),
 				is(containsString("secondary_sql/example")));
 
-		manager.getSql("example/no_file");
+		assertThrows(UroborosqlRuntimeException.class, () -> manager.getSql("example/no_file"));
 	}
 
 	@Test

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -15,8 +16,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -29,7 +30,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
 public class SqlContextImplTest {
 	private static SqlConfig config = null;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlContextImplTest", "sa", "").build();
 	}

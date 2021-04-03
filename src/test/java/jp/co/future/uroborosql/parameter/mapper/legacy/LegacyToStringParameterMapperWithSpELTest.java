@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,9 +20,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -46,7 +46,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		String url = "jdbc:h2:mem:" + LegacyToStringParameterMapperWithSpELTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
@@ -93,7 +93,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();

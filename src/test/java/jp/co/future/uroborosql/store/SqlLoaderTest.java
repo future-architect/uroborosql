@@ -1,12 +1,12 @@
 package jp.co.future.uroborosql.store;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -46,9 +46,9 @@ public class SqlLoaderTest {
 						+ System.lineSeparator() + "ORDER BY PRODUCT_ID" + System.lineSeparator()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testLoadFileNull() throws Exception {
-		new SqlLoaderImpl().load(null);
+		assertThrows(IllegalArgumentException.class, () -> new SqlLoaderImpl().load(null));
 	}
 
 	@Test

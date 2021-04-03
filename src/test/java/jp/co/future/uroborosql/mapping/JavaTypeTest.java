@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -12,9 +12,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Spliterator;
 
-import jp.co.future.uroborosql.mapping.JavaType.ImplementClass;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import jp.co.future.uroborosql.mapping.JavaType.ImplementClass;
 
 @SuppressWarnings({ "rawtypes" })
 public class JavaTypeTest {
@@ -229,12 +229,12 @@ public class JavaTypeTest {
 		assertThat(
 				javaType.toString(),
 				is(
-				"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
+						"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
 		assertThat(javaType.getParam(0).toString(), is("java.lang.Object"));
 		assertThat(
 				javaType.getParam(1).toString(),
 				is(
-				"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
+						"jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10<java.lang.Object, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs1Test10, jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));
 		assertThat(
 				javaType.getParam(2).toString(),
 				is("jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10<jp.co.future.uroborosql.mapping.JavaTypeTest$Abs2Test10>"));

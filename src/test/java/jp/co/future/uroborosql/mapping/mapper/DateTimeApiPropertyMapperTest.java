@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
 import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.SQLException;
 import java.time.Clock;
@@ -27,15 +27,15 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
 public class DateTimeApiPropertyMapperTest {
 	private Clock clock;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}

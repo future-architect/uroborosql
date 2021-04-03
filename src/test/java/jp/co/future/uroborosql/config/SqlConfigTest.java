@@ -3,9 +3,8 @@
  */
 package jp.co.future.uroborosql.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,9 +13,9 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -40,7 +39,7 @@ public class SqlConfigTest {
 
 	private Connection conn;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		ds = new JdbcDataSource();
 		ds.setURL(JDBC_URL + System.currentTimeMillis() + ";DB_CLOSE_DELAY=-1");
@@ -75,7 +74,7 @@ public class SqlConfigTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		conn.close();
 	}

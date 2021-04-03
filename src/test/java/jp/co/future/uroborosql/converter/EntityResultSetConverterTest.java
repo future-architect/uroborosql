@@ -1,8 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import java.sql.DriverManager;
 import java.util.Optional;
 
@@ -11,9 +10,9 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 
 import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EntityResultSetConverterTest {
 
@@ -101,7 +100,7 @@ public class EntityResultSetConverterTest {
 
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:EntityResultSetConverterTest")).build();
 		agent = config.agent();
@@ -117,7 +116,7 @@ public class EntityResultSetConverterTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -17,10 +18,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 
 import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -34,7 +35,7 @@ public class SecretResultSetTest {
 	private static SqlFilterManager sqlFilterManager;
 	private static AbstractSecretColumnSqlFilter filter;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		sqlFilterManager = new SqlFilterManagerImpl();
 		filter = new SecretColumnSqlFilter();
@@ -68,7 +69,7 @@ public class SecretResultSetTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			LocalDateTime dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
@@ -87,7 +88,7 @@ public class SecretResultSetTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 

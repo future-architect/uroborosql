@@ -1,13 +1,17 @@
 package jp.co.future.uroborosql.coverage.reports.html;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
@@ -16,17 +20,13 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 public class HtmlReportCoverageHandlerTest {
 	/**
 	 * SQL管理クラス
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:HtmlReportCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null).build();
 
@@ -36,7 +36,7 @@ public class HtmlReportCoverageHandlerTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

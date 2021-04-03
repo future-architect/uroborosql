@@ -1,12 +1,13 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JdbcConnectionContextTest {
 	private static final String URL = "jdbc:h2:mem:" + JdbcConnectionContextTest.class.getSimpleName();
@@ -50,9 +51,9 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testJdbcConnectionContextWithUrlNull() {
-		ConnectionContextBuilder.jdbc(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(null));
 	}
 
 	@Test
@@ -77,9 +78,9 @@ public class JdbcConnectionContextTest {
 				is(Connection.TRANSACTION_REPEATABLE_READ));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testSetUrlNull() {
-		ConnectionContextBuilder.jdbc(URL).url(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(URL).url(null));
 	}
 
 	@Test

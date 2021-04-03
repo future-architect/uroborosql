@@ -3,21 +3,21 @@
  */
 package jp.co.future.uroborosql.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
-
 import jp.co.future.uroborosql.utils.StringUtils;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  * TestCase DefaultSqlConfigConnectionPool
@@ -33,7 +33,7 @@ public class SqlConfigConnectionPoolTest {
 
 	private static JdbcConnectionPool pool;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 
 		pool = JdbcConnectionPool.create(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
@@ -64,7 +64,7 @@ public class SqlConfigConnectionPoolTest {
 		}
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownClass() throws Exception {
 		pool.dispose();
 	}

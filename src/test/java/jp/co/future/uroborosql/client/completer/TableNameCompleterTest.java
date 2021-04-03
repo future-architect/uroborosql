@@ -10,9 +10,9 @@ import java.util.ServiceLoader;
 
 import jp.co.future.uroborosql.utils.StringUtils;
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -27,7 +27,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 	private SqlAgent agent;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -51,7 +51,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client;
 
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.sql.DriverManager;
@@ -11,8 +11,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -21,7 +21,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 public class SqlParamUtilsTest {
 	private SqlConfig sqlConfig;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();

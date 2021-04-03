@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -18,9 +19,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -31,7 +32,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 public class SqlContextFactoryAutoParameterBinderTest {
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlContextFactoryUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
 				"sa",
@@ -52,7 +53,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			LocalDateTime dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.expr;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.DriverManager;
 import java.time.Duration;
@@ -14,8 +14,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public abstract class AbstractExpressionParserTest {
 	protected SqlContext ctx;
 	protected static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.setSqlContextFactory(new SqlContextFactoryImpl()

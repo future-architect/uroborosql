@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -50,14 +51,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		ResultSet rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertThat(rs.next(), is(false));
 	}
 
 	/**
@@ -74,14 +75,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		ResultSet rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertThat(rs.next(), is(false));
 	}
 
 	/**
@@ -100,14 +101,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		ResultSet rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertThat(rs.next(), is(false));
 	}
 
 	/**
@@ -129,14 +130,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("maxRowCount", 1);
 
 		ResultSet rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertThat(rs.next(), is(false));
 	}
 
 	/**
@@ -189,8 +190,8 @@ public class SqlQueryTest extends AbstractDbTest {
 		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3));
 
 		ResultSet rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
@@ -207,8 +208,8 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		ResultSet rs = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3)).resultSet();
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertThat(rs, not(nullValue()));
+		assertThat(rs.next(), is(true));
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
@@ -227,7 +228,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Map<String, Object>> ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size());
 		Map<String, Object> map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
@@ -247,7 +248,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Map<String, Object>> ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(CaseFormat.LOWER_SNAKE_CASE);
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size());
 		Map<String, Object> map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -266,7 +267,7 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		List<Product> ans = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(Product.class);
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size());
 		Product product = ans.get(0);
 		assertEquals(0, product.getProductId());
 		assertEquals("商品名0", product.getProductName());
@@ -293,7 +294,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Map<String, Object>> ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size());
 		Map<String, Object> map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));

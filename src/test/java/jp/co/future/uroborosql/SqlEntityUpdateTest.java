@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Paths;
 import java.sql.JDBCType;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
@@ -251,7 +252,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(楽観ロックエラー）
 	 */
-	@Test(expected = OptimisticLockException.class)
+	@Test
 	public void testEntityUpdateThrowException() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
@@ -260,13 +261,13 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		product.setProductId(2);
 		product.setProductName("商品名_new");
 		product.setVersionNo(1);
-		agent.update(product);
+		assertThrows(OptimisticLockException.class, () -> agent.update(product));
 	}
 
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(Stream型引数エラー）
 	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testEntityUpdateStreamError() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
@@ -275,7 +276,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		product.setProductId(2);
 		product.setProductName("商品名_new");
 		product.setVersionNo(1);
-		agent.update(Stream.of(product));
+		assertThrows(IllegalArgumentException.class, () -> agent.update(Stream.of(product)));
 	}
 
 	/**

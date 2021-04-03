@@ -1,13 +1,14 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testcase for {@link JdbcConnectionSupplierImpl}
@@ -62,13 +63,13 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testJdbcConnectionNull() throws Exception {
-		new JdbcConnectionSupplierImpl(null, null, null);
+		assertThrows(IllegalArgumentException.class, () -> new JdbcConnectionSupplierImpl(null, null, null));
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNotInstanceOfJdbcConnectionContext() throws Exception {
 		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		String user = "";
@@ -76,7 +77,7 @@ public class JdbcConnectionSupplierImplTest {
 
 		ConnectionContext ctx = ConnectionContextBuilder.dataSource();
 		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
-		supplier.getConnection(ctx);
+		assertThrows(IllegalArgumentException.class, () -> supplier.getConnection(ctx));
 	}
 
 	@Test

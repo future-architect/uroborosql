@@ -1,12 +1,13 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SqlEntityDeleteTest extends AbstractDbTest {
 
@@ -44,7 +45,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testDeleteThrowException() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -52,7 +53,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		agent.required(() -> {
 			Product product = new Product();
 			product.setProductId(1);
-			agent.delete(Stream.of(product));
+			assertThrows(IllegalArgumentException.class, () -> agent.delete(Stream.of(product)));
 		});
 	}
 

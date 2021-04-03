@@ -1,20 +1,21 @@
 package jp.co.future.uroborosql.client;
 
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.Driver;
 import java.util.ServiceLoader;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DriverShimTest {
 
 	private DriverShim driver;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		ServiceLoader<Driver> loader = ServiceLoader.load(Driver.class);
 		driver = new DriverShim(loader.iterator().next());

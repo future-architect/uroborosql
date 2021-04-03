@@ -1,10 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -12,7 +9,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -54,9 +52,9 @@ public class MySqlDialectTest {
 		assertThat(dialect, instanceOf(MySqlDialect.class));
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testGetSequenceNextValSql() {
-		dialect.getSequenceNextValSql("test_sequence");
+		Assertions.assertThrows(UroborosqlRuntimeException.class, () -> dialect.getSequenceNextValSql("test_sequence"));
 	}
 
 	@Test

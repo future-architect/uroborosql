@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.client;
 
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.jline.reader.LineReader.*;
-import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,7 +21,7 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class ReaderTestSupport {
 	protected Terminal terminal;
@@ -30,7 +30,7 @@ public abstract class ReaderTestSupport {
 	protected ByteArrayOutputStream out;
 	protected Character mask;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		in = new EofPipedInputStream();
 		out = new ByteArrayOutputStream();

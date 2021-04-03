@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.tx;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
@@ -13,10 +14,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -32,7 +32,7 @@ public class LocalTxManagerTest {
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
 		try (SqlAgent agent = config.agent()) {
@@ -80,7 +80,7 @@ public class LocalTxManagerTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 
@@ -552,11 +552,11 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					ins(agent, 1, "ABC");
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
@@ -564,11 +564,11 @@ public class LocalTxManagerTest {
 					emp.setId(2);
 					emp.setName("DEF");
 					agent.insert(emp);
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
@@ -582,29 +582,29 @@ public class LocalTxManagerTest {
 							.errorWhen((agt, ctx, ex) -> {
 								throw (UroborosqlTransactionException) ex;
 							}).count();
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -617,11 +617,11 @@ public class LocalTxManagerTest {
 		try (SqlAgent agent = config.agent()) {
 			try {
 				ins(agent, 1, "ABC");
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
@@ -629,11 +629,11 @@ public class LocalTxManagerTest {
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
@@ -647,29 +647,29 @@ public class LocalTxManagerTest {
 						.errorWhen((agt, ctx, ex) -> {
 							throw (UroborosqlTransactionException) ex;
 						}).count();
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 		}
 	}
@@ -718,20 +718,20 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					upd(agent, 1, "abc");
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.update(new Emp(2, "def"));
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -748,20 +748,20 @@ public class LocalTxManagerTest {
 
 			try {
 				upd(agent, 1, "abc");
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.update(new Emp(2, "def"));
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 		}
 	}
@@ -814,38 +814,38 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					del(agent, 1);
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.delete(new Emp(2));
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.delete(Emp.class, 3);
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 
 				try {
 					agent.delete(Emp.class).equal("name", "name4").count();
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -862,38 +862,38 @@ public class LocalTxManagerTest {
 
 			try {
 				del(agent, 1);
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.delete(new Emp(2));
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.delete(Emp.class, 3);
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 
 			try {
 				agent.delete(Emp.class).equal("name", "name4").count();
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				fail();
 			}
 		}
 	}
@@ -916,7 +916,7 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -942,7 +942,7 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -966,11 +966,11 @@ public class LocalTxManagerTest {
 				try {
 					agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-					Assert.fail();
+					fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (SQLException ex) {
-					Assert.fail();
+					fail();
 				}
 			});
 		}
@@ -993,11 +993,11 @@ public class LocalTxManagerTest {
 			try {
 				agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 						.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-				Assert.fail();
+				fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (SQLException ex) {
-				Assert.fail();
+				fail();
 			}
 		}
 	}

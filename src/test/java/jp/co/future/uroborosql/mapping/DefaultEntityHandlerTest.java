@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -42,7 +42,7 @@ public class DefaultEntityHandlerTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		String url = "jdbc:h2:mem:DefaultEntityHandlerTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -92,7 +92,7 @@ public class DefaultEntityHandlerTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -321,7 +321,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQueryCountUnmatchColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -334,12 +334,12 @@ public class DefaultEntityHandlerTest {
 				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).count("unmatch");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).count("unmatch"));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQuerySumUnmatchColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -352,12 +352,12 @@ public class DefaultEntityHandlerTest {
 				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).sum("unmatch");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).sum("unmatch"));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQuerySumNoNumberColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -370,7 +370,7 @@ public class DefaultEntityHandlerTest {
 				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).sum("birthday");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).sum("birthday"));
 			});
 		}
 	}
@@ -837,7 +837,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@Test(expected = OptimisticLockException.class)
+	@Test
 	public void testUpdateLockVersionError() throws Exception {
 
 		try (SqlAgent agent = config.agent()) {
@@ -848,7 +848,7 @@ public class DefaultEntityHandlerTest {
 
 				test.setName("updatename");
 				test.setLockVersion(0);
-				agent.update(test);
+				assertThrows(OptimisticLockException.class, () -> agent.update(test));
 			});
 		}
 	}
@@ -972,7 +972,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testUpdateCustomLockVersionWithNoEntry() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
@@ -981,7 +981,7 @@ public class DefaultEntityHandlerTest {
 				agent.insert(test);
 
 				test.setName("updatename");
-				agent.update(test);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.update(test));
 			});
 		}
 	}
@@ -1483,29 +1483,25 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBatchInsertTypeError1() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) TestEntity.class, Stream.of(test1), InsertsType.BATCH);
-
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) TestEntity.class, Stream.of(test1), InsertsType.BATCH));
 			});
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBatchInsertTypeError2() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) int.class, Stream.of(test1), InsertsType.BATCH);
-
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) int.class, Stream.of(test1), InsertsType.BATCH));
 			});
 		}
 	}
@@ -1674,29 +1670,24 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBulkInsertTypeError1() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) TestEntity.class, Stream.of(test1));
-
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) TestEntity.class, Stream.of(test1)));
 			});
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBulkInsertTypeError2() throws Exception {
-
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) int.class, Stream.of(test1));
-
+				assertThrows(IllegalArgumentException.class, () -> agent.inserts((Class) int.class, Stream.of(test1)));
 			});
 		}
 	}

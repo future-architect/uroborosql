@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.client.command.ReplCommand;
 public class SqlKeywordCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
 		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {

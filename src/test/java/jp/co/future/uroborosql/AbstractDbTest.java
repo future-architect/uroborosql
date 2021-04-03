@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.mapping.annotations.Version;
@@ -149,7 +149,7 @@ public class AbstractDbTest {
 		super();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
@@ -176,7 +176,7 @@ public class AbstractDbTest {
 		return Paths.get("src/test/resources/sql/ddl/create_tables.sql");
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
