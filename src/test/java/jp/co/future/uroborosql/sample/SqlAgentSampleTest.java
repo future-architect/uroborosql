@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.sample;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -100,7 +101,7 @@ public class SqlAgentSampleTest {
 		expected.add(row2);
 		expected.add(row3);
 
-		assertEquals(toString(expected), toString(actual));
+		assertThat(toString(actual), is(toString(expected)));
 	}
 
 	@Test
@@ -112,7 +113,7 @@ public class SqlAgentSampleTest {
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row1);
 
-		assertEquals(toString(expected), toString(actual));
+		assertThat(toString(actual), is(toString(expected)));
 	}
 
 	@Test
@@ -124,7 +125,7 @@ public class SqlAgentSampleTest {
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row2);
 
-		assertEquals(toString(expected), toString(actual));
+		assertThat(toString(actual), is(toString(expected)));
 	}
 
 	private String toString(final List<Map<String, Object>> obj) {

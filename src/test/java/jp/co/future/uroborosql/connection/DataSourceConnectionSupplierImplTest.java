@@ -176,7 +176,7 @@ public class DataSourceConnectionSupplierImplTest {
 		}
 		try {
 			supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
-			fail();
+			assertThat("Fail here.", false);
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), containsString("Unsupported level"));
 		}

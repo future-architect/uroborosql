@@ -56,7 +56,7 @@ public class SqlLoaderTest {
 		SqlLoader sqlLoader = new SqlLoaderImpl("sql", ".sql");
 		try {
 			sqlLoader.load("notexists/SQL_FILE");
-			fail("No exception occurred");
+			assertThat("No exception occurred", false);
 		} catch (UroborosqlRuntimeException e) {
 			assertThat(e.getMessage(), is(containsString("not found")));
 			assertThat(e.getMessage(), is(containsString("sql/notexists/SQL_FILE.sql")));

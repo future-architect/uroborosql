@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -57,7 +56,7 @@ public class ThisCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		boolean flag = command.execute(reader, "this".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("uroboroSQL will argue.");
 	}
 

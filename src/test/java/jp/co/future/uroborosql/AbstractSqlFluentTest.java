@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -15,8 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -46,8 +45,8 @@ public class AbstractSqlFluentTest {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", "value1");
-			assertTrue(query.hasParam("key1"));
-			assertFalse(query.hasParam("key2"));
+			assertThat(query.hasParam("key1"), is(true));
+			assertThat(query.hasParam("key2"), is(false));
 		}
 	}
 

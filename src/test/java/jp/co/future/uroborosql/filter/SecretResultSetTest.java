@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +64,7 @@ public class SecretResultSetTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -167,7 +166,7 @@ public class SecretResultSetTest {
 				assertThat(rs.getConcurrency(), is(1007));
 				assertThat(rs.getMetaData().getColumnCount(), is(8));
 				rs.clearWarnings();
-				assertNull(rs.getWarnings());
+				assertThat(rs.getWarnings(), is(nullValue()));
 			}
 		}
 	}
@@ -182,8 +181,8 @@ public class SecretResultSetTest {
 				rs.updateNull("PRODUCT_KANA_NAME");
 				rs.updateNull(2);
 				rs.updateRow();
-				assertNull(rs.getString("PRODUCT_KANA_NAME"));
-				assertNull(rs.getString(2));
+				assertThat(rs.getString("PRODUCT_KANA_NAME"), is(nullValue()));
+				assertThat(rs.getString(2), is(nullValue()));
 
 				rs.updateBoolean("PRODUCT_KANA_NAME", true);
 				rs.updateBoolean(2, false);

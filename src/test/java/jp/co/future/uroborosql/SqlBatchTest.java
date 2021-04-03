@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -47,9 +48,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals(2, count.length);
-		assertEquals(1, count[0]);
-		assertEquals(1, count[1]);
+		assertThat(count.length, is(2));
+		assertThat(count[0], is(1));
+		assertThat(count[1], is(1));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -59,7 +60,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -80,8 +81,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals(1, count.length);
-		assertEquals(1, count[0]);
+		assertThat(count.length, is(1));
+		assertThat(count[0], is(1));
 
 		ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
 				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
@@ -89,8 +90,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		count = agent.batch(ctx);
-		assertEquals(1, count.length);
-		assertEquals(1, count[0]);
+		assertThat(count.length, is(1));
+		assertThat(count[0], is(1));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -100,7 +101,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -123,9 +124,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		int[] count = agent.batch(ctx);
-		assertEquals(2, count.length);
-		assertEquals(1, count[0]);
-		assertEquals(1, count[1]);
+		assertThat(count.length, is(2));
+		assertThat(count[0], is(1));
+		assertThat(count[1], is(1));
 
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
@@ -134,7 +135,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	@SuppressWarnings("deprecation")
@@ -145,7 +146,7 @@ public class SqlBatchTest extends AbstractDbTest {
 
 		// 処理実行
 		int[] count = agent.update("example/insert_product").batch();
-		assertEquals(0, count.length);
+		assertThat(count.length, is(0));
 	}
 
 	/**
@@ -161,7 +162,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int count = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals(100, count);
+		assertThat(count, is(100));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -170,7 +171,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -193,7 +194,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		int count = agent.batch("example/insert_product_for_bean").paramStream(input.stream()).count();
 
-		assertEquals(100, count);
+		assertThat(count, is(100));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -202,7 +203,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -223,7 +224,7 @@ public class SqlBatchTest extends AbstractDbTest {
 					return pre != null && !current.equals(pre);
 				}).count();
 
-		assertEquals(100, count);
+		assertThat(count, is(100));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -232,7 +233,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -248,7 +249,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals(100, productCount);
+		assertThat(productCount, is(100));
 
 		agent.commit();
 
@@ -258,7 +259,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
 
-		assertEquals(100, workCount);
+		assertThat(workCount, is(100));
 	}
 
 	/**
@@ -273,7 +274,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		int productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals(100, productCount);
+		assertThat(productCount, is(100));
 
 		agent.commit();
 
@@ -297,7 +298,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.count();
 
-		assertEquals(150, workCount);
+		assertThat(workCount, is(150));
 	}
 
 	/**
@@ -330,7 +331,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				})
 				.count();
 
-		assertEquals(60, count);
+		assertThat(count, is(60));
 	}
 
 	/**
@@ -355,7 +356,7 @@ public class SqlBatchTest extends AbstractDbTest {
 			// 処理実行
 			int count = agent.update("example/insert_product")
 					.paramMap(row).count();
-			assertEquals(1, count);
+			assertThat(count, is(1));
 		}
 	}
 
@@ -368,11 +369,11 @@ public class SqlBatchTest extends AbstractDbTest {
 			SqlContext ctx = agent.contextFrom("file");
 			agent.batch(ctx);
 			// 例外が発生しなかった場合
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			// OK
 		} catch (Exception e) {
-			fail(e.getMessage());
+			assertThat(e.getMessage(), false);
 		}
 	}
 

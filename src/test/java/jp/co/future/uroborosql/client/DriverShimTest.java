@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.Driver;
@@ -38,7 +37,7 @@ public class DriverShimTest {
 		try {
 			driver.getPropertyInfo("", null);
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 

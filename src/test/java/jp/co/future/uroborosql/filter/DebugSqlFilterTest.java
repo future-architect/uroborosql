@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -90,12 +89,12 @@ public class DebugSqlFilterTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -111,12 +110,12 @@ public class DebugSqlFilterTest {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -183,7 +182,7 @@ public class DebugSqlFilterTest {
 		String expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
 		String actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
 
-		assertEquals(expected, actual);
+		assertThat(actual, is(expected));
 	}
 
 }

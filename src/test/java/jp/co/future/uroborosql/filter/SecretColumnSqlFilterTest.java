@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -69,7 +68,7 @@ public class SecretColumnSqlFilterTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -98,12 +97,12 @@ public class SecretColumnSqlFilterTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -119,13 +118,13 @@ public class SecretColumnSqlFilterTest {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -159,7 +158,7 @@ public class SecretColumnSqlFilterTest {
 					.resultSet();
 
 			while (result.next()) {
-				assertEquals(result.getString("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
+				assertThat(result.getString("PRODUCT_NAME"), is("3EniRr6_Jb2c-kVG0I0CgA"));
 			}
 			result.close();
 		}

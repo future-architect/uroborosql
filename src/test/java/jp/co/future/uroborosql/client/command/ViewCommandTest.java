@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,7 +59,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		boolean flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("SELECT /* _SQL_ID_ */");
 		assertConsoleOutputContains("AND	PRODUCT_ID	IN	/*product_id*/(0, 2)");
 

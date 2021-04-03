@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.context;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -18,9 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import jp.co.future.uroborosql.utils.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
@@ -28,6 +26,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class SqlContextFactoryAutoParameterBinderTest {
 	private static SqlConfig config;
@@ -49,7 +48,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -365,7 +364,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.map(r -> r.get("ins_datetime"))
 					.distinct().count();
 			// ins_datetimeが同じ時間になっていないことを確認
-			assertNotEquals(1, dateCount);
+			assertThat(dateCount, not(1));
 		}
 
 		factory.removeUpdateAutoParameterBinder(binder1);

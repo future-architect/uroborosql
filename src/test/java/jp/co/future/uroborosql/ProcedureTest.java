@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
@@ -45,7 +44,7 @@ public class ProcedureTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -55,7 +54,7 @@ public class ProcedureTest {
 							.outParam("ret", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -67,7 +66,7 @@ public class ProcedureTest {
 							.inOutParam("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -78,7 +77,7 @@ public class ProcedureTest {
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -88,7 +87,7 @@ public class ProcedureTest {
 							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -100,7 +99,7 @@ public class ProcedureTest {
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}

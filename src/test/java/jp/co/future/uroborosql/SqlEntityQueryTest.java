@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -26,14 +25,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.collect();
 
 		products.forEach(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), not(nullValue()));
+			assertThat(p.getProductName(), not(nullValue()));
+			assertThat(p.getProductKanaName(), not(nullValue()));
+			assertThat(p.getJanCode(), not(nullValue()));
+			assertThat(p.getProductDescription(), not(nullValue()));
+			assertThat(p.getInsDatetime(), not(nullValue()));
+			assertThat(p.getUpdDatetime(), not(nullValue()));
+			assertThat(p.getVersionNo(), not(nullValue()));
 		});
 		assertThat(products.size(), is(2));
 	}
@@ -46,14 +45,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.stream().forEach(p -> {
-					assertNotNull(p.getProductId());
-					assertNotNull(p.getProductName());
-					assertNotNull(p.getProductKanaName());
-					assertNotNull(p.getJanCode());
-					assertNotNull(p.getProductDescription());
-					assertNotNull(p.getInsDatetime());
-					assertNotNull(p.getUpdDatetime());
-					assertNotNull(p.getVersionNo());
+					assertThat(p.getProductId(), not(nullValue()));
+					assertThat(p.getProductName(), not(nullValue()));
+					assertThat(p.getProductKanaName(), not(nullValue()));
+					assertThat(p.getJanCode(), not(nullValue()));
+					assertThat(p.getProductDescription(), not(nullValue()));
+					assertThat(p.getInsDatetime(), not(nullValue()));
+					assertThat(p.getUpdDatetime(), not(nullValue()));
+					assertThat(p.getVersionNo(), not(nullValue()));
 				});
 		assertThat(agent.query(Product.class).in("product_id", 0, 1).count(), is(2L));
 	}
@@ -70,14 +69,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product.isPresent(), is(true));
 
 		product.ifPresent(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), not(nullValue()));
+			assertThat(p.getProductName(), not(nullValue()));
+			assertThat(p.getProductKanaName(), not(nullValue()));
+			assertThat(p.getJanCode(), not(nullValue()));
+			assertThat(p.getProductDescription(), not(nullValue()));
+			assertThat(p.getInsDatetime(), not(nullValue()));
+			assertThat(p.getUpdDatetime(), not(nullValue()));
+			assertThat(p.getVersionNo(), not(nullValue()));
 		});
 
 		Optional<Product> empty = agent.query(Product.class)
@@ -94,7 +93,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 
 		try {
 			agent.query(Product.class).in("product_id", 0, 1).one();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (DataNonUniqueException ex) {
 			// OK
 		}
@@ -106,14 +105,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product.isPresent(), is(true));
 
 		product.ifPresent(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), not(nullValue()));
+			assertThat(p.getProductName(), not(nullValue()));
+			assertThat(p.getProductKanaName(), not(nullValue()));
+			assertThat(p.getJanCode(), not(nullValue()));
+			assertThat(p.getProductDescription(), not(nullValue()));
+			assertThat(p.getInsDatetime(), not(nullValue()));
+			assertThat(p.getUpdDatetime(), not(nullValue()));
+			assertThat(p.getVersionNo(), not(nullValue()));
 		});
 
 		Optional<Product> empty = agent.query(Product.class)
@@ -133,14 +132,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.collect();
 
 		products.forEach(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), not(nullValue()));
+			assertThat(p.getProductName(), not(nullValue()));
+			assertThat(p.getProductKanaName(), not(nullValue()));
+			assertThat(p.getJanCode(), not(nullValue()));
+			assertThat(p.getProductDescription(), not(nullValue()));
+			assertThat(p.getInsDatetime(), not(nullValue()));
+			assertThat(p.getUpdDatetime(), not(nullValue()));
+			assertThat(p.getVersionNo(), not(nullValue()));
 		});
 		assertThat(products.size(), is(1));
 	}
@@ -154,32 +153,32 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		String productName = agent.query(Product.class)
 				.equal("product_id", 1)
 				.select("productName", String.class).findFirst().get();
-		assertEquals(productName, "商品名1");
+		assertThat(productName, is("商品名1"));
 
 		// snake case
 		String janCode = agent.query(Product.class)
 				.equal("product_id", 1)
 				.select("jan_code", String.class).findFirst().get();
-		assertEquals(janCode, "1234567890124");
+		assertThat(janCode, is("1234567890124"));
 
 		// multiple case
 		List<String> productNames = agent.query(Product.class)
 				.select("productName", String.class)
 				.collect(Collectors.toList());
-		assertEquals(productNames.size(), 2);
-		assertEquals(productNames.get(0), "商品名0");
-		assertEquals(productNames.get(1), "商品名1");
+		assertThat(productNames.size(), is(2));
+		assertThat(productNames.get(0), is("商品名0"));
+		assertThat(productNames.get(1), is("商品名1"));
 
 		// exception case
 		try {
 			agent.query(Product.class)
 					.equal("product_id", 1)
 					.select("noMatchField", String.class);
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
-			assertEquals("field:noMatchField not found in Product.", ex.getMessage());
+			assertThat(ex.getMessage(), is("field:noMatchField not found in Product."));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 

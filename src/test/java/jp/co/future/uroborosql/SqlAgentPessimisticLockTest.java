@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -62,11 +61,11 @@ public class SqlAgentPessimisticLockTest {
 				agent.requiresNew(() -> {
 					try {
 						agent.queryWith(sql).collect();
-						fail();
+						assertThat("Fail here.", false);
 					} catch (PessimisticLockException ex) {
 						// OK
 					} catch (Exception ex) {
-						fail();
+						assertThat("Fail here.", false);
 					}
 				});
 				agent.setRollbackOnly();

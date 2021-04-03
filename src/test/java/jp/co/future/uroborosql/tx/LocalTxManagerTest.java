@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.tx;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
@@ -349,7 +348,7 @@ public class LocalTxManagerTest {
 								assertThat(ex, is(instanceOf(IllegalStateException.class)));
 								throw ex;
 							}
-							fail();
+							assertThat("Fail here.", false);
 						});
 					} catch (Exception ex) {
 						assertThat(select(agent), is(Arrays.asList("A")));
@@ -552,11 +551,11 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					ins(agent, 1, "ABC");
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
@@ -564,11 +563,11 @@ public class LocalTxManagerTest {
 					emp.setId(2);
 					emp.setName("DEF");
 					agent.insert(emp);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
@@ -582,29 +581,29 @@ public class LocalTxManagerTest {
 							.errorWhen((agt, ctx, ex) -> {
 								throw (UroborosqlTransactionException) ex;
 							}).count();
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -617,11 +616,11 @@ public class LocalTxManagerTest {
 		try (SqlAgent agent = config.agent()) {
 			try {
 				ins(agent, 1, "ABC");
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
@@ -629,11 +628,11 @@ public class LocalTxManagerTest {
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
@@ -647,29 +646,29 @@ public class LocalTxManagerTest {
 						.errorWhen((agt, ctx, ex) -> {
 							throw (UroborosqlTransactionException) ex;
 						}).count();
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 		}
 	}
@@ -718,20 +717,20 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					upd(agent, 1, "abc");
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.update(new Emp(2, "def"));
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -748,20 +747,20 @@ public class LocalTxManagerTest {
 
 			try {
 				upd(agent, 1, "abc");
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.update(new Emp(2, "def"));
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 		}
 	}
@@ -814,38 +813,38 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					del(agent, 1);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.delete(new Emp(2));
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.delete(Emp.class, 3);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.delete(Emp.class).equal("name", "name4").count();
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -862,38 +861,38 @@ public class LocalTxManagerTest {
 
 			try {
 				del(agent, 1);
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.delete(new Emp(2));
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.delete(Emp.class, 3);
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 
 			try {
 				agent.delete(Emp.class).equal("name", "name4").count();
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 		}
 	}
@@ -916,7 +915,7 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -942,7 +941,7 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -966,11 +965,11 @@ public class LocalTxManagerTest {
 				try {
 					agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (SQLException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -993,11 +992,11 @@ public class LocalTxManagerTest {
 			try {
 				agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 						.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-				fail();
+				assertThat("Fail here.", false);
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (SQLException ex) {
-				fail();
+				assertThat("Fail here.", false);
 			}
 		}
 	}

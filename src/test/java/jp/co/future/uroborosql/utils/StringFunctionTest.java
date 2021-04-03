@@ -38,7 +38,7 @@ public class StringFunctionTest {
 
 		Ognl.parseExpression("SF.isEmpty(val1)");
 
-		assertTrue((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null));
+		assertThat((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null), is(true));
 	}
 
 	@Test

@@ -46,7 +46,7 @@ public class JdbcConnectionSupplierImplTest {
 		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(url, user, password);
 		try (Connection conn = supplier.getConnection()) {
 			conn.prepareStatement(checkSql);
-			fail();
+			assertThat("Fail here.", false);
 		} catch (SQLException ex) {
 			// OK
 		}
@@ -258,7 +258,7 @@ public class JdbcConnectionSupplierImplTest {
 		}
 		try {
 			supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
-			fail();
+			assertThat("Fail here.", false);
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), containsString("Unsupported level"));
 		}

@@ -288,7 +288,7 @@ public class DefaultEntityHandlerTest {
 					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 1).exists(() -> {
 						throw new UroborosqlRuntimeException("exists");
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("exists"));
 				}
@@ -298,14 +298,14 @@ public class DefaultEntityHandlerTest {
 						throw new UroborosqlRuntimeException("exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 0).notExists(() -> {
 						throw new UroborosqlRuntimeException("not exists");
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("not exists"));
 				}
@@ -315,7 +315,7 @@ public class DefaultEntityHandlerTest {
 						throw new UroborosqlRuntimeException("not exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
@@ -686,52 +686,52 @@ public class DefaultEntityHandlerTest {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateNoWait().first();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update nowait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateWait().stream();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateWait(30).count();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				config.getSqlAgentFactory().setStrictForUpdateType(false);
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateNoWait().first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateWait().first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateWait(10).first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
@@ -741,7 +741,7 @@ public class DefaultEntityHandlerTest {
 								throw new IllegalStateException();
 							});
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 			});
@@ -1125,11 +1125,11 @@ public class DefaultEntityHandlerTest {
 
 				try {
 					agent.delete(TestDataMultiKeyEntity.class, 1, 2);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (IllegalArgumentException ex) {
 					assertThat(ex.getMessage(), is("Entity has multiple keys"));
 				} catch (Exception ex) {
-					fail(ex.getMessage());
+					assertThat(ex.getMessage(), false);
 				}
 			});
 		}

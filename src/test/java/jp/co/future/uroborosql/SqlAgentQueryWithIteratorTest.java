@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -74,7 +73,7 @@ public class SqlAgentQueryWithIteratorTest {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+				assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
 			}
 		});
 	}
@@ -90,7 +89,7 @@ public class SqlAgentQueryWithIteratorTest {
 				agent.update(map.get("sql").toString()).paramMap(map).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+				assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
 			}
 		});
 	}

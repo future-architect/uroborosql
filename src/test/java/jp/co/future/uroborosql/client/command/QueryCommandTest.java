@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -62,16 +61,16 @@ public class QueryCommandTest extends ReaderTestSupport {
 
 		boolean flag = command.execute(reader, "query example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("query sql[example/select_product] end.");
 
 		command.execute(reader, "query example/insert_product".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("Error : ");
 
 		command.execute(reader, "query example/select_product_not_found".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("SQL not found. sql=example/select_product_not_found");
 	}
 

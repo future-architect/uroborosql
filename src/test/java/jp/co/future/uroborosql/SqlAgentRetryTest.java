@@ -2,7 +2,6 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -134,7 +133,7 @@ public class SqlAgentRetryTest {
 		try {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -156,7 +155,7 @@ public class SqlAgentRetryTest {
 		try {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -178,7 +177,7 @@ public class SqlAgentRetryTest {
 		try {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -200,7 +199,7 @@ public class SqlAgentRetryTest {
 		try {
 			query = agent.query("example/select_product").paramList("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -224,11 +223,11 @@ public class SqlAgentRetryTest {
 			query = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 					.retry(retryCount - 1);
 			query.collect();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (PessimisticLockException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 
@@ -307,7 +306,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -330,7 +329,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -353,7 +352,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -376,7 +375,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -479,7 +478,7 @@ public class SqlAgentRetryTest {
 					.param("jan_code", "1234567890124").param("product_description", "1")
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -506,7 +505,7 @@ public class SqlAgentRetryTest {
 					.param("jan_code", "1234567890124").param("product_description", "1")
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -533,7 +532,7 @@ public class SqlAgentRetryTest {
 					.param("jan_code", "1234567890124").param("product_description", "1")
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -560,7 +559,7 @@ public class SqlAgentRetryTest {
 					.param("jan_code", "1234567890124").param("product_description", "1")
 					.param("ins_datetime", LocalDate.now()).addBatch();
 			update.retry(retryCount - 1).batch();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -643,7 +642,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -666,7 +665,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -689,7 +688,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));
@@ -712,7 +711,7 @@ public class SqlAgentRetryTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			fail();
+			assertThat("Fail here.", false);
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(ex.getErrorCode(), is(errorCode));

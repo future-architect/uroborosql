@@ -102,15 +102,15 @@ public class NioSqlManagerTest {
 		try {
 			manager.getSql("example/select_test");
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 
@@ -128,15 +128,15 @@ public class NioSqlManagerTest {
 			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
 					is(containsString("secondary_sql/other file")));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 
@@ -154,15 +154,15 @@ public class NioSqlManagerTest {
 			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
 					is(containsString("secondary_sql/other file")));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 
@@ -510,15 +510,15 @@ public class NioSqlManagerTest {
 		try {
 			manager.getSql("example/select_test");
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			fail();
+			assertThat("Fail here.", false);
 		}
 	}
 

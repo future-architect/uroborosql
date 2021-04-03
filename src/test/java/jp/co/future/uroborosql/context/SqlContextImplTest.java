@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.context;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -49,267 +48,254 @@ public class SqlContextImplTest {
 	@Test
 	public void removeFirstAndKeyWordWhenWhereClause() throws Exception {
 		SqlContext ctx11 = getSqlContext("select * from test where[LF][LF][LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where[LF] aaa = 1"),
-				ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test where[LF] aaa = 1")));
 		SqlContext ctx12 = getSqlContext("select * from test[LF]where[LF][LF][LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where[LF] aaa = 1"),
-				ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF] aaa = 1")));
 
 		SqlContext ctx21 = getSqlContext("select * from test where[LF]      and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where[LF]      aaa = 1"),
-				ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test where[LF]      aaa = 1")));
 		SqlContext ctx22 = getSqlContext("select * from test[LF]where[LF]      and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where[LF]      aaa = 1"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF]      aaa = 1")));
 
 		SqlContext ctx31 = getSqlContext("select * from test where /* comment */ and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where /* comment */ aaa = 1"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test where /* comment */ aaa = 1")));
 		SqlContext ctx32 = getSqlContext("select * from test[LF]where /* comment */ and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ aaa = 1"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* comment */ aaa = 1")));
 
 		SqlContext ctx41 = getSqlContext("select * from test where -- /* comment */  [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(),
+				is(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1")));
 		SqlContext ctx42 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] aaa = 1"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] aaa = 1")));
 
 		SqlContext ctx51 = getSqlContext("select * from test where -- /* comment */  [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(),
+				is(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1")));
 		SqlContext ctx52 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] order = 1"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] order = 1")));
 
 		SqlContext ctx61 = getSqlContext("select * from test where /* comment */ --comment [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(),
+				is(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1")));
 		SqlContext ctx62 = getSqlContext("select * from test[LF]where /* comment */ --comment [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenSelectClause() throws Exception {
 		SqlContext ctx1 = getSqlContext("select ,aaa,bbb,ccc from test");
-		assertEquals(replaceLineSep("select aaa,bbb,ccc from test"), ctx1.getExecutableSql());
+		assertThat(ctx1.getExecutableSql(), is(replaceLineSep("select aaa,bbb,ccc from test")));
 
 		SqlContext ctx2 = getSqlContext("select , aaa, bbb, ccc from test");
-		assertEquals(replaceLineSep("select  aaa, bbb, ccc from test"), ctx2.getExecutableSql());
+		assertThat(ctx2.getExecutableSql(), is(replaceLineSep("select  aaa, bbb, ccc from test")));
 
 		SqlContext ctx3 = getSqlContext("select[LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select[LF] aaa[LF], bbb[LF], ccc from test"), ctx3.getExecutableSql());
+		assertThat(ctx3.getExecutableSql(), is(replaceLineSep("select[LF] aaa[LF], bbb[LF], ccc from test")));
 
 		SqlContext ctx4 = getSqlContext("select /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx4.getExecutableSql());
+		assertThat(ctx4.getExecutableSql(),
+				is(replaceLineSep("select /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		SqlContext ctx5 = getSqlContext("select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx5.getExecutableSql());
+		assertThat(ctx5.getExecutableSql(),
+				is(replaceLineSep("select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		SqlContext ctx6 = getSqlContext(
 				"with dummy as ( select * from dummy ) select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep(
-				"with dummy as ( select * from dummy ) select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx6.getExecutableSql());
+		assertThat(ctx6.getExecutableSql(),
+				is(replaceLineSep(
+						"with dummy as ( select * from dummy ) select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		SqlContext ctx7 = getSqlContext(
 				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep(
-				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx7.getExecutableSql());
+		assertThat(ctx7.getExecutableSql(), is(replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenOrderByClause() throws Exception {
 		SqlContext ctx11 = getSqlContext("select * from test order by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by aaa, bbb"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test order by aaa, bbb")));
 		SqlContext ctx12 = getSqlContext("select * from test[LF]order by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by aaa, bbb"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by aaa, bbb")));
 
 		SqlContext ctx21 = getSqlContext("select * from test order by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by  aaa, bbb"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test order by  aaa, bbb")));
 		SqlContext ctx22 = getSqlContext("select * from test[LF]order by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by  aaa, bbb"), ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by  aaa, bbb")));
 
 		SqlContext ctx31 = getSqlContext("select * from test order by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by[LF] aaa, bbb"), ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test order by[LF] aaa, bbb")));
 		SqlContext ctx32 = getSqlContext("select * from test[LF]order by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by[LF] aaa, bbb"), ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by[LF] aaa, bbb")));
 
 		SqlContext ctx41 = getSqlContext("select * from test order by /* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by /* comment */[LF] aaa, bbb"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(),
+				is(replaceLineSep("select * from test order by /* comment */[LF] aaa, bbb")));
 		SqlContext ctx42 = getSqlContext("select * from test[LF]order by /* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by /* comment */[LF] aaa, bbb"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]order by /* comment */[LF] aaa, bbb")));
 
 		SqlContext ctx51 = getSqlContext("select * from test order by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by --/* comment */[LF] aaa, bbb"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(),
+				is(replaceLineSep("select * from test order by --/* comment */[LF] aaa, bbb")));
 		SqlContext ctx52 = getSqlContext("select * from test[LF]order by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by --/* comment */[LF] aaa, bbb"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]order by --/* comment */[LF] aaa, bbb")));
 
 		SqlContext ctx61 = getSqlContext("select * from test order     by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order     by --/* comment */[LF] aaa, bbb"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(),
+				is(replaceLineSep("select * from test order     by --/* comment */[LF] aaa, bbb")));
 		SqlContext ctx62 = getSqlContext("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenGroupByClause() throws Exception {
 		SqlContext ctx11 = getSqlContext("select * from test group by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by aaa, bbb"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test group by aaa, bbb")));
 		SqlContext ctx12 = getSqlContext("select * from test[LF]group by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by aaa, bbb"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by aaa, bbb")));
 
 		SqlContext ctx21 = getSqlContext("select * from test group by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by  aaa, bbb"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test group by  aaa, bbb")));
 		SqlContext ctx22 = getSqlContext("select * from test[LF]group by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by  aaa, bbb"), ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by  aaa, bbb")));
 
 		SqlContext ctx31 = getSqlContext("select * from test group by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by[LF] aaa, bbb"), ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test group by[LF] aaa, bbb")));
 		SqlContext ctx32 = getSqlContext("select * from test[LF]group by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by[LF] aaa, bbb"), ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by[LF] aaa, bbb")));
 
 		SqlContext ctx41 = getSqlContext("select * from test group by /* comment */  [LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by /* comment */  [LF] aaa, bbb"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(),
+				is(replaceLineSep("select * from test group by /* comment */  [LF] aaa, bbb")));
 		SqlContext ctx42 = getSqlContext("select * from test[LF]group by /* comment */  [LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by /* comment */  [LF] aaa, bbb"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]group by /* comment */  [LF] aaa, bbb")));
 
 		SqlContext ctx51 = getSqlContext("select * from test group by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(),
+				is(replaceLineSep("select * from test group by /* comment */ --aaa[LF] aaa, bbb")));
 		SqlContext ctx52 = getSqlContext("select * from test[LF]group by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]group by /* comment */ --aaa[LF] aaa, bbb")));
 
 		SqlContext ctx61 = getSqlContext("select * from test group     by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group     by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(),
+				is(replaceLineSep("select * from test group     by /* comment */ --aaa[LF] aaa, bbb")));
 		SqlContext ctx62 = getSqlContext("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(),
+				is(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenStartBracket() throws Exception {
 		SqlContext ctx11 = getSqlContext("insert into (,aaa,bbb,ccc) values (,111,222,333)");
-		assertEquals(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)")));
 		SqlContext ctx12 = getSqlContext("insert into[LF](,aaa,bbb,ccc) values (,111,222,333)");
-		assertEquals(replaceLineSep("insert into[LF](aaa,bbb,ccc) values (111,222,333)"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("insert into[LF](aaa,bbb,ccc) values (111,222,333)")));
 
 		SqlContext ctx21 = getSqlContext("insert into (, aaa, bbb, ccc) values (,111 ,222 ,333)");
-		assertEquals(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)")));
 		SqlContext ctx22 = getSqlContext("insert into[LF](, aaa, bbb, ccc) values (,111 ,222 ,333)");
-		assertEquals(replaceLineSep("insert into[LF]( aaa, bbb, ccc) values (111 ,222 ,333)"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(),
+				is(replaceLineSep("insert into[LF]( aaa, bbb, ccc) values (111 ,222 ,333)")));
 
 		SqlContext ctx31 = getSqlContext(
 				"insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(
+				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
 		SqlContext ctx32 = getSqlContext(
 				"insert into[LF]([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep("insert into[LF]([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep(
+				"insert into[LF]([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
 
 		SqlContext ctx41 = getSqlContext(
 				"insert into ([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep(
-						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(),
+				is(replaceLineSep(
+						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
 		SqlContext ctx42 = getSqlContext(
 				"insert into[LF]([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep(
-						"insert into[LF]([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(),
+				is(replaceLineSep(
+						"insert into[LF]([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
 
 		SqlContext ctx51 = getSqlContext(
 				"insert into (--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep(
-						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(),
+				is(replaceLineSep(
+						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])")));
 		SqlContext ctx52 = getSqlContext(
 				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep(
-						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(),
+				is(replaceLineSep(
+						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenSetClause() throws Exception {
 		SqlContext ctx11 = getSqlContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(),
+				is(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		SqlContext ctx12 = getSqlContext("update test[LF]set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(),
+				is(replaceLineSep("update test[LF]set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		SqlContext ctx21 = getSqlContext("update test set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(),
+				is(replaceLineSep("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		SqlContext ctx22 = getSqlContext("update test[LF]set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(),
+				is(replaceLineSep("update test[LF]set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		SqlContext ctx31 = getSqlContext("update test set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(),
+				is(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		SqlContext ctx32 = getSqlContext("update test[LF]set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(),
+				is(replaceLineSep("update test[LF]set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		SqlContext ctx41 = getSqlContext(
 				"update test set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(),
+				is(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		SqlContext ctx42 = getSqlContext(
 				"update test[LF]set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(),
+				is(replaceLineSep("update test[LF]set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		SqlContext ctx51 = getSqlContext("update test set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(),
+				is(replaceLineSep("update test set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		SqlContext ctx52 = getSqlContext(
 				"update test[LF]set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(),
+				is(replaceLineSep("update test[LF]set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		SqlContext ctx61 = getSqlContext("select , aaa, code_set, bbb, ccc from test where 1 = 1");
-		assertEquals(replaceLineSep("select  aaa, code_set, bbb, ccc from test where 1 = 1"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(),
+				is(replaceLineSep("select  aaa, code_set, bbb, ccc from test where 1 = 1")));
 		SqlContext ctx62 = getSqlContext("select[LF], aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1");
-		assertEquals(replaceLineSep("select[LF] aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(),
+				is(replaceLineSep("select[LF] aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1")));
 		SqlContext ctx63 = getSqlContext(
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
-		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
-				ctx63.getExecutableSql());
+		assertThat(ctx63.getExecutableSql(),
+				is(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1")));
 	}
 
 	@Test
 	public void testHasParam() throws Exception {
 		SqlContext ctx = getSqlContext("select * from dummy");
 		ctx.param("key1", "value1");
-		assertTrue(ctx.hasParam("key1"));
-		assertFalse(ctx.hasParam("key2"));
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.hasParam("key2"), is(false));
 	}
 
 	@SuppressWarnings("deprecation")
@@ -604,7 +590,7 @@ public class SqlContextImplTest {
 	@Test
 	public void testContext() {
 		SqlContext ctx = config.contextWith("select * from test");
-		assertEquals(ctx, ctx.context());
+		assertThat(ctx.context(), is(ctx));
 	}
 
 	@Test

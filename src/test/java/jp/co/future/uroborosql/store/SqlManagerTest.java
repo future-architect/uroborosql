@@ -75,7 +75,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		try {
 			manager = new SqlManagerImpl(loadPaths);
-			fail();
+			assertThat("Fail here.", false);
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("loadPaths is required. loadPaths=[]"));
 		}

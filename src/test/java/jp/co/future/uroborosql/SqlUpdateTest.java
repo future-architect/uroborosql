@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -32,7 +33,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("jan_code", "1234567890123", Types.CHAR);
 
 		int updateCount = agent.update(ctx);
-		assertEquals(1, updateCount);
+		assertThat(updateCount, is(1));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -42,7 +43,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -56,7 +57,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		int updateCount = agent.update("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR).count();
-		assertEquals(1, updateCount);
+		assertThat(updateCount, is(1));
 
 		// 検証処理
 		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
@@ -66,7 +67,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -82,12 +83,12 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_id", 1, JDBCType.INTEGER)
 				.param("jan_code", null, Types.CHAR)
 				.count();
-		assertEquals(1, updateCount);
+		assertThat(updateCount, is(1));
 
-		assertNull(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
+		assertThat(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
 				.param("product_id", 1, JDBCType.INTEGER)
 				.one()
-				.get("JAN_CODE"));
+				.get("JAN_CODE"), is(nullValue()));
 	}
 
 	/**
@@ -99,11 +100,11 @@ public class SqlUpdateTest extends AbstractDbTest {
 			SqlContext ctx = agent.contextFrom("file");
 			agent.update(ctx);
 			// 例外が発生しなかった場合
-			fail();
+			assertThat("Fail here.", false);
 		} catch (UroborosqlRuntimeException ex) {
 			// OK
 		} catch (Exception e) {
-			fail(e.getMessage());
+			assertThat(e.getMessage(), false);
 		}
 	}
 }
