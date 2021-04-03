@@ -5,7 +5,7 @@ public enum TestEnum2 {
 
 	enum Inner {
 		G, H, I {
-		//インナークラス化
+			//インナークラス化
 		};
 	}
 }

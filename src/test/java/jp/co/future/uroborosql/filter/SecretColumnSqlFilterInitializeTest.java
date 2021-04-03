@@ -88,11 +88,11 @@ public class SecretColumnSqlFilterInitializeTest {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath(
-						"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-				filter.setStorePassword(null);
-				sqlFilterManager.initialize();
-			});
+			filter.setKeyStoreFilePath(
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+			filter.setStorePassword(null);
+			sqlFilterManager.initialize();
+		});
 		assertThat(log, is(Arrays.asList(
 				"Invalid password for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
@@ -105,12 +105,12 @@ public class SecretColumnSqlFilterInitializeTest {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath(
-						"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-				filter.setAlias(null);
-				sqlFilterManager.initialize();
-			});
+			filter.setKeyStoreFilePath(
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+			filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+			filter.setAlias(null);
+			sqlFilterManager.initialize();
+		});
 		assertThat(log, is(Arrays.asList("No alias for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}
