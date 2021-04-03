@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -113,7 +112,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return false;
 		}
 		try {
-			Method method = type.getMethod("of", int.class, int.class, int.class);
+			var method = type.getMethod("of", int.class, int.class, int.class);
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
@@ -127,7 +126,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return false;
 		}
 		try {
-			Method method = type.getMethod("of", int.class);
+			var method = type.getMethod("of", int.class);
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
@@ -174,33 +173,33 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		}
 
 		if (Year.class.equals(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			return rs.wasNull() ? null : Year.of(value);
 		}
 		if (YearMonth.class.equals(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
 			return YearMonth.of(value / 100, value % 100);
 		}
 		if (MonthDay.class.equals(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
 			return MonthDay.of(value / 100, value % 100);
 		}
 		if (Month.class.equals(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			return rs.wasNull() ? null : Month.of(value);
 		}
 		if (DayOfWeek.class.equals(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			return rs.wasNull() ? null : DayOfWeek.of(value);
 		}
 		if (Era.class.isAssignableFrom(rawType)) {
-			int value = getInt(rs, columnIndex);
+			var value = getInt(rs, columnIndex);
 			try {
 				return rs.wasNull() ? null : (Era) rawType.getMethod("of", int.class).invoke(null, value);
 			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -210,7 +209,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 
 		// JapaneseDate等のChronoLocalDateの変換
 		if (ChronoLocalDate.class.isAssignableFrom(rawType)) {
-			LocalDate localDate = getLocalDate(rs, columnIndex).orElse(null);
+			var localDate = getLocalDate(rs, columnIndex).orElse(null);
 			if (localDate == null) {
 				return null;
 			}
@@ -239,9 +238,9 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * @throws SQLException
 	 */
 	private int getInt(final ResultSet rs, final int columnIndex) throws SQLException {
-		int columnType = rs.getMetaData().getColumnType(columnIndex);
+		var columnType = rs.getMetaData().getColumnType(columnIndex);
 		if (isStringType(columnType)) {
-			String str = rs.getString(columnIndex);
+			var str = rs.getString(columnIndex);
 			if (StringUtils.isEmpty(str)) {
 				return 0;
 			} else if (StringUtils.isNumeric(str)) {
@@ -265,7 +264,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * @throws SQLException
 	 */
 	private Optional<LocalDate> getLocalDate(final ResultSet rs, final int columnIndex) throws SQLException {
-		int columnType = rs.getMetaData().getColumnType(columnIndex);
+		var columnType = rs.getMetaData().getColumnType(columnIndex);
 		if (isStringType(columnType)) {
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {
@@ -298,7 +297,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * @throws SQLException
 	 */
 	private Optional<LocalDateTime> getLocalDateTime(final ResultSet rs, final int columnIndex) throws SQLException {
-		int columnType = rs.getMetaData().getColumnType(columnIndex);
+		var columnType = rs.getMetaData().getColumnType(columnIndex);
 		if (isStringType(columnType)) {
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {
@@ -333,7 +332,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * @throws SQLException
 	 */
 	private Optional<LocalTime> getLocalTime(final ResultSet rs, final int columnIndex) throws SQLException {
-		int columnType = rs.getMetaData().getColumnType(columnIndex);
+		var columnType = rs.getMetaData().getColumnType(columnIndex);
 		if (isStringType(columnType)) {
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {

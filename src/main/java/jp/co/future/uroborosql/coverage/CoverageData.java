@@ -50,8 +50,8 @@ public class CoverageData {
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("MD5");
-			byte[] hash = digest.digest(original.getBytes("UTF-8"));
-			StringBuilder builder = new StringBuilder();
+			var hash = digest.digest(original.getBytes("UTF-8"));
+			var builder = new StringBuilder();
 			for (byte element : hash) {
 				if ((0xff & element) < 0x10) {
 					builder.append("0" + Integer.toHexString(0xff & element));

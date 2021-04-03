@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,8 +32,8 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 	public Object getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
 		Class<?> rawType = type.getRawType();
-		Domain domain = rawType.getAnnotation(Domain.class);
-		Object value = mapperManager.getValue(JavaType.of(domain.valueType()), rs, columnIndex);
+		var domain = rawType.getAnnotation(Domain.class);
+		var value = mapperManager.getValue(JavaType.of(domain.valueType()), rs, columnIndex);
 
 		if (value == null) {
 			if (!domain.nullable()) {
@@ -47,7 +46,7 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 
 	private Object toDomain(final Class<?> type, final Domain domain, final Object value) {
 		try {
-			String methodName = domain.factoryMethod();
+			var methodName = domain.factoryMethod();
 			if (StringUtils.isBlank(methodName)) {
 				// default
 				if (!type.isEnum()) {
@@ -57,7 +56,7 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 					methodName = "valueOf";
 				}
 			}
-			Method method = type.getMethod(methodName, domain.valueType());
+			var method = type.getMethod(methodName, domain.valueType());
 			if (!Modifier.isStatic(method.getModifiers())) {
 				throw new IllegalStateException("not static method. [" + type.getSimpleName() + "#" + methodName + "]");
 			} else if (!type.isAssignableFrom(method.getReturnType())) {

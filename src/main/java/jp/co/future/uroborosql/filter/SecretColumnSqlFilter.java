@@ -36,8 +36,8 @@ public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
 		}
 		crypted = cipher.doFinal(input.getBytes(getCharset()));
 		if (isUseIV()) {
-			byte[] ivArray = cipher.getIV();
-			byte[] cryptedArray = crypted;
+			var ivArray = cipher.getIV();
+			var cryptedArray = crypted;
 			crypted = new byte[ivArray.length + cryptedArray.length];
 			System.arraycopy(ivArray, 0, crypted, 0, ivArray.length);
 			System.arraycopy(cryptedArray, 0, crypted, ivArray.length, cryptedArray.length);
@@ -51,13 +51,13 @@ public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
 	@Override
 	protected String decrypt(final Cipher cipher, final SecretKey secretKey, final String secret)
 			throws GeneralSecurityException {
-		byte[] secretData = Base64.getUrlDecoder().decode(secret);
+		var secretData = Base64.getUrlDecoder().decode(secret);
 
 		if (isUseIV()) {
-			int blockSize = cipher.getBlockSize();
-			byte[] iv = Arrays.copyOfRange(secretData, 0, blockSize);
+			var blockSize = cipher.getBlockSize();
+			var iv = Arrays.copyOfRange(secretData, 0, blockSize);
 			secretData = Arrays.copyOfRange(secretData, blockSize, secretData.length);
-			IvParameterSpec ips = new IvParameterSpec(iv);
+			var ips = new IvParameterSpec(iv);
 			cipher.init(Cipher.DECRYPT_MODE, secretKey, ips);
 		}
 		return new String(cipher.doFinal(secretData), getCharset());

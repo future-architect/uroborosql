@@ -65,13 +65,13 @@ public abstract class AbstractCompleter implements Completer {
 	 * @return パーツに分解した文字列配列
 	 */
 	protected String[] getLineParts(final String line) {
-		String[] parts = line.split(" ");
+		var parts = line.split(" ");
 		List<String> ans = new ArrayList<>();
-		int idx = 0;
-		int len = parts.length;
+		var idx = 0;
+		var len = parts.length;
 		while (idx < len) {
 			if (parts[idx].contains("='") && !parts[idx].endsWith("'")) {
-				StringBuilder builder = new StringBuilder(parts[idx++]);
+				var builder = new StringBuilder(parts[idx++]);
 				while (idx < len) {
 					builder.append(" ").append(parts[idx]);
 					if (parts[idx++].endsWith("'")) {
@@ -80,7 +80,7 @@ public abstract class AbstractCompleter implements Completer {
 				}
 				ans.add(builder.toString());
 			} else if (parts[idx].contains("=[") && !parts[idx].endsWith("]")) {
-				StringBuilder builder = new StringBuilder(parts[idx++]);
+				var builder = new StringBuilder(parts[idx++]);
 				while (idx < len) {
 					builder.append(" ").append(parts[idx]);
 					if (parts[idx++].endsWith("]")) {
@@ -89,7 +89,7 @@ public abstract class AbstractCompleter implements Completer {
 				}
 				ans.add(builder.toString());
 			} else {
-				String part = parts[idx++];
+				var part = parts[idx++];
 				if (StringUtils.isNotEmpty(part)) {
 					ans.add(part);
 				}

@@ -16,11 +16,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLXML;
-import java.sql.Savepoint;
 import java.sql.Statement;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +33,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
+		var conn = DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
 				"sa", "sa");
 		config = UroboroSQL.builder(conn).build();
 		target = config.getConnectionSupplier().getConnection();
@@ -63,7 +60,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testPrepareStatement() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareStatement(sql),
 				is(instanceOf(PreparedStatement.class)));
 		assertThat(target.prepareStatement(sql, 0),
@@ -85,7 +82,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testPrepareCall() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareCall(sql),
 				is(instanceOf(CallableStatement.class)));
 		assertThat(target.prepareCall(sql,
@@ -101,7 +98,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testNativeSQL() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.nativeSQL(sql), is(sql));
 	}
 
@@ -134,7 +131,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testCatalog() throws Exception {
-		String catalog = target.getCatalog();
+		var catalog = target.getCatalog();
 		target.setCatalog(catalog);
 		assertThat(target.getCatalog(), is(catalog));
 	}
@@ -153,7 +150,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testTypeMap() throws Exception {
-		Map<String, Class<?>> typeMap = target.getTypeMap();
+		var typeMap = target.getTypeMap();
 		target.setTypeMap(typeMap);
 		assertThat(target.getTypeMap(), is(nullValue()));
 	}
@@ -166,7 +163,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testSavepoint() throws Exception {
-		Savepoint savepoint = target.setSavepoint();
+		var savepoint = target.setSavepoint();
 		assertThat(savepoint, not(nullValue()));
 		target.releaseSavepoint(savepoint);
 
@@ -210,7 +207,7 @@ public class CloseIgnoringConnectionWrapperTest {
 		target.setClientInfo("ApplicationName", "app");
 		assertThat(target.getClientInfo("ApplicationName"), is("app"));
 
-		Properties props = new Properties();
+		var props = new Properties();
 		props.put("ClientUser", "user1");
 		target.setClientInfo(props);
 		assertThat(target.getClientInfo("ClientUser"), is("user1"));
@@ -230,7 +227,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	public void testNetworkTimeout() throws Exception {
-		ExecutorService service = Executors.newSingleThreadExecutor();
+		var service = Executors.newSingleThreadExecutor();
 		target.setNetworkTimeout(service, 10);
 		assertThat(target.getNetworkTimeout(), is(0)); // H2 not supported. return fixed value 0.
 		target.abort(service); // H2 not supported.

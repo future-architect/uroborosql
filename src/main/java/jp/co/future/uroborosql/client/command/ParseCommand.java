@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.client.command;
 
 import java.io.PrintWriter;
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
@@ -17,7 +16,6 @@ import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.node.BeginNode;
 import jp.co.future.uroborosql.node.ContainerNode;
@@ -25,8 +23,6 @@ import jp.co.future.uroborosql.node.ElseNode;
 import jp.co.future.uroborosql.node.ExpressionNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
-import jp.co.future.uroborosql.parameter.Parameter;
-import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -53,21 +49,21 @@ public class ParseCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 
 		writer.println("PARSE:");
 
 		if (parts.length > 1) {
-			Optional<String> path = sqlConfig.getSqlManager().getSqlPathList().stream()
+			var path = sqlConfig.getSqlManager().getSqlPathList().stream()
 					.filter(p -> p.equalsIgnoreCase(parts[1]))
 					.findFirst();
 			if (path.isPresent()) {
-				String sql = sqlConfig.getSqlManager().getSql(path.get());
+				var sql = sqlConfig.getSqlManager().getSql(path.get());
 
 				// 対象SQLの出力
 				writer.println("");
 				writer.println("SQL :");
-				String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
+				var sqlLines = sql.split("\\r\\n|\\r|\\n");
 				for (String sqlLine : sqlLines) {
 					writer.println(sqlLine);
 				}
@@ -77,15 +73,15 @@ public class ParseCommand extends ReplCommand {
 				writer.println("BRANCHES :");
 				SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 						sqlConfig.getDialect().isRemoveTerminator(), true);
-				ContextTransformer transformer = parser.parse();
-				Node rootNode = transformer.getRoot();
+				var transformer = parser.parse();
+				var rootNode = transformer.getRoot();
 				Set<String> bindParams = new LinkedHashSet<>();
 				traverseNode(writer, 0, sqlConfig.getExpressionParser(), rootNode, bindParams);
 
 				// 利用されているバインドパラメータの出力
 				writer.println("");
-				String constPrefix = sqlConfig.getSqlContextFactory().getConstParamPrefix();
-				SqlContext ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+				var constPrefix = sqlConfig.getSqlContextFactory().getConstParamPrefix();
+				var ctx = sqlConfig.getSqlContextFactory().createSqlContext();
 				writer.println("BIND_PARAMS :");
 				// 定数以外のバインドパラメータ
 				bindParams.stream().filter(param -> !param.startsWith(constPrefix))
@@ -95,9 +91,9 @@ public class ParseCommand extends ReplCommand {
 				bindParams.stream().filter(param -> param.startsWith(constPrefix))
 						.sorted().forEach(param -> {
 							// 定数についてはバインド値が取得できるので、実際の値を追加で表示
-							Parameter parameter = ctx.getParam(param);
+							var parameter = ctx.getParam(param);
 							if (parameter != null) {
-								Object value = parameter.getValue();
+								var value = parameter.getValue();
 								String suffix = null;
 								if (value instanceof String) {
 									suffix = String.format(" ('%s')", value);
@@ -140,7 +136,7 @@ public class ParseCommand extends ReplCommand {
 				} else if (node instanceof ElseNode) {
 					write(writer, tab, "} ", "ELSE", " {");
 				}
-				for (int i = 0; i < node.getChildSize(); i++) {
+				for (var i = 0; i < node.getChildSize(); i++) {
 					traverseNode(writer, tab + 1, expressionParser, node.getChild(i), bindParams);
 				}
 				if (node instanceof BeginNode) {
@@ -148,7 +144,7 @@ public class ParseCommand extends ReplCommand {
 				}
 			}
 		} else if (node instanceof ExpressionNode) {
-			String expression = ((ExpressionNode) node).getExpression();
+			var expression = ((ExpressionNode) node).getExpression();
 			bindParams.addAll(collectParams(expressionParser, expression));
 		}
 	}
@@ -167,12 +163,12 @@ public class ParseCommand extends ReplCommand {
 			final IfNode ifNode, final Set<String> bindParams, final boolean elseIf) {
 		bindParams.addAll(collectParams(expressionParser, ifNode.getExpression()));
 		write(writer, tab, elseIf ? "} ELIF ( " : "IF ( ", ifNode.getExpression(), " ) {");
-		for (int i = 0; i < ifNode.getChildSize(); i++) {
+		for (var i = 0; i < ifNode.getChildSize(); i++) {
 			traverseNode(writer, tab + 1, expressionParser, ifNode.getChild(i), bindParams);
 		}
 
 		if (ifNode.getElseIfNode() != null) {
-			IfNode elseIfNode = ifNode.getElseIfNode();
+			var elseIfNode = ifNode.getElseIfNode();
 			traverseIfNode(writer, tab, expressionParser, elseIfNode, bindParams, true);
 		}
 

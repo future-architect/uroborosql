@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Properties;
@@ -14,12 +13,10 @@ import java.util.Properties;
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.client.SqlParamUtils;
 import jp.co.future.uroborosql.client.completer.BindParamCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 
 /**
@@ -45,18 +42,18 @@ public class UpdateCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
-			String sqlName = parts[1].replaceAll("\\.", "/");
+			var sqlName = parts[1].replaceAll("\\.", "/");
 			if (sqlConfig.getSqlManager().existSql(sqlName)) {
 
-				try (SqlAgent agent = sqlConfig.agent()) {
-					SqlContext ctx = agent.contextFrom(sqlName);
+				try (var agent = sqlConfig.agent()) {
+					var ctx = agent.contextFrom(sqlName);
 					ctx.setSql(sqlConfig.getSqlManager().getSql(ctx.getSqlName()));
-					String[] params = Arrays.copyOfRange(parts, 2, parts.length);
+					var params = Arrays.copyOfRange(parts, 2, parts.length);
 					SqlParamUtils.setSqlParams(sqlConfig, ctx, params);
 					try {
-						int ans = agent.update(ctx);
+						var ans = agent.update(ctx);
 						agent.commit();
 						writer.println("update sql[" + sqlName + "] end. row count=" + ans);
 					} catch (ParameterNotFoundRuntimeException | SQLException ex) {

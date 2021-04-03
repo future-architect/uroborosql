@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 

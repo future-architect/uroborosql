@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -37,8 +36,8 @@ public class SqlContextFactoryAutoParameterBinderTest {
 				"sa",
 				null).build();
 
-		try (SqlAgent agent = config.agent()) {
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (var agent = config.agent()) {
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -54,8 +53,8 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			LocalDateTime dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);
+		try (var agent = config.agent()) {
+			var dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);
 
 			agent.updateWith("truncate table PRODUCT").count();
 			agent.update("example/insert_product")
@@ -74,13 +73,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testSingleQueryAutoParameterBinder() {
-		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<SqlContext> binder = (ctx) -> ctx.param("upd_datetime", insDate);
+		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		Consumer<SqlContext> binder = ctx -> ctx.param("upd_datetime", insDate);
 		config.getSqlContextFactory().addQueryAutoParameterBinder(binder);
 
-		try (SqlAgent agent = config.agent()) {
-			int productId = 10;
+		try (var agent = config.agent()) {
+			var productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -93,14 +92,14 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
 			config.getSqlContextFactory().removeQueryAutoParameterBinder(binder);
 
-			binder = (ctx) -> ctx.param("upd_datetime", updDate);
+			binder = ctx -> ctx.param("upd_datetime", updDate);
 			config.getSqlContextFactory().addQueryAutoParameterBinder(binder);
 
 			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
@@ -112,13 +111,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testSingleUpdateAutoParameterBinder() {
-		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<SqlContext> binder = (ctx) -> ctx.param("upd_datetime", updDate);
+		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		Consumer<SqlContext> binder = ctx -> ctx.param("upd_datetime", updDate);
 		config.getSqlContextFactory().addUpdateAutoParameterBinder(binder);
 
-		try (SqlAgent agent = config.agent()) {
-			int productId = 10;
+		try (var agent = config.agent()) {
+			var productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -131,7 +130,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
@@ -149,20 +148,20 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testMultiQueryAutoParameterBinder() {
-		final String colVarchar = "varchar";
-		final BigDecimal colNumeric = new BigDecimal("10.00");
-		final LocalDateTime colTimestamp = LocalDateTime.now();
+		final var colVarchar = "varchar";
+		final var colNumeric = new BigDecimal("10.00");
+		final var colTimestamp = LocalDateTime.now();
 
-		SqlContextFactory factory = config.getSqlContextFactory();
+		var factory = config.getSqlContextFactory();
 
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("col_varchar", colVarchar);
+		Consumer<SqlContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
 		factory.addQueryAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = (ctx) -> ctx.param("col_numeric", colNumeric);
+		Consumer<SqlContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
 		factory.addQueryAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = (ctx) -> ctx.param("col_timestamp", colTimestamp);
+		Consumer<SqlContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
 		factory.addQueryAutoParameterBinder(binder3);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// insert match
 			agent.update("example/insert_column_type_test")
 					.param("col_varchar", colVarchar)
@@ -212,10 +211,10 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.count();
 			agent.commit();
 
-			List<Map<String, Object>> data = agent.query("example/select_column_type_test").collect(
+			var data = agent.query("example/select_column_type_test").collect(
 					CaseFormat.LOWER_SNAKE_CASE);
 			assertThat(data.size(), is(1));
-			Map<String, Object> row = data.get(0);
+			var row = data.get(0);
 			assertThat(row.get("col_varchar"), is(colVarchar));
 			assertThat(row.get("col_numeric"), is(colNumeric));
 			assertThat(row.get("col_timestamp"), is(Timestamp.valueOf(colTimestamp)));
@@ -228,21 +227,21 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testMultiUpdateAutoParameterBinder() {
-		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		SqlContextFactory factory = config.getSqlContextFactory();
+		var factory = config.getSqlContextFactory();
 
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", insDate);
+		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = (ctx) -> ctx.param("upd_datetime", updDate);
+		Consumer<SqlContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = (ctx) -> ctx.param("upd_datetime", ((LocalDateTime) ctx.getParam("upd_datetime")
+		Consumer<SqlContext> binder3 = ctx -> ctx.param("upd_datetime", ((LocalDateTime) ctx.getParam("upd_datetime")
 				.getValue()).plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
-		try (SqlAgent agent = config.agent()) {
-			int productId = 10;
+		try (var agent = config.agent()) {
+			var productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -253,7 +252,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
@@ -266,20 +265,20 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testMultiUpdateAutoParameterBinderIfAbsent() {
-		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		SqlContextFactory factory = config.getSqlContextFactory();
+		var factory = config.getSqlContextFactory();
 
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", insDate);
+		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = (ctx) -> ctx.param("upd_datetime", updDate);
+		Consumer<SqlContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = (ctx) -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
+		Consumer<SqlContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
-		try (SqlAgent agent = config.agent()) {
-			int productId = 10;
+		try (var agent = config.agent()) {
+			var productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -292,7 +291,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					.param("upd_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
 					.count();
 
-			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
@@ -305,13 +304,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testQueryAutoBindIfCase() {
-		SqlContextFactory factory = config.getSqlContextFactory();
+		var factory = config.getSqlContextFactory();
 
-		final int productId = 2;
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.paramIfAbsent("product_id", productId);
+		final var productId = 2;
+		Consumer<SqlContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// insert
 			assertThat(agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -335,17 +334,17 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testBatchUpdateAutoBind() {
-		SqlContextFactory factory = config.getSqlContextFactory();
+		var factory = config.getSqlContextFactory();
 
-		Consumer<SqlContext> binder1 = (ctx) -> ctx.param("ins_datetime", LocalDateTime.now());
+		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
 		factory.addUpdateAutoParameterBinder(binder1);
 
-		int count = 1000;
-		try (SqlAgent agent = config.agent()) {
+		var count = 1000;
+		try (var agent = config.agent()) {
 			agent.updateWith("truncate table PRODUCT").count();
 
 			List<Map<String, Object>> input = new ArrayList<>();
-			for (int i = 1; i <= count; i++) {
+			for (var i = 1; i <= count; i++) {
 				Map<String, Object> map = new HashMap<>();
 				map.put("product_id", i * 10);
 				map.put("product_name", "name");
@@ -360,7 +359,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 			// insert
 			assertThat(agent.batch("example/insert_product").paramStream(input.stream()).count(), is(count));
 
-			long dateCount = agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
+			var dateCount = agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
 					.map(r -> r.get("ins_datetime"))
 					.distinct().count();
 			// ins_datetimeが同じ時間になっていないことを確認

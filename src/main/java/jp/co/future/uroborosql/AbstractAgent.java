@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
@@ -42,8 +41,6 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.mapping.TableMetadata;
-import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.store.SqlManager;
@@ -127,7 +124,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
 		// クラス名が指定されている場合はそのクラス名を指定
-		String sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
+		var sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
 		if (sqlCoverageClassName == null || Boolean.FALSE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
 			sqlCoverageClassName = null;
 		} else if (Boolean.TRUE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
@@ -238,7 +235,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @param isQuery queryかどうか。queryの場合<code>true</code>
 	 */
 	protected void transformContext(final SqlContext sqlContext, final boolean isQuery) {
-		String originalSql = sqlContext.getSql();
+		var originalSql = sqlContext.getSql();
 		if (StringUtils.isEmpty(originalSql) && getSqlManager() != null) {
 			originalSql = getSqlManager().getSql(sqlContext.getSqlName());
 			if (StringUtils.isEmpty(originalSql)) {
@@ -250,7 +247,7 @@ public abstract class AbstractAgent implements SqlAgent {
 
 		// SQL-IDの付与
 		if (originalSql.contains(keySqlId)) {
-			String sqlId = sqlContext.getSqlId();
+			var sqlId = sqlContext.getSqlId();
 			if (StringUtils.isEmpty(sqlId)) {
 				sqlId = sqlContext.getSqlName();
 			}
@@ -274,16 +271,16 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
-			boolean outputBindComment = (boolean) sqlContext.contextAttrs().getOrDefault(
+			var outputBindComment = (boolean) sqlContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
 			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
 					sqlConfig.getDialect().isRemoveTerminator(), outputBindComment);
-			ContextTransformer contextTransformer = sqlParser.parse();
+			var contextTransformer = sqlParser.parse();
 			contextTransformer.transform(sqlContext);
 
 			if (coverageHandlerRef.get() != null) {
 				// SQLカバレッジ用のログを出力する
-				CoverageData coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+				var coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
 						contextTransformer.getPassedRoute());
 				COVERAGE_LOG.trace("{}", coverageData);
 
@@ -621,9 +618,9 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		try {
-			TableMetadata metadata = handler.getMetadata(this.transactionManager, entityType);
+			var metadata = handler.getMetadata(this.transactionManager, entityType);
 
-			SqlContext context = handler.createSelectContext(this, metadata, entityType, false);
+			var context = handler.createSelectContext(this, metadata, entityType, false);
 
 			return new SqlEntityQueryImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException e) {
@@ -691,19 +688,19 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> int inserts(final Stream<E> entities, final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
-		Iterator<E> iterator = entities.iterator();
+		var iterator = entities.iterator();
 		if (!iterator.hasNext()) {
 			return 0;
 		}
 
-		E firstEntity = iterator.next();
+		var firstEntity = iterator.next();
 
 		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
 		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
 		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
 
 		@SuppressWarnings("unchecked")
-		Class<E> type = (Class<E>) firstEntity.getClass();
+		var type = (Class<E>) firstEntity.getClass();
 
 		return inserts(type, stream, condition, insertsType);
 	}
@@ -803,19 +800,19 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> Stream<E> insertsAndReturn(final Stream<E> entities, final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
-		Iterator<E> iterator = entities.iterator();
+		var iterator = entities.iterator();
 		if (!iterator.hasNext()) {
 			return new ArrayList<E>().stream();
 		}
 
-		E firstEntity = iterator.next();
+		var firstEntity = iterator.next();
 
 		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
 		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
 		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
 
 		@SuppressWarnings("unchecked")
-		Class<E> type = (Class<E>) firstEntity.getClass();
+		var type = (Class<E>) firstEntity.getClass();
 
 		return insertsAndReturn(type, stream, condition, insertsType);
 	}
@@ -904,19 +901,19 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> int updates(final Stream<E> entities, final UpdatesCondition<? super E> condition) {
-		Iterator<E> iterator = entities.iterator();
+		var iterator = entities.iterator();
 		if (!iterator.hasNext()) {
 			return 0;
 		}
 
-		E firstEntity = iterator.next();
+		var firstEntity = iterator.next();
 
 		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
 		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
 		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
 
 		@SuppressWarnings("unchecked")
-		Class<E> type = (Class<E>) firstEntity.getClass();
+		var type = (Class<E>) firstEntity.getClass();
 
 		return updates(type, stream, condition);
 	}
@@ -928,19 +925,19 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	@Override
 	public <E> Stream<E> updatesAndReturn(final Stream<E> entities, final UpdatesCondition<? super E> condition) {
-		Iterator<E> iterator = entities.iterator();
+		var iterator = entities.iterator();
 		if (!iterator.hasNext()) {
 			return new ArrayList<E>().stream();
 		}
 
-		E firstEntity = iterator.next();
+		var firstEntity = iterator.next();
 
 		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
 		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
 		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
 
 		@SuppressWarnings("unchecked")
-		Class<E> type = (Class<E>) firstEntity.getClass();
+		var type = (Class<E>) firstEntity.getClass();
 
 		return updatesAndReturn(type, stream, condition);
 	}
@@ -1109,7 +1106,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @throws SQLException SQL例外
 	 */
 	protected PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
-		PreparedStatement stmt = ((LocalTransactionManager) transactionManager).getPreparedStatement(sqlContext);
+		var stmt = ((LocalTransactionManager) transactionManager).getPreparedStatement(sqlContext);
 		// プロパティ設定
 		applyProperties(stmt);
 		return stmt;
@@ -1123,7 +1120,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @throws SQLException SQL例外
 	 */
 	protected CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
-		CallableStatement stmt = ((LocalTransactionManager) transactionManager).getCallableStatement(sqlContext);
+		var stmt = ((LocalTransactionManager) transactionManager).getCallableStatement(sqlContext);
 		// プロパティ設定
 		applyProperties(stmt);
 		return stmt;

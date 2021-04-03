@@ -108,7 +108,7 @@ public class MySqlDialect extends AbstractDialect {
 	 */
 	@Override
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
-		String hintStr = "$1 " + hints.stream().collect(Collectors.joining(" ")) + System.lineSeparator();
+		var hintStr = "$1 " + hints.stream().collect(Collectors.joining(" ")) + System.lineSeparator();
 		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
 	}
 

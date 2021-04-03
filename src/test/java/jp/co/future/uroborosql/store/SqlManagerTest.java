@@ -16,11 +16,11 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 public class SqlManagerTest {
 	@Test
 	public void testGet() throws Exception {
-		SqlManagerImpl manager = new SqlManagerImpl();
+		var manager = new SqlManagerImpl();
 		manager.setSqlLoader(new SqlLoaderImpl());
 		manager.initialize();
 
-		String sql = manager.getSql("example/select_product");
+		var sql = manager.getSql("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
@@ -31,10 +31,10 @@ public class SqlManagerTest {
 
 	@Test
 	public void testGet2() throws Exception {
-		SqlManagerImpl manager = new SqlManagerImpl();
+		var manager = new SqlManagerImpl();
 		manager.initialize();
 
-		String sql = manager.getSql("example/select_product");
+		var sql = manager.getSql("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
@@ -45,7 +45,7 @@ public class SqlManagerTest {
 
 	@Test
 	public void testConstructor() throws Exception {
-		SqlManagerImpl manager = new SqlManagerImpl();
+		var manager = new SqlManagerImpl();
 		manager.initialize();
 		assertThat(manager.getLoadPath(), is("sql"));
 		assertThat(manager.getFileExtension(), is(".sql"));
@@ -101,7 +101,7 @@ public class SqlManagerTest {
 
 	@Test
 	public void testShutdown() throws Exception {
-		SqlManagerImpl manager = new SqlManagerImpl();
+		var manager = new SqlManagerImpl();
 		manager.initialize();
 		assertThat(manager.existSql("example/select_product"), is(true));
 		manager.shutdown();
@@ -110,7 +110,7 @@ public class SqlManagerTest {
 
 	@Test
 	public void testExistSql() throws Exception {
-		SqlManagerImpl manager = new SqlManagerImpl();
+		var manager = new SqlManagerImpl();
 		manager.initialize();
 
 		assertThat(manager.existSql("example/select_product"), is(true));
@@ -125,7 +125,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 		manager.setCache(false);
 		manager.initialize();
 
@@ -141,7 +141,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 		manager.setCache(false);
 		manager.initialize();
 
@@ -157,7 +157,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 		manager.initialize();
 
 		assertThat(manager.getSqlPathList().size(), is(36));
@@ -168,7 +168,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 
 		assertThat(manager.getSqlLoader().getLoadPath(), is("sql"));
 	}
@@ -178,7 +178,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 
 		manager.setSqlLoader(new SqlLoaderImpl("new_sql"));
 
@@ -190,7 +190,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 
 		manager.setLoadPath("new_sql");
 
@@ -202,7 +202,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 
 		manager.setFileExtension(".sqlx");
 
@@ -214,7 +214,7 @@ public class SqlManagerTest {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
 		loadPaths.add("secondary_sql");
-		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
+		var manager = new SqlManagerImpl(loadPaths);
 
 		Dialect dialect = new PostgresqlDialect();
 		manager.setDialect(dialect);

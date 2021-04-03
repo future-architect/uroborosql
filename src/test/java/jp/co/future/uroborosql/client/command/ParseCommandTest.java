@@ -46,14 +46,14 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		String sqlName = "test/PARSE_TEST";
-		String commandLine = "parse" + " " + sqlName;
-		boolean flag = command.execute(reader, commandLine.split("\\s+"), sqlConfig, new Properties());
+		var sqlName = "test/PARSE_TEST";
+		var commandLine = "parse" + " " + sqlName;
+		var flag = command.execute(reader, commandLine.split("\\s+"), sqlConfig, new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("SQL :");
 
-		String[] sqlLine = sqlConfig.getSqlManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
+		var sqlLine = sqlConfig.getSqlManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
 		for (String line : sqlLine) {
 			assertConsoleOutputContains(line);
 		}
@@ -87,7 +87,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void testExecuteNotFound() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader, "parse test/NOTFOUND".split("\\s+"), sqlConfig, new Properties());
+		var flag = command.execute(reader, "parse test/NOTFOUND".split("\\s+"), sqlConfig, new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName : test/NOTFOUND not found.");
@@ -97,7 +97,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void testExecuteNotArgument() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader, "parse".split("\\s+"), sqlConfig, new Properties());
+		var flag = command.execute(reader, "parse".split("\\s+"), sqlConfig, new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName must be specified.");

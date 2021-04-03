@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
-import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +16,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContext() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL);
+		var ctx = ConnectionContextBuilder.jdbc(URL);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(nullValue()));
 		assertThat(ctx.password(), is(nullValue()));
@@ -29,7 +28,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContextWithUserPass() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD);
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
 		assertThat(ctx.password(), is(PASSWORD));
@@ -41,7 +40,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContextWithUserPassSchema() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
 		assertThat(ctx.password(), is(PASSWORD));
@@ -58,8 +57,8 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testSetter() {
-		String url2 = URL + "_2";
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
+		var url2 = URL + "_2";
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.url(url2).url(), is(url2));
 
@@ -85,8 +84,8 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testToProperties() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL);
-		Properties props = ctx.toProperties();
+		var ctx = ConnectionContextBuilder.jdbc(URL);
+		var props = ctx.toProperties();
 		assertThat(props.isEmpty(), is(true));
 
 		ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);

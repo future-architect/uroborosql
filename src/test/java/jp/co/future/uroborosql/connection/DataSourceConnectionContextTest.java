@@ -12,7 +12,7 @@ public class DataSourceConnectionContextTest {
 
 	@Test
 	public void testDataSourceConnectionContext() {
-		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource();
+		var ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
@@ -21,7 +21,7 @@ public class DataSourceConnectionContextTest {
 
 	@Test
 	public void testDataSourceConnectionContextWithDataSourceName() {
-		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource("dataSourceName");
+		var ctx = ConnectionContextBuilder.dataSource("dataSourceName");
 		assertThat(ctx.dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
@@ -35,7 +35,7 @@ public class DataSourceConnectionContextTest {
 
 	@Test
 	public void testSetter() {
-		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource();
+		var ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.dataSourceName("dataSourceName").dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(true).autoCommit(), is(true));

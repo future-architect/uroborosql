@@ -81,8 +81,8 @@ public class Range implements Comparable<Range> {
 	 * @return {@link Range} 共通部が無い場合はnull
 	 */
 	public Range intersection(final Range range) {
-		int c0 = Math.max(this.start, range.start);
-		int c1 = Math.min(this.end, range.end);
+		var c0 = Math.max(this.start, range.start);
+		var c1 = Math.min(this.end, range.end);
 		return c0 <= c1 ? new Range(c0, c1) : null;
 	}
 
@@ -113,14 +113,14 @@ public class Range implements Comparable<Range> {
 		} else if (!(obj instanceof Range)) {
 			return false;
 		} else {
-			final Range range = (Range) obj;
+			final var range = (Range) obj;
 			return start == range.start && end == range.end;
 		}
 	}
 
 	@Override
 	public int hashCode() {
-		int result = 0;
+		var result = 0;
 		result = 17;
 		result = 37 * result + Integer.hashCode(start);
 		result = 37 * result + Integer.hashCode(end);

@@ -26,7 +26,7 @@ public class OptionalIntPropertyMapper implements PropertyMapper<OptionalInt> {
 	@Override
 	public OptionalInt getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		int value = rs.getInt(columnIndex);
+		var value = rs.getInt(columnIndex);
 		if (!rs.wasNull()) {
 			return OptionalInt.of(value);
 		} else {

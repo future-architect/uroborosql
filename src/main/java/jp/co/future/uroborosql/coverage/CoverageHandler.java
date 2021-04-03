@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -38,15 +37,15 @@ public interface CoverageHandler {
 	 */
 	static List<LineRange> getLineRanges(final String sql) {
 		List<LineRange> ret = new ArrayList<>();
-		int start = 0;
-		int searchStart = 0;
-		try (Scanner scanner = new Scanner(sql)) {
+		var start = 0;
+		var searchStart = 0;
+		try (var scanner = new Scanner(sql)) {
 			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
+				var line = scanner.nextLine();
 				while (!sql.startsWith(line, searchStart)) {
 					searchStart++;
 				}
-				LineRange range = new LineRange(start, searchStart + line.length() - 1, ret.size());
+				var range = new LineRange(start, searchStart + line.length() - 1, ret.size());
 				ret.add(range);
 				start = searchStart + line.length();
 				searchStart = start;
@@ -62,17 +61,17 @@ public interface CoverageHandler {
 	 * @return 各行のRange
 	 */
 	static List<LineRange> parseLineRanges(final String sql) {
-		List<LineRange> ret = getLineRanges(sql);
-		for (Iterator<LineRange> iterator = ret.iterator(); iterator.hasNext();) {
-			LineRange lineRange = iterator.next();
-			String line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
-			String trimLine = line.trim();
+		var ret = getLineRanges(sql);
+		for (var iterator = ret.iterator(); iterator.hasNext();) {
+			var lineRange = iterator.next();
+			var line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
+			var trimLine = line.trim();
 			if (trimLine.isEmpty()) {
 				iterator.remove();
 			} else if (trimLine.equals("/*END*/") || trimLine.equals("/*ELSE*/")) {
 				iterator.remove();
 			} else if (trimLine.startsWith("--")) {
-				String comments = trimLine.substring(2);
+				var comments = trimLine.substring(2);
 				if (comments.trim().equals("ELSE")) {
 					iterator.remove();
 				}

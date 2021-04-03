@@ -41,7 +41,7 @@ public class AbstractSqlFluentTest {
 
 	@Test
 	public void testHasParam() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", "value1");
@@ -53,7 +53,7 @@ public class AbstractSqlFluentTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testparamList() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.paramList("key1", "value1");
@@ -73,9 +73,7 @@ public class AbstractSqlFluentTest {
 
 			String[] values = { "value1", "value2" };
 			query = agent.query("select * from dummy");
-			query.paramList("key1", () -> {
-				return Arrays.asList(values);
-			});
+			query.paramList("key1", () -> Arrays.asList(values));
 			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 		}
 
@@ -84,7 +82,7 @@ public class AbstractSqlFluentTest {
 	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testParamList() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.paramList("key1", "value1");
@@ -103,9 +101,7 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is(values));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", () -> {
-				return values;
-			});
+			query.paramList("key1", () -> values);
 			assertThat(query.context().getParam("key1").getValue(), is(values));
 		}
 	}
@@ -113,7 +109,7 @@ public class AbstractSqlFluentTest {
 	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testIfAbsent() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.paramIfAbsent("key1", "value1");
@@ -142,7 +138,7 @@ public class AbstractSqlFluentTest {
 			query = agent.query("select * from dummy");
 			InputStream is1 = new ByteArrayInputStream("value1".getBytes());
 			query.blobParamIfAbsent("key1", is1, "value1".length());
-			StreamParameter stream1 = (StreamParameter) query.context().getParam("key1");
+			var stream1 = (StreamParameter) query.context().getParam("key1");
 			assertThat(query.context().getParam("key1").getValue(), is("[BLOB]"));
 			InputStream is2 = new ByteArrayInputStream("value2".getBytes());
 			query.blobParamIfAbsent("key1", is2, "value2".length());
@@ -151,7 +147,7 @@ public class AbstractSqlFluentTest {
 			query = agent.query("select * from dummy");
 			InputStream is11 = new ByteArrayInputStream("value1".getBytes());
 			query.blobParamIfAbsent("key1", is11);
-			StreamParameter stream11 = (StreamParameter) query.context().getParam("key1");
+			var stream11 = (StreamParameter) query.context().getParam("key1");
 			assertThat(query.context().getParam("key1").getValue(), is("[BLOB]"));
 			InputStream is22 = new ByteArrayInputStream("value2".getBytes());
 			query.blobParamIfAbsent("key1", is22);
@@ -160,7 +156,7 @@ public class AbstractSqlFluentTest {
 			query = agent.query("select * from dummy");
 			Reader r1 = new StringReader("value1");
 			query.clobParamIfAbsent("key1", r1);
-			ReaderParameter reader1 = (ReaderParameter) query.context().getParam("key1");
+			var reader1 = (ReaderParameter) query.context().getParam("key1");
 			assertThat(query.context().getParam("key1").getValue(), is("[CLOB]"));
 			Reader r2 = new StringReader("value2");
 			query.clobParamIfAbsent("key1", r2);
@@ -169,7 +165,7 @@ public class AbstractSqlFluentTest {
 			query = agent.query("select * from dummy");
 			Reader r11 = new StringReader("value1");
 			query.clobParamIfAbsent("key1", r11, "value1".length());
-			ReaderParameter reader11 = (ReaderParameter) query.context().getParam("key1");
+			var reader11 = (ReaderParameter) query.context().getParam("key1");
 			assertThat(query.context().getParam("key1").getValue(), is("[CLOB]"));
 			Reader r22 = new StringReader("value2");
 			query.clobParamIfAbsent("key1", r22, "value1".length());
@@ -179,13 +175,13 @@ public class AbstractSqlFluentTest {
 
 	@Test
 	public void testSqlId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.update("setup/insert_product").count();
 
-			final String sqlId = "SQL_ID_TEST";
+			final var sqlId = "SQL_ID_TEST";
 
-			SqlQuery query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
+			var query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
 			assertThat(query.collect().size(), is(1));
 			assertThat(query.context().getExecutableSql(), containsString(sqlId));
 		}
@@ -194,13 +190,13 @@ public class AbstractSqlFluentTest {
 	@SuppressWarnings({ "deprecation", })
 	@Test
 	public void testParamWithSupplier() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", () -> "value1");
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 
-			boolean flag = false;
+			var flag = false;
 			query.param("key2", () -> flag ? "true" : "false");
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
@@ -210,9 +206,7 @@ public class AbstractSqlFluentTest {
 			query.param("key4", null);
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
-			query.paramList("key5", () -> {
-				return Collections.emptyList();
-			});
+			query.paramList("key5", Collections::emptyList);
 			assertThat(query.context().getParam("key5").getValue(), is(Collections.emptyList()));
 		}
 	}

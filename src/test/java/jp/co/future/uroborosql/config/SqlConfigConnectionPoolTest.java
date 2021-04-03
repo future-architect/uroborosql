@@ -15,7 +15,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -41,9 +40,9 @@ public class SqlConfigConnectionPoolTest {
 
 		config = UroboroSQL.builder(pool).build();
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// create table
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -74,7 +73,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSourceNoQuery() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(pool.getActiveConnections(), is(0));
 		}
 		assertThat(pool.getActiveConnections(), is(0));
@@ -85,7 +84,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSource() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 		}
@@ -97,7 +96,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSourceRequired() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 

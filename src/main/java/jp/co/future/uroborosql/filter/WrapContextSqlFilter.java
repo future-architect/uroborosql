@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.filter;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.context.SqlContext;
@@ -70,13 +69,13 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public String doTransformSql(final SqlContext sqlContext, final String sql) {
-		boolean wrapIgnore = true;
+		var wrapIgnore = true;
 		if (ignorePattern != null) {
-			Matcher matcher = ignorePattern.matcher(sql);
+			var matcher = ignorePattern.matcher(sql);
 			wrapIgnore = matcher.matches();
 		}
 
-		String newSql = sql;
+		var newSql = sql;
 		// sqlを別のSQLで囲む場合のSQLを追加
 		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlBeginParts())) {
 			newSql = getWrappedSqlBeginParts() + newSql;

@@ -21,7 +21,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	public void testInsert() {
 		truncateTable("PRODUCT");
 		agent.required(() -> {
-			Product product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
+			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
 			agent.insert(product);
 
 			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品1"));
@@ -32,8 +32,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	public void testInsertAndReturn() {
 		truncateTable("PRODUCT");
 		agent.required(() -> {
-			Product product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
-			Product insertedProduct = agent.insertAndReturn(product);
+			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
+			var insertedProduct = agent.insertAndReturn(product);
 
 			assertThat(agent.find(Product.class, 1).get().getProductId(), is(insertedProduct.getProductId()));
 			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品1"));
@@ -44,7 +44,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	public void testInsertThrowException() {
 		truncateTable("PRODUCT");
 		agent.required(() -> {
-			Product product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
+			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
 			assertThrows(IllegalArgumentException.class, () -> agent.insert(Stream.of(product)));
 		});
 	}

@@ -51,7 +51,7 @@ public class ContextTransformer {
 	 * @return 評価結果を表す文字列
 	 */
 	public PassedRoute getPassedRoute() {
-		PassedRoute passed = new PassedRoute();
+		var passed = new PassedRoute();
 		root.passed(passed);
 		return passed;
 	}

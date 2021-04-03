@@ -42,7 +42,6 @@ public class AbstractDbTest {
 		public Product(final int productId, final String productName, final String productKanaName,
 				final String janCode,
 				final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
-			super();
 			this.productId = productId;
 			this.productName = productName;
 			this.productKanaName = productKanaName;
@@ -146,7 +145,6 @@ public class AbstractDbTest {
 	protected SqlAgent agent;
 
 	public AbstractDbTest() {
-		super();
 	}
 
 	@BeforeEach
@@ -154,10 +152,10 @@ public class AbstractDbTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
 		config.getSqlAgentFactory().setFetchSize(1000);
-		Path ddlPath = getDdlPath();
+		var ddlPath = getDdlPath();
 		if (ddlPath != null) {
 			agent = config.agent();
-			String[] sqls = new String(Files.readAllBytes(ddlPath), StandardCharsets.UTF_8).split(";");
+			var sqls = new String(Files.readAllBytes(ddlPath), StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
@@ -191,9 +189,9 @@ public class AbstractDbTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				String[] parts = line.split("\t");
+				var parts = line.split("\t");
 				for (String part : parts) {
-					String[] keyValue = part.split(":", 2);
+					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -226,10 +224,10 @@ public class AbstractDbTest {
 	 * @param path LTSVファイル
 	 */
 	protected void cleanInsert(final Path path) {
-		List<Map<String, Object>> dataList = getDataFromFile(path);
+		var dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-				.forEach(tbl -> truncateTable(tbl));
+				.forEach(this::truncateTable);
 
 		dataList.forEach(map -> {
 			try {

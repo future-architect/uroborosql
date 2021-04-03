@@ -8,10 +8,8 @@ import static org.junit.jupiter.api.Assumptions.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +26,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testConstructor() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("sql", ".sql", Charset.defaultCharset());
+		var manager = new NioSqlManagerImpl("sql", ".sql", Charset.defaultCharset());
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
 		Dialect dialect = new H2Dialect();
@@ -40,7 +38,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testConstructorMultiSqlPaths() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		var manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
 		Dialect dialect = new H2Dialect();
@@ -59,11 +57,11 @@ public class NioSqlManagerTest {
 	public void testGetSqlPathList() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
-		List<String> pathList = manager.getSqlPathList();
+		var pathList = manager.getSqlPathList();
 		assertThat(pathList, hasItem("example/select_test"));
 		assertThat(pathList, hasItem("example/select_test2"));
 		assertThat(pathList, hasItem("example/select_test3"));
@@ -71,31 +69,31 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlLoader() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		assertThrows(UnsupportedOperationException.class, () -> manager.getSqlLoader());
 	}
 
 	@Test
 	public void testSetSqlLoader() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		assertThrows(UnsupportedOperationException.class, () -> manager.setSqlLoader(null));
 	}
 
 	@Test
 	public void testIsCache() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		assertThrows(UnsupportedOperationException.class, () -> manager.isCache());
 	}
 
 	@Test
 	public void testSetCache() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		assertThrows(UnsupportedOperationException.class, () -> manager.setCache(false));
 	}
 
 	@Test
 	public void testGetSql() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -116,7 +114,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlWithMultiSqlPaths() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		var manager = new NioSqlManagerImpl(Arrays.asList("sql", "secondary_sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -142,7 +140,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlWithMultiSqlPathsReverse() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(Arrays.asList("secondary_sql", "sql"));
+		var manager = new NioSqlManagerImpl(Arrays.asList("secondary_sql", "sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -170,7 +168,7 @@ public class NioSqlManagerTest {
 	public void testGetSqlH2() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -196,7 +194,7 @@ public class NioSqlManagerTest {
 	public void testGetSqlPostgresql() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
@@ -222,11 +220,11 @@ public class NioSqlManagerTest {
 	public void testGetSqlWithWatcher() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "test/ADD_WATCH";
-		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
+		var sqlName = "test/ADD_WATCH";
+		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
+		var manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -257,11 +255,11 @@ public class NioSqlManagerTest {
 	@Test
 	public void testGetSqlWithNoWatcher() throws Exception {
 
-		String sqlName = "test/ADD_WATCH";
-		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
+		var sqlName = "test/ADD_WATCH";
+		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl();
+		var manager = new NioSqlManagerImpl();
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -288,13 +286,13 @@ public class NioSqlManagerTest {
 	public void testAddDialectSqlFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "example/select_test";
-		Path dir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "example");
-		Path newFilePath = dir.resolve("select_test.sql");
+		var sqlName = "example/select_test";
+		var dir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "example");
+		var newFilePath = dir.resolve("select_test.sql");
 		Files.deleteIfExists(newFilePath);
 		Files.deleteIfExists(dir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
+		var manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -309,7 +307,7 @@ public class NioSqlManagerTest {
 
 			Files.createDirectories(dir);
 
-			String sql = "select * from test -- oracle";
+			var sql = "select * from test -- oracle";
 			Files.write(newFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);
@@ -336,17 +334,17 @@ public class NioSqlManagerTest {
 	public void testAddDefaultFolderAndDialectFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "unit_test/select_test";
-		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
-		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
-		Path defaultFilePath = defaultDir.resolve("select_test.sql");
-		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		var sqlName = "unit_test/select_test";
+		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
+		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
+		var defaultFilePath = defaultDir.resolve("select_test.sql");
+		var dialectFilePath = dialectDir.resolve("select_test.sql");
 		Files.deleteIfExists(defaultFilePath);
 		Files.deleteIfExists(defaultDir);
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
+		var manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -361,7 +359,7 @@ public class NioSqlManagerTest {
 			// defaultから先に作る場合
 			Files.createDirectories(defaultDir);
 
-			String sql = "select * from test -- default";
+			var sql = "select * from test -- default";
 			Files.write(defaultFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);
@@ -406,17 +404,17 @@ public class NioSqlManagerTest {
 	public void testAddDialectFolderAndDefaultFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "unit_test/select_test";
-		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
-		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
-		Path defaultFilePath = defaultDir.resolve("select_test.sql");
-		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		var sqlName = "unit_test/select_test";
+		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
+		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
+		var defaultFilePath = defaultDir.resolve("select_test.sql");
+		var dialectFilePath = dialectDir.resolve("select_test.sql");
 		Files.deleteIfExists(defaultFilePath);
 		Files.deleteIfExists(defaultDir);
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl(true);
+		var manager = new NioSqlManagerImpl(true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -431,7 +429,7 @@ public class NioSqlManagerTest {
 			// dialectから先に作る場合
 			Files.createDirectories(dialectDir);
 
-			String sql = "select * from test -- oracle";
+			var sql = "select * from test -- oracle";
 			Files.write(dialectFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);
@@ -476,7 +474,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testConstructorLoadPathHasChildDir() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql", ".sql", Charset.defaultCharset());
+		var manager = new NioSqlManagerImpl("parent/child/sql", ".sql", Charset.defaultCharset());
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
 		Dialect dialect = new H2Dialect();
@@ -491,11 +489,11 @@ public class NioSqlManagerTest {
 	public void testGetSqlPathListLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql");
+		var manager = new NioSqlManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
-		List<String> pathList = manager.getSqlPathList();
+		var pathList = manager.getSqlPathList();
 		assertThat(pathList, hasItem("example/select_test"));
 		assertThat(pathList, hasItem("example/select_test2"));
 		assertThat(pathList, hasItem("example/select_test3"));
@@ -503,7 +501,7 @@ public class NioSqlManagerTest {
 
 	@Test
 	public void testGetSqlLoadPathHasChildDir() throws Exception {
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql");
+		var manager = new NioSqlManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -526,7 +524,7 @@ public class NioSqlManagerTest {
 	public void testGetSqlH2LoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql");
+		var manager = new NioSqlManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -552,7 +550,7 @@ public class NioSqlManagerTest {
 	public void testGetSqlPostgresqlLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql");
+		var manager = new NioSqlManagerImpl("parent/child/sql");
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
@@ -578,11 +576,11 @@ public class NioSqlManagerTest {
 	public void testGetSqlWithWatcherLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "test/ADD_WATCH";
-		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
+		var sqlName = "test/ADD_WATCH";
+		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -613,11 +611,11 @@ public class NioSqlManagerTest {
 	@Test
 	public void testGetSqlWithNoWatcherLoadPathHasChildDir() throws Exception {
 
-		String sqlName = "test/ADD_WATCH";
-		Path newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
+		var sqlName = "test/ADD_WATCH";
+		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql");
+		var manager = new NioSqlManagerImpl("parent/child/sql");
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -644,13 +642,13 @@ public class NioSqlManagerTest {
 	public void testAddDialectSqlFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "example/select_test";
-		Path dir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "example");
-		Path newFilePath = dir.resolve("select_test.sql");
+		var sqlName = "example/select_test";
+		var dir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "example");
+		var newFilePath = dir.resolve("select_test.sql");
 		Files.deleteIfExists(newFilePath);
 		Files.deleteIfExists(dir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -665,7 +663,7 @@ public class NioSqlManagerTest {
 
 			Files.createDirectories(dir);
 
-			String sql = "select * from test -- oracle";
+			var sql = "select * from test -- oracle";
 			Files.write(newFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);
@@ -692,17 +690,17 @@ public class NioSqlManagerTest {
 	public void testAddDefaultFolderAndDialectFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "unit_test/select_test";
-		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
-		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
-		Path defaultFilePath = defaultDir.resolve("select_test.sql");
-		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		var sqlName = "unit_test/select_test";
+		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
+		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
+		var defaultFilePath = defaultDir.resolve("select_test.sql");
+		var dialectFilePath = dialectDir.resolve("select_test.sql");
 		Files.deleteIfExists(defaultFilePath);
 		Files.deleteIfExists(defaultDir);
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -717,7 +715,7 @@ public class NioSqlManagerTest {
 			// defaultから先に作る場合
 			Files.createDirectories(defaultDir);
 
-			String sql = "select * from test -- default";
+			var sql = "select * from test -- default";
 			Files.write(defaultFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);
@@ -762,17 +760,17 @@ public class NioSqlManagerTest {
 	public void testAddDialectFolderAndDefaultFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		String sqlName = "unit_test/select_test";
-		Path defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
-		Path dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
-		Path defaultFilePath = defaultDir.resolve("select_test.sql");
-		Path dialectFilePath = dialectDir.resolve("select_test.sql");
+		var sqlName = "unit_test/select_test";
+		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
+		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
+		var defaultFilePath = defaultDir.resolve("select_test.sql");
+		var dialectFilePath = dialectDir.resolve("select_test.sql");
 		Files.deleteIfExists(defaultFilePath);
 		Files.deleteIfExists(defaultDir);
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		NioSqlManagerImpl manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new NioSqlManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -787,7 +785,7 @@ public class NioSqlManagerTest {
 			// dialectから先に作る場合
 			Files.createDirectories(dialectDir);
 
-			String sql = "select * from test -- oracle";
+			var sql = "select * from test -- oracle";
 			Files.write(dialectFilePath, Arrays.asList(sql));
 
 			Thread.sleep(WAIT_TIME);

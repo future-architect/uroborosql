@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.jline.reader.LineReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +20,7 @@ import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class ViewCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -38,7 +38,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -57,7 +57,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
+		var flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("SELECT /* _SQL_ID_ */");

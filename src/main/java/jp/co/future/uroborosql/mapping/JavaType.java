@@ -80,8 +80,8 @@ public abstract class JavaType {
 			if (superclass != null && superclass.equals(parentclass)) {
 				return subclass.getGenericSuperclass();
 			}
-			Class<?>[] interfaces = subclass.getInterfaces();
-			for (int i = 0; i < interfaces.length; i++) {
+			var interfaces = subclass.getInterfaces();
+			for (var i = 0; i < interfaces.length; i++) {
 				if (interfaces[i].equals(parentclass)) {
 					return subclass.getGenericInterfaces()[i];
 				}
@@ -127,7 +127,7 @@ public abstract class JavaType {
 			this.rawType = rawType;
 			TypeVariable<?>[] typeParameters = rawType.getTypeParameters();
 			this.params = new JavaType[typeParameters.length];
-			for (int i = 0; i < typeParameters.length; i++) {
+			for (var i = 0; i < typeParameters.length; i++) {
 				this.params[i] = create(implementClass, typeParameters[i]);
 			}
 		}
@@ -296,8 +296,8 @@ public abstract class JavaType {
 			if (isLowerBounds()) {
 				return "? super " + toString.apply(this.getLower());
 			} else {
-				StringBuilder sb = new StringBuilder("? extends ");
-				for (int i = 0; i < this.upperBounds.length; i++) {
+				var sb = new StringBuilder("? extends ");
+				for (var i = 0; i < this.upperBounds.length; i++) {
 					if (i > 0) {
 						sb.append(" & ");
 					}
@@ -363,9 +363,9 @@ public abstract class JavaType {
 			if (!isMulti()) {
 				return toString.apply(this.general);
 			}
-			StringBuilder sb = new StringBuilder(this.variableName)
+			var sb = new StringBuilder(this.variableName)
 					.append(" extends ");
-			for (int i = 0; i < this.bounds.length; i++) {
+			for (var i = 0; i < this.bounds.length; i++) {
 				if (i > 0) {
 					sb.append(" & ");
 				}
@@ -437,13 +437,13 @@ public abstract class JavaType {
 			TypeVariable<?> variable = (TypeVariable<?>) type;
 			return createByParamName(implementClass, variable);
 		} else if (type instanceof GenericArrayType) {
-			GenericArrayType arrayType = (GenericArrayType) type;
+			var arrayType = (GenericArrayType) type;
 			return new ArrayJavaType(implementClass, arrayType);
 		} else if (type instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
+			var parameterizedType = (ParameterizedType) type;
 			return new ParameterizedJavaType(implementClass, parameterizedType);
 		} else if (type instanceof WildcardType) {
-			WildcardType wildcardType = (WildcardType) type;
+			var wildcardType = (WildcardType) type;
 			return new WildcardJavaType(implementClass, wildcardType);
 		}
 
@@ -484,7 +484,7 @@ public abstract class JavaType {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		Class<?> rawType = getRawType();
 		if (!rawType.isArray()) {
 			sb.append(rawType.getName());
@@ -494,11 +494,11 @@ public abstract class JavaType {
 		TypeVariable<? extends Class<?>>[] typeParameters = rawType.getTypeParameters();
 		if (typeParameters.length > 0) {
 			sb.append("<");
-			for (int i = 0; i < typeParameters.length; i++) {
+			for (var i = 0; i < typeParameters.length; i++) {
 				if (i > 0) {
 					sb.append(", ");
 				}
-				String s = this.getParam(i).toParamString();
+				var s = this.getParam(i).toParamString();
 				sb.append(s);
 			}
 			sb.append(">");
@@ -520,18 +520,18 @@ public abstract class JavaType {
 
 	private static JavaType createByParamName(final ImplementClass implementClass, final TypeVariable<?> variable) {
 		GenericDeclaration declaration = variable.getGenericDeclaration();
-		String name = variable.getName();
-		TypeVariable<?>[] typeParameters = declaration.getTypeParameters();
-		for (int index = 0; index < typeParameters.length; index++) {
+		var name = variable.getName();
+		var typeParameters = declaration.getTypeParameters();
+		for (var index = 0; index < typeParameters.length; index++) {
 			TypeVariable<?> type = typeParameters[index];
 			if (name.equals(type.getName())) {
 				if (declaration instanceof Class) {
 					Class<?> declarationClass = (Class<?>) declaration;
 					Class<?> sub = implementClass.getSubclass(declarationClass);
 					if (sub != null) {
-						Type genericSuperclass = implementClass.getGenericParentClass(declarationClass);
+						var genericSuperclass = implementClass.getGenericParentClass(declarationClass);
 						if (genericSuperclass instanceof ParameterizedType) {
-							ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+							var parameterizedType = (ParameterizedType) genericSuperclass;
 							return create(implementClass, parameterizedType.getActualTypeArguments()[index]);
 						}
 						// Generics未指定

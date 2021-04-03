@@ -165,7 +165,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 	 * @return JDBC接続時に渡すプロパティ
 	 */
 	public Properties toProperties() {
-		Properties props = new Properties();
+		var props = new Properties();
 		// DriverManagerに渡す際、最低限必要な情報（user, password）を設定
 		if (user() != null) {
 			props.put("user", user());
@@ -175,7 +175,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 		}
 
 		entrySet().forEach(e -> {
-			String key = e.getKey();
+			var key = e.getKey();
 			if (e.getValue() != null &&
 					key != PROPS_JDBC_URL &&
 					key != PROPS_JDBC_USER &&

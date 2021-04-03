@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.coverage.reports.html;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,7 +57,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	 * </pre>
 	 */
 	public HtmlReportCoverageHandler() {
-		String s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");
+		var s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");
 		if (StringUtils.isNotEmpty(s)) {
 			this.reportDirPath = Paths.get(s);
 		} else {
@@ -81,9 +80,9 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			// SQL名の設定されていないSQLは集約しない
 			return;
 		}
-		Map<String, SqlCoverageReport> map = coverages.computeIfAbsent(coverageData.getSqlName(),
+		var map = coverages.computeIfAbsent(coverageData.getSqlName(),
 				k -> new ConcurrentHashMap<>());
-		SqlCoverageReport sqlCoverage = map.computeIfAbsent(coverageData.getMd5(),
+		var sqlCoverage = map.computeIfAbsent(coverageData.getMd5(),
 				k -> new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
 						coverageData.getMd5(), this.reportDirPath, map.size()));
 
@@ -103,10 +102,10 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 		try {
 			Files.createDirectories(this.reportDirPath);
 			// copy resources
-			String packagePath = this.getClass().getPackage().getName().replace(".", "/");
+			var packagePath = this.getClass().getPackage().getName().replace(".", "/");
 			Stream.of("style.css", "jquery-3.2.0.min.js", "stupidtable.min.js", "highlight.pack.js", "sqlcov.js",
 					"icon.png").forEach(filename -> {
-						try (InputStream src = this.getClass().getClassLoader()
+						try (var src = this.getClass().getClassLoader()
 								.getResourceAsStream(packagePath + "/" + filename)) {
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
@@ -115,7 +114,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 						}
 					});
 			// write report
-			try (BufferedWriter writer = Files.newBufferedWriter(this.reportDirPath.resolve("index.html"),
+			try (var writer = Files.newBufferedWriter(this.reportDirPath.resolve("index.html"),
 					StandardCharsets.UTF_8)) {
 				writePrefix(writer);
 
@@ -140,15 +139,15 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				.collect(Collectors.toList());
 		for (SqlCoverageReport sqlCoverageReport : list) {
 
-			String htmlName = sqlCoverageReport.getName();
-			String linkName = sqlCoverageReport.getName();
-			int lineCount = sqlCoverageReport.getLineValidSize();
-			int lineCovered = sqlCoverageReport.getLineCoveredSize();
+			var htmlName = sqlCoverageReport.getName();
+			var linkName = sqlCoverageReport.getName();
+			var lineCount = sqlCoverageReport.getLineValidSize();
+			var lineCovered = sqlCoverageReport.getLineCoveredSize();
 
-			int branchesCount = sqlCoverageReport.getBranchValidSize();
-			int branchesCovered = sqlCoverageReport.getBranchCoveredSize();
+			var branchesCount = sqlCoverageReport.getBranchValidSize();
+			var branchesCovered = sqlCoverageReport.getBranchCoveredSize();
 
-			int lineCoveredPer = CoverageHandler.percent(lineCovered, lineCount);
+			var lineCoveredPer = CoverageHandler.percent(lineCovered, lineCount);
 
 			writer.append("<tr>");
 			writer.newLine();
@@ -205,23 +204,23 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	}
 
 	private void writeHeaderSection(final BufferedWriter writer) throws IOException {
-		int lineCount = coverages.values().stream()
+		var lineCount = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getLineValidSize)
 				.sum();
-		int lineCovered = coverages.values().stream()
+		var lineCovered = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getLineCoveredSize)
 				.sum();
 
-		int branchesCount = coverages.values().stream()
+		var branchesCount = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getBranchValidSize)
 				.sum();
-		int branchesCovered = coverages.values().stream()
+		var branchesCovered = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
 				.mapToInt(SqlCoverageReport::getBranchCoveredSize)

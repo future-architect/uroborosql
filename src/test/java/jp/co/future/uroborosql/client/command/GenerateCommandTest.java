@@ -39,7 +39,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -104,7 +104,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecuteWithVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		Properties props = new Properties();
+		var props = new Properties();
 		props.put("sql.versionColumnName", "lock_no");
 		props.put("sql.optimisticLockSupplier",
 				"jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier");
@@ -116,7 +116,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecuteWithoutVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		Properties props = new Properties();
+		var props = new Properties();
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
 		assertThat(trimWhitespace(out.toString()), is(
 				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF name != null */  , \"NAME\" = /*name*/'' /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" = /*lockNo*/'' /*END*/ WHERE   \"ID\" = /*id*/''"));

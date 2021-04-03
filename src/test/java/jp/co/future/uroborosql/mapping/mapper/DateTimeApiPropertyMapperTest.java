@@ -42,17 +42,17 @@ public class DateTimeApiPropertyMapperTest {
 
 	@Test
 	public void test() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
-		LocalDateTime localDateTime = LocalDateTime.now(this.clock).truncatedTo(ChronoUnit.MILLIS);
-		OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, OffsetDateTime.now(this.clock).getOffset());
-		ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, this.clock.getZone());
+		var mapper = new PropertyMapperManager(this.clock);
+		var localDateTime = LocalDateTime.now(this.clock).truncatedTo(ChronoUnit.MILLIS);
+		var offsetDateTime = OffsetDateTime.of(localDateTime, OffsetDateTime.now(this.clock).getOffset());
+		var zonedDateTime = ZonedDateTime.of(localDateTime, this.clock.getZone());
 
-		java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(localDateTime);
-		LocalDate localDate = localDateTime.toLocalDate();
-		java.sql.Date date = java.sql.Date.valueOf(localDate);
-		LocalTime localTime = localDateTime.toLocalTime();
-		java.sql.Time time = new java.sql.Time(toEpochMilli(localTime));
-		OffsetTime offsetTime = offsetDateTime.toOffsetTime();
+		var timestamp = java.sql.Timestamp.valueOf(localDateTime);
+		var localDate = localDateTime.toLocalDate();
+		var date = java.sql.Date.valueOf(localDate);
+		var localTime = localDateTime.toLocalTime();
+		var time = new java.sql.Time(toEpochMilli(localTime));
+		var offsetTime = offsetDateTime.toOffsetTime();
 
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class), newResultSet("getTimestamp", timestamp), 1),
 				is(localDateTime));
@@ -167,7 +167,7 @@ public class DateTimeApiPropertyMapperTest {
 
 	@Test
 	public void test2() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
+		var mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(Year.class), newResultSet("getInt", 2000), 1), is(Year.of(2000)));
 		assertThat(mapper.getValue(JavaType.of(Year.class), newResultSet("getInt", "2000"), 1), is(Year.of(2000)));
 		assertThat(mapper.getValue(JavaType.of(YearMonth.class), newResultSet("getInt", 200004), 1),
@@ -207,11 +207,11 @@ public class DateTimeApiPropertyMapperTest {
 
 	@Test
 	public void test3() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
+		var mapper = new PropertyMapperManager(this.clock);
 
-		LocalDate localDate = LocalDate.now(this.clock);
-		java.sql.Date date = java.sql.Date.valueOf(localDate);
-		JapaneseDate japaneseDate = JapaneseDate.of(localDate.getYear(), localDate.getMonthValue(),
+		var localDate = LocalDate.now(this.clock);
+		var date = java.sql.Date.valueOf(localDate);
+		var japaneseDate = JapaneseDate.of(localDate.getYear(), localDate.getMonthValue(),
 				localDate.getDayOfMonth());
 
 		assertThat(mapper.getValue(JavaType.of(JapaneseEra.class), newResultSet("getInt", 2), 1),
@@ -250,14 +250,14 @@ public class DateTimeApiPropertyMapperTest {
 	 * @return エポック1970-01-01T00:00:00Zからのミリ秒数
 	 */
 	private long toEpochMilli(final TemporalAccessor temporalAccessor) {
-		int year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
-		int month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
-		int dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
-		int hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
-		int minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
-		int second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
-		int milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
-		int nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
+		var year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
+		var month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
+		var dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
+		var hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
+		var minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
+		var second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
+		var milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
+		var nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
 		return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond,
 				clock.getZone()).toInstant().toEpochMilli();
 	}

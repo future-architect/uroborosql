@@ -42,12 +42,12 @@ public abstract class ReaderTestSupport {
 	}
 
 	protected void assertConsoleOutputContains(final String s) {
-		String output = out.toString();
+		var output = out.toString();
 		assertThat(output, containsString(s));
 	}
 
 	protected void assertConsoleOutputNotContains(final String s) {
-		String output = out.toString();
+		var output = out.toString();
 		assertThat(output, not(containsString(s)));
 	}
 
@@ -239,7 +239,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer back(final int n) {
-			for (int i = 0; i < n; i++) {
+			for (var i = 0; i < n; i++) {
 				op(BACKWARD_DELETE_CHAR);
 			}
 			return this;
@@ -250,7 +250,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer left(final int n) {
-			for (int i = 0; i < n; i++) {
+			for (var i = 0; i < n; i++) {
 				left();
 			}
 			return this;
@@ -261,7 +261,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer right(final int n) {
-			for (int i = 0; i < n; i++) {
+			for (var i = 0; i < n; i++) {
 				right();
 			}
 			return this;

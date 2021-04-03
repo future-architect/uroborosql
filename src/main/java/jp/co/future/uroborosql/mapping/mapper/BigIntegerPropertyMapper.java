@@ -27,7 +27,7 @@ public class BigIntegerPropertyMapper implements PropertyMapper<BigInteger> {
 	@Override
 	public BigInteger getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		String s = rs.getString(columnIndex);
+		var s = rs.getString(columnIndex);
 		return s != null ? new BigInteger(s) : null;
 	}
 

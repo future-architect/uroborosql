@@ -5,8 +5,6 @@ import static org.hamcrest.Matchers.*;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,9 +22,7 @@ import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
-import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -46,10 +42,10 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<BigDecimal> productIdList = new ArrayList<>();
 		productIdList.add(new BigDecimal("0"));
 		productIdList.add(new BigDecimal("2"));
-		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", productIdList)
+		var ctx = agent.contextFrom("example/select_product").param("product_id", productIdList)
 				.setSqlId("test_sql_id");
 
-		ResultSet rs = agent.query(ctx);
+		var rs = agent.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -69,11 +65,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product")
+		var ctx = agent.contextFrom("example/select_product")
 				.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
 				.setSqlId("test_sql_id");
 
-		ResultSet rs = agent.query(ctx);
+		var rs = agent.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -95,11 +91,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		Set<BigDecimal> params = new HashSet<>();
 		params.add(new BigDecimal("0"));
 		params.add(new BigDecimal("2"));
-		SqlContext ctx = agent.contextFrom("example/select_product")
+		var ctx = agent.contextFrom("example/select_product")
 				.param("product_id", params)
 				.setSqlId("test_sql_id");
 
-		ResultSet rs = agent.query(ctx);
+		var rs = agent.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -118,17 +114,17 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlFilterManager manager = config.getSqlFilterManager();
-		WrapContextSqlFilter filter = new WrapContextSqlFilter("",
+		var manager = config.getSqlFilterManager();
+		var filter = new WrapContextSqlFilter("",
 				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		manager.addSqlFilter(filter);
 
-		SqlContext ctx = agent.contextFrom("example/select_product")
+		var ctx = agent.contextFrom("example/select_product")
 				.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("1"))).param("startRowIndex", 0)
 				.param("maxRowCount", 1);
 
-		ResultSet rs = agent.query(ctx);
+		var rs = agent.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -147,17 +143,17 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlFilterManager manager = config.getSqlFilterManager();
+		var manager = config.getSqlFilterManager();
 		manager.addSqlFilter(new AbstractSqlFilter() {
 			@Override
 			public String doTransformSql(final SqlContext sqlContext, final String sql) {
-				String newSql = String.format("select * from (%s)", sql);
+				var newSql = String.format("select * from (%s)", sql);
 				return newSql;
 			}
 		});
 
-		SqlQuery query = agent.queryWith("select product_id from product");
-		List<Map<String, Object>> results = query.collect();
+		var query = agent.queryWith("select product_id from product");
+		var results = query.collect();
 		assertThat(query.context().getSql(), is("select * from (select product_id from product)"));
 		assertThat(results.size(), is(2));
 	}
@@ -170,7 +166,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Map<String, Object>> result = agent.queryWith(
+		var result = agent.queryWith(
 				"select * from product where product_name like /*SF.contains(product_name)*/ escape /*#ESC_CHAR*/")
 				.param("product_name", "商品")
 				.collect();
@@ -186,9 +182,9 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3));
+		var ctx = agent.contextFrom("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3));
 
-		ResultSet rs = agent.query(ctx);
+		var rs = agent.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -206,7 +202,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		ResultSet rs = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3)).resultSet();
+		var rs = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3)).resultSet();
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -224,11 +220,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Map<String, Object>> ans = agent.query("example/select_product")
+		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
 		assertThat(ans.size(), is(2));
-		Map<String, Object> map = ans.get(0);
+		var map = ans.get(0);
 		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
 		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
 		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
@@ -244,11 +240,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Map<String, Object>> ans = agent.query("example/select_product")
+		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(CaseFormat.LOWER_SNAKE_CASE);
 		assertThat(ans.size(), is(2));
-		Map<String, Object> map = ans.get(0);
+		var map = ans.get(0);
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
 		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
@@ -267,7 +263,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Product> ans = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(Product.class);
 		assertThat(ans.size(), is(2));
-		Product product = ans.get(0);
+		var product = ans.get(0);
 		assertThat(product.getProductId(), is(0));
 		assertThat(product.getProductName(), is("商品名0"));
 		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
@@ -290,11 +286,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		List<Map<String, Object>> ans = agent.query("example/select_product")
+		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
 		assertThat(ans.size(), is(2));
-		Map<String, Object> map = ans.get(0);
+		var map = ans.get(0);
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
 		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
@@ -316,7 +312,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNotFoundException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
+		var map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.first();
 		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
 		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
@@ -344,7 +340,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product")
+		var map = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.one();
 		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
@@ -375,7 +371,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNotFoundException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
+		var map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.first();
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
@@ -412,7 +408,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product")
+		var map = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.one();
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
@@ -430,11 +426,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3)).findFirst();
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
 		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
 		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
@@ -461,11 +457,11 @@ public class SqlQueryTest extends AbstractDbTest {
 			// OK
 		}
 
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0)).findOne();
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
 		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
 		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
@@ -491,11 +487,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3)).findFirst();
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
 		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
@@ -528,12 +524,12 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.findOne();
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
 		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
@@ -560,7 +556,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNotFoundException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
+		var map = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.first(CaseFormat.LOWER_SNAKE_CASE);
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
 		assertThat(map.get("product_name"), is("商品名0"));
@@ -593,7 +589,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Map<String, Object> map = agent.query("example/select_product")
+		var map = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.one(CaseFormat.LOWER_SNAKE_CASE);
 		assertThat(map.get("product_id"), is(new BigDecimal("0")));
@@ -611,11 +607,11 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3)).findFirst(CaseFormat.PASCAL_CASE);
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("ProductId"), is(new BigDecimal("0")));
 		assertThat(map.get("ProductName"), is("商品名0"));
 		assertThat(map.get("ProductKanaName"), is("ショウヒンメイゼロ"));
@@ -642,12 +638,12 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Optional<Map<String, Object>> optional = agent.query("example/select_product")
+		var optional = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.findOne(CaseFormat.PASCAL_CASE);
 		assertThat(optional.isPresent(), is(true));
 
-		Map<String, Object> map = optional.get();
+		var map = optional.get();
 		assertThat(map.get("ProductId"), is(new BigDecimal("0")));
 		assertThat(map.get("ProductName"), is("商品名0"));
 		assertThat(map.get("ProductKanaName"), is("ショウヒンメイゼロ"));
@@ -674,7 +670,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNotFoundException e) {
 			// OK
 		}
-		Product product = agent.query("example/select_product")
+		var product = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.first(Product.class);
 
@@ -699,7 +695,7 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		assertThat(optional.isPresent(), is(true));
 
-		Product product = optional.get();
+		var product = optional.get();
 
 		assertThat(product.getProductId(), is(0));
 		assertThat(product.getProductName(), is("商品名0"));
@@ -737,7 +733,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
-		Product product = agent.query("example/select_product")
+		var product = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0))
 				.one(Product.class);
 
@@ -769,7 +765,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findOne(Product.class);
 		assertThat(optional.isPresent(), is(true));
 
-		Product product = optional.get();
+		var product = optional.get();
 
 		assertThat(product.getProductId(), is(0));
 		assertThat(product.getProductName(), is("商品名0"));
@@ -792,21 +788,21 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product");
+		var ctx = agent.contextFrom("example/select_product");
 		ctx.param("product_id", Arrays.asList(0, 1));
 
-		agent.query(ctx, (rs) -> {
-			ResultSetMetaData rsmd = rs.getMetaData();
+		agent.query(ctx, rs -> {
+			var rsmd = rs.getMetaData();
 
-			int columnCount = rsmd.getColumnCount();
+			var columnCount = rsmd.getColumnCount();
 
 			Map<String, String> record = new LinkedHashMap<>(columnCount);
 
-			for (int i = 1; i <= columnCount; i++) {
+			for (var i = 1; i <= columnCount; i++) {
 				record.put(rsmd.getColumnLabel(i), rs.getString(i));
 			}
 			return record;
-		}).forEach((m) -> {
+		}).forEach(m -> {
 			assertThat(m.containsKey("PRODUCT_ID"), is(true));
 			assertThat(m.containsKey("PRODUCT_NAME"), is(true));
 			assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
@@ -827,7 +823,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
-				.stream().forEach((m) -> {
+				.stream().forEach(m -> {
 					assertThat(m.containsKey("PRODUCT_ID"), is(true));
 					assertThat(m.containsKey("PRODUCT_NAME"), is(true));
 					assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
@@ -851,7 +847,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
-				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach((m) -> {
+				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach(m -> {
 					assertThat(m.containsKey("product_id"), is(true));
 					assertThat(m.containsKey("product_name"), is(true));
 					assertThat(m.containsKey("product_kana_name"), is(true));
@@ -881,7 +877,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent = config.agent();
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
-				.stream().forEach((m) -> {
+				.stream().forEach(m -> {
 					assertThat(m.containsKey("product_id"), is(true));
 					assertThat(m.containsKey("product_name"), is(true));
 					assertThat(m.containsKey("product_kana_name"), is(true));
@@ -903,13 +899,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		ProductSearchBean bean = new ProductSearchBean();
+		var bean = new ProductSearchBean();
 		bean.setProductIds(Arrays.asList(0, 1));
 		bean.setProductName("商品");
 
 		agent.query("example/select_product_param_camel")
 				.paramBean(bean)
-				.stream().forEach((m) -> {
+				.stream().forEach(m -> {
 					assertThat(m.containsKey("PRODUCT_ID"), is(true));
 					assertThat(m.containsKey("PRODUCT_NAME"), is(true));
 					assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
@@ -957,13 +953,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/select_product");
+		var ctx = agent.contextFrom("example/select_product");
 		ctx.param("product_id", Arrays.asList(0, 1));
 
-		List<Map<String, Object>> ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
+		var ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
 		assertThat(ans.size(), is(2));
 
-		ans.forEach((m) -> {
+		ans.forEach(m -> {
 			assertThat(m.containsKey("productId"), is(true));
 			assertThat(m.containsKey("productName"), is(true));
 			assertThat(m.containsKey("productKanaName"), is(true));
@@ -974,12 +970,12 @@ public class SqlQueryTest extends AbstractDbTest {
 			assertThat(m.containsKey("versionNo"), is(true));
 		});
 
-		SqlContext ctx2 = agent.contextFrom("example/select_product");
+		var ctx2 = agent.contextFrom("example/select_product");
 		ctx2.param("product_id", Arrays.asList(0, 1));
 
-		List<Map<String, Object>> ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
+		var ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
 		assertThat(ans2.size(), is(2));
-		ans2.forEach((m) -> {
+		ans2.forEach(m -> {
 			assertThat(m.containsKey("PRODUCT_ID"), is(true));
 			assertThat(m.containsKey("PRODUCT_NAME"), is(true));
 			assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
@@ -1002,7 +998,7 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
-				.forEach((m) -> {
+				.forEach(m -> {
 					try {
 						agent.update("example/insert_product_regist_work").paramMap(m).count();
 					} catch (Exception e) {
@@ -1010,7 +1006,7 @@ public class SqlQueryTest extends AbstractDbTest {
 					}
 				});
 
-		List<Map<String, Object>> collect = agent.queryWith("select * from product_regist_work").collect();
+		var collect = agent.queryWith("select * from product_regist_work").collect();
 		assertThat(collect.size(), is(2));
 	}
 
@@ -1020,7 +1016,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	@Test
 	public void testNotFoundFile() throws Exception {
 		try {
-			SqlContext ctx = agent.contextFrom("file");
+			var ctx = agent.contextFrom("file");
 			agent.query(ctx);
 			// 例外が発生しなかった場合
 			assertThat("Fail here.", false);

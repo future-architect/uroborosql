@@ -37,7 +37,7 @@ public class DriverCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -56,7 +56,7 @@ public class DriverCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "driver".split("\\s+"), sqlConfig, new Properties());
+		var flag = command.execute(reader, "driver".split("\\s+"), sqlConfig, new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("org.h2.Driver");
 	}

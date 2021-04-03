@@ -6,9 +6,6 @@
  */
 package jp.co.future.uroborosql.client.completer;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -48,20 +45,20 @@ public class TableNameCompleter extends AbstractCompleter {
 	 */
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
-		String buffer = line.line().substring(0, line.cursor());
-		String[] parts = getLineParts(buffer);
-		int len = parts.length;
+		var buffer = line.line().substring(0, line.cursor());
+		var parts = getLineParts(buffer);
+		var len = parts.length;
 
 		// コード補完する引数の番号を特定。
-		int startArgNo = getStartArgNo(line);
+		var startArgNo = getStartArgNo(line);
 
 		// 対象引数が-1、または開始引数にlenが満たない場合は該当なしなのでコード補完しない
 		if (!accept(startArgNo, buffer, len)) {
 			return;
 		}
 
-		boolean isBlank = buffer.endsWith(" ");
-		String tableNamePattern = "%";
+		var isBlank = buffer.endsWith(" ");
+		var tableNamePattern = "%";
 		if (len == startArgNo && isBlank) {
 			tableNamePattern = "%";
 		} else if (len == startArgNo + 1 && !isBlank) {
@@ -71,16 +68,16 @@ public class TableNameCompleter extends AbstractCompleter {
 		}
 
 		try {
-			Connection conn = connectionSupplier.getConnection();
-			DatabaseMetaData md = conn.getMetaData();
-			try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
+			var conn = connectionSupplier.getConnection();
+			var md = conn.getMetaData();
+			try (var rs = md.getTables(conn.getCatalog(), conn.getSchema(),
 					tableNamePattern.toUpperCase(), null)) {
 				while (rs.next()) {
 					candidates.add(new Candidate(rs.getString("TABLE_NAME")));
 				}
 			}
 			if (candidates.isEmpty()) {
-				try (ResultSet rs = md.getTables(conn.getCatalog(), conn.getSchema(),
+				try (var rs = md.getTables(conn.getCatalog(), conn.getSchema(),
 						tableNamePattern.toLowerCase(), null)) {
 					while (rs.next()) {
 						candidates.add(new Candidate(rs.getString("TABLE_NAME")));

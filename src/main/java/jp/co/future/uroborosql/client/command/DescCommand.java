@@ -6,11 +6,7 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,24 +48,24 @@ public class DescCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 
-		String tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
+		var tableNamePattern = parts.length > 1 ? parts[parts.length - 1] : "%";
 
 		try {
-			Connection conn = sqlConfig.getConnectionSupplier().getConnection();
-			DatabaseMetaData md = conn.getMetaData();
+			var conn = sqlConfig.getConnectionSupplier().getConnection();
+			var md = conn.getMetaData();
 
 			List<Map<String, String>> columns = new ArrayList<>();
 			Map<String, Integer> labelLength = new HashMap<>();
 			for (String label : DESC_COLUMN_LABELS) {
 				labelLength.put(label, label.length());
 			}
-			try (ResultSet rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
+			try (var rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
 				while (rs.next()) {
 					Map<String, String> column = new HashMap<>();
 					for (String label : DESC_COLUMN_LABELS) {
-						final String value = Objects.toString(rs.getString(label), "");
+						final var value = Objects.toString(rs.getString(label), "");
 						column.put(label, value);
 						labelLength.compute(
 								label,
@@ -95,7 +91,7 @@ public class DescCommand extends ReplCommand {
 			writer.println();
 			// カラムデータ
 			String tableName = null;
-			boolean breakFlag = false;
+			var breakFlag = false;
 			for (Map<String, String> column : columns) {
 				if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
 					tableName = column.get("TABLE_NAME");
@@ -113,7 +109,7 @@ public class DescCommand extends ReplCommand {
 
 				writer.print("|");
 				for (String label : DESC_COLUMN_LABELS) {
-					String val = column.get(label);
+					var val = column.get(label);
 					if (StringUtils.isNumeric(val)) {
 						writer.print(StringUtils.leftPad(val, labelLength.get(label)));
 					} else {
@@ -147,7 +143,7 @@ public class DescCommand extends ReplCommand {
 		if (val == null) {
 			return 0;
 		}
-		String str = val.toString();
+		var str = val.toString();
 		try {
 			return str.getBytes(System.getProperty("file.encoding")).length;
 		} catch (UnsupportedEncodingException ex) {

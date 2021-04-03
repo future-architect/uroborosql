@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 
@@ -11,7 +11,7 @@ public class RangesTest {
 
 	@Test
 	public void testNew() {
-		Ranges ranges = new Ranges(Arrays.asList(
+		var ranges = new Ranges(Arrays.asList(
 				new Range(2, 3),
 				new Range(4, 5)));
 		assertThat(ranges, is(new Ranges(2, 5)));
@@ -19,7 +19,7 @@ public class RangesTest {
 
 	@Test
 	public void testToString() {
-		Ranges ranges = new Ranges(Arrays.asList(
+		var ranges = new Ranges(Arrays.asList(
 				new Range(2, 3),
 				new Range(5, 6)));
 		assertThat(ranges.toString(), is("[[2..3], [5..6]]"));
@@ -27,7 +27,7 @@ public class RangesTest {
 
 	@Test
 	public void testMinus() {
-		Ranges ranges = new Ranges(0, 10);
+		var ranges = new Ranges(0, 10);
 		ranges.minus(Arrays.asList(
 				new Range(2, 3),
 				new Range(6, 6)));
@@ -65,7 +65,7 @@ public class RangesTest {
 
 	@Test
 	public void testIntersect() {
-		Ranges ranges = new Ranges(Arrays.asList(
+		var ranges = new Ranges(Arrays.asList(
 				new Range(0, 1),
 				new Range(3, 5),
 				new Range(7, 10)));

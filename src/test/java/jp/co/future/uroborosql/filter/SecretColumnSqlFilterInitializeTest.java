@@ -2,16 +2,16 @@ package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+
 import java.sql.DriverManager;
 import java.util.Arrays;
-import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.testlog.TestAppender;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 public class SecretColumnSqlFilterInitializeTest {
 	private SqlConfig config;
@@ -47,7 +47,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize02() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(null);
 			sqlFilterManager.initialize();
 		});
@@ -58,7 +58,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize03() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
 					"src/test/resources/data/expected/SecretColumnSqlFilter/fake.jks");
 			sqlFilterManager.initialize();
@@ -71,7 +71,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize04() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
 					"src/test/resources/data/expected/SecretColumnSqlFilter");
 			sqlFilterManager.initialize();
@@ -84,7 +84,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize05() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
@@ -101,7 +101,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize06() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128

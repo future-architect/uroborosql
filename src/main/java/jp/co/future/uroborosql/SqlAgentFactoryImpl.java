@@ -227,7 +227,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 */
 	@Override
 	public List<String> getSqlRetryCodeList() {
-		String codes = settings.get(PROPS_KEY_SQL_RETRY_CODES);
+		var codes = settings.get(PROPS_KEY_SQL_RETRY_CODES);
 		if (codes == null) {
 			return Collections.emptyList();
 		} else {

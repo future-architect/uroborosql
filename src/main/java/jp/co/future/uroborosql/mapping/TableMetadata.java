@@ -6,9 +6,6 @@
  */
 package jp.co.future.uroborosql.mapping;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -186,7 +183,7 @@ public interface TableMetadata {
 	 * @return テーブル識別名
 	 */
 	default String getTableIdentifier() {
-		String identifierQuoteString = getIdentifierQuoteString();
+		var identifierQuoteString = getIdentifierQuoteString();
 		if (StringUtils.isEmpty(identifierQuoteString)) {
 			identifierQuoteString = "";
 		}
@@ -237,18 +234,18 @@ public interface TableMetadata {
 	static TableMetadata createTableEntityMetadata(final ConnectionManager connectionManager, final Table table)
 			throws SQLException {
 
-		Connection connection = connectionManager.getConnection();
-		DatabaseMetaData metaData = connection.getMetaData();
+		var connection = connectionManager.getConnection();
+		var metaData = connection.getMetaData();
 
-		String schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema() : connection.getSchema();
-		String tableName = table.getName();
-		String identifierQuoteString = metaData.getIdentifierQuoteString();
+		var schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema() : connection.getSchema();
+		var tableName = table.getName();
+		var identifierQuoteString = metaData.getIdentifierQuoteString();
 
-		TableMetadataImpl entityMetadata = new TableMetadataImpl();
+		var entityMetadata = new TableMetadataImpl();
 
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
 
-		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
+		var tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
 		while (tryCount < 2 && columns.isEmpty()) {
 			tryCount++;
 			if (tryCount == 2) {
@@ -269,31 +266,31 @@ public interface TableMetadata {
 			String versionColumnName = null;
 			Class<? extends OptimisticLockSupplier> optimisticLockType = null;
 			if (table instanceof MetaTable) {
-				MetaTable metaTable = (MetaTable) table;
+				var metaTable = (MetaTable) table;
 				versionColumnName = metaTable.getVersionColumnName();
 				optimisticLockType = metaTable.getOptimisticLockType();
 			}
 
-			try (ResultSet rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
+			try (var rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
 				while (rs.next()) {
-					String columnName = rs.getString("COLUMN_NAME");
-					int sqlType = rs.getInt("DATA_TYPE");
+					var columnName = rs.getString("COLUMN_NAME");
+					var sqlType = rs.getInt("DATA_TYPE");
 					// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
 					if (sqlType == java.sql.Types.DISTINCT) {
 						sqlType = rs.getInt("SOURCE_DATA_TYPE");
 					}
-					String remarks = rs.getString("REMARKS");
+					var remarks = rs.getString("REMARKS");
 					if (remarks != null) {
 						remarks = NEWLINE_CHARS_PATTERN.matcher(remarks).replaceAll(" ");
 					}
-					String isNullable = rs.getString("IS_NULLABLE");
-					String isAutoincrement = rs.getString("IS_AUTOINCREMENT");
-					boolean isVersion = columnName.equalsIgnoreCase(versionColumnName);
-					int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+					var isNullable = rs.getString("IS_NULLABLE");
+					var isAutoincrement = rs.getString("IS_AUTOINCREMENT");
+					var isVersion = columnName.equalsIgnoreCase(versionColumnName);
+					var ordinalPosition = rs.getInt("ORDINAL_POSITION");
 
-					int columnSize = rs.getInt("COLUMN_SIZE");
+					var columnSize = rs.getInt("COLUMN_SIZE");
 
-					TableMetadataImpl.Column column = new TableMetadataImpl.Column(columnName,
+					var column = new TableMetadataImpl.Column(columnName,
 							sqlType,
 							columnSize,
 							remarks,
@@ -315,10 +312,10 @@ public interface TableMetadata {
 		} else {
 			entityMetadata.setIdentifierQuoteString("");
 		}
-		try (ResultSet rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
+		try (var rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
 			while (rs.next()) {
-				String columnName = rs.getString(4);
-				short keySeq = rs.getShort(5);
+				var columnName = rs.getString(4);
+				var keySeq = rs.getShort(5);
 				columns.get(columnName).setKeySeq(keySeq);
 			}
 		}

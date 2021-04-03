@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.utils;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 

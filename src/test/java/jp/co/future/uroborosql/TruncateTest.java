@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +43,7 @@ public class TruncateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		List<Product> products = agent.query(Product.class).collect();
+		var products = agent.query(Product.class).collect();
 		assertThat(products.isEmpty(), is(false));
 
 		products = agent.truncate(Product.class).query(Product.class).collect();

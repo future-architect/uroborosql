@@ -39,7 +39,7 @@ public class UpdateCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -59,7 +59,7 @@ public class UpdateCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader,
+		var flag = command.execute(reader,
 				"update example/insert_product product_id=111 product_name=name product_kana_name=kana product_description=desc jan_code=111111 ins_datetime='2019-01-01T01:01:01' upd_datetime='2019-01-01T01:01:01' version_no=1"
 						.split("\\s+"),
 				sqlConfig,

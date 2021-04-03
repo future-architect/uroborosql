@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.node;
 
 import jp.co.future.uroborosql.expr.Expression;
 import jp.co.future.uroborosql.expr.ExpressionParser;
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
@@ -72,7 +71,7 @@ public abstract class ExpressionNode extends AbstractNode {
 		Object value = null;
 		if (isPropertyAccess(expression)) {
 			// キーの指定の場合は高速化のため、直接TransformContextから取得
-			Parameter parameter = transformContext.getParam(expression);
+			var parameter = transformContext.getParam(expression);
 			if (parameter != null) {
 				value = parameter.getValue();
 			}

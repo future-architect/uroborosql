@@ -32,7 +32,7 @@ public class BeginNode extends BranchNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		TransformContext childCtx = transformContext.copyTransformContext();
+		var childCtx = transformContext.copyTransformContext();
 		super.accept(childCtx);
 		if (childCtx.isEnabled()) {
 			transformContext.addSqlPart(childCtx.getExecutableSql());

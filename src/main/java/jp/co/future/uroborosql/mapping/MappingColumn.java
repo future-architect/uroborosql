@@ -83,11 +83,11 @@ public interface MappingColumn {
 	 * @return {@link SequenceGenerator} をもとに修飾したシーケンス名
 	 */
 	default String getQualifiedSequenceName() {
-		SequenceGenerator generator = getSequenceGenerator();
+		var generator = getSequenceGenerator();
 		if (generator == null) {
 			return "";
 		}
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		if (!"".equals(generator.catalog())) {
 			builder.append(generator.catalog()).append(".");
 		}

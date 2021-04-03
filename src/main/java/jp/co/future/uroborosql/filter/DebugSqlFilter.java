@@ -73,14 +73,14 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
 		if (LOG.isDebugEnabled()) {
-			int[] counts = result;
+			var counts = result;
 			try {
 				counts = new int[] { preparedStatement.getUpdateCount() };
 			} catch (SQLException ex) {
 				ex.printStackTrace();
 			}
 
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			for (int val : counts) {
 				builder.append(val).append(", ");
 			}

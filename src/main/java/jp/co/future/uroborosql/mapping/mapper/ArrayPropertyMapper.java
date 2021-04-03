@@ -26,18 +26,18 @@ public class ArrayPropertyMapper implements PropertyMapper<Object> {
 	@Override
 	public boolean canAcceptTest(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		java.sql.Array array = rs.getArray(columnIndex);
+		var array = rs.getArray(columnIndex);
 		if (array == null) {
 			return true;
 		}
-		Object o = array.getArray();
+		var o = array.getArray();
 		return type.getRawType().isInstance(o);
 	}
 
 	@Override
 	public Object getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		java.sql.Array array = rs.getArray(columnIndex);
+		var array = rs.getArray(columnIndex);
 		if (array == null) {
 			return null;
 		}

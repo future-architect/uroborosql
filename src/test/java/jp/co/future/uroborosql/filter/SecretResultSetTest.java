@@ -16,17 +16,15 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.fluent.SqlQuery;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class SecretResultSetTest {
 
@@ -53,8 +51,8 @@ public class SecretResultSetTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.setSqlFilterManager(sqlFilterManager.addSqlFilter(filter)).build();
 
-		try (SqlAgent agent = config.agent()) {
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (var agent = config.agent()) {
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -70,8 +68,8 @@ public class SecretResultSetTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			LocalDateTime dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
+		try (var agent = config.agent()) {
+			var dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
 
 			agent.updateWith("truncate table PRODUCT").count();
 			agent.update("example/insert_product")
@@ -94,8 +92,8 @@ public class SecretResultSetTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testQuery() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			try (ResultSet rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
+		try (var agent = config.agent()) {
+			try (var rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
 				assertThat(rs.next(), is(true));
 				assertThat(rs.getString("PRODUCT_ID"), is("1"));
 				assertThat(rs.getString(1), is("1"));
@@ -173,10 +171,10 @@ public class SecretResultSetTest {
 
 	@Test
 	public void testUpdate() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			SqlQuery query = agent.query("example/select_product").param("product_id", 1);
+		try (var agent = config.agent()) {
+			var query = agent.query("example/select_product").param("product_id", 1);
 			query.context().setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-			try (ResultSet rs = query.resultSet()) {
+			try (var rs = query.resultSet()) {
 				assertThat(rs.next(), is(true));
 				rs.updateNull("PRODUCT_KANA_NAME");
 				rs.updateNull(2);
@@ -267,7 +265,7 @@ public class SecretResultSetTest {
 
 	@Test
 	public void testIsClose() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			ResultSet rs = null;
 			try {
 				rs = agent.query("example/select_product").param("product_id", 1).resultSet();

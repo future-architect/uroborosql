@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 
@@ -35,7 +34,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
@@ -47,7 +46,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product").collect();
 		}
@@ -65,7 +64,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
@@ -77,7 +76,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}
@@ -94,7 +93,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentFactory().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
@@ -107,7 +106,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}

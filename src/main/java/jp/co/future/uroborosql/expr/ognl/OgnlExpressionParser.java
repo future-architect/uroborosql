@@ -98,15 +98,15 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 		 */
 		@Override
 		public StringBuilder dumpNode(final Object context) {
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			if (expression != null) {
 				Set<ASTProperty> props = new LinkedHashSet<>();
 				traverseNode((Node) expression, props);
 				for (ASTProperty prop : props) {
-					String propName = prop.toString();
+					var propName = prop.toString();
 					if (!StringFunction.SHORT_NAME.equals(propName)) {
 						try {
-							Object value = Ognl.getValue(prop, context, null);
+							var value = Ognl.getValue(prop, context, null);
 							builder.append(propName)
 									.append(":[")
 									.append(Objects.toString(value, null))
@@ -131,7 +131,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 			Set<ASTProperty> props = new LinkedHashSet<>();
 			traverseNode((Node) expression, props);
 			for (ASTProperty prop : props) {
-				String propName = prop.toString();
+				var propName = prop.toString();
 				if (!StringFunction.SHORT_NAME.equals(propName)) {
 					params.add(propName);
 				}
@@ -149,12 +149,12 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 				return;
 			}
 			if (node instanceof ASTProperty) {
-				ASTProperty prop = (ASTProperty) node;
+				var prop = (ASTProperty) node;
 				props.add(prop);
 			} else {
-				int childCount = node.jjtGetNumChildren();
-				for (int i = 0; i < childCount; i++) {
-					Node child = node.jjtGetChild(i);
+				var childCount = node.jjtGetNumChildren();
+				for (var i = 0; i < childCount; i++) {
+					var child = node.jjtGetChild(i);
 					traverseNode(child, props);
 				}
 			}

@@ -22,7 +22,6 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.parameter.ReaderParameter;
 import jp.co.future.uroborosql.parameter.StreamParameter;
-import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
@@ -35,8 +34,8 @@ public class SqlContextImplTest {
 	}
 
 	private SqlContext getSqlContext(final String sql) {
-		String s = replaceLineSep(sql);
-		SqlContext ctx = config.contextWith(s);
+		var s = replaceLineSep(sql);
+		var ctx = config.contextWith(s);
 		ctx.addSqlPart(s);
 		return ctx;
 	}
@@ -47,69 +46,69 @@ public class SqlContextImplTest {
 
 	@Test
 	public void removeFirstAndKeyWordWhenWhereClause() throws Exception {
-		SqlContext ctx11 = getSqlContext("select * from test where[LF][LF][LF] and aaa = 1");
+		var ctx11 = getSqlContext("select * from test where[LF][LF][LF] and aaa = 1");
 		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test where[LF] aaa = 1")));
-		SqlContext ctx12 = getSqlContext("select * from test[LF]where[LF][LF][LF] and aaa = 1");
+		var ctx12 = getSqlContext("select * from test[LF]where[LF][LF][LF] and aaa = 1");
 		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF] aaa = 1")));
 
-		SqlContext ctx21 = getSqlContext("select * from test where[LF]      and aaa = 1");
+		var ctx21 = getSqlContext("select * from test where[LF]      and aaa = 1");
 		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test where[LF]      aaa = 1")));
-		SqlContext ctx22 = getSqlContext("select * from test[LF]where[LF]      and aaa = 1");
+		var ctx22 = getSqlContext("select * from test[LF]where[LF]      and aaa = 1");
 		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF]      aaa = 1")));
 
-		SqlContext ctx31 = getSqlContext("select * from test where /* comment */ and aaa = 1");
+		var ctx31 = getSqlContext("select * from test where /* comment */ and aaa = 1");
 		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test where /* comment */ aaa = 1")));
-		SqlContext ctx32 = getSqlContext("select * from test[LF]where /* comment */ and aaa = 1");
+		var ctx32 = getSqlContext("select * from test[LF]where /* comment */ and aaa = 1");
 		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* comment */ aaa = 1")));
 
-		SqlContext ctx41 = getSqlContext("select * from test where -- /* comment */  [LF] and aaa = 1");
+		var ctx41 = getSqlContext("select * from test where -- /* comment */  [LF] and aaa = 1");
 		assertThat(ctx41.getExecutableSql(),
 				is(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1")));
-		SqlContext ctx42 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
+		var ctx42 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
 		assertThat(ctx42.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] aaa = 1")));
 
-		SqlContext ctx51 = getSqlContext("select * from test where -- /* comment */  [LF] order = 1");
+		var ctx51 = getSqlContext("select * from test where -- /* comment */  [LF] order = 1");
 		assertThat(ctx51.getExecutableSql(),
 				is(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1")));
-		SqlContext ctx52 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] order = 1");
+		var ctx52 = getSqlContext("select * from test[LF]where -- /* comment */  [LF] order = 1");
 		assertThat(ctx52.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] order = 1")));
 
-		SqlContext ctx61 = getSqlContext("select * from test where /* comment */ --comment [LF] order = 1");
+		var ctx61 = getSqlContext("select * from test where /* comment */ --comment [LF] order = 1");
 		assertThat(ctx61.getExecutableSql(),
 				is(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1")));
-		SqlContext ctx62 = getSqlContext("select * from test[LF]where /* comment */ --comment [LF] order = 1");
+		var ctx62 = getSqlContext("select * from test[LF]where /* comment */ --comment [LF] order = 1");
 		assertThat(ctx62.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenSelectClause() throws Exception {
-		SqlContext ctx1 = getSqlContext("select ,aaa,bbb,ccc from test");
+		var ctx1 = getSqlContext("select ,aaa,bbb,ccc from test");
 		assertThat(ctx1.getExecutableSql(), is(replaceLineSep("select aaa,bbb,ccc from test")));
 
-		SqlContext ctx2 = getSqlContext("select , aaa, bbb, ccc from test");
+		var ctx2 = getSqlContext("select , aaa, bbb, ccc from test");
 		assertThat(ctx2.getExecutableSql(), is(replaceLineSep("select  aaa, bbb, ccc from test")));
 
-		SqlContext ctx3 = getSqlContext("select[LF], aaa[LF], bbb[LF], ccc from test");
+		var ctx3 = getSqlContext("select[LF], aaa[LF], bbb[LF], ccc from test");
 		assertThat(ctx3.getExecutableSql(), is(replaceLineSep("select[LF] aaa[LF], bbb[LF], ccc from test")));
 
-		SqlContext ctx4 = getSqlContext("select /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		var ctx4 = getSqlContext("select /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
 		assertThat(ctx4.getExecutableSql(),
 				is(replaceLineSep("select /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
-		SqlContext ctx5 = getSqlContext("select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		var ctx5 = getSqlContext("select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
 		assertThat(ctx5.getExecutableSql(),
 				is(replaceLineSep("select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
-		SqlContext ctx6 = getSqlContext(
+		var ctx6 = getSqlContext(
 				"with dummy as ( select * from dummy ) select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
 		assertThat(ctx6.getExecutableSql(),
 				is(replaceLineSep(
 						"with dummy as ( select * from dummy ) select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
-		SqlContext ctx7 = getSqlContext(
+		var ctx7 = getSqlContext(
 				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
 		assertThat(ctx7.getExecutableSql(), is(replaceLineSep(
 				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
@@ -117,121 +116,121 @@ public class SqlContextImplTest {
 
 	@Test
 	public void removeFirstCommaWhenOrderByClause() throws Exception {
-		SqlContext ctx11 = getSqlContext("select * from test order by ,aaa, bbb");
+		var ctx11 = getSqlContext("select * from test order by ,aaa, bbb");
 		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test order by aaa, bbb")));
-		SqlContext ctx12 = getSqlContext("select * from test[LF]order by ,aaa, bbb");
+		var ctx12 = getSqlContext("select * from test[LF]order by ,aaa, bbb");
 		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by aaa, bbb")));
 
-		SqlContext ctx21 = getSqlContext("select * from test order by , aaa, bbb");
+		var ctx21 = getSqlContext("select * from test order by , aaa, bbb");
 		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test order by  aaa, bbb")));
-		SqlContext ctx22 = getSqlContext("select * from test[LF]order by , aaa, bbb");
+		var ctx22 = getSqlContext("select * from test[LF]order by , aaa, bbb");
 		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by  aaa, bbb")));
 
-		SqlContext ctx31 = getSqlContext("select * from test order by[LF], aaa, bbb");
+		var ctx31 = getSqlContext("select * from test order by[LF], aaa, bbb");
 		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test order by[LF] aaa, bbb")));
-		SqlContext ctx32 = getSqlContext("select * from test[LF]order by[LF], aaa, bbb");
+		var ctx32 = getSqlContext("select * from test[LF]order by[LF], aaa, bbb");
 		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by[LF] aaa, bbb")));
 
-		SqlContext ctx41 = getSqlContext("select * from test order by /* comment */[LF], aaa, bbb");
+		var ctx41 = getSqlContext("select * from test order by /* comment */[LF], aaa, bbb");
 		assertThat(ctx41.getExecutableSql(),
 				is(replaceLineSep("select * from test order by /* comment */[LF] aaa, bbb")));
-		SqlContext ctx42 = getSqlContext("select * from test[LF]order by /* comment */[LF], aaa, bbb");
+		var ctx42 = getSqlContext("select * from test[LF]order by /* comment */[LF], aaa, bbb");
 		assertThat(ctx42.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]order by /* comment */[LF] aaa, bbb")));
 
-		SqlContext ctx51 = getSqlContext("select * from test order by --/* comment */[LF], aaa, bbb");
+		var ctx51 = getSqlContext("select * from test order by --/* comment */[LF], aaa, bbb");
 		assertThat(ctx51.getExecutableSql(),
 				is(replaceLineSep("select * from test order by --/* comment */[LF] aaa, bbb")));
-		SqlContext ctx52 = getSqlContext("select * from test[LF]order by --/* comment */[LF], aaa, bbb");
+		var ctx52 = getSqlContext("select * from test[LF]order by --/* comment */[LF], aaa, bbb");
 		assertThat(ctx52.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]order by --/* comment */[LF] aaa, bbb")));
 
-		SqlContext ctx61 = getSqlContext("select * from test order     by --/* comment */[LF], aaa, bbb");
+		var ctx61 = getSqlContext("select * from test order     by --/* comment */[LF], aaa, bbb");
 		assertThat(ctx61.getExecutableSql(),
 				is(replaceLineSep("select * from test order     by --/* comment */[LF] aaa, bbb")));
-		SqlContext ctx62 = getSqlContext("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
+		var ctx62 = getSqlContext("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
 		assertThat(ctx62.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenGroupByClause() throws Exception {
-		SqlContext ctx11 = getSqlContext("select * from test group by ,aaa, bbb");
+		var ctx11 = getSqlContext("select * from test group by ,aaa, bbb");
 		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test group by aaa, bbb")));
-		SqlContext ctx12 = getSqlContext("select * from test[LF]group by ,aaa, bbb");
+		var ctx12 = getSqlContext("select * from test[LF]group by ,aaa, bbb");
 		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by aaa, bbb")));
 
-		SqlContext ctx21 = getSqlContext("select * from test group by , aaa, bbb");
+		var ctx21 = getSqlContext("select * from test group by , aaa, bbb");
 		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test group by  aaa, bbb")));
-		SqlContext ctx22 = getSqlContext("select * from test[LF]group by , aaa, bbb");
+		var ctx22 = getSqlContext("select * from test[LF]group by , aaa, bbb");
 		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by  aaa, bbb")));
 
-		SqlContext ctx31 = getSqlContext("select * from test group by[LF], aaa, bbb");
+		var ctx31 = getSqlContext("select * from test group by[LF], aaa, bbb");
 		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test group by[LF] aaa, bbb")));
-		SqlContext ctx32 = getSqlContext("select * from test[LF]group by[LF], aaa, bbb");
+		var ctx32 = getSqlContext("select * from test[LF]group by[LF], aaa, bbb");
 		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by[LF] aaa, bbb")));
 
-		SqlContext ctx41 = getSqlContext("select * from test group by /* comment */  [LF], aaa, bbb");
+		var ctx41 = getSqlContext("select * from test group by /* comment */  [LF], aaa, bbb");
 		assertThat(ctx41.getExecutableSql(),
 				is(replaceLineSep("select * from test group by /* comment */  [LF] aaa, bbb")));
-		SqlContext ctx42 = getSqlContext("select * from test[LF]group by /* comment */  [LF], aaa, bbb");
+		var ctx42 = getSqlContext("select * from test[LF]group by /* comment */  [LF], aaa, bbb");
 		assertThat(ctx42.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]group by /* comment */  [LF] aaa, bbb")));
 
-		SqlContext ctx51 = getSqlContext("select * from test group by /* comment */ --aaa[LF], aaa, bbb");
+		var ctx51 = getSqlContext("select * from test group by /* comment */ --aaa[LF], aaa, bbb");
 		assertThat(ctx51.getExecutableSql(),
 				is(replaceLineSep("select * from test group by /* comment */ --aaa[LF] aaa, bbb")));
-		SqlContext ctx52 = getSqlContext("select * from test[LF]group by /* comment */ --aaa[LF], aaa, bbb");
+		var ctx52 = getSqlContext("select * from test[LF]group by /* comment */ --aaa[LF], aaa, bbb");
 		assertThat(ctx52.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]group by /* comment */ --aaa[LF] aaa, bbb")));
 
-		SqlContext ctx61 = getSqlContext("select * from test group     by /* comment */ --aaa[LF], aaa, bbb");
+		var ctx61 = getSqlContext("select * from test group     by /* comment */ --aaa[LF], aaa, bbb");
 		assertThat(ctx61.getExecutableSql(),
 				is(replaceLineSep("select * from test group     by /* comment */ --aaa[LF] aaa, bbb")));
-		SqlContext ctx62 = getSqlContext("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
+		var ctx62 = getSqlContext("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
 		assertThat(ctx62.getExecutableSql(),
 				is(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb")));
 	}
 
 	@Test
 	public void removeFirstCommaWhenStartBracket() throws Exception {
-		SqlContext ctx11 = getSqlContext("insert into (,aaa,bbb,ccc) values (,111,222,333)");
+		var ctx11 = getSqlContext("insert into (,aaa,bbb,ccc) values (,111,222,333)");
 		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)")));
-		SqlContext ctx12 = getSqlContext("insert into[LF](,aaa,bbb,ccc) values (,111,222,333)");
+		var ctx12 = getSqlContext("insert into[LF](,aaa,bbb,ccc) values (,111,222,333)");
 		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("insert into[LF](aaa,bbb,ccc) values (111,222,333)")));
 
-		SqlContext ctx21 = getSqlContext("insert into (, aaa, bbb, ccc) values (,111 ,222 ,333)");
+		var ctx21 = getSqlContext("insert into (, aaa, bbb, ccc) values (,111 ,222 ,333)");
 		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)")));
-		SqlContext ctx22 = getSqlContext("insert into[LF](, aaa, bbb, ccc) values (,111 ,222 ,333)");
+		var ctx22 = getSqlContext("insert into[LF](, aaa, bbb, ccc) values (,111 ,222 ,333)");
 		assertThat(ctx22.getExecutableSql(),
 				is(replaceLineSep("insert into[LF]( aaa, bbb, ccc) values (111 ,222 ,333)")));
 
-		SqlContext ctx31 = getSqlContext(
+		var ctx31 = getSqlContext(
 				"insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx31.getExecutableSql(), is(
 				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
-		SqlContext ctx32 = getSqlContext(
+		var ctx32 = getSqlContext(
 				"insert into[LF]([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx32.getExecutableSql(), is(replaceLineSep(
 				"insert into[LF]([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
 
-		SqlContext ctx41 = getSqlContext(
+		var ctx41 = getSqlContext(
 				"insert into ([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx41.getExecutableSql(),
 				is(replaceLineSep(
 						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
-		SqlContext ctx42 = getSqlContext(
+		var ctx42 = getSqlContext(
 				"insert into[LF]([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx42.getExecutableSql(),
 				is(replaceLineSep(
 						"insert into[LF]([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
 
-		SqlContext ctx51 = getSqlContext(
+		var ctx51 = getSqlContext(
 				"insert into (--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx51.getExecutableSql(),
 				is(replaceLineSep(
 						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])")));
-		SqlContext ctx52 = getSqlContext(
+		var ctx52 = getSqlContext(
 				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
 		assertThat(ctx52.getExecutableSql(),
 				is(replaceLineSep(
@@ -240,51 +239,51 @@ public class SqlContextImplTest {
 
 	@Test
 	public void removeFirstCommaWhenSetClause() throws Exception {
-		SqlContext ctx11 = getSqlContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx11 = getSqlContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx11.getExecutableSql(),
 				is(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
-		SqlContext ctx12 = getSqlContext("update test[LF]set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx12 = getSqlContext("update test[LF]set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx12.getExecutableSql(),
 				is(replaceLineSep("update test[LF]set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
-		SqlContext ctx21 = getSqlContext("update test set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx21 = getSqlContext("update test set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx21.getExecutableSql(),
 				is(replaceLineSep("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
-		SqlContext ctx22 = getSqlContext("update test[LF]set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx22 = getSqlContext("update test[LF]set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx22.getExecutableSql(),
 				is(replaceLineSep("update test[LF]set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
-		SqlContext ctx31 = getSqlContext("update test set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx31 = getSqlContext("update test set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx31.getExecutableSql(),
 				is(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
-		SqlContext ctx32 = getSqlContext("update test[LF]set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx32 = getSqlContext("update test[LF]set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx32.getExecutableSql(),
 				is(replaceLineSep("update test[LF]set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
-		SqlContext ctx41 = getSqlContext(
+		var ctx41 = getSqlContext(
 				"update test set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx41.getExecutableSql(),
 				is(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
-		SqlContext ctx42 = getSqlContext(
+		var ctx42 = getSqlContext(
 				"update test[LF]set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx42.getExecutableSql(),
 				is(replaceLineSep("update test[LF]set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
-		SqlContext ctx51 = getSqlContext("update test set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
+		var ctx51 = getSqlContext("update test set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx51.getExecutableSql(),
 				is(replaceLineSep("update test set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
-		SqlContext ctx52 = getSqlContext(
+		var ctx52 = getSqlContext(
 				"update test[LF]set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertThat(ctx52.getExecutableSql(),
 				is(replaceLineSep("update test[LF]set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
-		SqlContext ctx61 = getSqlContext("select , aaa, code_set, bbb, ccc from test where 1 = 1");
+		var ctx61 = getSqlContext("select , aaa, code_set, bbb, ccc from test where 1 = 1");
 		assertThat(ctx61.getExecutableSql(),
 				is(replaceLineSep("select  aaa, code_set, bbb, ccc from test where 1 = 1")));
-		SqlContext ctx62 = getSqlContext("select[LF], aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1");
+		var ctx62 = getSqlContext("select[LF], aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1");
 		assertThat(ctx62.getExecutableSql(),
 				is(replaceLineSep("select[LF] aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1")));
-		SqlContext ctx63 = getSqlContext(
+		var ctx63 = getSqlContext(
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
 		assertThat(ctx63.getExecutableSql(),
 				is(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1")));
@@ -292,7 +291,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testHasParam() throws Exception {
-		SqlContext ctx = getSqlContext("select * from dummy");
+		var ctx = getSqlContext("select * from dummy");
 		ctx.param("key1", "value1");
 		assertThat(ctx.hasParam("key1"), is(true));
 		assertThat(ctx.hasParam("key2"), is(false));
@@ -320,9 +319,7 @@ public class SqlContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramList("key1", () -> {
-			return values;
-		});
+		ctx.paramList("key1", () -> values);
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 	}
 
@@ -370,7 +367,7 @@ public class SqlContextImplTest {
 		ctx = getSqlContext("select * from dummy");
 		InputStream is1 = new ByteArrayInputStream("value1".getBytes());
 		ctx.blobParamIfAbsent("key1", is1, "value1".length());
-		StreamParameter stream1 = (StreamParameter) ctx.getParam("key1");
+		var stream1 = (StreamParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
 		InputStream is2 = new ByteArrayInputStream("value2".getBytes());
 		ctx.blobParamIfAbsent("key1", is2, "value2".length());
@@ -379,7 +376,7 @@ public class SqlContextImplTest {
 		ctx = getSqlContext("select * from dummy");
 		InputStream is11 = new ByteArrayInputStream("value1".getBytes());
 		ctx.blobParamIfAbsent("key1", is11);
-		StreamParameter stream11 = (StreamParameter) ctx.getParam("key1");
+		var stream11 = (StreamParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
 		InputStream is22 = new ByteArrayInputStream("value2".getBytes());
 		ctx.blobParamIfAbsent("key1", is22);
@@ -388,7 +385,7 @@ public class SqlContextImplTest {
 		ctx = getSqlContext("select * from dummy");
 		Reader r1 = new StringReader("value1");
 		ctx.clobParamIfAbsent("key1", r1);
-		ReaderParameter reader1 = (ReaderParameter) ctx.getParam("key1");
+		var reader1 = (ReaderParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
 		Reader r2 = new StringReader("value2");
 		ctx.clobParamIfAbsent("key1", r2);
@@ -397,7 +394,7 @@ public class SqlContextImplTest {
 		ctx = getSqlContext("select * from dummy");
 		Reader r11 = new StringReader("value1");
 		ctx.clobParamIfAbsent("key1", r11, "value1".length());
-		ReaderParameter reader11 = (ReaderParameter) ctx.getParam("key1");
+		var reader11 = (ReaderParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
 		Reader r22 = new StringReader("value2");
 		ctx.clobParamIfAbsent("key1", r22, "value1".length());
@@ -406,7 +403,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testParamOptionalHasValue() throws Exception {
-		SqlContext ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		var ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.of("testId");
 		ctx.param("id", id);
 
@@ -450,7 +447,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testParamOptionalNullValue() throws Exception {
-		SqlContext ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		var ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.empty();
 		ctx.param("id", id);
 
@@ -494,7 +491,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testParamOptionalBean() throws Exception {
-		String sql = "insert into test ("
+		var sql = "insert into test ("
 				+ "/*IF id > 0 */, id/*END*/"
 				+ "/*IF name != null */, name/*END*/"
 				+ "/*IF age > 0 */, age/*END*/"
@@ -505,9 +502,9 @@ public class SqlContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		SqlContext ctx = config.contextWith(sql);
+		var ctx = config.contextWith(sql);
 
-		TestEntity entity = new TestEntity(10, "Taro", 20, Optional.of("memo1"));
+		var entity = new TestEntity(10, "Taro", 20, Optional.of("memo1"));
 		ctx.paramBean(entity);
 
 		transform(ctx);
@@ -537,7 +534,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testParamOptionalMap() throws Exception {
-		String sql = "insert into test ("
+		var sql = "insert into test ("
 				+ "/*IF id > 0 */, id/*END*/"
 				+ "/*IF name != null */, name/*END*/"
 				+ "/*IF age > 0 */, age/*END*/"
@@ -548,7 +545,7 @@ public class SqlContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		SqlContext ctx = config.contextWith(sql);
+		var ctx = config.contextWith(sql);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("id", 10);
@@ -589,13 +586,13 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testContext() {
-		SqlContext ctx = config.contextWith("select * from test");
+		var ctx = config.contextWith("select * from test");
 		assertThat(ctx.context(), is(ctx));
 	}
 
 	@Test
 	public void testGetParameterNames() {
-		SqlContext ctx = config.contextWith("select * from test")
+		var ctx = config.contextWith("select * from test")
 				.param("param1", 1)
 				.param("param2", "2");
 		assertThat(((SqlContextImpl) ctx).getParameterNames().size(), is(2));
@@ -605,7 +602,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testSetRetry() {
-		SqlContext ctx = config.contextWith("select * from test")
+		var ctx = config.contextWith("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
 				.retry(3);
@@ -622,7 +619,7 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testGetDefineColumnType() {
-		SqlContext ctx = config.contextWith("select * from test");
+		var ctx = config.contextWith("select * from test");
 		ctx.addDefineColumnType(1, JDBCType.CHAR.getVendorTypeNumber());
 
 		assertThat(ctx.getDefineColumnTypes().get(1), is(JDBCType.CHAR.getVendorTypeNumber()));
@@ -630,21 +627,21 @@ public class SqlContextImplTest {
 
 	@Test
 	public void testGetParameterMapperManager() {
-		SqlContext ctx = config.contextWith("select * from test");
+		var ctx = config.contextWith("select * from test");
 		assertThat(((SqlContextImpl) ctx).getParameterMapperManager(), not(nullValue()));
 	}
 
 	@Test
 	public void testSqlId() {
-		final String testSqlId = "TEST_SQL_ID";
-		SqlContext ctx = config.contextWith("select * from test").sqlId(testSqlId);
+		final var testSqlId = "TEST_SQL_ID";
+		var ctx = config.contextWith("select * from test").sqlId(testSqlId);
 		assertThat(ctx.getSqlId(), is(testSqlId));
 	}
 
 	private void transform(final SqlContext ctx) {
 		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getExpressionParser(),
 				config.getDialect().isRemoveTerminator(), true);
-		ContextTransformer contextTransformer = sqlParser.parse();
+		var contextTransformer = sqlParser.parse();
 		contextTransformer.transform(ctx);
 	}
 
@@ -655,7 +652,6 @@ public class SqlContextImplTest {
 		private Optional<String> memo = Optional.empty();
 
 		public TestEntity(final int id, final String name, final int age, final Optional<String> memo) {
-			super();
 			this.id = id;
 			this.name = name;
 			this.age = age;

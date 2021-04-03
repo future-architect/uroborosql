@@ -25,7 +25,7 @@ public class SqlKeywordCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		SqlKeywordCompleter completer = new SqlKeywordCompleter(commands);
+		var completer = new SqlKeywordCompleter(commands);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

@@ -27,7 +27,7 @@ public class EnumPropertyMapper implements PropertyMapper<Enum<?>> {
 	@Override
 	public Enum<?> getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		String name = rs.getString(columnIndex);
+		var name = rs.getString(columnIndex);
 		if (name == null) {
 			return null;
 		}

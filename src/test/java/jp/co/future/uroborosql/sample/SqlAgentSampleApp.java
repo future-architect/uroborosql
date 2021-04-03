@@ -1,14 +1,11 @@
 package jp.co.future.uroborosql.sample;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
@@ -71,15 +68,15 @@ public class SqlAgentSampleApp {
 		List<Map<String, Object>> ans = new ArrayList<>();
 
 		// SqlAgent（SQL実行エンジン）を設定オブジェクトから取得
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// SQLの実行
-			try (ResultSet rs = agent.query(sqlName).paramMap(params).resultSet()) {
+			try (var rs = agent.query(sqlName).paramMap(params).resultSet()) {
 				// 実行結果はResultSetで返ってくるので、値を取得
 				List<String> headers = new ArrayList<>();
-				ResultSetMetaData rsmd = rs.getMetaData();
-				int count = rsmd.getColumnCount();
-				for (int i = 1; i <= count; i++) {
-					String label = rsmd.getColumnLabel(i);
+				var rsmd = rs.getMetaData();
+				var count = rsmd.getColumnCount();
+				for (var i = 1; i <= count; i++) {
+					var label = rsmd.getColumnLabel(i);
 					headers.add(label);
 				}
 
@@ -87,7 +84,7 @@ public class SqlAgentSampleApp {
 					Map<String, Object> line = new LinkedHashMap<>();
 					headers.forEach(header -> {
 						try {
-							Object value = rs.getObject(header);
+							var value = rs.getObject(header);
 							line.put(header, value == null ? "" : value);
 						} catch (Exception ex) {
 							ex.printStackTrace();

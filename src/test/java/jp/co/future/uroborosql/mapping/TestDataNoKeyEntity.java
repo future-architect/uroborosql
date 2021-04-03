@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 public class TestDataNoKeyEntity {
@@ -114,14 +115,7 @@ public class TestDataNoKeyEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + age;
-		result = prime * result + (birthday == null ? 0 : birthday.hashCode());
-		result = prime * result + (int) (id ^ id >>> 32);
-		result = prime * result + (memo == null ? 0 : memo.hashCode());
-		result = prime * result + (name == null ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(age, birthday, id, memo, name);
 	}
 
 	@Override
@@ -135,32 +129,20 @@ public class TestDataNoKeyEntity {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		TestDataNoKeyEntity other = (TestDataNoKeyEntity) obj;
+		var other = (TestDataNoKeyEntity) obj;
 		if (age != other.age) {
 			return false;
 		}
-		if (birthday == null) {
-			if (other.birthday != null) {
-				return false;
-			}
-		} else if (!birthday.equals(other.birthday)) {
+		if (!Objects.equals(birthday, other.birthday)) {
 			return false;
 		}
 		if (id != other.id) {
 			return false;
 		}
-		if (memo == null) {
-			if (other.memo != null) {
-				return false;
-			}
-		} else if (!memo.equals(other.memo)) {
+		if (!Objects.equals(memo, other.memo)) {
 			return false;
 		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
+		if (!Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

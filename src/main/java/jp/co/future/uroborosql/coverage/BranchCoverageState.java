@@ -39,7 +39,7 @@ public enum BranchCoverageState {
 	 * @return カバーサイズ
 	 */
 	public static int getCoveredSize(final Set<BranchCoverageState> status) {
-		int size = 0;
+		var size = 0;
 		if (status.contains(TRUE)) {
 			size++;
 		}

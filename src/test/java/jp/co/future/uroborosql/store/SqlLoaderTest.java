@@ -18,7 +18,7 @@ public class SqlLoaderTest {
 		Map<String, String> sqls = sqlLoader.load();
 		assertThat(sqls, not(nullValue()));
 
-		String sql = sqls.get("example/select_product");
+		var sql = sqls.get("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
@@ -37,7 +37,7 @@ public class SqlLoaderTest {
 	@Test
 	public void testLoadFile() throws Exception {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
-		String sql = sqlLoader.load("example/select_product");
+		var sql = sqlLoader.load("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"

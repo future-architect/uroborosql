@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +39,7 @@ public class HistoryCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 		writer.println("HISTORY:");
 		writer.flush();
 
@@ -49,10 +48,10 @@ public class HistoryCommand extends ReplCommand {
 			keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
 		}
 
-		int sizeLen = String.valueOf(reader.getHistory().size()).length();
+		var sizeLen = String.valueOf(reader.getHistory().size()).length();
 		reader.getHistory().forEach(entry -> {
 			try {
-				String value = entry.line();
+				var value = entry.line();
 				if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
 					writer.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
 				}

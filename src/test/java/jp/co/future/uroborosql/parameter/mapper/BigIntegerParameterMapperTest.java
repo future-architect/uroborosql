@@ -12,7 +12,7 @@ public class BigIntegerParameterMapperTest {
 
 	@Test
 	public void test() {
-		BigIntegerParameterMapper mapper = new BigIntegerParameterMapper();
+		var mapper = new BigIntegerParameterMapper();
 		assertThat(mapper.toJdbc(BigInteger.valueOf(1), null, null), is(BigDecimal.valueOf(1)));
 	}
 

@@ -89,7 +89,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		@Override
 		public Object getValue(final Object context) {
 			try {
-				StandardEvaluationContext ctx = getEvaluationContext(context);
+				var ctx = getEvaluationContext(context);
 				return expr.getValue(ctx);
 			} catch (EvaluationException e) {
 				throw new ExpressionRuntimeException("Acquire an object failed.[" + expr.getExpressionString() + "]",
@@ -104,7 +104,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 * @return
 		 */
 		private StandardEvaluationContext getEvaluationContext(final Object context) {
-			StandardEvaluationContext ctx = new StandardEvaluationContext(context);
+			var ctx = new StandardEvaluationContext(context);
 			ctx.addPropertyAccessor(transformContextPropertyAccessor);
 			return ctx;
 		}
@@ -116,20 +116,20 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 */
 		@Override
 		public StringBuilder dumpNode(final Object context) {
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			if (expr != null) {
-				SpelExpression spel = (SpelExpression) expr;
-				SpelNode root = spel.getAST();
+				var spel = (SpelExpression) expr;
+				var root = spel.getAST();
 				Set<PropertyOrFieldReference> props = new LinkedHashSet<>();
 				traverseNode(root, props);
 
-				StandardEvaluationContext ctx = getEvaluationContext(context);
-				ExpressionState state = new ExpressionState(ctx);
+				var ctx = getEvaluationContext(context);
+				var state = new ExpressionState(ctx);
 				for (PropertyOrFieldReference prop : props) {
-					String propName = prop.getName();
+					var propName = prop.getName();
 					if (!StringFunction.SHORT_NAME.equals(propName)) {
 						try {
-							Object value = prop.getValue(state);
+							var value = prop.getValue(state);
 							builder.append(propName)
 									.append(":[")
 									.append(Objects.toString(value, null))
@@ -151,12 +151,12 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 */
 		@Override
 		public void collectParams(final Set<String> params) {
-			SpelExpression spel = (SpelExpression) expr;
-			SpelNode root = spel.getAST();
+			var spel = (SpelExpression) expr;
+			var root = spel.getAST();
 			Set<PropertyOrFieldReference> props = new LinkedHashSet<>();
 			traverseNode(root, props);
 			for (PropertyOrFieldReference prop : props) {
-				String propName = prop.getName();
+				var propName = prop.getName();
 				if (!StringFunction.SHORT_NAME.equals(propName)) {
 					params.add(prop.getName());
 				}
@@ -172,12 +172,12 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		private void traverseNode(final SpelNode node, final Set<PropertyOrFieldReference> props) {
 			if (node == null) {
 			} else if (node instanceof PropertyOrFieldReference) {
-				PropertyOrFieldReference prop = (PropertyOrFieldReference) node;
+				var prop = (PropertyOrFieldReference) node;
 				props.add(prop);
 			} else {
-				int childCount = node.getChildCount();
-				for (int i = 0; i < childCount; i++) {
-					SpelNode child = node.getChild(i);
+				var childCount = node.getChildCount();
+				for (var i = 0; i < childCount; i++) {
+					var child = node.getChild(i);
 					traverseNode(child, props);
 				}
 			}

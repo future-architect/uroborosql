@@ -330,7 +330,7 @@ public final class UroboroSQL {
 			log.debug("SqlConfig - Dialect : " + this.dialect.getClass().getSimpleName() + " has been selected.");
 
 			if (expressionParser == null) {
-				ExpressionParserFactory expressionParserFactory = StreamSupport
+				var expressionParserFactory = StreamSupport
 						.stream(ServiceLoader.load(ExpressionParserFactory.class).spliterator(), false)
 						.filter(ExpressionParserFactory::accept).findFirst()
 						.orElseThrow(() -> new IllegalStateException("ExpressionParser not found."));

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
@@ -28,15 +27,15 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		SqlContext ctx = agent.contextFrom("example/selectinsert_product")
+		var ctx = agent.contextFrom("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR);
 
-		int updateCount = agent.update(ctx);
+		var updateCount = agent.update(ctx);
 		assertThat(updateCount, is(1));
 
 		// 検証処理
-		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
+		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1))
@@ -54,13 +53,13 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		int updateCount = agent.update("example/selectinsert_product")
+		var updateCount = agent.update("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR).count();
 		assertThat(updateCount, is(1));
 
 		// 検証処理
-		List<Map<String, Object>> expectedDataList = getDataFromFile(Paths.get(
+		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1))
@@ -78,7 +77,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		int updateCount = agent
+		var updateCount = agent
 				.updateWith("update product set jan_code = /*jan_code*/ where product_id = /*product_id*/")
 				.param("product_id", 1, JDBCType.INTEGER)
 				.param("jan_code", null, Types.CHAR)
@@ -97,7 +96,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	public void testNotFoundFile() throws Exception {
 		try {
-			SqlContext ctx = agent.contextFrom("file");
+			var ctx = agent.contextFrom("file");
 			agent.update(ctx);
 			// 例外が発生しなかった場合
 			assertThat("Fail here.", false);

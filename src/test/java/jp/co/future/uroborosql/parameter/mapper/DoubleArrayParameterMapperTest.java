@@ -26,11 +26,11 @@ public class DoubleArrayParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
-		Array jdbcArray = newProxy(Array.class);
+		var parameterMapperManager = new BindParameterMapperManager(this.clock);
+		var jdbcArray = newProxy(Array.class);
 		double[] array = { 111.11d, 222.22d };
 
-		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
+		var conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
 				assertThat(args[0], is("FLOAT"));
 				assertThat(args[1], is(array));
@@ -65,7 +65,7 @@ public class DoubleArrayParameterMapperTest {
 	}
 
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -74,7 +74,7 @@ public class DoubleArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		var proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
-import jp.co.future.uroborosql.expr.Expression;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.parser.TransformContext;
 
@@ -94,17 +93,17 @@ public class IfNode extends BranchNode {
 
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Expression expr = expressionParser.parse(expression);
-		Object result = expr.getValue(transformContext);
+		var expr = expressionParser.parse(expression);
+		var result = expr.getValue(transformContext);
 
 		if (result instanceof Boolean) {
-			boolean resultValue = ((Boolean) result).booleanValue();
+			var resultValue = ((Boolean) result).booleanValue();
 			if (LOG.isDebugEnabled()) {
 				if (Boolean.TRUE.toString().equalsIgnoreCase(expression)
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					StringBuilder builder = expr.dumpNode(transformContext);
+					var builder = expr.dumpNode(transformContext);
 					LOG.debug("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
 							builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
 				}

@@ -3,23 +3,19 @@ package jp.co.future.uroborosql.mapping;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
@@ -34,14 +30,14 @@ public class ORMSampleTest {
 
 	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:ORMSampleTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:ORMSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -51,19 +47,19 @@ public class ORMSampleTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		var sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
 	@BeforeEach
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("delete from test").count();
 
 				// 準備
-				for (int i = 0; i < 24; i++) {
-					TestEntity test = new TestEntity();
+				for (var i = 0; i < 24; i++) {
+					var test = new TestEntity();
 					test.setId(i + 1);
 					test.setName("name" + (i + 1));
 					test.setAge(20 + i);
@@ -114,14 +110,7 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + age;
-			result = prime * result + (birthday == null ? 0 : birthday.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (memo == null ? 0 : memo.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(age, birthday, id, memo, name);
 		}
 
 		@Override
@@ -135,32 +124,20 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			TestEntity other = (TestEntity) obj;
+			var other = (TestEntity) obj;
 			if (age != other.age) {
 				return false;
 			}
-			if (birthday == null) {
-				if (other.birthday != null) {
-					return false;
-				}
-			} else if (!birthday.equals(other.birthday)) {
+			if (!Objects.equals(birthday, other.birthday)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (memo == null) {
-				if (other.memo != null) {
-					return false;
-				}
-			} else if (!memo.equals(other.memo)) {
+			if (!Objects.equals(memo, other.memo)) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -177,10 +154,10 @@ public class ORMSampleTest {
 	@Test
 	public void testFind() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 
 			// KEYを指定して取得
-			TestEntity data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
+			var data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
 			assertThat(data.getName(), is("name2"));
 
 		}
@@ -189,10 +166,10 @@ public class ORMSampleTest {
 	@Test
 	public void testQuery() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 
 			// 条件なし
-			List<TestEntity> list = agent.query(TestEntity.class).collect();
+			var list = agent.query(TestEntity.class).collect();
 			assertThat(list.size(), is(24));
 
 			// 条件あり
@@ -206,10 +183,10 @@ public class ORMSampleTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
-				TestEntity test = new TestEntity();
+				var test = new TestEntity();
 				test.setId(100);
 				test.setName("name100");
 				test.setAge(20);
@@ -218,7 +195,7 @@ public class ORMSampleTest {
 				agent.insert(test);
 
 				// check
-				TestEntity data = agent.find(TestEntity.class, 100).orElse(null);
+				var data = agent.find(TestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
@@ -227,16 +204,16 @@ public class ORMSampleTest {
 	@Test
 	public void testUpdate() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
+				var test = agent.find(TestEntity.class, 1).orElse(null);
 
 				// UPDATE
 				test.setName("update!!");
 				agent.update(test);
 
 				// check
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("update!!"));
 			});
@@ -246,16 +223,16 @@ public class ORMSampleTest {
 	@Test
 	public void testDelete() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
+				var test = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(test, is(not(nullValue())));
 
 				// DELETE
 				agent.delete(test);
 
 				// check
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
 		}
@@ -276,10 +253,7 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(name);
 		}
 
 		@Override
@@ -293,12 +267,8 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			NameDomain other = (NameDomain) obj;
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			var other = (NameDomain) obj;
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -322,11 +292,7 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -340,15 +306,11 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			DomainTestEntity other = (DomainTestEntity) obj;
+			var other = (DomainTestEntity) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -364,16 +326,16 @@ public class ORMSampleTest {
 	@Test
 	public void testDomain() throws Exception {
 		// Domainを定義したクラスを扱う
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
-				DomainTestEntity test = new DomainTestEntity();
+				var test = new DomainTestEntity();
 				test.id = 100;
 				test.name = new NameDomain("name1");
 				agent.insert(test);
 
 				// SELECT
-				DomainTestEntity data = agent.find(DomainTestEntity.class, 100).orElse(null);
+				var data = agent.find(DomainTestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}

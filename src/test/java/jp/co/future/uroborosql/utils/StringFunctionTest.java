@@ -32,7 +32,7 @@ public class StringFunctionTest {
 	@Test
 	public void test() throws Exception {
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val1", null);
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -55,7 +55,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.startsWith(Optional.of(123)), is("123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -81,7 +81,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.contains(Optional.of(123)), is("%123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -107,7 +107,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.endsWith(Optional.of(123)), is("%123"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 

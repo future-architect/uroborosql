@@ -66,9 +66,9 @@ public class Ranges extends AbstractSet<Range> {
 
 	@Override
 	public boolean add(final Range range) {
-		Range target = range;
-		for (Iterator<Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
-			Range r = iterator.next();
+		var target = range;
+		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
+			var r = iterator.next();
 			if (r.equals(target)) {
 				return false;
 			} else if (r.include(target)) {
@@ -113,9 +113,9 @@ public class Ranges extends AbstractSet<Range> {
 	 */
 	public void minus(final Range range) {
 		List<Range> newList = new ArrayList<>();
-		Range target = range;
-		for (Iterator<Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
-			Range r = iterator.next();
+		var target = range;
+		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
+			var r = iterator.next();
 			if (r.equals(target)) {
 				iterator.remove();
 			} else if (target.include(r)) {
@@ -156,12 +156,12 @@ public class Ranges extends AbstractSet<Range> {
 		List<Range> newList = new ArrayList<>();
 		for (Iterator<? extends Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
 			Range r = iterator.next();
-			List<Range> hasIntersections = getHasIntersections(targetRanges, r);
+			var hasIntersections = getHasIntersections(targetRanges, r);
 			if (hasIntersections.isEmpty()) {
 				iterator.remove();
 			} else {
 				if (hasIntersections.size() == 1) {
-					Range target = hasIntersections.get(0);
+					var target = hasIntersections.get(0);
 					if (r.equals(target)) {
 						continue;
 					}

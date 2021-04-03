@@ -119,7 +119,7 @@ public abstract class AbstractDialect implements Dialect {
 	 * @return LIKEパターン文字列をエスケープする正規表現
 	 */
 	protected Pattern generateEscapePattern(final char escapeChar, final char[] wildcards) {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		builder.append("[");
 		for (char wildcard : wildcards) {
 			if (escapeChar == '[' || escapeChar == ']') {
@@ -165,7 +165,7 @@ public abstract class AbstractDialect implements Dialect {
 		if (pattern == null) {
 			return null;
 		}
-		Matcher matcher = escapePattern.matcher(pattern);
+		var matcher = escapePattern.matcher(pattern);
 		return matcher.replaceAll(Matcher.quoteReplacement(String.valueOf(escapeChar)) + "$0");
 	}
 
@@ -176,7 +176,7 @@ public abstract class AbstractDialect implements Dialect {
 	 */
 	@Override
 	public String getLimitClause(final long limit, final long offset) {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		if (limit > 0) {
 			builder.append("LIMIT ").append(limit).append(" ");
 		}

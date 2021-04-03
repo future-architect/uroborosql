@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.expr.ognl;
 
 import java.util.Map;
 
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.StringFunction;
 import ognl.ObjectPropertyAccessor;
@@ -43,8 +42,8 @@ public class TransformContextPropertyAccessor extends ObjectPropertyAccessor {
 		if (StringFunction.SHORT_NAME.equals(name)) {
 			return expressionFunction;
 		} else {
-			TransformContext context = (TransformContext) target;
-			Parameter param = context.getParam((String) name);
+			var context = (TransformContext) target;
+			var param = context.getParam((String) name);
 			if (param == null) {
 				return null;
 			}

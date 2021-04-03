@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
@@ -38,12 +37,12 @@ public class ViewCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
-			String sqlName = parts[1].replaceAll("\\.", "/");
+			var sqlName = parts[1].replaceAll("\\.", "/");
 			if (sqlConfig.getSqlManager().existSql(sqlName)) {
-				String sql = sqlConfig.getSqlManager().getSql(sqlName);
-				String[] sqlLines = sql.split("\\r\\n|\\r|\\n");
+				var sql = sqlConfig.getSqlManager().getSql(sqlName);
+				var sqlLines = sql.split("\\r\\n|\\r|\\n");
 				for (String sqlLine : sqlLines) {
 					writer.println(sqlLine);
 				}

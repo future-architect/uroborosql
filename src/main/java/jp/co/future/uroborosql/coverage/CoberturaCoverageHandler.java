@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.coverage;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,11 +22,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -124,7 +121,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 
 		private void add(final Range idx, final BranchCoverageState state) {
-			PointBranch branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
+			var branch = branches.computeIfAbsent(idx, k -> new PointBranch(idx));
 
 			branch.add(state);
 		}
@@ -179,7 +176,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			}
 			//各行のブランチ情報を集計
 			passRoute.getRangeBranchStatus().forEach((range, state) -> {
-				LineBranch lineBranch = lineBranches.computeIfAbsent(toRow(range), LineBranch::new);
+				var lineBranch = lineBranches.computeIfAbsent(toRow(range), LineBranch::new);
 				lineBranch.add(range, state);
 			});
 		}
@@ -201,7 +198,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		 * @throws IOException IOエラー
 		 */
 		private void writeSqlSource(final Path sourcesDirPath, final String sql) throws IOException {
-			Path path = sourcesDirPath.resolve(name);
+			var path = sourcesDirPath.resolve(name);
 			Files.createDirectories(path.getParent());
 			Files.write(path, sql.getBytes(StandardCharsets.UTF_8));
 		}
@@ -233,7 +230,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * </pre>
 	 */
 	public CoberturaCoverageHandler() {
-		String s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
+		var s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
 		if (StringUtils.isNotEmpty(s)) {
 			this.reportPath = Paths.get(s);
 		} else {
@@ -261,9 +258,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return;
 		}
 
-		Map<String, SqlCoverage> map = coverages.computeIfAbsent(coverageData.getSqlName(),
+		var map = coverages.computeIfAbsent(coverageData.getSqlName(),
 				k -> new ConcurrentHashMap<>());
-		SqlCoverage sqlCoverage = map.get(coverageData.getMd5());
+		var sqlCoverage = map.get(coverageData.getMd5());
 		if (sqlCoverage == null) {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
@@ -304,36 +301,36 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			return;
 		}
 
-		List<PackageSummary> packageNodes = summaryPackages();
+		var packageNodes = summaryPackages();
 
-		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document document = documentBuilder.newDocument();
+		var documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		var document = documentBuilder.newDocument();
 
-		Element coverage = document.createElement("coverage");
+		var coverage = document.createElement("coverage");
 
 		coverage.setAttribute("timestamp", String.valueOf(System.currentTimeMillis()));
 		coverage.setAttribute("complexity", "0");
 		coverage.setAttribute("version", "0.1");
 
 		document.appendChild(coverage);
-		Element sources = document.createElement("sources");
+		var sources = document.createElement("sources");
 		coverage.appendChild(sources);
-		Element source = document.createElement("source");
+		var source = document.createElement("source");
 		source.setTextContent(sourcesDirPath.toString());
 		sources.appendChild(source);
 
-		Element packages = document.createElement("packages");
+		var packages = document.createElement("packages");
 		coverage.appendChild(packages);
 
 		//packages内のrenderとカバレッジ集計
-		CoverageSummaryTotal total = renderPackages(document, packages, packageNodes);
+		var total = renderPackages(document, packages, packageNodes);
 
-		CoverageSummary lines = total.line;
+		var lines = total.line;
 		coverage.setAttribute("lines-valid", String.valueOf(lines.valid));
 		coverage.setAttribute("lines-covered", String.valueOf(lines.covered));
 		coverage.setAttribute("lines-rate", String.valueOf(lines.getRate()));
 
-		CoverageSummary branches = total.branch;
+		var branches = total.branch;
 		coverage.setAttribute("branches-valid", String.valueOf(branches.valid));
 		coverage.setAttribute("branches-covered", String.valueOf(branches.covered));
 		coverage.setAttribute("branches-rate", String.valueOf(branches.getRate()));
@@ -353,9 +350,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Map<String, PackageSummary> summaries = new HashMap<>();
 
 		coverages.forEach((name, c) -> {
-			Path p = Paths.get(name).getParent();
-			String pkg = p != null ? p.toString().replace(File.separatorChar, '.') : "_root_";
-			PackageSummary summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
+			var p = Paths.get(name).getParent();
+			var pkg = p != null ? p.toString().replace(File.separatorChar, '.') : "_root_";
+			var summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
 			summary.coverageInfos.addAll(c.values());
 		});
 		return summaries.values().stream().sorted(Comparator.comparing(p -> p.packagePath))
@@ -365,15 +362,15 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 	private CoverageSummaryTotal renderPackages(final Document document, final Element packages,
 			final List<PackageSummary> packageNodes) {
-		CoverageSummaryTotal allTotal = new CoverageSummaryTotal();
+		var allTotal = new CoverageSummaryTotal();
 		for (PackageSummary packageNode : packageNodes) {
 
-			CoverageSummaryTotal total = new CoverageSummaryTotal();
-			Element packageElm = document.createElement("package");
+			var total = new CoverageSummaryTotal();
+			var packageElm = document.createElement("package");
 			packageElm.setAttribute("name", packageNode.packagePath);
 			packages.appendChild(packageElm);
 
-			Element classes = document.createElement("classes");
+			var classes = document.createElement("classes");
 			packageElm.appendChild(classes);
 
 			for (SqlCoverage coverageInfo : packageNode.coverageInfos) {
@@ -392,35 +389,35 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private CoverageSummaryTotal renderClass(final Document document, final Element classes,
 			final SqlCoverage coverageInfo) {
 
-		CoverageSummaryTotal total = new CoverageSummaryTotal();
+		var total = new CoverageSummaryTotal();
 
-		Element classElm = document.createElement("class");
+		var classElm = document.createElement("class");
 		classElm.setAttribute("name", coverageInfo.name);
 		classElm.setAttribute("filename", coverageInfo.name);
 		classes.appendChild(classElm);
 
-		Element methods = document.createElement("methods");
+		var methods = document.createElement("methods");
 		classElm.appendChild(methods);
 
-		Element lines = document.createElement("lines");
+		var lines = document.createElement("lines");
 		classElm.appendChild(lines);
 
 		total.line.valid = coverageInfo.lineRanges.size();
 		for (LineRange range : coverageInfo.lineRanges) {
-			int no = range.getLineIndex() + 1;
-			int hit = coverageInfo.hitLines[range.getLineIndex()];
+			var no = range.getLineIndex() + 1;
+			var hit = coverageInfo.hitLines[range.getLineIndex()];
 			if (hit > 0) {
 				total.line.covered++;
 			}
 
-			Element line = document.createElement("line");
+			var line = document.createElement("line");
 			lines.appendChild(line);
 			line.setAttribute("number", String.valueOf(no));
 			line.setAttribute("hits", String.valueOf(hit));
-			LineBranch lineBranch = coverageInfo.lineBranches.get(range.getLineIndex());
+			var lineBranch = coverageInfo.lineBranches.get(range.getLineIndex());
 			if (lineBranch != null) {
-				int size = lineBranch.branchSize();
-				int covered = lineBranch.coveredSize();
+				var size = lineBranch.branchSize();
+				var covered = lineBranch.coveredSize();
 				line.setAttribute("branch", "true");
 				line.setAttribute("condition-coverage",
 						CoverageHandler.percentStr(covered, size) + "% (" + covered + "/" + size + ")");
@@ -446,13 +443,13 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * @throws TransformerException XML書き込みエラー
 	 */
 	private void write(final Document document) throws IOException, TransformerException {
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
+		var transformerFactory = TransformerFactory.newInstance();
+		var transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 		transformer
 				.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://cobertura.sourceforge.net/xml/coverage-04.dtd");
-		try (BufferedWriter bufferedWriter = Files.newBufferedWriter(this.reportPath)) {
+		try (var bufferedWriter = Files.newBufferedWriter(this.reportPath)) {
 			transformer.transform(new DOMSource(document), new StreamResult(bufferedWriter));
 		}
 	}

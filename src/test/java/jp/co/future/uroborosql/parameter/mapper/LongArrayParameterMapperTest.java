@@ -2,6 +2,7 @@ package jp.co.future.uroborosql.parameter.mapper;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -25,11 +26,11 @@ public class LongArrayParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
-		Array jdbcArray = newProxy(Array.class);
+		var parameterMapperManager = new BindParameterMapperManager(this.clock);
+		var jdbcArray = newProxy(Array.class);
 		long[] array = { 111L, 222L };
 
-		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
+		var conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
 				assertThat(args[0], is("BIGINT"));
 				assertThat(args[1], is(array));
@@ -63,7 +64,7 @@ public class LongArrayParameterMapperTest {
 	}
 
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -72,7 +73,7 @@ public class LongArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		var proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}

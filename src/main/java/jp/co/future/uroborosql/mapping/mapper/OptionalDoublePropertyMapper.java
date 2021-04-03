@@ -28,7 +28,7 @@ public class OptionalDoublePropertyMapper implements PropertyMapper<OptionalDoub
 	public OptionalDouble getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager)
 			throws SQLException {
-		double value = rs.getDouble(columnIndex);
+		var value = rs.getDouble(columnIndex);
 		if (!rs.wasNull()) {
 			return OptionalDouble.of(value);
 		} else {

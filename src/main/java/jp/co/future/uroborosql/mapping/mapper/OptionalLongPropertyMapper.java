@@ -26,7 +26,7 @@ public class OptionalLongPropertyMapper implements PropertyMapper<OptionalLong> 
 	@Override
 	public OptionalLong getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 			final PropertyMapperManager mapperManager) throws SQLException {
-		long value = rs.getLong(columnIndex);
+		var value = rs.getLong(columnIndex);
 		if (!rs.wasNull()) {
 			return OptionalLong.of(value);
 		} else {

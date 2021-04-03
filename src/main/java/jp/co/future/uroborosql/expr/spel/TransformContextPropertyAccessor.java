@@ -11,7 +11,6 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.StringFunction;
 
@@ -65,8 +64,8 @@ public class TransformContextPropertyAccessor implements PropertyAccessor {
 		if (StringFunction.SHORT_NAME.equals(name)) {
 			return new TypedValue(expressionFunction);
 		} else {
-			TransformContext ctx = (TransformContext) target;
-			Parameter param = ctx.getParam(name);
+			var ctx = (TransformContext) target;
+			var param = ctx.getParam(name);
 			if (param == null) {
 				return new TypedValue(null);
 			}

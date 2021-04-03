@@ -91,7 +91,7 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外
 	 */
 	PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
-		Connection conn = getConnection();
+		var conn = getConnection();
 
 		PreparedStatement stmt = null;
 		switch (sqlContext.getSqlKind()) {
@@ -132,7 +132,7 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外
 	 */
 	CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
-		Connection conn = getConnection();
+		var conn = getConnection();
 
 		if (this.updatable) {
 			return this.sqlConfig.getSqlFilterManager().doCallableStatement(sqlContext,
@@ -179,11 +179,11 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外
 	 */
 	void releaseSavepoint(final String savepointName) {
-		Savepoint savepoint = savepointMap.get(savepointName);
+		var savepoint = savepointMap.get(savepointName);
 
-		int pos = savepointNames.lastIndexOf(savepointName);
+		var pos = savepointNames.lastIndexOf(savepointName);
 		if (pos > -1) {
-			List<String> subList = savepointNames.subList(pos, savepointNames.size());
+			var subList = savepointNames.subList(pos, savepointNames.size());
 			for (String name : subList) {
 				savepointMap.remove(name);
 			}

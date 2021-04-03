@@ -58,7 +58,7 @@ public class EmbeddedValueNode extends ExpressionNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Object value = eval(transformContext);
+		var value = eval(transformContext);
 
 		if (value != null) {
 			if (wrap) {
@@ -83,7 +83,7 @@ public class EmbeddedValueNode extends ExpressionNode {
 		if (obj == null) {
 			return "";
 		} else {
-			String val = obj.toString();
+			var val = obj.toString();
 			return val.replace("'", "''");
 		}
 	}

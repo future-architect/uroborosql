@@ -39,7 +39,7 @@ public class QueryCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -59,7 +59,7 @@ public class QueryCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader, "query example/select_product".split("\\s+"), sqlConfig,
+		var flag = command.execute(reader, "query example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
 		assertThat(flag, is(true));
 		assertConsoleOutputContains("query sql[example/select_product] end.");
