@@ -39,7 +39,7 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 		assertBuffer("qu", new TestBuffer("qu").tab());
 		assertBuffer("query ddl/create_tables ", new TestBuffer("query dd").tab());
 		assertBuffer("query example/select_product", new TestBuffer("query example/select_p").tab());
-		assertBuffer("query example/select_test", new TestBuffer("query example").tab().tab().tab());
+		assertBuffer("query example/insert_product", new TestBuffer("query example").tab().tab().tab());
 		assertBuffer("query example/select_product", new TestBuffer("query example/select_product").tab());
 		assertBuffer("query example/select_product ", new TestBuffer("query example/select_product ").tab());
 		assertBuffer("query example/select_product p",

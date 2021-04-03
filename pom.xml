@@ -382,7 +382,7 @@ LICENSE file in the root directory of this source tree.
 		<dependency>
 			<groupId>org.fusesource.jansi</groupId>
 			<artifactId>jansi</artifactId>
-			<version>1.18</version>
+			<version>${jansi.version}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -407,14 +407,6 @@ LICENSE file in the root directory of this source tree.
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-<!--
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
- -->
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest</artifactId>
@@ -448,10 +440,10 @@ LICENSE file in the root directory of this source tree.
 		<doc.encoding>${project.build.sourceEncoding}</doc.encoding>
 
 		<ognl.version>3.1.23</ognl.version>
-		<spring.version>5.2.2.RELEASE</spring.version>
-		<jline.version>3.11.0</jline.version>
-		<jansi.version>1.18</jansi.version>
-		<slf4j.version>1.7.26</slf4j.version>
+		<spring.version>5.3.5</spring.version>
+		<jline.version>3.19.0</jline.version>
+		<jansi.version>2.3.2</jansi.version>
+		<slf4j.version>1.7.30</slf4j.version>
 		<logback.version>1.2.3</logback.version>
 		<junit.version>5.7.1</junit.version>
 		<hamcrest.version>2.2</hamcrest.version>

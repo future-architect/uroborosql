@@ -54,11 +54,11 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 				new TestBuffer("query example/select_product p").left().left().back().tab());
 		assertBuffer("query example/select_product x",
 				new TestBuffer("query example/select_product x").tab());
-		assertBuffer("update example/insert_product version_no=",
+		assertBuffer("update example/insert_product product_description=",
 				new TestBuffer("update example/insert_product ").tab().tab().tab().tab());
 		assertBuffer("update example/insert_product version_no=1",
 				new TestBuffer("update example/insert_product version_no=1").tab());
-		assertBuffer("update example/insert_product version_no=1 ins_datetime=",
+		assertBuffer("update example/insert_product version_no=1 product_description=",
 				new TestBuffer("update example/insert_product version_no=1 ").tab().tab().tab().tab());
 		assertBuffer("query example/select_product2 ", new TestBuffer("query example/select_product2 ").tab());
 		assertBuffer("update example/insert_product product_id='11 1' jan_code=[10, 20] upd_datetime=",

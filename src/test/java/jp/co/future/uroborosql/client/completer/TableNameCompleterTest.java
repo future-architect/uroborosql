@@ -65,7 +65,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 		assertBuffer("qu", new TestBuffer("qu").tab());
 		assertBuffer("generate se", new TestBuffer("generate se").tab());
 		assertBuffer("generate select", new TestBuffer("generate select").tab());
-		assertBuffer("generate select PRODUCT", new TestBuffer("generate select ").tab().tab());
+		assertBuffer("generate select COLUMN_TYPE_ARRAY", new TestBuffer("generate select ").tab().tab());
 		assertBuffer("generate select PRODUCT", new TestBuffer("generate select pro").tab().tab());
 
 		assertBuffer("desc PRODUCT", new TestBuffer("desc PR").tab());
