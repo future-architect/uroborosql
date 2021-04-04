@@ -15,7 +15,7 @@ import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
-import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 
 public class BindParamCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
@@ -34,7 +34,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
-				.setSqlResourceManager(new NioSqlResourceManagerImpl(false))
+				.setSqlResourceManager(new SqlResourceManagerImpl(false))
 				.setDialect(new DefaultDialect())
 				.build();
 	}

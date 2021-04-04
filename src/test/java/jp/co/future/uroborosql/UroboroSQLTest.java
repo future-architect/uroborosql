@@ -161,7 +161,7 @@ public class UroboroSQLTest {
 	@Test
 	public void builderSetSqlResourceManager() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
-				.setSqlResourceManager(new SqlResourceManagerImpl(false)).build();
+				.setSqlResourceManager(new SqlResourceManagerImpl()).build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
@@ -173,9 +173,9 @@ public class UroboroSQLTest {
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 			agent.rollback();
+		} catch (Exception ex) {
+			assertThat("Execution failed.", false);
 		}
-
-		assertThat(config.getSqlResourceManager().isCache(), is(false));
 	}
 
 	@Test

@@ -16,7 +16,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
-import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 
 public class ParseCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -32,7 +32,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(Arrays.asList("jp.co.future.uroborosql.context.test.TestConsts"))
 						.setEnumConstantPackageNames(Arrays.asList("jp.co.future.uroborosql.context.test")))
-				.setSqlResourceManager(new NioSqlResourceManagerImpl())
+				.setSqlResourceManager(new SqlResourceManagerImpl())
 				.build();
 
 		command = new ParseCommand();

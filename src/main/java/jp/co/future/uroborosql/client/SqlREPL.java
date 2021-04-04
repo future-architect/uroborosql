@@ -50,7 +50,7 @@ import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
-import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -222,7 +222,7 @@ public class SqlREPL {
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
-				.setSqlResourceManager(new NioSqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
+				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// executionContextProvider

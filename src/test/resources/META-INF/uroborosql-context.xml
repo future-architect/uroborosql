@@ -81,14 +81,6 @@
 			<description>SQLファイル拡張子</description>
 			<value>.sql</value>
 		</property>
-		<property name="sqlLoader" ref="sqlLoader">
-			<description>SQLローダークラス</description>
-		</property>
-
-		<property name="cache">
-			<description>SQLをキャッシュするかどうか</description>
-			<value>true</value>
-		</property>
 	</bean>
 
 	<bean id="sqlFilterManager" class="jp.co.future.uroborosql.filter.SqlFilterManagerImpl" init-method="initialize">

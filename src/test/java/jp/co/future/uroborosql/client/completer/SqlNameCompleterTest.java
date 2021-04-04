@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
-import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
 
 public class SqlNameCompleterTest extends ReaderTestSupport {
@@ -25,7 +25,7 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 			commands.add(command);
 		}
 
-		sqlResourceManager = new NioSqlResourceManagerImpl(false);
+		sqlResourceManager = new SqlResourceManagerImpl(false);
 		sqlResourceManager.setDialect(new DefaultDialect());
 		sqlResourceManager.initialize();
 	}
