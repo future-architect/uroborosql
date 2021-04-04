@@ -112,7 +112,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.1.0</version>
+					<version>3.2.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -212,7 +212,7 @@ encoding/<project>=UTF-8
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<links>
-						<link>http://docs.oracle.com/javase/jp/8/docs/api/</link>
+						<link>https://docs.oracle.com/javase/jp/11/docs/api/</link>
 					</links>
 					<maxmemory>512m</maxmemory>
 					<encoding>${src.encoding}</encoding>

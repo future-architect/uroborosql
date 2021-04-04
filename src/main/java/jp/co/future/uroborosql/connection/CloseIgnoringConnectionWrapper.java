@@ -27,7 +27,6 @@ import java.util.concurrent.Executor;
 
 /**
  * Closeを無視するConnectionを提供するためのWrapper
- * {@link DoNotCloseConnectionWrapper} の代わりにこちらを使用してください
  *
  * @author H.Sugimoto
  */

@@ -387,7 +387,7 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#createAgent()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#agent()
 		 */
 		@Override
 		public SqlAgent agent() {
