@@ -19,11 +19,11 @@ class RangeBranch {
 	private final Range range;
 	private final Set<BranchCoverageState> status = EnumSet.noneOf(BranchCoverageState.class);
 
-	RangeBranch(Range range) {
+	RangeBranch(final Range range) {
 		this.range = range;
 	}
 
-	void add(BranchCoverageState state) {
+	void add(final BranchCoverageState state) {
 		status.add(state);
 	}
 

@@ -12,7 +12,6 @@ import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.store.SqlManager;
 
 /**
  * Exit REPL Command
@@ -37,12 +36,12 @@ public class ExitCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		Terminal terminal = reader.getTerminal();
+		var terminal = reader.getTerminal();
 		terminal.writer().println("SQL REPL end.");
 		terminal.writer().flush();
 
 		try {
-			SqlManager sqlManager = sqlConfig.getSqlManager();
+			var sqlManager = sqlConfig.getSqlManager();
 			sqlManager.shutdown();
 		} catch (Exception ex) {
 			// do nothing

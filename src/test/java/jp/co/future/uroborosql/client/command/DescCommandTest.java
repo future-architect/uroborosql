@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,9 +10,9 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -30,7 +30,7 @@ public class DescCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -38,7 +38,7 @@ public class DescCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -50,7 +50,7 @@ public class DescCommandTest extends ReaderTestSupport {
 		command = new DescCommand();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -58,8 +58,8 @@ public class DescCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		var flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
+		assertThat(flag, is(true));
 		assertConsoleOutputContains(
 				"|TABLE_NAME|COLUMN_NAME        |TYPE_NAME|COLUMN_SIZE|DECIMAL_DIGITS|IS_NULLABLE|COLUMN_DEF|REMARKS|");
 	}

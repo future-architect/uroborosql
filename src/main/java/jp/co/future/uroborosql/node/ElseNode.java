@@ -21,7 +21,7 @@ public class ElseNode extends ContainerNode {
 	 * @param position 開始位置
 	 * @param length データ長
 	 */
-	public ElseNode(int position, int length) {
+	public ElseNode(final int position, final int length) {
 		super(position, length);
 	}
 

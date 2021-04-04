@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.mapping.annotations.Version;
@@ -42,7 +42,6 @@ public class AbstractDbTest {
 		public Product(final int productId, final String productName, final String productKanaName,
 				final String janCode,
 				final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
-			super();
 			this.productId = productId;
 			this.productName = productName;
 			this.productKanaName = productKanaName;
@@ -146,18 +145,17 @@ public class AbstractDbTest {
 	protected SqlAgent agent;
 
 	public AbstractDbTest() {
-		super();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
 		config.getSqlAgentFactory().setFetchSize(1000);
-		Path ddlPath = getDdlPath();
+		var ddlPath = getDdlPath();
 		if (ddlPath != null) {
 			agent = config.agent();
-			String[] sqls = new String(Files.readAllBytes(ddlPath), StandardCharsets.UTF_8).split(";");
+			var sqls = new String(Files.readAllBytes(ddlPath), StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
@@ -176,7 +174,7 @@ public class AbstractDbTest {
 		return Paths.get("src/test/resources/sql/ddl/create_tables.sql");
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -191,9 +189,9 @@ public class AbstractDbTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				String[] parts = line.split("\t");
+				var parts = line.split("\t");
 				for (String part : parts) {
-					String[] keyValue = part.split(":", 2);
+					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -215,7 +213,7 @@ public class AbstractDbTest {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+				assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
 			}
 		});
 	}
@@ -226,17 +224,17 @@ public class AbstractDbTest {
 	 * @param path LTSVファイル
 	 */
 	protected void cleanInsert(final Path path) {
-		List<Map<String, Object>> dataList = getDataFromFile(path);
+		var dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-				.forEach(tbl -> truncateTable(tbl));
+				.forEach(this::truncateTable);
 
 		dataList.forEach(map -> {
 			try {
 				agent.update(map.get("sql").toString()).paramMap(map).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+				assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
 			}
 		});
 	}

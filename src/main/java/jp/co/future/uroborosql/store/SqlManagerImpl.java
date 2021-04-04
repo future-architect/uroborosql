@@ -192,7 +192,7 @@ public class SqlManagerImpl implements SqlManager {
 	@Override
 	public boolean existSql(final String sqlPath) {
 		if (!cache) {
-			boolean exists = false;
+			var exists = false;
 			for (SqlLoader sqlLoader : sqlLoaders) {
 				exists = exists || sqlLoader.existSql(sqlPath);
 			}

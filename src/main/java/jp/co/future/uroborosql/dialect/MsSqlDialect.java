@@ -30,7 +30,6 @@ public class MsSqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public MsSqlDialect() {
-		super();
 	}
 
 	/**
@@ -111,7 +110,7 @@ public class MsSqlDialect extends AbstractDialect {
 		if (forUpdateType == ForUpdateType.NOWAIT) {
 			hints.add("NOWAIT");
 		}
-		String forUpdate = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+		var forUpdate = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 				+ System.lineSeparator();
 		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", forUpdate));
 	}
@@ -125,10 +124,10 @@ public class MsSqlDialect extends AbstractDialect {
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
 		if (sql.indexOf("WITH (") > 0) {
 			// forUpdateのヒントが追加されている場合
-			String hintStr = "WITH ($1, " + hints.stream().collect(Collectors.joining(", ")) + ")";
+			var hintStr = "WITH ($1, " + hints.stream().collect(Collectors.joining(", ")) + ")";
 			return new StringBuilder(sql.toString().replaceFirst("WITH \\((.+)\\)", hintStr));
 		} else {
-			String hintStr = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+			var hintStr = "$1 WITH " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 					+ System.lineSeparator();
 			return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
 		}

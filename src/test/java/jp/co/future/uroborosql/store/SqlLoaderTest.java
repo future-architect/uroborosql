@@ -1,12 +1,12 @@
 package jp.co.future.uroborosql.store;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -18,7 +18,7 @@ public class SqlLoaderTest {
 		Map<String, String> sqls = sqlLoader.load();
 		assertThat(sqls, not(nullValue()));
 
-		String sql = sqls.get("example/select_product");
+		var sql = sqls.get("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
@@ -37,7 +37,7 @@ public class SqlLoaderTest {
 	@Test
 	public void testLoadFile() throws Exception {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
-		String sql = sqlLoader.load("example/select_product");
+		var sql = sqlLoader.load("example/select_product");
 		assertThat(sql,
 				is("SELECT /* _SQL_ID_ */" + System.lineSeparator() + "	*" + System.lineSeparator() + "FROM"
 						+ System.lineSeparator() + "	PRODUCT" + System.lineSeparator() + "WHERE 1 = 1"
@@ -46,9 +46,9 @@ public class SqlLoaderTest {
 						+ System.lineSeparator() + "ORDER BY PRODUCT_ID" + System.lineSeparator()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testLoadFileNull() throws Exception {
-		new SqlLoaderImpl().load(null);
+		assertThrows(IllegalArgumentException.class, () -> new SqlLoaderImpl().load(null));
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class SqlLoaderTest {
 		SqlLoader sqlLoader = new SqlLoaderImpl("sql", ".sql");
 		try {
 			sqlLoader.load("notexists/SQL_FILE");
-			fail("No exception occurred");
+			assertThat("No exception occurred", false);
 		} catch (UroborosqlRuntimeException e) {
 			assertThat(e.getMessage(), is(containsString("not found")));
 			assertThat(e.getMessage(), is(containsString("sql/notexists/SQL_FILE.sql")));

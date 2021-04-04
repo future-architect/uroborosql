@@ -131,11 +131,11 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 			return ((Year) original).getValue();
 		}
 		if (original instanceof YearMonth) {
-			YearMonth yearMonth = (YearMonth) original;
+			var yearMonth = (YearMonth) original;
 			return yearMonth.getYear() * 100 + yearMonth.getMonthValue();
 		}
 		if (original instanceof MonthDay) {
-			MonthDay monthDay = (MonthDay) original;
+			var monthDay = (MonthDay) original;
 			return monthDay.getMonthValue() * 100 + monthDay.getDayOfMonth();
 		}
 		if (original instanceof Month) {
@@ -161,8 +161,8 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 		}
 
 		if (isCastTarget(original)) {
-			boolean incDate = Arrays.stream(DATE_TARGET).anyMatch(original::isSupported);
-			boolean incTime = Arrays.stream(TIME_TARGET).anyMatch(original::isSupported);
+			var incDate = Arrays.stream(DATE_TARGET).anyMatch(original::isSupported);
+			var incTime = Arrays.stream(TIME_TARGET).anyMatch(original::isSupported);
 			if (incDate && incTime) {
 				return new Timestamp(toEpochMilli(original));
 			} else if (incDate) {
@@ -191,14 +191,14 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 	 * @return エポック1970-01-01T00:00:00Zからのミリ秒数
 	 */
 	private long toEpochMilli(final TemporalAccessor temporalAccessor) {
-		int year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
-		int month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
-		int dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
-		int hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
-		int minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
-		int second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
-		int milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
-		int nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
+		var year = getTemporalField(temporalAccessor, ChronoField.YEAR, 1970);
+		var month = getTemporalField(temporalAccessor, ChronoField.MONTH_OF_YEAR, 1);
+		var dayOfMonth = getTemporalField(temporalAccessor, ChronoField.DAY_OF_MONTH, 1);
+		var hour = getTemporalField(temporalAccessor, ChronoField.HOUR_OF_DAY, 0);
+		var minute = getTemporalField(temporalAccessor, ChronoField.MINUTE_OF_HOUR, 0);
+		var second = getTemporalField(temporalAccessor, ChronoField.SECOND_OF_MINUTE, 0);
+		var milliSecond = getTemporalField(temporalAccessor, ChronoField.MILLI_OF_SECOND, 0);
+		var nanoOfSecond = getTemporalField(temporalAccessor, ChronoField.NANO_OF_SECOND, milliSecond * 1000_000);
 		return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond,
 				clock.getZone()).toInstant().toEpochMilli();
 	}

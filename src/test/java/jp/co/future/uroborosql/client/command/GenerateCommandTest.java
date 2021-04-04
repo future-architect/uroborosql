@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,9 +10,9 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -31,7 +31,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -39,7 +39,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -51,7 +51,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 		command = new GenerateCommand();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -104,7 +104,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecuteWithVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		Properties props = new Properties();
+		var props = new Properties();
 		props.put("sql.versionColumnName", "lock_no");
 		props.put("sql.optimisticLockSupplier",
 				"jp.co.future.uroborosql.mapping.FieldIncrementOptimisticLockSupplier");
@@ -116,7 +116,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecuteWithoutVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		Properties props = new Properties();
+		var props = new Properties();
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
 		assertThat(trimWhitespace(out.toString()), is(
 				"UPDATE /* _SQL_ID_ */ GEN_TEST SET /*IF name != null */  , \"NAME\" = /*name*/'' /*END*/ /*IF lockNo != null */  , \"LOCK_NO\" = /*lockNo*/'' /*END*/ WHERE   \"ID\" = /*id*/''"));

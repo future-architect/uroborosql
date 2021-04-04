@@ -8,9 +8,7 @@ package jp.co.future.uroborosql.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -22,10 +20,8 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -52,7 +48,6 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContextFactory;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.store.NioSqlManagerImpl;
@@ -93,19 +88,19 @@ public class SqlREPL {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.context")).setLevel(Level.ERROR);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.store")).setLevel(Level.ERROR);
 
-		String propFile = "repl.properties";
+		var propFile = "repl.properties";
 		if (args.length != 0) {
 			propFile = args[0];
 		}
 
-		Path path = Paths.get(propFile);
+		var path = Paths.get(propFile);
 
 		if (!Files.exists(path)) {
 			throw new IllegalArgumentException("properties could not found.");
 		}
 
 		try {
-			SqlREPL repl = new SqlREPL(path);
+			var repl = new SqlREPL(path);
 			repl.execute();
 		} catch (Exception ex) {
 			throw new IllegalStateException("Failed to REPL.", ex);
@@ -119,9 +114,9 @@ public class SqlREPL {
 	 * @return プロパティ
 	 */
 	private Properties loadProps(final Path path) {
-		Properties props = new Properties();
+		var props = new Properties();
 		try {
-			InputStream is = Files.newInputStream(path);
+			var is = Files.newInputStream(path);
 			props.load(new InputStreamReader(is, Charset.forName("UTF-8")));
 		} catch (IOException ex) {
 			throw new IllegalArgumentException("Failed to load properties.", ex);
@@ -151,7 +146,7 @@ public class SqlREPL {
 	 * @throws Exception 実行時例外
 	 */
 	private void execute() throws Exception {
-		try (Terminal terminal = TerminalBuilder.builder().build()) {
+		try (var terminal = TerminalBuilder.builder().build()) {
 			showHelp(terminal);
 			showProps(terminal);
 
@@ -172,22 +167,22 @@ public class SqlREPL {
 	private void initialize(final Terminal terminal) throws Exception {
 		terminal.writer().println("initialize.");
 
-		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		var currentClassLoader = Thread.currentThread().getContextClassLoader();
 
 		if (currentClassLoader.equals(additionalClassLoader)) {
 			// すでに追加クラスローダになっている場合はいったん親に移動しておく
 			currentClassLoader = additionalClassLoader.getParent();
 		}
 
-		String paths = p("sql.additionalClassPath", ".");
+		var paths = p("sql.additionalClassPath", ".");
 		List<URL> urls = new ArrayList<>();
 		Arrays.stream(paths.split(";")).forEach(path -> {
 			try {
-				Matcher m = SYSPROP_PAT.matcher(path);
-				StringBuffer sb = new StringBuffer();
+				var m = SYSPROP_PAT.matcher(path);
+				var sb = new StringBuffer();
 				while (m.find()) {
-					String key = m.group(1);
-					String val = System.getProperty(key, null);
+					var key = m.group(1);
+					var val = System.getProperty(key, null);
 					if (val == null) {
 						val = System.getenv(key);
 					}
@@ -216,14 +211,14 @@ public class SqlREPL {
 			}
 		});
 
-		String url = p("db.url", "");
-		String user = p("db.user", "");
-		String password = p("db.password", "");
-		String schema = p("db.schema", null);
-		String loadPath = p("sql.loadPath", "sql");
-		String fileExtension = p("sql.fileExtension", ".sql");
-		Charset charset = Charset.forName(p("sql.encoding", "UTF-8"));
-		boolean detectChanges = Boolean.parseBoolean(p("sql.detectChanges", "true"));
+		var url = p("db.url", "");
+		var user = p("db.user", "");
+		var password = p("db.password", "");
+		var schema = p("db.schema", null);
+		var loadPath = p("sql.loadPath", "sql");
+		var fileExtension = p("sql.fileExtension", ".sql");
+		var charset = Charset.forName(p("sql.encoding", "UTF-8"));
+		var detectChanges = Boolean.parseBoolean(p("sql.detectChanges", "true"));
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
@@ -231,17 +226,17 @@ public class SqlREPL {
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
 		// sqlContextFactory
-		SqlContextFactory contextFactory = sqlConfig.getSqlContextFactory();
+		var contextFactory = sqlConfig.getSqlContextFactory();
 		List<String> constantClassNames = Arrays
 				.asList(p("sqlContextFactory.constantClassNames", "").split("\\s*,\\s*")).stream()
-				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!constantClassNames.isEmpty()) {
 			contextFactory.setConstantClassNames(constantClassNames);
 		}
 
 		List<String> enumConstantPackageNames = Arrays
 				.asList(p("sqlContextFactory.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
-				.filter(s -> StringUtils.isNotEmpty(s)).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!enumConstantPackageNames.isEmpty()) {
 			contextFactory.setEnumConstantPackageNames(enumConstantPackageNames);
 		}
@@ -288,7 +283,7 @@ public class SqlREPL {
 		// SQLキーワードのコード補完
 		completers.add(new SqlKeywordCompleter(commands));
 
-		LineReader reader = LineReaderBuilder.builder()
+		var reader = LineReaderBuilder.builder()
 				.appName("uroborosql")
 				.terminal(terminal)
 				.completer(new AggregateCompleter(completers))
@@ -316,20 +311,20 @@ public class SqlREPL {
 	 * @throws Exception 実行時例外
 	 */
 	private boolean executeCommand(final LineReader reader) throws Exception {
-		String prompt = new AttributedStringBuilder()
+		var prompt = new AttributedStringBuilder()
 				.style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
 				.ansiAppend("uroborosql")
 				.style(AttributedStyle.DEFAULT)
 				.append(" > ")
 				.toAnsi();
-		String line = reader.readLine(prompt);
+		var line = reader.readLine(prompt);
 		if (line == null || line.isEmpty()) {
 			// 空なら何もせずにループ
 			return true;
 		}
 
-		String[] parts = SqlParamUtils.parseLine(line);
-		Optional<ReplCommand> command = commands.stream().filter(c -> c.is(parts[0])).findFirst();
+		var parts = SqlParamUtils.parseLine(line);
+		var command = commands.stream().filter(c -> c.is(parts[0])).findFirst();
 		if (command.isPresent()) {
 			return command.get().execute(reader, parts, sqlConfig, props);
 		} else {
@@ -352,8 +347,8 @@ public class SqlREPL {
 	 * @throws IOException IO例外
 	 */
 	private void showMessage(final Terminal terminal, final String path) {
-		String messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
+		var messageFilePath = this.getClass().getPackage().getName().replace(".", "/") + path;
+		try (var reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
 			reader.lines().forEach(s -> {
 				try {
@@ -373,7 +368,7 @@ public class SqlREPL {
 	 * @throws IOException IO例外
 	 */
 	private void showProps(final Terminal terminal) throws IOException {
-		PrintWriter writer = terminal.writer();
+		var writer = terminal.writer();
 		writer.println("Properties file path:" + this.propPath);
 		writer.println("[Properties]");
 		props.forEach((key, value) -> {

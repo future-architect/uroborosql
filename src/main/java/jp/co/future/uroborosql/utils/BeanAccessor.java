@@ -36,15 +36,15 @@ public class BeanAccessor {
 		private final Set<Entry<String, Object>> entrySet;
 
 		public AsMap(final Object object) {
-			Field[] fields = BeanAccessor.fields(object.getClass()).stream()
+			var fields = BeanAccessor.fields(object.getClass()).stream()
 					.toArray(Field[]::new);
 			@SuppressWarnings("unchecked")
 			Entry<String, Object>[] entries = new Entry[fields.length];
-			this.entrySet = new AbstractSet<Map.Entry<String, Object>>() {
+			this.entrySet = new AbstractSet<>() {
 
 				@Override
 				public Iterator<Entry<String, Object>> iterator() {
-					return new Iterator<Map.Entry<String, Object>>() {
+					return new Iterator<>() {
 						int index = 0;
 
 						@Override
@@ -54,9 +54,9 @@ public class BeanAccessor {
 
 						@Override
 						public Entry<String, Object> next() {
-							Entry<String, Object> next = entries[index];
+							var next = entries[index];
 							if (next == null) {
-								Field f = fields[index];
+								var f = fields[index];
 								next = new AbstractMap.SimpleImmutableEntry<>(f.getName(),
 										BeanAccessor.value(f, object));
 								entries[index] = next;

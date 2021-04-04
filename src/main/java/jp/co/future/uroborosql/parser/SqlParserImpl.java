@@ -58,7 +58,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	public SqlParserImpl(final String sql, final ExpressionParser expressionParser, final boolean removeTerminator,
 			final boolean outputBindComment) {
-		String s = sql.trim();
+		var s = sql.trim();
 		if (removeTerminator) {
 			s = PATTERN.matcher(s).replaceFirst("");
 		}
@@ -106,13 +106,13 @@ public class SqlParserImpl implements SqlParser {
 	 * SQL解析
 	 */
 	protected void parseSql() {
-		String sql = tokenizer.getToken();
-		Node node = peek();
+		var sql = tokenizer.getToken();
+		var node = peek();
 		if ((node instanceof IfNode || node instanceof ElseNode) && node.getChildSize() == 0) {
 
 			SqlTokenizer st = new SqlTokenizerImpl(sql);
 			st.skipWhitespace();
-			String token = st.skipToken();
+			var token = st.skipToken();
 			st.skipWhitespace();
 			if ("AND".equalsIgnoreCase(token) || "OR".equalsIgnoreCase(token)) {
 				node.addChild(new PrefixSqlNode(this.position, st.getBefore(), st.getAfter()));
@@ -129,7 +129,7 @@ public class SqlParserImpl implements SqlParser {
 	 * コメント解析
 	 */
 	protected void parseComment() {
-		String comment = tokenizer.getToken();
+		var comment = tokenizer.getToken();
 		if (isTargetComment(comment)) {
 			if (isIfComment(comment)) {
 				parseIf();
@@ -140,7 +140,6 @@ public class SqlParserImpl implements SqlParser {
 			} else if (isBeginComment(comment)) {
 				parseBegin();
 			} else if (isEndComment(comment)) {
-				return;
 			} else {
 				parseCommentBindVariable();
 			}
@@ -153,8 +152,8 @@ public class SqlParserImpl implements SqlParser {
 	 * 通常コメント解析
 	 */
 	protected void parseNormalComment() {
-		String comment = tokenizer.getToken();
-		SqlNode node = new SqlNode(Math.max(this.position - 2, 0), "/*" + comment + "*/");
+		var comment = tokenizer.getToken();
+		var node = new SqlNode(Math.max(this.position - 2, 0), "/*" + comment + "*/");
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(node);
 	}
@@ -163,11 +162,11 @@ public class SqlParserImpl implements SqlParser {
 	 * IF文解析
 	 */
 	protected void parseIf() {
-		String condition = tokenizer.getToken().substring(2);
+		var condition = tokenizer.getToken().substring(2);
 		if (StringUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode ifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);
+		var ifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(ifNode);
 		push(ifNode);
@@ -178,13 +177,13 @@ public class SqlParserImpl implements SqlParser {
 	 * IF文解析
 	 */
 	protected void parseElIf() {
-		String condition = tokenizer.getToken().substring(4);
+		var condition = tokenizer.getToken().substring(4);
 		if (StringUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
-		IfNode elifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);
+		var elifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);
 		this.position = this.tokenizer.getPosition();
-		IfNode ifNode = (IfNode) pop();
+		var ifNode = (IfNode) pop();
 		ifNode.setElseIfNode(elifNode);
 		push(elifNode);
 
@@ -195,7 +194,7 @@ public class SqlParserImpl implements SqlParser {
 	 * BEGIN文解析
 	 */
 	protected void parseBegin() {
-		BeginNode beginNode = new BeginNode(Math.max(this.position - 2, 0));
+		var beginNode = new BeginNode(Math.max(this.position - 2, 0));
 		this.position = this.tokenizer.getPosition();
 		peek().addChild(beginNode);
 		push(beginNode);
@@ -224,12 +223,12 @@ public class SqlParserImpl implements SqlParser {
 	 * @param length ELSE文の長さ
 	 */
 	protected void parseElse(final int length) {
-		Node parent = peek();
+		var parent = peek();
 		if (!(parent instanceof IfNode)) {
 			return;
 		}
-		IfNode ifNode = (IfNode) pop();
-		ElseNode elseNode = new ElseNode(Math.max(this.position - 2, 0), length);
+		var ifNode = (IfNode) pop();
+		var elseNode = new ElseNode(Math.max(this.position - 2, 0), length);
 		this.position = this.tokenizer.getPosition();
 		ifNode.setElseNode(elseNode);
 		push(elseNode);
@@ -240,8 +239,8 @@ public class SqlParserImpl implements SqlParser {
 	 * バインド変数解析
 	 */
 	protected void parseCommentBindVariable() {
-		String expr = tokenizer.getToken();
-		String s = tokenizer.skipToken();
+		var expr = tokenizer.getToken();
+		var s = tokenizer.skipToken();
 		if (s.startsWith("(") && s.endsWith(")")) {
 			peek().addChild(new ParenBindVariableNode(expressionParser, Math.max(this.position - 2, 0), expr, s,
 					outputBindComment));
@@ -262,7 +261,7 @@ public class SqlParserImpl implements SqlParser {
 	 * バインド変数解析
 	 */
 	protected void parseBindVariable() {
-		String expr = tokenizer.getToken();
+		var expr = tokenizer.getToken();
 		peek().addChild(new BindVariableNode(expressionParser, this.position, expr, null, outputBindComment));
 		this.position = this.tokenizer.getPosition();
 	}
@@ -344,7 +343,7 @@ public class SqlParserImpl implements SqlParser {
 	 * @return BEGINコメントの場合は<code>true</code>
 	 */
 	private static boolean isBeginComment(final String content) {
-		return content != null && "BEGIN".equals(content);
+		return "BEGIN".equals(content);
 	}
 
 	/**
@@ -354,7 +353,7 @@ public class SqlParserImpl implements SqlParser {
 	 * @return ENDコメントの場合は<code>true</code>
 	 */
 	private static boolean isEndComment(final String content) {
-		return content != null && "END".equals(content);
+		return "END".equals(content);
 	}
 
 }

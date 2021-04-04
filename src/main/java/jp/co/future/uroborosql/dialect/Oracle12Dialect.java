@@ -46,7 +46,7 @@ public class Oracle12Dialect extends OracleDialect {
 	 */
 	@Override
 	public String getLimitClause(final long limit, final long offset) {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		if (offset > 0) {
 			builder.append("OFFSET ").append(offset).append(" ROWS");
 			if (limit > 0) {

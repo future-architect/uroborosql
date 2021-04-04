@@ -1,17 +1,15 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
+import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentFactoryImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -65,12 +63,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (firstName == null ? 0 : firstName.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (lastName == null ? 0 : lastName.hashCode());
-			return result;
+			return Objects.hash(firstName, id, lastName);
 		}
 
 		@Override
@@ -84,22 +77,14 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			TestEntity other = (TestEntity) obj;
-			if (firstName == null) {
-				if (other.firstName != null) {
-					return false;
-				}
-			} else if (!firstName.equals(other.firstName)) {
+			var other = (TestEntity) obj;
+			if (!Objects.equals(firstName, other.firstName)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (lastName == null) {
-				if (other.lastName != null) {
-					return false;
-				}
-			} else if (!lastName.equals(other.lastName)) {
+			if (!Objects.equals(lastName, other.lastName)) {
 				return false;
 			}
 			return true;
@@ -112,17 +97,17 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:" + DefaultEntityHandlerIdentifierPascalCaseTest.class.getSimpleName()
+		var url = "jdbc:h2:mem:" + DefaultEntityHandlerIdentifierPascalCaseTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists \"PascalTable\"");
 				stmt.execute(
 						"create table if not exists \"PascalTable\"( \"Id\" NUMERIC(4), \"LastName\" VARCHAR(10), \"FirstName\" VARCHAR(10), primary key(\"Id\"))");
@@ -135,9 +120,9 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from \"PascalTable\"").count();
 			agent.commit();
 		}
@@ -169,7 +154,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	@Test
 	public void testSqlQuery() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith(
 					"insert into \"PascalTable\" (\"Id\", \"LastName\", \"FirstName\") values (/*id*/1, /*lastName*/'', /*firstName*/'')")
 					.param("id", 1)
@@ -177,7 +162,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 					.param("firstName", "firstName1")
 					.count();
 
-			TestEntity entity = agent.queryWith("select * from \"PascalTable\"").first(TestEntity.class);
+			var entity = agent.queryWith("select * from \"PascalTable\"").first(TestEntity.class);
 			assertThat(entity.getId(), is(1L));
 			assertThat(entity.getLastName(), is("lastName1"));
 			assertThat(entity.getFirstName(), is("firstName1"));

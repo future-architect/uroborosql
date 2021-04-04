@@ -1,15 +1,13 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Arrays;
@@ -19,14 +17,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -42,16 +38,16 @@ public class DefaultEntityHandlerTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:DefaultEntityHandlerTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:DefaultEntityHandlerTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute(
 						"create table if not exists test( \"ID\" NUMERIC(4),name VARCHAR(10),\"Age\" NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version INTEGER, primary key(id))");
@@ -92,9 +88,9 @@ public class DefaultEntityHandlerTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.updateWith("delete from test_data_no_key").count();
 			agent.updateWith("delete from test_data_multi_key").count();
@@ -109,17 +105,17 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
 						.of("memo3"));
 				agent.insert(test3);
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -133,15 +129,15 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testInsert2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
+				var test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
+				var test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
-				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
+				var data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity2.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -155,13 +151,13 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testInsert3() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
 				assertThat(agent.find(TestEntity3.class, 1).orElse(null), is(test1));
 				assertThat(agent.find(TestEntity3.class, 2).orElse(null), is(test2));
@@ -173,18 +169,18 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQuery1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
 						.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
 				agent.insert(test3);
 
-				List<TestEntity> list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -201,16 +197,16 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQuery2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
-				List<TestEntity2> list = agent.query(TestEntity2.class).collect();
+				var list = agent.query(TestEntity2.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -227,16 +223,16 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQuery3() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
-				List<TestEntity3> list = agent.query(TestEntity3.class).collect();
+				var list = agent.query(TestEntity3.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -253,20 +249,20 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQuery4() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				long count1 = agent.query(TestEntity3.class).count();
+				var count1 = agent.query(TestEntity3.class).count();
 				assertThat(count1, is(4L));
-				long count2 = agent.query(TestEntity3.class).count(TestEntity3.Names.Birthday);
+				var count2 = agent.query(TestEntity3.class).count(TestEntity3.Names.Birthday);
 				assertThat(count2, is(3L));
 
 				int sum = agent.query(TestEntity3.class).sum(TestEntity3.Names.Age);
@@ -275,20 +271,20 @@ public class DefaultEntityHandlerTest {
 				int min = agent.query(TestEntity3.class).min(TestEntity3.Names.Age);
 				assertThat(min, is(20));
 
-				String minName = agent.query(TestEntity3.class).min(TestEntity3.Names.Name);
+				var minName = agent.query(TestEntity3.class).min(TestEntity3.Names.Name);
 				assertThat(minName, is("name1"));
 
 				long max = agent.query(TestEntity3.class).max(TestEntity3.Names.Id);
 				assertThat(max, is(4L));
 
-				LocalDate maxDate = agent.query(TestEntity3.class).max(TestEntity3.Names.Birthday);
+				var maxDate = agent.query(TestEntity3.class).max(TestEntity3.Names.Birthday);
 				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
 
 				try {
 					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 1).exists(() -> {
 						throw new UroborosqlRuntimeException("exists");
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("exists"));
 				}
@@ -298,14 +294,14 @@ public class DefaultEntityHandlerTest {
 						throw new UroborosqlRuntimeException("exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.query(TestEntity3.class).equal(TestEntity3.Names.Id, 0).notExists(() -> {
 						throw new UroborosqlRuntimeException("not exists");
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("not exists"));
 				}
@@ -315,62 +311,62 @@ public class DefaultEntityHandlerTest {
 						throw new UroborosqlRuntimeException("not exists");
 					});
 				} catch (UroborosqlRuntimeException ex) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQueryCountUnmatchColumn() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).count("unmatch");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).count("unmatch"));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQuerySumUnmatchColumn() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).sum("unmatch");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).sum("unmatch"));
 			});
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testQuerySumNoNumberColumn() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				agent.query(TestEntity3.class).sum("birthday");
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.query(TestEntity3.class).sum("birthday"));
 			});
 		}
 	}
@@ -378,15 +374,15 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQueryWithCondition() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
 						Optional.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
+				var test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
 				// Equal
@@ -642,13 +638,13 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(1), is(test3));
 
 				// count
-				long count1 = agent.query(TestEntity.class).asc("age").count();
+				var count1 = agent.query(TestEntity.class).asc("age").count();
 				assertThat(count1, is(3L));
 
-				long count2 = agent.query(TestEntity.class).lessEqual("age", 21).count();
+				var count2 = agent.query(TestEntity.class).lessEqual("age", 21).count();
 				assertThat(count2, is(2L));
 
-				long count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
+				var count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
 				assertThat(count3, is(1L));
 
 			});
@@ -658,15 +654,15 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQueryForUpdate() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				var test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				var test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
 				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(10));
@@ -678,7 +674,7 @@ public class DefaultEntityHandlerTest {
 				assertThat(config.getSqlAgentFactory().isStrictForUpdateType(), is(true));
 
 				agent.required(() -> {
-					List<TestEntity3> list = agent.query(TestEntity3.class).forUpdate().collect();
+					var list = agent.query(TestEntity3.class).forUpdate().collect();
 					assertThat(list.size(), is(4));
 				});
 
@@ -686,52 +682,52 @@ public class DefaultEntityHandlerTest {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateNoWait().first();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update nowait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateWait().stream();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					agent.required(() -> {
 						agent.query(TestEntity3.class).forUpdateWait(30).count();
 					});
-					fail();
+					assertThat("Fail here.", false);
 				} catch (UroborosqlRuntimeException ex) {
 					assertThat(ex.getMessage(), is("Unsupported for update wait clause."));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				config.getSqlAgentFactory().setStrictForUpdateType(false);
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateNoWait().first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateWait().first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateWait(10).first().isPresent(), is(true));
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 				try {
@@ -741,7 +737,7 @@ public class DefaultEntityHandlerTest {
 								throw new IllegalStateException();
 							});
 				} catch (Throwable th) {
-					fail();
+					assertThat("Fail here.", false);
 				}
 
 			});
@@ -751,16 +747,16 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testUpdate1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 
@@ -785,15 +781,15 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testUpdate2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
+				var data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -803,16 +799,16 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testUpdateNoKey() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataNoKeyEntity test = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestDataNoKeyEntity data = agent.find(TestDataNoKeyEntity.class).orElse(null);
+				var data = agent.find(TestDataNoKeyEntity.class).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -822,48 +818,48 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testUpdateLockVersionSuccess() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity3 data = agent.find(TestEntity3.class, 1).orElse(null);
+				var data = agent.find(TestEntity3.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
 		}
 	}
 
-	@Test(expected = OptimisticLockException.class)
+	@Test
 	public void testUpdateLockVersionError() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				test.setLockVersion(1);
 				agent.insert(test);
 
 				test.setName("updatename");
 				test.setLockVersion(0);
-				agent.update(test);
+				assertThrows(OptimisticLockException.class, () -> agent.update(test));
 			});
 		}
 	}
 
 	@Test
 	public void testUpdateLockVersionOnly() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityLockVersion test = new TestEntityLockVersion(1L, "name1");
+				var test = new TestEntityLockVersion(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityLockVersion data = agent.find(TestEntityLockVersion.class).orElse(null);
+				var data = agent.find(TestEntityLockVersion.class).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -872,16 +868,16 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateCyclicLockVersionMin() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityCyclicLockVersion test = new TestEntityCyclicLockVersion(1L, "name1");
+				var test = new TestEntityCyclicLockVersion(1L, "name1");
 				assertThat(test.getLockVersion(), is(0));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityCyclicLockVersion data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
+				var data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 				assertThat(data.getLockVersion(), is(1));
@@ -891,9 +887,9 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateCyclicLockVersionMax() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityCyclicLockVersion test = new TestEntityCyclicLockVersion(1L, "name1");
+				var test = new TestEntityCyclicLockVersion(1L, "name1");
 				test.setLockVersion(1000000000);
 				assertThat(test.getLockVersion(), is(1000000000));
 				agent.insert(test);
@@ -901,7 +897,7 @@ public class DefaultEntityHandlerTest {
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityCyclicLockVersion data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
+				var data = agent.find(TestEntityCyclicLockVersion.class).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 				assertThat(data.getLockVersion(), is(1));
@@ -911,19 +907,19 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateTimestampLockVersion() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityTimestampLockVersion test = new TestEntityTimestampLockVersion(1L, "name1");
+				var test = new TestEntityTimestampLockVersion(1L, "name1");
 				assertThat(test.getLockVersion(), is(0L));
 				agent.insert(test);
 
-				TestEntityTimestampLockVersion insertedData = agent.find(TestEntityTimestampLockVersion.class)
+				var insertedData = agent.find(TestEntityTimestampLockVersion.class)
 						.orElse(null);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityTimestampLockVersion updatedData = agent.find(TestEntityTimestampLockVersion.class)
+				var updatedData = agent.find(TestEntityTimestampLockVersion.class)
 						.orElse(null);
 				assertThat(updatedData, is(test));
 				assertThat(updatedData.getName(), is("updatename"));
@@ -934,16 +930,16 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateFieldIncrementLockVersionMin() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				var test = new TestEntityFieldIncrementLockVersion(1L, "name1");
 				assertThat(test.getLockVersion(), is((short) 0));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+				var data = agent.find(TestEntityFieldIncrementLockVersion.class)
 						.orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
@@ -954,16 +950,16 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testUpdateFieldIncrementLockVersionMax() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityFieldIncrementLockVersion test = new TestEntityFieldIncrementLockVersion(1L, "name1");
+				var test = new TestEntityFieldIncrementLockVersion(1L, "name1");
 				test.setLockVersion(Short.MAX_VALUE);
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntityFieldIncrementLockVersion data = agent.find(TestEntityFieldIncrementLockVersion.class)
+				var data = agent.find(TestEntityFieldIncrementLockVersion.class)
 						.orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
@@ -972,16 +968,16 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
+	@Test
 	public void testUpdateCustomLockVersionWithNoEntry() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityCustomLockVersion test = new TestEntityCustomLockVersion(1L, "name1");
+				var test = new TestEntityCustomLockVersion(1L, "name1");
 				assertThat(test.getLockVersion(), is(0L));
 				agent.insert(test);
 
 				test.setName("updatename");
-				agent.update(test);
+				assertThrows(UroborosqlRuntimeException.class, () -> agent.update(test));
 			});
 		}
 	}
@@ -989,13 +985,13 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDelete1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -1009,12 +1005,12 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDelete2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				var test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
-				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
+				var data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -1028,13 +1024,13 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDeleteNothingKey() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataNoKeyEntity test = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
 				agent.insert(test);
 
-				TestDataNoKeyEntity data = agent.find(TestDataNoKeyEntity.class).orElse(null);
+				var data = agent.find(TestDataNoKeyEntity.class).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -1048,12 +1044,12 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDeleteLockVersionOnly() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityLockVersion test = new TestEntityLockVersion(1L, "name1");
+				var test = new TestEntityLockVersion(1L, "name1");
 				agent.insert(test);
 
-				TestEntityLockVersion data = agent.find(TestEntityLockVersion.class).orElse(null);
+				var data = agent.find(TestEntityLockVersion.class).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -1067,13 +1063,13 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDeleteWithKeys() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+				var test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
 						.of("memo2"));
-				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+				var test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
 						.empty());
 				agent.insert(test1);
 				agent.insert(test2);
@@ -1090,13 +1086,13 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testDeleteWithKeysForNothingKey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataNoKeyEntity test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
-				TestDataNoKeyEntity test2 = new TestDataNoKeyEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1),
+				var test2 = new TestDataNoKeyEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1),
 						Optional.of("memo2"));
-				TestDataNoKeyEntity test3 = new TestDataNoKeyEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1),
+				var test3 = new TestDataNoKeyEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1),
 						Optional.empty());
 				agent.insert(test1);
 				agent.insert(test2);
@@ -1114,22 +1110,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDeleteWithKeyForMultiKey() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataMultiKeyEntity test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
-				TestDataMultiKeyEntity test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
-				TestDataMultiKeyEntity test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
+				var test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
+				var test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
+				var test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
 				agent.insert(test1);
 				agent.insert(test2);
 				agent.insert(test3);
 
 				try {
 					agent.delete(TestDataMultiKeyEntity.class, 1, 2);
-					fail();
+					assertThat("Fail here.", false);
 				} catch (IllegalArgumentException ex) {
 					assertThat(ex.getMessage(), is("Entity has multiple keys"));
 				} catch (Exception ex) {
-					fail(ex.getMessage());
+					assertThat(ex.getMessage(), false);
 				}
 			});
 		}
@@ -1138,13 +1134,13 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testDeleteWithCondition() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+				var test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
 						.of("memo2"));
-				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+				var test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
 						.empty());
 				agent.insert(test1);
 				agent.insert(test2);
@@ -1317,22 +1313,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
+				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1346,23 +1342,23 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsert2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3),
+				var count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3),
 						InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1376,23 +1372,23 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsert3() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0,
+				var count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0,
 						InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1406,26 +1402,26 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsert4() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
-				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23,
+				var test4 = new TestEntityForInserts(4, "name4", 23,
 						LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1441,22 +1437,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsertWithOptional() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
 						Optional.empty());
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						Optional.of("memo3"));
-				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+				var test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						Optional.of("memo4"));
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1472,9 +1468,9 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBatchInsertEmpty() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				int count = agent.inserts(Stream.empty(), InsertsType.BATCH);
+				var count = agent.inserts(Stream.empty(), InsertsType.BATCH);
 				assertThat(count, is(0));
 
 				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
@@ -1483,29 +1479,25 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBatchInsertTypeError1() throws Exception {
-
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) TestEntity.class, Stream.of(test1), InsertsType.BATCH);
-
+				var test1 = new TestEntityForInserts();
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) TestEntity.class, Stream.of(test1), InsertsType.BATCH));
 			});
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBatchInsertTypeError2() throws Exception {
-
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) int.class, Stream.of(test1), InsertsType.BATCH);
-
+				var test1 = new TestEntityForInserts();
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) int.class, Stream.of(test1), InsertsType.BATCH));
 			});
 		}
 	}
@@ -1513,22 +1505,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3));
+				var count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1542,22 +1534,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsert2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3));
+				var count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3));
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1571,22 +1563,22 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsert3() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0);
+				var count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0);
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1600,25 +1592,25 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsert4() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
-				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23,
+				var test4 = new TestEntityForInserts(4, "name4", 23,
 						LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
 				assertThat(count, is(4));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1634,21 +1626,21 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsertWithOptional() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
 						Optional.empty());
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						Optional.of("memo3"));
-				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+				var test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						Optional.of("memo4"));
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
 				assertThat(count, is(4));
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -1663,9 +1655,9 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testBulkInsertEmpty() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				int count = agent.inserts(Stream.empty());
+				var count = agent.inserts(Stream.empty());
 				assertThat(count, is(0));
 
 				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
@@ -1674,29 +1666,24 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBulkInsertTypeError1() throws Exception {
-
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) TestEntity.class, Stream.of(test1));
-
+				var test1 = new TestEntityForInserts();
+				assertThrows(IllegalArgumentException.class,
+						() -> agent.inserts((Class) TestEntity.class, Stream.of(test1)));
 			});
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBulkInsertTypeError2() throws Exception {
-
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts();
-
-				agent.inserts((Class) int.class, Stream.of(test1));
-
+				var test1 = new TestEntityForInserts();
+				assertThrows(IllegalArgumentException.class, () -> agent.inserts((Class) int.class, Stream.of(test1)));
 			});
 		}
 	}
@@ -1704,19 +1691,19 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQueryNothingKey() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataNoKeyEntity test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestDataNoKeyEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
 				agent.insert(test1);
-				TestDataNoKeyEntity test2 = new TestDataNoKeyEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+				var test2 = new TestDataNoKeyEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
 						Optional.empty());
 				agent.insert(test2);
-				TestDataNoKeyEntity test3 = new TestDataNoKeyEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+				var test3 = new TestDataNoKeyEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						Optional.of("memo3"));
 				agent.insert(test3);
 
-				List<TestDataNoKeyEntity> list = agent.query(TestDataNoKeyEntity.class).collect();
+				var list = agent.query(TestDataNoKeyEntity.class).collect();
 				assertThat(list.size(), is(3));
 			});
 		}
@@ -1725,16 +1712,16 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testQueryMultiKeyEntity() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestDataMultiKeyEntity test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
+				var test1 = new TestDataMultiKeyEntity(1, "key1", "name1");
 				agent.insert(test1);
-				TestDataMultiKeyEntity test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
+				var test2 = new TestDataMultiKeyEntity(1, "key2", "name2");
 				agent.insert(test2);
-				TestDataMultiKeyEntity test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
+				var test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
 				agent.insert(test3);
 
-				List<TestDataMultiKeyEntity> list = agent.query(TestDataMultiKeyEntity.class).collect();
+				var list = agent.query(TestDataMultiKeyEntity.class).collect();
 				assertThat(list.size(), is(3));
 			});
 		}
@@ -1742,22 +1729,22 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateSelectContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
+			var ctx = handler.createSelectContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
-			try (ResultSet rs = agent.query(ctx)) {
+			try (var rs = agent.query(ctx)) {
 				assertThat(rs.next(), is(true));
 			}
 		}
@@ -1765,8 +1752,8 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateSelectContextEmptyNotEqualsNull() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1774,14 +1761,14 @@ public class DefaultEntityHandlerTest {
 
 			EntityHandler<?> handler = config.getEntityHandler();
 			handler.setEmptyStringEqualsNull(false);
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
+			var ctx = handler.createSelectContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
-			try (ResultSet rs = agent.query(ctx)) {
+			try (var rs = agent.query(ctx)) {
 				assertThat(rs.next(), is(true));
 			}
 
@@ -1791,13 +1778,13 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateInsertContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+			var ctx = handler.createInsertContext(agent, metadata, null);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
@@ -1808,14 +1795,14 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateInsertContextEmptyNotEqualsNull() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
 			handler.setEmptyStringEqualsNull(false);
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+			var ctx = handler.createInsertContext(agent, metadata, null);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
@@ -1828,19 +1815,19 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateUpdateContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
+			var ctx = handler.createUpdateContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "updatename");
@@ -1851,8 +1838,8 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateUpdateContextEmptyStringEqualsNull() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1860,11 +1847,11 @@ public class DefaultEntityHandlerTest {
 
 			EntityHandler<?> handler = config.getEntityHandler();
 			handler.setEmptyStringEqualsNull(false);
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
+			var ctx = handler.createUpdateContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
 			ctx.param("id", 1).param("name", "updatename");
@@ -1877,17 +1864,17 @@ public class DefaultEntityHandlerTest {
 
 	@Test
 	public void testCreateDeleteContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createDeleteContext(agent, metadata, null, true);
+			var ctx = handler.createDeleteContext(agent, metadata, null, true);
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
 			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
@@ -1898,18 +1885,18 @@ public class DefaultEntityHandlerTest {
 	public void testAddAndRemovePropertyMapper() throws Exception {
 		EntityHandler<?> handler = config.getEntityHandler();
 
-		CustomMapper customMapper = new CustomMapper();
+		var customMapper = new CustomMapper();
 		handler.addPropertyMapper(customMapper);
 
 		Class<?> clazz = handler.getClass();
-		Field mapperField = clazz.getDeclaredField("propertyMapperManager");
+		var mapperField = clazz.getDeclaredField("propertyMapperManager");
 		mapperField.setAccessible(true);
 		Class<?> mapperClazz = mapperField.getType();
-		Object mapperObj = mapperField.get(handler);
-		Field mappersField = mapperClazz.getDeclaredField("mappers");
+		var mapperObj = mapperField.get(handler);
+		var mappersField = mapperClazz.getDeclaredField("mappers");
 		mappersField.setAccessible(true);
 		@SuppressWarnings("unchecked")
-		List<PropertyMapper<?>> instance = (List<PropertyMapper<?>>) mappersField.get(mapperObj);
+		var instance = (List<PropertyMapper<?>>) mappersField.get(mapperObj);
 
 		assertThat(instance.contains(customMapper), is(true));
 
@@ -1938,7 +1925,7 @@ public class DefaultEntityHandlerTest {
 		public Name getValue(final JavaType type, final ResultSet rs, final int columnIndex,
 				final PropertyMapperManager mapperManager)
 				throws SQLException {
-			String s = rs.getString(columnIndex);
+			var s = rs.getString(columnIndex);
 			return s != null ? new Name(s.toUpperCase().replaceAll("^-", "").replaceAll("-$", "")) : null;
 		}
 	}

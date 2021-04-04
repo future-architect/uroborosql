@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EnumParameterMapperTest {
 	enum TestEnum {
@@ -12,7 +12,7 @@ public class EnumParameterMapperTest {
 
 	@Test
 	public void test() {
-		EnumParameterMapper mapper = new EnumParameterMapper();
+		var mapper = new EnumParameterMapper();
 		assertThat(mapper.toJdbc(TestEnum.A, null, null), is("A"));
 	}
 

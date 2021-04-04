@@ -15,13 +15,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public interface SqlLoader {
 	/** パスセパレータ */
-	static final String PATH_SEPARATOR = "/";
+	String PATH_SEPARATOR = "/";
 
 	/** SQLファイルロードのデフォルトルートパス */
-	static final String DEFAULT_LOAD_PATH = "sql";
+	String DEFAULT_LOAD_PATH = "sql";
 
 	/** デフォルトのSQLファイル拡張子 */
-	static final String DEFAULT_FILE_EXTENSION = ".sql";
+	String DEFAULT_FILE_EXTENSION = ".sql";
 
 	/**
 	 * SQL読み込み<br>

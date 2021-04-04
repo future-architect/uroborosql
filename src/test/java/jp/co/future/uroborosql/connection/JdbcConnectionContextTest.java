@@ -1,12 +1,12 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
-import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JdbcConnectionContextTest {
 	private static final String URL = "jdbc:h2:mem:" + JdbcConnectionContextTest.class.getSimpleName();
@@ -16,7 +16,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContext() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL);
+		var ctx = ConnectionContextBuilder.jdbc(URL);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(nullValue()));
 		assertThat(ctx.password(), is(nullValue()));
@@ -28,7 +28,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContextWithUserPass() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD);
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
 		assertThat(ctx.password(), is(PASSWORD));
@@ -40,7 +40,7 @@ public class JdbcConnectionContextTest {
 
 	@Test
 	public void testJdbcConnectionContextWithUserPassSchema() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
 		assertThat(ctx.password(), is(PASSWORD));
@@ -50,15 +50,15 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testJdbcConnectionContextWithUrlNull() {
-		ConnectionContextBuilder.jdbc(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(null));
 	}
 
 	@Test
 	public void testSetter() {
-		String url2 = URL + "_2";
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
+		var url2 = URL + "_2";
+		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.url(url2).url(), is(url2));
 
@@ -77,15 +77,15 @@ public class JdbcConnectionContextTest {
 				is(Connection.TRANSACTION_REPEATABLE_READ));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testSetUrlNull() {
-		ConnectionContextBuilder.jdbc(URL).url(null);
+		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(URL).url(null));
 	}
 
 	@Test
 	public void testToProperties() {
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL);
-		Properties props = ctx.toProperties();
+		var ctx = ConnectionContextBuilder.jdbc(URL);
+		var props = ctx.toProperties();
 		assertThat(props.isEmpty(), is(true));
 
 		ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);

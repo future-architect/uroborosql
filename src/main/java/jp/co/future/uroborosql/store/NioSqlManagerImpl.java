@@ -9,11 +9,8 @@ package jp.co.future.uroborosql.store;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
@@ -27,7 +24,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -285,12 +281,12 @@ public class NioSqlManagerImpl implements SqlManager {
 
 				//ファイル名はイベントのコンテキストです。
 				@SuppressWarnings("unchecked")
-				WatchEvent<Path> evt = (WatchEvent<Path>) event;
-				Path dir = watchDirs.get(key);
-				Path path = dir.resolve(evt.context());
+				var evt = (WatchEvent<Path>) event;
+				var dir = watchDirs.get(key);
+				var path = dir.resolve(evt.context());
 
 				log.trace("file changed.({}). path={}", kind.name(), path);
-				boolean isSqlFile = path.toString().endsWith(fileExtension);
+				var isSqlFile = path.toString().endsWith(fileExtension);
 				if (Files.isDirectory(path) || !isSqlFile) {
 					// ENTRY_DELETEの時はFiles.isDirectory()がfalseになるので拡張子での判定も行う
 					if (kind == ENTRY_CREATE) {
@@ -304,10 +300,8 @@ public class NioSqlManagerImpl implements SqlManager {
 					if (kind == ENTRY_CREATE) {
 						traverse(path, true, false);
 					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
-						String sqlName = getSqlName(path);
-						sqlInfos.computeIfPresent(sqlName, (k, v) -> {
-							return v.computePath(path, kind == ENTRY_DELETE);
-						});
+						var sqlName = getSqlName(path);
+						sqlInfos.computeIfPresent(sqlName, (k, v) -> v.computePath(path, kind == ENTRY_DELETE));
 					}
 				}
 			}
@@ -431,13 +425,13 @@ public class NioSqlManagerImpl implements SqlManager {
 	private void generateSqlInfos() {
 		try {
 			for (Path loadPath : this.loadPaths) {
-				String loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
-				Enumeration<URL> root = Thread.currentThread().getContextClassLoader()
+				var loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
+				var root = Thread.currentThread().getContextClassLoader()
 						.getResources(loadPathSlash);
 
 				while (root.hasMoreElements()) {
-					URI uri = root.nextElement().toURI();
-					String scheme = uri.getScheme();
+					var uri = root.nextElement().toURI();
+					var scheme = uri.getScheme();
 					if (SCHEME_FILE.equals(scheme)) {
 						traverse(Paths.get(uri), detectChanges && true, false);
 					} else if (SCHEME_JAR.equals(scheme)) {
@@ -509,11 +503,11 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @return SqlName SqlName
 	 */
 	private String getSqlName(final Path path) {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 
-		boolean dialectFlag = true;
+		var dialectFlag = true;
 		for (Path part : relativePath(path)) {
-			String s = part.toString();
+			var s = part.toString();
 			if (dialectFlag) {
 				// loadPathの直下がdialectと一致する場合はその下のフォルダから名前を付ける
 				dialectFlag = false;
@@ -541,11 +535,11 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 
 		for (String[] loadPathParts : this.loadPathPartsList) {
-			int loadPathSize = loadPathParts.length;
+			var loadPathSize = loadPathParts.length;
 
 			// loadPathのフォルダの並びと一致する場所を特定し、その下を相対パスとして返却する
-			for (int i = 0; i < pathList.size() - loadPathSize; i++) {
-				String[] paths = pathList.subList(i, i + loadPathSize).stream()
+			for (var i = 0; i < pathList.size() - loadPathSize; i++) {
+				var paths = pathList.subList(i, i + loadPathSize).stream()
 						.map(Path::toString)
 						.toArray(String[]::new);
 				if (Arrays.equals(loadPathParts, paths)) {
@@ -575,12 +569,12 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @return 妥当なPathの場合<code>true</code>
 	 */
 	private boolean validPath(final Path path) {
-		Path relativePath = relativePath(path);
+		var relativePath = relativePath(path);
 		if (relativePath.equals(path)) {
 			return true;
 		}
 
-		String d = relativePath.getName(0).toString().toLowerCase();
+		var d = relativePath.getName(0).toString().toLowerCase();
 		// loadPathの直下が現在のdialect以外と一致する場合は無効なパスと判定する
 		return !dialects.contains(d) || this.dialect.getDatabaseType().equals(d);
 
@@ -601,9 +595,9 @@ public class NioSqlManagerImpl implements SqlManager {
 		}
 		if (Files.isDirectory(path)) {
 			if (validPath(path)) {
-				try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
+				try (var ds = Files.newDirectoryStream(path)) {
 					if (watch) {
-						WatchKey key = path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+						var key = path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 						watchDirs.put(key, path);
 					}
 					for (Path child : ds) {
@@ -614,7 +608,7 @@ public class NioSqlManagerImpl implements SqlManager {
 				}
 			}
 		} else if (path.toString().endsWith(fileExtension)) {
-			String sqlName = getSqlName(path);
+			var sqlName = getSqlName(path);
 			this.sqlInfos.compute(sqlName,
 					(k, v) -> v == null ? new SqlInfo(sqlName, path, loadPaths, dialect, charset)
 							: v.computePath(path, remove));
@@ -650,7 +644,6 @@ public class NioSqlManagerImpl implements SqlManager {
 		 */
 		SqlInfo(final String sqlName, final Path path, final List<Path> loadPaths, final Dialect dialect,
 				final Charset charset) {
-			super();
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
@@ -714,7 +707,7 @@ public class NioSqlManagerImpl implements SqlManager {
 		 */
 		private String getSqlBody() {
 			if (sqlBody == null) {
-				Path path = getPath();
+				var path = getPath();
 				if (Files.notExists(path)) {
 					throw new UroborosqlRuntimeException("SQL template could not found.["
 							+ path.toAbsolutePath().toString() + "]");
@@ -722,7 +715,7 @@ public class NioSqlManagerImpl implements SqlManager {
 
 				synchronized (sqlName) {
 					try {
-						String body = new String(Files.readAllBytes(path), charset).trim();
+						var body = new String(Files.readAllBytes(path), charset).trim();
 						if (body.endsWith("/") && !body.endsWith("*/")) {
 							body = StringUtils.removeEnd(body, "/");
 						} else {
@@ -751,20 +744,18 @@ public class NioSqlManagerImpl implements SqlManager {
 		private SqlInfo computePath(final Path newPath, final boolean remove) {
 			synchronized (sqlName) {
 				// 変更前の有効Pathを保持しておく
-				Path oldPath = getPath();
+				var oldPath = getPath();
 
 				// 引数で渡された判定用PathをpathListへ追加、またはpathListから削除する
 				if (!pathList.contains(newPath)) {
 					if (!remove) {
 						pathList.add(newPath);
 					}
-				} else {
-					if (remove) {
-						pathList.remove(newPath);
-						if (pathList.isEmpty()) {
-							// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
-							return null;
-						}
+				} else if (remove) {
+					pathList.remove(newPath);
+					if (pathList.isEmpty()) {
+						// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
+						return null;
 					}
 				}
 
@@ -783,8 +774,8 @@ public class NioSqlManagerImpl implements SqlManager {
 						}
 
 						// DialectPathの比較
-						boolean p1HasDialect = hasDialect(p1);
-						boolean p2HasDialect = hasDialect(p2);
+						var p1HasDialect = hasDialect(p1);
+						var p2HasDialect = hasDialect(p2);
 
 						if (p1HasDialect && !p2HasDialect) {
 							return -1;
@@ -793,8 +784,8 @@ public class NioSqlManagerImpl implements SqlManager {
 						}
 
 						// schemeの比較
-						String p1Scheme = p1.toUri().getScheme();
-						String p2Scheme = p2.toUri().getScheme();
+						var p1Scheme = p1.toUri().getScheme();
+						var p2Scheme = p2.toUri().getScheme();
 
 						if (!p1Scheme.equals(p2Scheme)) {
 							if (p1Scheme.equals(SCHEME_FILE)) {
@@ -805,21 +796,21 @@ public class NioSqlManagerImpl implements SqlManager {
 						}
 
 						// LoadPathsの並び順にソート
-						int p1Pos = 0;
-						int p2Pos = 0;
-						for (int pos = 0; pos < this.loadPaths.size(); pos++) {
-							Path loadPath = this.loadPaths.get(pos);
-							int loadPathSize = loadPath.getNameCount();
+						var p1Pos = 0;
+						var p2Pos = 0;
+						for (var pos = 0; pos < this.loadPaths.size(); pos++) {
+							var loadPath = this.loadPaths.get(pos);
+							var loadPathSize = loadPath.getNameCount();
 
-							for (int i = 0; i < p1.getNameCount() - loadPathSize; i++) {
-								Path p1SubPath = p1.subpath(i, i + loadPathSize);
+							for (var i = 0; i < p1.getNameCount() - loadPathSize; i++) {
+								var p1SubPath = p1.subpath(i, i + loadPathSize);
 								if (p1SubPath.equals(loadPath)) {
 									p1Pos = pos + 1;
 									break;
 								}
 							}
-							for (int i = 0; i < p2.getNameCount() - loadPathSize; i++) {
-								Path p2SubPath = p2.subpath(i, i + loadPathSize);
+							for (var i = 0; i < p2.getNameCount() - loadPathSize; i++) {
+								var p2SubPath = p2.subpath(i, i + loadPathSize);
 								if (p2SubPath.equals(loadPath)) {
 									p2Pos = pos + 1;
 									break;
@@ -837,20 +828,18 @@ public class NioSqlManagerImpl implements SqlManager {
 					});
 				}
 
-				boolean replaceFlag = false;
+				var replaceFlag = false;
 				// ソートによる再計算後の有効Pathを取得する
-				Path currentPath = getPath();
-				FileTime currentTimeStamp = getLastModifiedTime(currentPath);
+				var currentPath = getPath();
+				var currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
 					log.trace("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
 							oldPath, currentPath, currentTimeStamp.toString());
-				} else {
-					if (!this.lastModified.equals(currentTimeStamp)) {
-						replaceFlag = true;
-						log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
-								currentTimeStamp.toString());
-					}
+				} else if (!this.lastModified.equals(currentTimeStamp)) {
+					replaceFlag = true;
+					log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+							currentTimeStamp.toString());
 				}
 
 				if (replaceFlag) {

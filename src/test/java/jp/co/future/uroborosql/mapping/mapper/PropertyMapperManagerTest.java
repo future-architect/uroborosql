@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
 import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -17,22 +17,22 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
 public class PropertyMapperManagerTest {
 	private Clock clock = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
 	public void test() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
+		var mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", "value"), 1), is("value"));
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", null), 1), nullValue());
 
@@ -122,33 +122,33 @@ public class PropertyMapperManagerTest {
 						newResultSet("getBytes", "abc".getBytes(StandardCharsets.UTF_8)), 1),
 				is("abc".getBytes(StandardCharsets.UTF_8)));
 
-		java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(LocalDateTime.now());
+		var timestamp = java.sql.Timestamp.valueOf(LocalDateTime.now());
 		assertThat(mapper.getValue(JavaType.of(java.sql.Timestamp.class), newResultSet("getTimestamp", timestamp), 1),
 				is(timestamp));
 
-		java.sql.Time time = java.sql.Time.valueOf(LocalTime.now());
+		var time = java.sql.Time.valueOf(LocalTime.now());
 		assertThat(mapper.getValue(JavaType.of(java.sql.Time.class), newResultSet("getTime", time), 1), is(time));
 
-		java.sql.Date date = java.sql.Date.valueOf(LocalDate.now());
+		var date = java.sql.Date.valueOf(LocalDate.now());
 		assertThat(mapper.getValue(JavaType.of(java.sql.Date.class), newResultSet("getDate", date), 1), is(date));
 		assertThat(mapper.getValue(JavaType.of(Date.class), newResultSet("getTimestamp", timestamp), 1), is(timestamp));
 
-		java.sql.Array array = newProxy(java.sql.Array.class);
+		var array = newProxy(java.sql.Array.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.Array.class), newResultSet("getArray", array), 1), is(array));
 
-		java.sql.Ref ref = newProxy(java.sql.Ref.class);
+		var ref = newProxy(java.sql.Ref.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.Ref.class), newResultSet("getRef", ref), 1), is(ref));
 
-		java.sql.Blob blob = newProxy(java.sql.Blob.class);
+		var blob = newProxy(java.sql.Blob.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.Blob.class), newResultSet("getBlob", blob), 1), is(blob));
 
-		java.sql.Clob clob = newProxy(java.sql.Clob.class);
+		var clob = newProxy(java.sql.Clob.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.Clob.class), newResultSet("getClob", clob), 1), is(clob));
 
-		java.sql.NClob nclob = newProxy(java.sql.NClob.class);
+		var nclob = newProxy(java.sql.NClob.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.NClob.class), newResultSet("getNClob", nclob), 1), is(nclob));
 
-		java.sql.SQLXML sqlxml = newProxy(java.sql.SQLXML.class);
+		var sqlxml = newProxy(java.sql.SQLXML.class);
 		assertThat(mapper.getValue(JavaType.of(java.sql.SQLXML.class), newResultSet("getSQLXML", sqlxml), 1),
 				is(sqlxml));
 
@@ -178,7 +178,7 @@ public class PropertyMapperManagerTest {
 
 	@Test
 	public void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
-		PropertyMapperManager mapper = new PropertyMapperManager(this.clock);
+		var mapper = new PropertyMapperManager(this.clock);
 
 		mapper.addMapper(new PropertyMapper<String>() {
 

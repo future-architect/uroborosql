@@ -21,7 +21,7 @@ public class BeginNode extends BranchNode {
 	 *
 	 * @param position 開始位置
 	 */
-	public BeginNode(int position) {
+	public BeginNode(final int position) {
 		super(position, 9);
 	}
 
@@ -32,7 +32,7 @@ public class BeginNode extends BranchNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		TransformContext childCtx = transformContext.copyTransformContext();
+		var childCtx = transformContext.copyTransformContext();
 		super.accept(childCtx);
 		if (childCtx.isEnabled()) {
 			transformContext.addSqlPart(childCtx.getExecutableSql());

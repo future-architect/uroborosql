@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
@@ -14,16 +14,13 @@ import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.dialect.Oracle12Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -80,28 +77,28 @@ public class MapResultSetConverterTest {
 			"	/*arr*/" +
 			")";
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		url = "jdbc:h2:mem:" + this.getClass().getSimpleName() + System.currentTimeMillis();
 	}
 
 	@Test
 	public void testCreateRecord() throws Exception {
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection(url))
+		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.build();
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 
 			createTable(agent);
 
-			String clob = StringUtils.repeat('1', 10000);
-			String nclob = StringUtils.repeat('あ', 10000);
-			byte[] binary = StringUtils.repeat('y', 20000).getBytes();
-			byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = StringUtils.repeat('1', 10000);
+			var nclob = StringUtils.repeat('あ', 10000);
+			var binary = StringUtils.repeat('y', 20000).getBytes();
+			var blob = StringUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
-			LocalTime time = LocalTime.of(10, 0, 0);
-			ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
+			var time = LocalTime.of(10, 0, 0);
+			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
-			Timestamp timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
+			var timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
 
 			agent.updateWith(INSERT_SQL)
 					.param("int", 1)
@@ -130,9 +127,9 @@ public class MapResultSetConverterTest {
 					.param("arr", arr)
 					.count();
 
-			Optional<Map<String, Object>> optional = agent.queryWith("select * from COLUMN_TYPE_TEST2").findFirst();
+			var optional = agent.queryWith("select * from COLUMN_TYPE_TEST2").findFirst();
 			assertThat(optional.isPresent(), is(true));
-			Map<String, Object> row = optional.get();
+			var row = optional.get();
 
 			assertThat(row.get("COL_INT"), is(1));
 			assertThat(row.get("COL_BOOLEAN"), is(true));
@@ -160,22 +157,22 @@ public class MapResultSetConverterTest {
 
 	@Test
 	public void testCreateRecordWithDialect() throws Exception {
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection(url))
+		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new Oracle12Dialect())
 				.build();
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 
 			createTable(agent);
 
-			String clob = StringUtils.repeat('1', 10000);
-			String nclob = StringUtils.repeat('あ', 10000);
-			byte[] binary = StringUtils.repeat('y', 20000).getBytes();
-			byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = StringUtils.repeat('1', 10000);
+			var nclob = StringUtils.repeat('あ', 10000);
+			var binary = StringUtils.repeat('y', 20000).getBytes();
+			var blob = StringUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
-			LocalTime time = LocalTime.of(10, 0, 0);
-			ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
+			var time = LocalTime.of(10, 0, 0);
+			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
-			Timestamp timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
+			var timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
 
 			agent.updateWith(INSERT_SQL)
 					.param("int", 1)
@@ -205,11 +202,11 @@ public class MapResultSetConverterTest {
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			SqlContext context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent.query(context, new MapResultSetConverter(config))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
-			Map<String, Object> row = result.get(0);
+			var row = result.get(0);
 
 			assertThat(row.get("COL_INT"), is(1));
 			assertThat(row.get("COL_BOOLEAN"), is(true));
@@ -237,22 +234,22 @@ public class MapResultSetConverterTest {
 
 	@Test
 	public void testCreateRecordWithSnakeCase() throws Exception {
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection(url))
+		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new PostgresqlDialect())
 				.build();
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 
 			createTable(agent);
 
-			String clob = StringUtils.repeat('1', 10000);
-			String nclob = StringUtils.repeat('あ', 10000);
-			byte[] binary = StringUtils.repeat('y', 20000).getBytes();
-			byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = StringUtils.repeat('1', 10000);
+			var nclob = StringUtils.repeat('あ', 10000);
+			var binary = StringUtils.repeat('y', 20000).getBytes();
+			var blob = StringUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
-			LocalTime time = LocalTime.of(10, 0, 0);
-			ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
+			var time = LocalTime.of(10, 0, 0);
+			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
-			Timestamp timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
+			var timestamp = Timestamp.valueOf(LocalDateTime.of(2019, Month.MAY, 1, 10, 30, 0));
 
 			agent.updateWith(INSERT_SQL)
 					.param("int", 1)
@@ -282,14 +279,14 @@ public class MapResultSetConverterTest {
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			SqlContext context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent
 					.query(context,
 							new MapResultSetConverter(config, CaseFormat.UPPER_SNAKE_CASE,
 									new PropertyMapperManager(config.getClock())))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
-			Map<String, Object> row = result.get(0);
+			var row = result.get(0);
 
 			assertThat(row.get("COL_INT"), is(1));
 			assertThat(row.get("COL_BOOLEAN"), is(true));
@@ -316,7 +313,7 @@ public class MapResultSetConverterTest {
 	}
 
 	protected void createTable(final SqlAgent agent) {
-		String createTableSql = "create table if not exists COLUMN_TYPE_TEST2 (" +
+		var createTableSql = "create table if not exists COLUMN_TYPE_TEST2 (" +
 				"	COL_INT				INT," +
 				"	COL_BOOLEAN			BOOLEAN," +
 				"	COL_TINYINT			TINYINT," +

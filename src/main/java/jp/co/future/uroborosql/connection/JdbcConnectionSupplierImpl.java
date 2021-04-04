@@ -95,17 +95,17 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		if (!(ctx instanceof JdbcConnectionContext)) {
 			throw new IllegalArgumentException("ctx must be of type JdbcConnectionContext.");
 		}
-		JdbcConnectionContext jdbcCtx = (JdbcConnectionContext) ctx;
+		var jdbcCtx = (JdbcConnectionContext) ctx;
 		try {
-			Connection connection = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
+			var connection = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
 
-			String schema = jdbcCtx.schema();
+			var schema = jdbcCtx.schema();
 			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
 				connection.setSchema(schema);
 			}
 			connection.setAutoCommit(jdbcCtx.autoCommit());
 			connection.setReadOnly(jdbcCtx.readOnly());
-			int transactionIsolation = jdbcCtx.transactionIsolation();
+			var transactionIsolation = jdbcCtx.transactionIsolation();
 			if (transactionIsolation > 0) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}

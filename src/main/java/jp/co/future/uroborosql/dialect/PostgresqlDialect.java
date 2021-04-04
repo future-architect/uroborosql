@@ -31,7 +31,6 @@ public class PostgresqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public PostgresqlDialect() {
-		super();
 	}
 
 	/**
@@ -153,7 +152,7 @@ public class PostgresqlDialect extends AbstractDialect {
 	 */
 	@Override
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
-		String hintStr = "/*+" + hints.stream().collect(Collectors.joining(System.lineSeparator() + "\t",
+		var hintStr = "/*+" + hints.stream().collect(Collectors.joining(System.lineSeparator() + "\t",
 				System.lineSeparator() + "\t", System.lineSeparator())) + " */" + System.lineSeparator();
 		return sql.insert(0, hintStr);
 	}

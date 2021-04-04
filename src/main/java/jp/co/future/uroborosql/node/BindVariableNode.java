@@ -41,7 +41,7 @@ public class BindVariableNode extends ExpressionNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Object value = eval(transformContext);
+		var value = eval(transformContext);
 
 		transformContext.addSqlPart("?");
 		if (outputBindComment) {

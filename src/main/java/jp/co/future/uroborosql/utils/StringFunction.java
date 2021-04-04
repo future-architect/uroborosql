@@ -38,7 +38,6 @@ public final class StringFunction {
 	 * @param dialect Dialect
 	 */
 	public StringFunction(final Dialect dialect) {
-		super();
 		this.dialect = dialect;
 	}
 
@@ -581,7 +580,7 @@ public final class StringFunction {
 	 * @return オブジェクトの文字列表現
 	 */
 	private String getStringValue(final Object obj, final String nullDefault) {
-		Object val = obj instanceof Optional ? ((Optional<?>) obj).orElse(null) : obj;
+		var val = obj instanceof Optional ? ((Optional<?>) obj).orElse(null) : obj;
 		if (val instanceof String) {
 			return String.class.cast(val);
 		} else {

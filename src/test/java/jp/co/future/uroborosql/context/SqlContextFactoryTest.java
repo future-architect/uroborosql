@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -15,8 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.event.Level;
 
 import jp.co.future.uroborosql.UroboroSQL;
@@ -31,7 +31,7 @@ public class SqlContextFactoryTest {
 
 	private SqlContextFactory sqlContextFactory;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL
 				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
@@ -46,7 +46,7 @@ public class SqlContextFactoryTest {
 
 		sqlContextFactory.initialize();
 
-		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = sqlContextFactory.getConstParameterMap();
 		Map<String, ?> map = constParameterMap.entrySet().stream()
 				.collect(Collector.of(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getValue()), (m1, m2) -> {
 					m1.putAll(m2);
@@ -90,20 +90,20 @@ public class SqlContextFactoryTest {
 
 	private Map<String, ?> mapOf(final Object... args) {
 		Map<String, Object> map = new HashMap<>();
-		for (int i = 0; i < args.length; i += 2) {
+		for (var i = 0; i < args.length; i += 2) {
 			map.put((String) args[i], args[i + 1]);
 		}
 		return map;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testConst_enum() {
 		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
 
 		sqlContextFactory.initialize();
 
-		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = sqlContextFactory.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -119,14 +119,14 @@ public class SqlContextFactoryTest {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testConst_enumForJar() {
 		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
 
 		sqlContextFactory.initialize();
 
-		Map<String, Parameter> constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = sqlContextFactory.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -146,11 +146,11 @@ public class SqlContextFactoryTest {
 		sqlContextFactory.setAutoBindParameterCreators(creators);
 		sqlContextFactory.initialize();
 
-		SqlContext ctx = sqlContextFactory.createSqlContext();
+		var ctx = sqlContextFactory.createSqlContext();
 		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
 
 		creators.add(() -> {
-			ConcurrentHashMap<String, Parameter> params = new ConcurrentHashMap<>();
+			var params = new ConcurrentHashMap<String, Parameter>();
 			return params;
 		});
 
@@ -159,7 +159,7 @@ public class SqlContextFactoryTest {
 		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
 
 		creators.add(() -> {
-			ConcurrentHashMap<String, Parameter> params = new ConcurrentHashMap<>();
+			var params = new ConcurrentHashMap<String, Parameter>();
 			params.put("DUMMY", new Parameter("DUMMY", "dummy_value"));
 			return params;
 		});

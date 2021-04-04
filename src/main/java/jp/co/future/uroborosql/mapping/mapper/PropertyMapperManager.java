@@ -113,7 +113,7 @@ public final class PropertyMapperManager {
 			return rs.getString(columnIndex);
 		}
 		if (Boolean.class.equals(rawType)) {
-			boolean result = rs.getBoolean(columnIndex);
+			var result = rs.getBoolean(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -123,7 +123,7 @@ public final class PropertyMapperManager {
 			return rs.getBoolean(columnIndex);
 		}
 		if (Byte.class.equals(rawType)) {
-			byte result = rs.getByte(columnIndex);
+			var result = rs.getByte(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -133,7 +133,7 @@ public final class PropertyMapperManager {
 			return rs.getByte(columnIndex);
 		}
 		if (Short.class.equals(rawType)) {
-			short result = rs.getShort(columnIndex);
+			var result = rs.getShort(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -143,7 +143,7 @@ public final class PropertyMapperManager {
 			return rs.getShort(columnIndex);
 		}
 		if (Integer.class.equals(rawType)) {
-			int result = rs.getInt(columnIndex);
+			var result = rs.getInt(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -153,7 +153,7 @@ public final class PropertyMapperManager {
 			return rs.getInt(columnIndex);
 		}
 		if (Long.class.equals(rawType)) {
-			long result = rs.getLong(columnIndex);
+			var result = rs.getLong(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -163,7 +163,7 @@ public final class PropertyMapperManager {
 			return rs.getLong(columnIndex);
 		}
 		if (Float.class.equals(rawType)) {
-			float result = rs.getFloat(columnIndex);
+			var result = rs.getFloat(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}
@@ -173,7 +173,7 @@ public final class PropertyMapperManager {
 			return rs.getFloat(columnIndex);
 		}
 		if (Double.class.equals(rawType)) {
-			double result = rs.getDouble(columnIndex);
+			var result = rs.getDouble(columnIndex);
 			if (rs.wasNull()) {
 				return null;
 			}

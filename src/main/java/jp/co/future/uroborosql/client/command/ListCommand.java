@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -40,7 +39,7 @@ public class ListCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 		writer.println("LIST:");
 		writer.flush();
 

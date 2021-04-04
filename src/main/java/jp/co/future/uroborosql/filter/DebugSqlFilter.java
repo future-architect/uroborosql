@@ -10,11 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
  * デバッグログを出力するSqlFilter
@@ -73,14 +73,14 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
 		if (LOG.isDebugEnabled()) {
-			int[] counts = result;
+			var counts = result;
 			try {
 				counts = new int[] { preparedStatement.getUpdateCount() };
 			} catch (SQLException ex) {
 				ex.printStackTrace();
 			}
 
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			for (int val : counts) {
 				builder.append(val).append(", ");
 			}

@@ -46,7 +46,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		Object var = eval(transformContext);
+		var var = eval(transformContext);
 
 		if (var == null) {
 			throw new ParameterNotFoundRuntimeException("Parameter is not set. [" + expression + "]");
@@ -71,14 +71,14 @@ public class ParenBindVariableNode extends ExpressionNode {
 	 * @param values バインドする値の配列
 	 */
 	private void bindArray(final TransformContext transformContext, final Object values) {
-		int length = Array.getLength(values);
+		var length = Array.getLength(values);
 		if (length == 0) {
 			throw new ParameterNotFoundRuntimeException("Parameter is not set. [" + expression + "]");
 		}
 
 		transformContext.addSqlPart("(?");
 		transformContext.addBindVariable(Array.get(values, 0));
-		for (int i = 1; i < length; i++) {
+		for (var i = 1; i < length; i++) {
 			transformContext.addSqlPart(", ?");
 			transformContext.addBindVariable(Array.get(values, i));
 		}

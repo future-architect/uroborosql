@@ -1,17 +1,17 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.text.ParseException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EmptyStringToNullParameterMapperTest {
 
 	@Test
 	public void test() throws ParseException {
-		EmptyStringToNullParameterMapper mapper = new EmptyStringToNullParameterMapper();
+		var mapper = new EmptyStringToNullParameterMapper();
 
 		assertThat(mapper.toJdbc("", null, null), is(nullValue()));
 		assertThat(mapper.toJdbc("str", null, null), is("str"));
@@ -19,7 +19,7 @@ public class EmptyStringToNullParameterMapperTest {
 
 	@Test
 	public void testCanAccept() throws Exception {
-		EmptyStringToNullParameterMapper mapper = new EmptyStringToNullParameterMapper();
+		var mapper = new EmptyStringToNullParameterMapper();
 
 		assertThat(mapper.canAccept(""), is(true));
 		assertThat(mapper.canAccept("str"), is(false));
@@ -28,7 +28,7 @@ public class EmptyStringToNullParameterMapperTest {
 
 	@Test
 	public void testTargetType() throws Exception {
-		EmptyStringToNullParameterMapper mapper = new EmptyStringToNullParameterMapper();
+		var mapper = new EmptyStringToNullParameterMapper();
 
 		assertThat(mapper.targetType(), sameInstance(String.class));
 	}

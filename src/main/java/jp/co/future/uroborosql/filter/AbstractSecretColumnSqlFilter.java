@@ -84,7 +84,6 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
 	public AbstractSecretColumnSqlFilter() {
-		super();
 	}
 
 	/**
@@ -115,7 +114,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 				setSkipFilter(true);
 				return;
 			}
-			Path storeFile = toPath(getKeyStoreFilePath());
+			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkipFilter(true);
@@ -146,7 +145,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 				store.load(is, pass);
 			}
 
-			KeyStore.SecretKeyEntry entry = (SecretKeyEntry) store.getEntry(getAlias(),
+			var entry = (SecretKeyEntry) store.getEntry(getAlias(),
 					new KeyStore.PasswordProtection(pass));
 
 			secretKey = entry.getSecretKey();
@@ -174,11 +173,11 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 
 		if (Parameter.class.equals(parameter.getClass())) {
 			// 通常のパラメータの場合
-			String key = parameter.getParameterName();
+			var key = parameter.getParameterName();
 			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
-				Object obj = parameter.getValue();
-				if (obj != null && obj instanceof String) {
-					String objStr = obj.toString();
+				var obj = parameter.getValue();
+				if (obj instanceof String) {
+					var objStr = obj.toString();
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
@@ -249,7 +248,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 * @throws GeneralSecurityException サブクラスでの拡張に備えて javax.crypto パッケージ配下の例外の親クラス
 	 */
 	private Function<Object, String> createDecryptor() throws GeneralSecurityException {
-		Cipher cipher = Cipher.getInstance(transformationType);
+		var cipher = Cipher.getInstance(transformationType);
 		if (useIV) {
 			cipher.init(Cipher.DECRYPT_MODE, secretKey,
 					encryptCipher.getParameters().getParameterSpec(IvParameterSpec.class));
@@ -262,7 +261,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 				return null;
 			}
 
-			String secretStr = secret.toString();
+			var secretStr = secret.toString();
 			if (!secretStr.isEmpty()) {
 				synchronized (cipher) {
 					try {

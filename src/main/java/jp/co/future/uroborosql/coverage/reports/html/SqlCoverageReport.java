@@ -88,7 +88,7 @@ class SqlCoverageReport {
 		}
 		//各行のブランチ情報を集計
 		passRoute.getRangeBranchStatus().forEach((range, state) -> {
-			RangeBranch branch = branches.computeIfAbsent(range, RangeBranch::new);
+			var branch = branches.computeIfAbsent(range, RangeBranch::new);
 			branch.add(state);
 		});
 
@@ -113,7 +113,7 @@ class SqlCoverageReport {
 		}
 		try {
 			Files.createDirectories(this.path.getParent());
-			try (BufferedWriter writer = Files.newBufferedWriter(this.path, StandardCharsets.UTF_8)) {
+			try (var writer = Files.newBufferedWriter(this.path, StandardCharsets.UTF_8)) {
 				writePrefix(writer);
 
 				writeHeaderSection(writer);
@@ -154,8 +154,8 @@ class SqlCoverageReport {
 					if (!isTargetLine(i)) {
 						return "<span class=\"cline no-target\">&nbsp;</span>";
 					} else {
-						String className = hitLines[i] > 0 ? "cline-yes" : "cline-no";
-						String text = hitLines[i] > 0 ? hitLines[i] + "<em>×</em>" : "<em>!</em>";
+						var className = hitLines[i] > 0 ? "cline-yes" : "cline-no";
+						var text = hitLines[i] > 0 ? hitLines[i] + "<em>×</em>" : "<em>!</em>";
 						return "<span class=\"cline " + className + "\">" + text + "</span>";
 					}
 				})
@@ -176,17 +176,17 @@ class SqlCoverageReport {
 		writer.newLine();
 		writer.append("<code class=\"sql\">");
 
-		Ranges inactives = new Ranges(0, this.sql.length() - 1);
+		var inactives = new Ranges(0, this.sql.length() - 1);
 		inactives.minus(lineRanges);
-		Ranges passes = this.passRanges.copy();
+		var passes = this.passRanges.copy();
 		passes.addAll(inactives);//カバレッジ対象でない行を通過したとみなす。
 		passes.minus(branches.values().stream()
 				.map(RangeBranch::getRange)
 				.collect(Collectors.toList()));
 
-		int start = 0;
-		Range pass = nextPassRange(passes, start);
-		RangeBranch branch = nextRangeBranch(start);
+		var start = 0;
+		var pass = nextPassRange(passes, start);
+		var branch = nextRangeBranch(start);
 
 		while (pass != null && branch != null) {
 			if (branch.getRange().getStart() <= pass.getStart()) {
@@ -219,15 +219,15 @@ class SqlCoverageReport {
 
 	private int appendBranch(final BufferedWriter writer, final int start, final RangeBranch branch)
 			throws IOException {
-		Range range = branch.getRange();
+		var range = branch.getRange();
 		if (start < range.getStart()) {
 			appendNotCovered(writer, start, range.getStart());
 		}
 
-		int size = branch.branchSize();
-		int covered = branch.coveredSize();
+		var size = branch.branchSize();
+		var covered = branch.coveredSize();
 
-		String html = size <= covered
+		var html = size <= covered
 				? buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1), "", "")
 				: buildLinesHtml(this.sql.substring(range.getStart(), range.getEnd() + 1),
 						"<span class=\"not-covered-branch\" title=\"branch not covered\" >", "</span>");
@@ -240,14 +240,14 @@ class SqlCoverageReport {
 		if (start < pass.getStart()) {
 			appendNotCovered(writer, start, pass.getStart());
 		}
-		String html = buildLinesHtml(this.sql.substring(Math.max(pass.getStart(), start), pass.getEnd() + 1),
+		var html = buildLinesHtml(this.sql.substring(Math.max(pass.getStart(), start), pass.getEnd() + 1),
 				"", "");
 		writer.append(html);
 		return pass.getEnd() + 1;
 	}
 
 	private void appendNotCovered(final BufferedWriter writer, final int start, final int end) throws IOException {
-		String html = buildLinesHtml(this.sql.substring(start, end),
+		var html = buildLinesHtml(this.sql.substring(start, end),
 				"<span class=\"not-covered\" title=\"statement not covered\" >", "</span>");
 		writer.append(html);
 	}
@@ -277,15 +277,15 @@ class SqlCoverageReport {
 
 	private static List<String> toLines(final String text) {
 		List<String> ret = new ArrayList<>();
-		String s = text + "+";//最後の改行を検知するためダミー文字を付与
-		try (Scanner scanner = new Scanner(s)) {
+		var s = text + "+";//最後の改行を検知するためダミー文字を付与
+		try (var scanner = new Scanner(s)) {
 			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
+				var line = scanner.nextLine();
 				ret.add(line);
 			}
 		}
 		//ダミー文字除去
-		String last = ret.get(ret.size() - 1);
+		var last = ret.get(ret.size() - 1);
 		ret.set(ret.size() - 1, last.substring(0, last.length() - 1));
 
 		return ret;
@@ -317,10 +317,10 @@ class SqlCoverageReport {
 	}
 
 	private void writeHeaderSection(final BufferedWriter writer) throws IOException {
-		int lineCount = getLineValidSize();
-		int lineCovered = getLineCoveredSize();
-		int branchesCount = getBranchValidSize();
-		int branchesCovered = getBranchCoveredSize();
+		var lineCount = getLineValidSize();
+		var lineCovered = getLineCoveredSize();
+		var branchesCount = getBranchValidSize();
+		var branchesCovered = getBranchCoveredSize();
 
 		writer.append("<div class=\"global-header\">");
 		writer.newLine();

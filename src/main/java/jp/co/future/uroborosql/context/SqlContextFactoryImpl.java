@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,13 +98,13 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	@Override
 	public SqlContext createSqlContext() {
-		SqlContextImpl sqlContext = new SqlContextImpl();
+		var sqlContext = new SqlContextImpl();
 		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
 
 		// 自動バインド用パラメータ生成クラスが指定されている場合は、そこで生成されたパラメータをパラメータマップに追加する
 		if (autoBindParameterCreators != null && !autoBindParameterCreators.isEmpty()) {
 			for (AutoBindParameterCreator creator : getAutoBindParameterCreators()) {
-				Map<String, Parameter> bindMap = creator.getBindParameterMap();
+				var bindMap = creator.getBindParameterMap();
 				if (bindMap != null && !bindMap.isEmpty()) {
 					paramMap.putAll(bindMap);
 				}
@@ -153,8 +152,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public void initialize() {
 		parameterMapperManager = new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock());
 
-		Map<String, Parameter> paramMap = new HashMap<>();
-		paramMap.putAll(buildConstParamMap());
+		Map<String, Parameter> paramMap = new HashMap<>(buildConstParamMap());
 		paramMap.putAll(buildEnumConstParamMap());
 		constParameterMap = Collections.unmodifiableMap(paramMap);
 	}
@@ -167,19 +165,19 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	protected void makeConstParamMap(final Map<String, Parameter> paramMap, final Class<?> targetClass) {
 		try {
-			String fieldPrefix = targetClass.isMemberClass() ? CaseFormat.UPPER_SNAKE_CASE
+			var fieldPrefix = targetClass.isMemberClass() ? CaseFormat.UPPER_SNAKE_CASE
 					.convert(targetClass.getSimpleName()) + "_" : "";
 			// 指定されたクラス直下の定数フィールドを追加
-			Field[] fields = targetClass.getFields();
+			var fields = targetClass.getFields();
 			for (Field field : fields) {
-				int mod = field.getModifiers();
+				var mod = field.getModifiers();
 				if (Modifier.isFinal(mod) && Modifier.isStatic(mod)) {
-					Object value = field.get(null);
+					var value = field.get(null);
 					if (parameterMapperManager.canAcceptByStandard(value)) {
-						String fieldName = getConstParamPrefix() + fieldPrefix + field.getName();
+						var fieldName = getConstParamPrefix() + fieldPrefix + field.getName();
 						fieldName = fieldName.toUpperCase();
-						Parameter newValue = new Parameter(fieldName, field.get(null));
-						Parameter prevValue = paramMap.put(fieldName, newValue);
+						var newValue = new Parameter(fieldName, field.get(null));
+						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
 							LOG.warn("Duplicate constant name. Constant name:{}, Old name:{} destroy.", fieldName,
 									prevValue.getValue());
@@ -190,9 +188,9 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 			}
 
 			// 内部クラスを持つ場合
-			Class<?>[] memberClasses = targetClass.getDeclaredClasses();
+			var memberClasses = targetClass.getDeclaredClasses();
 			for (Class<?> memberClass : memberClasses) {
-				int mod = memberClass.getModifiers();
+				var mod = memberClass.getModifiers();
 				if (Modifier.isFinal(mod) && Modifier.isPublic(mod)) {
 					makeConstParamMap(paramMap, memberClass);
 				}
@@ -212,17 +210,17 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
-		String fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(
+		var fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(
 				packageName.length() + 1))
 				+ "_";
 
 		Enum<?>[] enumValues = targetClass.getEnumConstants();
 
 		for (Enum<?> value : enumValues) {
-			String fieldName = getConstParamPrefix() + fieldPrefix + value.name().toUpperCase();
+			var fieldName = getConstParamPrefix() + fieldPrefix + value.name().toUpperCase();
 			fieldName = fieldName.toUpperCase();
-			Parameter newValue = new Parameter(fieldName, value);
-			Parameter prevValue = paramMap.put(fieldName, newValue);
+			var newValue = new Parameter(fieldName, value);
+			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
 				LOG.warn("Duplicate Enum name. Enum name:{}, Old name:{} destroy.", fieldName, prevValue.getValue());
 			}
@@ -381,7 +379,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public SqlContextFactory addQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
 		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -394,7 +392,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public SqlContextFactory removeQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
 		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -408,7 +406,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public SqlContextFactory addUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
 		updateAutoParameterBinders.add(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce((first, second) -> first.andThen(second))
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -422,7 +420,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public SqlContextFactory removeUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
 		updateAutoParameterBinders.remove(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce((first, second) -> first.andThen(second))
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -473,8 +471,8 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static Set<Class<? extends Enum<?>>> listupEnumClasses(final String packageName) {
-		String resourceName = packageName.replace('.', '/');
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		var resourceName = packageName.replace('.', '/');
+		var classLoader = Thread.currentThread().getContextClassLoader();
 		List<URL> roots;
 		try {
 			roots = Collections.list(classLoader.getResources(resourceName));
@@ -493,7 +491,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 				}
 			}
 			if ("jar".equalsIgnoreCase(root.getProtocol())) {
-				try (JarFile jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
+				try (var jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
 					classes.addAll(findEnumClassesWithJar(packageName, jarFile));
 				} catch (IOException e) {
 					LOG.error(e.getMessage(), e);
@@ -515,11 +513,11 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	private static Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
 		Set<Class<?>> classes = new HashSet<>();
-		try (Stream<Path> stream = Files.walk(dir)) {
+		try (var stream = Files.walk(dir)) {
 			stream.filter(entry -> entry.getFileName().toString().endsWith(".class")).forEach(file -> {
-				StringJoiner joiner = new StringJoiner(".", packageName + ".", "");
+				var joiner = new StringJoiner(".", packageName + ".", "");
 				dir.relativize(file).forEach(p -> joiner.add(p.toString()));
-				String className = joiner.toString().replaceAll(".class$", "");
+				var className = joiner.toString().replaceAll(".class$", "");
 				loadEnum(className).ifPresent(classes::add);
 			});
 		} catch (IOException e) {
@@ -540,7 +538,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	 */
 	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
 			final JarFile jarFile) {
-		String resourceName = packageName.replace('.', '/');
+		var resourceName = packageName.replace('.', '/');
 		Set<Class<?>> classes = new HashSet<>();
 		Collections.list(jarFile.entries()).stream().map(JarEntry::getName)
 				.filter(name -> name.startsWith(resourceName)).filter(name -> name.endsWith(".class"))

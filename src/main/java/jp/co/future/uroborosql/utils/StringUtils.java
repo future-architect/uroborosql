@@ -33,12 +33,10 @@ public final class StringUtils {
 			return null;
 		} else if ("".equals(str)) {
 			return "";
+		} else if (str.length() == 1) {
+			return str.toUpperCase();
 		} else {
-			if (str.length() == 1) {
-				return str.toUpperCase();
-			} else {
-				return str.substring(0, 1).toUpperCase() + str.substring(1);
-			}
+			return str.substring(0, 1).toUpperCase() + str.substring(1);
 		}
 	}
 
@@ -62,12 +60,10 @@ public final class StringUtils {
 			return null;
 		} else if ("".equals(str)) {
 			return "";
+		} else if (str.length() == 1) {
+			return str.toLowerCase();
 		} else {
-			if (str.length() == 1) {
-				return str.toLowerCase();
-			} else {
-				return str.substring(0, 1).toLowerCase() + str.substring(1);
-			}
+			return str.substring(0, 1).toLowerCase() + str.substring(1);
 		}
 	}
 
@@ -89,8 +85,8 @@ public final class StringUtils {
 		if (isEmpty(cs)) {
 			return true;
 		}
-		int len = cs.length();
-		for (int i = 0; i < len; i++) {
+		var len = cs.length();
+		for (var i = 0; i < len; i++) {
 			if (!Character.isWhitespace(cs.charAt(i))) {
 				return false;
 			}
@@ -181,7 +177,7 @@ public final class StringUtils {
 		if (isEmpty(cs)) {
 			return false;
 		}
-		for (int i = 0; i < cs.length(); i++) {
+		for (var i = 0; i < cs.length(); i++) {
 			if (!Character.isDigit(cs.charAt(i))) {
 				return false;
 			}
@@ -258,7 +254,7 @@ public final class StringUtils {
 		if (str == null) {
 			return null;
 		}
-		final int pads = size - str.length();
+		final var pads = size - str.length();
 		if (pads <= 0) {
 			return str;
 		}
@@ -292,9 +288,9 @@ public final class StringUtils {
 		if (isEmpty(padStr)) {
 			padStr = " ";
 		}
-		final int padLen = padStr.length();
-		final int strLen = str.length();
-		final int pads = size - strLen;
+		final var padLen = padStr.length();
+		final var strLen = str.length();
+		final var pads = size - strLen;
 		if (pads <= 0) {
 			return str;
 		}
@@ -303,9 +299,9 @@ public final class StringUtils {
 		} else if (pads < padLen) {
 			return padStr.substring(0, pads).concat(str);
 		} else {
-			final char[] padding = new char[pads];
-			final char[] padChars = padStr.toCharArray();
-			for (int i = 0; i < pads; i++) {
+			final var padding = new char[pads];
+			final var padChars = padStr.toCharArray();
+			for (var i = 0; i < pads; i++) {
 				padding[i] = padChars[i % padLen];
 			}
 			return new String(padding).concat(str);
@@ -337,7 +333,7 @@ public final class StringUtils {
 		} else if (len < 0 || pos > str.length()) {
 			return "";
 		}
-		int newPos = pos < 0 ? 0 : pos;
+		var newPos = pos < 0 ? 0 : pos;
 		if (str.length() <= newPos + len) {
 			return str.substring(newPos);
 		} else {
@@ -390,7 +386,7 @@ public final class StringUtils {
 		if (repeat <= 0) {
 			return "";
 		}
-		final char[] buf = new char[repeat];
+		final var buf = new char[repeat];
 		Arrays.fill(buf, ch);
 		return new String(buf);
 	}
@@ -464,7 +460,7 @@ public final class StringUtils {
 		if (str == null) {
 			return null;
 		}
-		final int pads = size - str.length();
+		final var pads = size - str.length();
 		if (pads <= 0) {
 			return str;
 		}
@@ -498,9 +494,9 @@ public final class StringUtils {
 		if (isEmpty(padStr)) {
 			padStr = " ";
 		}
-		final int padLen = padStr.length();
-		final int strLen = str.length();
-		final int pads = size - strLen;
+		final var padLen = padStr.length();
+		final var strLen = str.length();
+		final var pads = size - strLen;
 		if (pads <= 0) {
 			return str;
 		}
@@ -509,9 +505,9 @@ public final class StringUtils {
 		} else if (pads < padLen) {
 			return str.concat(padStr.substring(0, pads));
 		} else {
-			final char[] padding = new char[pads];
-			final char[] padChars = padStr.toCharArray();
-			for (int i = 0; i < pads; i++) {
+			final var padding = new char[pads];
+			final var padChars = padStr.toCharArray();
+			for (var i = 0; i < pads; i++) {
 				padding[i] = padChars[i % padLen];
 			}
 			return str.concat(new String(padding));
@@ -585,7 +581,7 @@ public final class StringUtils {
 			return new String[0];
 		}
 
-		String separator = separatorChars == null ? "\\s+" : Pattern.quote(separatorChars) + "+";
+		var separator = separatorChars == null ? "\\s+" : Pattern.quote(separatorChars) + "+";
 		return str.trim().split(separator, max);
 	}
 

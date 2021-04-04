@@ -6,8 +6,6 @@
  */
 package jp.co.future.uroborosql;
 
-import java.lang.reflect.Field;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +27,6 @@ import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
@@ -86,7 +83,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public List<E> collect() {
-		try (Stream<E> stream = stream()) {
+		try (var stream = stream()) {
 			return stream.collect(Collectors.toList());
 		}
 	}
@@ -98,7 +95,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public Optional<E> first() {
-		try (Stream<E> stream = stream()) {
+		try (var stream = stream()) {
 			return stream.findFirst();
 		}
 	}
@@ -110,7 +107,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public Optional<E> one() {
-		try (Stream<E> stream = stream()) {
+		try (var stream = stream()) {
 			List<E> entities = stream.limit(2).collect(Collectors.toList());
 			if (entities.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
@@ -127,7 +124,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Stream<E> stream() {
 		try {
-			StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause())
+			var sql = new StringBuilder(context().getSql()).append(getWhereClause())
 					.append(getOrderByClause());
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
@@ -152,8 +149,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public <C> Stream<C> select(final String col, final Class<C> type) {
-		String fieldName = CaseFormat.CAMEL_CASE.convert(col);
-		Field field = BeanAccessor.fields(entityType).stream()
+		var fieldName = CaseFormat.CAMEL_CASE.convert(col);
+		var field = BeanAccessor.fields(entityType).stream()
 				.filter(f -> f.getName().equalsIgnoreCase(fieldName))
 				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException(
@@ -169,7 +166,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 * @return 集計関数で集計する元となるSQL文字列
 	 */
 	private StringBuilder aggregationSourceSql() {
-		StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause());
+		var sql = new StringBuilder(context().getSql()).append(getWhereClause());
 		if (dialect.supportsLimitClause()) {
 			sql.append(dialect.getLimitClause(this.limit, this.offset));
 		}
@@ -196,16 +193,16 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public long count(final String col) {
-		final String expr = col != null
+		final var expr = col != null
 				? tableMetadata.getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
 				: "*";
-		StringBuilder sql = new StringBuilder("select count(").append(expr).append(") from (")
+		var sql = new StringBuilder("select count(").append(expr).append(") from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
 		context().setSql(sql.toString());
-		try (ResultSet rs = agent().query(context())) {
+		try (var rs = agent().query(context())) {
 			rs.next();
 			return rs.getLong(1);
 		} catch (final SQLException e) {
@@ -221,8 +218,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T sum(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -232,8 +229,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -256,10 +253,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T min(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -282,10 +279,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T max(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -307,13 +304,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public void exists(final Runnable runnable) {
-		StringBuilder sql = new StringBuilder("select 1 from (")
+		var sql = new StringBuilder("select 1 from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
 		context().setSql(sql.toString());
-		try (ResultSet rs = agent().query(context())) {
+		try (var rs = agent().query(context())) {
 			if (rs.next()) {
 				runnable.run();
 			}
@@ -329,13 +326,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public void notExists(final Runnable runnable) {
-		StringBuilder sql = new StringBuilder("select 1 from (")
+		var sql = new StringBuilder("select 1 from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
 				.append(System.lineSeparator())
 				.append(") t_");
 		context().setSql(sql.toString());
-		try (ResultSet rs = agent().query(context())) {
+		try (var rs = agent().query(context())) {
 			if (!rs.next()) {
 				runnable.run();
 			}
@@ -351,7 +348,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@SuppressWarnings("unchecked")
 	private String getOrderByClause() {
-		boolean firstFlag = true;
+		var firstFlag = true;
 		List<TableMetadata.Column> keys;
 		Map<TableMetadata.Column, SortOrder> existsSortOrders = new HashMap<>();
 
@@ -376,11 +373,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		}
 
 		if (!keys.isEmpty()) {
-			StringBuilder sql = new StringBuilder();
+			var sql = new StringBuilder();
 			sql.append("ORDER BY").append(System.lineSeparator());
 			firstFlag = true;
 			for (final TableMetadata.Column key : keys) {
-				SortOrder sortOrder = existsSortOrders.get(key);
+				var sortOrder = existsSortOrders.get(key);
 				sql.append("\t");
 				if (firstFlag) {
 					sql.append("  ");

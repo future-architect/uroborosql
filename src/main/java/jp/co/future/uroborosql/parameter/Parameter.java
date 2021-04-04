@@ -6,8 +6,6 @@
  */
 package jp.co.future.uroborosql.parameter;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -94,7 +92,7 @@ public class Parameter {
 	 */
 	@SuppressWarnings("rawtypes")
 	public Parameter createSubParameter(final String propertyName) {
-		String subParameterName = parameterName + "." + propertyName;
+		var subParameterName = parameterName + "." + propertyName;
 		Object subValue = null;
 		if (value != null) {
 			if (value instanceof Map) {
@@ -106,14 +104,14 @@ public class Parameter {
 			} else {
 				try {
 					// フィールドアクセスで値の取得を実施
-					Field field = value.getClass().getDeclaredField(propertyName);
+					var field = value.getClass().getDeclaredField(propertyName);
 					field.setAccessible(true);
 					subValue = field.get(value);
 				} catch (NoSuchFieldException e) {
 					// メソッドアクセスで値の取得を実施
 					try {
-						String prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
-						Method method = value.getClass()
+						var prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
+						var method = value.getClass()
 								.getMethod(prefix + StringUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception e2) {
@@ -155,7 +153,7 @@ public class Parameter {
 	 */
 	protected int setInParameter(final PreparedStatement preparedStatement, final int index,
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
-		int parameterIndex = index;
+		var parameterIndex = index;
 		if (value instanceof Iterable) {
 			for (Object e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
@@ -256,16 +254,14 @@ public class Parameter {
 	private void setParameterObject(final PreparedStatement preparedStatement, final int parameterIndex,
 			final Object param, final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		//JDBCの受け付ける型に変換
-		Object jdbcParam = parameterMapperManager.toJdbc(param, preparedStatement.getConnection());
+		var jdbcParam = parameterMapperManager.toJdbc(param, preparedStatement.getConnection());
 		if (Objects.equals(sqlType, SQL_TYPE_NOT_SET)) {
 			if (jdbcParam instanceof java.sql.Array) {
 				preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
+			} else if (jdbcParam != null) {
+				preparedStatement.setObject(parameterIndex, jdbcParam);
 			} else {
-				if (jdbcParam != null) {
-					preparedStatement.setObject(parameterIndex, jdbcParam);
-				} else {
-					preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
-				}
+				preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
 			}
 		} else {
 			int targetSqlType = sqlType.getVendorTypeNumber();//各JDBCの対応状況が怪しいのでintで扱う

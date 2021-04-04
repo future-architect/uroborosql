@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.coverage;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,17 +35,17 @@ public interface CoverageHandler {
 	 * @param sql SQL
 	 * @return 各行のRange
 	 */
-	static List<LineRange> getLineRanges(String sql) {
+	static List<LineRange> getLineRanges(final String sql) {
 		List<LineRange> ret = new ArrayList<>();
-		int start = 0;
-		int searchStart = 0;
-		try (Scanner scanner = new Scanner(sql)) {
+		var start = 0;
+		var searchStart = 0;
+		try (var scanner = new Scanner(sql)) {
 			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
+				var line = scanner.nextLine();
 				while (!sql.startsWith(line, searchStart)) {
 					searchStart++;
 				}
-				LineRange range = new LineRange(start, searchStart + line.length() - 1, ret.size());
+				var range = new LineRange(start, searchStart + line.length() - 1, ret.size());
 				ret.add(range);
 				start = searchStart + line.length();
 				searchStart = start;
@@ -61,22 +60,20 @@ public interface CoverageHandler {
 	 * @param sql SQL
 	 * @return 各行のRange
 	 */
-	static List<LineRange> parseLineRanges(String sql) {
-		List<LineRange> ret = getLineRanges(sql);
-		for (Iterator<LineRange> iterator = ret.iterator(); iterator.hasNext();) {
-			LineRange lineRange = iterator.next();
-			String line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
-			String trimLine = line.trim();
+	static List<LineRange> parseLineRanges(final String sql) {
+		var ret = getLineRanges(sql);
+		for (var iterator = ret.iterator(); iterator.hasNext();) {
+			var lineRange = iterator.next();
+			var line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
+			var trimLine = line.trim();
 			if (trimLine.isEmpty()) {
 				iterator.remove();
 			} else if (trimLine.equals("/*END*/") || trimLine.equals("/*ELSE*/")) {
 				iterator.remove();
-			} else {
-				if (trimLine.startsWith("--")) {
-					String comments = trimLine.substring(2);
-					if (comments.trim().equals("ELSE")) {
-						iterator.remove();
-					}
+			} else if (trimLine.startsWith("--")) {
+				var comments = trimLine.substring(2);
+				if (comments.trim().equals("ELSE")) {
+					iterator.remove();
 				}
 			}
 
@@ -91,7 +88,7 @@ public interface CoverageHandler {
 	 * @param valid 対象数
 	 * @return カバレッジ パーセント
 	 */
-	static int percent(int covered, int valid) {
+	static int percent(final int covered, final int valid) {
 		if (valid == 0) {
 			return 100;
 		}
@@ -105,7 +102,7 @@ public interface CoverageHandler {
 	 * @param valid 対象数
 	 * @return カバレッジ パーセント（文字列）
 	 */
-	static String percentStr(int covered, int valid) {
+	static String percentStr(final int covered, final int valid) {
 		return String.valueOf(percent(covered, valid));
 	}
 }

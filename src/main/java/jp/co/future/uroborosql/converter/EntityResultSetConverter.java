@@ -9,7 +9,6 @@ package jp.co.future.uroborosql.converter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -65,17 +64,17 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	public E createRecord(final ResultSet rs) throws SQLException {
 		try {
 			if (columnLabels == null) {
-				ResultSetMetaData rsmd = rs.getMetaData();
+				var rsmd = rs.getMetaData();
 				columnCount = rsmd.getColumnCount();
 
 				// columnLabelsは1始まりの配列で値を格納
 				columnLabels = new String[columnCount + 1];
-				for (int i = 1; i <= columnCount; i++) {
+				for (var i = 1; i <= columnCount; i++) {
 					columnLabels[i] = rsmd.getColumnLabel(i);
 				}
 			}
 
-			E rec = constructor.newInstance();
+			var rec = constructor.newInstance();
 			for (MappingColumn column : columns) {
 				bindValue(rec, rs, column);
 			}
@@ -90,7 +89,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	}
 
 	private void bindValue(final E rec, final ResultSet rs, final MappingColumn column) throws SQLException {
-		for (int i = 1; i <= columnCount; i++) {
+		for (var i = 1; i <= columnCount; i++) {
 			if (CaseFormat.UPPER_SNAKE_CASE.convert(columnLabels[i]).equalsIgnoreCase(column.getName())) {
 				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, i));
 				return;

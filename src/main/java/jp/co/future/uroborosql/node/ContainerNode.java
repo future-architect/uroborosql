@@ -22,7 +22,7 @@ public class ContainerNode extends AbstractNode {
 	 * @param position 開始位置
 	 * @param length データ長
 	 */
-	public ContainerNode(int position, int length) {
+	public ContainerNode(final int position, final int length) {
 		super(position, length);
 	}
 
@@ -33,8 +33,8 @@ public class ContainerNode extends AbstractNode {
 	 */
 	@Override
 	public void accept(final TransformContext transformContext) {
-		int size = getChildSize();
-		for (int i = 0; i < size; i++) {
+		var size = getChildSize();
+		for (var i = 0; i < size; i++) {
 			getChild(i).accept(transformContext);
 		}
 		pass();
@@ -47,8 +47,8 @@ public class ContainerNode extends AbstractNode {
 	 */
 	@Override
 	public void passed(final PassedRoute passed) {
-		int childSize = getChildSize();
-		for (int i = 0; i < childSize; ++i) {
+		var childSize = getChildSize();
+		for (var i = 0; i < childSize; ++i) {
 			getChild(i).passed(passed);
 		}
 		super.passed(passed);

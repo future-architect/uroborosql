@@ -16,6 +16,7 @@ import java.sql.SQLType;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,7 +27,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -213,20 +213,20 @@ public class SqlContextImpl implements SqlContext {
 				executableSqlCache = executableSql.toString();
 				if (executableSqlCache.toUpperCase().contains("WHERE")) {
 					// where句の直後に来るANDやORの除去
-					StringBuffer buff = new StringBuffer();
-					Matcher matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
+					var buff = new StringBuffer();
+					var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
 					while (matcher.find()) {
-						String whereClause = matcher.group("clause");
+						var whereClause = matcher.group("clause");
 						matcher.appendReplacement(buff, whereClause);
 					}
 					matcher.appendTail(buff);
 					executableSqlCache = buff.toString();
 				}
 				// 各句の直後に現れる不要なカンマの除去
-				StringBuffer buff = new StringBuffer();
-				Matcher removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
+				var buff = new StringBuffer();
+				var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
 				while (removeCommaMatcher.find()) {
-					String clauseWords = removeCommaMatcher.group("keyword");
+					var clauseWords = removeCommaMatcher.group("keyword");
 					removeCommaMatcher.appendReplacement(buff, clauseWords);
 				}
 				removeCommaMatcher.appendTail(buff);
@@ -351,9 +351,9 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public Parameter getParam(final String paramName) {
-		Parameter param = getBindParameter(paramName);
+		var param = getBindParameter(paramName);
 		if (param == null) {
-			Map<String, Parameter> constParams = getConstParameterMap();
+			var constParams = getConstParameterMap();
 			if (constParams != null) {
 				param = constParams.get(paramName.toUpperCase());
 			}
@@ -373,16 +373,16 @@ public class SqlContextImpl implements SqlContext {
 			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
 			return parameterMap.get(paramName);
 		} else {
-			String[] keys = paramName.split("\\.");
-			String baseName = keys[0];
+			var keys = paramName.split("\\.");
+			var baseName = keys[0];
 
-			Parameter parameter = parameterMap.get(baseName);
+			var parameter = parameterMap.get(baseName);
 			if (parameter == null) {
 				return null;
 			}
 
 			if (keys.length > 1) {
-				String propertyName = keys[1];
+				var propertyName = keys[1];
 				return parameter.createSubParameter(propertyName);
 			}
 
@@ -497,7 +497,7 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
-			paramMap.forEach((k, v) -> param(k, v));
+			paramMap.forEach(this::param);
 		}
 		return this;
 	}
@@ -836,9 +836,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public TransformContext addBindVariables(final Object[] bindVariables) {
-		for (Object bindVariable : bindVariables) {
-			this.bindVariables.add(bindVariable);
-		}
+		Collections.addAll(this.bindVariables, bindVariables);
 		return this;
 	}
 
@@ -868,12 +866,12 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
-		Parameter[] bindParameters = getBindParameters();
+		var bindParameters = getBindParameters();
 
 		Set<String> matchParams = new HashSet<>();
-		int parameterIndex = 1;
+		var parameterIndex = 1;
 		for (Parameter bindParameter : bindParameters) {
-			Parameter parameter = getSqlFilterManager().doParameter(bindParameter);
+			var parameter = getSqlFilterManager().doParameter(bindParameter);
 			parameterIndex = parameter.setParameter(preparedStatement, parameterIndex, parameterMapperManager);
 			matchParams.add(parameter.getParameterName());
 		}
@@ -908,11 +906,11 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public Map<String, Object> getOutParams(final CallableStatement callableStatement) throws SQLException {
 		Map<String, Object> out = new HashMap<>();
-		Parameter[] bindParameters = getBindParameters();
-		int parameterIndex = 1;
+		var bindParameters = getBindParameters();
+		var parameterIndex = 1;
 		for (Parameter parameter : bindParameters) {
 			if (parameter instanceof OutParameter) {
-				String key = parameter.getParameterName();
+				var key = parameter.getParameterName();
 				out.put(key, getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));
 			}
 			parameterIndex++;
@@ -1147,8 +1145,8 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public String formatParams() {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < bindNames.size(); i++) {
+		var sb = new StringBuilder();
+		for (var i = 0; i < bindNames.size(); i++) {
 			sb.append(String.format("[%s=%s]", bindNames.get(i), bindVariables.get(i)));
 		}
 		return sb.toString();

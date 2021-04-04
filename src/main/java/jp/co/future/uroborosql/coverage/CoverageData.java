@@ -34,7 +34,6 @@ public class CoverageData {
 	 * @param passRoute 分岐情報
 	 */
 	public CoverageData(final String sqlName, final String sql, final PassedRoute passRoute) {
-		super();
 		this.sqlName = sqlName;
 		this.sql = sql;
 		this.md5 = makeMd5(sql);
@@ -51,8 +50,8 @@ public class CoverageData {
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("MD5");
-			byte[] hash = digest.digest(original.getBytes("UTF-8"));
-			StringBuilder builder = new StringBuilder();
+			var hash = digest.digest(original.getBytes("UTF-8"));
+			var builder = new StringBuilder();
 			for (byte element : hash) {
 				if ((0xff & element) < 0x10) {
 					builder.append("0" + Integer.toHexString(0xff & element));

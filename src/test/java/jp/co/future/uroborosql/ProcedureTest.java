@@ -1,15 +1,13 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
-import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 
@@ -19,10 +17,10 @@ public class ProcedureTest {
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
 				agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
@@ -38,24 +36,24 @@ public class ProcedureTest {
 	public void testCallStoredFunctionWithinTransaction() {
 		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
@@ -63,44 +61,44 @@ public class ProcedureTest {
 
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.inOutParam("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.inOutParam("ret", "test2", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1")
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 
 			agent.required(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR.getVendorTypeNumber())
 							.param("param1", "test1")
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					assertThat("Fail here.", false);
 				}
 			});
 		}

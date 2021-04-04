@@ -1,12 +1,9 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Arrays;
@@ -16,14 +13,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
@@ -38,17 +33,17 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:" + DefaultEntityHandlerMultiColumnCommentTest.class.getSimpleName()
+		var url = "jdbc:h2:mem:" + DefaultEntityHandlerMultiColumnCommentTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute(
 						"create table if not exists test( \"ID\" NUMERIC(4),name VARCHAR(10),\"Age\" NUMERIC(5),birthday DATE,memo VARCHAR(500),lock_version INTEGER, primary key(id))");
@@ -66,9 +61,9 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -77,17 +72,17 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
 						.of("memo3"));
 				agent.insert(test3);
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -101,18 +96,18 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testQuery1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
 						.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
+				var test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
 				agent.insert(test3);
 
-				List<TestEntity> list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -129,15 +124,15 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testQueryWithCondition() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
+				var test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
+				var test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
 						Optional.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
+				var test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
 				// Equal
@@ -393,13 +388,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 				assertThat(list.get(1), is(test3));
 
 				// count
-				long count1 = agent.query(TestEntity.class).asc("age").count();
+				var count1 = agent.query(TestEntity.class).asc("age").count();
 				assertThat(count1, is(3L));
 
-				long count2 = agent.query(TestEntity.class).lessEqual("age", 21).count();
+				var count2 = agent.query(TestEntity.class).lessEqual("age", 21).count();
 				assertThat(count2, is(2L));
 
-				long count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
+				var count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
 				assertThat(count3, is(1L));
 
 			});
@@ -409,16 +404,16 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testUpdate1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -428,13 +423,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testDelete1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -448,22 +443,22 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testBatchInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
+				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -477,22 +472,22 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testBulkInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				var test1 = new TestEntityForInserts(1, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				var test2 = new TestEntityForInserts(2, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				var test3 = new TestEntityForInserts(3, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3));
+				var count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));
 
-				TestEntityForInserts data = agent.find(TestEntityForInserts.class, 1).orElse(null);
+				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityForInserts.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -505,22 +500,22 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	@Test
 	public void testCreateSelectContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createSelectContext(agent, metadata, null, true);
+			var ctx = handler.createSelectContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
-			try (ResultSet rs = agent.query(ctx)) {
+			try (var rs = agent.query(ctx)) {
 				assertThat(rs.next(), is(true));
 			}
 		}
@@ -528,13 +523,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	@Test
 	public void testCreateInsertContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+			var ctx = handler.createInsertContext(agent, metadata, null);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
@@ -545,14 +540,14 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	@Test
 	public void testCreateInsertContextEmptyNotEqualsNull() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
 			handler.setEmptyStringEqualsNull(false);
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createInsertContext(agent, metadata, null);
+			var ctx = handler.createInsertContext(agent, metadata, null);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
 			ctx.param("id", 1).param("name", "name1").param("age", 20)
@@ -565,19 +560,19 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	@Test
 	public void testCreateUpdateContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createUpdateContext(agent, metadata, null, true);
+			var ctx = handler.createUpdateContext(agent, metadata, null, true);
 
-			String sql = ctx.getSql();
+			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
 			ctx.param("id", 1).param("name", "updatename");
@@ -588,17 +583,17 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	@Test
 	public void testCreateDeleteContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+		try (var agent = config.agent()) {
+			var test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
 			agent.commit();
 
 			EntityHandler<?> handler = config.getEntityHandler();
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+			var metadata = TableMetadata.createTableEntityMetadata(agent,
 					MappingUtils.getTable(TestEntity.class));
-			SqlContext ctx = handler.createDeleteContext(agent, metadata, null, true);
+			var ctx = handler.createDeleteContext(agent, metadata, null, true);
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
 			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));

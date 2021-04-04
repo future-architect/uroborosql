@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -10,10 +10,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.ZoneOffset;
 import java.time.temporal.TemporalAccessor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
@@ -21,8 +20,8 @@ public class TimeToStringParameterMapperTest {
 
 	@Test
 	public void testLocalTime() throws ParseException {
-		TimeToStringParameterMapper mapper = new TimeToStringParameterMapper();
-		LocalTime localTime = LocalTime.of(11, 22, 33);
+		var mapper = new TimeToStringParameterMapper();
+		var localTime = LocalTime.of(11, 22, 33);
 		assertThat(mapper.toJdbc(localTime, null, null), is("112233"));
 
 		localTime = LocalTime.of(11, 22);
@@ -31,10 +30,10 @@ public class TimeToStringParameterMapperTest {
 
 	@Test
 	public void testOffsetTime() throws ParseException {
-		TimeToStringParameterMapper mapper = new TimeToStringParameterMapper();
-		LocalTime localTime = LocalTime.of(11, 22, 33);
-		ZoneOffset offset = Clock.systemDefaultZone().getZone().getRules().getOffset(localTime.atDate(LocalDate.now()));
-		OffsetTime offsetTime = OffsetTime.of(localTime, offset);
+		var mapper = new TimeToStringParameterMapper();
+		var localTime = LocalTime.of(11, 22, 33);
+		var offset = Clock.systemDefaultZone().getZone().getRules().getOffset(localTime.atDate(LocalDate.now()));
+		var offsetTime = OffsetTime.of(localTime, offset);
 		assertThat(mapper.toJdbc(offsetTime, null, null), is("112233"));
 
 		offsetTime = OffsetTime.of(LocalTime.of(11, 22), offset);
@@ -43,7 +42,7 @@ public class TimeToStringParameterMapperTest {
 
 	@Test
 	public void testCanAccept() throws Exception {
-		TimeToStringParameterMapper mapper = new TimeToStringParameterMapper();
+		var mapper = new TimeToStringParameterMapper();
 
 		assertThat(mapper.canAccept(LocalTime.now()), is(true));
 		assertThat(mapper.canAccept(OffsetTime.now()), is(true));
@@ -54,17 +53,17 @@ public class TimeToStringParameterMapperTest {
 
 	@Test
 	public void testTargetType() throws Exception {
-		TimeToStringParameterMapper mapper = new TimeToStringParameterMapper();
+		var mapper = new TimeToStringParameterMapper();
 
 		assertThat(mapper.targetType(), sameInstance(TemporalAccessor.class));
 	}
 
 	@Test
 	public void testManagerToJdbc() throws Exception {
-		BindParameterMapperManager manager = new BindParameterMapperManager(Clock.systemDefaultZone());
+		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new TimeToStringParameterMapper());
 
-		LocalTime localTime = LocalTime.of(11, 22, 33);
+		var localTime = LocalTime.of(11, 22, 33);
 
 		assertThat(manager.toJdbc(localTime, null), is("112233"));
 	}

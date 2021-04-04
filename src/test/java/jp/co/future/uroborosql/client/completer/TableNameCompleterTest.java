@@ -8,17 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class TableNameCompleterTest extends ReaderTestSupport {
 	private final List<ReplCommand> commands = new ArrayList<>();
@@ -27,7 +27,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 	private SqlAgent agent;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -40,7 +40,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 
 		agent = config.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -51,21 +51,21 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
 
 	@Test
 	public void testComplete() throws Exception {
-		TableNameCompleter completer = new TableNameCompleter(commands, config.getConnectionSupplier());
+		var completer = new TableNameCompleter(commands, config.getConnectionSupplier());
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		assertBuffer("qu", new TestBuffer("qu").tab());
 		assertBuffer("generate se", new TestBuffer("generate se").tab());
 		assertBuffer("generate select", new TestBuffer("generate select").tab());
-		assertBuffer("generate select PRODUCT", new TestBuffer("generate select ").tab().tab());
+		assertBuffer("generate select COLUMN_TYPE_ARRAY", new TestBuffer("generate select ").tab().tab());
 		assertBuffer("generate select PRODUCT", new TestBuffer("generate select pro").tab().tab());
 
 		assertBuffer("desc PRODUCT", new TestBuffer("desc PR").tab());

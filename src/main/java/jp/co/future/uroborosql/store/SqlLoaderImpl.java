@@ -10,17 +10,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.JarURLConnection;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,12 +150,12 @@ public class SqlLoaderImpl implements SqlLoader {
 	 */
 	@Override
 	public ConcurrentHashMap<String, String> load() {
-		ConcurrentHashMap<String, String> loadedSqlMap = new ConcurrentHashMap<>();
+		var loadedSqlMap = new ConcurrentHashMap<String, String>();
 		try {
-			Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(loadPath);
+			var resources = Thread.currentThread().getContextClassLoader().getResources(loadPath);
 			while (resources.hasMoreElements()) {
-				URL resource = resources.nextElement();
-				File rootDir = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.toString()));
+				var resource = resources.nextElement();
+				var rootDir = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.toString()));
 
 				if (!rootDir.exists() || !rootDir.isDirectory()) {
 					if ("jar".equalsIgnoreCase(resource.getProtocol())) {
@@ -212,14 +207,14 @@ public class SqlLoaderImpl implements SqlLoader {
 			throws IOException {
 		LOG.debug("Loading the following SQL template.[{}]", jarUrlConnection);
 
-		ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
-		JarFile jarFile = jarUrlConnection.getJarFile();
-		Enumeration<JarEntry> jarEnum = jarFile.entries();
+		var sqlMap = new ConcurrentHashMap<String, String>();
+		var jarFile = jarUrlConnection.getJarFile();
+		var jarEnum = jarFile.entries();
 		while (jarEnum.hasMoreElements()) {
-			JarEntry jarEntry = jarEnum.nextElement();
-			String fileName = jarEntry.getName();
+			var jarEntry = jarEnum.nextElement();
+			var fileName = jarEntry.getName();
 			if (fileName.startsWith(loadPath) && fileName.toLowerCase().endsWith(fileExtension)) {
-				String sql = trimSlash(
+				var sql = trimSlash(
 						read(new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry)))));
 				fileName = fileName.substring(loadPath.length() + 1, fileName.length() - 4);
 				sqlMap.put(fileName, sql);
@@ -244,16 +239,16 @@ public class SqlLoaderImpl implements SqlLoader {
 	private ConcurrentHashMap<String, String> load(final StringBuilder packageName, final File dir) throws IOException {
 		LOG.debug("Loading SQL template.[{}]", packageName);
 
-		ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
-		File[] files = dir.listFiles();
+		var sqlMap = new ConcurrentHashMap<String, String>();
+		var files = dir.listFiles();
 		for (File file : files) {
-			String fileName = file.getName();
+			var fileName = file.getName();
 			if (file.isDirectory()) {
 				sqlMap.putAll(load(makeNewPackageName(packageName, file), file));
 			} else if (fileName.toLowerCase().endsWith(fileExtension)) {
-				String sql = trimSlash(read(new BufferedReader(new InputStreamReader(new FileInputStream(file),
+				var sql = trimSlash(read(new BufferedReader(new InputStreamReader(new FileInputStream(file),
 						getSqlEncoding()))));
-				String sqlName = makeSqlName(packageName, fileName);
+				var sqlName = makeSqlName(packageName, fileName);
 				sqlMap.put(sqlName, sql);
 
 				LOG.trace("Loaded SQL template.[{}]", fileName);
@@ -278,12 +273,12 @@ public class SqlLoaderImpl implements SqlLoader {
 		if (StringUtils.isEmpty(filePath)) {
 			throw new IllegalArgumentException("Invalid file path. filePath=" + filePath);
 		}
-		String targetFilePath = getFilePath(trimSqlExtension(filePath.replace(".", PATH_SEPARATOR)));
+		var targetFilePath = getFilePath(trimSqlExtension(filePath.replace(".", PATH_SEPARATOR)));
 		String sql = null;
 
-		URL resource = Thread.currentThread().getContextClassLoader().getResource(targetFilePath);
+		var resource = Thread.currentThread().getContextClassLoader().getResource(targetFilePath);
 		if (resource != null) {
-			try (InputStream is = resource.openStream()) {
+			try (var is = resource.openStream()) {
 
 				sql = trimSlash(read(new BufferedReader(new InputStreamReader(is))));
 
@@ -373,7 +368,7 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @throws IOException
 	 */
 	private String read(final BufferedReader reader) throws IOException {
-		StringBuilder sqlBuilder = new StringBuilder();
+		var sqlBuilder = new StringBuilder();
 		try {
 			for (String line : reader.lines().toArray(String[]::new)) {
 				sqlBuilder.append(line).append(System.lineSeparator());
@@ -394,7 +389,7 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @return トリム後文字列
 	 */
 	private String trimSlash(final String sql) {
-		String trimmedSql = sql.trim();
+		var trimmedSql = sql.trim();
 		if (trimmedSql.endsWith(PATH_SEPARATOR) && !trimmedSql.endsWith("*/")) {
 			return StringUtils.removeEnd(trimmedSql, PATH_SEPARATOR);
 		} else {

@@ -99,17 +99,17 @@ public abstract class OracleDialect extends AbstractDialect {
 			return false;
 		}
 
-		String[] parts = supplier.getDatabaseName().split("-", 2);
-		String databaseName = parts[0];
+		var parts = supplier.getDatabaseName().split("-", 2);
+		var databaseName = parts[0];
 
 		if (!databaseName.startsWith(getDatabaseName())) {
 			return false;
 		}
 
-		String databaseVersion = parts[1];
+		var databaseVersion = parts[1];
 
 		try {
-			int majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
+			var majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
 			return isTargetVersion(majorVersion);
 		} catch (NumberFormatException e) {
 			return false;
@@ -141,7 +141,7 @@ public abstract class OracleDialect extends AbstractDialect {
 	 */
 	@Override
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
-		String hintStr = "$1 /*+ " + hints.stream().collect(Collectors.joining(" ")) + " */";
+		var hintStr = "$1 /*+ " + hints.stream().collect(Collectors.joining(" ")) + " */";
 		return new StringBuilder(sql.toString().replaceFirst("(SELECT( /\\*.+\\*/)*)", hintStr));
 	}
 

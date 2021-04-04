@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Paths;
 import java.sql.JDBCType;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
@@ -61,10 +62,10 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.greaterEqual("productId", 0)
 							.count(),
 					is(2));
-			Product product0 = agent.query(Product.class).equal("productId", 0).one().get();
+			var product0 = agent.query(Product.class).equal("productId", 0).one().get();
 			assertThat(product0.getProductName(), is("商品名_new"));
 			assertThat(product0.getProductKanaName(), is("ショウヒンメイ_new"));
-			Product product1 = agent.query(Product.class).equal("productId", 1).one().get();
+			var product1 = agent.query(Product.class).equal("productId", 1).one().get();
 			assertThat(product1.getProductName(), is("商品名_new"));
 			assertThat(product1.getProductKanaName(), is("ショウヒンメイ_new"));
 		});
@@ -173,7 +174,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			Product product = new Product();
+			var product = new Product();
 			product.setProductId(1);
 			product.setProductName("商品名_new");
 			assertThat(product.getVersionNo(), is(0));
@@ -194,7 +195,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
 		agent.required(() -> {
-			Product product = new Product();
+			var product = new Product();
 			product.setProductId(1);
 			product.setProductName("商品名_new");
 			assertThat(product.getVersionNo(), is(0));
@@ -211,16 +212,16 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 */
 	@Test
 	public void testEntityUpdatesAndReturnManyRecord() throws Exception {
-		for (int row = 500; row <= 2000; row = row + 500) {
+		for (var row = 500; row <= 2000; row = row + 500) {
 			// 事前条件
 			truncateTable("PRODUCT");
 
-			final int boxSize = row + 1;
+			final var boxSize = row + 1;
 
 			agent.required(() -> {
-				Date now = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+				var now = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 				Stream<Product> insertedProduct = agent.insertsAndReturn(IntStream.range(1, boxSize).mapToObj(i -> {
-					Product product = new Product();
+					var product = new Product();
 					product.setProductId(i);
 					product.setProductName("商品名" + i);
 					product.setProductKanaName("ショウヒンメイ" + i);
@@ -251,31 +252,31 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(楽観ロックエラー）
 	 */
-	@Test(expected = OptimisticLockException.class)
+	@Test
 	public void testEntityUpdateThrowException() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		Product product = new Product();
+		var product = new Product();
 		product.setProductId(2);
 		product.setProductName("商品名_new");
 		product.setVersionNo(1);
-		agent.update(product);
+		assertThrows(OptimisticLockException.class, () -> agent.update(product));
 	}
 
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(Stream型引数エラー）
 	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testEntityUpdateStreamError() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		Product product = new Product();
+		var product = new Product();
 		product.setProductId(2);
 		product.setProductName("商品名_new");
 		product.setVersionNo(1);
-		agent.update(Stream.of(product));
+		assertThrows(IllegalArgumentException.class, () -> agent.update(Stream.of(product)));
 	}
 
 	/**
@@ -391,7 +392,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 			List<TestEntityMultiKey> entities = IntStream.range(1, 10)
 					.mapToObj(i -> {
-						TestEntityMultiKey entity = new TestEntityMultiKey();
+						var entity = new TestEntityMultiKey();
 						entity.setId(i);
 						entity.setEndAt(LocalDate.now().plusDays(i));
 						entity.setName("名前" + i);
@@ -425,15 +426,15 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 			List<TestEntity> entities = IntStream.range(1, 10)
 					.mapToObj(i -> {
-						TestEntity entity = new TestEntity();
+						var entity = new TestEntity();
 						entity.setName("名前" + i);
 						entity.setVersion(0);
 						return entity;
 					}).collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			int newId = 100;
-			int count = agent.update(TestEntity.class)
+			var newId = 100;
+			var count = agent.update(TestEntity.class)
 					.set("id", newId)
 					.equal("id", 3)
 					.count();

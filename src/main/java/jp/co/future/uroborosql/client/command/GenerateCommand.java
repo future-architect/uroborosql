@@ -6,15 +6,12 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter.SqlKeyword;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
@@ -47,28 +44,28 @@ public class GenerateCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 
 		if (parts.length < 3) {
 			writer.println(toString() + " parameter missing. " + toString() + " [SQL_KEYWORD] [TABLE NAME].");
 			return true;
 		}
 
-		try (SqlAgent agent = sqlConfig.agent()) {
-			Optional<SqlKeyword> sqlKeyword = SqlKeyword.of(parts[1]);
-			final String tableName = parts[2];
-			final String versionColumnName = props.getProperty("sql.versionColumnName");
-			final String optimisticLockSupplier = props
+		try (var agent = sqlConfig.agent()) {
+			var sqlKeyword = SqlKeyword.of(parts[1]);
+			final var tableName = parts[2];
+			final var versionColumnName = props.getProperty("sql.versionColumnName");
+			final var optimisticLockSupplier = props
 					.getProperty("sql.optimisticLockSupplier",
 							"jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier");
 
 			Table table = new MetaTable(tableName, null, versionColumnName, optimisticLockSupplier);
-			TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent, table);
+			var metadata = TableMetadata.createTableEntityMetadata(agent, table);
 			metadata.setSchema(null);
 
 			SqlContext ctx = null;
 			if (sqlKeyword.isPresent()) {
-				SqlKeyword keyword = sqlKeyword.get();
+				var keyword = sqlKeyword.get();
 				switch (keyword) {
 				case INSERT:
 					ctx = sqlConfig.getEntityHandler().createInsertContext(agent, metadata, null);

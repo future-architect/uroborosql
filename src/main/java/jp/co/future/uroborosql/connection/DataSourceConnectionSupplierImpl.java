@@ -90,9 +90,9 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 		if (!(ctx instanceof DataSourceConnectionContext)) {
 			throw new IllegalArgumentException("ctx must be of type DataSourceConnectionContext.");
 		}
-		String datasourceName = ((DataSourceConnectionContext) ctx).dataSourceName();
+		var datasourceName = ((DataSourceConnectionContext) ctx).dataSourceName();
 		try {
-			DataSource ds = datasources.computeIfAbsent(datasourceName,
+			var ds = datasources.computeIfAbsent(datasourceName,
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
@@ -100,7 +100,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 			}
 			connection.setAutoCommit(ctx.autoCommit());
 			connection.setReadOnly(ctx.readOnly());
-			int transactionIsolation = ctx.transactionIsolation();
+			var transactionIsolation = ctx.transactionIsolation();
 			if (transactionIsolation > 0) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,9 +10,9 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -31,7 +31,7 @@ public class UpdateCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -39,7 +39,7 @@ public class UpdateCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -50,7 +50,7 @@ public class UpdateCommandTest extends ReaderTestSupport {
 		command = new UpdateCommand();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -59,22 +59,22 @@ public class UpdateCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		boolean flag = command.execute(reader,
+		var flag = command.execute(reader,
 				"update example/insert_product product_id=111 product_name=name product_kana_name=kana product_description=desc jan_code=111111 ins_datetime='2019-01-01T01:01:01' upd_datetime='2019-01-01T01:01:01' version_no=1"
 						.split("\\s+"),
 				sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("update sql[example/insert_product] end. row count=1");
 
 		command.execute(reader, "update example/insert_product product_id=111".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("Error : ");
 
 		command.execute(reader, "update example/insert_product_not_found".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("SQL not found. sql=example/insert_product_not_found");
 	}
 

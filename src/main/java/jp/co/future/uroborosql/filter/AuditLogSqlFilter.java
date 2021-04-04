@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
  * 監査用ログを出力するSqlFilter
@@ -74,7 +73,7 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
 		// カウント初期値
-		int rowCount = -1;
+		var rowCount = -1;
 		try {
 			// resultSetのカーソル種別を取得
 			// 種別「TYPE_FORWARD_ONLY」の場合、beforeFirstメソッドが効かないため除外
@@ -88,13 +87,13 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 		}
 
-		String userName = getParam(sqlContext, userNameKey);
+		var userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, funcIdKey);
+		var funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
@@ -112,13 +111,13 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
-		String userName = getParam(sqlContext, userNameKey);
+		var userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, funcIdKey);
+		var funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
@@ -137,18 +136,18 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result) {
-		String userName = getParam(sqlContext, userNameKey);
+		var userName = getParam(sqlContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
 			userName = DEFAULT_USER_NAME;
 		}
 
-		String funcId = getParam(sqlContext, funcIdKey);
+		var funcId = getParam(sqlContext, funcIdKey);
 		if (funcId == null) {
 			// 機能IDが設定されていない時
 			funcId = DEFAULT_FUNC_ID;
 		}
-		int rowCount = -1;
+		var rowCount = -1;
 		if (LOG.isDebugEnabled()) {
 			try {
 				rowCount = preparedStatement.getUpdateCount();
@@ -169,7 +168,7 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * @return パラメータの値。キーに対するパラメータが存在しない場合は<code>null</code>.
 	 */
 	private String getParam(final SqlContext ctx, final String key) {
-		Parameter param = ctx.getParam(key);
+		var param = ctx.getParam(key);
 		if (param == null) {
 			return null;
 		} else {
@@ -230,9 +229,9 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			if (str == null) {
 				return null;
 			}
-			String buff = str;
+			var buff = str;
 			for (String escChar : ESC_CHARS) {
-				String[] parts = escChar.split(":");
+				var parts = escChar.split(":");
 				buff = buff.replaceAll(parts[0], parts[1]);
 			}
 			return buff;

@@ -11,6 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,7 +69,7 @@ public final class MappingUtils {
 		MappingColumnImpl(final Field field, final JavaType javaType) {
 			this.field = field;
 			this.javaType = javaType;
-			Column column = field.getAnnotation(Column.class);
+			var column = field.getAnnotation(Column.class);
 			// アクセス可能にする
 			field.setAccessible(true);
 
@@ -231,7 +232,7 @@ public final class MappingUtils {
 		}
 	}
 
-	private static final Map<Class<?>, Map<SqlKind, MappingColumn[]>> CACHE = new LinkedHashMap<Class<?>, Map<SqlKind, MappingColumn[]>>() {
+	private static final Map<Class<?>, Map<SqlKind, MappingColumn[]>> CACHE = new LinkedHashMap<>() {
 		private final int cacheSize = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
 
 		@Override
@@ -247,12 +248,12 @@ public final class MappingUtils {
 	 * @return テーブル情報
 	 */
 	public static Table getTable(final Class<?> entityType) {
-		jp.co.future.uroborosql.mapping.annotations.Table table = entityType.getAnnotation(
+		var table = entityType.getAnnotation(
 				jp.co.future.uroborosql.mapping.annotations.Table.class);
 		if (table != null) {
 			return new TableImpl(table.name(), table.schema());
 		}
-		String baseName = entityType.getSimpleName();
+		var baseName = entityType.getSimpleName();
 		if (baseName.endsWith("Entity")) {
 			baseName = baseName.substring(0, baseName.length() - 6);
 		}
@@ -283,7 +284,7 @@ public final class MappingUtils {
 	public static MappingColumn getMappingColumn(final Class<?> entityType, final SqlKind kind,
 			final String camelColumnName) {
 		return getMappingColumnMap(entityType, kind).entrySet().stream()
-				.filter(entry -> entry.getKey().equals(camelColumnName)).map(entry -> entry.getValue()).findFirst()
+				.filter(entry -> entry.getKey().equals(camelColumnName)).map(Entry::getValue).findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col:" + camelColumnName));
 	}
 
@@ -320,12 +321,12 @@ public final class MappingUtils {
 		Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
 				.collect(Collectors.toMap(e -> e, e -> new LinkedHashMap<>()));
 
-		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+		var implementClass = new JavaType.ImplementClass(entityType);
 
 		walkFields(entityType, implementClass, fieldsMap);
 
 		final Map<SqlKind, MappingColumn[]> entityCols = fieldsMap.entrySet().stream()
-				.collect(Collectors.toConcurrentMap(e -> e.getKey(),
+				.collect(Collectors.toConcurrentMap(Entry::getKey,
 						e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
 
 		synchronized (CACHE) {
@@ -353,7 +354,7 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getIdMappingColumns(final Class<?> entityType) {
-		return Arrays.stream(MappingUtils.getMappingColumns(entityType)).filter(c -> c.isId())
+		return Arrays.stream(MappingUtils.getMappingColumns(entityType)).filter(MappingColumn::isId)
 				.toArray(MappingColumn[]::new);
 	}
 
@@ -377,18 +378,18 @@ public final class MappingUtils {
 		Class<?> superclass = type.getSuperclass();
 		walkFields(superclass, implementClass, fieldsMap);
 
-		Map<String, MappingColumn> noneColumns = fieldsMap.get(SqlKind.NONE);
-		Map<String, MappingColumn> insertColumns = fieldsMap.get(SqlKind.INSERT);
-		Map<String, MappingColumn> updateColumns = fieldsMap.get(SqlKind.UPDATE);
+		var noneColumns = fieldsMap.get(SqlKind.NONE);
+		var insertColumns = fieldsMap.get(SqlKind.INSERT);
+		var updateColumns = fieldsMap.get(SqlKind.UPDATE);
 
 		for (Field field : type.getDeclaredFields()) {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
 				continue;
 			}
-			JavaType javaType = JavaType.of(implementClass, field);
+			var javaType = JavaType.of(implementClass, field);
 			MappingColumn mappingColumn = new MappingColumnImpl(field, javaType);
 
-			String fieldName = field.getName();
+			var fieldName = field.getName();
 			noneColumns.put(fieldName, mappingColumn);
 
 			if (mappingColumn.isTransient(SqlKind.NONE)) {

@@ -1,10 +1,7 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
 
 import java.sql.Connection;
 import java.sql.JDBCType;
@@ -17,7 +14,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -53,7 +50,7 @@ public class PostgresqlDialectTest {
 			}
 		};
 
-		Dialect dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
+		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
 		assertThat(dialect, instanceOf(PostgresqlDialect.class));
@@ -102,22 +99,22 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testGetJavaType() {
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), JavaType.of(String.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), JavaType.of(String.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), JavaType.of(Object.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
-				JavaType.of(ZonedDateTime.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
-				JavaType.of(Timestamp.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
-				JavaType.of(OffsetTime.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
-				JavaType.of(Time.class).getClass());
+		assertThat(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), is(JavaType.of(String.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), is(JavaType.of(String.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), is(JavaType.of(Object.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
+				is(JavaType.of(ZonedDateTime.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
+				is(JavaType.of(Timestamp.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
+				is(JavaType.of(OffsetTime.class).getClass()));
+		assertThat(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
+				is(JavaType.of(Time.class).getClass()));
 	}
 
 	@Test
 	public void testAddForUpdateClause() {
-		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
@@ -128,7 +125,7 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testAddOptimizerHints1() {
-		StringBuilder sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
 				.append(System.lineSeparator())
@@ -153,7 +150,7 @@ public class PostgresqlDialectTest {
 
 	@Test
 	public void testAddOptimizerHints2() {
-		StringBuilder sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
 		List<String> hints = new ArrayList<>();

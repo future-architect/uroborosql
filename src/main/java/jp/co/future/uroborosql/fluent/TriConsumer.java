@@ -26,7 +26,7 @@ public interface TriConsumer<T, U, V> {
 	 * @param u 第2入力引数
 	 * @param v 第3入力引数
 	 */
-	public void accept(T t, U u, V v);
+	void accept(T t, U u, V v);
 
 	/**
 	 * このオペレーションを実行した後、続けてafterオペレーションを実行する合成TriConsumerを返します。
@@ -35,7 +35,7 @@ public interface TriConsumer<T, U, V> {
 	 * @return このオペレーションを実行した後、続けてafterオペレーションを実行する合成BiConsumer
 	 * @exception NullPointerException afterがnullの場合
 	 */
-	public default TriConsumer<T, U, V> andThen(final TriConsumer<? super T, ? super U, ? super V> after) {
+	default TriConsumer<T, U, V> andThen(final TriConsumer<? super T, ? super U, ? super V> after) {
 		Objects.requireNonNull(after);
 		return (t, u, v) -> {
 			accept(t, u, v);

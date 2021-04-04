@@ -51,7 +51,7 @@ public abstract class ReplCommand {
 	 * @return 引数の位置。該当するコード補完がない場合は<code>-1</code>を返す
 	 */
 	public int getStartArgNo(final Class<? extends Completer> completer) {
-		int idx = this.completers.indexOf(completer);
+		var idx = this.completers.indexOf(completer);
 		return idx >= 0 ? idx + 1 : -1;
 	}
 
@@ -117,8 +117,8 @@ public abstract class ReplCommand {
 	 * @param path show file path
 	 */
 	protected void showMessage(final Terminal terminal, final String path) {
-		String messageFilePath = SqlREPL.class.getPackage().getName().replace(".", "/") + path;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
+		var messageFilePath = SqlREPL.class.getPackage().getName().replace(".", "/") + path;
+		try (var reader = new BufferedReader(new InputStreamReader(Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream(messageFilePath), Charset.forName("UTF-8")))) {
 			reader.lines().forEach(s -> {
 				try {

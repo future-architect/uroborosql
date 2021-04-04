@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -15,30 +16,27 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLXML;
-import java.sql.Savepoint;
 import java.sql.Statement;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DoNotCloseConnectionWrapperTest {
 	private Connection target;
 	private Connection conn;
 
 	@SuppressWarnings("deprecation")
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		conn = DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
 				"sa", "sa");
 		target = new DoNotCloseConnectionWrapper(conn);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		conn.close();
 	}
@@ -59,7 +57,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testPrepareStatement() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareStatement(sql),
 				is(instanceOf(PreparedStatement.class)));
 		assertThat(target.prepareStatement(sql, 0),
@@ -81,7 +79,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testPrepareCall() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareCall(sql),
 				is(instanceOf(CallableStatement.class)));
 		assertThat(target.prepareCall(sql,
@@ -97,7 +95,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testNativeSQL() throws Exception {
-		String sql = "select * from information_schema.columns";
+		var sql = "select * from information_schema.columns";
 		assertThat(target.nativeSQL(sql), is(sql));
 	}
 
@@ -130,7 +128,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testCatalog() throws Exception {
-		String catalog = target.getCatalog();
+		var catalog = target.getCatalog();
 		target.setCatalog(catalog);
 		assertThat(target.getCatalog(), is(catalog));
 	}
@@ -149,7 +147,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testTypeMap() throws Exception {
-		Map<String, Class<?>> typeMap = target.getTypeMap();
+		var typeMap = target.getTypeMap();
 		target.setTypeMap(typeMap);
 		assertThat(target.getTypeMap(), is(nullValue()));
 	}
@@ -162,7 +160,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testSavepoint() throws Exception {
-		Savepoint savepoint = target.setSavepoint();
+		var savepoint = target.setSavepoint();
 		assertThat(savepoint, not(nullValue()));
 		target.releaseSavepoint(savepoint);
 
@@ -191,9 +189,9 @@ public class DoNotCloseConnectionWrapperTest {
 		assertThat(target.createSQLXML(), is(instanceOf(SQLXML.class)));
 	}
 
-	@Test(expected = SQLFeatureNotSupportedException.class)
+	@Test
 	public void testCreateStruct() throws Exception {
-		target.createStruct("char", new Object[] {});
+		assertThrows(SQLFeatureNotSupportedException.class, () -> target.createStruct("char", new Object[] {}));
 	}
 
 	@Test
@@ -206,7 +204,7 @@ public class DoNotCloseConnectionWrapperTest {
 		target.setClientInfo("ApplicationName", "app");
 		assertThat(target.getClientInfo("ApplicationName"), is("app"));
 
-		Properties props = new Properties();
+		var props = new Properties();
 		props.put("ClientUser", "user1");
 		target.setClientInfo(props);
 		assertThat(target.getClientInfo("ClientUser"), is("user1"));
@@ -226,7 +224,7 @@ public class DoNotCloseConnectionWrapperTest {
 
 	@Test
 	public void testNetworkTimeout() throws Exception {
-		ExecutorService service = Executors.newSingleThreadExecutor();
+		var service = Executors.newSingleThreadExecutor();
 		target.setNetworkTimeout(service, 10);
 		assertThat(target.getNetworkTimeout(), is(0)); // H2 not supported. return fixed value 0.
 		target.abort(service); // H2 not supported.

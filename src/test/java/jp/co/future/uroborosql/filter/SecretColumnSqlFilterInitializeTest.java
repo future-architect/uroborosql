@@ -1,25 +1,24 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.sql.DriverManager;
 import java.util.Arrays;
-import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.testlog.TestAppender;
-
-import org.junit.Before;
-import org.junit.Test;
 
 public class SecretColumnSqlFilterInitializeTest {
 	private SqlConfig config;
 	private SqlFilterManager sqlFilterManager;
 	private SecretColumnSqlFilter filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterInitializeTest"))
 				.build();
@@ -48,7 +47,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize02() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(null);
 			sqlFilterManager.initialize();
 		});
@@ -59,7 +58,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize03() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
 					"src/test/resources/data/expected/SecretColumnSqlFilter/fake.jks");
 			sqlFilterManager.initialize();
@@ -72,7 +71,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize04() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
 					"src/test/resources/data/expected/SecretColumnSqlFilter");
 			sqlFilterManager.initialize();
@@ -85,15 +84,15 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize05() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath(
-						"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-				filter.setStorePassword(null);
-				sqlFilterManager.initialize();
-			});
+			filter.setKeyStoreFilePath(
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+			filter.setStorePassword(null);
+			sqlFilterManager.initialize();
+		});
 		assertThat(log, is(Arrays.asList(
 				"Invalid password for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
@@ -102,16 +101,16 @@ public class SecretColumnSqlFilterInitializeTest {
 	@Test
 	public void testInitialize06() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成
 			// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS -alias testexample
 			// -storepass password -keypass password -keyalg AES -keysize 128
-				filter.setKeyStoreFilePath(
-						"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-				filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-				filter.setAlias(null);
-				sqlFilterManager.initialize();
-			});
+			filter.setKeyStoreFilePath(
+					"src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+			filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+			filter.setAlias(null);
+			sqlFilterManager.initialize();
+		});
 		assertThat(log, is(Arrays.asList("No alias for access KeyStore.")));
 		assertThat(filter.isSkipFilter(), is(true));
 	}

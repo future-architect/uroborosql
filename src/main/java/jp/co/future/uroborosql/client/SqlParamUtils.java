@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -28,7 +27,6 @@ import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
-import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -60,21 +58,21 @@ public final class SqlParamUtils {
 	 * @return 入力内容をパラメータに分割した配列
 	 */
 	public static String[] parseLine(final String line) {
-		StringBuffer sb = new StringBuffer();
-		Matcher matcher = PARAM_PAT.matcher(line);
+		var sb = new StringBuffer();
+		var matcher = PARAM_PAT.matcher(line);
 		while (matcher.find()) {
-			String arrayPart = matcher.group();
+			var arrayPart = matcher.group();
 			matcher.appendReplacement(sb, arrayPart.replaceAll("\\s*,\\s*", ","));
 		}
 		matcher.appendTail(sb);
 
-		int idx = 0;
+		var idx = 0;
 		List<String> parts = new ArrayList<>();
-		boolean bracketFlag = false;
-		boolean singleQuoteFlag = false;
-		StringBuilder part = new StringBuilder();
+		var bracketFlag = false;
+		var singleQuoteFlag = false;
+		var part = new StringBuilder();
 		while (sb.length() > idx) {
-			char c = sb.charAt(idx++);
+			var c = sb.charAt(idx++);
 			if (Character.isWhitespace(c)) {
 				if (bracketFlag || singleQuoteFlag) {
 					// 囲み文字の中なのでそのまま追加する
@@ -109,18 +107,18 @@ public final class SqlParamUtils {
 	 * @param paramsArray パラメータ配列
 	 */
 	public static void setSqlParams(final SqlConfig sqlConfig, final SqlContext ctx, final String... paramsArray) {
-		Set<String> bindParams = getSqlParams(ctx.getSql(), sqlConfig);
+		var bindParams = getSqlParams(ctx.getSql(), sqlConfig);
 
 		for (String element : paramsArray) {
-			String[] param = element.split("=");
-			String key = param[0];
+			var param = element.split("=");
+			var key = param[0];
 			if (bindParams.remove(key)) {
 				// キーがバインドパラメータに存在するときは値を設定する
 				if (param.length == 1) {
 					// キーだけの指定は値をnullと扱う
 					ctx.param(key, null);
 				} else {
-					String val = param[1];
+					var val = param[1];
 					setParam(ctx, key, val);
 				}
 			}
@@ -154,9 +152,9 @@ public final class SqlParamUtils {
 	private static void setParam(final SqlContext ctx, final String key, final String val) {
 		if (val.startsWith("[") && val.endsWith("]") && !(val.equals("[NULL]") || val.equals("[EMPTY]"))) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
-			String[] parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
-			Object[] vals = new Object[parts.length];
-			for (int i = 0; i < parts.length; i++) {
+			var parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
+			var vals = new Object[parts.length];
+			for (var i = 0; i < parts.length; i++) {
 				vals[i] = convertSingleValue(parts[i]);
 			}
 			ctx.param(key, Arrays.asList(vals));
@@ -172,7 +170,7 @@ public final class SqlParamUtils {
 	 * @return 変換後オブジェクト
 	 */
 	private static Object convertSingleValue(final String val) {
-		String value = val == null ? null : val.trim();
+		var value = val == null ? null : val.trim();
 		if (StringUtils.isEmpty(value)) {
 			return null;
 		} else if ("[NULL]".equalsIgnoreCase(value)) {
@@ -250,15 +248,15 @@ public final class SqlParamUtils {
 	 */
 	private static Number createNumber(final String val) {
 		// suffixがある場合はsuffixと数値部分を分離する
-		String suffix = val.substring(val.length() - 1);
-		String num = val;
+		var suffix = val.substring(val.length() - 1);
+		var num = val;
 		if ("0".compareTo(suffix) <= 0 && "9".compareTo(suffix) >= 0) {
 			suffix = "";
 		} else {
 			num = val.substring(0, val.length() - 1);
 		}
 
-		BigDecimal decimal = new BigDecimal(num);
+		var decimal = new BigDecimal(num);
 		try {
 			if ("L".equalsIgnoreCase(suffix)) {
 				return decimal.longValueExact();
@@ -285,12 +283,12 @@ public final class SqlParamUtils {
 	public static Set<String> getSqlParams(final String sql, final SqlConfig sqlConfig) {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
-		ContextTransformer transformer = parser.parse();
-		Node rootNode = transformer.getRoot();
+		var transformer = parser.parse();
+		var rootNode = transformer.getRoot();
 
 		Set<String> params = new LinkedHashSet<>();
 		traverseNode(sqlConfig.getExpressionParser(), rootNode, params);
-		Pattern constPattern = Pattern
+		var constPattern = Pattern
 				.compile("^" + sqlConfig.getSqlContextFactory().getConstParamPrefix() + "[A-Z][A-Z0-9_-]*$");
 		params.removeIf(s -> constPattern.matcher(s).matches());
 		return params;
@@ -313,7 +311,7 @@ public final class SqlParamUtils {
 		} else if (node instanceof IfNode) {
 			traverseIfNode(parser, (IfNode) node, params);
 		} else {
-			for (int i = 0; i < node.getChildSize(); i++) {
+			for (var i = 0; i < node.getChildSize(); i++) {
 				traverseNode(parser, node.getChild(i), params);
 			}
 		}
@@ -329,7 +327,7 @@ public final class SqlParamUtils {
 	private static void traverseIfNode(final ExpressionParser parser, final IfNode ifNode, final Set<String> params) {
 		parser.parse(ifNode.getExpression()).collectParams(params);
 
-		for (int i = 0; i < ifNode.getChildSize(); i++) {
+		for (var i = 0; i < ifNode.getChildSize(); i++) {
 			traverseNode(parser, ifNode.getChild(i), params);
 		}
 		if (ifNode.getElseIfNode() != null) {

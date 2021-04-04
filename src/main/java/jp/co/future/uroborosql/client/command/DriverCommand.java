@@ -6,10 +6,7 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.io.PrintWriter;
-import java.sql.Driver;
 import java.sql.DriverManager;
-import java.util.Enumeration;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
@@ -40,14 +37,14 @@ public class DriverCommand extends ReplCommand {
 	@Override
 	public boolean execute(final LineReader reader, final String[] parts, final SqlConfig sqlConfig,
 			final Properties props) {
-		PrintWriter writer = reader.getTerminal().writer();
+		var writer = reader.getTerminal().writer();
 		writer.println("DRIVER:");
 		writer.flush();
 
-		Enumeration<Driver> drivers = DriverManager.getDrivers();
-		int driverCount = 0;
+		var drivers = DriverManager.getDrivers();
+		var driverCount = 0;
 		while (drivers.hasMoreElements()) {
-			Driver driver = drivers.nextElement();
+			var driver = drivers.nextElement();
 			writer.println(String.format("%02d : %s%n", ++driverCount, driver));
 		}
 

@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class SecretResultSet extends AbstractResultSetWrapper {
 
-	private Function<Object, String> decode;
+	private final Function<Object, String> decode;
 
 	/**
 	 * キャラクタセット（デフォルトUTF-8）
@@ -72,7 +72,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public String getString(final int columnIndex) throws SQLException {
-		String columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
+		var columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
 
 		return getString(columnLabel);
 	}
@@ -84,7 +84,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public String getString(final String columnLabel) throws SQLException {
-		String val = getWrapped().getString(columnLabel);
+		var val = getWrapped().getString(columnLabel);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel))) {
 			return decode.apply(val);
 		} else {
@@ -99,7 +99,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public Object getObject(final int columnIndex) throws SQLException {
-		String columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
+		var columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
 
 		return getObject(columnLabel);
 	}
@@ -111,7 +111,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public <T> T getObject(final int columnIndex, final Class<T> type) throws SQLException {
-		String columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
+		var columnLabel = getWrapped().getMetaData().getColumnLabel(columnIndex);
 
 		return getObject(columnLabel, type);
 	}
@@ -123,7 +123,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 */
 	@Override
 	public Object getObject(final String columnLabel) throws SQLException {
-		Object val = getWrapped().getObject(columnLabel);
+		var val = getWrapped().getObject(columnLabel);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return decode.apply(val);
 		} else {
@@ -139,7 +139,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getObject(final String columnLabel, final Class<T> type) throws SQLException {
-		T val = getWrapped().getObject(columnLabel, type);
+		var val = getWrapped().getObject(columnLabel, type);
 		if (this.cryptColumnNames.contains(CaseFormat.UPPER_SNAKE_CASE.convert(columnLabel)) && val instanceof String) {
 			return (T) decode.apply(val);
 		} else {

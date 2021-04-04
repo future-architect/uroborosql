@@ -3,21 +3,20 @@
  */
 package jp.co.future.uroborosql.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.UroboroSQL;
-
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * TestCase DefaultSqlConfigConnectionPool
@@ -33,7 +32,7 @@ public class SqlConfigConnectionPoolTest {
 
 	private static JdbcConnectionPool pool;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 
 		pool = JdbcConnectionPool.create(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
@@ -41,9 +40,9 @@ public class SqlConfigConnectionPoolTest {
 
 		config = UroboroSQL.builder(pool).build();
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// create table
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -64,7 +63,7 @@ public class SqlConfigConnectionPoolTest {
 		}
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownClass() throws Exception {
 		pool.dispose();
 	}
@@ -74,7 +73,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSourceNoQuery() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(pool.getActiveConnections(), is(0));
 		}
 		assertThat(pool.getActiveConnections(), is(0));
@@ -85,7 +84,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSource() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 		}
@@ -97,7 +96,7 @@ public class SqlConfigConnectionPoolTest {
 	 */
 	@Test
 	public void testGetConfigDataSourceRequired() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 

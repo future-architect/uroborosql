@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -36,16 +36,16 @@ public class DumpResultSqlFilterTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DumpResultSqlFilterTest")).build();
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		var sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new DumpResultSqlFilter());
 		sqlFilterManager.initialize();
 
 		agent = config.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -53,9 +53,9 @@ public class DumpResultSqlFilterTest {
 			}
 		}
 
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		builder.append("create table if not exists many_column_table (").append(System.lineSeparator());
-		for (int i = 1; i <= 100; i++) {
+		for (var i = 1; i <= 100; i++) {
 			builder.append("col").append(i).append(" VARCHAR(100)");
 			if (i < 100) {
 				builder.append(",");
@@ -67,7 +67,7 @@ public class DumpResultSqlFilterTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -77,9 +77,9 @@ public class DumpResultSqlFilterTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				String[] parts = line.split("\t");
+				var parts = line.split("\t");
 				for (String part : parts) {
-					String[] keyValue = part.split(":", 2);
+					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -97,33 +97,33 @@ public class DumpResultSqlFilterTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
 	private void cleanInsert(final Path path) {
-		List<Map<String, Object>> dataList = getDataFromFile(path);
+		var dataList = getDataFromFile(path);
 
 		try {
 			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-					.forEach(tbl -> truncateTable(tbl));
+					.forEach(this::truncateTable);
 
 			dataList.stream().forEach(map -> {
 				try {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
+					assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			assertThat(ex.getMessage(), false);
 		}
 	}
 
@@ -131,7 +131,7 @@ public class DumpResultSqlFilterTest {
 	public void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = agent.contextFrom("example/select_product")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
@@ -153,7 +153,7 @@ public class DumpResultSqlFilterTest {
 		agent.updateWith("truncate table many_column_table").count();
 
 		// 結果の検証
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
@@ -175,7 +175,7 @@ public class DumpResultSqlFilterTest {
 		agent.updateWith("truncate table many_column_table").count();
 
 		// 結果の検証
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select col1 from many_column_table");
@@ -194,24 +194,24 @@ public class DumpResultSqlFilterTest {
 	@Test
 	public void testExecuteQueryFilterManyColumnWithData() throws Exception {
 		// データ投入
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		builder.append("insert into many_column_table").append(System.lineSeparator())
 				.append("(").append(System.lineSeparator())
 				.append("\t").append("col1");
-		for (int i = 2; i <= 100; i++) {
+		for (var i = 2; i <= 100; i++) {
 			builder.append("\t").append(", col").append(i).append(System.lineSeparator());
 		}
 		builder.append(") values (").append(System.lineSeparator())
 				.append("\t").append("/*col1*/").append(System.lineSeparator());
-		for (int i = 2; i <= 100; i++) {
+		for (var i = 2; i <= 100; i++) {
 			builder.append("\t").append(", /*col").append(i).append("*/''").append(System.lineSeparator());
 		}
 		builder.append(")").append(System.lineSeparator());
 
 		List<Map<String, Object>> params = new ArrayList<>();
-		for (int i = 1; i <= 10; i++) {
+		for (var i = 1; i <= 10; i++) {
 			Map<String, Object> values = new HashMap<>();
-			for (int j = 1; j <= 100; j++) {
+			for (var j = 1; j <= 100; j++) {
 				values.put("col" + j, "value" + i * j);
 			}
 			params.add(values);
@@ -219,7 +219,7 @@ public class DumpResultSqlFilterTest {
 		agent.batchWith(builder.toString()).paramStream(params.stream()).count();
 
 		// select 結果の検証
-		List<String> log = TestAppender.getLogbackLogs(() -> {
+		var log = TestAppender.getLogbackLogs(() -> {
 			SqlContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
@@ -236,10 +236,10 @@ public class DumpResultSqlFilterTest {
 	}
 
 	public void assertFile(final String expectedFilePath, final String actualFilePath) throws IOException {
-		String expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
-		String actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
+		var expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
+		var actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
 
-		assertEquals(expected, actual);
+		assertThat(actual, is(expected));
 	}
 
 }

@@ -41,7 +41,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 */
 	@Override
 	public void initialize() {
-		filters.forEach(filter -> filter.initialize());
+		filters.forEach(SqlFilter::initialize);
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return parameter;
 		}
-		Parameter param = parameter;
+		var param = parameter;
 		for (final SqlFilter filter : getFilters()) {
 			param = filter.doParameter(param);
 		}
@@ -71,7 +71,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return val;
 		}
-		Object obj = val;
+		var obj = val;
 		for (final SqlFilter filter : getFilters()) {
 			obj = filter.doOutParameter(key, obj);
 		}
@@ -88,7 +88,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return sql;
 		}
-		String newSql = sql;
+		var newSql = sql;
 		for (final SqlFilter filter : getFilters()) {
 			newSql = filter.doTransformSql(sqlContext, newSql);
 		}
@@ -106,7 +106,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return preparedStatement;
 		}
-		PreparedStatement ps = preparedStatement;
+		var ps = preparedStatement;
 		for (final SqlFilter filter : getFilters()) {
 			ps = filter.doPreparedStatement(sqlContext, ps);
 		}
@@ -124,7 +124,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return callableStatement;
 		}
-		CallableStatement cs = callableStatement;
+		var cs = callableStatement;
 		for (final SqlFilter filter : getFilters()) {
 			cs = filter.doCallableStatement(sqlContext, cs);
 		}
@@ -142,7 +142,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return resultSet;
 		}
-		ResultSet rs = resultSet;
+		var rs = resultSet;
 		for (final SqlFilter filter : getFilters()) {
 			rs = filter.doQuery(sqlContext, preparedStatement, rs);
 		}
@@ -160,7 +160,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
-		int rs = result;
+		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
 			rs = filter.doUpdate(sqlContext, preparedStatement, rs);
 		}
@@ -178,7 +178,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
-		int[] rs = result;
+		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
 			rs = filter.doBatch(sqlContext, preparedStatement, rs);
 		}
@@ -196,7 +196,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
-		boolean rs = result;
+		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
 			rs = filter.doProcedure(sqlContext, callableStatement, rs);
 		}

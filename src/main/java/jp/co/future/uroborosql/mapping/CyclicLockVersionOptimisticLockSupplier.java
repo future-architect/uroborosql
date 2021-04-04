@@ -22,7 +22,7 @@ public class CyclicLockVersionOptimisticLockSupplier extends OptimisticLockSuppl
 	 */
 	@Override
 	public String getPart(final TableMetadata.Column versionColumn, final SqlConfig sqlConfig) {
-		String modPart = sqlConfig.getDialect().getModLiteral(versionColumn.getColumnIdentifier(),
+		var modPart = sqlConfig.getDialect().getModLiteral(versionColumn.getColumnIdentifier(),
 				"1" + new String(new char[versionColumn.getColumnSize() - 1]).replace("\0", "0"));
 		return versionColumn.getColumnIdentifier() + " = (" + modPart + ") + 1";
 	}

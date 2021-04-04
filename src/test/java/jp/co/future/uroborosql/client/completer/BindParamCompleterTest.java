@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
@@ -21,7 +21,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
 	private SqlConfig sqlConfig;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
 		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
@@ -30,7 +30,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	}
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
@@ -41,7 +41,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		BindParamCompleter completer = new BindParamCompleter(commands, sqlConfig);
+		var completer = new BindParamCompleter(commands, sqlConfig);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
@@ -54,11 +54,11 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 				new TestBuffer("query example/select_product p").left().left().back().tab());
 		assertBuffer("query example/select_product x",
 				new TestBuffer("query example/select_product x").tab());
-		assertBuffer("update example/insert_product version_no=",
+		assertBuffer("update example/insert_product product_description=",
 				new TestBuffer("update example/insert_product ").tab().tab().tab().tab());
 		assertBuffer("update example/insert_product version_no=1",
 				new TestBuffer("update example/insert_product version_no=1").tab());
-		assertBuffer("update example/insert_product version_no=1 ins_datetime=",
+		assertBuffer("update example/insert_product version_no=1 product_description=",
 				new TestBuffer("update example/insert_product version_no=1 ").tab().tab().tab().tab());
 		assertBuffer("query example/select_product2 ", new TestBuffer("query example/select_product2 ").tab());
 		assertBuffer("update example/insert_product product_id='11 1' jan_code=[10, 20] upd_datetime=",

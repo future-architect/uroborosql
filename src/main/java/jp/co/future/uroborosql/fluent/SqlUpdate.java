@@ -9,7 +9,6 @@
  */
 package jp.co.future.uroborosql.fluent;
 
-
 /**
  * SQL Update 実行インタフェース
  *

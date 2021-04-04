@@ -48,25 +48,25 @@ public class SqlNameCompleter extends AbstractCompleter {
 	 */
 	@Override
 	public void complete(final LineReader reader, final ParsedLine line, final List<Candidate> candidates) {
-		String buffer = line.line().substring(0, line.cursor());
-		String[] parts = getLineParts(buffer);
-		int len = parts.length;
-		boolean complete = getLineParts(line.line()).length == len;
+		var buffer = line.line().substring(0, line.cursor());
+		var parts = getLineParts(buffer);
+		var len = parts.length;
+		var complete = getLineParts(line.line()).length == len;
 
 		// コード補完する引数の番号を特定。
-		int startArgNo = getStartArgNo(line);
+		var startArgNo = getStartArgNo(line);
 
 		// 対象引数が-1、または開始引数にlenが満たない場合は該当なしなのでコード補完しない
 		if (!accept(startArgNo, buffer, len)) {
 			return;
 		}
 
-		boolean isBlank = buffer.endsWith(" ");
+		var isBlank = buffer.endsWith(" ");
 		SortedSet<String> sqlNames = new TreeSet<>(sqlManager.getSqlPathList());
 
 		if (len == startArgNo && isBlank || len == startArgNo + 1 && !isBlank) {
 			// コマンドが引数ありの場合
-			String args = len == startArgNo + 1 ? parts[startArgNo] : "";
+			var args = len == startArgNo + 1 ? parts[startArgNo] : "";
 			if (StringUtils.isEmpty(args)) {
 				candidates.addAll(sqlNames.stream().map(n -> new Candidate(n, n, null, null, null, null, complete))
 						.collect(Collectors.toList()));

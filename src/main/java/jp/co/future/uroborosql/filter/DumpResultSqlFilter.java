@@ -11,12 +11,10 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +57,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				LOG.warn(
 						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			StringBuilder builder = displayResult(resultSet);
+			var builder = displayResult(resultSet);
 			LOG.info(builder.toString());
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -77,10 +75,10 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		try {
 			List<String> keys = new ArrayList<>();
 			Map<String, Integer> maxLengthList = new HashMap<>();
-			ResultSetMetaData rsmd = rs.getMetaData();
-			int columnCount = rsmd.getColumnCount();
-			for (int i = 1; i <= columnCount; i++) {
-				String columnLabel = rsmd.getColumnLabel(i);
+			var rsmd = rs.getMetaData();
+			var columnCount = rsmd.getColumnCount();
+			for (var i = 1; i <= columnCount; i++) {
+				var columnLabel = rsmd.getColumnLabel(i);
 				keys.add(columnLabel);
 				maxLengthList.put(columnLabel, getByteLength(columnLabel));
 			}
@@ -91,16 +89,16 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				Map<String, Object> data = new HashMap<>();
 
 				for (String key : keys) {
-					Object val = rs.getObject(key);
+					var val = rs.getObject(key);
 					data.put(key, val);
 
-					int currentLength = getByteLength(val);
+					var currentLength = getByteLength(val);
 					maxLengthList.compute(key, (k, v) -> v < currentLength ? currentLength : v);
 				}
 				rows.add(data);
 			}
 
-			StringBuilder builder = new StringBuilder(System.lineSeparator());
+			var builder = new StringBuilder(System.lineSeparator());
 			// ヘッダ部出力
 			builder.append("+");
 			for (String key : keys) {
@@ -119,7 +117,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 
 			if (rows.isEmpty()) {
 				builder.append(System.lineSeparator()).append("|");
-				int len = 1;
+				var len = 1;
 				for (String key : keys) {
 					len = len + maxLengthList.get(key) + 1;
 				}
@@ -156,12 +154,12 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	private String fillHeader(final String str, final int length) {
-		int strLen = getByteLength(str);
-		int spaceSize = (length - strLen) / 2;
+		var strLen = getByteLength(str);
+		var spaceSize = (length - strLen) / 2;
 
-		String spaceStr = StringUtils.repeat(' ', spaceSize);
-		String ans = spaceStr + str + spaceStr;
-		int fillLen = getByteLength(ans);
+		var spaceStr = StringUtils.repeat(' ', spaceSize);
+		var ans = spaceStr + str + spaceStr;
+		var fillLen = getByteLength(ans);
 		if (length > fillLen) {
 			ans = ans + StringUtils.repeat(' ', length - fillLen);
 		}
@@ -170,8 +168,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 
 	private String fillData(final Object val, final int length) throws CharacterCodingException,
 			UnsupportedEncodingException {
-		int valLen = getByteLength(val);
-		int spaceSize = length - valLen;
+		var valLen = getByteLength(val);
+		var spaceSize = length - valLen;
 
 		if (val instanceof Number) {
 			return StringUtils.repeat(' ', spaceSize) + getSubstringByte(val, length);
@@ -191,9 +189,9 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 		if (val == null) {
 			return 4;
 		}
-		String str = val.toString();
+		var str = val.toString();
 		try {
-			int len = str.getBytes(ENCODING_SHIFT_JIS).length;
+			var len = str.getBytes(ENCODING_SHIFT_JIS).length;
 			return len <= 200 ? len : 200;
 		} catch (UnsupportedEncodingException ex) {
 			return 1;
@@ -212,23 +210,23 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	private String getSubstringByte(final Object obj, final int capacity) throws CharacterCodingException,
 			UnsupportedEncodingException {
 
-		String str = obj == null ? "null" : obj.toString();
+		var str = obj == null ? "null" : obj.toString();
 		if (capacity < 1) {
 			return str;
 		}
 
-		CharsetEncoder ce = Charset.forName(ENCODING_SHIFT_JIS).newEncoder()
+		var ce = Charset.forName(ENCODING_SHIFT_JIS).newEncoder()
 				.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
 		if (capacity >= ce.maxBytesPerChar() * str.length()) {
 			return str;
 		}
-		CharBuffer cb = CharBuffer.wrap(new char[Math.min(str.length(), capacity)]);
+		var cb = CharBuffer.wrap(new char[Math.min(str.length(), capacity)]);
 		str.getChars(0, Math.min(str.length(), cb.length()), cb.array(), 0);
 
 		if (capacity >= ce.maxBytesPerChar() * cb.limit()) {
 			return cb.toString();
 		}
-		ByteBuffer out = ByteBuffer.allocate(capacity);
+		var out = ByteBuffer.allocate(capacity);
 		ce.reset();
 		CoderResult cr = null;
 		if (cb.hasRemaining()) {

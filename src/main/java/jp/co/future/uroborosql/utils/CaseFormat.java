@@ -33,12 +33,12 @@ public enum CaseFormat {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
-			String str = original.trim();
+			var str = original.trim();
 			if (str.isEmpty()) {
 				return str;
 			}
-			StringBuilder builder = new StringBuilder();
-			int len = str.length();
+			var builder = new StringBuilder();
+			var len = str.length();
 
 			if (!str.contains("_")) {
 				if (isUpperCase(str)) {
@@ -50,9 +50,9 @@ public enum CaseFormat {
 				}
 			} else {
 				str = str.toLowerCase();
-				int i = 0;
+				var i = 0;
 				while (i < len) {
-					char ch = str.charAt(i);
+					var ch = str.charAt(i);
 					if (i == 0 && ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9')) {
 						builder.append(Character.toUpperCase(str.charAt(i)));
 					} else if (ch == '_') {
@@ -92,18 +92,18 @@ public enum CaseFormat {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
-			String str = original.trim();
+			var str = original.trim();
 			if (str.isEmpty()) {
 				return str;
 			}
-			int len = str.length();
+			var len = str.length();
 			if (!str.contains("_")) {
-				char ch = str.charAt(0);
+				var ch = str.charAt(0);
 				if ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9') {
 					// 先頭小文字で"_"を含まない場合（つまりすでにCamelCaseの場合）、文字列変換せずにそのまま返す
 					return str;
 				} else if (!isUpperCase(str)) {
-					StringBuilder builder = new StringBuilder();
+					var builder = new StringBuilder();
 					builder.append(Character.toLowerCase(str.charAt(0)));
 					if (len > 1) {
 						builder.append(str.substring(1));
@@ -111,11 +111,11 @@ public enum CaseFormat {
 					return builder.toString();
 				}
 			}
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			str = str.toLowerCase();
-			int i = 0;
+			var i = 0;
 			while (i < len) {
-				char ch = str.charAt(i);
+				var ch = str.charAt(i);
 				if (ch == '_') {
 					i++;
 					if (i < len) {
@@ -153,14 +153,14 @@ public enum CaseFormat {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
-			String str = original.trim();
+			var str = original.trim();
 			if (str.contains("_") || str.toUpperCase().equals(str)) {
 				return str.toUpperCase();
 			}
 
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < str.length(); i++) {
-				char ch = str.charAt(i);
+			var builder = new StringBuilder();
+			for (var i = 0; i < str.length(); i++) {
+				var ch = str.charAt(i);
 				if ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9') {
 					builder.append(Character.toUpperCase(ch));
 				} else if ('A' <= ch && ch <= 'Z') {
@@ -199,14 +199,14 @@ public enum CaseFormat {
 			if (original == null || "".equals(original)) {
 				return "";
 			}
-			String str = original.trim();
+			var str = original.trim();
 			if (str.contains("_") || str.toLowerCase().equals(str) || str.toUpperCase().equals(str)) {
 				return str.toLowerCase();
 			}
 
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < str.length(); i++) {
-				char ch = str.charAt(i);
+			var builder = new StringBuilder();
+			for (var i = 0; i < str.length(); i++) {
+				var ch = str.charAt(i);
 				if ('a' <= ch && ch <= 'z' || '0' <= ch && ch <= '9') {
 					builder.append(Character.toLowerCase(ch));
 				} else if ('A' <= ch && ch <= 'Z') {

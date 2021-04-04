@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.connection;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -40,7 +39,7 @@ public interface ConnectionSupplier {
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			DatabaseMetaData metaData = conn.getMetaData();
+			var metaData = conn.getMetaData();
 			return metaData.getDatabaseProductName() + "-" + metaData.getDatabaseMajorVersion() + "."
 					+ metaData.getDatabaseMinorVersion();
 		} catch (SQLException ex) {

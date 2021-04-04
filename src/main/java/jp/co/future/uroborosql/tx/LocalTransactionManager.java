@@ -128,7 +128,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setRollbackOnly() {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().setRollbackOnly();
 		} else {
@@ -143,7 +143,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setSavepoint(final String savepointName) {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().setSavepoint(savepointName);
 		} else {
@@ -158,7 +158,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void releaseSavepoint(final String savepointName) {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().releaseSavepoint(savepointName);
 		} else {
@@ -173,7 +173,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback(final String savepointName) {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().rollback(savepointName);
 		} else {
@@ -188,7 +188,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public Connection getConnection() {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		try {
 			if (txContext.isPresent()) {
 				return txContext.get().getConnection();
@@ -213,7 +213,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			return txContext.get().getPreparedStatement(sqlContext);
 		} else {
@@ -233,7 +233,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			return txContext.get().getCallableStatement(sqlContext);
 		} else {
@@ -291,10 +291,10 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 実行結果
 	 */
 	private <R> R notSupportedInternal(final SQLSupplier<R> supplier) {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			// トランザクションをサスペンド
-			LocalTransactionContext txContextValue = this.txCtxStack.pop();
+			var txContextValue = this.txCtxStack.pop();
 			try {
 				return supplier.get();
 			} finally {
@@ -314,7 +314,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @return 処理の結果
 	 */
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true,
+		try (var txContext = new LocalTransactionContext(this.sqlConfig, true,
 				this.connectionContext)) {
 			this.txCtxStack.push(txContext);
 			try {
@@ -339,9 +339,9 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void close() {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
-			this.txCtxStack.forEach((elem) -> elem.close());
+			this.txCtxStack.forEach(LocalTransactionContext::close);
 			this.txCtxStack.clear();
 		} else {
 			this.unmanagedTransaction.ifPresent(LocalTransactionContext::close);
@@ -355,7 +355,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void commit() {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().commit();
 		} else {
@@ -370,7 +370,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback() {
-		Optional<LocalTransactionContext> txContext = currentTxContext();
+		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
 			txContext.get().rollback();
 		} else {
@@ -385,7 +385,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public <R> R savepointScope(final SQLSupplier<R> supplier) {
-		String savepointName = UUID.randomUUID().toString();
+		var savepointName = UUID.randomUUID().toString();
 		setSavepoint(savepointName);
 		try {
 			return supplier.get();

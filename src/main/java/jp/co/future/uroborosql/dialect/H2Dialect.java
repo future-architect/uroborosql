@@ -30,7 +30,6 @@ public class H2Dialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public H2Dialect() {
-		super();
 	}
 
 	/**
@@ -115,7 +114,7 @@ public class H2Dialect extends AbstractDialect {
 
 	@Override
 	public StringBuilder addOptimizerHints(final StringBuilder sql, final List<String> hints) {
-		String hintStr = "$1 USE INDEX " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
+		var hintStr = "$1 USE INDEX " + hints.stream().collect(Collectors.joining(", ", "(", ")"))
 				+ System.lineSeparator();
 		return new StringBuilder(sql.toString().replaceFirst("((FROM|from)\\s+[^\\s]+)\\s*", hintStr));
 	}

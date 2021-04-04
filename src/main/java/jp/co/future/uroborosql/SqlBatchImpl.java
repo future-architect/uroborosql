@@ -115,7 +115,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	public int count() {
 		try (Stream<?> paramStream = stream) {
 			int count = paramStream.map(r -> {
-				Map<String, Object> m = toMap(r);
+				var m = toMap(r);
 				paramMap(m);
 				context().addBatch();
 				return condition.test(context(), m) ? executeBatch() : 0;

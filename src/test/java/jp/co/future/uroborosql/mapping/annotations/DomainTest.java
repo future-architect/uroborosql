@@ -1,36 +1,33 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
+import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 public class DomainTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:DomainTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:DomainTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -40,13 +37,13 @@ public class DomainTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		var sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -66,10 +63,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(name);
 		}
 
 		@Override
@@ -83,12 +77,8 @@ public class DomainTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			NameDomain other = (NameDomain) obj;
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			var other = (NameDomain) obj;
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -115,11 +105,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -133,15 +119,11 @@ public class DomainTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			DomainTestEntity other = (DomainTestEntity) obj;
+			var other = (DomainTestEntity) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -156,15 +138,15 @@ public class DomainTest {
 	@Test
 	public void test() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				DomainTestEntity test1 = new DomainTestEntity(1, "name1");
+				var test1 = new DomainTestEntity(1, "name1");
 				agent.insert(test1);
-				DomainTestEntity test2 = new DomainTestEntity(2, "name2");
+				var test2 = new DomainTestEntity(2, "name2");
 				agent.insert(test2);
-				DomainTestEntity test3 = new DomainTestEntity(3, null);
+				var test3 = new DomainTestEntity(3, null);
 				agent.insert(test3);
-				DomainTestEntity data = agent.find(DomainTestEntity.class, 1).orElse(null);
+				var data = agent.find(DomainTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(DomainTestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -193,10 +175,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(name);
 		}
 
 		@Override
@@ -207,12 +186,8 @@ public class DomainTest {
 			if (obj == null) {
 				return false;
 			}
-			NameDomain2 other = (NameDomain2) obj;
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			var other = (NameDomain2) obj;
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -241,11 +216,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -259,15 +230,11 @@ public class DomainTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			DomainTestEntity2 other = (DomainTestEntity2) obj;
+			var other = (DomainTestEntity2) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -282,15 +249,15 @@ public class DomainTest {
 	@Test
 	public void test2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				DomainTestEntity2 test1 = new DomainTestEntity2(1, "name1");
+				var test1 = new DomainTestEntity2(1, "name1");
 				agent.insert(test1);
-				DomainTestEntity2 test2 = new DomainTestEntity2(2, "name2");
+				var test2 = new DomainTestEntity2(2, "name2");
 				agent.insert(test2);
-				DomainTestEntity2 test3 = new DomainTestEntity2(3, null);
+				var test3 = new DomainTestEntity2(3, null);
 				agent.insert(test3);
-				DomainTestEntity2 data = agent.find(DomainTestEntity2.class, 1).orElse(null);
+				var data = agent.find(DomainTestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(DomainTestEntity2.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -319,10 +286,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(name);
 		}
 
 		@Override
@@ -333,12 +297,8 @@ public class DomainTest {
 			if (obj == null) {
 				return false;
 			}
-			NameDomain3 other = (NameDomain3) obj;
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			var other = (NameDomain3) obj;
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -373,11 +333,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -391,15 +347,11 @@ public class DomainTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			DomainTestEntity3 other = (DomainTestEntity3) obj;
+			var other = (DomainTestEntity3) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -414,15 +366,15 @@ public class DomainTest {
 	@Test
 	public void test3() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				DomainTestEntity3 test1 = new DomainTestEntity3(1, "name1");
+				var test1 = new DomainTestEntity3(1, "name1");
 				agent.insert(test1);
-				DomainTestEntity3 test2 = new DomainTestEntity3(2, "name2");
+				var test2 = new DomainTestEntity3(2, "name2");
 				agent.insert(test2);
-				DomainTestEntity3 test3 = new DomainTestEntity3(3, null);
+				var test3 = new DomainTestEntity3(3, null);
 				agent.insert(test3);
-				DomainTestEntity3 data = agent.find(DomainTestEntity3.class, 1).orElse(null);
+				var data = agent.find(DomainTestEntity3.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(DomainTestEntity3.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -453,11 +405,7 @@ public class DomainTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -471,7 +419,7 @@ public class DomainTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			DomainTestEntity4 other = (DomainTestEntity4) obj;
+			var other = (DomainTestEntity4) obj;
 			if (id != other.id) {
 				return false;
 			}
@@ -490,22 +438,22 @@ public class DomainTest {
 	@Test
 	public void test4() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				DomainTestEntity4 test1 = new DomainTestEntity4(1, NameDomain4.NAME1);
+				var test1 = new DomainTestEntity4(1, NameDomain4.NAME1);
 				agent.insert(test1);
-				DomainTestEntity4 test2 = new DomainTestEntity4(2, NameDomain4.NAME2);
+				var test2 = new DomainTestEntity4(2, NameDomain4.NAME2);
 				agent.insert(test2);
-				DomainTestEntity4 test3 = new DomainTestEntity4(3, null);
+				var test3 = new DomainTestEntity4(3, null);
 				agent.insert(test3);
-				DomainTestEntity4 data = agent.find(DomainTestEntity4.class, 1).orElse(null);
+				var data = agent.find(DomainTestEntity4.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(DomainTestEntity4.class, 2).orElse(null);
 				assertThat(data, is(test2));
 				data = agent.find(DomainTestEntity4.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
-				DomainTestEntity plainData = agent.find(DomainTestEntity.class, 1).orElse(null);
+				var plainData = agent.find(DomainTestEntity.class, 1).orElse(null);
 				assertThat(plainData.name.getName(), is("NAME1"));
 				System.out.println(plainData.name.getName());
 

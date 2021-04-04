@@ -138,17 +138,17 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * SQL文解析
 	 */
 	protected void parseSql() {
-		int commentStartPos = sql.indexOf("/*", position);
-		int lineCommentStartPos = sql.indexOf("--", position);
-		int bindVariableStartPos = sql.indexOf("?", position);
-		int elseCommentStartPos = -1;
+		var commentStartPos = sql.indexOf("/*", position);
+		var lineCommentStartPos = sql.indexOf("--", position);
+		var bindVariableStartPos = sql.indexOf("?", position);
+		var elseCommentStartPos = -1;
 		if (lineCommentStartPos >= 0) {
-			int skipPos = skipWhitespace(lineCommentStartPos + 2);
+			var skipPos = skipWhitespace(lineCommentStartPos + 2);
 			if (skipPos + 4 < sql.length() && "ELSE".equals(sql.substring(skipPos, skipPos + 4))) {
 				elseCommentStartPos = lineCommentStartPos;
 			}
 		}
-		int nextStartPos = getNextStartPos(commentStartPos, elseCommentStartPos, bindVariableStartPos);
+		var nextStartPos = getNextStartPos(commentStartPos, elseCommentStartPos, bindVariableStartPos);
 		if (nextStartPos < 0) {
 			token = sql.substring(position);
 			nextTokenType = TokenType.EOF;
@@ -157,7 +157,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 		} else {
 			token = sql.substring(position, nextStartPos);
 			tokenType = TokenType.SQL;
-			boolean needNext = nextStartPos == position;
+			var needNext = nextStartPos == position;
 			if (nextStartPos == commentStartPos) {
 				nextTokenType = TokenType.COMMENT;
 				position = commentStartPos + 2;
@@ -185,7 +185,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	protected int getNextStartPos(final int commentStartPos, final int elseCommentStartPos,
 			final int bindVariableStartPos) {
 
-		int nextStartPos = -1;
+		var nextStartPos = -1;
 		if (commentStartPos >= 0) {
 			nextStartPos = commentStartPos;
 		}
@@ -211,7 +211,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * コメント部解析
 	 */
 	protected void parseComment() {
-		int commentEndPos = sql.indexOf("*/", position);
+		var commentEndPos = sql.indexOf("*/", position);
 		if (commentEndPos < 0) {
 			throw new TokenNotClosedRuntimeException(sql.substring(position));
 		}
@@ -235,8 +235,8 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * ELSE文解析
 	 */
 	protected void parseElse() {
-		int pos = sql.indexOf("ELSE", position) + 4;
-		String elseToken = sql.substring(position, pos);
+		var pos = sql.indexOf("ELSE", position) + 4;
+		var elseToken = sql.substring(position, pos);
 		token = elseToken;
 		nextTokenType = TokenType.SQL;
 		position = position + elseToken.length();
@@ -259,15 +259,15 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 */
 	@Override
 	public String skipToken() {
-		int length = sql.length();
-		int endIndex = length;
-		char quote = position < length ? sql.charAt(position) : '\0';
-		boolean quoting = quote == '\'' || quote == '(';
+		var length = sql.length();
+		var endIndex = length;
+		var quote = position < length ? sql.charAt(position) : '\0';
+		var quoting = quote == '\'' || quote == '(';
 		if (quote == '(') {
 			quote = ')';
 		}
-		for (int i = quoting ? position + 1 : position; i < length; ++i) {
-			char c = sql.charAt(i);
+		for (var i = quoting ? position + 1 : position; i < length; ++i) {
+			var c = sql.charAt(i);
 			if ((Character.isWhitespace(c) || c == ',' || c == ')' || c == '(') && !quoting) {
 				endIndex = i;
 				break;
@@ -299,7 +299,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 */
 	@Override
 	public String skipWhitespace() {
-		int index = skipWhitespace(position);
+		var index = skipWhitespace(position);
 		token = sql.substring(position, index);
 		position = index;
 		return token;
@@ -312,9 +312,9 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 * @return 空白をスキップした位置
 	 */
 	private int skipWhitespace(final int position) {
-		int index = sql.length();
-		for (int i = position; i < index; ++i) {
-			char c = sql.charAt(i);
+		var index = sql.length();
+		for (var i = position; i < index; ++i) {
+			var c = sql.charAt(i);
 			if (!Character.isWhitespace(c)) {
 				return i;
 			}
