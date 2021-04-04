@@ -18,9 +18,6 @@ import jp.co.future.uroborosql.fluent.SqlUpdate;
  * @author H.Sugimoto
  */
 final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpdate {
-	/** バッチ処理を行うかどうか */
-	private final boolean batch = false;
-
 	/**
 	 * コンストラクタ
 	 *
@@ -38,10 +35,6 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 */
 	@Override
 	public int count() {
-		if (batch) {
-			throw new IllegalStateException(
-					"Since the parameter has already been set with addBatch() method, please call batch() method.");
-		}
 		try {
 			return agent().update(context());
 		} catch (SQLException e) {
