@@ -8,9 +8,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
@@ -50,47 +49,36 @@ public class AbstractSqlFluentTest {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testparamList() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
+			query.param("key1", List.of("value1"));
+			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1")));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
+			query.param("key1", List.of("value1", "value2"));
+			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1", "value2");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1", "value2");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-
-			String[] values = { "value1", "value2" };
-			query = agent.query("select * from dummy");
-			query.paramList("key1", () -> Arrays.asList(values));
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
+			query.param("key1", () -> List.of("value1", "value2"));
+			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
 		}
 
 	}
 
-	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testParamList() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1")));
+			query.param("key1", List.of("value1"));
+			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1")));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", "value1", "value2");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
+			query.param("key1", List.of("value1", "value2"));
+			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
 
 			Set<String> values = new HashSet<>();
 			values.add("value1");
@@ -101,12 +89,11 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is(values));
 
 			query = agent.query("select * from dummy");
-			query.paramList("key1", () -> values);
+			query.param("key1", () -> values);
 			assertThat(query.context().getParam("key1").getValue(), is(values));
 		}
 	}
 
-	@SuppressWarnings({ "deprecation" })
 	@Test
 	public void testIfAbsent() throws Exception {
 		try (var agent = config.agent()) {
@@ -128,12 +115,6 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 			query.paramIfAbsent("key1", "value2", JDBCType.VARCHAR.getVendorTypeNumber());
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
-
-			query = agent.query("select * from dummy");
-			query.paramListIfAbsent("key1", "value1", "value2");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-			query.paramListIfAbsent("key1", "value11", "value22");
-			assertThat(query.context().getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 			query = agent.query("select * from dummy");
 			InputStream is1 = new ByteArrayInputStream("value1".getBytes());
@@ -187,7 +168,6 @@ public class AbstractSqlFluentTest {
 		}
 	}
 
-	@SuppressWarnings({ "deprecation", })
 	@Test
 	public void testParamWithSupplier() throws Exception {
 		try (var agent = config.agent()) {
@@ -200,14 +180,14 @@ public class AbstractSqlFluentTest {
 			query.param("key2", () -> flag ? "true" : "false");
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
-			query.paramList("key3", () -> Arrays.asList("a", "b", "c"));
-			assertThat(query.context().getParam("key3").getValue(), is(Arrays.asList("a", "b", "c")));
+			query.param("key3", () -> List.of("a", "b", "c"));
+			assertThat(query.context().getParam("key3").getValue(), is(List.of("a", "b", "c")));
 
 			query.param("key4", null);
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
-			query.paramList("key5", Collections::emptyList);
-			assertThat(query.context().getParam("key5").getValue(), is(Collections.emptyList()));
+			query.param("key5", List.of());
+			assertThat(query.context().getParam("key5").getValue(), is(List.of()));
 		}
 	}
 }

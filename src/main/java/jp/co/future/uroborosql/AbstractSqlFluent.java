@@ -9,7 +9,6 @@ package jp.co.future.uroborosql;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -43,45 +42,6 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	@Override
 	public ExecutionContext context() {
 		return context;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramList(final String paramName, final V... value) {
-		context().param(paramName, Arrays.asList(value));
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramList(final String paramName, final Supplier<Iterable<V>> supplier) {
-		context().param(paramName, supplier);
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(java.lang.String, java.lang.Object[])
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramListIfAbsent(final String paramName, final V... value) {
-		context().paramIfAbsent(paramName, Arrays.asList(value));
-		return (T) this;
 	}
 
 	/**

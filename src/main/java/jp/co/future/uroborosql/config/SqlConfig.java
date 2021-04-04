@@ -56,16 +56,6 @@ public interface SqlConfig {
 	/**
 	 * SqlAgentの生成.
 	 *
-	 * @deprecated Instead, use the agent() method.
-	 *
-	 * @return 生成したSqlAgent
-	 */
-	@Deprecated()
-	SqlAgent createAgent();
-
-	/**
-	 * SqlAgentの生成.
-	 *
 	 * @return 生成したSqlAgent.
 	 */
 	SqlAgent agent();

@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -453,40 +452,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 			param(parameterName, value);
 		}
 		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
-	 */
-	@Override
-	@Deprecated
-	public <V> ExecutionContext paramList(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
-		return param(parameterName, Arrays.asList(value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
-	 */
-	@Override
-	@Deprecated
-	public <V> ExecutionContext paramList(final String parameterName, final Supplier<Iterable<V>> supplier) {
-		return param(parameterName, supplier);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(String, Object...)
-	 */
-	@Override
-	@Deprecated
-	public <V> ExecutionContext paramListIfAbsent(final String parameterName,
-			@SuppressWarnings("unchecked") final V... value) {
-		return paramIfAbsent(parameterName, Arrays.asList(value));
 	}
 
 	/**

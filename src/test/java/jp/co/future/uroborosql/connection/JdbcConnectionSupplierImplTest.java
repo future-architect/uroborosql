@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.connection;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,8 +21,7 @@ public class JdbcConnectionSupplierImplTest {
 		var user = "";
 		var password = "";
 
-		@SuppressWarnings("deprecation")
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is("PUBLIC"));
@@ -41,8 +39,7 @@ public class JdbcConnectionSupplierImplTest {
 
 		var checkSql = "select current timestamp from SYSIBM.SYSDUMMY1";
 
-		@SuppressWarnings("deprecation")
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password);
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
 		try (var conn = supplier.getConnection()) {
 			conn.prepareStatement(checkSql);
 			assertThat("Fail here.", false);
@@ -61,24 +58,6 @@ public class JdbcConnectionSupplierImplTest {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testJdbcConnectionNull() throws Exception {
-		assertThrows(IllegalArgumentException.class, () -> new JdbcConnectionSupplierImpl(null, null, null));
-	}
-
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testNotInstanceOfJdbcConnectionContext() throws Exception {
-		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		var user = "";
-		var password = "";
-
-		ConnectionContext ctx = ConnectionContextBuilder.dataSource();
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password);
-		assertThrows(IllegalArgumentException.class, () -> supplier.getConnection(ctx));
-	}
-
 	@Test
 	public void testJdbcConnectionWithSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
@@ -86,8 +65,7 @@ public class JdbcConnectionSupplierImplTest {
 		var password = "";
 		var schema = "PUBLIC";
 
-		@SuppressWarnings("deprecation")
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password, schema);
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password, schema));
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
@@ -117,9 +95,10 @@ public class JdbcConnectionSupplierImplTest {
 		var autoCommit = true;
 		var readonly = true;
 
-		@SuppressWarnings("deprecation")
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password, schema, autoCommit,
-				readonly);
+		var supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password, schema)
+						.autoCommit(autoCommit)
+						.readOnly(readonly));
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
@@ -145,25 +124,6 @@ public class JdbcConnectionSupplierImplTest {
 		try (var conn = supplier.getConnection(
 				ConnectionContextBuilder.jdbc(url2, user, password))) {
 			assertThat(conn.getMetaData().getURL(), is(url2));
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testSetSchema() throws Exception {
-		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		var user = "";
-		var password = "";
-		var schema = "PUBLIC";
-
-		var supplier = new JdbcConnectionSupplierImpl(url, user, password);
-		supplier.setSchema(schema);
-		try (var conn = supplier.getConnection()) {
-			assertThat(conn.getMetaData().getURL(), is(url));
-			assertThat(conn.getSchema(), is(schema));
-			assertThat(conn.getAutoCommit(), is(false));
-			assertThat(conn.isReadOnly(), is(false));
-			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 	}
 

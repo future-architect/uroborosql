@@ -10,12 +10,8 @@ import java.util.List;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -94,15 +90,6 @@ public interface SqlAgentProvider extends SqlConfigAware {
 	String PROPS_KEY_STRICT_FOR_UPDATE_TYPE = "strictForUpdateType";
 
 	/**
-	 * SQL実行クラス生成.
-	 *
-	 * @deprecated Instead, use the agent() method.
-	 * @return SqlAgent
-	 */
-	@Deprecated
-	SqlAgent createSqlAgent();
-
-	/**
 	 * SqlAgentの生成.
 	 *
 	 * @return SqlAgent
@@ -117,38 +104,6 @@ public interface SqlAgentProvider extends SqlConfigAware {
 	 * @return 生成したSqlAgent.
 	 */
 	SqlAgent agent(ConnectionContext connectionContext);
-
-	/**
-	 * SQLリソース管理クラスを取得する.
-	 *
-	 * @return SQLリソース管理クラス
-	 */
-	@Deprecated
-	SqlResourceManager getSqlResourceManager();
-
-	/**
-	 * SqlFilter管理クラスを取得する.
-	 *
-	 * @return SqlFilter管理クラス
-	 */
-	@Deprecated
-	SqlFilterManager getSqlFilterManager();
-
-	/**
-	 * コネクション供給クラスを取得する.
-	 *
-	 * @return コネクション供給クラス
-	 */
-	@Deprecated
-	ConnectionSupplier getConnectionSupplier();
-
-	/**
-	 * ORM処理クラスを取得する.
-	 *
-	 * @return ORM処理クラス
-	 */
-	@Deprecated
-	EntityHandler<?> getEntityHandler();
 
 	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。

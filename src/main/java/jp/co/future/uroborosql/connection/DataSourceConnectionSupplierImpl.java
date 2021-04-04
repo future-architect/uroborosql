@@ -43,16 +43,6 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * コンストラクタ。
 	 *
-	 * @param defaultDataSourceName 取得するコネクションのデータソース名
-	 */
-	@Deprecated
-	public DataSourceConnectionSupplierImpl(final String defaultDataSourceName) {
-		this(ConnectionContextBuilder.dataSource(defaultDataSourceName));
-	}
-
-	/**
-	 * コンストラクタ。
-	 *
 	 * @param connectionContext DB接続情報
 	 */
 	public DataSourceConnectionSupplierImpl(final DataSourceConnectionContext connectionContext) {

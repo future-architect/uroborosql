@@ -4,14 +4,11 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -139,48 +136,19 @@ public class ExecutionContextProviderTest {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testAutoBindParameterCreator() throws Exception {
-		List<AutoBindParameterCreator> creators = new ArrayList<>();
-		executionContextFactory.setAutoBindParameterCreators(creators);
-		executionContextFactory.initialize();
-
-		var ctx = executionContextFactory.createExecutionContext();
-		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
-
-		creators.add(() -> {
-			var params = new ConcurrentHashMap<String, Parameter>();
-			return params;
-		});
-
-		executionContextFactory.initialize();
-		ctx = executionContextFactory.createExecutionContext();
-		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
-
-		creators.add(() -> {
-			var params = new ConcurrentHashMap<String, Parameter>();
-			params.put("DUMMY", new Parameter("DUMMY", "dummy_value"));
-			return params;
-		});
-		executionContextFactory.initialize();
-		ctx = executionContextFactory.createExecutionContext();
-
-		assertThat(executionContextFactory.getAutoBindParameterCreators(), is(creators));
-
-		assertThat(ctx.getParam("DUMMY").getValue(), is("dummy_value"));
-	}
-
 	@Test
 	public void testSetDefaultResultSetType() throws Exception {
 		executionContextFactory.initialize();
 
 		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(), is(ResultSet.TYPE_FORWARD_ONLY));
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_FORWARD_ONLY));
 		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_INSENSITIVE));
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_SCROLL_INSENSITIVE));
 		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_SENSITIVE));
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_SCROLL_SENSITIVE));
 	}
 
 	@Test
@@ -188,9 +156,11 @@ public class ExecutionContextProviderTest {
 		executionContextFactory.initialize();
 
 		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(), is(ResultSet.CONCUR_READ_ONLY));
+		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+				is(ResultSet.CONCUR_READ_ONLY));
 		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(), is(ResultSet.CONCUR_UPDATABLE));
+		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+				is(ResultSet.CONCUR_UPDATABLE));
 	}
 
 }

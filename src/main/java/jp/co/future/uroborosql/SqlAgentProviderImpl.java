@@ -14,12 +14,8 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -61,18 +57,6 @@ public class SqlAgentProviderImpl implements SqlAgentProvider {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @deprecated Instead, use the agent() method.
-	 * @see jp.co.future.uroborosql.SqlAgentProvider#createSqlAgent()
-	 */
-	@Deprecated
-	@Override
-	public SqlAgent createSqlAgent() {
-		return this.agent();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.SqlAgentProvider#agent()
 	 */
 	@Override
@@ -91,50 +75,6 @@ public class SqlAgentProviderImpl implements SqlAgentProvider {
 			throw new UroborosqlRuntimeException();
 		}
 		return new SqlAgentImpl(sqlConfig, settings, connectionContext);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentProvider#getConnectionSupplier()
-	 */
-	@Deprecated
-	@Override
-	public ConnectionSupplier getConnectionSupplier() {
-		return sqlConfig == null ? null : sqlConfig.getConnectionSupplier();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentProvider#getSqlResourceManager()
-	 */
-	@Deprecated
-	@Override
-	public SqlResourceManager getSqlResourceManager() {
-		return sqlConfig == null ? null : sqlConfig.getSqlResourceManager();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentProvider#getSqlFilterManager()
-	 */
-	@Deprecated
-	@Override
-	public SqlFilterManager getSqlFilterManager() {
-		return sqlConfig == null ? null : sqlConfig.getSqlFilterManager();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentProvider#getEntityHandler()
-	 */
-	@Deprecated
-	@Override
-	public EntityHandler<?> getEntityHandler() {
-		return sqlConfig == null ? null : sqlConfig.getEntityHandler();
 	}
 
 	/**

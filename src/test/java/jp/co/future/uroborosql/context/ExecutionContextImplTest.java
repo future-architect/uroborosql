@@ -11,6 +11,7 @@ import java.sql.JDBCType;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -297,17 +298,16 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.hasParam("key2"), is(false));
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testParamList() throws Exception {
 		ExecutionContext ctx = null;
 
 		ctx = getExecutionContext("select * from dummy");
-		ctx.paramList("key1", "value1");
+		ctx.param("key1", List.of("value1"));
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1")));
 
 		ctx = getExecutionContext("select * from dummy");
-		ctx.paramList("key1", "value1", "value2");
+		ctx.param("key1", List.of("value1", "value2"));
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 		Set<String> values = new HashSet<>();
@@ -319,11 +319,10 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 
 		ctx = getExecutionContext("select * from dummy");
-		ctx.paramList("key1", () -> values);
+		ctx.param("key1", () -> values);
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testIfAbsent() throws Exception {
 		ExecutionContext ctx = null;
@@ -345,12 +344,6 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
 		ctx.paramIfAbsent("key1", "value2", JDBCType.VARCHAR.getVendorTypeNumber());
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
-
-		ctx = getExecutionContext("select * from dummy");
-		ctx.paramListIfAbsent("key1", "value1", "value2");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
-		ctx.paramListIfAbsent("key1", "value11", "value22");
-		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1", "value2")));
 
 		ctx = getExecutionContext("select * from dummy");
 		ctx.inOutParamIfAbsent("key1", "value1", JDBCType.VARCHAR);

@@ -282,36 +282,6 @@ public interface ExtractionCondition<T> extends SqlFluent<T> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
-	 */
-	@Override
-	@Deprecated
-	<V> T paramList(final String paramName, @SuppressWarnings("unchecked") final V... value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
-	 */
-	@Override
-	@Deprecated
-	<V> T paramList(final String paramName, final Supplier<Iterable<V>> supplier);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(java.lang.String, java.lang.Object[])
-	 */
-	@Override
-	@Deprecated
-	<V> T paramListIfAbsent(final String paramName, @SuppressWarnings("unchecked") final V... value);
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */

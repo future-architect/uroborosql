@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 
@@ -36,26 +35,6 @@ public interface ExecutionContextProvider extends SqlConfigAware {
 	 * @return ExecutionContext
 	 */
 	ExecutionContext createExecutionContext();
-
-	/**
-	 * 定数パラメータプレフィックスを取得.
-	 *
-	 * @deprecated Use getSqlConfig().getSqlFilterManager() instead.
-	 *
-	 * @return SQLフィルタ管理クラス
-	 */
-	@Deprecated
-	SqlFilterManager getSqlFilterManager();
-
-	/**
-	 * SQLフィルタ管理クラスを設定する
-	 *
-	 * @deprecated Please do not use this method and set SqlFilterManager instance when generating SqlConfig.
-	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス
-	 */
-	@Deprecated
-	void setSqlFilterManager(SqlFilterManager sqlFilterManager);
 
 	/**
 	 * 定数パラメータプレフィックスを取得します。
@@ -110,26 +89,6 @@ public interface ExecutionContextProvider extends SqlConfigAware {
 	 * @return 定数クラスパラメータマップ
 	 */
 	Map<String, Parameter> getConstParameterMap();
-
-	/**
-	 * 自動バインド用パラメータ生成クラスのリストを取得.
-	 *
-	 * @return 自動バインド用パラメータ生成クラスのリスト
-	 */
-	@Deprecated
-	List<AutoBindParameterCreator> getAutoBindParameterCreators();
-
-	/**
-	 * 自動バインド用パラメータ生成クラスのリストを設定.
-	 *
-	 * use {@link #addQueryAutoParameterBinder(Consumer)} , {@link #addUpdateAutoParameterBinder(Consumer)}
-	 *
-	 * @param autoBindParameterCreators
-	 *            自動バインド用パラメータ生成クラスのリスト
-	 * @return ExecutionContextProvider
-	 */
-	@Deprecated
-	ExecutionContextProvider setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
 
 	/**
 	 * 自動パラメータバインド関数(query用)の追加.

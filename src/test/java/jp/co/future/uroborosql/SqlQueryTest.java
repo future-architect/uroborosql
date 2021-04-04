@@ -59,14 +59,13 @@ public class SqlQueryTest extends AbstractDbTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryParamList() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var ctx = agent.contextFrom("example/select_product")
-				.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);

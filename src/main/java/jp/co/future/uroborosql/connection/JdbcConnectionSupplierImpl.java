@@ -27,48 +27,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * コンストラクタ
 	 *
-	 * @param url JDBC URL(必須)
-	 * @param user 接続ユーザ名
-	 * @param password 接続パスワード
-	 */
-	@Deprecated
-	public JdbcConnectionSupplierImpl(final String url, final String user, final String password) {
-		this(ConnectionContextBuilder.jdbc(url, user, password));
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param url JDBC URL(必須)
-	 * @param user 接続ユーザ名
-	 * @param password 接続パスワード
-	 * @param schema JDBCスキーマ名
-	 */
-	@Deprecated
-	public JdbcConnectionSupplierImpl(final String url, final String user, final String password, final String schema) {
-		this(ConnectionContextBuilder.jdbc(url, user, password, schema));
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param url JDBC URL(必須)
-	 * @param user 接続ユーザ名
-	 * @param password 接続パスワード
-	 * @param schema JDBCスキーマ名
-	 * @param autoCommit 自動コミットするかどうか
-	 * @param readOnly 参照のみかどうか
-	 */
-	@Deprecated
-	public JdbcConnectionSupplierImpl(final String url, final String user, final String password, final String schema,
-			final boolean autoCommit, final boolean readOnly) {
-		this(ConnectionContextBuilder.jdbc(url, user, password, schema).autoCommit(autoCommit)
-				.readOnly(readOnly));
-	}
-
-	/**
-	 * コンストラクタ
-	 *
 	 * @param connectionContext DB接続情報
 	 */
 	public JdbcConnectionSupplierImpl(final JdbcConnectionContext connectionContext) {
@@ -113,16 +71,6 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		} catch (SQLException ex) {
 			throw new UroborosqlSQLException("Connection[" + jdbcCtx.url() + "] can not be acquired.", ex);
 		}
-	}
-
-	/**
-	 * JDBCスキーマ名を設定
-	 *
-	 * @param schema スキーマ名
-	 */
-	@Deprecated
-	public void setSchema(final String schema) {
-		setDefaultSchema(schema);
 	}
 
 	/**

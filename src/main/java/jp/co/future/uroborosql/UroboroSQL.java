@@ -34,8 +34,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 
 /**
  * UroboroSQLを利用する際、初めに利用するクラス.
@@ -382,17 +382,6 @@ public final class UroboroSQL {
 		@Override
 		public ExecutionContext contextWith(final String sql) {
 			return executionContextProvider.createExecutionContext().setSql(sql);
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#createAgent()
-		 */
-		@Override
-		@Deprecated
-		public SqlAgent createAgent() {
-			return this.agent();
 		}
 
 		/**

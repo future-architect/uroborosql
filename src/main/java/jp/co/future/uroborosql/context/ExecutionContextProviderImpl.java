@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -65,9 +64,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 
 	/** SQL設定クラス */
 	private SqlConfig sqlConfig = null;
-
-	/** 自動バインド用パラメータ生成クラスのリスト */
-	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
 
 	/** 自動パラメータバインド関数List(query用) */
 	private final List<Consumer<ExecutionContext>> queryAutoParameterBinders = new ArrayList<>();
@@ -100,16 +96,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	public ExecutionContext createExecutionContext() {
 		var executionContext = new ExecutionContextImpl();
 		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
-
-		// 自動バインド用パラメータ生成クラスが指定されている場合は、そこで生成されたパラメータをパラメータマップに追加する
-		if (autoBindParameterCreators != null && !autoBindParameterCreators.isEmpty()) {
-			for (AutoBindParameterCreator creator : getAutoBindParameterCreators()) {
-				var bindMap = creator.getBindParameterMap();
-				if (bindMap != null && !bindMap.isEmpty()) {
-					paramMap.putAll(bindMap);
-				}
-			}
-		}
 
 		executionContext.setConstParameterMap(paramMap);
 		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
@@ -304,30 +290,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see ExecutionContextProvider#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Deprecated
-	@Override
-	public SqlFilterManager getSqlFilterManager() {
-		return getSqlConfig().getSqlFilterManager();
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see ExecutionContextProvider#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Deprecated
-	@Override
-	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-		// do nothing
-		LOG.warn(
-				"Do not use ExecutionContextProvider#setSqlFilterManager() method. Instead, set SqlFilterManager when generating SqlConfig.");
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
 	 * @see ExecutionContextProvider#addBindParamMapper(BindParameterMapper)
 	 */
 	@Override
@@ -344,30 +306,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContextProvider removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.removeMapper(parameterMapper);
-		return this;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see ExecutionContextProvider#getAutoBindParameterCreators()
-	 */
-	@Deprecated
-	@Override
-	public List<AutoBindParameterCreator> getAutoBindParameterCreators() {
-		return autoBindParameterCreators;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see ExecutionContextProvider#setAutoBindParameterCreators(List)
-	 */
-	@Deprecated
-	@Override
-	public ExecutionContextProvider setAutoBindParameterCreators(
-			final List<AutoBindParameterCreator> autoBindParameterCreators) {
-		this.autoBindParameterCreators = autoBindParameterCreators;
 		return this;
 	}
 

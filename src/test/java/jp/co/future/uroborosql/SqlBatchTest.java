@@ -137,17 +137,6 @@ public class SqlBatchTest extends AbstractDbTest {
 		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testExecuteBatchNoAddBatch() throws Exception {
-		// 事前条件
-		truncateTable("PRODUCT");
-
-		// 処理実行
-		var count = agent.update("example/insert_product").batch();
-		assertThat(count.length, is(0));
-	}
-
 	/**
 	 * バッチ処理のテストケース(Stream)。
 	 */
