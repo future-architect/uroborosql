@@ -64,7 +64,7 @@ public class BindParamCompleter extends AbstractCompleter {
 		var isBlank = buffer.endsWith(" ");
 		// sqlNameが指定されている場合
 		var sqlName = parts[startArgNo - 1];
-		var sql = sqlConfig.getSqlManager().getSql(sqlName);
+		var sql = sqlConfig.getSqlResourceManager().getSql(sqlName);
 		var params = SqlParamUtils.getSqlParams(sql, sqlConfig);
 		if (len > startArgNo) {
 			// 最後のパラメータ以外ですでに指定されたバインドパラメータを候補から除去する

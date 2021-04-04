@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.expr.ognl.OgnlExpressionParserFactory;
@@ -77,7 +77,7 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 
 		config = UroboroSQL.builder(url, user, password)
 				.setExpressionParser(new OgnlExpressionParserFactory().create())
-				.setSqlContextFactory(new SqlContextFactoryImpl()
+				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.addBindParamMapper(new DateTimeToStringParameterMapper())
 						.addBindParamMapper(new DateToStringParameterMapper())
 						.addBindParamMapper(new DayOfWeekToStringParameterMapper())

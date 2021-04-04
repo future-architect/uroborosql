@@ -15,7 +15,7 @@ import java.sql.SQLType;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * Fluent API を使用してDBアクセスするためのインタフェース
@@ -25,11 +25,11 @@ import jp.co.future.uroborosql.context.SqlContext;
 public interface SqlFluent<T> {
 
 	/**
-	 * SqlContextの取得<br>
+	 * ExecutionContextの取得<br>
 	 *
-	 * @return SqlContext
+	 * @return ExecutionContext
 	 */
-	SqlContext context();
+	ExecutionContext context();
 
 	/**
 	 * 指定したパラメータ名のパラメータがすでに追加されているかどうかを判定する

@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.exception;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * 悲観的排他制御の実行時例外
@@ -15,11 +15,11 @@ import jp.co.future.uroborosql.context.SqlContext;
  */
 public class PessimisticLockException extends UroborosqlRuntimeException {
 
-	public PessimisticLockException(final SqlContext context) {
+	public PessimisticLockException(final ExecutionContext context) {
 		super(createMessage(context));
 	}
 
-	public PessimisticLockException(final SqlContext context, final Throwable cause) {
+	public PessimisticLockException(final ExecutionContext context, final Throwable cause) {
 		super(createMessage(context), cause);
 	}
 
@@ -35,7 +35,7 @@ public class PessimisticLockException extends UroborosqlRuntimeException {
 		super(cause);
 	}
 
-	private static String createMessage(final SqlContext context) {
+	private static String createMessage(final ExecutionContext context) {
 		return String.format("An error occurred due to pessimistic locking.\nExecuted SQL [\n%s]\nparams:%s",
 				context.getExecutableSql(), context.formatParams());
 	}

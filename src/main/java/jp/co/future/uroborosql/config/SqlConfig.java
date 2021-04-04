@@ -12,16 +12,16 @@ package jp.co.future.uroborosql.config;
 import java.time.Clock;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.SqlAgentFactory;
+import jp.co.future.uroborosql.SqlAgentProvider;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.context.SqlContextFactory;
+import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.context.ExecutionContextProvider;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.store.SqlResourceManager;
 
 /**
  * SQLを発行するための設定を管理するクラスのインタフェース.
@@ -31,27 +31,27 @@ import jp.co.future.uroborosql.store.SqlManager;
 public interface SqlConfig {
 
 	/**
-	 * SqlContextの生成.
+	 * ExecutionContextの生成.
 	 *
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext context();
+	ExecutionContext context();
 
 	/**
-	 * ファイル指定のSqlContextの生成.
+	 * ファイル指定のExecutionContextの生成.
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext contextFrom(String sqlName);
+	ExecutionContext contextFrom(String sqlName);
 
 	/**
-	 * SQL文を指定したSqlContextの生成.
+	 * SQL文を指定したExecutionContextの生成.
 	 *
 	 * @param sql SQL文の文字列
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext contextWith(String sql);
+	ExecutionContext contextWith(String sql);
 
 	/**
 	 * SqlAgentの生成.
@@ -79,11 +79,11 @@ public interface SqlConfig {
 	SqlAgent agent(ConnectionContext ctx);
 
 	/**
-	 * sqlManager を取得.
+	 * sqlResourceManager を取得.
 	 *
-	 * @return sqlManager
+	 * @return sqlResourceManager
 	 */
-	SqlManager getSqlManager();
+	SqlResourceManager getSqlResourceManager();
 
 	/**
 	 * sqlFilterManager を取得.
@@ -100,18 +100,18 @@ public interface SqlConfig {
 	ConnectionSupplier getConnectionSupplier();
 
 	/**
-	 * sqlContextFactory を取得.
+	 * executionContextProvider を取得.
 	 *
-	 * @return sqlContextFactory
+	 * @return executionContextProvider
 	 */
-	SqlContextFactory getSqlContextFactory();
+	ExecutionContextProvider getExecutionContextProvider();
 
 	/**
-	 * sqlAgentFactory を取得.
+	 * sqlAgentProvider を取得.
 	 *
-	 * @return sqlAgentFactory
+	 * @return sqlAgentProvider
 	 */
-	SqlAgentFactory getSqlAgentFactory();
+	SqlAgentProvider getSqlAgentProvider();
 
 	/**
 	 * clock を取得.

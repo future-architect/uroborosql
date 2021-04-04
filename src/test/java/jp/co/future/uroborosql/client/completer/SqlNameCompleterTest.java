@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
-import jp.co.future.uroborosql.store.NioSqlManagerImpl;
-import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManager;
 
 public class SqlNameCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
-	private static SqlManager sqlManager;
+	private static SqlResourceManager sqlResourceManager;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
@@ -25,14 +25,14 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 			commands.add(command);
 		}
 
-		sqlManager = new NioSqlManagerImpl(false);
-		sqlManager.setDialect(new DefaultDialect());
-		sqlManager.initialize();
+		sqlResourceManager = new NioSqlResourceManagerImpl(false);
+		sqlResourceManager.setDialect(new DefaultDialect());
+		sqlResourceManager.initialize();
 	}
 
 	@Test
 	public void testComplete() throws Exception {
-		var completer = new SqlNameCompleter(commands, sqlManager);
+		var completer = new SqlNameCompleter(commands, sqlResourceManager);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

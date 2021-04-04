@@ -46,10 +46,10 @@ public class QueryCommand extends ReplCommand {
 		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
 			var sqlName = parts[1].replaceAll("\\.", "/");
-			if (sqlConfig.getSqlManager().existSql(sqlName)) {
+			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
 				try (var agent = sqlConfig.agent()) {
 					var ctx = agent.contextFrom(sqlName);
-					ctx.setSql(sqlConfig.getSqlManager().getSql(ctx.getSqlName()));
+					ctx.setSql(sqlConfig.getSqlResourceManager().getSql(ctx.getSqlName()));
 					var params = Arrays.copyOfRange(parts, 2, parts.length);
 					SqlParamUtils.setSqlParams(sqlConfig, ctx, params);
 

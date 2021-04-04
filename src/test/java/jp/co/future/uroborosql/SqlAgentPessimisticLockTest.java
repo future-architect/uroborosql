@@ -25,7 +25,7 @@ public class SqlAgentPessimisticLockTest {
 	@BeforeAll
 	public static void setUpClass() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentPessimisticLockTest;DB_CLOSE_DELAY=-1;MVCC=true;", "sa", "sa")
-				.setSqlAgentFactory(new SqlAgentFactoryImpl().setQueryTimeout(10))
+				.setSqlAgentProvider(new SqlAgentProviderImpl().setQueryTimeout(10))
 				.build();
 		try (var agent = config.agent()) {
 			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),

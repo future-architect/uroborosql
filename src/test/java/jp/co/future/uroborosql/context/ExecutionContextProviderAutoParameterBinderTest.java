@@ -27,12 +27,12 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
-public class SqlContextFactoryAutoParameterBinderTest {
+public class ExecutionContextProviderAutoParameterBinderTest {
 	private static SqlConfig config;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
-		config = UroboroSQL.builder("jdbc:h2:mem:SqlContextFactoryUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
+		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextProviderUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
 				"sa",
 				null).build();
 
@@ -75,8 +75,8 @@ public class SqlContextFactoryAutoParameterBinderTest {
 	public void testSingleQueryAutoParameterBinder() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<SqlContext> binder = ctx -> ctx.param("upd_datetime", insDate);
-		config.getSqlContextFactory().addQueryAutoParameterBinder(binder);
+		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
+		config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -97,14 +97,14 @@ public class SqlContextFactoryAutoParameterBinderTest {
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
-			config.getSqlContextFactory().removeQueryAutoParameterBinder(binder);
+			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
 
 			binder = ctx -> ctx.param("upd_datetime", updDate);
-			config.getSqlContextFactory().addQueryAutoParameterBinder(binder);
+			config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
 
 			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
 
-			config.getSqlContextFactory().removeQueryAutoParameterBinder(binder);
+			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
 		}
 
 	}
@@ -113,8 +113,8 @@ public class SqlContextFactoryAutoParameterBinderTest {
 	public void testSingleUpdateAutoParameterBinder() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<SqlContext> binder = ctx -> ctx.param("upd_datetime", updDate);
-		config.getSqlContextFactory().addUpdateAutoParameterBinder(binder);
+		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
+		config.getExecutionContextProvider().addUpdateAutoParameterBinder(binder);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -143,7 +143,7 @@ public class SqlContextFactoryAutoParameterBinderTest {
 					is(2));
 		}
 
-		config.getSqlContextFactory().removeUpdateAutoParameterBinder(binder);
+		config.getExecutionContextProvider().removeUpdateAutoParameterBinder(binder);
 	}
 
 	@Test
@@ -152,13 +152,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		final var colNumeric = new BigDecimal("10.00");
 		final var colTimestamp = LocalDateTime.now();
 
-		var factory = config.getSqlContextFactory();
+		var factory = config.getExecutionContextProvider();
 
-		Consumer<SqlContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
+		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
 		factory.addQueryAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
+		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
 		factory.addQueryAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
+		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
 		factory.addQueryAutoParameterBinder(binder3);
 
 		try (var agent = config.agent()) {
@@ -230,13 +230,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getSqlContextFactory();
+		var factory = config.getExecutionContextProvider();
 
-		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
+		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
+		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = ctx -> ctx.param("upd_datetime", ((LocalDateTime) ctx.getParam("upd_datetime")
+		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("upd_datetime", ((LocalDateTime) ctx.getParam("upd_datetime")
 				.getValue()).plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
@@ -268,13 +268,13 @@ public class SqlContextFactoryAutoParameterBinderTest {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getSqlContextFactory();
+		var factory = config.getExecutionContextProvider();
 
-		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
+		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<SqlContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
+		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<SqlContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
+		Consumer<ExecutionContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
 		try (var agent = config.agent()) {
@@ -304,10 +304,10 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testQueryAutoBindIfCase() {
-		var factory = config.getSqlContextFactory();
+		var factory = config.getExecutionContextProvider();
 
 		final var productId = 2;
-		Consumer<SqlContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
+		Consumer<ExecutionContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 
 		try (var agent = config.agent()) {
@@ -334,9 +334,9 @@ public class SqlContextFactoryAutoParameterBinderTest {
 
 	@Test
 	public void testBatchUpdateAutoBind() {
-		var factory = config.getSqlContextFactory();
+		var factory = config.getExecutionContextProvider();
 
-		Consumer<SqlContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
+		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
 		factory.addUpdateAutoParameterBinder(binder1);
 
 		var count = 1000;

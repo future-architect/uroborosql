@@ -13,7 +13,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 
 public class ProcedureTest {
 	/**
-	 * SQL管理クラス
+	 * SQLリソース管理クラス
 	 */
 	SqlConfig config;
 
@@ -34,7 +34,7 @@ public class ProcedureTest {
 
 	@Test
 	public void testCallStoredFunctionWithinTransaction() {
-		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {

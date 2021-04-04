@@ -11,7 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
@@ -46,82 +46,82 @@ public interface SqlFilter {
 
 	/**
 	 * SQLを加工するフィルター処理を行う
-	 * @param sqlContext SqlContext
+	 * @param executionContext ExecutionContext
 	 * @param sql 加工対象SQL文字列
 	 * @return 加工後のSQL文字列
 	 */
-	String doTransformSql(SqlContext sqlContext, String sql);
+	String doTransformSql(ExecutionContext executionContext, String sql);
 
 	/**
 	 * PreparedStatementに対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param preparedStatement 元のPreparedStatement
 	 *
 	 * @return フィルター後のPreparedStatement
 	 * @throws SQLException SQL例外
 	 */
-	PreparedStatement doPreparedStatement(SqlContext sqlContext, PreparedStatement preparedStatement)
+	PreparedStatement doPreparedStatement(ExecutionContext executionContext, PreparedStatement preparedStatement)
 			throws SQLException;
 
 	/**
 	 * CallableStatementに対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param callableStatement 元のCallableStatement
 	 *
 	 * @return フィルター後のCallableStatement
 	 * @throws SQLException SQL例外
 	 */
-	CallableStatement doCallableStatement(SqlContext sqlContext, CallableStatement callableStatement)
+	CallableStatement doCallableStatement(ExecutionContext executionContext, CallableStatement callableStatement)
 			throws SQLException;
 
 	/**
 	 * 検索処理に対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param preparedStatement 実行するPreparedStatement
 	 * @param resultSet 実行結果
 	 *
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	ResultSet doQuery(SqlContext sqlContext, PreparedStatement preparedStatement, ResultSet resultSet)
+	ResultSet doQuery(ExecutionContext executionContext, PreparedStatement preparedStatement, ResultSet resultSet)
 			throws SQLException;
 
 	/**
 	 * 更新処理に対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param preparedStatement 実行するPreparedStatement
 	 * @param result 実行結果
 	 *
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int doUpdate(SqlContext sqlContext, PreparedStatement preparedStatement, int result) throws SQLException;
+	int doUpdate(ExecutionContext executionContext, PreparedStatement preparedStatement, int result) throws SQLException;
 
 	/**
 	 * バッチ処理に対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param preparedStatement 実行するPreparedStatement
 	 * @param result 実行結果
 	 *
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int[] doBatch(SqlContext sqlContext, PreparedStatement preparedStatement, int[] result) throws SQLException;
+	int[] doBatch(ExecutionContext executionContext, PreparedStatement preparedStatement, int[] result) throws SQLException;
 
 	/**
 	 * CallableProcedure処理に対するフィルター処理を行う
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param callableStatement 実行するCallableStatement
 	 * @param result 実行結果
 	 *
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	boolean doProcedure(SqlContext sqlContext, CallableStatement callableStatement, boolean result) throws SQLException;
+	boolean doProcedure(ExecutionContext executionContext, CallableStatement callableStatement, boolean result) throws SQLException;
 }

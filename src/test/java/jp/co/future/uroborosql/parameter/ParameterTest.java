@@ -89,7 +89,7 @@ public class ParameterTest {
 
 		String[] param = { "1", "2", "3" };
 
-		config.getSqlContextFactory().addBindParamMapper(new BindParameterMapper<String[]>() {
+		config.getExecutionContextProvider().addBindParamMapper(new BindParameterMapper<String[]>() {
 
 			@Override
 			public Class<String[]> targetType() {

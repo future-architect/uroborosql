@@ -15,11 +15,11 @@ import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
- * SQL管理実装クラス
+ * SQLリソース管理実装クラス
  *
  * @author H.Sugimoto
  */
-public class SqlManagerImpl implements SqlManager {
+public class SqlResourceManagerImpl implements SqlResourceManager {
 
 	/** SQLキャッシュ */
 	private final ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
@@ -36,7 +36,7 @@ public class SqlManagerImpl implements SqlManager {
 	private Dialect dialect;
 
 	/** コンストラクタ */
-	public SqlManagerImpl() {
+	public SqlResourceManagerImpl() {
 		this(new SqlLoaderImpl());
 	}
 
@@ -45,7 +45,7 @@ public class SqlManagerImpl implements SqlManager {
 	 *
 	 * @param sqlLoader SQLローダー
 	 */
-	public SqlManagerImpl(final SqlLoader sqlLoader) {
+	public SqlResourceManagerImpl(final SqlLoader sqlLoader) {
 		this.sqlLoaders.add(sqlLoader);
 		this.fileExtension = sqlLoader.getFileExtension();
 	}
@@ -55,7 +55,7 @@ public class SqlManagerImpl implements SqlManager {
 	 *
 	 * @param loadPath SQLをロードするルートパス
 	 */
-	public SqlManagerImpl(final String loadPath) {
+	public SqlResourceManagerImpl(final String loadPath) {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
 		if (loadPath != null) {
 			sqlLoader.setLoadPath(loadPath);
@@ -70,7 +70,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param loadPath SQLをロードするルートパス
 	 * @param fileExtension SQL拡張子
 	 */
-	public SqlManagerImpl(final String loadPath, final String fileExtension) {
+	public SqlResourceManagerImpl(final String loadPath, final String fileExtension) {
 		SqlLoader sqlLoader = new SqlLoaderImpl();
 		if (loadPath != null) {
 			sqlLoader.setLoadPath(loadPath);
@@ -87,7 +87,7 @@ public class SqlManagerImpl implements SqlManager {
 	 *
 	 * @param cache 起動時にSQLファイルをキャッシュするかどうか
 	 */
-	public SqlManagerImpl(final boolean cache) {
+	public SqlResourceManagerImpl(final boolean cache) {
 		this();
 		this.cache = cache;
 	}
@@ -98,7 +98,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param loadPath SQLをロードするルートパス
 	 * @param cache 起動時にSQLファイルをキャッシュするかどうか
 	 */
-	public SqlManagerImpl(final String loadPath, final boolean cache) {
+	public SqlResourceManagerImpl(final String loadPath, final boolean cache) {
 		this(loadPath);
 		this.cache = cache;
 	}
@@ -108,7 +108,7 @@ public class SqlManagerImpl implements SqlManager {
 	 *
 	 * @param loadPaths SQLをロードするルートパスのリスト
 	 */
-	public SqlManagerImpl(final List<String> loadPaths) {
+	public SqlResourceManagerImpl(final List<String> loadPaths) {
 		this(loadPaths, null);
 	}
 
@@ -118,7 +118,7 @@ public class SqlManagerImpl implements SqlManager {
 	 * @param loadPaths SQLをロードするルートパスのリスト
 	 * @param fileExtension SQL拡張子
 	 */
-	public SqlManagerImpl(final List<String> loadPaths, final String fileExtension) {
+	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension) {
 		if (loadPaths == null || loadPaths.isEmpty()) {
 			throw new IllegalArgumentException("loadPaths is required. loadPaths=" + loadPaths);
 		}
@@ -139,7 +139,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#initialize()
 	 */
 	@Override
 	public void initialize() {
@@ -155,7 +155,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#shutdown()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#shutdown()
 	 */
 	@Override
 	public void shutdown() {
@@ -165,7 +165,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSql(java.lang.String)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSql(java.lang.String)
 	 */
 	@Override
 	public String getSql(final String sqlPath) {
@@ -187,7 +187,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#existSql(java.lang.String)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#existSql(java.lang.String)
 	 */
 	@Override
 	public boolean existSql(final String sqlPath) {
@@ -205,7 +205,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlPathList()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlPathList()
 	 */
 	@Override
 	public List<String> getSqlPathList() {
@@ -215,7 +215,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlLoader()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlLoader()
 	 */
 	@Override
 	public SqlLoader getSqlLoader() {
@@ -225,7 +225,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setSqlLoader(jp.co.future.uroborosql.store.SqlLoader)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#setSqlLoader(jp.co.future.uroborosql.store.SqlLoader)
 	 */
 	@Override
 	public void setSqlLoader(final SqlLoader sqlLoader) {
@@ -274,7 +274,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#isCache()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#isCache()
 	 */
 	@Override
 	public boolean isCache() {
@@ -284,7 +284,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setCache(boolean)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#setCache(boolean)
 	 */
 	@Override
 	public void setCache(final boolean cache) {
@@ -294,7 +294,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getDialect()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getDialect()
 	 */
 	@Override
 	public Dialect getDialect() {
@@ -304,7 +304,7 @@ public class SqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
 	 */
 	@Override
 	public void setDialect(final Dialect dialect) {

@@ -40,8 +40,8 @@ public class ViewCommand extends ReplCommand {
 		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
 			var sqlName = parts[1].replaceAll("\\.", "/");
-			if (sqlConfig.getSqlManager().existSql(sqlName)) {
-				var sql = sqlConfig.getSqlManager().getSql(sqlName);
+			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
+				var sql = sqlConfig.getSqlResourceManager().getSql(sqlName);
 				var sqlLines = sql.split("\\r\\n|\\r|\\n");
 				for (String sqlLine : sqlLines) {
 					writer.println(sqlLine);

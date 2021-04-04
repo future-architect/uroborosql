@@ -7,13 +7,13 @@
 	<context:annotation-config />
 
 	<!-- SQL実行FW定義 -->
-	<bean id="sqlAgentFactory" class="jp.co.future.uroborosql.SqlAgentFactoryImpl">
+	<bean id="sqlAgentProvider" class="jp.co.future.uroborosql.SqlAgentProviderImpl">
 		<description>
-			SqlAgentクラスのファクトリ
-			このクラスからConnectionサプライヤとSQL管理クラスを設定してSqlAgentクラスが生成されます。
+			SqlAgentクラスのプロバイダ
+			このクラスからConnectionサプライヤとSQLリソース管理クラスを設定してSqlAgentクラスが生成されます。
 		</description>
 		<property name="connectionSupplier" ref="connectionSupplier" />
-		<property name="sqlManager" ref="sqlManager" />
+		<property name="sqlResourceManager" ref="sqlResourceManager" />
 		<property name="sqlFilterManager" ref="sqlFilterManager" />
 		<property name="fetchSize">
 			<description>PreparedStatementに設定するfetchSizeを指定する。-1の場合はJDBCのデフォルト値が使用される
@@ -67,9 +67,9 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="sqlManager" class="jp.co.future.uroborosql.store.SqlManagerImpl" init-method="initialize">
+	<bean id="sqlResourceManager" class="jp.co.future.uroborosql.store.SqlResourceManagerImpl" init-method="initialize">
 		<description>
-			SQL管理クラス。
+			SQLリソース管理クラス。
 			外部ファイルから読み込んだSQL文をキー名称と共に管理し、Agentに対して提供します。
 		</description>
 		<!-- 省略可(デフォルト値使用) -->
@@ -144,10 +144,10 @@
 		</property>
 	</bean>
 
-	<bean id="sqlContextFactory" class="jp.co.future.uroborosql.context.SqlContextFactoryImpl" init-method="initialize">
+	<bean id="executionContextProvider" class="jp.co.future.uroborosql.context.ExecutionContextProviderImpl" init-method="initialize">
 		<description>
-			SqlContextインタフェースの実態を生成するファクトリです。
-			このクラスからSqlContextを生成します。
+			ExecutionContextインタフェースの実態を生成するプロバイダです。
+			このクラスからExecutionContextを生成します。
 		</description>
 		<property name="constantClassNames">
 			<description>定数として登録する定数クラスのFQDN名。複数指定可（listとして指定）</description>

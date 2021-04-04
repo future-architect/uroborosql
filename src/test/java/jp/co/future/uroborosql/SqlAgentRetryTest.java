@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
@@ -42,7 +42,7 @@ public class SqlAgentRetryTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentRetryTest")).build();
-		config.getSqlAgentFactory().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
+		config.getSqlAgentProvider().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
 
 		agent = config.agent();
 
@@ -215,7 +215,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		var errorCode = 50200;
 		// SqlRetryCodeListを空にして、悲観ロック対象エラーコードで判定する
-		config.getSqlAgentFactory().setSqlRetryCodeList(Collections.emptyList());
+		config.getSqlAgentProvider().setSqlRetryCodeList(Collections.emptyList());
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlQuery query = null;
@@ -744,65 +744,65 @@ public class SqlAgentRetryTest {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
 		 */
 		@Override
-		public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+		public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 				final ResultSet resultSet) throws SQLException {
 			if (retryCount > currentCount++) {
 				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doQuery(sqlContext, preparedStatement, resultSet);
+			return super.doQuery(executionContext, preparedStatement, resultSet);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int)
+		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 		 */
 		@Override
-		public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result)
+		public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
 				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doUpdate(sqlContext, preparedStatement, result);
+			return super.doUpdate(executionContext, preparedStatement, result);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int[])
+		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 		 */
 		@Override
-		public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result)
+		public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
 				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doBatch(sqlContext, preparedStatement, result);
+			return super.doBatch(executionContext, preparedStatement, result);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doProcedure(jp.co.future.uroborosql.context.SqlContext, java.sql.CallableStatement, boolean)
+		 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doProcedure(jp.co.future.uroborosql.context.ExecutionContext, java.sql.CallableStatement, boolean)
 		 */
 		@Override
-		public boolean doProcedure(final SqlContext sqlContext, final CallableStatement callableStatement,
+		public boolean doProcedure(final ExecutionContext executionContext, final CallableStatement callableStatement,
 				final boolean result) throws SQLException {
 			if (retryCount > currentCount++) {
 				callableStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doProcedure(sqlContext, callableStatement, result);
+			return super.doProcedure(executionContext, callableStatement, result);
 		}
 	}
 }

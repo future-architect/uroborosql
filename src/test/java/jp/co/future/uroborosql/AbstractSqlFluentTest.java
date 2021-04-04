@@ -28,7 +28,7 @@ public class AbstractSqlFluentTest {
 
 	@BeforeAll
 	public static void setUpClass() {
-		config = UroboroSQL.builder("jdbc:h2:mem:SqlContextImplTest", "sa", "").build();
+		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextImplTest", "sa", "").build();
 	}
 
 	@BeforeEach

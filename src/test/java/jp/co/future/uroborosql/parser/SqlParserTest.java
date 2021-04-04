@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
@@ -37,7 +37,7 @@ public class SqlParserTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
-				.setSqlContextFactory(new SqlContextFactoryImpl()
+				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
 				.build();
 	}

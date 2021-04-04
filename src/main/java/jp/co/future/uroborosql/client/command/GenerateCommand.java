@@ -16,7 +16,7 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter.SqlKeyword;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.mapping.MetaTable;
 import jp.co.future.uroborosql.mapping.Table;
 import jp.co.future.uroborosql.mapping.TableMetadata;
@@ -63,7 +63,7 @@ public class GenerateCommand extends ReplCommand {
 			var metadata = TableMetadata.createTableEntityMetadata(agent, table);
 			metadata.setSchema(null);
 
-			SqlContext ctx = null;
+			ExecutionContext ctx = null;
 			if (sqlKeyword.isPresent()) {
 				var keyword = sqlKeyword.get();
 				switch (keyword) {

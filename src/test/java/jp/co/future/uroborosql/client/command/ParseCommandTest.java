@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
-import jp.co.future.uroborosql.store.NioSqlManagerImpl;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
+import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
 
 public class ParseCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -29,10 +29,10 @@ public class ParseCommandTest extends ReaderTestSupport {
 		super.setUp();
 
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
-				.setSqlContextFactory(new SqlContextFactoryImpl()
+				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(Arrays.asList("jp.co.future.uroborosql.context.test.TestConsts"))
 						.setEnumConstantPackageNames(Arrays.asList("jp.co.future.uroborosql.context.test")))
-				.setSqlManager(new NioSqlManagerImpl())
+				.setSqlResourceManager(new NioSqlResourceManagerImpl())
 				.build();
 
 		command = new ParseCommand();
@@ -53,7 +53,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("SQL :");
 
-		var sqlLine = sqlConfig.getSqlManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
+		var sqlLine = sqlConfig.getSqlResourceManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
 		for (String line : sqlLine) {
 			assertConsoleOutputContains(line);
 		}

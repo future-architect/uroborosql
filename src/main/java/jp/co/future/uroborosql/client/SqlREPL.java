@@ -50,7 +50,7 @@ import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
-import jp.co.future.uroborosql.store.NioSqlManagerImpl;
+import jp.co.future.uroborosql.store.NioSqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -222,27 +222,27 @@ public class SqlREPL {
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
-				.setSqlManager(new NioSqlManagerImpl(loadPath, fileExtension, charset, detectChanges))
+				.setSqlResourceManager(new NioSqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
 
-		// sqlContextFactory
-		var contextFactory = sqlConfig.getSqlContextFactory();
+		// executionContextProvider
+		var executionContextProvider = sqlConfig.getExecutionContextProvider();
 		List<String> constantClassNames = Arrays
-				.asList(p("sqlContextFactory.constantClassNames", "").split("\\s*,\\s*")).stream()
+				.asList(p("executionContextProvider.constantClassNames", "").split("\\s*,\\s*")).stream()
 				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!constantClassNames.isEmpty()) {
-			contextFactory.setConstantClassNames(constantClassNames);
+			executionContextProvider.setConstantClassNames(constantClassNames);
 		}
 
 		List<String> enumConstantPackageNames = Arrays
-				.asList(p("sqlContextFactory.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
+				.asList(p("executionContextProvider.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
 				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 		if (!enumConstantPackageNames.isEmpty()) {
-			contextFactory.setEnumConstantPackageNames(enumConstantPackageNames);
+			executionContextProvider.setEnumConstantPackageNames(enumConstantPackageNames);
 		}
 
 		if (!constantClassNames.isEmpty() || !enumConstantPackageNames.isEmpty()) {
-			contextFactory.initialize();
+			executionContextProvider.initialize();
 		}
 	}
 
@@ -275,7 +275,7 @@ public class SqlREPL {
 		// コマンドのコード補完
 		completers.add(new ReplCommandCompleter(commands));
 		// SQL名のコード補完
-		completers.add(new SqlNameCompleter(commands, sqlConfig.getSqlManager()));
+		completers.add(new SqlNameCompleter(commands, sqlConfig.getSqlResourceManager()));
 		// バインドパラメータのコード補完
 		completers.add(new BindParamCompleter(commands, sqlConfig));
 		// テーブル名のコード補完

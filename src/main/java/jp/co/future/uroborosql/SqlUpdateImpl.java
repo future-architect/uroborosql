@@ -8,7 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.sql.SQLException;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 
@@ -25,9 +25,9 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	 * コンストラクタ
 	 *
 	 * @param agent SqlAgent
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
-	SqlUpdateImpl(final SqlAgent agent, final SqlContext context) {
+	SqlUpdateImpl(final SqlAgent agent, final ExecutionContext context) {
 		super(agent, context);
 	}
 

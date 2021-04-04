@@ -11,11 +11,11 @@ import java.util.List;
 import jp.co.future.uroborosql.dialect.Dialect;
 
 /**
- * SQL管理インターフェース
+ * SQLリソース管理インターフェース
  *
  * @author H.Sugimoto
  */
-public interface SqlManager {
+public interface SqlResourceManager {
 
 	/**
 	 * 初期化<br>

@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -141,7 +141,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * ResultSetの取得（終端処理）
 	 *
 	 * @return ResultSet
-	 * @see SqlAgent#query(SqlContext)
+	 * @see SqlAgent#query(ExecutionContext)
 	 */
 	ResultSet resultSet();
 

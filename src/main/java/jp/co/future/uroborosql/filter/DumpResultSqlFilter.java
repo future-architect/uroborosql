@@ -24,7 +24,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -47,10 +47,10 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
 	 */
 	@Override
-	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
 		try {
 			if (resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY) {

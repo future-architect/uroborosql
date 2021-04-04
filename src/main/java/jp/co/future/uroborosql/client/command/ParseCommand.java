@@ -54,11 +54,11 @@ public class ParseCommand extends ReplCommand {
 		writer.println("PARSE:");
 
 		if (parts.length > 1) {
-			var path = sqlConfig.getSqlManager().getSqlPathList().stream()
+			var path = sqlConfig.getSqlResourceManager().getSqlPathList().stream()
 					.filter(p -> p.equalsIgnoreCase(parts[1]))
 					.findFirst();
 			if (path.isPresent()) {
-				var sql = sqlConfig.getSqlManager().getSql(path.get());
+				var sql = sqlConfig.getSqlResourceManager().getSql(path.get());
 
 				// 対象SQLの出力
 				writer.println("");
@@ -80,8 +80,8 @@ public class ParseCommand extends ReplCommand {
 
 				// 利用されているバインドパラメータの出力
 				writer.println("");
-				var constPrefix = sqlConfig.getSqlContextFactory().getConstParamPrefix();
-				var ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+				var constPrefix = sqlConfig.getExecutionContextProvider().getConstParamPrefix();
+				var ctx = sqlConfig.getExecutionContextProvider().createExecutionContext();
 				writer.println("BIND_PARAMS :");
 				// 定数以外のバインドパラメータ
 				bindParams.stream().filter(param -> !param.startsWith(constPrefix))

@@ -19,12 +19,12 @@ import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.parser.TransformContext;
 
 /**
- * SQLコンテキストインタフェース
+ * ExecutionContextインタフェース
  *
  * @author H.Sugimoto
  *
  */
-public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, ProcedureFluent<SqlContext> {
+public interface ExecutionContext extends TransformContext, SqlFluent<ExecutionContext>, ProcedureFluent<ExecutionContext> {
 
 	/**
 	 * 変換前SQL取得
@@ -37,9 +37,9 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 * 変換前SQL設定
 	 *
 	 * @param sql 変換前SQL
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext setSql(String sql);
+	ExecutionContext setSql(String sql);
 
 	/**
 	 * SQL名取得
@@ -52,9 +52,9 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 * SQL名設定
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext setSqlName(String sqlName);
+	ExecutionContext setSqlName(String sqlName);
 
 	/**
 	 * SQL文を識別するための文字列を取得
@@ -67,9 +67,9 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 * SQL文を識別するための文字列を設定
 	 *
 	 * @param sqlId SQL識別子
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext setSqlId(String sqlId);
+	ExecutionContext setSqlId(String sqlId);
 
 	/**
 	 * 最大リトライ回数 を取得する
@@ -82,9 +82,9 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 * 最大リトライ回数 を設定する
 	 *
 	 * @param maxRetryCount 最大リトライ回数
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext setMaxRetryCount(int maxRetryCount);
+	ExecutionContext setMaxRetryCount(int maxRetryCount);
 
 	/**
 	 * リトライ待機時間（ms） を取得する
@@ -97,9 +97,9 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	 * リトライ待機時間（ms） を設定する
 	 *
 	 * @param retryWaitTime リトライ待機時間（ms）
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext setRetryWaitTime(int retryWaitTime);
+	ExecutionContext setRetryWaitTime(int retryWaitTime);
 
 	/**
 	 * ステートメントにパラメータをバインドする
@@ -129,16 +129,16 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	/**
 	 * これまでに追加されたパラメータ群をバッチパラメータに格納する
 	 *
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext addBatch();
+	ExecutionContext addBatch();
 
 	/**
 	 * これまでに追加されたパラメータ群をバッチパラメータから削除する
 	 *
-	 * @return 自身のSqlContext
+	 * @return 自身のExecutionContext
 	 */
-	SqlContext clearBatch();
+	ExecutionContext clearBatch();
 
 	/**
 	 * addBatchされた回数を取得する

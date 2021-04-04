@@ -665,13 +665,13 @@ public class DefaultEntityHandlerTest {
 				var test4 = new TestEntity3(4, "name4", 23, null);
 				agent.insert(test4);
 
-				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(10));
-				config.getSqlAgentFactory().setDefaultForUpdateWaitSeconds(30);
-				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(30));
+				assertThat(config.getSqlAgentProvider().getDefaultForUpdateWaitSeconds(), is(10));
+				config.getSqlAgentProvider().setDefaultForUpdateWaitSeconds(30);
+				assertThat(config.getSqlAgentProvider().getDefaultForUpdateWaitSeconds(), is(30));
 
-				assertThat(config.getSqlAgentFactory().isStrictForUpdateType(), is(false));
-				config.getSqlAgentFactory().setStrictForUpdateType(true);
-				assertThat(config.getSqlAgentFactory().isStrictForUpdateType(), is(true));
+				assertThat(config.getSqlAgentProvider().isStrictForUpdateType(), is(false));
+				config.getSqlAgentProvider().setStrictForUpdateType(true);
+				assertThat(config.getSqlAgentProvider().isStrictForUpdateType(), is(true));
 
 				agent.required(() -> {
 					var list = agent.query(TestEntity3.class).forUpdate().collect();
@@ -711,7 +711,7 @@ public class DefaultEntityHandlerTest {
 					assertThat("Fail here.", false);
 				}
 
-				config.getSqlAgentFactory().setStrictForUpdateType(false);
+				config.getSqlAgentProvider().setStrictForUpdateType(false);
 				try {
 					assertThat(agent.query(TestEntity3.class).forUpdateNoWait().first().isPresent(), is(true));
 				} catch (Throwable th) {

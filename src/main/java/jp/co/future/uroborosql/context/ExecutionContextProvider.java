@@ -16,14 +16,14 @@ import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 
 /**
- * SQLコンテキストファクトリインタフェース.
+ * ExecutionContextProvider interfaces.
  *
  * @author H.Sugimoto
  *
  */
-public interface SqlContextFactory extends SqlConfigAware {
+public interface ExecutionContextProvider extends SqlConfigAware {
 	/** BEAN名 */
-	String FACTORY_BEAN_NAME = "sqlContextFactory";
+	String FACTORY_BEAN_NAME = "executionContextProvider";
 
 	/**
 	 * 初期化処理.
@@ -31,11 +31,11 @@ public interface SqlContextFactory extends SqlConfigAware {
 	void initialize();
 
 	/**
-	 * SQLコンテキスト生成メソッド.
+	 * ExecutionContext生成メソッド.
 	 *
-	 * @return SQLコンテキスト
+	 * @return ExecutionContext
 	 */
-	SqlContext createSqlContext();
+	ExecutionContext createExecutionContext();
 
 	/**
 	 * 定数パラメータプレフィックスを取得.
@@ -69,9 +69,9 @@ public interface SqlContextFactory extends SqlConfigAware {
 	 *
 	 * @param constParamPrefix
 	 *            定数パラメータプレフィックス
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory setConstParamPrefix(String constParamPrefix);
+	ExecutionContextProvider setConstParamPrefix(String constParamPrefix);
 
 	/**
 	 * 定数クラス名（FQDN）を取得.
@@ -85,9 +85,9 @@ public interface SqlContextFactory extends SqlConfigAware {
 	 *
 	 * @param constantClassNames
 	 *            定数クラス名（FQDN）
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory setConstantClassNames(List<String> constantClassNames);
+	ExecutionContextProvider setConstantClassNames(List<String> constantClassNames);
 
 	/**
 	 * Enum定数パッケージ名を取得.
@@ -100,9 +100,9 @@ public interface SqlContextFactory extends SqlConfigAware {
 	 * Enum定数パッケージ名（FQDN）を設定.
 	 *
 	 * @param enumConstantPackageNames Enum定数パッケージ名
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory setEnumConstantPackageNames(List<String> enumConstantPackageNames);
+	ExecutionContextProvider setEnumConstantPackageNames(List<String> enumConstantPackageNames);
 
 	/**
 	 * 定数クラスパラメータマップを取得.
@@ -126,73 +126,73 @@ public interface SqlContextFactory extends SqlConfigAware {
 	 *
 	 * @param autoBindParameterCreators
 	 *            自動バインド用パラメータ生成クラスのリスト
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
 	@Deprecated
-	SqlContextFactory setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
+	ExecutionContextProvider setAutoBindParameterCreators(List<AutoBindParameterCreator> autoBindParameterCreators);
 
 	/**
 	 * 自動パラメータバインド関数(query用)の追加.
 	 *
 	 * @param binder 自動パラメータバインド関数
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory addQueryAutoParameterBinder(Consumer<SqlContext> binder);
+	ExecutionContextProvider addQueryAutoParameterBinder(Consumer<ExecutionContext> binder);
 
 	/**
 	 * 自動パラメータバインド関数(query用)の削除.
 	 *
 	 * @param binder 自動パラメータバインド関数
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory removeQueryAutoParameterBinder(Consumer<SqlContext> binder);
+	ExecutionContextProvider removeQueryAutoParameterBinder(Consumer<ExecutionContext> binder);
 
 	/**
 	 * 自動パラメータバインド関数(update/batch/proc用)の追加.
 	 *
 	 * @param binder 自動パラメータバインド関数
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory addUpdateAutoParameterBinder(Consumer<SqlContext> binder);
+	ExecutionContextProvider addUpdateAutoParameterBinder(Consumer<ExecutionContext> binder);
 
 	/**
 	 * 自動パラメータバインド関数(update/batch/proc用)の削除.
 	 *
 	 * @param binder 自動パラメータバインド関数
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory removeUpdateAutoParameterBinder(Consumer<SqlContext> binder);
+	ExecutionContextProvider removeUpdateAutoParameterBinder(Consumer<ExecutionContext> binder);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}を追加.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory addBindParamMapper(BindParameterMapper<?> parameterMapper);
+	ExecutionContextProvider addBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}をremove.
 	 *
 	 * @param parameterMapper {@link BindParameterMapper}
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory removeBindParamMapper(BindParameterMapper<?> parameterMapper);
+	ExecutionContextProvider removeBindParamMapper(BindParameterMapper<?> parameterMapper);
 
 	/**
-	 * SqlContextに設定するResultSetTypeの初期値を指定.
+	 * ExecutionContextに設定するResultSetTypeの初期値を指定.
 	 *
 	 * @param resultSetType ResultSetTypeの初期値
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory setDefaultResultSetType(int resultSetType);
+	ExecutionContextProvider setDefaultResultSetType(int resultSetType);
 
 	/**
-	 * SqlContextに設定するResultSetConcurrencyの初期値を指定.
+	 * ExecutionContextに設定するResultSetConcurrencyの初期値を指定.
 	 *
 	 * @param resultSetConcurrency ResultSetConcurrencyの初期値
-	 * @return SqlContextFactory
+	 * @return ExecutionContextProvider
 	 */
-	SqlContextFactory setDefaultResultSetConcurrency(int resultSetConcurrency);
+	ExecutionContextProvider setDefaultResultSetConcurrency(int resultSetConcurrency);
 
 }

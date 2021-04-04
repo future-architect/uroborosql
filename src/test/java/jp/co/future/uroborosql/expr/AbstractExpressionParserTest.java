@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.parser.SqlParser;
@@ -38,18 +38,18 @@ public abstract class AbstractExpressionParserTest {
 	protected static final Logger log = LoggerFactory.getLogger(AbstractExpressionParserTest.class);
 
 	protected SqlConfig sqlConfig;
-	protected SqlContext ctx;
+	protected ExecutionContext ctx;
 	protected static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
 	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
-				.setSqlContextFactory(new SqlContextFactoryImpl()
+				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
 				.setExpressionParser(getExpressionParser())
 				.build();
 
-		ctx = sqlConfig.getSqlContextFactory().createSqlContext();
+		ctx = sqlConfig.getExecutionContextProvider().createExecutionContext();
 	}
 
 	/**
@@ -205,7 +205,7 @@ public abstract class AbstractExpressionParserTest {
 			for (var i = 0; i < 10; i++) {
 				var start = Instant.now();
 				for (var j = 0; j < 20000; j++) {
-					var context = sqlConfig.getSqlContextFactory().createSqlContext();
+					var context = sqlConfig.getExecutionContextProvider().createExecutionContext();
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}

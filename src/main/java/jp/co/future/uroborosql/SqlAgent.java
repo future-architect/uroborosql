@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.enums.InsertsType;
@@ -48,12 +48,12 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 		/**
 		 * 一括更新用のフレームの判定
 		 *
-		 * @param context SqlContext
+		 * @param context ExecutionContext
 		 * @param count パラメーターレコード数
 		 * @param entity エンティティ
 		 * @return `true`の場合、一括更新を実行します
 		 */
-		boolean test(SqlContext context, int count, E entity);
+		boolean test(ExecutionContext context, int count, E entity);
 	}
 
 	/**
@@ -69,12 +69,12 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 		/**
 		 * 一括更新用のフレームの判定
 		 *
-		 * @param context SqlContext
+		 * @param context ExecutionContext
 		 * @param count パラメーターレコード数
 		 * @param entity エンティティ
 		 * @return `true`の場合、一括更新を実行します
 		 */
-		boolean test(SqlContext context, int count, E entity);
+		boolean test(ExecutionContext context, int count, E entity);
 	}
 
 	/**
@@ -87,61 +87,61 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	/**
 	 * クエリ実行処理。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果のResultSet
 	 * @throws SQLException SQL例外
 	 */
-	ResultSet query(SqlContext sqlContext) throws SQLException;
+	ResultSet query(ExecutionContext executionContext) throws SQLException;
 
 	/**
 	 * クエリ実行処理。<br>
 	 * 結果をStreamとして返却する。
 	 *
 	 * @param <T> Streamの型
-	 * @param sqlContext SqlContext
+	 * @param executionContext ExecutionContext
 	 * @param converter ResultSetの各行を変換するための変換器
 	 * @return 検索結果を順次取得するStream
 	 * @throws SQLException SQL例外
 	 */
-	<T> Stream<T> query(SqlContext sqlContext, ResultSetConverter<T> converter) throws SQLException;
+	<T> Stream<T> query(ExecutionContext executionContext, ResultSetConverter<T> converter) throws SQLException;
 
 	/**
 	 * クエリ実行処理。<br>
 	 * 結果を{@literal List<Map<String, Object>>}に変換して返却する。
 	 *
-	 * @param sqlContext SqlContext
+	 * @param executionContext ExecutionContext
 	 * @param caseFormat Mapのキー文字列の変換書式
 	 * @return 検索結果の各行のキーと値をMapに詰めたList
 	 * @throws SQLException SQL例外
 	 */
-	List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat) throws SQLException;
+	List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat) throws SQLException;
 
 	/**
 	 * DB更新処理。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int update(SqlContext sqlContext) throws SQLException;
+	int update(ExecutionContext executionContext) throws SQLException;
 
 	/**
 	 * バッチ処理実行。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int[] batch(SqlContext sqlContext) throws SQLException;
+	int[] batch(ExecutionContext executionContext) throws SQLException;
 
 	/**
 	 * ストアドプロシージャ実行処理。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return ストアドプロシージャ実行結果
 	 * @throws SQLException SQL例外
 	 */
-	Map<String, Object> procedure(SqlContext sqlContext) throws SQLException;
+	Map<String, Object> procedure(ExecutionContext executionContext) throws SQLException;
 
 	/**
 	 * フェッチサイズ取得。
@@ -202,27 +202,27 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	void setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
-	 * 空のSqlContextの生成
+	 * 空のExecutionContextの生成
 	 *
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext context();
+	ExecutionContext context();
 
 	/**
-	 * ファイル指定のSqlContextの生成
+	 * ファイル指定のExecutionContextの生成
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext contextFrom(String sqlName);
+	ExecutionContext contextFrom(String sqlName);
 
 	/**
-	 * SQL文を指定したSqlContextの生成
+	 * SQL文を指定したExecutionContextの生成
 	 *
 	 * @param sql SQL文の文字列
-	 * @return 生成したSqlContext
+	 * @return 生成したExecutionContext
 	 */
-	SqlContext contextWith(String sql);
+	ExecutionContext contextWith(String sql);
 
 	/**
 	 * Query処理の実行（Fluent API）

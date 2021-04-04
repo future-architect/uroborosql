@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
@@ -43,7 +43,7 @@ public class SqlAgentRetryWithRollbackTest {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentRetryWithRollbackTest;DB_CLOSE_DELAY=-1", "sa", "sa")
 				.setDialect(new PostgresqlDialect())
 				.build();
-		config.getSqlAgentFactory().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
+		config.getSqlAgentProvider().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(0, 0));
 		agent = config.agent();
 
@@ -404,65 +404,65 @@ public class SqlAgentRetryWithRollbackTest {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see AbstractSqlFilter#doQuery(SqlContext, PreparedStatement, ResultSet)
+		 * @see AbstractSqlFilter#doQuery(ExecutionContext, PreparedStatement, ResultSet)
 		 */
 		@Override
-		public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+		public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 				final ResultSet resultSet) throws SQLException {
 			if (retryCount > currentCount++) {
 				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doQuery(sqlContext, preparedStatement, resultSet);
+			return super.doQuery(executionContext, preparedStatement, resultSet);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see AbstractSqlFilter#doUpdate(SqlContext, PreparedStatement, int)
+		 * @see AbstractSqlFilter#doUpdate(ExecutionContext, PreparedStatement, int)
 		 */
 		@Override
-		public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result)
+		public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
 				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doUpdate(sqlContext, preparedStatement, result);
+			return super.doUpdate(executionContext, preparedStatement, result);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see AbstractSqlFilter#doBatch(SqlContext, PreparedStatement, int[])
+		 * @see AbstractSqlFilter#doBatch(ExecutionContext, PreparedStatement, int[])
 		 */
 		@Override
-		public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result)
+		public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
 				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doBatch(sqlContext, preparedStatement, result);
+			return super.doBatch(executionContext, preparedStatement, result);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see AbstractSqlFilter#doProcedure(SqlContext, CallableStatement, boolean)
+		 * @see AbstractSqlFilter#doProcedure(ExecutionContext, CallableStatement, boolean)
 		 */
 		@Override
-		public boolean doProcedure(final SqlContext sqlContext, final CallableStatement callableStatement,
+		public boolean doProcedure(final ExecutionContext executionContext, final CallableStatement callableStatement,
 				final boolean result) throws SQLException {
 			if (retryCount > currentCount++) {
 				//				callableStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doProcedure(sqlContext, callableStatement, result);
+			return super.doProcedure(executionContext, callableStatement, result);
 		}
 	}
 }

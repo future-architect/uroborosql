@@ -13,15 +13,15 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
 	protected final SqlAgent agent;
-	protected final SqlContext context;
+	protected final ExecutionContext context;
 
-	protected AbstractSqlFluent(final SqlAgent agent, final SqlContext context) {
+	protected AbstractSqlFluent(final SqlAgent agent, final ExecutionContext context) {
 		this.agent = agent;
 		this.context = context;
 	}
@@ -41,7 +41,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#context()
 	 */
 	@Override
-	public SqlContext context() {
+	public ExecutionContext context() {
 		return context;
 	}
 
