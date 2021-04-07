@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.EmbeddedValueNode;
@@ -103,10 +103,10 @@ public final class SqlParamUtils {
 	/**
 	 * SQLバインドパラメータを設定する
 	 * @param sqlConfig SqlConfig
-	 * @param ctx SQLコンテキスト
+	 * @param ctx ExecutionContext
 	 * @param paramsArray パラメータ配列
 	 */
-	public static void setSqlParams(final SqlConfig sqlConfig, final SqlContext ctx, final String... paramsArray) {
+	public static void setSqlParams(final SqlConfig sqlConfig, final ExecutionContext ctx, final String... paramsArray) {
 		var bindParams = getSqlParams(ctx.getSql(), sqlConfig);
 
 		for (String element : paramsArray) {
@@ -145,11 +145,11 @@ public final class SqlParamUtils {
 	 *  <dd>文字列として設定する</dd>
 	 * </dl>
 	 *
-	 * @param ctx SqlContext
+	 * @param ctx ExecutionContext
 	 * @param key パラメータキー
 	 * @param val パラメータ値
 	 */
-	private static void setParam(final SqlContext ctx, final String key, final String val) {
+	private static void setParam(final ExecutionContext ctx, final String key, final String val) {
 		if (val.startsWith("[") && val.endsWith("]") && !(val.equals("[NULL]") || val.equals("[EMPTY]"))) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
 			var parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
@@ -289,7 +289,7 @@ public final class SqlParamUtils {
 		Set<String> params = new LinkedHashSet<>();
 		traverseNode(sqlConfig.getExpressionParser(), rootNode, params);
 		var constPattern = Pattern
-				.compile("^" + sqlConfig.getSqlContextFactory().getConstParamPrefix() + "[A-Z][A-Z0-9_-]*$");
+				.compile("^" + sqlConfig.getExecutionContextProvider().getConstParamPrefix() + "[A-Z][A-Z0-9_-]*$");
 		params.removeIf(s -> constPattern.matcher(s).matches());
 		return params;
 	}

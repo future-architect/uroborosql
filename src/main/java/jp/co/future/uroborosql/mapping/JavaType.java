@@ -418,18 +418,6 @@ public abstract class JavaType {
 		return create(implementClass, type);
 	}
 
-	/**
-	 * JavaType生成
-	 *
-	 * @param type Type
-	 * @return JavaType
-	 * @deprecated TypeVariableを遡ることができません
-	 */
-	@Deprecated
-	public static JavaType of(final Type type) {
-		return of(new ImplementClass(Object.class), type);
-	}
-
 	private static JavaType create(final ImplementClass implementClass, final Type type) {
 		if (type instanceof Class<?>) {
 			return new ClassJavaType(implementClass, (Class<?>) type);

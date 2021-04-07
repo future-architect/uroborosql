@@ -10,22 +10,18 @@ import java.util.List;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
- * SQL実行クラスのファクトリインターフェース。
+ * SQL実行クラスのプロバイダインターフェース。
  *
  * @author H.Sugimoto
  */
-public interface SqlAgentFactory extends SqlConfigAware {
-	/** ファクトリBean名 */
-	String FACTORY_BEAN_NAME = "sqlAgentFactory";
+public interface SqlAgentProvider extends SqlConfigAware {
+	/** プロバイダBean名 */
+	String FACTORY_BEAN_NAME = "sqlAgentProvider";
 
 	/**
 	 * プロパティ:SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
@@ -94,15 +90,6 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	String PROPS_KEY_STRICT_FOR_UPDATE_TYPE = "strictForUpdateType";
 
 	/**
-	 * SQL実行クラス生成.
-	 *
-	 * @deprecated Instead, use the agent() method.
-	 * @return SqlAgent
-	 */
-	@Deprecated
-	SqlAgent createSqlAgent();
-
-	/**
 	 * SqlAgentの生成.
 	 *
 	 * @return SqlAgent
@@ -119,38 +106,6 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	SqlAgent agent(ConnectionContext connectionContext);
 
 	/**
-	 * SQL管理クラスを取得する.
-	 *
-	 * @return SQL管理クラス
-	 */
-	@Deprecated
-	SqlManager getSqlManager();
-
-	/**
-	 * SqlFilter管理クラスを取得する.
-	 *
-	 * @return SqlFilter管理クラス
-	 */
-	@Deprecated
-	SqlFilterManager getSqlFilterManager();
-
-	/**
-	 * コネクション供給クラスを取得する.
-	 *
-	 * @return コネクション供給クラス
-	 */
-	@Deprecated
-	ConnectionSupplier getConnectionSupplier();
-
-	/**
-	 * ORM処理クラスを取得する.
-	 *
-	 * @return ORM処理クラス
-	 */
-	@Deprecated
-	EntityHandler<?> getEntityHandler();
-
-	/**
 	 * 例外発生時のログ出力を行うかどうかを取得します。
 	 *
 	 * @return 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
@@ -161,9 +116,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * 例外発生時のログ出力を行うかどうかを設定する.
 	 *
 	 * @param outputExceptionLog 例外発生時のログ出力を行うかどうか。ログ出力する場合は<code>true</code>
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog);
+	SqlAgentProvider setOutputExceptionLog(final boolean outputExceptionLog);
 
 	/**
 	 * フェッチサイズを取得する.
@@ -176,9 +131,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * フェッチサイズを設定する.
 	 *
 	 * @param fetchSize フェッチサイズ
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setFetchSize(final int fetchSize);
+	SqlAgentProvider setFetchSize(final int fetchSize);
 
 	/**
 	 * フェッチサイズを取得する.
@@ -191,9 +146,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * クエリタイムアウトを設定する.
 	 *
 	 * @param queryTimeout クエリタイムアウト
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setQueryTimeout(final int queryTimeout);
+	SqlAgentProvider setQueryTimeout(final int queryTimeout);
 
 	/**
 	 * SQLをリトライ実行するSQLエラーコードのリスト を取得する.
@@ -206,9 +161,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * SQLをリトライ実行するSQLエラーコードのリスト を設定する.
 	 *
 	 * @param sqlRetryCodeList SQLをリトライ実行するSQLエラーコードのリスト
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList);
+	SqlAgentProvider setSqlRetryCodeList(final List<String> sqlRetryCodeList);
 
 	/**
 	 * 最大リトライカウントの初期値を取得する.
@@ -221,9 +176,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * 最大リトライカウントの初期値を設定する.
 	 *
 	 * @param defaultMaxRetryCount 最大リトライカウントの初期値
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount);
+	SqlAgentProvider setDefaultMaxRetryCount(final int defaultMaxRetryCount);
 
 	/**
 	 * SQLリトライ時の待機時間（ms）の初期値を取得する.
@@ -236,9 +191,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * SQLリトライ時の待機時間（ms）の初期値を設定する.
 	 *
 	 * @param defaultSqlRetryWaitTime SQLリトライ時の待機時間（ms）の初期値
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime);
+	SqlAgentProvider setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime);
 
 	/**
 	 * SQL_IDを置換するためのKEY文字列を取得する.
@@ -251,9 +206,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * SQL_IDを置換するためのKEY文字列を設定する.
 	 *
 	 * @param sqlIdKeyName SQL_IDを置換するためのKEY文字列
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName);
+	SqlAgentProvider setSqlIdKeyName(final String sqlIdKeyName);
 
 	/**
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する.
@@ -266,9 +221,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する.
 	 *
 	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
+	SqlAgentProvider setDefaultMapKeyCaseFormat(CaseFormat defaultMapKeyCaseFormat);
 
 	/**
 	 * デフォルトの{@link InsertsType}を取得する.
@@ -282,10 +237,10 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * デフォルトの{@link InsertsType}を設定する.
 	 *
 	 * @param defaultInsertsType デフォルトの{@link InsertsType}
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
-	SqlAgentFactory setDefaultInsertsType(InsertsType defaultInsertsType);
+	SqlAgentProvider setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
 	 * トランザクション内での更新を強制するかどうかを取得する.
@@ -299,9 +254,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * <code>true</code>を指定するとトランザクションを開始していない状態で SELECT文以外のSQLを発行すると {@link UroborosqlTransactionException}をスローする
 	 *
 	 * @param forceUpdateWithinTransaction トランザクション内でのみ更新可能とするかどうか。
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setForceUpdateWithinTransaction(boolean forceUpdateWithinTransaction);
+	SqlAgentProvider setForceUpdateWithinTransaction(boolean forceUpdateWithinTransaction);
 
 	/**
 	 * 明示的な行ロック時の待機時間(s)デフォルト値を取得する.
@@ -314,9 +269,9 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * 明示的な行ロック時の待機時間(s)デフォルト値を設定する.
 	 *
 	 * @param defaultForUpdateWaitSeconds 明示的な行ロック時の待機時間(s)デフォルト値
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds);
+	SqlAgentProvider setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds);
 
 	/**
 	 * ForUpdateTypeの指定を厳格に扱うかどうかを取得する.
@@ -329,8 +284,8 @@ public interface SqlAgentFactory extends SqlConfigAware {
 	 * ForUpdateTypeの指定を厳格に扱うかどうかを設定する.
 	 *
 	 * @param strictForUpdateType ForUpdateTypeの指定を厳格に扱うかどうか
-	 * @return SqlAgentFactory
+	 * @return SqlAgentProvider
 	 */
-	SqlAgentFactory setStrictForUpdateType(boolean strictForUpdateType);
+	SqlAgentProvider setStrictForUpdateType(boolean strictForUpdateType);
 
 }

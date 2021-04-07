@@ -41,8 +41,8 @@ public class ExitCommand extends ReplCommand {
 		terminal.writer().flush();
 
 		try {
-			var sqlManager = sqlConfig.getSqlManager();
-			sqlManager.shutdown();
+			var sqlResourceManager = sqlConfig.getSqlResourceManager();
+			sqlResourceManager.shutdown();
 		} catch (Exception ex) {
 			// do nothing
 		}

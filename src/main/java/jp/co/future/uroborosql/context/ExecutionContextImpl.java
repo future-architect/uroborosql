@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,11 +46,11 @@ import jp.co.future.uroborosql.utils.BeanAccessor;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * SQLコンテキスト実装クラス
+ * ExecutionContext実装クラス
  *
  * @author H.Sugimoto
  */
-public class SqlContextImpl implements SqlContext {
+public class ExecutionContextImpl implements ExecutionContext {
 	/**
 	 * @see #getParameterNames()
 	 */
@@ -85,7 +84,7 @@ public class SqlContextImpl implements SqlContext {
 	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(SqlContextImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextImpl.class);
 
 	/** SQL名 */
 	private String sqlName;
@@ -151,10 +150,10 @@ public class SqlContextImpl implements SqlContext {
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
 	/** 自動パラメータバインド関数(query用) */
-	private Consumer<SqlContext> queryAutoParameterBinder = null;
+	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
 
 	/** 自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<SqlContext> updateAutoParameterBinder = null;
+	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
 
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
@@ -164,15 +163,15 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * コンストラクタ。
 	 */
-	SqlContextImpl() {
+	ExecutionContextImpl() {
 	}
 
 	/**
 	 * コピーコンストラクタ
 	 *
-	 * @param parent コピー元のSQLコンテキスト
+	 * @param parent コピー元のExecutionContext
 	 */
-	private SqlContextImpl(final SqlContextImpl parent) {
+	private ExecutionContextImpl(final ExecutionContextImpl parent) {
 		enabled = false;
 		sqlId = parent.sqlId;
 		sqlName = parent.sqlName;
@@ -198,7 +197,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public TransformContext copyTransformContext() {
-		return new SqlContextImpl(this);
+		return new ExecutionContextImpl(this);
 	}
 
 	/**
@@ -242,7 +241,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getSql()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getSql()
 	 */
 	@Override
 	public String getSql() {
@@ -252,10 +251,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setSql(java.lang.String)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSql(java.lang.String)
 	 */
 	@Override
-	public SqlContext setSql(final String originalSql) {
+	public ExecutionContext setSql(final String originalSql) {
 		this.originalSql = originalSql;
 		return this;
 	}
@@ -263,7 +262,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getSqlName()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getSqlName()
 	 */
 	@Override
 	public String getSqlName() {
@@ -273,10 +272,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setSqlName(java.lang.String)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSqlName(java.lang.String)
 	 */
 	@Override
-	public SqlContext setSqlName(final String sqlName) {
+	public ExecutionContext setSqlName(final String sqlName) {
 		this.sqlName = sqlName;
 		return this;
 	}
@@ -284,7 +283,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getSqlId()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getSqlId()
 	 */
 	@Override
 	public String getSqlId() {
@@ -294,10 +293,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setSqlId(java.lang.String)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSqlId(java.lang.String)
 	 */
 	@Override
-	public SqlContext setSqlId(final String sqlId) {
+	public ExecutionContext setSqlId(final String sqlId) {
 		this.sqlId = sqlId;
 		return this;
 	}
@@ -305,7 +304,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getMaxRetryCount()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getMaxRetryCount()
 	 */
 	@Override
 	public int getMaxRetryCount() {
@@ -315,10 +314,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setMaxRetryCount(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setMaxRetryCount(int)
 	 */
 	@Override
-	public SqlContext setMaxRetryCount(final int maxRetryCount) {
+	public ExecutionContext setMaxRetryCount(final int maxRetryCount) {
 		this.maxRetryCount = maxRetryCount;
 		return this;
 	}
@@ -326,7 +325,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getRetryWaitTime()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getRetryWaitTime()
 	 */
 	@Override
 	public int getRetryWaitTime() {
@@ -336,10 +335,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setRetryWaitTime(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setRetryWaitTime(int)
 	 */
 	@Override
-	public SqlContext setRetryWaitTime(final int retryWaitTime) {
+	public ExecutionContext setRetryWaitTime(final int retryWaitTime) {
 		this.retryWaitTime = retryWaitTime;
 		return this;
 	}
@@ -396,7 +395,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#context()
 	 */
 	@Override
-	public SqlContext context() {
+	public ExecutionContext context() {
 		return this;
 	}
 
@@ -415,9 +414,9 @@ public class SqlContextImpl implements SqlContext {
 	 *
 	 * @param parameter パラメータ
 	 *
-	 * @return SqlContext
+	 * @return ExecutionContext
 	 */
-	private SqlContext param(final Parameter parameter) {
+	private ExecutionContext param(final Parameter parameter) {
 		parameterMap.put(parameter.getParameterName(), parameter);
 		return this;
 	}
@@ -428,7 +427,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.parser.TransformContext#param(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public <V> SqlContext param(final String parameterName, final V value) {
+	public <V> ExecutionContext param(final String parameterName, final V value) {
 		return param(new Parameter(parameterName, value));
 	}
 
@@ -438,7 +437,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
 	 */
 	@Override
-	public <V> SqlContext param(final String paramName, final Supplier<V> supplier) {
+	public <V> ExecutionContext param(final String paramName, final Supplier<V> supplier) {
 		return this.param(paramName, supplier != null ? supplier.get() : null);
 	}
 
@@ -448,7 +447,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public <V> SqlContext paramIfAbsent(final String parameterName, final V value) {
+	public <V> ExecutionContext paramIfAbsent(final String parameterName, final V value) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value);
 		}
@@ -458,44 +457,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(String, Object...)
-	 */
-	@Override
-	@Deprecated
-	public <V> SqlContext paramList(final String parameterName, @SuppressWarnings("unchecked") final V... value) {
-		return param(parameterName, Arrays.asList(value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
-	 */
-	@Override
-	@Deprecated
-	public <V> SqlContext paramList(final String parameterName, final Supplier<Iterable<V>> supplier) {
-		return param(parameterName, supplier);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(String, Object...)
-	 */
-	@Override
-	@Deprecated
-	public <V> SqlContext paramListIfAbsent(final String parameterName,
-			@SuppressWarnings("unchecked") final V... value) {
-		return paramIfAbsent(parameterName, Arrays.asList(value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
 	 */
 	@Override
-	public SqlContext paramMap(final Map<String, Object> paramMap) {
+	public ExecutionContext paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
 			paramMap.forEach(this::param);
 		}
@@ -503,7 +468,7 @@ public class SqlContextImpl implements SqlContext {
 	}
 
 	@Override
-	public <V> SqlContext paramBean(final V bean) {
+	public <V> ExecutionContext paramBean(final V bean) {
 		if (bean != null) {
 			BeanAccessor.fields(bean.getClass()).stream()
 					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
@@ -517,7 +482,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public <V> SqlContext param(final String parameterName, final V value, final SQLType sqlType) {
+	public <V> ExecutionContext param(final String parameterName, final V value, final SQLType sqlType) {
 		return param(new Parameter(parameterName, value, sqlType));
 	}
 
@@ -527,7 +492,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public <V> SqlContext paramIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
+	public <V> ExecutionContext paramIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value, sqlType);
 		}
@@ -540,7 +505,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public <V> SqlContext param(final String parameterName, final V value, final int sqlType) {
+	public <V> ExecutionContext param(final String parameterName, final V value, final int sqlType) {
 		return param(new Parameter(parameterName, value, sqlType));
 	}
 
@@ -550,7 +515,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public <V> SqlContext paramIfAbsent(final String parameterName, final V value, final int sqlType) {
+	public <V> ExecutionContext paramIfAbsent(final String parameterName, final V value, final int sqlType) {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value, sqlType);
 		}
@@ -572,7 +537,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#outParam(java.lang.String, java.sql.SQLType)
 	 */
 	@Override
-	public SqlContext outParam(final String parameterName, final SQLType sqlType) {
+	public ExecutionContext outParam(final String parameterName, final SQLType sqlType) {
 		return param(new OutParameter(parameterName, sqlType));
 	}
 
@@ -582,7 +547,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#outParam(java.lang.String, int)
 	 */
 	@Override
-	public SqlContext outParam(final String parameterName, final int sqlType) {
+	public ExecutionContext outParam(final String parameterName, final int sqlType) {
 		return param(new OutParameter(parameterName, sqlType));
 	}
 
@@ -592,7 +557,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParam(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public <V> SqlContext inOutParam(final String parameterName, final V value, final SQLType sqlType) {
+	public <V> ExecutionContext inOutParam(final String parameterName, final V value, final SQLType sqlType) {
 		return param(new InOutParameter(parameterName, value, sqlType));
 	}
 
@@ -602,7 +567,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
 	 */
 	@Override
-	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
+	public <V> ExecutionContext inOutParamIfAbsent(final String parameterName, final V value, final SQLType sqlType) {
 		if (!hasParam(parameterName)) {
 			inOutParam(parameterName, value, sqlType);
 		}
@@ -615,7 +580,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParam(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public <V> SqlContext inOutParam(final String parameterName, final V value, final int sqlType) {
+	public <V> ExecutionContext inOutParam(final String parameterName, final V value, final int sqlType) {
 		return param(new InOutParameter(parameterName, value, sqlType));
 	}
 
@@ -625,7 +590,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.ProcedureFluent#inOutParamIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
-	public <V> SqlContext inOutParamIfAbsent(final String parameterName, final V value, final int sqlType) {
+	public <V> ExecutionContext inOutParamIfAbsent(final String parameterName, final V value, final int sqlType) {
 		if (!hasParam(parameterName)) {
 			inOutParam(parameterName, value, sqlType);
 		}
@@ -638,7 +603,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public SqlContext blobParam(final String parameterName, final InputStream value) {
+	public ExecutionContext blobParam(final String parameterName, final InputStream value) {
 		return param(new StreamParameter(parameterName, value));
 	}
 
@@ -648,7 +613,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public SqlContext blobParamIfAbsent(final String parameterName, final InputStream value) {
+	public ExecutionContext blobParamIfAbsent(final String parameterName, final InputStream value) {
 		if (!hasParam(parameterName)) {
 			blobParam(parameterName, value);
 		}
@@ -661,7 +626,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
-	public SqlContext blobParam(final String parameterName, final InputStream value, final int len) {
+	public ExecutionContext blobParam(final String parameterName, final InputStream value, final int len) {
 		return param(new StreamParameter(parameterName, value, len));
 	}
 
@@ -671,7 +636,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream, int)
 	 */
 	@Override
-	public SqlContext blobParamIfAbsent(final String parameterName, final InputStream value, final int len) {
+	public ExecutionContext blobParamIfAbsent(final String parameterName, final InputStream value, final int len) {
 		if (!hasParam(parameterName)) {
 			blobParam(parameterName, value, len);
 		}
@@ -684,7 +649,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader)
 	 */
 	@Override
-	public SqlContext clobParam(final String paramName, final Reader value) {
+	public ExecutionContext clobParam(final String paramName, final Reader value) {
 		return param(new ReaderParameter(paramName, value));
 	}
 
@@ -694,7 +659,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader)
 	 */
 	@Override
-	public SqlContext clobParamIfAbsent(final String paramName, final Reader value) {
+	public ExecutionContext clobParamIfAbsent(final String paramName, final Reader value) {
 		if (!hasParam(paramName)) {
 			clobParam(paramName, value);
 		}
@@ -707,7 +672,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader, int)
 	 */
 	@Override
-	public SqlContext clobParam(final String paramName, final Reader value, final int len) {
+	public ExecutionContext clobParam(final String paramName, final Reader value, final int len) {
 		return param(new ReaderParameter(paramName, value, len));
 	}
 
@@ -717,7 +682,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader, int)
 	 */
 	@Override
-	public SqlContext clobParamIfAbsent(final String paramName, final Reader value, final int len) {
+	public ExecutionContext clobParamIfAbsent(final String paramName, final Reader value, final int len) {
 		if (!hasParam(paramName)) {
 			clobParam(paramName, value, len);
 		}
@@ -730,7 +695,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int)
 	 */
 	@Override
-	public SqlContext retry(final int count) {
+	public ExecutionContext retry(final int count) {
 		return retry(count, 0);
 	}
 
@@ -740,7 +705,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int, int)
 	 */
 	@Override
-	public SqlContext retry(final int count, final int waitTime) {
+	public ExecutionContext retry(final int count, final int waitTime) {
 		return this.setMaxRetryCount(count).setRetryWaitTime(waitTime);
 	}
 
@@ -750,7 +715,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
 	 */
 	@Override
-	public SqlContext sqlId(final String sqlId) {
+	public ExecutionContext sqlId(final String sqlId) {
 		this.setSqlId(sqlId);
 		return this;
 	}
@@ -862,7 +827,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#bindParams(java.sql.PreparedStatement)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#bindParams(java.sql.PreparedStatement)
 	 */
 	@Override
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
@@ -886,7 +851,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#bindBatchParams(java.sql.PreparedStatement)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#bindBatchParams(java.sql.PreparedStatement)
 	 */
 	@Override
 	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
@@ -901,7 +866,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getOutParams(java.sql.CallableStatement)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getOutParams(java.sql.CallableStatement)
 	 */
 	@Override
 	public Map<String, Object> getOutParams(final CallableStatement callableStatement) throws SQLException {
@@ -923,10 +888,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#addBatch()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#addBatch()
 	 */
 	@Override
-	public SqlContext addBatch() {
+	public ExecutionContext addBatch() {
 		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
 		parameterMap = new HashMap<>();
@@ -936,10 +901,10 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#clearBatch()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#clearBatch()
 	 */
 	@Override
-	public SqlContext clearBatch() {
+	public ExecutionContext clearBatch() {
 		batchParameters.clear();
 		return this;
 	}
@@ -947,7 +912,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#batchCount()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#batchCount()
 	 */
 	@Override
 	public int batchCount() {
@@ -957,7 +922,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#acceptQueryAutoParameterBinder()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#acceptQueryAutoParameterBinder()
 	 */
 	@Override
 	public void acceptQueryAutoParameterBinder() {
@@ -969,7 +934,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#acceptUpdateAutoParameterBinder()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#acceptUpdateAutoParameterBinder()
 	 */
 	@Override
 	public void acceptUpdateAutoParameterBinder() {
@@ -981,7 +946,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#addDefineColumnType(int, int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#addDefineColumnType(int, int)
 	 */
 	@Override
 	public void addDefineColumnType(final int column, final int type) {
@@ -991,7 +956,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getDefineColumnTypes()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getDefineColumnTypes()
 	 */
 	@Override
 	public Map<Integer, Integer> getDefineColumnTypes() {
@@ -1001,7 +966,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setResultSetType(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setResultSetType(int)
 	 */
 	@Override
 	public void setResultSetType(final int resultSetType) {
@@ -1011,7 +976,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getResultSetType()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getResultSetType()
 	 */
 	@Override
 	public int getResultSetType() {
@@ -1021,7 +986,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setResultSetConcurrency(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setResultSetConcurrency(int)
 	 */
 	@Override
 	public void setResultSetConcurrency(final int resultSetConcurrency) {
@@ -1031,7 +996,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getResultSetConcurrency()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getResultSetConcurrency()
 	 */
 	@Override
 	public int getResultSetConcurrency() {
@@ -1041,7 +1006,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getSqlKind()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getSqlKind()
 	 */
 	@Override
 	public SqlKind getSqlKind() {
@@ -1051,7 +1016,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setSqlKind(jp.co.future.uroborosql.enums.SqlKind)
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSqlKind(jp.co.future.uroborosql.enums.SqlKind)
 	 */
 	@Override
 	public void setSqlKind(final SqlKind sqlKind) {
@@ -1116,7 +1081,7 @@ public class SqlContextImpl implements SqlContext {
 	 * 自動パラメータバインド関数(query用)を設定します
 	 * @param binder 自動パラメータバインド関数
 	 */
-	public void setQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public void setQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		this.queryAutoParameterBinder = binder;
 	}
 
@@ -1124,14 +1089,14 @@ public class SqlContextImpl implements SqlContext {
 	 * 自動パラメータバインド関数(update/batch/proc用)を設定します
 	 * @param binder 自動パラメータバインド関数
 	 */
-	public void setUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public void setUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		this.updateAutoParameterBinder = binder;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#contextAttrs()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#contextAttrs()
 	 */
 	@Override
 	public Map<String, Object> contextAttrs() {
@@ -1141,7 +1106,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#formatParams()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#formatParams()
 	 */
 	@Override
 	public String formatParams() {
@@ -1155,7 +1120,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getGeneratedKeyColumns()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getGeneratedKeyColumns()
 	 */
 	@Override
 	public String[] getGeneratedKeyColumns() {
@@ -1165,7 +1130,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyColumns(java.lang.String[])
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setGeneratedKeyColumns(java.lang.String[])
 	 */
 	@Override
 	public void setGeneratedKeyColumns(final String[] generatedKeyColumns) {
@@ -1175,7 +1140,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getGeneratedKeyValues()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getGeneratedKeyValues()
 	 */
 	@Override
 	public Object[] getGeneratedKeyValues() {
@@ -1185,7 +1150,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setGeneratedKeyValues(java.lang.Object[])
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setGeneratedKeyValues(java.lang.Object[])
 	 */
 	@Override
 	public void setGeneratedKeyValues(final Object[] generatedKeyValues) {
@@ -1195,7 +1160,7 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#hasGeneratedKeyColumns()
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#hasGeneratedKeyColumns()
 	 */
 	@Override
 	public boolean hasGeneratedKeyColumns() {

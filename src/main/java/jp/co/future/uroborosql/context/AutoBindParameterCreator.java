@@ -19,7 +19,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
 public interface AutoBindParameterCreator {
 
 	/**
-	 * SqlContextに自動的にバインドするパラメータのマップを取得する
+	 * ExecutionContextに自動的にバインドするパラメータのマップを取得する
 	 *
 	 * @return パラメータマップ（key:パラメータ名, value:パラメータ）
 	 */

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.Map;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.Procedure;
 
 /**
@@ -23,9 +23,9 @@ final class ProcedureImpl extends AbstractSqlFluent<Procedure> implements Proced
 	 * コンストラクタ
 	 *
 	 * @param agent SqlAgent
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
-	ProcedureImpl(final SqlAgent agent, final SqlContext context) {
+	ProcedureImpl(final SqlAgent agent, final ExecutionContext context) {
 		super(agent, context);
 	}
 

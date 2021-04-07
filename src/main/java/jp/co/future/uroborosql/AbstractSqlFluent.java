@@ -9,19 +9,18 @@ package jp.co.future.uroborosql;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
 	protected final SqlAgent agent;
-	protected final SqlContext context;
+	protected final ExecutionContext context;
 
-	protected AbstractSqlFluent(final SqlAgent agent, final SqlContext context) {
+	protected AbstractSqlFluent(final SqlAgent agent, final ExecutionContext context) {
 		this.agent = agent;
 		this.context = context;
 	}
@@ -41,47 +40,8 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#context()
 	 */
 	@Override
-	public SqlContext context() {
+	public ExecutionContext context() {
 		return context;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.lang.Object[])
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramList(final String paramName, final V... value) {
-		context().param(paramName, Arrays.asList(value));
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramList(java.lang.String, java.util.function.Supplier)
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramList(final String paramName, final Supplier<Iterable<V>> supplier) {
-		context().param(paramName, supplier);
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramListIfAbsent(java.lang.String, java.lang.Object[])
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	@Deprecated
-	public <V> T paramListIfAbsent(final String paramName, final V... value) {
-		context().paramIfAbsent(paramName, Arrays.asList(value));
-		return (T) this;
 	}
 
 	/**

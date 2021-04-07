@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.TriConsumer;
@@ -25,14 +25,14 @@ import jp.co.future.uroborosql.utils.BeanAccessor;
  * @since 0.5.0
  */
 final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch {
-	private static final BiPredicate<SqlContext, Map<String, Object>> DEFAULT_BATCH_WHEN_CONDITION = (ctx, row) -> ctx
+	private static final BiPredicate<ExecutionContext, Map<String, Object>> DEFAULT_BATCH_WHEN_CONDITION = (ctx, row) -> ctx
 			.batchCount() == 1000;
 
-	private static final BiConsumer<SqlAgent, SqlContext> DEFAULT_BATCH_ACTION = (agent, ctx) -> {
+	private static final BiConsumer<SqlAgent, ExecutionContext> DEFAULT_BATCH_ACTION = (agent, ctx) -> {
 		/* do nothing */
 	};
 
-	private static final TriConsumer<SqlAgent, SqlContext, Exception> DEFAULT_ERROR_ACTION = (agent, ctx, ex) -> {
+	private static final TriConsumer<SqlAgent, ExecutionContext, Exception> DEFAULT_ERROR_ACTION = (agent, ctx, ex) -> {
 		throw new UroborosqlRuntimeException(ex);
 	};
 
@@ -40,21 +40,21 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	private Stream<?> stream = null;
 
 	/** 一括更新の発行判定条件 */
-	private BiPredicate<SqlContext, Map<String, Object>> condition = DEFAULT_BATCH_WHEN_CONDITION;
+	private BiPredicate<ExecutionContext, Map<String, Object>> condition = DEFAULT_BATCH_WHEN_CONDITION;
 
 	/** バッチ実行時アクション */
-	private BiConsumer<SqlAgent, SqlContext> batchAction = DEFAULT_BATCH_ACTION;
+	private BiConsumer<SqlAgent, ExecutionContext> batchAction = DEFAULT_BATCH_ACTION;
 
 	/** エラー時アクション */
-	private TriConsumer<SqlAgent, SqlContext, Exception> errorAction = DEFAULT_ERROR_ACTION;
+	private TriConsumer<SqlAgent, ExecutionContext, Exception> errorAction = DEFAULT_ERROR_ACTION;
 
 	/**
 	 * コンストラクタ
 	 *
 	 * @param agent SqlAgent
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
-	SqlBatchImpl(final SqlAgent agent, final SqlContext context) {
+	SqlBatchImpl(final SqlAgent agent, final ExecutionContext context) {
 		super(agent, context);
 	}
 
@@ -79,7 +79,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 * @see jp.co.future.uroborosql.fluent.SqlBatch#by(java.util.function.BiPredicate)
 	 */
 	@Override
-	public SqlBatch by(final BiPredicate<SqlContext, Map<String, Object>> condition) {
+	public SqlBatch by(final BiPredicate<ExecutionContext, Map<String, Object>> condition) {
 		this.condition = condition;
 		return this;
 	}
@@ -90,7 +90,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 * @see jp.co.future.uroborosql.fluent.SqlBatch#batchWhen(java.util.function.BiConsumer)
 	 */
 	@Override
-	public SqlBatch batchWhen(final BiConsumer<SqlAgent, SqlContext> action) {
+	public SqlBatch batchWhen(final BiConsumer<SqlAgent, ExecutionContext> action) {
 		this.batchAction = action;
 		return this;
 	}
@@ -101,7 +101,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 * @see jp.co.future.uroborosql.fluent.SqlBatch#errorWhen(jp.co.future.uroborosql.fluent.TriConsumer)
 	 */
 	@Override
-	public SqlBatch errorWhen(final TriConsumer<SqlAgent, SqlContext, Exception> action) {
+	public SqlBatch errorWhen(final TriConsumer<SqlAgent, ExecutionContext, Exception> action) {
 		this.errorAction = action;
 		return this;
 	}

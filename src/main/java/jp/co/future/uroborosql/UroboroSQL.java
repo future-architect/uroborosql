@@ -23,9 +23,9 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.context.SqlContextFactory;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.context.ExecutionContextProvider;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.expr.ExpressionParser;
@@ -34,8 +34,8 @@ import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlManager;
-import jp.co.future.uroborosql.store.SqlManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManager;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 
 /**
  * UroboroSQLを利用する際、初めに利用するクラス.
@@ -109,10 +109,10 @@ public final class UroboroSQL {
 
 	public static final class UroboroSQLBuilder {
 		private ConnectionSupplier connectionSupplier;
-		private SqlManager sqlManager;
+		private SqlResourceManager sqlResourceManager;
 		private SqlFilterManager sqlFilterManager;
-		private SqlContextFactory sqlContextFactory;
-		private SqlAgentFactory sqlAgentFactory;
+		private ExecutionContextProvider executionContextProvider;
+		private SqlAgentProvider sqlAgentProvider;
 		private EntityHandler<?> entityHandler;
 		private Clock clock;
 		private Dialect dialect;
@@ -120,10 +120,10 @@ public final class UroboroSQL {
 
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
-			this.sqlManager = new SqlManagerImpl();
+			this.sqlResourceManager = new SqlResourceManagerImpl();
 			this.sqlFilterManager = new SqlFilterManagerImpl();
-			this.sqlContextFactory = new SqlContextFactoryImpl();
-			this.sqlAgentFactory = new SqlAgentFactoryImpl();
+			this.executionContextProvider = new ExecutionContextProviderImpl();
+			this.sqlAgentProvider = new SqlAgentProviderImpl();
 			this.entityHandler = new DefaultEntityHandler();
 			this.clock = null;
 			this.dialect = null;
@@ -131,13 +131,13 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlManagerの設定.
+		 * SqlResourceManagerの設定.
 		 *
-		 * @param sqlManager sqlManager
+		 * @param sqlResourceManager sqlResourceManager
 		 * @return UroboroSQLBuilder
 		 */
-		public UroboroSQLBuilder setSqlManager(final SqlManager sqlManager) {
-			this.sqlManager = sqlManager;
+		public UroboroSQLBuilder setSqlResourceManager(final SqlResourceManager sqlResourceManager) {
+			this.sqlResourceManager = sqlResourceManager;
 			return this;
 		}
 
@@ -164,24 +164,24 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlContextFactoryの作成.
+		 * ExecutionContextProviderの作成.
 		 *
-		 * @param sqlContextFactory sqlContextFactory
+		 * @param executionContextProvider executionContextProvider
 		 * @return UroboroSQLBuilder
 		 */
-		public UroboroSQLBuilder setSqlContextFactory(final SqlContextFactory sqlContextFactory) {
-			this.sqlContextFactory = sqlContextFactory;
+		public UroboroSQLBuilder setExecutionContextProvider(final ExecutionContextProvider executionContextProvider) {
+			this.executionContextProvider = executionContextProvider;
 			return this;
 		}
 
 		/**
-		 * SqlAgentFactoryの設定.
+		 * SqlAgentProviderの設定.
 		 *
-		 * @param sqlAgentFactory sqlAgentFactory
+		 * @param sqlAgentProvider sqlAgentProvider
 		 * @return UroboroSQLBuilder
 		 */
-		public UroboroSQLBuilder setSqlAgentFactory(final SqlAgentFactory sqlAgentFactory) {
-			this.sqlAgentFactory = sqlAgentFactory;
+		public UroboroSQLBuilder setSqlAgentProvider(final SqlAgentProvider sqlAgentProvider) {
+			this.sqlAgentProvider = sqlAgentProvider;
 			return this;
 		}
 
@@ -241,9 +241,9 @@ public final class UroboroSQL {
 			}
 
 			return new InternalConfig(this.connectionSupplier,
-					this.sqlManager,
-					this.sqlContextFactory,
-					this.sqlAgentFactory,
+					this.sqlResourceManager,
+					this.executionContextProvider,
+					this.sqlAgentProvider,
 					this.sqlFilterManager,
 					this.entityHandler,
 					this.clock,
@@ -260,19 +260,19 @@ public final class UroboroSQL {
 		private final ConnectionSupplier connectionSupplier;
 
 		/**
-		 * SQL管理クラス.
+		 * SQLリソース管理クラス.
 		 */
-		private final SqlManager sqlManager;
+		private final SqlResourceManager sqlResourceManager;
 
 		/**
-		 * SqlContextファクトリクラス.
+		 * ExecutionContextProviderプロバイダクラス.
 		 */
-		private final SqlContextFactory sqlContextFactory;
+		private final ExecutionContextProvider executionContextProvider;
 
 		/**
 		 * SqlAgentファクトリクラス.
 		 */
-		private final SqlAgentFactory sqlAgentFactory;
+		private final SqlAgentProvider sqlAgentProvider;
 
 		/**
 		 * SqlFilter管理クラス.
@@ -300,18 +300,18 @@ public final class UroboroSQL {
 		private final ExpressionParser expressionParser;
 
 		InternalConfig(final ConnectionSupplier connectionSupplier,
-				final SqlManager sqlManager,
-				final SqlContextFactory sqlContextFactory,
-				final SqlAgentFactory sqlAgentFactory,
+				final SqlResourceManager sqlResourceManager,
+				final ExecutionContextProvider executionContextProvider,
+				final SqlAgentProvider sqlAgentProvider,
 				final SqlFilterManager sqlFilterManager,
 				final EntityHandler<?> entityHandler,
 				final Clock clock,
 				final Dialect dialect,
 				final ExpressionParser expressionParser) {
 			this.connectionSupplier = connectionSupplier;
-			this.sqlManager = sqlManager;
-			this.sqlContextFactory = sqlContextFactory;
-			this.sqlAgentFactory = sqlAgentFactory;
+			this.sqlResourceManager = sqlResourceManager;
+			this.executionContextProvider = executionContextProvider;
+			this.sqlAgentProvider = sqlAgentProvider;
 			this.sqlFilterManager = sqlFilterManager;
 			this.entityHandler = entityHandler;
 			if (clock == null) {
@@ -341,15 +341,15 @@ public final class UroboroSQL {
 			log.debug("SqlConfig - ExpressionParser : " + this.expressionParser.getClass().getSimpleName()
 					+ " has been selected.");
 
-			this.sqlManager.setDialect(this.dialect);
-			this.sqlContextFactory.setSqlConfig(this);
-			this.sqlAgentFactory.setSqlConfig(this);
+			this.sqlResourceManager.setDialect(this.dialect);
+			this.executionContextProvider.setSqlConfig(this);
+			this.sqlAgentProvider.setSqlConfig(this);
 			this.expressionParser.setSqlConfig(this);
 			this.entityHandler.setSqlConfig(this);
 
-			this.sqlManager.initialize();
+			this.sqlResourceManager.initialize();
 			this.sqlFilterManager.initialize();
-			this.sqlContextFactory.initialize();
+			this.executionContextProvider.initialize();
 			this.expressionParser.initialize();
 			this.entityHandler.initialize();
 		}
@@ -360,8 +360,8 @@ public final class UroboroSQL {
 		 * @see jp.co.future.uroborosql.config.SqlConfig#context()
 		 */
 		@Override
-		public SqlContext context() {
-			return sqlContextFactory.createSqlContext();
+		public ExecutionContext context() {
+			return executionContextProvider.createExecutionContext();
 		}
 
 		/**
@@ -370,8 +370,8 @@ public final class UroboroSQL {
 		 * @see jp.co.future.uroborosql.config.SqlConfig#contextFrom(java.lang.String)
 		 */
 		@Override
-		public SqlContext contextFrom(final String sqlName) {
-			return sqlContextFactory.createSqlContext().setSqlName(sqlName);
+		public ExecutionContext contextFrom(final String sqlName) {
+			return executionContextProvider.createExecutionContext().setSqlName(sqlName);
 		}
 
 		/**
@@ -380,29 +380,18 @@ public final class UroboroSQL {
 		 * @see jp.co.future.uroborosql.config.SqlConfig#contextWith(java.lang.String)
 		 */
 		@Override
-		public SqlContext contextWith(final String sql) {
-			return sqlContextFactory.createSqlContext().setSql(sql);
+		public ExecutionContext contextWith(final String sql) {
+			return executionContextProvider.createExecutionContext().setSql(sql);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#createAgent()
-		 */
-		@Override
-		@Deprecated
-		public SqlAgent createAgent() {
-			return this.agent();
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#createAgent()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#agent()
 		 */
 		@Override
 		public SqlAgent agent() {
-			return sqlAgentFactory.agent();
+			return sqlAgentProvider.agent();
 		}
 
 		/**
@@ -412,17 +401,17 @@ public final class UroboroSQL {
 		 */
 		@Override
 		public SqlAgent agent(final ConnectionContext connectionContext) {
-			return sqlAgentFactory.agent(connectionContext);
+			return sqlAgentProvider.agent(connectionContext);
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlManager()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlResourceManager()
 		 */
 		@Override
-		public SqlManager getSqlManager() {
-			return sqlManager;
+		public SqlResourceManager getSqlResourceManager() {
+			return sqlResourceManager;
 		}
 
 		/**
@@ -448,21 +437,21 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlContextFactory()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getExecutionContextProvider()
 		 */
 		@Override
-		public SqlContextFactory getSqlContextFactory() {
-			return sqlContextFactory;
+		public ExecutionContextProvider getExecutionContextProvider() {
+			return executionContextProvider;
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlAgentFactory()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlAgentProvider()
 		 */
 		@Override
-		public SqlAgentFactory getSqlAgentFactory() {
-			return sqlAgentFactory;
+		public SqlAgentProvider getSqlAgentProvider() {
+			return sqlAgentProvider;
 		}
 
 		/**

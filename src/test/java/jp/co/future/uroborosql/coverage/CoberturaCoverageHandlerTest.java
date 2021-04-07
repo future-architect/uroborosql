@@ -19,7 +19,7 @@ import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
 public class CoberturaCoverageHandlerTest {
 	/**
-	 * SQL管理クラス
+	 * SQLリソース管理クラス
 	 */
 	SqlConfig config;
 

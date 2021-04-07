@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.ExtractionCondition;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.mapping.TableMetadata;
@@ -44,9 +44,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 *
 	 * @param agent SqlAgent
 	 * @param tableMetadata TableMetadata
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
-	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata, final SqlContext context) {
+	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata, final ExecutionContext context) {
 		super(agent, context);
 		this.tableMetadata = tableMetadata;
 		this.rawStrings = new ArrayList<>();

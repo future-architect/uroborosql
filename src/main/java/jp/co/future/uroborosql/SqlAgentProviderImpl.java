@@ -14,20 +14,16 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.store.SqlManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
- * Sql実行クラスのファクトリクラス。
+ * Sql実行クラスのプロバイダクラス。
  *
  * @author H.Sugimoto
  */
-public class SqlAgentFactoryImpl implements SqlAgentFactory {
+public class SqlAgentProviderImpl implements SqlAgentProvider {
 	/**
 	 * プロパティ:例外発生時のログ出力を行うかどうか。
 	 * デフォルトは<code>true</code>
@@ -44,7 +40,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 * コンストラクタ。
 	 *
 	 */
-	public SqlAgentFactoryImpl() {
+	public SqlAgentProviderImpl() {
 		this(null);
 	}
 
@@ -53,7 +49,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	 *
 	 * @param sqlConfig SQL設定管理クラス
 	 */
-	public SqlAgentFactoryImpl(final SqlConfig sqlConfig) {
+	public SqlAgentProviderImpl(final SqlConfig sqlConfig) {
 		this.sqlConfig = sqlConfig;
 		settings.put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.TRUE.toString());
 	}
@@ -61,19 +57,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @deprecated Instead, use the agent() method.
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#createSqlAgent()
-	 */
-	@Deprecated
-	@Override
-	public SqlAgent createSqlAgent() {
-		return this.agent();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#agent()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#agent()
 	 */
 	@Override
 	public SqlAgent agent() {
@@ -83,7 +67,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#agent(jp.co.future.uroborosql.connection.ConnectionContext)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#agent(jp.co.future.uroborosql.connection.ConnectionContext)
 	 */
 	@Override
 	public SqlAgent agent(final ConnectionContext connectionContext) {
@@ -91,50 +75,6 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 			throw new UroborosqlRuntimeException();
 		}
 		return new SqlAgentImpl(sqlConfig, settings, connectionContext);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getConnectionSupplier()
-	 */
-	@Deprecated
-	@Override
-	public ConnectionSupplier getConnectionSupplier() {
-		return sqlConfig == null ? null : sqlConfig.getConnectionSupplier();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlManager()
-	 */
-	@Deprecated
-	@Override
-	public SqlManager getSqlManager() {
-		return sqlConfig == null ? null : sqlConfig.getSqlManager();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlFilterManager()
-	 */
-	@Deprecated
-	@Override
-	public SqlFilterManager getSqlFilterManager() {
-		return sqlConfig == null ? null : sqlConfig.getSqlFilterManager();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getEntityHandler()
-	 */
-	@Deprecated
-	@Override
-	public EntityHandler<?> getEntityHandler() {
-		return sqlConfig == null ? null : sqlConfig.getEntityHandler();
 	}
 
 	/**
@@ -160,7 +100,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#isOutputExceptionLog()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#isOutputExceptionLog()
 	 */
 	@Override
 	public boolean isOutputExceptionLog() {
@@ -170,10 +110,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setOutputExceptionLog(boolean)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setOutputExceptionLog(boolean)
 	 */
 	@Override
-	public SqlAgentFactory setOutputExceptionLog(final boolean outputExceptionLog) {
+	public SqlAgentProvider setOutputExceptionLog(final boolean outputExceptionLog) {
 		settings.put(PROPS_KEY_OUTPUT_EXCEPTION_LOG, Boolean.toString(outputExceptionLog));
 		return this;
 	}
@@ -181,7 +121,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getFetchSize()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getFetchSize()
 	 */
 	@Override
 	public int getFetchSize() {
@@ -191,10 +131,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setFetchSize(int)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setFetchSize(int)
 	 */
 	@Override
-	public SqlAgentFactory setFetchSize(final int fetchSize) {
+	public SqlAgentProvider setFetchSize(final int fetchSize) {
 		settings.put(PROPS_KEY_FETCH_SIZE, String.valueOf(fetchSize));
 		return this;
 	}
@@ -202,7 +142,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getQueryTimeout()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getQueryTimeout()
 	 */
 	@Override
 	public int getQueryTimeout() {
@@ -212,10 +152,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setQueryTimeout(int)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setQueryTimeout(int)
 	 */
 	@Override
-	public SqlAgentFactory setQueryTimeout(final int queryTimeout) {
+	public SqlAgentProvider setQueryTimeout(final int queryTimeout) {
 		settings.put(PROPS_KEY_QUERY_TIMEOUT, String.valueOf(queryTimeout));
 		return this;
 	}
@@ -223,7 +163,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlRetryCodeList()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getSqlRetryCodeList()
 	 */
 	@Override
 	public List<String> getSqlRetryCodeList() {
@@ -238,10 +178,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlRetryCodeList(java.util.List)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setSqlRetryCodeList(java.util.List)
 	 */
 	@Override
-	public SqlAgentFactory setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
+	public SqlAgentProvider setSqlRetryCodeList(final List<String> sqlRetryCodeList) {
 		if (sqlRetryCodeList != null && !sqlRetryCodeList.isEmpty()) {
 			settings.put(PROPS_KEY_SQL_RETRY_CODES, String.join(",", sqlRetryCodeList));
 		}
@@ -251,7 +191,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultMaxRetryCount()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getDefaultMaxRetryCount()
 	 */
 	@Override
 	public int getDefaultMaxRetryCount() {
@@ -261,10 +201,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMaxRetryCount(int)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setDefaultMaxRetryCount(int)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
+	public SqlAgentProvider setDefaultMaxRetryCount(final int defaultMaxRetryCount) {
 		settings.put(PROPS_KEY_DEFAULT_MAX_RETRY_COUNT, String.valueOf(defaultMaxRetryCount));
 		return this;
 	}
@@ -272,7 +212,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultSqlRetryWaitTime()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getDefaultSqlRetryWaitTime()
 	 */
 	@Override
 	public int getDefaultSqlRetryWaitTime() {
@@ -282,10 +222,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultSqlRetryWaitTime(int)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setDefaultSqlRetryWaitTime(int)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
+	public SqlAgentProvider setDefaultSqlRetryWaitTime(final int defaultSqlRetryWaitTime) {
 		settings.put(PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME, String.valueOf(defaultSqlRetryWaitTime));
 		return this;
 	}
@@ -293,7 +233,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getSqlIdKeyName()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getSqlIdKeyName()
 	 */
 	@Override
 	public String getSqlIdKeyName() {
@@ -303,10 +243,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setSqlIdKeyName(java.lang.String)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setSqlIdKeyName(java.lang.String)
 	 */
 	@Override
-	public SqlAgentFactory setSqlIdKeyName(final String sqlIdKeyName) {
+	public SqlAgentProvider setSqlIdKeyName(final String sqlIdKeyName) {
 		settings.put(PROPS_KEY_SQL_ID_KEY_NAME, sqlIdKeyName);
 		return this;
 	}
@@ -314,7 +254,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultMapKeyCaseFormat()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getDefaultMapKeyCaseFormat()
 	 */
 	@Override
 	public CaseFormat getDefaultMapKeyCaseFormat() {
@@ -325,10 +265,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultMapKeyCaseFormat(jp.co.future.uroborosql.utils.CaseFormat)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setDefaultMapKeyCaseFormat(jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
+	public SqlAgentProvider setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat) {
 		settings.put(PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT, defaultMapKeyCaseFormat.toString());
 		return this;
 	}
@@ -336,7 +276,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultInsertsType()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getDefaultInsertsType()
 	 */
 	@Override
 	public InsertsType getDefaultInsertsType() {
@@ -347,10 +287,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultInsertsType(InsertsType)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setDefaultInsertsType(InsertsType)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultInsertsType(final InsertsType defaultInsertsType) {
+	public SqlAgentProvider setDefaultInsertsType(final InsertsType defaultInsertsType) {
 		settings.put(PROPS_KEY_DEFAULT_INSERTS_TYPE, defaultInsertsType.toString());
 		return this;
 	}
@@ -358,7 +298,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#isForceUpdateWithinTransaction()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#isForceUpdateWithinTransaction()
 	 */
 	@Override
 	public boolean isForceUpdateWithinTransaction() {
@@ -370,10 +310,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setForceUpdateWithinTransaction(boolean)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setForceUpdateWithinTransaction(boolean)
 	 */
 	@Override
-	public SqlAgentFactory setForceUpdateWithinTransaction(final boolean forceUpdateWithinTransaction) {
+	public SqlAgentProvider setForceUpdateWithinTransaction(final boolean forceUpdateWithinTransaction) {
 		settings.put(PROPS_KEY_FORCE_UPDATE_WITHIN_TRANSACTION,
 				Boolean.toString(forceUpdateWithinTransaction));
 		return this;
@@ -382,7 +322,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#getDefaultForUpdateWaitSeconds()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#getDefaultForUpdateWaitSeconds()
 	 */
 	@Override
 	public int getDefaultForUpdateWaitSeconds() {
@@ -392,10 +332,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setDefaultForUpdateWaitSeconds(int)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setDefaultForUpdateWaitSeconds(int)
 	 */
 	@Override
-	public SqlAgentFactory setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds) {
+	public SqlAgentProvider setDefaultForUpdateWaitSeconds(final int defaultForUpdateWaitSeconds) {
 		settings.put(PROPS_KEY_DEFAULT_FOR_UPDATE_WAIT_SECONDS, String.valueOf(defaultForUpdateWaitSeconds));
 		return this;
 	}
@@ -403,7 +343,7 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#isStrictForUpdateType()
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#isStrictForUpdateType()
 	 */
 	@Override
 	public boolean isStrictForUpdateType() {
@@ -414,10 +354,10 @@ public class SqlAgentFactoryImpl implements SqlAgentFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgentFactory#setStrictForUpdateType(boolean)
+	 * @see jp.co.future.uroborosql.SqlAgentProvider#setStrictForUpdateType(boolean)
 	 */
 	@Override
-	public SqlAgentFactory setStrictForUpdateType(final boolean strictForUpdateType) {
+	public SqlAgentProvider setStrictForUpdateType(final boolean strictForUpdateType) {
 		settings.put(PROPS_KEY_STRICT_FOR_UPDATE_TYPE, Boolean.toString(strictForUpdateType));
 		return this;
 	}

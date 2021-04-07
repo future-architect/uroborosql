@@ -38,7 +38,6 @@ public class JavaTypeTest {
 	class Test02 extends Abs1Test02<Object, BigDecimal, Object> {
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void test02() throws NoSuchFieldException, SecurityException {
 		var field = Abs2Test02.class.getDeclaredField("test");
@@ -47,9 +46,6 @@ public class JavaTypeTest {
 
 		javaType = JavaType.of(Abs1Test02.class, field);
 		assertThat(javaType.toString(), is("java.lang.Number"));
-
-		javaType = JavaType.of(field.getGenericType());
-		assertThat(javaType.toString(), is("java.lang.Object"));
 	}
 
 	class Abs2Test03<A, T, B> {

@@ -32,7 +32,7 @@ public class SqlAgentQueryWithIteratorTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
-		config.getSqlAgentFactory().setFetchSize(1000);
+		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");

@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionManager;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -75,7 +75,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
-	public SqlContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -84,10 +84,10 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#doSelect(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.context.SqlContext, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#doSelect(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.context.ExecutionContext, java.lang.Class)
 	 */
 	@Override
-	public <E> Stream<E> doSelect(final SqlAgent agent, final SqlContext context, final Class<? extends E> entityType)
+	public <E> Stream<E> doSelect(final SqlAgent agent, final ExecutionContext context, final Class<? extends E> entityType)
 			throws SQLException {
 		return agent.query(context, new EntityResultSetConverter<>(entityType, propertyMapperManager));
 	}
@@ -98,7 +98,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createInsertContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
 	 */
 	@Override
-	public SqlContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -110,7 +110,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
-	public SqlContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -122,7 +122,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
 	 */
 	@Override
-	public SqlContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -134,7 +134,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBatchInsertContext(SqlAgent, TableMetadata, Class)
 	 */
 	@Override
-	public SqlContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -146,7 +146,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBulkInsertContext(SqlAgent, TableMetadata, Class)
 	 */
 	@Override
-	public SqlContext createBulkInsertContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createBulkInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.context().setSqlId(createSqlId(metadata, entityType));
 	}
@@ -157,7 +157,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBatchUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
 	 */
 	@Override
-	public SqlContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
+	public ExecutionContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
 				.setSqlId(createSqlId(metadata, entityType));
@@ -166,10 +166,10 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setupSqlBulkInsertContext(SqlAgent, SqlContext, TableMetadata, Class, int)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setupSqlBulkInsertContext(SqlAgent, ExecutionContext, TableMetadata, Class, int)
 	 */
 	@Override
-	public SqlContext setupSqlBulkInsertContext(final SqlAgent agent, final SqlContext context,
+	public ExecutionContext setupSqlBulkInsertContext(final SqlAgent agent, final ExecutionContext context,
 			final TableMetadata metadata, final Class<? extends Object> entityType, final int numberOfRecords) {
 		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig(), numberOfRecords));
 	}
@@ -177,40 +177,40 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setInsertParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setInsertParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
 	 */
 	@Override
-	public void setInsertParams(final SqlContext context, final Object entity) {
+	public void setInsertParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.INSERT, MappingColumn::getCamelName);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setUpdateParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setUpdateParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
 	 */
 	@Override
-	public void setUpdateParams(final SqlContext context, final Object entity) {
+	public void setUpdateParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.UPDATE, MappingColumn::getCamelName);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setDeleteParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setDeleteParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
 	 */
 	@Override
-	public void setDeleteParams(final SqlContext context, final Object entity) {
+	public void setDeleteParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.DELETE, MappingColumn::getCamelName);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setBulkInsertParams(jp.co.future.uroborosql.context.SqlContext, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setBulkInsertParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object, int)
 	 */
 	@Override
-	public void setBulkInsertParams(final SqlContext context, final Object entity, final int entityIndex) {
+	public void setBulkInsertParams(final ExecutionContext context, final Object entity, final int entityIndex) {
 		setFields(context, entity, SqlKind.INSERT, col -> buildBulkParamName(col.getCamelName(), entityIndex));
 	}
 
@@ -296,7 +296,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
 		final var sql = new StringBuilder(
-				buildSelectClause(metadata, type, sqlConfig.getSqlAgentFactory().getSqlIdKeyName()));
+				buildSelectClause(metadata, type, sqlConfig.getSqlAgentProvider().getSqlIdKeyName()));
 
 		if (addCondition) {
 			sql.append("/*BEGIN*/").append(System.lineSeparator());
@@ -437,7 +437,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	protected String buildUpdateSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final boolean addCondition, final boolean ignoreWhenEmpty) {
 		var sql = new StringBuilder("UPDATE ").append("/* ")
-				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
+				.append(sqlConfig.getSqlAgentProvider().getSqlIdKeyName()).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
 		var mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.UPDATE);
@@ -567,7 +567,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	protected String buildDeleteSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final boolean addCondition) {
 		var sql = new StringBuilder("DELETE ").append("/* ")
-				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
+				.append(sqlConfig.getSqlAgentProvider().getSqlIdKeyName()).append(" */")
 				.append(" FROM ").append(metadata.getTableIdentifier()).append("").append(System.lineSeparator());
 
 		if (addCondition) {
@@ -615,7 +615,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
 
 		var sql = new StringBuilder("INSERT ").append("/* ")
-				.append(sqlConfig.getSqlAgentFactory().getSqlIdKeyName()).append(" */")
+				.append(sqlConfig.getSqlAgentProvider().getSqlIdKeyName()).append(" */")
 				.append(" INTO ").append(metadata.getTableIdentifier()).append(" (").append(System.lineSeparator());
 
 		var firstFlag = true;
@@ -767,14 +767,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	}
 
 	/**
-	 * entityのフィールドの値をSqlContextにバインドする.
+	 * entityのフィールドの値をExecutionContextにバインドする.
 	 *
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 * @param entity フィールドをバインドするEntityオブジェクト
 	 * @param kind SQL種別
 	 * @param getParamName パラメータ名取得関数
 	 */
-	protected void setFields(final SqlContext context, final Object entity, final SqlKind kind,
+	protected void setFields(final ExecutionContext context, final Object entity, final SqlKind kind,
 			final Function<MappingColumn, String> getParamName) {
 		List<String> generatedKeyColumns = new ArrayList<>();
 		if (context.getGeneratedKeyColumns() != null) {

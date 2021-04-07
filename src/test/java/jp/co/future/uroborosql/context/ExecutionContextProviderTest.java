@@ -4,14 +4,11 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -25,28 +22,28 @@ import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.parameter.Parameter;
 
-public class SqlContextFactoryTest {
+public class ExecutionContextProviderTest {
 
 	private SqlConfig sqlConfig;
 
-	private SqlContextFactory sqlContextFactory;
+	private ExecutionContextProvider executionContextFactory;
 
 	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL
 				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
-		sqlContextFactory = sqlConfig.getSqlContextFactory();
+		executionContextFactory = sqlConfig.getExecutionContextProvider();
 	}
 
 	@Test
 	public void testConst_class() {
-		sqlContextFactory.addBindParamMapper((original, connection, parameterMapperManager) -> null);
+		executionContextFactory.addBindParamMapper((original, connection, parameterMapperManager) -> null);
 
-		sqlContextFactory.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
+		executionContextFactory.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
 
-		sqlContextFactory.initialize();
+		executionContextFactory.initialize();
 
-		var constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = executionContextFactory.getConstParameterMap();
 		Map<String, ?> map = constParameterMap.entrySet().stream()
 				.collect(Collector.of(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getValue()), (m1, m2) -> {
 					m1.putAll(m2);
@@ -99,11 +96,11 @@ public class SqlContextFactoryTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testConst_enum() {
-		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
+		executionContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
 
-		sqlContextFactory.initialize();
+		executionContextFactory.initialize();
 
-		var constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = executionContextFactory.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -122,11 +119,11 @@ public class SqlContextFactoryTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testConst_enumForJar() {
-		sqlContextFactory.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
+		executionContextFactory.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
 
-		sqlContextFactory.initialize();
+		executionContextFactory.initialize();
 
-		var constParameterMap = sqlContextFactory.getConstParameterMap();
+		var constParameterMap = executionContextFactory.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -139,58 +136,31 @@ public class SqlContextFactoryTest {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	public void testAutoBindParameterCreator() throws Exception {
-		List<AutoBindParameterCreator> creators = new ArrayList<>();
-		sqlContextFactory.setAutoBindParameterCreators(creators);
-		sqlContextFactory.initialize();
-
-		var ctx = sqlContextFactory.createSqlContext();
-		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
-
-		creators.add(() -> {
-			var params = new ConcurrentHashMap<String, Parameter>();
-			return params;
-		});
-
-		sqlContextFactory.initialize();
-		ctx = sqlContextFactory.createSqlContext();
-		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
-
-		creators.add(() -> {
-			var params = new ConcurrentHashMap<String, Parameter>();
-			params.put("DUMMY", new Parameter("DUMMY", "dummy_value"));
-			return params;
-		});
-		sqlContextFactory.initialize();
-		ctx = sqlContextFactory.createSqlContext();
-
-		assertThat(sqlContextFactory.getAutoBindParameterCreators(), is(creators));
-
-		assertThat(ctx.getParam("DUMMY").getValue(), is("dummy_value"));
-	}
-
 	@Test
 	public void testSetDefaultResultSetType() throws Exception {
-		sqlContextFactory.initialize();
+		executionContextFactory.initialize();
 
-		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
-		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_FORWARD_ONLY));
-		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_INSENSITIVE));
-		sqlContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-		assertThat(sqlContextFactory.createSqlContext().getResultSetType(), is(ResultSet.TYPE_SCROLL_SENSITIVE));
+		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_FORWARD_ONLY));
+		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_SCROLL_INSENSITIVE));
+		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
+		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+				is(ResultSet.TYPE_SCROLL_SENSITIVE));
 	}
 
 	@Test
 	public void testSetDefaultResultSetConcurrency() throws Exception {
-		sqlContextFactory.initialize();
+		executionContextFactory.initialize();
 
-		sqlContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
-		assertThat(sqlContextFactory.createSqlContext().getResultSetConcurrency(), is(ResultSet.CONCUR_READ_ONLY));
-		sqlContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-		assertThat(sqlContextFactory.createSqlContext().getResultSetConcurrency(), is(ResultSet.CONCUR_UPDATABLE));
+		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
+		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+				is(ResultSet.CONCUR_READ_ONLY));
+		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
+		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+				is(ResultSet.CONCUR_UPDATABLE));
 	}
 
 }

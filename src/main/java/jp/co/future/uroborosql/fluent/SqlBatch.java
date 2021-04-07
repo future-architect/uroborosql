@@ -15,7 +15,7 @@ import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 /**
@@ -43,7 +43,7 @@ public interface SqlBatch extends SqlFluent<SqlBatch> {
 	 * @param condition 判定条件
 	 * @return SqlBatch
 	 */
-	SqlBatch by(BiPredicate<SqlContext, Map<String, Object>> condition);
+	SqlBatch by(BiPredicate<ExecutionContext, Map<String, Object>> condition);
 
 	/**
 	 * バッチ実行時の動作を設定する.
@@ -52,7 +52,7 @@ public interface SqlBatch extends SqlFluent<SqlBatch> {
 	 * @param action バッチ実行時動作
 	 * @return SqlBatch
 	 */
-	SqlBatch batchWhen(BiConsumer<SqlAgent, SqlContext> action);
+	SqlBatch batchWhen(BiConsumer<SqlAgent, ExecutionContext> action);
 
 	/**
 	 * エラー発生時の動作を設定する.
@@ -61,7 +61,7 @@ public interface SqlBatch extends SqlFluent<SqlBatch> {
 	 * @param action エラー時動作
 	 * @return SqlBatch
 	 */
-	SqlBatch errorWhen(TriConsumer<SqlAgent, SqlContext, Exception> action);
+	SqlBatch errorWhen(TriConsumer<SqlAgent, ExecutionContext, Exception> action);
 
 	/**
 	 * 更新結果の取得（終端処理）

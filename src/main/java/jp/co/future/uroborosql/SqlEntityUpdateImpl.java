@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.function.Supplier;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
@@ -35,10 +35,10 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 * @param agent SqlAgent
 	 * @param entityHandler EntityHandler
 	 * @param tableMetadata TableMetadata
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
 	SqlEntityUpdateImpl(final SqlAgent agent, final EntityHandler<?> entityHandler,
-			final TableMetadata tableMetadata, final SqlContext context) {
+			final TableMetadata tableMetadata, final ExecutionContext context) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
 	}

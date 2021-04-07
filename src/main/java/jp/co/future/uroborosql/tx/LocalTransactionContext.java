@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 
@@ -86,58 +86,58 @@ class LocalTransactionContext implements AutoCloseable {
 	/**
 	 * ステートメント取得
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return PreparedStatement
 	 * @throws SQLException SQL例外
 	 */
-	PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
+	PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
 		var conn = getConnection();
 
 		PreparedStatement stmt = null;
-		switch (sqlContext.getSqlKind()) {
+		switch (executionContext.getSqlKind()) {
 		case INSERT:
 		case BULK_INSERT:
 		case BATCH_INSERT:
 			if (updatable) {
-				if (sqlContext.hasGeneratedKeyColumns()) {
-					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
+				if (executionContext.hasGeneratedKeyColumns()) {
+					stmt = conn.prepareStatement(executionContext.getExecutableSql(), executionContext.getGeneratedKeyColumns());
 				} else {
-					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+					stmt = conn.prepareStatement(executionContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
 				}
 			} else {
 				throw new UroborosqlTransactionException("Transaction not started.");
 			}
 			break;
 		case SELECT:
-			stmt = conn.prepareStatement(sqlContext.getExecutableSql(),
-					sqlContext.getResultSetType(),
-					sqlContext.getResultSetConcurrency());
+			stmt = conn.prepareStatement(executionContext.getExecutableSql(),
+					executionContext.getResultSetType(),
+					executionContext.getResultSetConcurrency());
 			break;
 		default:
 			if (updatable) {
-				stmt = conn.prepareStatement(sqlContext.getExecutableSql());
+				stmt = conn.prepareStatement(executionContext.getExecutableSql());
 			} else {
 				throw new UroborosqlTransactionException("Transaction not started.");
 			}
 			break;
 		}
-		return this.sqlConfig.getSqlFilterManager().doPreparedStatement(sqlContext, stmt);
+		return this.sqlConfig.getSqlFilterManager().doPreparedStatement(executionContext, stmt);
 	}
 
 	/**
 	 * Callableステートメント初期化
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return CallableStatement
 	 * @throws SQLException SQL例外
 	 */
-	CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
+	CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
 		var conn = getConnection();
 
 		if (this.updatable) {
-			return this.sqlConfig.getSqlFilterManager().doCallableStatement(sqlContext,
-					conn.prepareCall(sqlContext.getExecutableSql(), sqlContext.getResultSetType(),
-							sqlContext.getResultSetConcurrency()));
+			return this.sqlConfig.getSqlFilterManager().doCallableStatement(executionContext,
+					conn.prepareCall(executionContext.getExecutableSql(), executionContext.getResultSetType(),
+							executionContext.getResultSetConcurrency()));
 		} else {
 			throw new UroborosqlTransactionException("Transaction not started.");
 		}

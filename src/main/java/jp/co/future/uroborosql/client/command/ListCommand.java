@@ -45,10 +45,10 @@ public class ListCommand extends ReplCommand {
 
 		List<String> pathList = null;
 		if (parts.length > 1) {
-			pathList = sqlConfig.getSqlManager().getSqlPathList().stream().filter(p -> p.contains(parts[1]))
+			pathList = sqlConfig.getSqlResourceManager().getSqlPathList().stream().filter(p -> p.contains(parts[1]))
 					.collect(Collectors.toList());
 		} else {
-			pathList = sqlConfig.getSqlManager().getSqlPathList();
+			pathList = sqlConfig.getSqlResourceManager().getSqlPathList();
 		}
 		for (String key : pathList) {
 			writer.println(key);

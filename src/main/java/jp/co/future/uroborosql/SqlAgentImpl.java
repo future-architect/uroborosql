@@ -38,8 +38,8 @@ import org.slf4j.MDC;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.context.SqlContextImpl;
+import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.context.ExecutionContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -84,33 +84,33 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected SqlAgentImpl(final SqlConfig sqlConfig, final Map<String, String> settings,
 			final ConnectionContext connectionContext) {
 		super(sqlConfig, settings, connectionContext);
-		if (settings.containsKey(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
+		if (settings.containsKey(SqlAgentProviderImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG)) {
 			outputExceptionLog = Boolean
-					.parseBoolean(settings.get(SqlAgentFactoryImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));
+					.parseBoolean(settings.get(SqlAgentProviderImpl.PROPS_KEY_OUTPUT_EXCEPTION_LOG));
 		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext)
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.ExecutionContext)
 	 */
 	@Override
-	public ResultSet query(final SqlContext sqlContext) throws SQLException {
+	public ResultSet query(final ExecutionContext executionContext) throws SQLException {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
-		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
-			sqlContext.setSqlKind(SqlKind.SELECT);
+		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
+			executionContext.setSqlKind(SqlKind.SELECT);
 		}
 
 		// コンテキスト変換
-		transformContext(sqlContext, true);
+		transformContext(executionContext, true);
 
-		var stmt = getPreparedStatement(sqlContext);
+		var stmt = getPreparedStatement(executionContext);
 
 		// INパラメータ設定
-		sqlContext.bindParams(stmt);
+		executionContext.bindParams(stmt);
 
 		Instant startTime = null;
 		if (LOG.isDebugEnabled()) {
@@ -119,19 +119,19 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 
 		// 前処理
-		beforeQuery(sqlContext);
+		beforeQuery(executionContext);
 
 		try {
-			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
-				maxRetryCount = sqlContext.getMaxRetryCount();
+			if (executionContext.getMaxRetryCount() > 0) {
+				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
-			// デフォルトリトライ待機時間を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var retryWaitTime = getRetryWaitTime();
-			if (sqlContext.getRetryWaitTime() > 0) {
-				retryWaitTime = sqlContext.getRetryWaitTime();
+			if (executionContext.getRetryWaitTime() > 0) {
+				retryWaitTime = executionContext.getRetryWaitTime();
 			}
 			var loopCount = 0;
 			var dialect = getSqlConfig().getDialect();
@@ -142,7 +142,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						rs = new InnerResultSet(getSqlFilterManager().doQuery(sqlContext, stmt, stmt.executeQuery()),
+						rs = new InnerResultSet(getSqlFilterManager().doQuery(executionContext, stmt, stmt.executeQuery()),
 								stmt);
 						stmt.closeOnCompletion();
 						return rs;
@@ -169,13 +169,13 @@ public class SqlAgentImpl extends AbstractAgent {
 								}
 							} else if (pessimisticLockingErrorCodes.contains(errorCode)
 									|| pessimisticLockingErrorCodes.contains(sqlState)) {
-								throw new PessimisticLockException(sqlContext, ex);
+								throw new PessimisticLockException(executionContext, ex);
 							} else {
 								throw ex;
 							}
 						} else if (pessimisticLockingErrorCodes.contains(errorCode)
 								|| pessimisticLockingErrorCodes.contains(sqlState)) {
-							throw new PessimisticLockException(sqlContext, ex);
+							throw new PessimisticLockException(executionContext, ex);
 						} else {
 							throw ex;
 						}
@@ -183,7 +183,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							releaseSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
+						executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 					}
 				} while (maxRetryCount > loopCount++);
 			} catch (SQLException | RuntimeException e) {
@@ -194,13 +194,13 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 			return null;
 		} catch (SQLException ex) {
-			handleException(sqlContext, ex);
+			handleException(executionContext, ex);
 			return null;
 		} finally {
 			// 後処理
-			afterQuery(sqlContext);
+			afterQuery(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -210,28 +210,28 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * SQL検索前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void beforeQuery(final SqlContext sqlContext) {
+	protected void beforeQuery(final ExecutionContext executionContext) {
 	}
 
 	/**
 	 * SQL検索後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void afterQuery(final SqlContext sqlContext) {
+	protected void afterQuery(final ExecutionContext executionContext) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.ExecutionContext,
 	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
 	@Override
-	public <T> Stream<T> query(final SqlContext sqlContext, final ResultSetConverter<T> converter) throws SQLException {
-		final var rs = query(sqlContext);
+	public <T> Stream<T> query(final ExecutionContext executionContext, final ResultSetConverter<T> converter) throws SQLException {
+		final var rs = query(executionContext);
 		return StreamSupport.stream(new ResultSetSpliterator<>(rs, converter), false).onClose(() -> {
 			try {
 				if (rs != null && !rs.isClosed()) {
@@ -246,39 +246,39 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.SqlContext,
+	 * @see jp.co.future.uroborosql.SqlAgent#query(jp.co.future.uroborosql.context.ExecutionContext,
 	 *      jp.co.future.uroborosql.utils.CaseFormat)
 	 */
 	@Override
-	public List<Map<String, Object>> query(final SqlContext sqlContext, final CaseFormat caseFormat)
+	public List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat)
 			throws SQLException {
-		try (Stream<Map<String, Object>> stream = query(sqlContext,
+		try (Stream<Map<String, Object>> stream = query(executionContext,
 				new MapResultSetConverter(getSqlConfig(), caseFormat))) {
 			return stream.collect(Collectors.toList());
 		}
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.SqlAgent#update(jp.co.future.uroborosql.context.SqlContext)
+	 * @see jp.co.future.uroborosql.SqlAgent#update(jp.co.future.uroborosql.context.ExecutionContext)
 	 */
 	@Override
-	public int update(final SqlContext sqlContext) throws SQLException {
+	public int update(final ExecutionContext executionContext) throws SQLException {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
-		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
-			sqlContext.setSqlKind(SqlKind.UPDATE);
+		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
+			executionContext.setSqlKind(SqlKind.UPDATE);
 		}
 
 		// コンテキスト変換
-		transformContext(sqlContext, false);
+		transformContext(executionContext, false);
 
 		Instant startTime = null;
 
-		try (var stmt = getPreparedStatement(sqlContext)) {
+		try (var stmt = getPreparedStatement(executionContext)) {
 
 			// INパラメータ設定
-			sqlContext.bindParams(stmt);
+			executionContext.bindParams(stmt);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute update SQL.");
@@ -286,18 +286,18 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 
 			// 前処理
-			beforeUpdate(sqlContext);
+			beforeUpdate(executionContext);
 
-			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
-				maxRetryCount = sqlContext.getMaxRetryCount();
+			if (executionContext.getMaxRetryCount() > 0) {
+				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
-			// デフォルトリトライ待機時間を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var retryWaitTime = getRetryWaitTime();
-			if (sqlContext.getRetryWaitTime() > 0) {
-				retryWaitTime = sqlContext.getRetryWaitTime();
+			if (executionContext.getRetryWaitTime() > 0) {
+				retryWaitTime = executionContext.getRetryWaitTime();
 			}
 			var loopCount = 0;
 			do {
@@ -305,18 +305,18 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var count = getSqlFilterManager().doUpdate(sqlContext, stmt, stmt.executeUpdate());
-					if ((SqlKind.INSERT.equals(sqlContext.getSqlKind()) ||
-							SqlKind.BULK_INSERT.equals(sqlContext.getSqlKind()))
-							&& sqlContext.hasGeneratedKeyColumns()) {
+					var count = getSqlFilterManager().doUpdate(executionContext, stmt, stmt.executeUpdate());
+					if ((SqlKind.INSERT.equals(executionContext.getSqlKind()) ||
+							SqlKind.BULK_INSERT.equals(executionContext.getSqlKind()))
+							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
 							List<Object> generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
-								for (var i = 1; i <= sqlContext.getGeneratedKeyColumns().length; i++) {
+								for (var i = 1; i <= executionContext.getGeneratedKeyColumns().length; i++) {
 									generatedKeyValues.add(rs.getObject(i));
 								}
 							}
-							sqlContext.setGeneratedKeyValues(
+							executionContext.setGeneratedKeyValues(
 									generatedKeyValues.toArray(new Object[generatedKeyValues.size()]));
 						}
 					}
@@ -351,17 +351,17 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
+					executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return 0;
 		} catch (SQLException ex) {
-			handleException(sqlContext, ex);
+			handleException(executionContext, ex);
 			return 0;
 		} finally {
-			afterUpdate(sqlContext);
+			afterUpdate(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -371,40 +371,40 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * SQL更新前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void beforeUpdate(final SqlContext sqlContext) {
+	protected void beforeUpdate(final ExecutionContext executionContext) {
 	}
 
 	/**
 	 * SQL更新後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void afterUpdate(final SqlContext sqlContext) {
+	protected void afterUpdate(final ExecutionContext executionContext) {
 	}
 
 	/**
-	 * @see jp.co.future.uroborosql.SqlAgent#batch(jp.co.future.uroborosql.context.SqlContext)
+	 * @see jp.co.future.uroborosql.SqlAgent#batch(jp.co.future.uroborosql.context.ExecutionContext)
 	 */
 	@Override
-	public int[] batch(final SqlContext sqlContext) throws SQLException {
+	public int[] batch(final ExecutionContext executionContext) throws SQLException {
 		// バッチ処理の場合大量のログが出力されるため、パラメータログの出力を抑止する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
 
-		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
-			sqlContext.setSqlKind(SqlKind.BATCH_INSERT);
+		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
+			executionContext.setSqlKind(SqlKind.BATCH_INSERT);
 		}
 
 		// コンテキスト変換
-		transformContext(sqlContext, false);
+		transformContext(executionContext, false);
 
 		Instant startTime = null;
 
-		try (var stmt = getPreparedStatement(sqlContext)) {
+		try (var stmt = getPreparedStatement(executionContext)) {
 
 			// INパラメータ設定
-			sqlContext.bindBatchParams(stmt);
+			executionContext.bindBatchParams(stmt);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute batch process.");
@@ -412,18 +412,18 @@ public class SqlAgentImpl extends AbstractAgent {
 			}
 
 			// 前処理
-			beforeBatch(sqlContext);
+			beforeBatch(executionContext);
 
-			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
-				maxRetryCount = sqlContext.getMaxRetryCount();
+			if (executionContext.getMaxRetryCount() > 0) {
+				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
-			// デフォルトリトライ待機時間を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var retryWaitTime = getRetryWaitTime();
-			if (sqlContext.getRetryWaitTime() > 0) {
-				retryWaitTime = sqlContext.getRetryWaitTime();
+			if (executionContext.getRetryWaitTime() > 0) {
+				retryWaitTime = executionContext.getRetryWaitTime();
 			}
 			var loopCount = 0;
 			do {
@@ -431,17 +431,17 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var counts = getSqlFilterManager().doBatch(sqlContext, stmt, stmt.executeBatch());
-					if (SqlKind.BATCH_INSERT.equals(sqlContext.getSqlKind())
-							&& sqlContext.hasGeneratedKeyColumns()) {
+					var counts = getSqlFilterManager().doBatch(executionContext, stmt, stmt.executeBatch());
+					if (SqlKind.BATCH_INSERT.equals(executionContext.getSqlKind())
+							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
 							List<Object> generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
-								for (var i = 1; i <= sqlContext.getGeneratedKeyColumns().length; i++) {
+								for (var i = 1; i <= executionContext.getGeneratedKeyColumns().length; i++) {
 									generatedKeyValues.add(rs.getObject(i));
 								}
 							}
-							sqlContext.setGeneratedKeyValues(
+							executionContext.setGeneratedKeyValues(
 									generatedKeyValues.toArray(new Object[generatedKeyValues.size()]));
 						}
 					}
@@ -476,19 +476,19 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					sqlContext.clearBatch();
-					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
+					executionContext.clearBatch();
+					executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			return null;
 		} catch (SQLException ex) {
-			handleException(sqlContext, ex);
+			handleException(executionContext, ex);
 			return null;
 		} finally {
 			// 後処理
-			afterBatch(sqlContext);
+			afterBatch(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(sqlContext), sqlContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -498,63 +498,63 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * SQLバッチ前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void beforeBatch(final SqlContext sqlContext) {
+	protected void beforeBatch(final ExecutionContext executionContext) {
 	}
 
 	/**
 	 * SQLバッチ処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void afterBatch(final SqlContext sqlContext) {
+	protected void afterBatch(final ExecutionContext executionContext) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#procedure(jp.co.future.uroborosql.context.SqlContext)
+	 * @see jp.co.future.uroborosql.SqlAgent#procedure(jp.co.future.uroborosql.context.ExecutionContext)
 	 */
 	@Override
-	public Map<String, Object> procedure(final SqlContext sqlContext) throws SQLException {
+	public Map<String, Object> procedure(final ExecutionContext executionContext) throws SQLException {
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
 		// procedureやfunctionの場合、SQL文法エラーになるためバインドパラメータコメントを出力しない
-		sqlContext.contextAttrs().put(CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, false);
+		executionContext.contextAttrs().put(CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, false);
 
-		if (SqlKind.NONE.equals(sqlContext.getSqlKind())) {
-			sqlContext.setSqlKind(SqlKind.PROCEDURE);
+		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
+			executionContext.setSqlKind(SqlKind.PROCEDURE);
 		}
 
 		// コンテキスト変換
-		transformContext(sqlContext, false);
+		transformContext(executionContext, false);
 
 		Instant startTime = null;
 
-		try (var callableStatement = getCallableStatement(sqlContext)) {
+		try (var callableStatement = getCallableStatement(executionContext)) {
 
 			// パラメータ設定
-			sqlContext.bindParams(callableStatement);
+			executionContext.bindParams(callableStatement);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute stored procedure.");
 				startTime = Instant.now(Clock.systemDefaultZone());
 			}
 
-			beforeProcedure(sqlContext);
+			beforeProcedure(executionContext);
 
-			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
-				maxRetryCount = sqlContext.getMaxRetryCount();
+			if (executionContext.getMaxRetryCount() > 0) {
+				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
-			// デフォルトリトライ待機時間を取得し、個別指定（SqlContextの値）があれば上書き
+			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var retryWaitTime = getRetryWaitTime();
-			if (sqlContext.getRetryWaitTime() > 0) {
-				retryWaitTime = sqlContext.getRetryWaitTime();
+			if (executionContext.getRetryWaitTime() > 0) {
+				retryWaitTime = executionContext.getRetryWaitTime();
 			}
 			var loopCount = 0;
 			do {
@@ -562,7 +562,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					getSqlFilterManager().doProcedure(sqlContext, callableStatement, callableStatement.execute());
+					getSqlFilterManager().doProcedure(executionContext, callableStatement, callableStatement.execute());
 					break;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
@@ -594,18 +594,18 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					sqlContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
+					executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
 				}
 			} while (maxRetryCount > loopCount++);
 			// 結果取得
-			return sqlContext.getOutParams(callableStatement);
+			return executionContext.getOutParams(callableStatement);
 		} catch (SQLException ex) {
-			handleException(sqlContext, ex);
+			handleException(executionContext, ex);
 		} finally {
-			afterProcedure(sqlContext);
+			afterProcedure(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(sqlContext),
-						sqlContext.getSqlKind(), formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(), formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -615,41 +615,41 @@ public class SqlAgentImpl extends AbstractAgent {
 	/**
 	 * ストプロ実行前処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void beforeProcedure(final SqlContext sqlContext) {
+	protected void beforeProcedure(final ExecutionContext executionContext) {
 
 	}
 
 	/**
 	 * ストプロ実行後処理 拡張ポイント。子クラスでオーバーライドする
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 */
-	protected void afterProcedure(final SqlContext sqlContext) {
+	protected void afterProcedure(final ExecutionContext executionContext) {
 	}
 
 	/** 時間計測用のログに出力するSQL名を生成する.
 	 *
-	 * @param sqlContext SqlContext
+	 * @param executionContext ExecutionContext
 	 * @return SQL名. SQL名が取得できない場合はSQL_ID、または空文字を返却する
 	 */
-	protected String generateSqlName(final SqlContext sqlContext) {
-		if (sqlContext.getSqlName() != null) {
-			return sqlContext.getSqlName();
+	protected String generateSqlName(final ExecutionContext executionContext) {
+		if (executionContext.getSqlName() != null) {
+			return executionContext.getSqlName();
 		} else {
-			return Objects.toString(sqlContext.getSqlId(), "");
+			return Objects.toString(executionContext.getSqlId(), "");
 		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.SqlContext,
+	 * @see jp.co.future.uroborosql.AbstractAgent#handleException(jp.co.future.uroborosql.context.ExecutionContext,
 	 *      java.sql.SQLException)
 	 */
 	@Override
-	protected void handleException(final SqlContext sqlContext, final SQLException ex) throws SQLException {
+	protected void handleException(final ExecutionContext executionContext, final SQLException ex) throws SQLException {
 		var cause = ex;
 
 		while (cause.getNextException() != null) {
@@ -660,10 +660,10 @@ public class SqlAgentImpl extends AbstractAgent {
 			var builder = new StringBuilder();
 			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
 					.append(System.lineSeparator());
-			builder.append("Executed SQL[").append(sqlContext.getExecutableSql()).append("]")
+			builder.append("Executed SQL[").append(executionContext.getExecutableSql()).append("]")
 					.append(System.lineSeparator());
-			if (sqlContext instanceof SqlContextImpl) {
-				var bindParameters = ((SqlContextImpl) sqlContext).getBindParameters();
+			if (executionContext instanceof ExecutionContextImpl) {
+				var bindParameters = ((ExecutionContextImpl) executionContext).getBindParameters();
 				for (var i = 0; i < bindParameters.length; i++) {
 					var parameter = getSqlFilterManager().doParameter(bindParameters[i]);
 					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
@@ -789,7 +789,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	}
 
 	/**
-	 * 自動採番カラムを取得する. 合わせて、{@link SqlContext#setGeneratedKeyColumns(String[])} に自動採番カラムを設定する.
+	 * 自動採番カラムを取得する. 合わせて、{@link ExecutionContext#setGeneratedKeyColumns(String[])} に自動採番カラムを設定する.
 	 * <pre>
 	 * 自動採番カラムの条件
 	 * 1. {@link MappingColumn#isId()} == true 、もしくは{@link TableMetadata.Column#isAutoincrement()} == true であること
@@ -797,13 +797,13 @@ public class SqlAgentImpl extends AbstractAgent {
 	 * </pre>
 	 *
 	 * @param <E> entity
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 * @param mappingColumns EntityのMappingColumn配列
 	 * @param metadata TableMetadata
 	 * @param entity Entity
 	 * @return 自動採番カラム配列
 	 */
-	protected <E> List<MappingColumn> getAutoGeneratedColumns(final SqlContext context,
+	protected <E> List<MappingColumn> getAutoGeneratedColumns(final ExecutionContext context,
 			final MappingColumn[] mappingColumns,
 			final TableMetadata metadata, final E entity) {
 		List<MappingColumn> autoGeneratedColumns = new ArrayList<>();
@@ -1195,7 +1195,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	protected <E> int[] doBatchInsert(final SqlContext context, final EntityHandler<E> handler,
+	protected <E> int[] doBatchInsert(final ExecutionContext context, final EntityHandler<E> handler,
 			final List<E> entityList, final List<MappingColumn> autoGeneratedColumns) throws SQLException {
 		var counts = handler.doBatchInsert(this, context);
 		if (!autoGeneratedColumns.isEmpty()) {
@@ -1276,7 +1276,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					frameCount = 0;
 					entityList.clear();
 
-					// 新しいSqlContextを作成する前にgeneratedKeyColumnsを退避しておく
+					// 新しいExecutionContextを作成する前にgeneratedKeyColumnsを退避しておく
 					var generatedKeyColumns = context.getGeneratedKeyColumns();
 					context = handler.createBulkInsertContext(this, metadata, entityType);
 					context.setSqlKind(SqlKind.BULK_INSERT);
@@ -1293,7 +1293,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	protected <E> int doBulkInsert(final SqlContext context, final Class<E> entityType, final EntityHandler<E> handler,
+	protected <E> int doBulkInsert(final ExecutionContext context, final Class<E> entityType, final EntityHandler<E> handler,
 			final TableMetadata metadata, final List<MappingColumn> autoGeneratedColumns, final List<E> entityList)
 			throws SQLException {
 		var count = handler.doBulkInsert(this,

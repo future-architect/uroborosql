@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -122,7 +122,7 @@ public class DebugSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal("0"))
+			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal("0"))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
@@ -139,7 +139,7 @@ public class DebugSqlFilterTest {
 	public void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
+			ExecutionContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
 					.param("_userName", "testUserName").param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 					.param("jan_code", "1234567890123", Types.CHAR);
@@ -157,7 +157,7 @@ public class DebugSqlFilterTest {
 		truncateTable("product");
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
+			ExecutionContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
 					.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
 					.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
 					.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)

@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
@@ -35,9 +35,9 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 * コンストラクタ
 	 *
 	 * @param agent SqlAgent
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 */
-	SqlQueryImpl(final SqlAgent agent, final SqlContext context) {
+	SqlQueryImpl(final SqlAgent agent, final ExecutionContext context) {
 		super(agent, context);
 	}
 

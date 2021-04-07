@@ -30,7 +30,7 @@ import jp.co.future.uroborosql.connection.DataSourceConnectionContext;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
-import jp.co.future.uroborosql.store.SqlManagerImpl;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -159,9 +159,9 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetSqlManager() throws Exception {
+	public void builderSetSqlResourceManager() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
-				.setSqlManager(new SqlManagerImpl(false)).build();
+				.setSqlResourceManager(new SqlResourceManagerImpl()).build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
@@ -173,9 +173,9 @@ public class UroboroSQLTest {
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 			agent.rollback();
+		} catch (Exception ex) {
+			assertThat("Execution failed.", false);
 		}
-
-		assertThat(config.getSqlManager().isCache(), is(false));
 	}
 
 	@Test
@@ -270,9 +270,9 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithSqlAgentFactory() throws Exception {
+	public void builderWithSqlAgentProvider() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
-				.setSqlAgentFactory(new SqlAgentFactoryImpl().setDefaultMapKeyCaseFormat(CaseFormat.CAMEL_CASE))
+				.setSqlAgentProvider(new SqlAgentProviderImpl().setDefaultMapKeyCaseFormat(CaseFormat.CAMEL_CASE))
 				.build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),

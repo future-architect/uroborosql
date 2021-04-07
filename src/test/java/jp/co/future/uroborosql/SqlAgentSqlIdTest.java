@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 
 /**
@@ -38,11 +38,11 @@ public class SqlAgentSqlIdTest {
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(sqlContext.getExecutableSql()));
-				return super.doQuery(sqlContext, preparedStatement, resultSet);
+				querys.add(toLines(executionContext.getExecutableSql()));
+				return super.doQuery(executionContext, preparedStatement, resultSet);
 			}
 
 		});
@@ -68,11 +68,11 @@ public class SqlAgentSqlIdTest {
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(sqlContext.getExecutableSql()));
-				return super.doQuery(sqlContext, preparedStatement, resultSet);
+				querys.add(toLines(executionContext.getExecutableSql()));
+				return super.doQuery(executionContext, preparedStatement, resultSet);
 			}
 
 		});
@@ -94,15 +94,15 @@ public class SqlAgentSqlIdTest {
 	public void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
-		config.getSqlAgentFactory().setSqlIdKeyName("_TESTSQL_ID_");
+		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(sqlContext.getExecutableSql()));
-				return super.doQuery(sqlContext, preparedStatement, resultSet);
+				querys.add(toLines(executionContext.getExecutableSql()));
+				return super.doQuery(executionContext, preparedStatement, resultSet);
 			}
 
 		});

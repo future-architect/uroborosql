@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
@@ -81,16 +81,16 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doTransformSql(jp.co.future.uroborosql.context.SqlContext, java.lang.String)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doTransformSql(jp.co.future.uroborosql.context.ExecutionContext, java.lang.String)
 	 */
 	@Override
-	public String doTransformSql(final SqlContext sqlContext, final String sql) {
+	public String doTransformSql(final ExecutionContext executionContext, final String sql) {
 		if (getFilters().isEmpty()) {
 			return sql;
 		}
 		var newSql = sql;
 		for (final SqlFilter filter : getFilters()) {
-			newSql = filter.doTransformSql(sqlContext, newSql);
+			newSql = filter.doTransformSql(executionContext, newSql);
 		}
 		return newSql;
 	}
@@ -98,17 +98,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doPreparedStatement(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doPreparedStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement)
 	 */
 	@Override
-	public PreparedStatement doPreparedStatement(final SqlContext sqlContext, final PreparedStatement preparedStatement)
+	public PreparedStatement doPreparedStatement(final ExecutionContext executionContext, final PreparedStatement preparedStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return preparedStatement;
 		}
 		var ps = preparedStatement;
 		for (final SqlFilter filter : getFilters()) {
-			ps = filter.doPreparedStatement(sqlContext, ps);
+			ps = filter.doPreparedStatement(executionContext, ps);
 		}
 		return ps;
 	}
@@ -116,17 +116,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doCallableStatement(jp.co.future.uroborosql.context.SqlContext, java.sql.CallableStatement)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doCallableStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.CallableStatement)
 	 */
 	@Override
-	public CallableStatement doCallableStatement(final SqlContext sqlContext, final CallableStatement callableStatement)
+	public CallableStatement doCallableStatement(final ExecutionContext executionContext, final CallableStatement callableStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return callableStatement;
 		}
 		var cs = callableStatement;
 		for (final SqlFilter filter : getFilters()) {
-			cs = filter.doCallableStatement(sqlContext, cs);
+			cs = filter.doCallableStatement(executionContext, cs);
 		}
 		return cs;
 	}
@@ -134,17 +134,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doQuery(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, java.sql.ResultSet)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
 	 */
 	@Override
-	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
+	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) throws SQLException {
 		if (getFilters().isEmpty()) {
 			return resultSet;
 		}
 		var rs = resultSet;
 		for (final SqlFilter filter : getFilters()) {
-			rs = filter.doQuery(sqlContext, preparedStatement, rs);
+			rs = filter.doQuery(executionContext, preparedStatement, rs);
 		}
 		return rs;
 	}
@@ -152,17 +152,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result)
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
 		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
-			rs = filter.doUpdate(sqlContext, preparedStatement, rs);
+			rs = filter.doUpdate(executionContext, preparedStatement, rs);
 		}
 		return rs;
 	}
@@ -170,17 +170,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.SqlContext, java.sql.PreparedStatement, int[])
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int[] result)
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
 		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
-			rs = filter.doBatch(sqlContext, preparedStatement, rs);
+			rs = filter.doBatch(executionContext, preparedStatement, rs);
 		}
 		return rs;
 	}
@@ -188,17 +188,17 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.SqlFilter#doProcedure(jp.co.future.uroborosql.context.SqlContext, java.sql.CallableStatement, boolean)
+	 * @see jp.co.future.uroborosql.filter.SqlFilter#doProcedure(jp.co.future.uroborosql.context.ExecutionContext, java.sql.CallableStatement, boolean)
 	 */
 	@Override
-	public boolean doProcedure(final SqlContext sqlContext, final CallableStatement callableStatement,
+	public boolean doProcedure(final ExecutionContext executionContext, final CallableStatement callableStatement,
 			final boolean result) throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
 		var rs = result;
 		for (final SqlFilter filter : getFilters()) {
-			rs = filter.doProcedure(sqlContext, callableStatement, rs);
+			rs = filter.doProcedure(executionContext, callableStatement, rs);
 		}
 		return rs;
 	}

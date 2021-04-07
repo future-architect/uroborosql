@@ -89,7 +89,7 @@ public class ParameterTest {
 
 		String[] param = { "1", "2", "3" };
 
-		config.getSqlContextFactory().addBindParamMapper(new BindParameterMapper<String[]>() {
+		config.getExecutionContextProvider().addBindParamMapper(new BindParameterMapper<String[]>() {
 
 			@Override
 			public Class<String[]> targetType() {
@@ -120,12 +120,11 @@ public class ParameterTest {
 	 *
 	 * @throws SQLException SQL例外
 	 */
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING3").paramList("targetStrs", "1", "2", "3");
+			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));

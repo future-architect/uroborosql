@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -132,7 +132,7 @@ public class DumpResultSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = agent.contextFrom("example/select_product")
+			ExecutionContext ctx = agent.contextFrom("example/select_product")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
@@ -154,7 +154,7 @@ public class DumpResultSqlFilterTest {
 
 		// 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = config.context();
+			ExecutionContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
 
@@ -176,7 +176,7 @@ public class DumpResultSqlFilterTest {
 
 		// 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = config.context();
+			ExecutionContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select col1 from many_column_table");
 
@@ -220,7 +220,7 @@ public class DumpResultSqlFilterTest {
 
 		// select 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			SqlContext ctx = config.context();
+			ExecutionContext ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
 

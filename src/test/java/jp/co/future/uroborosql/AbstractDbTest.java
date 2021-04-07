@@ -151,7 +151,7 @@ public class AbstractDbTest {
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
-		config.getSqlAgentFactory().setFetchSize(1000);
+		config.getSqlAgentProvider().setFetchSize(1000);
 		var ddlPath = getDdlPath();
 		if (ddlPath != null) {
 			agent = config.agent();

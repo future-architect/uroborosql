@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.dialect.Dialect;
@@ -43,7 +43,7 @@ import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.tx.LocalTransactionManager;
 import jp.co.future.uroborosql.tx.SQLRunnable;
 import jp.co.future.uroborosql.tx.SQLSupplier;
@@ -67,10 +67,10 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
 
-	/** SqlContext属性キー:リトライカウント */
+	/** ExecutionContext属性キー:リトライカウント */
 	protected static final String CTX_ATTR_KEY_RETRY_COUNT = "__retryCount";
 
-	/** SqlContext属性キー:バインドパラメータコメントの出力有無 */
+	/** ExecutionContext属性キー:バインドパラメータコメントの出力有無 */
 	protected static final String CTX_ATTR_KEY_OUTPUT_BIND_COMMENT = "__outputBindComment";
 
 	/** 例外発生にロールバックが必要なDBでリトライを実現するために設定するSavepointの名前 */
@@ -161,33 +161,33 @@ public abstract class AbstractAgent implements SqlAgent {
 		this.transactionManager = new LocalTransactionManager(sqlConfig, connectionContext);
 
 		// デフォルトプロパティ設定
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_FETCH_SIZE)) {
-			this.fetchSize = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_FETCH_SIZE));
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_FETCH_SIZE)) {
+			this.fetchSize = Integer.parseInt(settings.get(SqlAgentProvider.PROPS_KEY_FETCH_SIZE));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT)) {
-			this.queryTimeout = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_QUERY_TIMEOUT));
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_QUERY_TIMEOUT)) {
+			this.queryTimeout = Integer.parseInt(settings.get(SqlAgentProvider.PROPS_KEY_QUERY_TIMEOUT));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES)) {
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_SQL_RETRY_CODES)) {
 			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(settings.get(
-					SqlAgentFactory.PROPS_KEY_SQL_RETRY_CODES).split(",")));
+					SqlAgentProvider.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
-			this.maxRetryCount = Integer.parseInt(settings.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {
+			this.maxRetryCount = Integer.parseInt(settings.get(SqlAgentProvider.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME)) {
 			this.retryWaitTime = Integer.parseInt(settings
-					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
+					.get(SqlAgentProvider.PROPS_KEY_DEFAULT_SQL_RETRY_WAIT_TIME));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME)) {
-			this.keySqlId = settings.get(SqlAgentFactory.PROPS_KEY_SQL_ID_KEY_NAME);
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_SQL_ID_KEY_NAME)) {
+			this.keySqlId = settings.get(SqlAgentProvider.PROPS_KEY_SQL_ID_KEY_NAME);
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT)) {
 			this.defaultMapKeyCaseFormat = CaseFormat.valueOf(settings
-					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
+					.get(SqlAgentProvider.PROPS_KEY_DEFAULT_MAP_KEY_CASE_FORMAT));
 		}
-		if (settings.containsKey(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
+		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_DEFAULT_INSERTS_TYPE)) {
 			this.defaultInsertsType = InsertsType.valueOf(settings
-					.get(SqlAgentFactory.PROPS_KEY_DEFAULT_INSERTS_TYPE));
+					.get(SqlAgentProvider.PROPS_KEY_DEFAULT_INSERTS_TYPE));
 		}
 	}
 
@@ -202,12 +202,12 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * SQLマネージャを取得します。
+	 * SQLリソース管理クラスを取得します。
 	 *
-	 * @return SQLマネージャ
+	 * @return SQLリソース管理クラス
 	 */
-	protected SqlManager getSqlManager() {
-		return sqlConfig.getSqlManager();
+	protected SqlResourceManager getSqlResourceManager() {
+		return sqlConfig.getSqlResourceManager();
 	}
 
 	/**
@@ -229,27 +229,27 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * SqlContextの設定内容を元にSQLを構築する
+	 * ExecutionContextの設定内容を元にSQLを構築する
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param isQuery queryかどうか。queryの場合<code>true</code>
 	 */
-	protected void transformContext(final SqlContext sqlContext, final boolean isQuery) {
-		var originalSql = sqlContext.getSql();
-		if (StringUtils.isEmpty(originalSql) && getSqlManager() != null) {
-			originalSql = getSqlManager().getSql(sqlContext.getSqlName());
+	protected void transformContext(final ExecutionContext executionContext, final boolean isQuery) {
+		var originalSql = executionContext.getSql();
+		if (StringUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
+			originalSql = getSqlResourceManager().getSql(executionContext.getSqlName());
 			if (StringUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("sql file:[" + sqlContext.getSqlName() + "] is not found.");
+				throw new UroborosqlRuntimeException("sql file:[" + executionContext.getSqlName() + "] is not found.");
 			}
 		}
-		originalSql = getSqlFilterManager().doTransformSql(sqlContext, originalSql);
-		sqlContext.setSql(originalSql);
+		originalSql = getSqlFilterManager().doTransformSql(executionContext, originalSql);
+		executionContext.setSql(originalSql);
 
 		// SQL-IDの付与
 		if (originalSql.contains(keySqlId)) {
-			var sqlId = sqlContext.getSqlId();
+			var sqlId = executionContext.getSqlId();
 			if (StringUtils.isEmpty(sqlId)) {
-				sqlId = sqlContext.getSqlName();
+				sqlId = executionContext.getSqlName();
 			}
 			if (StringUtils.isEmpty(sqlId)) {
 				sqlId = String.valueOf(originalSql.hashCode());
@@ -259,28 +259,28 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		// Dialectに合わせたエスケープキャラクタの設定
-		sqlContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getSqlConfig().getDialect().getEscapeChar());
+		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getSqlConfig().getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
-		if (sqlContext.batchCount() == 0) {
+		if (executionContext.batchCount() == 0) {
 			if (isQuery) {
-				sqlContext.acceptQueryAutoParameterBinder();
+				executionContext.acceptQueryAutoParameterBinder();
 			} else {
-				sqlContext.acceptUpdateAutoParameterBinder();
+				executionContext.acceptUpdateAutoParameterBinder();
 			}
 		}
 
-		if (StringUtils.isEmpty(sqlContext.getExecutableSql())) {
-			var outputBindComment = (boolean) sqlContext.contextAttrs().getOrDefault(
+		if (StringUtils.isEmpty(executionContext.getExecutableSql())) {
+			var outputBindComment = (boolean) executionContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
 			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
 					sqlConfig.getDialect().isRemoveTerminator(), outputBindComment);
 			var contextTransformer = sqlParser.parse();
-			contextTransformer.transform(sqlContext);
+			contextTransformer.transform(executionContext);
 
 			if (coverageHandlerRef.get() != null) {
 				// SQLカバレッジ用のログを出力する
-				var coverageData = new CoverageData(sqlContext.getSqlName(), originalSql,
+				var coverageData = new CoverageData(executionContext.getSqlName(), originalSql,
 						contextTransformer.getPassedRoute());
 				COVERAGE_LOG.trace("{}", coverageData);
 
@@ -289,7 +289,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(),
+		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
 				System.lineSeparator());
 	}
 
@@ -314,11 +314,11 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * 例外発生時ハンドラー
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @param ex SQL例外
 	 * @throws SQLException SQL例外
 	 */
-	protected abstract void handleException(SqlContext sqlContext, SQLException ex) throws SQLException;
+	protected abstract void handleException(ExecutionContext executionContext, SQLException ex) throws SQLException;
 
 	/**
 	 * {@inheritDoc}
@@ -499,7 +499,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#context()
 	 */
 	@Override
-	public SqlContext context() {
+	public ExecutionContext context() {
 		return sqlConfig.context();
 	}
 
@@ -509,7 +509,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#context()
 	 */
 	@Override
-	public SqlContext contextFrom(final String sqlName) {
+	public ExecutionContext contextFrom(final String sqlName) {
 		return sqlConfig.context().setSqlName(sqlName);
 	}
 
@@ -519,7 +519,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	 * @see jp.co.future.uroborosql.SqlAgent#context()
 	 */
 	@Override
-	public SqlContext contextWith(final String sql) {
+	public ExecutionContext contextWith(final String sql) {
 		return sqlConfig.context().setSql(sql);
 	}
 
@@ -1101,12 +1101,12 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * ステートメント初期化。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return PreparedStatement
 	 * @throws SQLException SQL例外
 	 */
-	protected PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
-		var stmt = ((LocalTransactionManager) transactionManager).getPreparedStatement(sqlContext);
+	protected PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
+		var stmt = ((LocalTransactionManager) transactionManager).getPreparedStatement(executionContext);
 		// プロパティ設定
 		applyProperties(stmt);
 		return stmt;
@@ -1115,12 +1115,12 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * Callableステートメント初期化
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return CallableStatement
 	 * @throws SQLException SQL例外
 	 */
-	protected CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
-		var stmt = ((LocalTransactionManager) transactionManager).getCallableStatement(sqlContext);
+	protected CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
+		var stmt = ((LocalTransactionManager) transactionManager).getCallableStatement(executionContext);
 		// プロパティ設定
 		applyProperties(stmt);
 		return stmt;

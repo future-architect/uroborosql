@@ -15,7 +15,7 @@ import java.sql.SQLType;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * Fluent API を使用してDBアクセスするためのインタフェース
@@ -25,11 +25,11 @@ import jp.co.future.uroborosql.context.SqlContext;
 public interface SqlFluent<T> {
 
 	/**
-	 * SqlContextの取得<br>
+	 * ExecutionContextの取得<br>
 	 *
-	 * @return SqlContext
+	 * @return ExecutionContext
 	 */
-	SqlContext context();
+	ExecutionContext context();
 
 	/**
 	 * 指定したパラメータ名のパラメータがすでに追加されているかどうかを判定する
@@ -70,47 +70,6 @@ public interface SqlFluent<T> {
 	 * @return T
 	 */
 	<V> T paramIfAbsent(String paramName, V value);
-
-	/**
-	 * パラメータ配列の追加<br>
-	 *
-	 * @deprecated {@link SqlFluent#param(String, Object)}を使ってください。その際、valueを Arrays#asList()、もしくは List#of() を使用してList型に格納してください。
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value 配列として追加する
-	 * @return T
-	 */
-	@Deprecated
-	<V> T paramList(String paramName, @SuppressWarnings("unchecked") V... value);
-
-	/**
-	 * パラメータListの追加<br>
-	 *
-	 * @deprecated {@link SqlFluent#param(String, Supplier)}を使ってください。
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param supplier パラメータ値を提供するSupplier
-	 * @return T
-	 */
-	@Deprecated
-	<V> T paramList(String paramName, Supplier<Iterable<V>> supplier);
-
-	/**
-	 * パラメータ配列の追加<br>
-	 *
-	 * 指定したパラメータ名がまだ登録されていない場合に値を追加する
-	 *
-	 * @deprecated {@link SqlFluent#paramIfAbsent(String, Object)}を使ってください。その際、valueを Arrays#asList()、もしくは List#of() を使用してList型に格納してください。
-	 *
-	 * @param <V> 値の型
-	 * @param paramName パラメータ名
-	 * @param value 配列として追加する
-	 * @return T
-	 */
-	@Deprecated
-	<V> T paramListIfAbsent(String paramName, @SuppressWarnings("unchecked") V... value);
 
 	/**
 	 * 引数として渡されたMapの[key, value]のセットをパラメータに追加<br>

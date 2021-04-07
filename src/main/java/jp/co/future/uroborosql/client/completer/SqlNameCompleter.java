@@ -16,7 +16,7 @@ import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
-import jp.co.future.uroborosql.store.SqlManager;
+import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -26,17 +26,17 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  */
 public class SqlNameCompleter extends AbstractCompleter {
-	private final SqlManager sqlManager;
+	private final SqlResourceManager sqlResourceManager;
 
 	/**
 	 * Constructor
 	 *
 	 * @param commands ReplCommand List
-	 * @param sqlManager sqlManager
+	 * @param sqlResourceManager sqlResourceManager
 	 */
-	public SqlNameCompleter(final List<ReplCommand> commands, final SqlManager sqlManager) {
+	public SqlNameCompleter(final List<ReplCommand> commands, final SqlResourceManager sqlResourceManager) {
 		super(commands);
-		this.sqlManager = sqlManager;
+		this.sqlResourceManager = sqlResourceManager;
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class SqlNameCompleter extends AbstractCompleter {
 		}
 
 		var isBlank = buffer.endsWith(" ");
-		SortedSet<String> sqlNames = new TreeSet<>(sqlManager.getSqlPathList());
+		SortedSet<String> sqlNames = new TreeSet<>(sqlResourceManager.getSqlPathList());
 
 		if (len == startArgNo && isBlank || len == startArgNo + 1 && !isBlank) {
 			// コマンドが引数ありの場合

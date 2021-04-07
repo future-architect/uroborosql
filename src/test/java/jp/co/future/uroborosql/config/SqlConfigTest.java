@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.context.SqlContextFactoryImpl;
+import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -101,9 +101,9 @@ public class SqlConfigTest {
 	}
 
 	@Test
-	public void testWithSqlContextFactoryConstantSettings() throws Exception {
+	public void testWithExecutionContextProviderConstantSettings() throws Exception {
 		var config = UroboroSQL.builder(ds)
-				.setSqlContextFactory(new SqlContextFactoryImpl()
+				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(Arrays.asList(TestConsts.class.getName()))
 						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
 				.build();

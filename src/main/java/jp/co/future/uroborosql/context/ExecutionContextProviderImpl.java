@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -44,13 +43,13 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * SQLコンテキストファクトリ実装
+ * ExecutionContextプロバイダ実装
  *
  * @author H.Sugimoto
  */
-public class SqlContextFactoryImpl implements SqlContextFactory {
+public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(SqlContextFactoryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextProviderImpl.class);
 
 	/** 定数パラメータプレフィックス */
 	private String constParamPrefix = "CLS_";
@@ -66,20 +65,17 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/** SQL設定クラス */
 	private SqlConfig sqlConfig = null;
 
-	/** 自動バインド用パラメータ生成クラスのリスト */
-	private List<AutoBindParameterCreator> autoBindParameterCreators = null;
-
 	/** 自動パラメータバインド関数List(query用) */
-	private final List<Consumer<SqlContext>> queryAutoParameterBinders = new ArrayList<>();
+	private final List<Consumer<ExecutionContext>> queryAutoParameterBinders = new ArrayList<>();
 
 	/** 自動パラメータバインド関数List(update/batch/proc用) */
-	private final List<Consumer<SqlContext>> updateAutoParameterBinders = new ArrayList<>();
+	private final List<Consumer<ExecutionContext>> updateAutoParameterBinders = new ArrayList<>();
 
 	/** 合成自動パラメータバインド関数(query用) */
-	private Consumer<SqlContext> queryAutoParameterBinder = null;
+	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
 
 	/** 合成自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<SqlContext> updateAutoParameterBinder = null;
+	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
 
 	/** ResultSetTypeの初期値 */
 	private int defaultResultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -94,33 +90,23 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#createSqlContext()
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#createExecutionContext()
 	 */
 	@Override
-	public SqlContext createSqlContext() {
-		var sqlContext = new SqlContextImpl();
+	public ExecutionContext createExecutionContext() {
+		var executionContext = new ExecutionContextImpl();
 		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
 
-		// 自動バインド用パラメータ生成クラスが指定されている場合は、そこで生成されたパラメータをパラメータマップに追加する
-		if (autoBindParameterCreators != null && !autoBindParameterCreators.isEmpty()) {
-			for (AutoBindParameterCreator creator : getAutoBindParameterCreators()) {
-				var bindMap = creator.getBindParameterMap();
-				if (bindMap != null && !bindMap.isEmpty()) {
-					paramMap.putAll(bindMap);
-				}
-			}
-		}
-
-		sqlContext.setConstParameterMap(paramMap);
-		sqlContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
-		sqlContext.setParameterMapperManager(
+		executionContext.setConstParameterMap(paramMap);
+		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
+		executionContext.setParameterMapperManager(
 				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
-		sqlContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
-		sqlContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
-		sqlContext.setResultSetType(defaultResultSetType);
-		sqlContext.setResultSetConcurrency(defaultResultSetConcurrency);
+		executionContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
+		executionContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
+		executionContext.setResultSetType(defaultResultSetType);
+		executionContext.setResultSetConcurrency(defaultResultSetConcurrency);
 
-		return sqlContext;
+		return executionContext;
 	}
 
 	/**
@@ -146,7 +132,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#initialize()
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#initialize()
 	 */
 	@Override
 	public void initialize() {
@@ -231,7 +217,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#getConstParamPrefix()
+	 * @see ExecutionContextProvider#getConstParamPrefix()
 	 */
 	@Override
 	public String getConstParamPrefix() {
@@ -241,10 +227,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#setConstParamPrefix(String)
+	 * @see ExecutionContextProvider#setConstParamPrefix(String)
 	 */
 	@Override
-	public SqlContextFactory setConstParamPrefix(final String constParamPrefix) {
+	public ExecutionContextProvider setConstParamPrefix(final String constParamPrefix) {
 		this.constParamPrefix = constParamPrefix;
 		return this;
 	}
@@ -252,7 +238,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#getConstantClassNames()
+	 * @see ExecutionContextProvider#getConstantClassNames()
 	 */
 	@Override
 	public List<String> getConstantClassNames() {
@@ -262,10 +248,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#setConstantClassNames(List)
+	 * @see ExecutionContextProvider#setConstantClassNames(List)
 	 */
 	@Override
-	public SqlContextFactory setConstantClassNames(final List<String> constantClassNames) {
+	public ExecutionContextProvider setConstantClassNames(final List<String> constantClassNames) {
 		this.constantClassNames = constantClassNames;
 		return this;
 	}
@@ -273,7 +259,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#getConstParameterMap()
+	 * @see ExecutionContextProvider#getConstParameterMap()
 	 */
 	@Override
 	public Map<String, Parameter> getConstParameterMap() {
@@ -283,7 +269,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#getEnumConstantPackageNames()
+	 * @see ExecutionContextProvider#getEnumConstantPackageNames()
 	 */
 	@Override
 	public List<String> getEnumConstantPackageNames() {
@@ -293,10 +279,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#setEnumConstantPackageNames(List)
+	 * @see ExecutionContextProvider#setEnumConstantPackageNames(List)
 	 */
 	@Override
-	public SqlContextFactory setEnumConstantPackageNames(final List<String> enumConstantPackageNames) {
+	public ExecutionContextProvider setEnumConstantPackageNames(final List<String> enumConstantPackageNames) {
 		this.enumConstantPackageNames = enumConstantPackageNames;
 		return this;
 	}
@@ -304,34 +290,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Deprecated
-	@Override
-	public SqlFilterManager getSqlFilterManager() {
-		return getSqlConfig().getSqlFilterManager();
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#setSqlFilterManager(SqlFilterManager)
-	 */
-	@Deprecated
-	@Override
-	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-		// do nothing
-		LOG.warn(
-				"Do not use SqlContextFactory#setSqlFilterManager() method. Instead, set SqlFilterManager when generating SqlConfig.");
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#addBindParamMapper(BindParameterMapper)
+	 * @see ExecutionContextProvider#addBindParamMapper(BindParameterMapper)
 	 */
 	@Override
-	public SqlContextFactory addBindParamMapper(final BindParameterMapper<?> parameterMapper) {
+	public ExecutionContextProvider addBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.addMapper(parameterMapper);
 		return this;
 	}
@@ -339,45 +301,21 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {inheritDoc}
 	 *
-	 * @see SqlContextFactory#removeBindParamMapper(BindParameterMapper)
+	 * @see ExecutionContextProvider#removeBindParamMapper(BindParameterMapper)
 	 */
 	@Override
-	public SqlContextFactory removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
+	public ExecutionContextProvider removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.removeMapper(parameterMapper);
-		return this;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#getAutoBindParameterCreators()
-	 */
-	@Deprecated
-	@Override
-	public List<AutoBindParameterCreator> getAutoBindParameterCreators() {
-		return autoBindParameterCreators;
-	}
-
-	/**
-	 * {inheritDoc}
-	 *
-	 * @see SqlContextFactory#setAutoBindParameterCreators(List)
-	 */
-	@Deprecated
-	@Override
-	public SqlContextFactory setAutoBindParameterCreators(
-			final List<AutoBindParameterCreator> autoBindParameterCreators) {
-		this.autoBindParameterCreators = autoBindParameterCreators;
 		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addQueryAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addQueryAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory addQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public ExecutionContextProvider addQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		queryAutoParameterBinders.add(binder);
 		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
@@ -387,10 +325,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeQueryAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeQueryAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory removeQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public ExecutionContextProvider removeQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		queryAutoParameterBinders.remove(binder);
 		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
@@ -400,10 +338,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#addUpdateAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addUpdateAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory addUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public ExecutionContextProvider addUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		updateAutoParameterBinders.add(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
 				.reduce(Consumer::andThen)
@@ -414,10 +352,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#removeUpdateAutoParameterBinder(java.util.function.Consumer)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeUpdateAutoParameterBinder(java.util.function.Consumer)
 	 */
 	@Override
-	public SqlContextFactory removeUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
+	public ExecutionContextProvider removeUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		updateAutoParameterBinders.remove(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
 				.reduce(Consumer::andThen)
@@ -570,10 +508,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#setDefaultResultSetType(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#setDefaultResultSetType(int)
 	 */
 	@Override
-	public SqlContextFactory setDefaultResultSetType(final int resultSetType) {
+	public ExecutionContextProvider setDefaultResultSetType(final int resultSetType) {
 		defaultResultSetType = resultSetType;
 		return this;
 	}
@@ -581,10 +519,10 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContextFactory#setDefaultResultSetConcurrency(int)
+	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#setDefaultResultSetConcurrency(int)
 	 */
 	@Override
-	public SqlContextFactory setDefaultResultSetConcurrency(final int resultSetConcurrency) {
+	public ExecutionContextProvider setDefaultResultSetConcurrency(final int resultSetConcurrency) {
 		defaultResultSetConcurrency = resultSetConcurrency;
 		return this;
 	}

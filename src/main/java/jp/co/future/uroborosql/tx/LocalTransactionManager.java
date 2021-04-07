@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * ローカルトランザクションマネージャ
@@ -48,7 +48,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	public LocalTransactionManager(final SqlConfig sqlConfig, final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
-		this.updatable = !sqlConfig.getSqlAgentFactory().isForceUpdateWithinTransaction();
+		this.updatable = !sqlConfig.getSqlAgentProvider().isForceUpdateWithinTransaction();
 		this.connectionContext = connectionContext;
 	}
 
@@ -208,40 +208,40 @@ public class LocalTransactionManager implements TransactionManager {
 	/**
 	 * ステートメント初期化。
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return PreparedStatement
 	 * @throws SQLException SQL例外
 	 */
-	public PreparedStatement getPreparedStatement(final SqlContext sqlContext) throws SQLException {
+	public PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
 		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
-			return txContext.get().getPreparedStatement(sqlContext);
+			return txContext.get().getPreparedStatement(executionContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
 				this.unmanagedTransaction = Optional
 						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
-			return this.unmanagedTransaction.get().getPreparedStatement(sqlContext);
+			return this.unmanagedTransaction.get().getPreparedStatement(executionContext);
 		}
 	}
 
 	/**
 	 * Callableステートメント初期化
 	 *
-	 * @param sqlContext SQLコンテキスト
+	 * @param executionContext ExecutionContext
 	 * @return CallableStatement
 	 * @throws SQLException SQL例外
 	 */
-	public CallableStatement getCallableStatement(final SqlContext sqlContext) throws SQLException {
+	public CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
 		var txContext = currentTxContext();
 		if (txContext.isPresent()) {
-			return txContext.get().getCallableStatement(sqlContext);
+			return txContext.get().getCallableStatement(executionContext);
 		} else {
 			if (!this.unmanagedTransaction.isPresent()) {
 				this.unmanagedTransaction = Optional
 						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
 			}
-			return this.unmanagedTransaction.get().getCallableStatement(sqlContext);
+			return this.unmanagedTransaction.get().getCallableStatement(executionContext);
 		}
 	}
 

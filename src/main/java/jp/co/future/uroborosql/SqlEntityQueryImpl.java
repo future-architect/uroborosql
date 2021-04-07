@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -59,11 +59,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 * @param agent SqlAgent
 	 * @param entityHandler EntityHandler
 	 * @param tableMetadata TableMetadata
-	 * @param context SqlContext
+	 * @param context ExecutionContext
 	 * @param entityType エンティティタイプ
 	 */
 	SqlEntityQueryImpl(final SqlAgent agent, final EntityHandler<?> entityHandler, final TableMetadata tableMetadata,
-			final SqlContext context, final Class<? extends E> entityType) {
+			final ExecutionContext context, final Class<? extends E> entityType) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
 		this.entityType = entityType;
@@ -498,7 +498,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsForUpdateNoWait()) {
 			this.forUpdateType = ForUpdateType.NOWAIT;
 			return this;
-		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
 			log.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
@@ -516,8 +516,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public SqlEntityQuery<E> forUpdateWait() {
 		if (dialect.supportsForUpdateWait()) {
-			return forUpdateWait(agent().getSqlConfig().getSqlAgentFactory().getDefaultForUpdateWaitSeconds());
-		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
+		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
 			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
@@ -538,7 +538,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			this.forUpdateType = ForUpdateType.WAIT;
 			this.waitSeconds = waitSeconds;
 			return this;
-		} else if (!agent().getSqlConfig().getSqlAgentFactory().isStrictForUpdateType()
+		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
 			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;

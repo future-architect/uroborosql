@@ -86,7 +86,7 @@ public class CustomMapperTest {
 
 		// Mapperの登録
 		var customMapper = new CustomMapper();
-		config.getSqlContextFactory().addBindParamMapper(customMapper);
+		config.getExecutionContextProvider().addBindParamMapper(customMapper);
 		config.getEntityHandler().addPropertyMapper(customMapper);
 
 		var sqlFilterManager = config.getSqlFilterManager();

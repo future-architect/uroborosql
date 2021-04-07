@@ -16,7 +16,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -59,14 +59,13 @@ public class SqlQueryTest extends AbstractDbTest {
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testQueryParamList() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var ctx = agent.contextFrom("example/select_product")
-				.paramList("product_id", new BigDecimal("0"), new BigDecimal("2"))
+				.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
@@ -146,7 +145,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		var manager = config.getSqlFilterManager();
 		manager.addSqlFilter(new AbstractSqlFilter() {
 			@Override
-			public String doTransformSql(final SqlContext sqlContext, final String sql) {
+			public String doTransformSql(final ExecutionContext executionContext, final String sql) {
 				var newSql = String.format("select * from (%s)", sql);
 				return newSql;
 			}
@@ -283,7 +282,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
 		var ans = agent.query("example/select_product")
@@ -362,7 +361,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
 		try {
@@ -392,7 +391,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 		try {
 			agent.query("example/select_product").param("product_id", Arrays.asList(10)).one();
@@ -484,7 +483,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
 		var optional = agent.query("example/select_product")
@@ -514,7 +513,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 		try {
 			agent.query("example/select_product")
@@ -873,7 +872,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.close();
 
 		// defaultMapKeyCaseFormatの設定
-		config.getSqlAgentFactory().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
+		config.getSqlAgentProvider().setDefaultMapKeyCaseFormat(CaseFormat.LOWER_SNAKE_CASE);
 		agent = config.agent();
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))

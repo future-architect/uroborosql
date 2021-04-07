@@ -43,9 +43,14 @@ import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.StringUtils;
 
-public class NioSqlManagerImpl implements SqlManager {
+/**
+ * SQLリソース管理実装クラス
+ *
+ * @author H.Sugimoto
+ */
+public class SqlResourceManagerImpl implements SqlResourceManager {
 	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(NioSqlManagerImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(SqlResourceManagerImpl.class);
 
 	/** zip, jar内のファイルのscheme */
 	private static final String SCHEME_JAR = "jar";
@@ -93,7 +98,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * コンストラクタ
 	 */
-	public NioSqlManagerImpl() {
+	public SqlResourceManagerImpl() {
 		this(DEFAULT_LOAD_PATH);
 	}
 
@@ -102,7 +107,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 * @param detectChanges SQLファイルの変更を検知するかどうか
 	 */
-	public NioSqlManagerImpl(final boolean detectChanges) {
+	public SqlResourceManagerImpl(final boolean detectChanges) {
 		this(DEFAULT_LOAD_PATH, null, null, detectChanges);
 	}
 
@@ -111,7 +116,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 * @param loadPath SQLファイルをロードするルートパス
 	 */
-	public NioSqlManagerImpl(final String loadPath) {
+	public SqlResourceManagerImpl(final String loadPath) {
 		this(loadPath, null);
 	}
 
@@ -121,7 +126,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param loadPath SQLファイルをロードするルートパス
 	 * @param fileExtension SQLファイル拡張子
 	 */
-	public NioSqlManagerImpl(final String loadPath, final String fileExtension) {
+	public SqlResourceManagerImpl(final String loadPath, final String fileExtension) {
 		this(loadPath, fileExtension, null);
 	}
 
@@ -132,7 +137,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param fileExtension SQLファイル拡張子
 	 * @param charset SQLファイルエンコーディング
 	 */
-	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset) {
+	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset) {
 		this(loadPath, fileExtension, charset, false);
 	}
 
@@ -144,7 +149,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param charset SQLファイルエンコーディング
 	 * @param detectChanges SQLファイルの変更を検知するかどうか
 	 */
-	public NioSqlManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
+	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
 		this(Arrays.asList(loadPath), fileExtension, charset, detectChanges);
 	}
@@ -154,7 +159,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 * @param loadPaths SQLファイルをロードするルートパスのリスト
 	 */
-	public NioSqlManagerImpl(final List<String> loadPaths) {
+	public SqlResourceManagerImpl(final List<String> loadPaths) {
 		this(loadPaths, null);
 	}
 
@@ -164,7 +169,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param loadPaths SQLファイルをロードするルートパスのリスト
 	 * @param fileExtension SQLファイル拡張子
 	 */
-	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension) {
+	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension) {
 		this(loadPaths, fileExtension, null);
 	}
 
@@ -175,7 +180,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 * @param fileExtension SQLファイル拡張子
 	 * @param charset SQLファイルエンコーディング
 	 */
-	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset) {
+	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset) {
 		this(loadPaths, fileExtension, charset, false);
 	}
 
@@ -189,7 +194,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	 *
 	 * @throws IllegalArgumentException loadPathsに<code>null</code>が含まれる場合
 	 */
-	public NioSqlManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset,
+	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
 		this.loadPaths = new ArrayList<>();
 		for (String loadPath : loadPaths) {
@@ -214,7 +219,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#initialize()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#initialize()
 	 */
 	@Override
 	public void initialize() {
@@ -239,7 +244,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#shutdown()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#shutdown()
 	 */
 	@Override
 	public void shutdown() {
@@ -326,7 +331,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getDialect()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getDialect()
 	 */
 	@Override
 	public Dialect getDialect() {
@@ -336,7 +341,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#setDialect(jp.co.future.uroborosql.dialect.Dialect)
 	 */
 	@Override
 	public void setDialect(final Dialect dialect) {
@@ -346,7 +351,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlPathList()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlPathList()
 	 */
 	@Override
 	public List<String> getSqlPathList() {
@@ -358,47 +363,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSqlLoader()
-	 */
-	@Override
-	public SqlLoader getSqlLoader() {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setSqlLoader(jp.co.future.uroborosql.store.SqlLoader)
-	 */
-	@Override
-	public void setSqlLoader(final SqlLoader sqlLoader) {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#isCache()
-	 */
-	@Override
-	public boolean isCache() {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#setCache(boolean)
-	 */
-	@Override
-	public void setCache(final boolean cache) {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#existSql(java.lang.String)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#existSql(java.lang.String)
 	 */
 	@Override
 	public boolean existSql(final String sqlName) {
@@ -408,7 +373,7 @@ public class NioSqlManagerImpl implements SqlManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlManager#getSql(java.lang.String)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSql(java.lang.String)
 	 */
 	@Override
 	public String getSql(final String sqlName) {

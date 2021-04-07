@@ -8,7 +8,7 @@ package jp.co.future.uroborosql.filter;
 
 import java.util.regex.Pattern;
 
-import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -65,10 +65,10 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	 * <li>wrapIgnorePatternの指定がない場合</li>
 	 * </ul>
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doTransformSql(jp.co.future.uroborosql.context.SqlContext, java.lang.String)
+	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doTransformSql(jp.co.future.uroborosql.context.ExecutionContext, java.lang.String)
 	 */
 	@Override
-	public String doTransformSql(final SqlContext sqlContext, final String sql) {
+	public String doTransformSql(final ExecutionContext executionContext, final String sql) {
 		var wrapIgnore = true;
 		if (ignorePattern != null) {
 			var matcher = ignorePattern.matcher(sql);

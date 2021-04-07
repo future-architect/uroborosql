@@ -58,19 +58,6 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testDataSourceConnectionWithName() throws Exception {
-		@SuppressWarnings("deprecation")
-		var supplier = new DataSourceConnectionSupplierImpl(DS_NAME2);
-		try (var conn = supplier.getConnection()) {
-			assertThat(conn.getMetaData().getURL(), is(URL2));
-			assertThat(conn.getSchema(), is("PUBLIC"));
-			assertThat(conn.getAutoCommit(), is(false));
-			assertThat(conn.isReadOnly(), is(false));
-			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
-		}
-	}
-
-	@Test
 	public void testDataSourceConnectionWithDataSource() throws Exception {
 		var url = "jdbc:h2:mem:ds";
 		var dataSource = new JdbcDataSource();
