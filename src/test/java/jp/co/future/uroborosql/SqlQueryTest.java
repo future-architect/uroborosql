@@ -16,13 +16,11 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
+import jp.co.future.uroborosql.event.WrapContextEventSubscriber;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -109,21 +107,20 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryFilter() throws Exception {
+	public void testQueryEvent() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var manager = config.getSqlFilterManager();
-		var filter = new WrapContextSqlFilter("",
-				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
-		filter.initialize();
-		manager.addSqlFilter(filter);
+		var subscriber = new WrapContextEventSubscriber("", "LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0",
+				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
+		subscriber.initialize();
 
 		var ctx = agent.contextFrom("example/select_product")
 				.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("1"))).param("startRowIndex", 0)
 				.param("maxRowCount", 1);
 
-		var rs = agent.query(ctx);
+		var rs = agent.addSubscriber(s -> s.doOnTransformSql(subscriber::doTransformSql))
+				.query(ctx);
 		assertThat(rs, not(nullValue()));
 		assertThat(rs.next(), is(true));
 		assertThat(rs.getString("PRODUCT_ID"), is("0"));
@@ -135,23 +132,16 @@ public class SqlQueryTest extends AbstractDbTest {
 	}
 
 	/**
-	 * SQLのdoTransformフィルターのテストケース。
+	 * SQLのdoTransformイベントのテストケース。
 	 */
 	@Test
-	public void testQueryFilterQueryWith() throws Exception {
+	public void testQueryEventQueryWith() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var manager = config.getSqlFilterManager();
-		manager.addSqlFilter(new AbstractSqlFilter() {
-			@Override
-			public String doTransformSql(final ExecutionContext executionContext, final String sql) {
-				var newSql = String.format("select * from (%s)", sql);
-				return newSql;
-			}
-		});
-
-		var query = agent.queryWith("select product_id from product");
+		var query = agent
+				.addSubscriber(s -> s.doOnTransformSql(e -> String.format("select * from (%s)", e.getOriginalSql())))
+				.queryWith("select product_id from product");
 		var results = query.collect();
 		assertThat(query.context().getSql(), is("select * from (select product_id from product)"));
 		assertThat(results.size(), is(2));

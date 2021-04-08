@@ -1,0 +1,16 @@
+BEFORE TX
+SQL:null executed. Count:0 items.
+SQL:example/insert_product executed. Count:1 items.
+SQL:example/insert_product executed. Count:1 items.
+BEFORE TX
+SQL:example/select_product executed.
+AFTER TX
+BEFORE TX
+SQL:example/insert_product_regist_work executed. Count:1 items.
+BEFORE ROLLBACK
+AFTER ROLLBACK
+AFTER TX
+SQL:null executed.
+BEFORE COMMIT
+AFTER COMMIT
+AFTER TX

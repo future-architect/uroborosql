@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -65,18 +64,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/** SQL設定クラス */
 	private SqlConfig sqlConfig = null;
 
-	/** 自動パラメータバインド関数List(query用) */
-	private final List<Consumer<ExecutionContext>> queryAutoParameterBinders = new ArrayList<>();
-
-	/** 自動パラメータバインド関数List(update/batch/proc用) */
-	private final List<Consumer<ExecutionContext>> updateAutoParameterBinders = new ArrayList<>();
-
-	/** 合成自動パラメータバインド関数(query用) */
-	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
-
-	/** 合成自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
-
 	/** ResultSetTypeの初期値 */
 	private int defaultResultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
@@ -98,13 +85,11 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
 
 		executionContext.setConstParameterMap(paramMap);
-		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
 		executionContext.setParameterMapperManager(
 				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
-		executionContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
-		executionContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 		executionContext.setResultSetType(defaultResultSetType);
 		executionContext.setResultSetConcurrency(defaultResultSetConcurrency);
+		executionContext.setSqlConfig(getSqlConfig());
 
 		return executionContext;
 	}
@@ -310,60 +295,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.add(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.remove(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
 	 * 定数クラスパラメータMap生成
 	 *
 	 * @return 定数クラスパラメータMap
@@ -446,8 +377,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param packageName ルートパッケージ名
 	 * @param dir 対象ディレクトリ
 	 * @return クラスリスト
-	 * @throws ClassNotFoundException エラー
-	 * @throws IOException
 	 */
 	private static Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
 		Set<Class<?>> classes = new HashSet<>();
@@ -471,8 +400,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param packageName ルートパッケージ名
 	 * @param jarFile jarファイル
 	 * @return クラスリスト
-	 * @throws ClassNotFoundException エラー
-	 * @throws IOException
 	 */
 	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
 			final JarFile jarFile) {

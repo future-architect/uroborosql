@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -31,22 +30,21 @@ import javax.crypto.spec.IvParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.ResultEvent.QueryResultEvent;
+import jp.co.future.uroborosql.event.SqlEvent.ParameterEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターの抽象クラス.
- *
+ * 特定のカラムの読み書きに対して暗号化/復号化を行うイベントサブスクライバの抽象クラス.<br>
  * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
  *
- * @author H.Sugimoto
- *
+ * @author yanagihara
  */
-public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
+public abstract class AbstractSecretColumnEventSubscriber extends DefaultEventSubscriber {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractSecretColumnSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractSecretColumnEventSubscriber.class);
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -75,7 +73,8 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/** IVを利用するかどうか */
 	private boolean useIV = false;
 
-	private boolean skipFilter = false;
+	/** 暗号化、復号化をスキップするかどうか */
+	private boolean skip = false;
 
 	/**
 	 * 変換の名前 (たとえば、DES/CBC/PKCS5Padding)。標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。
@@ -83,18 +82,15 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
-	public AbstractSecretColumnSqlFilter() {
-	}
-
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#initialize()
+	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#initialize()
 	 */
 	@Override
 	public void initialize() {
 		if (getCryptColumnNames() == null || getCryptColumnNames().isEmpty()) {
-			setSkipFilter(true);
+			setSkip(true);
 			return;
 		} else {
 			cryptParamKeys = new ArrayList<>();
@@ -111,28 +107,28 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 		try {
 			if (StringUtils.isBlank(getKeyStoreFilePath())) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getStorePassword())) {
 				LOG.error("Invalid password for access KeyStore.");
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getAlias())) {
 				LOG.error("No alias for access KeyStore.");
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 
@@ -154,7 +150,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
 			LOG.error("Failed to acquire secret key.", ex);
-			setSkipFilter(true);
+			setSkip(true);
 		}
 	}
 
@@ -163,11 +159,12 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 *
 	 * パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doParameter(jp.co.future.uroborosql.parameter.Parameter)
+	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doParameter(ParameterEvent)
 	 */
 	@Override
-	public Parameter doParameter(final Parameter parameter) {
-		if (skipFilter || parameter == null) {
+	public Parameter doParameter(final ParameterEvent event) {
+		var parameter = event.getParameter();
+		if (skip || parameter == null) {
 			return parameter;
 		}
 
@@ -211,13 +208,12 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 *
 	 * 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを{@link SecretResultSet}でラップして返す
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext,
-	 *      java.sql.PreparedStatement, java.sql.ResultSet)
+	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doQuery(QueryResultEvent)
 	 */
 	@Override
-	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
-		if (skipFilter) {
+	public ResultSet doQuery(final QueryResultEvent event) {
+		var resultSet = event.getResultSet();
+		if (skip) {
 			return resultSet;
 		}
 
@@ -401,21 +397,21 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * skipFilterを取得します。
+	 * skipフラグを取得します。
 	 *
-	 * @return skipFilter
+	 * @return skipフラグ
 	 */
-	public boolean isSkipFilter() {
-		return skipFilter;
+	public boolean isSkip() {
+		return skip;
 	}
 
 	/**
-	 * skipFilterを設定します。
+	 * skipフラグを設定します。
 	 *
-	 * @param skipFilter skipFilter
+	 * @param skip skipフラグ
 	 */
-	public void setSkipFilter(final boolean skipFilter) {
-		this.skipFilter = skipFilter;
+	public void setSkip(final boolean skip) {
+		this.skip = skip;
 	}
 
 	/**
@@ -453,5 +449,4 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	public void setTransformationType(final String transformationType) {
 		this.transformationType = transformationType;
 	}
-
 }

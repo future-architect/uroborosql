@@ -8,7 +8,10 @@ package jp.co.future.uroborosql;
 
 import java.sql.Connection;
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 import javax.sql.DataSource;
@@ -28,10 +31,11 @@ import jp.co.future.uroborosql.context.ExecutionContextProvider;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.event.EventSubscriber;
+import jp.co.future.uroborosql.event.SubscriberConfigurator;
+import jp.co.future.uroborosql.event.Subscribers;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.expr.ExpressionParserFactory;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManager;
@@ -110,24 +114,26 @@ public final class UroboroSQL {
 	public static final class UroboroSQLBuilder {
 		private ConnectionSupplier connectionSupplier;
 		private SqlResourceManager sqlResourceManager;
-		private SqlFilterManager sqlFilterManager;
 		private ExecutionContextProvider executionContextProvider;
 		private SqlAgentProvider sqlAgentProvider;
 		private EntityHandler<?> entityHandler;
 		private Clock clock;
 		private Dialect dialect;
 		private ExpressionParser expressionParser;
+		private Subscribers subscribers;
+		private final List<EventSubscriber> subscriberConfigList;
 
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
 			this.sqlResourceManager = new SqlResourceManagerImpl();
-			this.sqlFilterManager = new SqlFilterManagerImpl();
 			this.executionContextProvider = new ExecutionContextProviderImpl();
 			this.sqlAgentProvider = new SqlAgentProviderImpl();
 			this.entityHandler = new DefaultEntityHandler();
 			this.clock = null;
 			this.dialect = null;
 			this.expressionParser = null;
+			this.subscribers = new Subscribers();
+			this.subscriberConfigList = new ArrayList<>();
 		}
 
 		/**
@@ -138,17 +144,6 @@ public final class UroboroSQL {
 		 */
 		public UroboroSQLBuilder setSqlResourceManager(final SqlResourceManager sqlResourceManager) {
 			this.sqlResourceManager = sqlResourceManager;
-			return this;
-		}
-
-		/**
-		 * SqlFilterManagerの設定.
-		 *
-		 * @param sqlFilterManager sqlFilterManager
-		 * @return UroboroSQLBuilder
-		 */
-		public UroboroSQLBuilder setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-			this.sqlFilterManager = sqlFilterManager;
 			return this;
 		}
 
@@ -230,6 +225,60 @@ public final class UroboroSQL {
 		}
 
 		/**
+		 * イベントサブスクライバの設定.<br>
+		 * 複数設定した場合は設定した順にサブスクライバが実行されます.
+		 *
+		 * @param configurator SubscriberConfiguratorのConsumer
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder addSubscriber(final Consumer<SubscriberConfigurator> configurator) {
+			configurator.accept(this.subscribers);
+			return this;
+		}
+
+		/**
+		 * イベントサブスクライバの設定.<br>
+		 * 複数設定した場合は設定した順にサブスクライバが実行されます.
+		 *
+		 * @param subscriber EventSubscriber
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder addSubscriber(final EventSubscriber subscriber) {
+			this.subscriberConfigList.add(subscriber);
+			subscribers.doOnParameter(subscriber::doParameter)
+					.doOnOutParameter(subscriber::doOutParameter)
+					.doOnPreparedStatement(subscriber::doPreparedStatement)
+					.doOnCallableStatement(subscriber::doCallableStatement)
+					.doOnTransformSql(subscriber::doTransformSql)
+					.doOnInsertParams(subscriber::doInsertParams)
+					.doOnUpdateParams(subscriber::doUpdateParams)
+					.doOnDeleteParams(subscriber::doDeleteParams)
+					.doOnBulkInsertParams(subscriber::doBulkInsertParams)
+					.doOnQuery(subscriber::doQuery)
+					.doOnUpdate(subscriber::doUpdate)
+					.doOnBatch(subscriber::doBatch)
+					.doOnProcedure(subscriber::doProcedure)
+					.doBeforeTransaction(subscriber::doBeforeTransaction)
+					.doAfterTransaction(subscriber::doAfterTransaction)
+					.doBeforeCommit(subscriber::doBeforeCommit)
+					.doAfterCommit(subscriber::doAfterCommit)
+					.doBeforeRollback(subscriber::doBeforeRollback)
+					.doAfterRollback(subscriber::doAfterRollback);
+			return this;
+		}
+
+		/**
+		 * イベントサブスクライバの削除.
+		 *
+		 * @return UroboroSQLBuilder
+		 */
+		public UroboroSQLBuilder clearSubscribers() {
+			this.subscribers.clearSubscribers();
+			this.subscriberConfigList.clear();
+			return this;
+		}
+
+		/**
 		 * Builderに設定された内容を元にSqlConfigを構築する
 		 *
 		 * @return SqlConfig
@@ -239,16 +288,17 @@ public final class UroboroSQL {
 				throw new IllegalStateException(
 						"ConnectionSupplier is mandatory. Please set ConnectionSupplier instance before calling build() method.");
 			}
+			this.subscriberConfigList.forEach(EventSubscriber::initialize);
 
 			return new InternalConfig(this.connectionSupplier,
 					this.sqlResourceManager,
 					this.executionContextProvider,
 					this.sqlAgentProvider,
-					this.sqlFilterManager,
 					this.entityHandler,
 					this.clock,
 					this.dialect,
-					this.expressionParser);
+					this.expressionParser,
+					this.subscribers);
 		}
 
 	}
@@ -275,11 +325,6 @@ public final class UroboroSQL {
 		private final SqlAgentProvider sqlAgentProvider;
 
 		/**
-		 * SqlFilter管理クラス.
-		 */
-		private final SqlFilterManager sqlFilterManager;
-
-		/**
 		 * Entityハンドラ.
 		 */
 		private final EntityHandler<?> entityHandler;
@@ -295,6 +340,11 @@ public final class UroboroSQL {
 		private final Dialect dialect;
 
 		/**
+		 * イベントサブスクライバ.
+		 */
+		private final Subscribers subscribers;
+
+		/**
 		 * ExpressionParser
 		 */
 		private final ExpressionParser expressionParser;
@@ -303,17 +353,17 @@ public final class UroboroSQL {
 				final SqlResourceManager sqlResourceManager,
 				final ExecutionContextProvider executionContextProvider,
 				final SqlAgentProvider sqlAgentProvider,
-				final SqlFilterManager sqlFilterManager,
 				final EntityHandler<?> entityHandler,
 				final Clock clock,
 				final Dialect dialect,
-				final ExpressionParser expressionParser) {
+				final ExpressionParser expressionParser,
+				final Subscribers subscribers) {
 			this.connectionSupplier = connectionSupplier;
 			this.sqlResourceManager = sqlResourceManager;
 			this.executionContextProvider = executionContextProvider;
 			this.sqlAgentProvider = sqlAgentProvider;
-			this.sqlFilterManager = sqlFilterManager;
 			this.entityHandler = entityHandler;
+			this.subscribers = subscribers;
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
 			} else {
@@ -348,7 +398,6 @@ public final class UroboroSQL {
 			this.entityHandler.setSqlConfig(this);
 
 			this.sqlResourceManager.initialize();
-			this.sqlFilterManager.initialize();
 			this.executionContextProvider.initialize();
 			this.expressionParser.initialize();
 			this.entityHandler.initialize();
@@ -412,16 +461,6 @@ public final class UroboroSQL {
 		@Override
 		public SqlResourceManager getSqlResourceManager() {
 			return sqlResourceManager;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlFilterManager()
-		 */
-		@Override
-		public SqlFilterManager getSqlFilterManager() {
-			return sqlFilterManager;
 		}
 
 		/**
@@ -492,6 +531,16 @@ public final class UroboroSQL {
 		@Override
 		public EntityHandler<?> getEntityHandler() {
 			return entityHandler;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getSubscribers()
+		 */
+		@Override
+		public Subscribers getSubscribers() {
+			return subscribers;
 		}
 	}
 }

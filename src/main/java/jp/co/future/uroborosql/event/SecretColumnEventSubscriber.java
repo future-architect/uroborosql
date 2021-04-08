@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
@@ -15,14 +15,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 /**
- * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターのデフォルト実装.
+ * 特定のカラムの読み書きに対して暗号化/復号化を行うイベントサブスクライバのデフォルト実装.<br>
+ * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する.
  *
- * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
- *
- * @author H.Sugimoto
- *
+ * @author yanagihara
  */
-public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
+public class SecretColumnEventSubscriber extends AbstractSecretColumnEventSubscriber {
 
 	/**
 	 * {@inheritDoc}

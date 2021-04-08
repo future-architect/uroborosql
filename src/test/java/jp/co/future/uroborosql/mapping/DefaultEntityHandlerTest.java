@@ -24,10 +24,9 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.event.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -84,7 +83,7 @@ public class DefaultEntityHandlerTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
+				.addSubscriber(new AuditLogEventSubscriber())
 				.build();
 	}
 

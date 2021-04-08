@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.event.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -82,15 +82,14 @@ public class CustomMapperTest {
 			}
 		}
 
-		config = UroboroSQL.builder(url, user, password).build();
+		config = UroboroSQL.builder(url, user, password)
+				.addSubscriber(new AuditLogEventSubscriber())
+				.build();
 
 		// Mapperの登録
 		var customMapper = new CustomMapper();
 		config.getExecutionContextProvider().addBindParamMapper(customMapper);
 		config.getEntityHandler().addPropertyMapper(customMapper);
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
 	@BeforeEach

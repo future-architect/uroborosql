@@ -14,6 +14,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,7 +29,7 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  *
  * @author ota
  */
-class LocalTransactionContext implements AutoCloseable {
+public class LocalTransactionContext implements AutoCloseable {
 
 	/** セーブポイント名リスト */
 	private final List<String> savepointNames = new ArrayList<>();
@@ -121,7 +122,7 @@ class LocalTransactionContext implements AutoCloseable {
 			}
 			break;
 		}
-		return this.sqlConfig.getSqlFilterManager().doPreparedStatement(executionContext, stmt);
+		return this.sqlConfig.getSubscribers().preparedStatement(executionContext, stmt);
 	}
 
 	/**
@@ -135,7 +136,7 @@ class LocalTransactionContext implements AutoCloseable {
 		var conn = getConnection();
 
 		if (this.updatable) {
-			return this.sqlConfig.getSqlFilterManager().doCallableStatement(executionContext,
+			return this.sqlConfig.getSubscribers().callableStatement(executionContext,
 					conn.prepareCall(executionContext.getExecutableSql(), executionContext.getResultSetType(),
 							executionContext.getResultSetConcurrency()));
 		} else {
@@ -241,7 +242,9 @@ class LocalTransactionContext implements AutoCloseable {
 	void commit() {
 		if (connection != null) {
 			try {
+				sqlConfig.getSubscribers().beforeCommit(this, Optional.ofNullable(connectionContext));
 				connection.commit();
+				sqlConfig.getSubscribers().afterCommit(this, Optional.ofNullable(connectionContext));
 			} catch (SQLException e) {
 				throw new UroborosqlSQLException(e);
 			}
@@ -257,7 +260,9 @@ class LocalTransactionContext implements AutoCloseable {
 	void rollback() {
 		if (connection != null) {
 			try {
+				sqlConfig.getSubscribers().beforeRollback(this, Optional.ofNullable(connectionContext));
 				connection.rollback();
+				sqlConfig.getSubscribers().afterRollback(this, Optional.ofNullable(connectionContext));
 			} catch (SQLException e) {
 				throw new UroborosqlSQLException(e);
 			}

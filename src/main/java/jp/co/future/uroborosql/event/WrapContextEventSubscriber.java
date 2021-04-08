@@ -4,19 +4,19 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import java.util.regex.Pattern;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.SqlEvent.TransformSqlEvent;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * SQL文字列の前後をWrapするSqlFilter
+ * SQL文字列の前後をWrapするイベントサブスクライバ.
  *
- * @author H.Sugimoto
+ * @author yanagihara
  */
-public class WrapContextSqlFilter extends AbstractSqlFilter {
+public class WrapContextEventSubscriber extends DefaultEventSubscriber {
 
 	/** Wrap用SQL（前部分） */
 	private String wrappedSqlBeginParts;
@@ -31,19 +31,19 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	private Pattern ignorePattern;
 
 	/**
-	 * コンストラクタ
+	 * コンストラクタ.
 	 */
-	public WrapContextSqlFilter() {
+	public WrapContextEventSubscriber() {
 	}
 
 	/**
-	 * コンストラクタ
+	 * コンストラクタ.
 	 *
 	 * @param wrappedSqlBeginParts Wrap用SQL（前部分）
 	 * @param wrappedSqlEndParts Wrap用SQL（後部分）
 	 * @param wrapIgnorePattern Wrapを無視するSQLのパターン
 	 */
-	public WrapContextSqlFilter(final String wrappedSqlBeginParts, final String wrappedSqlEndParts,
+	public WrapContextEventSubscriber(final String wrappedSqlBeginParts, final String wrappedSqlEndParts,
 			final String wrapIgnorePattern) {
 		this.wrappedSqlBeginParts = wrappedSqlBeginParts;
 		this.wrappedSqlEndParts = wrappedSqlEndParts;
@@ -58,24 +58,22 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * SQLの前後を別のSQLでWrapする加工を行う。
-	 * ただし、以下の場合は加工対象外とする。
+	 * SQLの前後を別のSQLでWrapする加工を行う.
+	 * ただし、以下の場合は加工対象外とする.
 	 * <ul>
 	 * <li>wrapIgnorePatternに当てはまるSQLの場合</li>
 	 * <li>wrapIgnorePatternの指定がない場合</li>
 	 * </ul>
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doTransformSql(jp.co.future.uroborosql.context.ExecutionContext, java.lang.String)
 	 */
 	@Override
-	public String doTransformSql(final ExecutionContext executionContext, final String sql) {
+	public String doTransformSql(final TransformSqlEvent event) {
 		var wrapIgnore = true;
 		if (ignorePattern != null) {
-			var matcher = ignorePattern.matcher(sql);
+			var matcher = ignorePattern.matcher(event.getOriginalSql());
 			wrapIgnore = matcher.matches();
 		}
 
-		var newSql = sql;
+		var newSql = event.getOriginalSql();
 		// sqlを別のSQLで囲む場合のSQLを追加
 		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlBeginParts())) {
 			newSql = getWrappedSqlBeginParts() + newSql;
@@ -88,7 +86,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrapを無視するSQLのパターン を取得します。
+	 * Wrapを無視するSQLのパターン を取得します.
 	 *
 	 * @return Wrapを無視するSQLのパターン
 	 */
@@ -97,7 +95,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrapを無視するSQLのパターン を設定します。
+	 * Wrapを無視するSQLのパターン を設定します.
 	 *
 	 * @param wrapIgnorePattern Wrapを無視するSQLのパターン
 	 */
@@ -106,7 +104,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrap用SQL（前部分） を取得します。
+	 * Wrap用SQL（前部分） を取得します.
 	 *
 	 * @return Wrap用SQL（前部分）
 	 */
@@ -115,7 +113,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrap用SQL（前部分） を設定します。
+	 * Wrap用SQL（前部分） を設定します.
 	 *
 	 * @param wrappedSqlBeginParts Wrap用SQL（前部分）
 	 */
@@ -124,7 +122,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrap用SQL（後部分） を取得します。
+	 * Wrap用SQL（後部分） を取得します.
 	 *
 	 * @return Wrap用SQL（後部分）
 	 */
@@ -133,7 +131,7 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * Wrap用SQL（後部分） を設定します。
+	 * Wrap用SQL（後部分） を設定します.
 	 *
 	 * @param wrappedSqlEndParts Wrap用SQL（後部分）
 	 */

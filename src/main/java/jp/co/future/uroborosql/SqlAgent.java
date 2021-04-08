@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
@@ -18,6 +19,8 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.event.EventSubscriber;
+import jp.co.future.uroborosql.event.SubscriberConfigurator;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
@@ -29,7 +32,7 @@ import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
- * SQL実行クラスインタフェース
+ * SQL実行クラスインタフェース.
  *
  * @author H.Sugimoto
  */
@@ -46,7 +49,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	@FunctionalInterface
 	interface InsertsCondition<E> {
 		/**
-		 * 一括更新用のフレームの判定
+		 * 一括更新用のフレームの判定.
 		 *
 		 * @param context ExecutionContext
 		 * @param count パラメーターレコード数
@@ -67,7 +70,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	@FunctionalInterface
 	interface UpdatesCondition<E> {
 		/**
-		 * 一括更新用のフレームの判定
+		 * 一括更新用のフレームの判定.
 		 *
 		 * @param context ExecutionContext
 		 * @param count パラメーターレコード数
@@ -78,14 +81,14 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	}
 
 	/**
-	 * SQLカバレッジを出力するかどうかのフラグ。<code>true</code>の場合はSQLカバレッジを出力する。<br>
+	 * SQLカバレッジを出力するかどうかのフラグ.<code>true</code>の場合はSQLカバレッジを出力する.<br>
 	 * 文字列として{@link CoverageHandler}インタフェースの実装クラスが設定された場合はそのクラスを<br>
-	 * 利用してカバレッジの収集を行う。
+	 * 利用してカバレッジの収集を行う.
 	 */
 	String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
 
 	/**
-	 * クエリ実行処理。
+	 * クエリ実行処理.
 	 *
 	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果のResultSet
@@ -94,8 +97,8 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	ResultSet query(ExecutionContext executionContext) throws SQLException;
 
 	/**
-	 * クエリ実行処理。<br>
-	 * 結果をStreamとして返却する。
+	 * クエリ実行処理.<br>
+	 * 結果をStreamとして返却する.
 	 *
 	 * @param <T> Streamの型
 	 * @param executionContext ExecutionContext
@@ -106,18 +109,19 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<T> Stream<T> query(ExecutionContext executionContext, ResultSetConverter<T> converter) throws SQLException;
 
 	/**
-	 * クエリ実行処理。<br>
-	 * 結果を{@literal List<Map<String, Object>>}に変換して返却する。
+	 * クエリ実行処理.<br>
+	 * 結果を{@literal List<Map<String, Object>>}に変換して返却する.
 	 *
 	 * @param executionContext ExecutionContext
 	 * @param caseFormat Mapのキー文字列の変換書式
 	 * @return 検索結果の各行のキーと値をMapに詰めたList
 	 * @throws SQLException SQL例外
 	 */
-	List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat) throws SQLException;
+	List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat)
+			throws SQLException;
 
 	/**
-	 * DB更新処理。
+	 * DB更新処理.
 	 *
 	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果
@@ -126,7 +130,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	int update(ExecutionContext executionContext) throws SQLException;
 
 	/**
-	 * バッチ処理実行。
+	 * バッチ処理実行.
 	 *
 	 * @param executionContext ExecutionContext
 	 * @return SQL実行結果
@@ -135,7 +139,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	int[] batch(ExecutionContext executionContext) throws SQLException;
 
 	/**
-	 * ストアドプロシージャ実行処理。
+	 * ストアドプロシージャ実行処理.
 	 *
 	 * @param executionContext ExecutionContext
 	 * @return ストアドプロシージャ実行結果
@@ -144,49 +148,49 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	Map<String, Object> procedure(ExecutionContext executionContext) throws SQLException;
 
 	/**
-	 * フェッチサイズ取得。
+	 * フェッチサイズ取得.
 	 *
 	 * @return フェッチサイズ
 	 */
 	int getFetchSize();
 
 	/**
-	 * フェッチサイズ設定。
+	 * フェッチサイズ設定.
 	 *
 	 * @param fetchSize フェッチサイズ
 	 */
 	void setFetchSize(int fetchSize);
 
 	/**
-	 * クエリータイムアウト制限値取得。
+	 * クエリータイムアウト制限値取得.
 	 *
 	 * @return クエリータイムアウト制限値
 	 */
 	int getQueryTimeout();
 
 	/**
-	 * クエリータイムアウト制限値設定。
+	 * クエリータイムアウト制限値設定.
 	 *
 	 * @param queryTimeout クエリータイムアウト制限値
 	 */
 	void setQueryTimeout(int queryTimeout);
 
 	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する.
 	 *
 	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
 	 */
 	CaseFormat getDefaultMapKeyCaseFormat();
 
 	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する.
 	 *
 	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
 	 */
 	void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat);
 
 	/**
-	 * デフォルトの{@link InsertsType}を取得する
+	 * デフォルトの{@link InsertsType}を取得する.
 	 *
 	 * @return insertsType
 	 * @see jp.co.future.uroborosql.enums.InsertsType
@@ -194,7 +198,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	InsertsType getDefaultInsertsType();
 
 	/**
-	 * デフォルトの{@link InsertsType}を設定する
+	 * デフォルトの{@link InsertsType}を設定する.
 	 *
 	 * @param defaultInsertsType デフォルトの{@link InsertsType}
 	 * @see jp.co.future.uroborosql.enums.InsertsType
@@ -202,14 +206,14 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	void setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
-	 * 空のExecutionContextの生成
+	 * 空のExecutionContextの生成.
 	 *
 	 * @return 生成したExecutionContext
 	 */
 	ExecutionContext context();
 
 	/**
-	 * ファイル指定のExecutionContextの生成
+	 * ファイル指定のExecutionContextの生成.
 	 *
 	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
 	 * @return 生成したExecutionContext
@@ -217,7 +221,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	ExecutionContext contextFrom(String sqlName);
 
 	/**
-	 * SQL文を指定したExecutionContextの生成
+	 * SQL文を指定したExecutionContextの生成.
 	 *
 	 * @param sql SQL文の文字列
 	 * @return 生成したExecutionContext
@@ -225,7 +229,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	ExecutionContext contextWith(String sql);
 
 	/**
-	 * Query処理の実行（Fluent API）
+	 * Query処理の実行（Fluent API）.
 	 *
 	 * @param sqlName 実行するSQLファイル名
 	 * @return SqlQuery
@@ -233,7 +237,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlQuery query(String sqlName);
 
 	/**
-	 * Query処理の実行（Fluent API）
+	 * Query処理の実行（Fluent API）.
 	 *
 	 * @param sql 実行するSQL文
 	 * @return SqlQuery
@@ -241,7 +245,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlQuery queryWith(String sql);
 
 	/**
-	 * 更新処理の実行（Fluent API）
+	 * 更新処理の実行（Fluent API）.
 	 *
 	 * @param sqlName 実行するSQLファイル名
 	 * @return SqlUpdate
@@ -249,7 +253,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlUpdate update(String sqlName);
 
 	/**
-	 * 更新処理の実行（Fluent API）
+	 * 更新処理の実行（Fluent API）.
 	 *
 	 * @param sql 実行するSQL文
 	 * @return SqlUpdate
@@ -257,7 +261,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlUpdate updateWith(String sql);
 
 	/**
-	 * バッチ処理の実行（Fluent API）
+	 * バッチ処理の実行（Fluent API）.
 	 *
 	 * @param sqlName 実行するSQLファイル名
 	 * @return SqlBatch
@@ -265,7 +269,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlBatch batch(String sqlName);
 
 	/**
-	 * バッチ処理の実行（Fluent API）
+	 * バッチ処理の実行（Fluent API）.
 	 *
 	 * @param sql 実行するSQL文
 	 * @return SqlBatch
@@ -273,7 +277,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	SqlBatch batchWith(String sql);
 
 	/**
-	 * Procedureの実行（Fluent API）
+	 * Procedureの実行（Fluent API）.
 	 *
 	 * @param sqlName 実行するSQLファイル名
 	 * @return Procedure
@@ -281,7 +285,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	Procedure proc(String sqlName);
 
 	/**
-	 * Procedureの実行（Fluent API）
+	 * Procedureの実行（Fluent API）.
 	 *
 	 * @param sql 実行するSQL文
 	 * @return Procedure
@@ -289,7 +293,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	Procedure procWith(String sql);
 
 	/**
-	 * キーを指定したエンティティの1件取得を実行
+	 * キーを指定したエンティティの1件取得を実行.
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param keys キー
@@ -299,7 +303,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Optional<E> find(Class<? extends E> entityType, Object... keys);
 
 	/**
-	 * エンティティを指定して Query処理の実行
+	 * エンティティを指定して Query処理の実行.
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param <E> エンティティ型
@@ -308,7 +312,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> SqlEntityQuery<E> query(Class<? extends E> entityType);
 
 	/**
-	 * エンティティのINSERTを実行
+	 * エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -317,7 +321,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> int insert(E entity);
 
 	/**
-	 * エンティティのINSERTを実行し、INSERTしたエンティティを返却する
+	 * エンティティのINSERTを実行し、INSERTしたエンティティを返却する.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -326,7 +330,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> E insertAndReturn(E entity);
 
 	/**
-	 * エンティティのUPDATEを実行
+	 * エンティティのUPDATEを実行.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -335,7 +339,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> int update(E entity);
 
 	/**
-	 * エンティティのUPDATEを実行し、UPDATEしたエンティティを返却する
+	 * エンティティのUPDATEを実行し、UPDATEしたエンティティを返却する.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -344,7 +348,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> E updateAndReturn(E entity);
 
 	/**
-	 * エンティティのUPDATEを実行(条件指定)
+	 * エンティティのUPDATEを実行(条件指定).
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param <E> エンティティ型
@@ -353,7 +357,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> SqlEntityUpdate<E> update(Class<? extends E> entityType);
 
 	/**
-	 * エンティティのDELETEを実行
+	 * エンティティのDELETEを実行.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -362,7 +366,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> int delete(E entity);
 
 	/**
-	 * エンティティのDELETEを実行し、DELETEしたエンティティを返却する
+	 * エンティティのDELETEを実行し、DELETEしたエンティティを返却する.
 	 *
 	 * @param <E> エンティティ型
 	 * @param entity エンティティ
@@ -371,7 +375,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> E deleteAndReturn(E entity);
 
 	/**
-	 * エンティティのDELETEを実行(条件指定)
+	 * エンティティのDELETEを実行(条件指定).
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param keys 削除対象PK値（複数指定可）
@@ -381,7 +385,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> int delete(Class<? extends E> entityType, Object... keys);
 
 	/**
-	 * エンティティのDELETEを実行(条件指定)
+	 * エンティティのDELETEを実行(条件指定).
 	 *
 	 * @param entityType エンティティタイプ
 	 * @param <E> エンティティ型
@@ -390,7 +394,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> SqlEntityDelete<E> delete(Class<? extends E> entityType);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -403,7 +407,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 			InsertsType insertsType);
 
 	/**
-	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -416,7 +420,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 			InsertsType insertsType);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -427,7 +431,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> int inserts(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する
+	 * 複数エンティティのINSERTを実行しINSERTしたエンティティを返却する.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -438,7 +442,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -460,7 +464,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -484,7 +488,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Class<E> entityType, Stream<E> entities, InsertsType insertsType);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -508,7 +512,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsCondition<? super E> condition, InsertsType insertsType);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -530,7 +534,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -550,7 +554,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Stream<E> entities);
 
 	/**
-	 * 複数エンティティのINSERTを実行
+	 * 複数エンティティのINSERTを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -572,7 +576,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> insertsAndReturn(Stream<E> entities, InsertsType insertsType);
 
 	/**
-	 * 複数エンティティのUPDATEを実行
+	 * 複数エンティティのUPDATEを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -596,7 +600,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> updatesAndReturn(Class<E> entityType, Stream<E> entities, UpdatesCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのUPDATEを実行
+	 * 複数エンティティのUPDATEを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entityType エンティティの型
@@ -618,7 +622,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> updatesAndReturn(Class<E> entityType, Stream<E> entities);
 
 	/**
-	 * 複数エンティティのUPDATEを実行
+	 * 複数エンティティのUPDATEを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -640,7 +644,7 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> Stream<E> updatesAndReturn(Stream<E> entities, UpdatesCondition<? super E> condition);
 
 	/**
-	 * 複数エンティティのUPDATEを実行
+	 * 複数エンティティのUPDATEを実行.
 	 *
 	 * @param <E> エンティティの型
 	 * @param entities エンティティ
@@ -669,4 +673,28 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	 */
 	<E> SqlAgent truncate(Class<? extends E> entityType);
 
+	/**
+	 * イベントサブスクライバを登録する.<br>
+	 * 複数登録した場合は登録した順にサブスクライバが実行されます.
+	 *
+	 * @param subscribers イベントサブスクライバ
+	 * @return SqlAgent
+	 */
+	SqlAgent addSubscriber(Consumer<SubscriberConfigurator> subscribers);
+
+	/**
+	 * イベントサブスクライバを登録する.<br>
+	 * 複数登録した場合は登録した順にサブスクライバが実行されます.
+	 *
+	 * @param subscriber イベントサブスクライバ
+	 * @return SqlAgent
+	 */
+	SqlAgent addSubscriber(EventSubscriber subscriber);
+
+	/**
+	 * 登録済みのイベントサブスクライバを削除する.
+	 *
+	 * @return SqlAgent
+	 */
+	SqlAgent clearSubscribers();
 }

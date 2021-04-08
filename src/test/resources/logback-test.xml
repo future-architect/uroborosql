@@ -10,48 +10,70 @@
 		</encoder>
 	</appender>
 
-	<appender name="AuditLogTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="AuditLogEventSubscriberTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
-	<appender name="SecretColumnSqlInitializeTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="SecretColumnEventInitializeTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
-	<appender name="DebugSqlFilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="DebugEventSubscriberTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
-	<appender name="DumpResultSqlFilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="DumpResultEventSubscriberTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
-	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
+	<appender name="TransactionalEventSubscriberTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="EventSubscriberRegisterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="jp.co.future.uroborosql.event.AuditLogEventSubscriber"
 		level="DEBUG" additivity="false">
-		<appender-ref ref="AuditLogTest" />
+		<appender-ref ref="AuditLogEventSubscriberTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter.AbstractSecretColumnSqlFilter"
+	<logger name="jp.co.future.uroborosql.event.AbstractSecretColumnEventSubscriber"
 		level="DEBUG" additivity="false">
-		<appender-ref ref="SecretColumnSqlInitializeTest" />
+		<appender-ref ref="SecretColumnEventInitializeTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter.DebugSqlFilter"
+	<logger name="jp.co.future.uroborosql.event.DebugEventSubscriber"
 		level="DEBUG" additivity="false">
-		<appender-ref ref="DebugSqlFilterTest" />
+		<appender-ref ref="DebugEventSubscriberTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter.DumpResultSqlFilter"
+	<logger name="jp.co.future.uroborosql.event.DumpResultEventSubscriber"
 		level="DEBUG" additivity="false">
-		<appender-ref ref="DumpResultSqlFilterTest" />
+		<appender-ref ref="DumpResultEventSubscriberTest" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.event.TransactionalEventSubscriberTest"
+		level="DEBUG" additivity="false">
+		<appender-ref ref="TransactionalEventSubscriberTest" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.event.EventSubscriberRegisterTest"
+		level="DEBUG" additivity="false">
+		<appender-ref ref="EventSubscriberRegisterTest" />
 	</logger>
 
 	<appender name="CoverageLog" class="ch.qos.logback.core.FileAppender">

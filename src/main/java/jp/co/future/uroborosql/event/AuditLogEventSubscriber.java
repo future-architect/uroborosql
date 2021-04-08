@@ -4,9 +4,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -14,15 +13,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.ResultEvent.BatchResultEvent;
+import jp.co.future.uroborosql.event.ResultEvent.QueryResultEvent;
+import jp.co.future.uroborosql.event.ResultEvent.UpdateResultEvent;
 
 /**
- * 監査用ログを出力するSqlFilter
+ * 監査用ログを出力するイベントサブスクライバ.
  *
- * @author K.Miyazaki, J.Choi
- *
+ * @author yanagihara
  */
-public class AuditLogSqlFilter extends AbstractSqlFilter {
-	private static final Logger LOG = LoggerFactory.getLogger(AuditLogSqlFilter.class);
+public class AuditLogEventSubscriber extends DefaultEventSubscriber {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AuditLogEventSubscriber.class);
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
@@ -37,18 +39,12 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	private static final String DEFAULT_FUNC_ID = "UNKNOWN";
 
 	/**
-	 * コンストラクタ
-	 */
-	public AuditLogSqlFilter() {
-	}
-
-	/**
 	 * バインドパラメータに設定した機能IDのキー名を設定する.
 	 *
 	 * @param funcIdKey 機能IDのキー名
-	 * @return AuditLogSqlFilter
+	 * @return AuditLogEventSubscriber
 	 */
-	public AuditLogSqlFilter setFuncIdKey(final String funcIdKey) {
+	public AuditLogEventSubscriber setFuncIdKey(final String funcIdKey) {
 		this.funcIdKey = funcIdKey;
 		return this;
 	}
@@ -57,23 +53,18 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * バインドパラメータに設定したユーザ名のキー名を設定する.
 	 *
 	 * @param userNameKey ユーザ名のキー名
-	 * @return AuditLogSqlFilter
+	 * @return AuditLogEventSubscriber
 	 */
-	public AuditLogSqlFilter setUserNameKey(final String userNameKey) {
+	public AuditLogEventSubscriber setUserNameKey(final String userNameKey) {
 		this.userNameKey = userNameKey;
 		return this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
-	 */
 	@Override
-	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
+	public ResultSet doQuery(final QueryResultEvent event) {
 		// カウント初期値
 		var rowCount = -1;
+		var resultSet = event.getResultSet();
 		try {
 			// resultSetのカーソル種別を取得
 			// 種別「TYPE_FORWARD_ONLY」の場合、beforeFirstメソッドが効かないため除外
@@ -87,6 +78,7 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 		}
 
+		var executionContext = event.getExecutionContext();
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -99,18 +91,16 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
+		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(),
+				executionContext
+						.getExecutableSql(),
+				rowCount).toString());
 		return resultSet;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
-	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result) {
+	public int doUpdate(final UpdateResultEvent event) {
+		var executionContext = event.getExecutionContext();
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -123,19 +113,17 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), result).toString());
-		return result;
+		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(),
+				executionContext
+						.getExecutableSql(),
+				event.getResult()).toString());
+		return event.getResult();
 
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
-	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result) {
+	public int[] doBatch(final BatchResultEvent event) {
+		var executionContext = event.getExecutionContext();
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -150,14 +138,16 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 		var rowCount = -1;
 		if (LOG.isDebugEnabled()) {
 			try {
-				rowCount = preparedStatement.getUpdateCount();
+				rowCount = event.getPreparedStatement().getUpdateCount();
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
 		}
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
-		return result;
+		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(),
+				executionContext
+						.getExecutableSql(),
+				rowCount).toString());
+		return event.getResult();
 	}
 
 	/**
@@ -251,6 +241,5 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 					+ "\",\"sql\":\"" + escapeJson(sql)
 					+ "\",\"rowCount\":" + rowCount + "}";
 		}
-
 	}
 }

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -13,7 +13,6 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,38 +23,32 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.ResultEvent.QueryResultEvent;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * 実行結果をダンプ出力するSqlFilter.<br>
+ * 実行結果をダンプ出力するイベントサブスクライバ.<br>
  *
- * このSqlFilterを使用する際は、PreparedStatementを生成する際、ResultSetTypeに
+ * このサブスクライバを使用する際は、PreparedStatementを生成する際、ResultSetTypeに
  * <code>ResultSet.TYPE_SCROLL_INSENSITIVE</code> または<code>ResultSet.TYPE_SCROLL_SENSITIVE</code>
- * を指定してください。
+ * を指定してください.
  *
- * @author H.Sugimoto
- *
+ * @author yanagihara
  */
-public class DumpResultSqlFilter extends AbstractSqlFilter {
+public class DumpResultEventSubscriber extends DefaultEventSubscriber {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(DumpResultSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DumpResultEventSubscriber.class);
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
-	 */
 	@Override
-	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
+	public ResultSet doQuery(final QueryResultEvent event) {
+		var resultSet = event.getResultSet();
 		try {
 			if (resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY) {
 				LOG.warn(
-						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber uses ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
 			var builder = displayResult(resultSet);
 			LOG.info(builder.toString());
@@ -66,7 +59,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * 検索結果を表示
+	 * 検索結果を表示する.
 	 *
 	 * @param rs 検索結果のResultSet
 	 * @return 表示文字列
@@ -180,7 +173,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * オブジェクトの文字列表現のバイト数（Shift-JIS換算）を取得する
+	 * オブジェクトの文字列表現のバイト数（Shift-JIS換算）を取得する.
 	 *
 	 * @param val 計算対象オブジェクト
 	 * @return バイト数。200バイトを超える場合は200を返す
@@ -199,7 +192,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * 指定したバイト数で文字列をカットする
+	 * 指定したバイト数で文字列をカットする.
 	 *
 	 * @param obj 対象オブジェクト
 	 * @param capacity カットするバイト数

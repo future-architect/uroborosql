@@ -18,8 +18,8 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.context.ExecutionContextProvider;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.event.Subscribers;
 import jp.co.future.uroborosql.expr.ExpressionParser;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManager;
 
@@ -76,13 +76,6 @@ public interface SqlConfig {
 	SqlResourceManager getSqlResourceManager();
 
 	/**
-	 * sqlFilterManager を取得.
-	 *
-	 * @return sqlFilterManager
-	 */
-	SqlFilterManager getSqlFilterManager();
-
-	/**
 	 * connectionSupplier を取得.
 	 *
 	 * @return connectionSupplier
@@ -130,4 +123,11 @@ public interface SqlConfig {
 	 * @return entityHandler
 	 */
 	EntityHandler<?> getEntityHandler();
+
+	/**
+	 * イベントサブスクライバを取得.
+	 *
+	 * @return Subscribers
+	 */
+	Subscribers getSubscribers();
 }

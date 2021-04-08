@@ -48,8 +48,7 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.DumpResultEventSubscriber;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -223,7 +222,8 @@ public class SqlREPL {
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
 				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
+				.addSubscriber(new DumpResultEventSubscriber())
+				.build();
 
 		// executionContextProvider
 		var executionContextProvider = sqlConfig.getExecutionContextProvider();

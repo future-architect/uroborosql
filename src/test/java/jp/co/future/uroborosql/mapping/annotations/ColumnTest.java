@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.event.AuditLogEventSubscriber;
 
 public class ColumnTest {
 
@@ -37,10 +37,9 @@ public class ColumnTest {
 			}
 		}
 
-		config = UroboroSQL.builder(url, user, password).build();
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		config = UroboroSQL.builder(url, user, password)
+				.addSubscriber(new AuditLogEventSubscriber())
+				.build();
 	}
 
 	@BeforeEach

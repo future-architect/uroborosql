@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,9 +33,10 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.EventSubscriber;
+import jp.co.future.uroborosql.event.SubscriberConfigurator;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
@@ -121,6 +123,9 @@ public abstract class AbstractAgent implements SqlAgent {
 	/** デフォルトの{@link InsertsType} */
 	protected InsertsType defaultInsertsType = InsertsType.BATCH;
 
+	/** イベントサブスクライバ設定 */
+	protected SubscriberConfigurator subscriberConfigurator;
+
 	static {
 		// SQLカバレッジ取得用のクラス名を設定する。指定がない場合、またはfalseが指定された場合はカバレッジを収集しない。
 		// クラス名が指定されている場合はそのクラス名を指定
@@ -159,6 +164,7 @@ public abstract class AbstractAgent implements SqlAgent {
 			final ConnectionContext connectionContext) {
 		this.sqlConfig = sqlConfig;
 		this.transactionManager = new LocalTransactionManager(sqlConfig, connectionContext);
+		this.subscriberConfigurator = sqlConfig.getSubscribers();
 
 		// デフォルトプロパティ設定
 		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_FETCH_SIZE)) {
@@ -211,15 +217,6 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
-	 * SqlFilter管理クラスを取得します。
-	 *
-	 * @return SqlFilter管理クラス
-	 */
-	public SqlFilterManager getSqlFilterManager() {
-		return sqlConfig.getSqlFilterManager();
-	}
-
-	/**
 	 * ORM処理クラス を取得します。
 	 *
 	 * @return ORM処理クラス
@@ -242,7 +239,7 @@ public abstract class AbstractAgent implements SqlAgent {
 				throw new UroborosqlRuntimeException("sql file:[" + executionContext.getSqlName() + "] is not found.");
 			}
 		}
-		originalSql = getSqlFilterManager().doTransformSql(executionContext, originalSql);
+		originalSql = getSqlConfig().getSubscribers().transformSql(executionContext, originalSql);
 		executionContext.setSql(originalSql);
 
 		// SQL-IDの付与
@@ -264,9 +261,9 @@ public abstract class AbstractAgent implements SqlAgent {
 		// 自動パラメータバインド関数の呼出
 		if (executionContext.batchCount() == 0) {
 			if (isQuery) {
-				executionContext.acceptQueryAutoParameterBinder();
+				getSqlConfig().getSubscribers().queryAutoParameterBinder(executionContext);
 			} else {
-				executionContext.acceptUpdateAutoParameterBinder();
+				getSqlConfig().getSubscribers().updateAutoParameterBinder(executionContext);
 			}
 		}
 
@@ -1000,6 +997,57 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void setQueryTimeout(final int queryTimeout) {
 		this.queryTimeout = queryTimeout;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#addSubscriber(Consumer)
+	 */
+	@Override
+	public SqlAgent addSubscriber(final Consumer<SubscriberConfigurator> configurator) {
+		configurator.accept(this.subscriberConfigurator);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#addSubscriber(EventSubscriber)
+	 */
+	@Override
+	public SqlAgent addSubscriber(final EventSubscriber subscriber) {
+		subscriberConfigurator.doOnParameter(subscriber::doParameter)
+				.doOnOutParameter(subscriber::doOutParameter)
+				.doOnPreparedStatement(subscriber::doPreparedStatement)
+				.doOnCallableStatement(subscriber::doCallableStatement)
+				.doOnTransformSql(subscriber::doTransformSql)
+				.doOnInsertParams(subscriber::doInsertParams)
+				.doOnUpdateParams(subscriber::doUpdateParams)
+				.doOnDeleteParams(subscriber::doDeleteParams)
+				.doOnBulkInsertParams(subscriber::doBulkInsertParams)
+				.doOnQuery(subscriber::doQuery)
+				.doOnUpdate(subscriber::doUpdate)
+				.doOnBatch(subscriber::doBatch)
+				.doOnProcedure(subscriber::doProcedure)
+				.doBeforeTransaction(subscriber::doBeforeTransaction)
+				.doAfterTransaction(subscriber::doAfterTransaction)
+				.doBeforeCommit(subscriber::doBeforeCommit)
+				.doAfterCommit(subscriber::doAfterCommit)
+				.doBeforeRollback(subscriber::doBeforeRollback)
+				.doAfterRollback(subscriber::doAfterRollback);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#clearSubscribers()
+	 */
+	@Override
+	public SqlAgent clearSubscribers() {
+		subscriberConfigurator.clearSubscribers();
+		return this;
 	}
 
 	/**

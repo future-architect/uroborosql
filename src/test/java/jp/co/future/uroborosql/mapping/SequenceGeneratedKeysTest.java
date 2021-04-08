@@ -16,9 +16,8 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.event.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
@@ -55,7 +54,7 @@ public class SequenceGeneratedKeysTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
+				.addSubscriber(new AuditLogEventSubscriber())
 				.build();
 	}
 

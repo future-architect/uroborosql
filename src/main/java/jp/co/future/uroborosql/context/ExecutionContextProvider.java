@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.context;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -89,38 +88,6 @@ public interface ExecutionContextProvider extends SqlConfigAware {
 	 * @return 定数クラスパラメータマップ
 	 */
 	Map<String, Parameter> getConstParameterMap();
-
-	/**
-	 * 自動パラメータバインド関数(query用)の追加.
-	 *
-	 * @param binder 自動パラメータバインド関数
-	 * @return ExecutionContextProvider
-	 */
-	ExecutionContextProvider addQueryAutoParameterBinder(Consumer<ExecutionContext> binder);
-
-	/**
-	 * 自動パラメータバインド関数(query用)の削除.
-	 *
-	 * @param binder 自動パラメータバインド関数
-	 * @return ExecutionContextProvider
-	 */
-	ExecutionContextProvider removeQueryAutoParameterBinder(Consumer<ExecutionContext> binder);
-
-	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の追加.
-	 *
-	 * @param binder 自動パラメータバインド関数
-	 * @return ExecutionContextProvider
-	 */
-	ExecutionContextProvider addUpdateAutoParameterBinder(Consumer<ExecutionContext> binder);
-
-	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の削除.
-	 *
-	 * @param binder 自動パラメータバインド関数
-	 * @return ExecutionContextProvider
-	 */
-	ExecutionContextProvider removeUpdateAutoParameterBinder(Consumer<ExecutionContext> binder);
 
 	/**
 	 * パラメータ変換クラス{@link BindParameterMapper}を追加.

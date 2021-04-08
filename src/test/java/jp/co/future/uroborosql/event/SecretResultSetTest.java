@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -29,27 +29,26 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public class SecretResultSetTest {
 
 	private static SqlConfig config;
-	private static SqlFilterManager sqlFilterManager;
-	private static AbstractSecretColumnSqlFilter filter;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
-		sqlFilterManager = new SqlFilterManagerImpl();
-		filter = new SecretColumnSqlFilter();
+		var subscriber = new SecretColumnEventSubscriber();
 
-		filter.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
+		subscriber.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
 		// -storepass password -keypass password -keyalg AES -keysize 128
-		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
-		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-		filter.setAlias("testexample");
-		filter.setCharset("UTF-8");
-		filter.setTransformationType("AES/ECB/PKCS5Padding");
+		subscriber.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEvent/keystore.jceks");
+		subscriber.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+		subscriber.setAlias("testexample");
+		subscriber.setCharset("UTF-8");
+		subscriber.setTransformationType("AES/ECB/PKCS5Padding");
+		subscriber.initialize();
 
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
-				.setSqlFilterManager(sqlFilterManager.addSqlFilter(filter)).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretResultSetTest"))
+				.addSubscriber(subscriber)
+				.build();
 
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),

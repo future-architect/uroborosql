@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +45,7 @@ public class SecretResultSet extends AbstractResultSetWrapper {
 	 * @param cryptColumnNames 暗号対象カラム名リスト
 	 * @param charset キャラクタセット
 	 */
-	SecretResultSet(final ResultSet wrapped, final Function<Object, String> decode,
+	public SecretResultSet(final ResultSet wrapped, final Function<Object, String> decode,
 			final List<String> cryptColumnNames, final Charset charset) {
 		super(wrapped);
 		this.cryptColumnNames = cryptColumnNames;

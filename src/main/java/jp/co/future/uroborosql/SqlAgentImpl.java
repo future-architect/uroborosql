@@ -142,7 +142,9 @@ public class SqlAgentImpl extends AbstractAgent {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						rs = new InnerResultSet(getSqlFilterManager().doQuery(executionContext, stmt, stmt.executeQuery()),
+						rs = new InnerResultSet(
+								getSqlConfig().getSubscribers().queryResult(executionContext, stmt,
+										stmt.executeQuery()),
 								stmt);
 						stmt.closeOnCompletion();
 						return rs;
@@ -200,7 +202,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterQuery(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -230,7 +233,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
 	@Override
-	public <T> Stream<T> query(final ExecutionContext executionContext, final ResultSetConverter<T> converter) throws SQLException {
+	public <T> Stream<T> query(final ExecutionContext executionContext, final ResultSetConverter<T> converter)
+			throws SQLException {
 		final var rs = query(executionContext);
 		return StreamSupport.stream(new ResultSetSpliterator<>(rs, converter), false).onClose(() -> {
 			try {
@@ -305,7 +309,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var count = getSqlFilterManager().doUpdate(executionContext, stmt, stmt.executeUpdate());
+					var count = getSqlConfig().getSubscribers().updateResult(executionContext, stmt,
+							stmt.executeUpdate());
 					if ((SqlKind.INSERT.equals(executionContext.getSqlKind()) ||
 							SqlKind.BULK_INSERT.equals(executionContext.getSqlKind()))
 							&& executionContext.hasGeneratedKeyColumns()) {
@@ -361,7 +366,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			afterUpdate(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -431,7 +437,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var counts = getSqlFilterManager().doBatch(executionContext, stmt, stmt.executeBatch());
+					var counts = getSqlConfig().getSubscribers().batchResult(executionContext, stmt,
+							stmt.executeBatch());
 					if (SqlKind.BATCH_INSERT.equals(executionContext.getSqlKind())
 							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
@@ -488,7 +495,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterBatch(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -562,7 +570,8 @@ public class SqlAgentImpl extends AbstractAgent {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					getSqlFilterManager().doProcedure(executionContext, callableStatement, callableStatement.execute());
+					getSqlConfig().getSubscribers().procedureResult(executionContext, callableStatement,
+							callableStatement.execute());
 					break;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
@@ -605,7 +614,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterProcedure(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
 				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(executionContext),
-						executionContext.getSqlKind(), formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						executionContext.getSqlKind(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -665,7 +675,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			if (executionContext instanceof ExecutionContextImpl) {
 				var bindParameters = ((ExecutionContextImpl) executionContext).getBindParameters();
 				for (var i = 0; i < bindParameters.length; i++) {
-					var parameter = getSqlFilterManager().doParameter(bindParameters[i]);
+					var parameter = getSqlConfig().getSubscribers().parameter(executionContext,
+							bindParameters[i]);
 					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
 							.append("]").append(System.lineSeparator());
 				}
@@ -759,6 +770,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			List<MappingColumn> autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata,
 					entity);
 
+			getSqlConfig().getSubscribers().insertParams(context, entity);
 			handler.setInsertParams(context, entity);
 			var count = handler.doInsert(this, context, entity);
 
@@ -940,6 +952,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			var metadata = handler.getMetadata(this.transactionManager, type);
 			var context = handler.createUpdateContext(this, metadata, type, true);
 			context.setSqlKind(SqlKind.UPDATE);
+			getSqlConfig().getSubscribers().updateParams(context, entity);
 			handler.setUpdateParams(context, entity);
 			var count = handler.doUpdate(this, context, entity);
 
@@ -951,7 +964,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					var keys = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
 							.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
 							.map(c -> {
-								MappingColumn col = columnMap.get(c.getCamelColumnName());
+								var col = columnMap.get(c.getCamelColumnName());
 								return col.getValue(entity);
 							}).toArray();
 
@@ -1026,6 +1039,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			var metadata = handler.getMetadata(this.transactionManager, type);
 			var context = handler.createDeleteContext(this, metadata, type, true);
 			context.setSqlKind(SqlKind.DELETE);
+			getSqlConfig().getSubscribers().deleteParams(context, entity);
 			handler.setDeleteParams(context, entity);
 			return handler.doDelete(this, context, entity);
 		} catch (SQLException e) {
@@ -1176,6 +1190,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					insertedEntities.add(entity);
 				}
 
+				getSqlConfig().getSubscribers().insertParams(context, entity);
 				handler.setInsertParams(context, entity);
 				context.addBatch();
 				// SQLのID項目IF分岐判定をtrueにするためにaddBatch()の後に保持しておいたID項目をcontextにバインドする
@@ -1268,6 +1283,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					insertedEntities.add(entity);
 				}
 
+				getSqlConfig().getSubscribers().bulkInsertParams(context, entity, frameCount);
 				handler.setBulkInsertParams(context, entity, frameCount);
 				frameCount++;
 
@@ -1293,7 +1309,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	protected <E> int doBulkInsert(final ExecutionContext context, final Class<E> entityType, final EntityHandler<E> handler,
+	protected <E> int doBulkInsert(final ExecutionContext context, final Class<E> entityType,
+			final EntityHandler<E> handler,
 			final TableMetadata metadata, final List<MappingColumn> autoGeneratedColumns, final List<E> entityList)
 			throws SQLException {
 		var count = handler.doBulkInsert(this,
@@ -1350,6 +1367,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					updatedEntities.add(entity);
 				}
 
+				getSqlConfig().getSubscribers().updateParams(context, entity);
 				handler.setUpdateParams(context, entity);
 				context.addBatch();
 

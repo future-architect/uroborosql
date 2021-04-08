@@ -263,11 +263,14 @@ public class LocalTransactionManager implements TransactionManager {
 	 *
 	 * @param supplier SQLサプライヤ
 	 * @return 実行結果
-	 * @throws SQLException SQL例外
 	 */
 	private <R> R requiredInternal(final SQLSupplier<R> supplier) {
 		if (currentTxContext().isPresent()) {
-			return supplier.get();
+			var txContext = currentTxContext().get();
+			this.sqlConfig.getSubscribers().beforeTransaction(txContext, Optional.ofNullable(connectionContext));
+			var result = supplier.get();
+			this.sqlConfig.getSubscribers().afterTransaction(txContext, Optional.ofNullable(connectionContext));
+			return result;
 		} else {
 			return runInNewTx(supplier);
 		}
@@ -316,6 +319,7 @@ public class LocalTransactionManager implements TransactionManager {
 	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
 		try (var txContext = new LocalTransactionContext(this.sqlConfig, true,
 				this.connectionContext)) {
+			this.sqlConfig.getSubscribers().beforeTransaction(txContext, Optional.ofNullable(connectionContext));
 			this.txCtxStack.push(txContext);
 			try {
 				return supplier.get();
@@ -327,6 +331,7 @@ public class LocalTransactionManager implements TransactionManager {
 					txContext.close();
 				} finally {
 					this.txCtxStack.pop();
+					this.sqlConfig.getSubscribers().afterTransaction(txContext, Optional.ofNullable(connectionContext));
 				}
 			}
 		}
