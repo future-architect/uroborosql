@@ -41,7 +41,9 @@ public interface EventSubscriber {
 	/**
 	 * 初期化メソッド.
 	 */
-	void initialize();
+	default void initialize() {
+		// noop
+	}
 
 	/**
 	 * Parameterに対する編集処理を行う.
@@ -50,7 +52,9 @@ public interface EventSubscriber {
 	 *
 	 * @return 変換後パラメータ
 	 */
-	Parameter doParameter(ParameterEvent event);
+	default Parameter doParameter(final ParameterEvent event) {
+		return event.getParameter();
+	}
 
 	/**
 	 * ストアドプロシージャのOutParameterに対する編集処理を行う.
@@ -59,7 +63,9 @@ public interface EventSubscriber {
 	 *
 	 * @return 変換後の値
 	 */
-	Object doOutParameter(OutParameterEvent event);
+	default Object doOutParameter(final OutParameterEvent event) {
+		return event.getValue();
+	}
 
 	/**
 	 * PreparedStatementに対する編集処理を行う.
@@ -69,7 +75,9 @@ public interface EventSubscriber {
 	 * @return 編集後のPreparedStatement
 	 * @throws SQLException SQL例外
 	 */
-	PreparedStatement doPreparedStatement(PreparedStatementEvent event) throws SQLException;
+	default PreparedStatement doPreparedStatement(final PreparedStatementEvent event) throws SQLException {
+		return event.getPreparedStatement();
+	}
 
 	/**
 	 * CallableStatementに対する編集処理を行う.
@@ -79,7 +87,9 @@ public interface EventSubscriber {
 	 * @return 編集後のCallableStatement
 	 * @throws SQLException SQL例外
 	 */
-	CallableStatement doCallableStatement(CallableStatementEvent event) throws SQLException;
+	default CallableStatement doCallableStatement(final CallableStatementEvent event) throws SQLException {
+		return event.getCallableStatement();
+	}
 
 	/**
 	 * SQLに対する変換処理を行う.
@@ -88,35 +98,45 @@ public interface EventSubscriber {
 	 *
 	 * @return 変換後のSQL文字列
 	 */
-	String doTransformSql(TransformSqlEvent event);
+	default String doTransformSql(final TransformSqlEvent event) {
+		return event.getOriginalSql();
+	}
 
 	/**
 	 * パラメータに対する編集処理を行う[INSERT].
 	 *
 	 * @param event パラメータ編集イベント
 	 */
-	void doInsertParams(final InsertParameterEvent event);
+	default void doInsertParams(final InsertParameterEvent event) {
+		// noop
+	}
 
 	/**
 	 * パラメータに対する編集処理を行う[UPDATE].
 	 *
 	 * @param event パラメータ編集イベント
 	 */
-	void doUpdateParams(final UpdateParameterEvent event);
+	default void doUpdateParams(final UpdateParameterEvent event) {
+		// noop
+	}
 
 	/**
 	 * パラメータに対する編集処理を行う[DELETE].
 	 *
 	 * @param event パラメータ編集イベント
 	 */
-	void doDeleteParams(final DeleteParameterEvent event);
+	default void doDeleteParams(final DeleteParameterEvent event) {
+		// noop
+	}
 
 	/**
 	 * パラメータに対する編集処理を行う[BULK-INSERT].
 	 *
 	 * @param event パラメータ編集イベント
 	 */
-	void doBulkInsertParams(final BulkInsertParameterEvent event);
+	default void doBulkInsertParams(final BulkInsertParameterEvent event) {
+		// noop
+	}
 
 	/**
 	 * 検索処理に対する編集処理を行う.
@@ -126,7 +146,9 @@ public interface EventSubscriber {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	ResultSet doQuery(QueryResultEvent event) throws SQLException;
+	default ResultSet doQuery(final QueryResultEvent event) throws SQLException {
+		return event.getResultSet();
+	}
 
 	/**
 	 * 更新処理結果に対する編集処理を行う.
@@ -136,7 +158,9 @@ public interface EventSubscriber {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int doUpdate(UpdateResultEvent event) throws SQLException;
+	default int doUpdate(final UpdateResultEvent event) throws SQLException {
+		return event.getResult();
+	}
 
 	/**
 	 * バッチ処理結果に対する編集処理を行う.
@@ -146,7 +170,9 @@ public interface EventSubscriber {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int[] doBatch(BatchResultEvent event) throws SQLException;
+	default int[] doBatch(final BatchResultEvent event) throws SQLException {
+		return event.getResult();
+	}
 
 	/**
 	 * CallableProcedure処理結果に対する編集処理を行う.
@@ -156,47 +182,61 @@ public interface EventSubscriber {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	boolean doProcedure(ProcedureResultEvent event) throws SQLException;
+	default boolean doProcedure(final ProcedureResultEvent event) throws SQLException {
+		return event.getResult();
+	}
 
 	/**
 	 * トランザクション開始前処理を行う.
 	 *
 	 * @param event トランザクション開始前イベント
 	 */
-	void doBeforeTransaction(final BeforeTransactionEvent event);
+	default void doBeforeTransaction(final BeforeTransactionEvent event) {
+		// noop
+	}
 
 	/**
 	 * トランザクション終了後処理を行う.
 	 *
 	 * @param event トランザクション終了後イベント
 	 */
-	void doAfterTransaction(final AfterTransactionEvent event);
+	default void doAfterTransaction(final AfterTransactionEvent event) {
+		// noop
+	}
 
 	/**
 	 * コミット実行前処理を行う.
 	 *
 	 * @param event コミット実行前イベント
 	 */
-	void doBeforeCommit(final BeforeCommitEvent event);
+	default void doBeforeCommit(final BeforeCommitEvent event) {
+		// noop
+	}
 
 	/**
 	 * コミット実行後処理を行う.
 	 *
 	 * @param event コミット実行後イベント
 	 */
-	void doAfterCommit(final AfterCommitEvent event);
+	default void doAfterCommit(final AfterCommitEvent event) {
+		// noop
+	}
 
 	/**
 	 * ロールバック実行前処理を行う.
 	 *
 	 * @param event ロールバック実行前イベント
 	 */
-	void doBeforeRollback(final BeforeRollbackEvent event);
+	default void doBeforeRollback(final BeforeRollbackEvent event) {
+		// noop
+	}
 
 	/**
 	 * ロールバック実行後処理を行う.
 	 *
 	 * @param event ロールバック実行後イベント
 	 */
-	void doAfterRollback(final AfterRollbackEvent event);
+	default void doAfterRollback(final AfterRollbackEvent event) {
+		// noop
+	}
 }

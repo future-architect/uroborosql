@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.event.DefaultEventSubscriber;
+import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.event.ResultEvent.BatchResultEvent;
 import jp.co.future.uroborosql.event.ResultEvent.ProcedureResultEvent;
 import jp.co.future.uroborosql.event.ResultEvent.QueryResultEvent;
@@ -556,7 +556,7 @@ public class SqlAgentRetryTest {
 		}
 	}
 
-	private final class RetryEventSubscriber extends DefaultEventSubscriber {
+	private final class RetryEventSubscriber implements EventSubscriber {
 		private int retryCount = 0;
 		private int currentCount = 0;
 		private int errorCode = -1;
@@ -576,7 +576,7 @@ public class SqlAgentRetryTest {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doQuery(QueryResultEvent)
+		 * @see jp.co.future.uroborosql.event.EventSubscriber#doQuery(QueryResultEvent)
 		 */
 		@Override
 		public ResultSet doQuery(final QueryResultEvent event) throws SQLException {
@@ -584,13 +584,13 @@ public class SqlAgentRetryTest {
 				event.getPreparedStatement().getConnection().rollback();
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
-			return super.doQuery(event);
+			return event.getResultSet();
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doUpdate(UpdateResultEvent)
+		 * @see jp.co.future.uroborosql.event.EventSubscriber#doUpdate(UpdateResultEvent)
 		 */
 		@Override
 		public int doUpdate(final UpdateResultEvent event) throws SQLException {
@@ -599,13 +599,13 @@ public class SqlAgentRetryTest {
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doUpdate(event);
+			return event.getResult();
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doBatch(BatchResultEvent)
+		 * @see jp.co.future.uroborosql.event.EventSubscriber#doBatch(BatchResultEvent)
 		 */
 		@Override
 		public int[] doBatch(final BatchResultEvent event) throws SQLException {
@@ -614,13 +614,13 @@ public class SqlAgentRetryTest {
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doBatch(event);
+			return event.getResult();
 		}
 
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doProcedure(ProcedureResultEvent)
+		 * @see jp.co.future.uroborosql.event.EventSubscriber#doProcedure(ProcedureResultEvent)
 		 */
 		@Override
 		public boolean doProcedure(final ProcedureResultEvent event) throws SQLException {
@@ -629,7 +629,7 @@ public class SqlAgentRetryTest {
 				throw new SQLException("Test Retry Exception", sqlState, errorCode);
 			}
 
-			return super.doProcedure(event);
+			return event.getResult();
 		}
 	}
 }

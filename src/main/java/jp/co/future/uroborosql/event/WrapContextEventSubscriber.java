@@ -16,7 +16,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * @author yanagihara
  */
-public class WrapContextEventSubscriber extends DefaultEventSubscriber {
+public class WrapContextEventSubscriber implements EventSubscriber {
 
 	/** Wrap用SQL（前部分） */
 	private String wrappedSqlBeginParts;

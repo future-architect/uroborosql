@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
  *
  * @author yanagihara
  */
-public class DebugEventSubscriber extends DefaultEventSubscriber {
+public class DebugEventSubscriber implements EventSubscriber {
 
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(DebugEventSubscriber.class);
@@ -38,7 +38,7 @@ public class DebugEventSubscriber extends DefaultEventSubscriber {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doOutParameter(OutParameterEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doOutParameter(OutParameterEvent)
 	 */
 	@Override
 	public Object doOutParameter(final OutParameterEvent event) {
@@ -49,7 +49,7 @@ public class DebugEventSubscriber extends DefaultEventSubscriber {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doQuery(QueryResultEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doQuery(QueryResultEvent)
 	 */
 	@Override
 	public ResultSet doQuery(final QueryResultEvent event) {
@@ -60,7 +60,7 @@ public class DebugEventSubscriber extends DefaultEventSubscriber {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doUpdate(UpdateResultEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doUpdate(UpdateResultEvent)
 	 */
 	@Override
 	public int doUpdate(final UpdateResultEvent event) {
@@ -71,7 +71,7 @@ public class DebugEventSubscriber extends DefaultEventSubscriber {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doBatch(BatchResultEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doBatch(BatchResultEvent)
 	 */
 	@Override
 	public int[] doBatch(final BatchResultEvent event) {

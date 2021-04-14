@@ -42,7 +42,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * @author yanagihara
  */
-public abstract class AbstractSecretColumnEventSubscriber extends DefaultEventSubscriber {
+public abstract class AbstractSecretColumnEventSubscriber implements EventSubscriber {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractSecretColumnEventSubscriber.class);
 
@@ -85,7 +85,7 @@ public abstract class AbstractSecretColumnEventSubscriber extends DefaultEventSu
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#initialize()
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#initialize()
 	 */
 	@Override
 	public void initialize() {
@@ -159,7 +159,7 @@ public abstract class AbstractSecretColumnEventSubscriber extends DefaultEventSu
 	 *
 	 * パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doParameter(ParameterEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doParameter(ParameterEvent)
 	 */
 	@Override
 	public Parameter doParameter(final ParameterEvent event) {
@@ -208,7 +208,7 @@ public abstract class AbstractSecretColumnEventSubscriber extends DefaultEventSu
 	 *
 	 * 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを{@link SecretResultSet}でラップして返す
 	 *
-	 * @see jp.co.future.uroborosql.event.DefaultEventSubscriber#doQuery(QueryResultEvent)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#doQuery(QueryResultEvent)
 	 */
 	@Override
 	public ResultSet doQuery(final QueryResultEvent event) {

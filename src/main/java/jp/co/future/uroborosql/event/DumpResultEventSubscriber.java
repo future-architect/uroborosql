@@ -35,7 +35,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * @author yanagihara
  */
-public class DumpResultEventSubscriber extends DefaultEventSubscriber {
+public class DumpResultEventSubscriber implements EventSubscriber {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger(DumpResultEventSubscriber.class);
 

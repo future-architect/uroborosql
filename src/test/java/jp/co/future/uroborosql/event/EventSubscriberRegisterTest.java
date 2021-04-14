@@ -28,19 +28,19 @@ public class EventSubscriberRegisterTest extends BaseEventSubscriberTest {
 			"doQuery@subscriber2",
 			"doQuery@subscriber3");
 
-	private final EventSubscriber subscriber1 = new DefaultEventSubscriber() {
+	private final EventSubscriber subscriber1 = new EventSubscriber() {
 		@Override
 		public ResultSet doQuery(final QueryResultEvent event) throws SQLException {
 			LOG.debug("doQuery@subscriber1");
-			return super.doQuery(event);
+			return event.getResultSet();
 		}
 	};
 
-	private final EventSubscriber subscriber2 = new DefaultEventSubscriber() {
+	private final EventSubscriber subscriber2 = new EventSubscriber() {
 		@Override
 		public ResultSet doQuery(final QueryResultEvent event) throws SQLException {
 			LOG.debug("doQuery@subscriber2");
-			return super.doQuery(event);
+			return event.getResultSet();
 		}
 	};
 

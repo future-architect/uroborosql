@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.event.ResultEvent.UpdateResultEvent;
  *
  * @author yanagihara
  */
-public class AuditLogEventSubscriber extends DefaultEventSubscriber {
+public class AuditLogEventSubscriber implements EventSubscriber {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AuditLogEventSubscriber.class);
 
