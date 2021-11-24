@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.crypto.Cipher;
@@ -177,8 +178,15 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			String key = parameter.getParameterName();
 			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
 				Object obj = parameter.getValue();
-				if (obj != null && obj instanceof String) {
-					String objStr = obj.toString();
+				if (obj != null) {
+					String objStr = null;
+					if (obj instanceof Optional) {
+						objStr = ((Optional<?>) obj)
+								.map(Object::toString)
+								.orElse(null);
+					} else {
+						objStr = obj.toString();
+					}
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
@@ -263,7 +271,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			}
 
 			String secretStr = secret.toString();
-			if (!secretStr.isEmpty()) {
+			if (StringUtils.isNotEmpty(secretStr)) {
 				synchronized (cipher) {
 					try {
 						return decrypt(cipher, secretKey, secretStr);
