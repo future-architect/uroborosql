@@ -15,12 +15,13 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,6 +30,9 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.mapping.annotations.Table;
+import jp.co.future.uroborosql.mapping.annotations.Version;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class SecretColumnSqlFilterTest {
 
@@ -181,8 +185,6 @@ public class SecretColumnSqlFilterTest {
 		}
 	}
 
-	;
-
 	@Test
 	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -203,8 +205,6 @@ public class SecretColumnSqlFilterTest {
 		}
 	}
 
-	;
-
 	@Test
 	public void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -221,8 +221,6 @@ public class SecretColumnSqlFilterTest {
 			result.close();
 		}
 	}
-
-	;
 
 	@Test
 	public void testSecretResultSet03() throws Exception {
@@ -260,4 +258,172 @@ public class SecretColumnSqlFilterTest {
 			result.close();
 		}
 	}
+
+	@Test
+	public void testWithModel() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.agent()) {
+			Product product = new Product();
+			product.setProductId(10);
+			product.setProductName(Optional.of("商品名１０"));
+			product.setVersionNo(1);
+
+			agent.insert(product);
+
+			Product result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(true));
+			assertThat(result.getProductName().orElse(null), is("商品名１０"));
+		}
+	}
+
+	@Test
+	public void testSqlInsertOptional() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.agent()) {
+			agent.update("example/insert_product_for_optional")
+					.param("product_id", 10)
+					.param("product_name", Optional.of("商品名１０"))
+					.param("product_kana_name", Optional.of("ショウヒンメイ１０"))
+					.param("jan_code", "1234567890123")
+					.param("product_description", "１０番目の商品")
+					.param("ins_datetime", new Date())
+					.param("upd_datetime", new Date())
+					.param("version_no", 1)
+					.count();
+
+			Product result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(true));
+			assertThat(result.getProductName().orElse(null), is("商品名１０"));
+		}
+	}
+
+	@Test
+	public void testSqlInsertOptionalEmpty() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (SqlAgent agent = config.agent()) {
+			agent.update("example/insert_product_for_optional")
+					.param("product_id", 10)
+					.param("product_name", Optional.empty())
+					.param("product_kana_name", Optional.empty())
+					.param("jan_code", "1234567890123")
+					.param("product_description", "１０番目の商品")
+					.param("ins_datetime", new Date())
+					.param("upd_datetime", new Date())
+					.param("version_no", 1)
+					.count();
+
+			Product result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(false));
+			assertThat(result.getProductKanaName().isPresent(), is(false));
+		}
+	}
+
+	@Table(name = "PRODUCT")
+	public static class Product {
+		private int productId;
+		private Optional<String> productName;
+		private Optional<String> productKanaName;
+		private Optional<String> janCode;
+		private Optional<String> productDescription;
+		private Date insDatetime;
+		private Date updDatetime;
+		@Version
+		private int versionNo;
+
+		public Product() {
+		}
+
+		public Product(final int productId,
+				final Optional<String> productName,
+				final Optional<String> productKanaName,
+				final Optional<String> janCode,
+				final Optional<String> productDescription,
+				final Date insDatetime,
+				final Date updDatetime,
+				final int versionNo) {
+			super();
+			this.productId = productId;
+			this.productName = productName;
+			this.productKanaName = productKanaName;
+			this.janCode = janCode;
+			this.productDescription = productDescription;
+			this.insDatetime = insDatetime;
+			this.updDatetime = updDatetime;
+			this.versionNo = versionNo;
+		}
+
+		public int getProductId() {
+			return productId;
+		}
+
+		public void setProductId(final int productId) {
+			this.productId = productId;
+		}
+
+		public Optional<String> getProductName() {
+			return productName;
+		}
+
+		public void setProductName(final Optional<String> productName) {
+			this.productName = productName;
+		}
+
+		public Optional<String> getProductKanaName() {
+			return productKanaName;
+		}
+
+		public void setProductKanaName(final Optional<String> productKanaName) {
+			this.productKanaName = productKanaName;
+		}
+
+		public Optional<String> getJanCode() {
+			return janCode;
+		}
+
+		public void setJanCode(final Optional<String> janCode) {
+			this.janCode = janCode;
+		}
+
+		public Optional<String> getProductDescription() {
+			return productDescription;
+		}
+
+		public void setProductDescription(final Optional<String> productDescription) {
+			this.productDescription = productDescription;
+		}
+
+		public Date getInsDatetime() {
+			return insDatetime;
+		}
+
+		public void setInsDatetime(final Date insDatetime) {
+			this.insDatetime = insDatetime;
+		}
+
+		public Date getUpdDatetime() {
+			return updDatetime;
+		}
+
+		public void setUpdDatetime(final Date updDatetime) {
+			this.updDatetime = updDatetime;
+		}
+
+		public int getVersionNo() {
+			return versionNo;
+		}
+
+		public void setVersionNo(final int versionNo) {
+			this.versionNo = versionNo;
+		}
+	}
+
 }
