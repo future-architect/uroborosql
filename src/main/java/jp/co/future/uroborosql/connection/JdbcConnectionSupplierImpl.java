@@ -103,10 +103,14 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
 				connection.setSchema(schema);
 			}
-			connection.setAutoCommit(jdbcCtx.autoCommit());
-			connection.setReadOnly(jdbcCtx.readOnly());
+			if (jdbcCtx.autoCommit() != connection.getAutoCommit()) {
+				connection.setAutoCommit(jdbcCtx.autoCommit());
+			}
+			if (jdbcCtx.readOnly() != connection.isReadOnly()) {
+				connection.setReadOnly(jdbcCtx.readOnly());
+			}
 			int transactionIsolation = jdbcCtx.transactionIsolation();
-			if (transactionIsolation > 0) {
+			if (transactionIsolation > 0 && transactionIsolation != connection.getTransactionIsolation()) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}
 			return connection;
