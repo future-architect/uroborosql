@@ -1162,4 +1162,36 @@ public class SqlParserTest {
 		assertEquals("aaa WHERE ORDER = 1 bbb", ctx.getExecutableSql());
 	}
 
+	@Test
+	public void testParseDontRemoveComma1() throws Exception {
+		String sql = "SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)";
+
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.context();
+		ctx.param("sequenceName", "test_seq");
+		ctx.param("initialValue", "1");
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("SELECT /* _SQL_ID_ */ setval(?/*sequenceName*/, ?/*initialValue*/, false)",
+				ctx.getExecutableSql());
+	}
+
+	@Test
+	public void testParseDontRemoveComma2() throws Exception {
+		String sql = "SELECT /* _SQL_ID_ */ TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test";
+
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		SqlContext ctx = sqlConfig.context();
+		ctx.param("BIND_0", "M");
+
+		ContextTransformer transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals(
+				"SELECT /* _SQL_ID_ */ TO_CHAR(FNC_ADD_MONTHS(TO_DATE(?/*BIND_0*/, 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test",
+				ctx.getExecutableSql());
+	}
+
 }

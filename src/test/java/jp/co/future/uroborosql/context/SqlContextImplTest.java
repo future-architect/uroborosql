@@ -120,6 +120,12 @@ public class SqlContextImplTest {
 		assertEquals(replaceLineSep(
 				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
 				ctx7.getExecutableSql());
+
+		SqlContext ctx8 = getSqlContext(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		assertEquals(replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
+				ctx8.getExecutableSql());
 	}
 
 	@Test
@@ -301,6 +307,19 @@ public class SqlContextImplTest {
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
 		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
 				ctx63.getExecutableSql());
+	}
+
+	@Test
+	public void dontRemoveFirstComma() throws Exception {
+		SqlContext ctx11 = getSqlContext("SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)");
+		assertEquals("SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)",
+				ctx11.getExecutableSql());
+
+		SqlContext ctx12 = getSqlContext(
+				"SELECT /* _SQL_ID_ */ test.col1, TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test WHERE test.month = /*BIND_1*/'M'");
+		assertEquals(
+				"SELECT /* _SQL_ID_ */ test.col1, TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test WHERE test.month = /*BIND_1*/'M'",
+				ctx12.getExecutableSql());
 	}
 
 	@Test
