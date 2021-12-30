@@ -8,7 +8,6 @@ on:
 
 jobs:
   publish-snapshot:
-    needs: build
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Tokyo
