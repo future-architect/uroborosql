@@ -5,7 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+      TZ: Asia/Tokyo
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 8
@@ -13,5 +14,6 @@ jobs:
         with:
           java-version: 8
           distribution: 'adopt'
+          cache: 'maven'
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots --no-transfer-progress verify
