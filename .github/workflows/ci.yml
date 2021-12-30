@@ -21,4 +21,4 @@ jobs:
         run: mvn --batch-mode --update-snapshots --no-transfer-progress verify jacoco:report
 
       - name: 🚀 Coveralls Coverage Report
-        run: mvn coveralls:report -D repoToken=${{ secrets.COVERALL_REPO_TOKEN }}
+        run: mvn --no-transfer-progress -DrepoToken=${{ secrets.COVERALL_REPO_TOKEN }} coveralls:report 
