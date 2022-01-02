@@ -27,6 +27,9 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	private final PropertyMapperManager mapperManager;
 	private final SqlConfig sqlConfig;
 	private final CaseFormat caseFormat;
+	private String[] columnLabels;
+	private JavaType[] javaTypes;
+	private int columnCount;
 
 	/**
 	 * コンストラクタ
@@ -70,29 +73,23 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	 */
 	@Override
 	public Map<String, Object> createRecord(final ResultSet rs) throws SQLException {
-		ResultSetMetaData rsmd = rs.getMetaData();
-		int columnCount = rsmd.getColumnCount();
+		if (this.javaTypes == null) {
+			ResultSetMetaData rsmd = rs.getMetaData();
+			this.columnCount = rsmd.getColumnCount();
+			this.columnLabels = new String[columnCount + 1];
+			this.javaTypes = new JavaType[columnCount + 1];
+			for (int i = 1; i <= columnCount; i++) {
+				this.columnLabels[i] = caseFormat.convert(rsmd.getColumnLabel(i));
+				this.javaTypes[i] = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(i),
+						rsmd.getColumnTypeName(i));
+			}
+		}
+
 		Map<String, Object> record = new LinkedHashMap<>(columnCount);
+
 		for (int i = 1; i <= columnCount; i++) {
-			record.put(caseFormat.convert(rsmd.getColumnLabel(i)), getValue(rs, rsmd, i));
+			record.put(this.columnLabels[i], this.mapperManager.getValue(this.javaTypes[i], rs, i));
 		}
 		return record;
 	}
-
-	/**
-	 * ResultSetからMapperManager経由で値を取得する
-	 *
-	 * @param rs ResultSet
-	 * @param rsmd ResultSetMetadata
-	 * @param columnIndex カラムインデックス
-	 * @return 指定したカラムインデックスの値
-	 * @throws SQLException
-	 */
-	private Object getValue(final ResultSet rs, final ResultSetMetaData rsmd, final int columnIndex)
-			throws SQLException {
-		JavaType javaType = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(columnIndex),
-				rsmd.getColumnTypeName(columnIndex));
-		return this.mapperManager.getValue(javaType, rs, columnIndex);
-	}
-
 }

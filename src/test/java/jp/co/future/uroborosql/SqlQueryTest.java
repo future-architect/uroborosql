@@ -246,9 +246,8 @@ public class SqlQueryTest extends AbstractDbTest {
 	@Test
 	public void testQueryFluentCollectWithPerformance() throws Exception {
 		// 事前条件
-		// 事前条件
 		truncateTable("PRODUCT");
-		int rowsize = 1000000;
+		int rowsize = 500000;
 		agent.required(() -> {
 			agent.insertsAndReturn(IntStream.range(1, rowsize)
 					.mapToObj(i -> new Product(i, "商品" + i, "ショウヒン" + i, "1111-" + i, "商品-" + i, new Date(), new Date(),
@@ -311,7 +310,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	public void testQueryFluentCollectEntityWithPerformance() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
-		int rowsize = 1000000;
+		int rowsize = 500000;
 		agent.required(() -> {
 			agent.insertsAndReturn(IntStream.range(1, rowsize)
 					.mapToObj(i -> new Product(i, "商品" + i, "ショウヒン" + i, "1111-" + i, "商品-" + i, new Date(), new Date(),
