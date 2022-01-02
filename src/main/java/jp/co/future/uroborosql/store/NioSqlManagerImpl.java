@@ -769,36 +769,67 @@ public class NioSqlManagerImpl implements SqlManager {
 		private String getSqlBody() {
 			if (sqlBody == null) {
 				Path path = getPath();
-				URL url = Thread.currentThread().getContextClassLoader().getResource(getResourcePath(path));
-				if (url == null) {
-					throw new UroborosqlRuntimeException("SQL template could not found.["
-							+ path.toAbsolutePath().toString() + "]");
-				}
+				String scheme = path.toUri().getScheme();
 
-				synchronized (sqlName) {
-					try {
-						URLConnection conn = url.openConnection();
-						try (BufferedReader reader = new BufferedReader(
-								new InputStreamReader(conn.getInputStream(), charset))) {
-							String body = reader.lines()
-									.collect(Collectors.joining(System.lineSeparator()))
-									.trim();
-							if (body.endsWith("/") && !body.endsWith("*/")) {
-								body = StringUtils.removeEnd(body, "/");
-							} else {
-								body = body + System.lineSeparator();
-							}
-							sqlBody = body;
-							log.debug("Loaded SQL template.[{}]", path);
-						}
-					} catch (IOException e) {
-						throw new UroborosqlRuntimeException("Failed to load SQL template["
-								+ path.toAbsolutePath().toString() + "].", e);
+				if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
+					// ファイルパスの場合
+					if (Files.notExists(path)) {
+						throw new UroborosqlRuntimeException("SQL template could not found.["
+								+ path.toAbsolutePath().toString() + "]");
 					}
+					synchronized (sqlName) {
+						try {
+							String body = new String(Files.readAllBytes(path), charset);
+							sqlBody = formatSqlBody(body);
+							log.debug("Loaded SQL template.[{}]", path);
+						} catch (IOException e) {
+							throw new UroborosqlRuntimeException("Failed to load SQL template["
+									+ path.toAbsolutePath().toString() + "].", e);
+						}
+					}
+				} else {
+					// jarパスの場合
+					URL url = Thread.currentThread().getContextClassLoader().getResource(getResourcePath(path));
+					if (url == null) {
+						throw new UroborosqlRuntimeException("SQL template could not found.["
+								+ path.toAbsolutePath().toString() + "]");
+					}
+					synchronized (sqlName) {
+						try {
+							URLConnection conn = url.openConnection();
+							try (BufferedReader reader = new BufferedReader(
+									new InputStreamReader(conn.getInputStream(), charset))) {
+								String body = reader.lines()
+										.collect(Collectors.joining(System.lineSeparator()));
+								sqlBody = formatSqlBody(body);
+								log.debug("Loaded SQL template.[{}]", path);
+							}
+						} catch (IOException e) {
+							throw new UroborosqlRuntimeException("Failed to load SQL template["
+									+ path.toAbsolutePath().toString() + "].", e);
+						}
+					}
+
 				}
 			}
 
 			return sqlBody;
+		}
+
+		/**
+		 * SQL文の不要な文字削除と末尾の改行文字付与を行う.
+		 *
+		 * @param sqlBody 元となるSQL文
+		 * @return 整形後のSQL文
+		 */
+		protected String formatSqlBody(final String sqlBody) {
+			String newBody = sqlBody.trim();
+			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
+				newBody = StringUtils.removeEnd(newBody, "/");
+			} else {
+				newBody = newBody + System.lineSeparator();
+			}
+			return newBody;
 		}
 
 		/**
