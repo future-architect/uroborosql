@@ -11,6 +11,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +39,8 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 
 	private final PropertyMapperManager mapperManager;
 	private final Constructor<E> constructor;
-	private final MappingColumn[] columns;
-	private int columnCount;
-	private String[] columnLabels;
+	private final Map<String, MappingColumn> mappingColumnMap;
+	private Map<MappingColumn, Integer> columnPositionMap;
 
 	/**
 	 * コンストラクタ
@@ -53,7 +57,8 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 			throw new UroborosqlRuntimeException(e);
 		}
 
-		this.columns = MappingUtils.getMappingColumns(entityType);
+		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(entityType))
+				.collect(Collectors.toMap(c -> CaseFormat.UPPER_SNAKE_CASE.convert(c.getName()), Function.identity()));
 	}
 
 	/**
@@ -64,20 +69,26 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	@Override
 	public E createRecord(final ResultSet rs) throws SQLException {
 		try {
-			if (columnLabels == null) {
+			if (columnPositionMap == null) {
 				ResultSetMetaData rsmd = rs.getMetaData();
-				columnCount = rsmd.getColumnCount();
+				int columnCount = rsmd.getColumnCount();
 
+				columnPositionMap = new HashMap<>(columnCount);
 				// columnLabelsは1始まりの配列で値を格納
-				columnLabels = new String[columnCount + 1];
 				for (int i = 1; i <= columnCount; i++) {
-					columnLabels[i] = rsmd.getColumnLabel(i);
+					String columnLabel = CaseFormat.UPPER_SNAKE_CASE.convert(rsmd.getColumnLabel(i));
+					MappingColumn col = mappingColumnMap.get(columnLabel);
+					if (col != null) {
+						columnPositionMap.put(col, i);
+					}
 				}
 			}
 
 			E rec = constructor.newInstance();
-			for (MappingColumn column : columns) {
-				bindValue(rec, rs, column);
+			for (Map.Entry<MappingColumn, Integer> entry : columnPositionMap.entrySet()) {
+				MappingColumn column = entry.getKey();
+				int position = entry.getValue();
+				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, position));
 			}
 			return rec;
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -88,14 +99,4 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 			throw e;
 		}
 	}
-
-	private void bindValue(final E rec, final ResultSet rs, final MappingColumn column) throws SQLException {
-		for (int i = 1; i <= columnCount; i++) {
-			if (CaseFormat.UPPER_SNAKE_CASE.convert(columnLabels[i]).equalsIgnoreCase(column.getName())) {
-				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, i));
-				return;
-			}
-		}
-	}
-
 }

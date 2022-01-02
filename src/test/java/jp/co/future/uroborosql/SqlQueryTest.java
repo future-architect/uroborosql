@@ -244,6 +244,31 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
+	public void testQueryFluentCollectWithPerformance() throws Exception {
+		// 事前条件
+		// 事前条件
+		truncateTable("PRODUCT");
+		int rowsize = 1000000;
+		agent.required(() -> {
+			agent.insertsAndReturn(IntStream.range(1, rowsize)
+					.mapToObj(i -> new Product(i, "商品" + i, "ショウヒン" + i, "1111-" + i, "商品-" + i, new Date(), new Date(),
+							1)));
+		});
+
+		Instant startTime = Instant.now();
+
+		agent.query("example/select_product").collect();
+
+		Instant finishTime = Instant.now();
+		Duration elapsedTime = Duration.between(startTime, finishTime);
+		System.out.println(rowsize + " records read time. time=" +
+				elapsedTime.getSeconds() + "." + elapsedTime.getNano());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
 	public void testQueryFluentCollectCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
