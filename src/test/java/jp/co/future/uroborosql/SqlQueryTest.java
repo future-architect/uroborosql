@@ -7,14 +7,18 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
@@ -273,6 +277,31 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
 		assertEquals("1234567890123", product.getJanCode());
 		assertEquals("0番目の商品", product.getProductDescription());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentCollectEntityWithPerformance() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+		int rowsize = 1000000;
+		agent.required(() -> {
+			agent.insertsAndReturn(IntStream.range(1, rowsize)
+					.mapToObj(i -> new Product(i, "商品" + i, "ショウヒン" + i, "1111-" + i, "商品-" + i, new Date(), new Date(),
+							1)));
+		});
+
+		Instant startTime = Instant.now();
+
+		agent.query("example/select_product")
+				.collect(Product.class);
+
+		Instant finishTime = Instant.now();
+		Duration elapsedTime = Duration.between(startTime, finishTime);
+		System.out.println(rowsize + " records read time. time=" +
+				elapsedTime.getSeconds() + "." + elapsedTime.getNano());
 	}
 
 	/**
