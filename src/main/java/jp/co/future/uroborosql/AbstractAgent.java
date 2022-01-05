@@ -459,6 +459,26 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 */
+	@Override
+	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
+		return transactionManager.autoCommitScope(supplier);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 */
+	@Override
+	public void autoCommitScope(final SQLRunnable runnable) {
+		transactionManager.autoCommitScope(runnable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.SqlAgent#rollback()
 	 */
 	@Override

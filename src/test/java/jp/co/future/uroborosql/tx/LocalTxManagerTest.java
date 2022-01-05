@@ -1002,6 +1002,81 @@ public class LocalTxManagerTest {
 		}
 	}
 
+	@Test
+	public void testInsertRunnableWithinAutoCommit() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.autoCommitScope(() -> {
+					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+					// 明示的にロールバックする
+					agent.rollback();
+
+					// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+					agent.query(Emp.class)
+							.equal("id", 1)
+							.first()
+							.orElseThrow(UroborosqlRuntimeException::new);
+				});
+				agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+		}
+	}
+
+	@Test
+	public void testInsertSupplierWithinAutoCommit() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			Emp emp = agent.required(() -> {
+				return agent.autoCommitScope(() -> {
+					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+					// 明示的にロールバックする
+					agent.rollback();
+
+					// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+					return agent.query(Emp.class)
+							.equal("id", 1)
+							.first()
+							.orElseThrow(UroborosqlRuntimeException::new);
+				});
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
+	@Test
+	public void testUpdateSupplierWithinAutoCommitThrowException() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			Emp emp = agent.required(() -> {
+				try {
+					agent.autoCommitScope(() -> {
+						agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+						// 例外をスローする
+						throw new IllegalStateException();
+					});
+				} catch (Exception ex) {
+					// ここでは握りつぶす
+				}
+				// 例外がスローされる前にInsertされたレコードが登録されている
+				return agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
 	private int ins(final SqlAgent agent, final int id, final String name) {
 		return agent.updateWith("insert into emp (id, name) values (/*id*/0, /*name*/'A')")
 				.param("id", id)
