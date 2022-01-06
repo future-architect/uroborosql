@@ -21,6 +21,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
@@ -999,6 +1000,177 @@ public class LocalTxManagerTest {
 			} catch (SQLException ex) {
 				Assert.fail();
 			}
+		}
+	}
+
+	@Test
+	public void testInsertRunnableWithinAutoCommit() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				agent.autoCommitScope(() -> {
+					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+					// 明示的にロールバックする
+					agent.rollback();
+
+					// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+					agent.query(Emp.class)
+							.equal("id", 1)
+							.first()
+							.orElseThrow(UroborosqlRuntimeException::new);
+				});
+				agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+		}
+	}
+
+	@Test
+	public void testInsertRunnableWithinAutoCommitNoTransaction() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			agent.autoCommitScope(() -> {
+				agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+				// 明示的にロールバックする
+				agent.rollback();
+
+				// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+				agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+			agent.query(Emp.class)
+					.equal("id", 1)
+					.first()
+					.orElseThrow(UroborosqlRuntimeException::new);
+		}
+	}
+
+	@Test
+	public void testInsertSupplierWithinAutoCommit() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			Emp emp = agent.required(() -> {
+				return agent.autoCommitScope(() -> {
+					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+					// 明示的にロールバックする
+					agent.rollback();
+
+					// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+					return agent.query(Emp.class)
+							.equal("id", 1)
+							.first()
+							.orElseThrow(UroborosqlRuntimeException::new);
+				});
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
+	@Test
+	public void testInsertSupplierWithinAutoCommitNoTransaction() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			Emp emp = agent.autoCommitScope(() -> {
+				agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+				// 明示的にロールバックする
+				agent.rollback();
+
+				// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+				return agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
+	@Test
+	public void testUpdateSupplierWithinAutoCommitThrowException() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			Emp emp = agent.required(() -> {
+				try {
+					agent.autoCommitScope(() -> {
+						agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+						// 例外をスローする
+						throw new IllegalStateException();
+					});
+				} catch (Exception ex) {
+					// ここでは握りつぶす
+				}
+				// 例外がスローされる前にInsertされたレコードが登録されている
+				return agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
+	@Test
+	public void testUpdateSupplierWithinAutoCommitBeforeAutoCommit() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent(ConnectionContextBuilder
+				.jdbc("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).autoCommit(true))) {
+			Emp emp = agent.required(() -> {
+				try {
+					agent.autoCommitScope(() -> {
+						agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+						// 例外をスローする
+						throw new IllegalStateException();
+					});
+				} catch (Exception ex) {
+					// ここでは握りつぶす
+				}
+				// 例外がスローされる前にInsertされたレコードが登録されている
+				return agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			});
+			assertThat(emp, notNullValue());
+		}
+	}
+
+	@Test
+	public void testUpdateRunnableWithinAutoCommitThrowExceptionNoTransaction() {
+		config.getSqlAgentFactory().setForceUpdateWithinTransaction(true);
+
+		try (SqlAgent agent = config.agent()) {
+			try {
+				agent.autoCommitScope(() -> {
+					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+
+					// 例外をスローする
+					throw new IllegalStateException();
+				});
+			} catch (Exception ex) {
+				// ここでは握りつぶす
+			}
+			// 例外がスローされる前にInsertされたレコードが登録されている
+			Emp emp = agent.query(Emp.class)
+					.equal("id", 1)
+					.first()
+					.orElseThrow(UroborosqlRuntimeException::new);
+			assertThat(emp, notNullValue());
 		}
 	}
 
