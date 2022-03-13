@@ -353,6 +353,24 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	<E> SqlEntityUpdate<E> update(Class<? extends E> entityType);
 
 	/**
+	 * エンティティのMERGE（INSERTまたはUPDATE）を実行
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int merge(E entity);
+
+	/**
+	 * エンティティのMERGE（INSERTまたはUPDATE）を実行し、MERGEしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return MERGEしたエンティティ
+	 */
+	<E> E mergeAndReturn(E entity);
+
+	/**
 	 * エンティティのDELETEを実行
 	 *
 	 * @param <E> エンティティ型

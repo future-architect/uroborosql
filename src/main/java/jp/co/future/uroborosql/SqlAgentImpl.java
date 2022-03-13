@@ -54,6 +54,7 @@ import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
@@ -1010,6 +1011,70 @@ public class SqlAgentImpl extends AbstractAgent {
 			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#merge(java.lang.Object)
+	 */
+	@Override
+	public <E> int merge(final E entity) {
+		mergeAndReturn(entity);
+		return 1;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#mergeAndReturn(java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <E> E mergeAndReturn(final E entity) {
+		if (entity instanceof Stream) {
+			throw new IllegalArgumentException("Stream type not supported.");
+		}
+
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isInstance(entity)) {
+			throw new IllegalArgumentException("Entity type not supported.");
+		}
+
+		Class<?> type = entity.getClass();
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			List<? extends TableMetadata.Column> keyColumns = metadata.getKeyColumns();
+
+			if (keyColumns.isEmpty()) {
+				throw new IllegalArgumentException("Entity has no keys.");
+			}
+
+			Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.UPDATE);
+
+			SqlEntityQuery<E> query = (SqlEntityQuery<E>) query(type);
+			for (TableMetadata.Column column : keyColumns) {
+				String camelName = column.getCamelColumnName();
+				query.equal(camelName, mappingColumns.get(camelName).getValue(entity));
+			}
+			return query.first().map(findEntity -> {
+				for (MappingColumn mappingColumn : mappingColumns.values()) {
+					if (!mappingColumn.isId()) {
+						Object value = mappingColumn.getValue(entity);
+						if (value != null) {
+							mappingColumn.setValue(findEntity, value);
+						}
+					}
+				}
+				return updateAndReturn(findEntity);
+			}).orElseGet(() -> {
+				return insertAndReturn(entity);
+			});
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.MERGE, e);
 		}
 	}
 

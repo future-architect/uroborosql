@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -283,7 +284,9 @@ public final class MappingUtils {
 	public static MappingColumn getMappingColumn(final Class<?> entityType, final SqlKind kind,
 			final String camelColumnName) {
 		return getMappingColumnMap(entityType, kind).entrySet().stream()
-				.filter(entry -> entry.getKey().equals(camelColumnName)).map(entry -> entry.getValue()).findFirst()
+				.filter(entry -> entry.getKey().equals(camelColumnName))
+				.map(Map.Entry::getValue)
+				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col:" + camelColumnName));
 	}
 
@@ -318,14 +321,14 @@ public final class MappingUtils {
 		}
 
 		Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
-				.collect(Collectors.toMap(e -> e, e -> new LinkedHashMap<>()));
+				.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
 
 		JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
 
 		walkFields(entityType, implementClass, fieldsMap);
 
 		final Map<SqlKind, MappingColumn[]> entityCols = fieldsMap.entrySet().stream()
-				.collect(Collectors.toConcurrentMap(e -> e.getKey(),
+				.collect(Collectors.toConcurrentMap(Map.Entry::getKey,
 						e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
 
 		synchronized (CACHE) {
@@ -343,7 +346,7 @@ public final class MappingUtils {
 	 */
 	public static Map<String, MappingColumn> getMappingColumnMap(final Class<?> entityType, final SqlKind kind) {
 		return Arrays.stream(MappingUtils.getMappingColumns(entityType, kind))
-				.collect(Collectors.toMap(MappingColumn::getCamelName, c -> c));
+				.collect(Collectors.toMap(MappingColumn::getCamelName, Function.identity()));
 	}
 
 	/**
@@ -353,7 +356,8 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getIdMappingColumns(final Class<?> entityType) {
-		return Arrays.stream(MappingUtils.getMappingColumns(entityType)).filter(c -> c.isId())
+		return Arrays.stream(MappingUtils.getMappingColumns(entityType))
+				.filter(MappingColumn::isId)
 				.toArray(MappingColumn[]::new);
 	}
 
