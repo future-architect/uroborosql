@@ -75,7 +75,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 							.setId(i)
 							.setEndAt(LocalDate.now().plusDays(i))
 							.setName("名前" + i)
-							.setVersion(i))
+							.setVersion(0))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntityMultiKey.class, entities.stream()), is(9));
 
@@ -96,7 +96,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.setId(11)
 					.setEndAt(LocalDate.now().plusDays(11))
 					.setName("名前11_new")
-					.setVersion(11);
+					.setVersion(0);
 
 			TestEntityMultiKey result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
