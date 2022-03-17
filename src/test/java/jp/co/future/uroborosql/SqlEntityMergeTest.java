@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,22 +45,25 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.setName("名前2_new")
 					.setAddress(Optional.of("住所2_new"));
 
-			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			assertThat(agent.merge(updateEntity), is(1));
+			TestEntity result1 = agent.find(TestEntity.class, 2).orElse(null);
+			assertThat(result1, not(nullValue()));
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
 			TestEntity insertEntity = new TestEntity()
-					.setId(11)
-					.setName("名前11_new")
-					.setAddress(Optional.of("住所11_new"))
+					.setName("名前10_new")
+					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
-			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			assertThat(agent.merge(insertEntity), is(1));
+			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
+			assertThat(result2, not(nullValue()));
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
-			assertThat(result2.getAddress(), is(Optional.of("住所11_new")));
+			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
 			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
 		});
 	}
@@ -68,7 +72,99 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース。
 	 */
 	@Test
+	public void testEntityMergeAndReturnWithId() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entities = IntStream.range(1, 10)
+					.mapToObj(i -> new TestEntity()
+							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
+							.setVersion(0))
+					.collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
+
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(Optional.of("住所2_new"));
+
+			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			assertThat(result1.getId(), is(updateEntity.getId()));
+			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
+			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+
+			TestEntity insertEntity = new TestEntity()
+					.setName("名前10_new")
+					.setAddress(Optional.of("住所10_new"))
+					.setVersion(0);
+
+			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			assertThat(result2.getId(), is(10));
+			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
+			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * @IdをもつEntityを使ったマージ処理のテストケース(悲観ロックあり)。
+	 */
+	@Test
 	public void testEntityMergeWithLockingWithId() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entities = IntStream.range(1, 10)
+					.mapToObj(i -> new TestEntity()
+							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
+							.setVersion(0))
+					.collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
+
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(Optional.of("住所2_new"));
+
+			assertThat(agent.mergeWithLocking(updateEntity), is(1));
+			TestEntity result1 = agent.find(TestEntity.class, 2).orElse(null);
+			assertThat(result1, not(nullValue()));
+			assertThat(result1.getId(), is(updateEntity.getId()));
+			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
+			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+
+			TestEntity insertEntity = new TestEntity()
+					.setName("名前10_new")
+					.setAddress(Optional.of("住所10_new"))
+					.setVersion(0);
+
+			assertThat(agent.mergeWithLocking(insertEntity), is(1));
+			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
+			assertThat(result2, not(nullValue()));
+			assertThat(result2.getId(), is(insertEntity.getId()));
+			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
+			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * @IdをもつEntityを使ったマージ処理のテストケース（悲観ロックあり）。
+	 */
+	@Test
+	public void testEntityMergeWithLockingAndReturnWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -96,15 +192,14 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
 			TestEntity insertEntity = new TestEntity()
-					.setId(11)
-					.setName("名前11_new")
-					.setAddress(Optional.of("住所11_new"))
+					.setName("名前10_new")
+					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
 			TestEntity result2 = agent.mergeWithLockingAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
-			assertThat(result2.getAddress(), is(Optional.of("住所11_new")));
+			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
 			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
 		});
 	}
@@ -141,8 +236,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
 			TestEntity insertEntity = new TestEntity()
-					.setId(11)
-					.setName("名前11_new")
+					.setName("名前10_new")
 					.setAddress(Optional.empty())
 					.setVersion(0);
 
@@ -186,8 +280,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
 			TestEntity insertEntity = new TestEntity()
-					.setId(11)
-					.setName("名前11_new")
+					.setName("名前10_new")
 					.setAddress(null)
 					.setVersion(0);
 
@@ -196,6 +289,24 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result2.getName(), is(insertEntity.getName()));
 			assertThat(result2.getAddress(), nullValue());
 			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * mergeの引数がStream型の場合は例外がスローされることを確認
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testEntityMergeThrowWhenStreamParam() throws Exception {
+		agent.required(() -> {
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(null);
+
+			List<TestEntity> input = new ArrayList<>();
+			input.add(updateEntity);
+
+			agent.merge(input.stream());
 		});
 	}
 
