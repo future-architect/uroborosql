@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -19,55 +20,195 @@ import jp.co.future.uroborosql.mapping.annotations.Version;
 public class SqlEntityMergeTest extends AbstractDbTest {
 
 	/**
-	 * @IdをもつEntityを使った更新処理のテストケース。
+	 * @IdをもつEntityを使ったマージ処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdateWithId() throws Exception {
+	public void testEntityMergeWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
 			agent.updateWith(
-					"create table if not exists test_entity (id serial not null, name text not null, version integer not null, primary key (id))")
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
 					.count();
 
 			List<TestEntity> entities = IntStream.range(1, 10)
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
 							.setVersion(0))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
 			TestEntity updateEntity = new TestEntity()
 					.setId(2)
-					.setName("名前2_new");
+					.setName("名前2_new")
+					.setAddress(Optional.of("住所2_new"));
 
 			TestEntity result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
 			TestEntity insertEntity = new TestEntity()
 					.setId(11)
 					.setName("名前11_new")
+					.setAddress(Optional.of("住所11_new"))
 					.setVersion(0);
 
 			TestEntity result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), is(Optional.of("住所11_new")));
 			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
 		});
 	}
 
 	/**
-	 * 複合キーを持つEntityを使った一括更新処理のテストケース。
+	 * @IdをもつEntityを使ったマージ処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesMultiKey() throws Exception {
+	public void testEntityMergeWithLockingWithId() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entities = IntStream.range(1, 10)
+					.mapToObj(i -> new TestEntity()
+							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
+							.setVersion(0))
+					.collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
+
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(Optional.of("住所2_new"));
+
+			TestEntity result1 = agent.mergeWithLockingAndReturn(updateEntity);
+			assertThat(result1.getId(), is(updateEntity.getId()));
+			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
+			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+
+			TestEntity insertEntity = new TestEntity()
+					.setId(11)
+					.setName("名前11_new")
+					.setAddress(Optional.of("住所11_new"))
+					.setVersion(0);
+
+			TestEntity result2 = agent.mergeWithLockingAndReturn(insertEntity);
+			assertThat(result2.getId(), is(insertEntity.getId()));
+			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), is(Optional.of("住所11_new")));
+			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * @IdをもつEntityを使ったマージ処理のテストケース。Optional.empty()を設定した場合
+	 */
+	@Test
+	public void testEntityMergeWithIdOptionalEmpty() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entities = IntStream.range(1, 10)
+					.mapToObj(i -> new TestEntity()
+							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
+							.setVersion(0))
+					.collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
+
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(Optional.empty());
+
+			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			assertThat(result1.getId(), is(updateEntity.getId()));
+			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.empty()));
+			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+
+			TestEntity insertEntity = new TestEntity()
+					.setId(11)
+					.setName("名前11_new")
+					.setAddress(Optional.empty())
+					.setVersion(0);
+
+			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			assertThat(result2.getId(), is(insertEntity.getId()));
+			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), is(Optional.empty()));
+			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * @IdをもつEntityを使ったマージ処理のテストケース。Optionalフィールドにnullを設定した場合
+	 */
+	@Test
+	public void testEntityMergeWithIdOptionalNull() throws Exception {
+		agent.required(() -> {
+			// テーブル作成
+			agent.updateWith("drop table if exists test_entity cascade").count();
+			agent.updateWith(
+					"create table if not exists test_entity (id serial not null, name text not null, address text, version integer not null, primary key (id))")
+					.count();
+
+			List<TestEntity> entities = IntStream.range(1, 10)
+					.mapToObj(i -> new TestEntity()
+							.setName("名前" + i)
+							.setAddress(Optional.of("住所" + i))
+							.setVersion(0))
+					.collect(Collectors.toList());
+			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
+
+			TestEntity updateEntity = new TestEntity()
+					.setId(2)
+					.setName("名前2_new")
+					.setAddress(null);
+
+			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			assertThat(result1.getId(), is(updateEntity.getId()));
+			assertThat(result1.getName(), is(updateEntity.getName()));
+			assertThat(result1.getAddress(), is(Optional.of("住所2"))); // 更新されないこと
+			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+
+			TestEntity insertEntity = new TestEntity()
+					.setId(11)
+					.setName("名前11_new")
+					.setAddress(null)
+					.setVersion(0);
+
+			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			assertThat(result2.getId(), is(insertEntity.getId()));
+			assertThat(result2.getName(), is(insertEntity.getName()));
+			assertThat(result2.getAddress(), nullValue());
+			assertThat(result2.getVersion(), is(insertEntity.getVersion()));
+		});
+	}
+
+	/**
+	 * 複合キーを持つEntityを使った一括マージ処理のテストケース。
+	 */
+	@Test
+	public void testEntityMergesMultiKey() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity_multi_key cascade").count();
 			agent.updateWith(
-					"create table if not exists test_entity_multi_key (id integer not null, end_at timestamp with time zone not null, name text not null, version integer not null, primary key (id, end_at))")
+					"create table if not exists test_entity_multi_key (id integer not null, end_at timestamp with time zone not null, name text not null, address text, version integer not null, primary key (id, end_at))")
 					.count();
 
 			List<TestEntityMultiKey> entities = IntStream.range(1, 10)
@@ -112,6 +253,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
 		private int id;
 		private String name;
+		private Optional<String> address;
 		@Version
 		private int version;
 
@@ -136,6 +278,15 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			return this;
 		}
 
+		public Optional<String> getAddress() {
+			return this.address;
+		}
+
+		public TestEntity setAddress(final Optional<String> address) {
+			this.address = address;
+			return this;
+		}
+
 		public int getVersion() {
 			return version;
 		}
@@ -151,6 +302,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 		private int id;
 		private LocalDate endAt;
 		private String name;
+		private Optional<String> address;
 		@Version
 		private int version;
 
@@ -181,6 +333,15 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 
 		public TestEntityMultiKey setName(final String name) {
 			this.name = name;
+			return this;
+		}
+
+		public Optional<String> getAddress() {
+			return this.address;
+		}
+
+		public TestEntityMultiKey setAddress(final Optional<String> address) {
+			this.address = address;
 			return this;
 		}
 
