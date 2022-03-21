@@ -14,6 +14,8 @@ public enum SqlKind {
 	INSERT,
 	/** UPDATE */
 	UPDATE,
+	/** MERGE */
+	MERGE,
 	/** DELETE */
 	DELETE,
 	/** SELECT */

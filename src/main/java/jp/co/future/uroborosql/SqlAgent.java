@@ -34,7 +34,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author H.Sugimoto
  */
 
-public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAware {
+public interface SqlAgent extends TransactionManager, SqlConfigAware {
 	/**
 	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件.<br>
 	 *
@@ -351,6 +351,42 @@ public interface SqlAgent extends AutoCloseable, TransactionManager, SqlConfigAw
 	 * @return SqlEntityUpdate
 	 */
 	<E> SqlEntityUpdate<E> update(Class<? extends E> entityType);
+
+	/**
+	 * エンティティのMERGE（INSERTまたはUPDATE）を実行
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int merge(E entity);
+
+	/**
+	 * エンティティのMERGE（INSERTまたはUPDATE）を実行し、MERGEしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return MERGEしたエンティティ
+	 */
+	<E> E mergeAndReturn(E entity);
+
+	/**
+	 * エンティティの悲観ロックを行ったうえでMERGE（INSERTまたはUPDATE）を実行
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return SQL実行結果
+	 */
+	<E> int mergeWithLocking(E entity);
+
+	/**
+	 * エンティティの悲観ロックを行ったうえでMERGE（INSERTまたはUPDATE）を実行し、MERGEしたエンティティを返却する
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @return MERGEしたエンティティ
+	 */
+	<E> E mergeWithLockingAndReturn(E entity);
 
 	/**
 	 * エンティティのDELETEを実行
