@@ -70,8 +70,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 				if (param != null) {
 					if (param.getValue() instanceof Operator) {
 						Operator ope = (Operator) param.getValue();
-						where.append("\t").append("AND ").append(col.getColumnIdentifier())
-								.append(ope.toConditionString()).append(System.lineSeparator());
+						where.append("\t").append("AND ");
+						if (ope.useColumnIdentifier()) {
+							where.append(col.getColumnIdentifier());
+						}
+						where.append(ope.toConditionString()).append(System.lineSeparator());
 					}
 				}
 			} else {
@@ -361,6 +364,50 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	}
 
 	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notBetween(java.lang.String, java.lang.Object, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T notBetween(final String col, final V fromValue, final V toValue) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotBetween<>(col, fromValue, toValue));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#betweenColumns(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T betweenColumns(final V value, final String fromCol, final String toCol) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(fromCol),
+				new BetweenColumns<>(value, fromCol, toCol, tableMetadata));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notBetweenColumns(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T notBetweenColumns(final V value, final String fromCol, final String toCol) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(fromCol),
+				new NotBetweenColumns<>(value, fromCol, toCol, tableMetadata));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#isNull(java.lang.String)
@@ -443,6 +490,15 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		public String getCol() {
 			return col;
+		}
+
+		/**
+		 * 条件生成時にカラム識別子を使用するかどうか
+		 *
+		 * @return カラム識別子を使用する場合<code>true</code>
+		 */
+		public boolean useColumnIdentifier() {
+			return true;
 		}
 
 		/**
@@ -974,6 +1030,148 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		@Override
 		public String getOperator() {
 			return "BETWEEN";
+		}
+	}
+
+	/**
+	 * NotBetween Operator
+	 */
+	public static class NotBetween<V> extends Between<V> {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public NotBetween(final String col, final V from, final V to) {
+			super(col, from, to);
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Between#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "NOT BETWEEN";
+		}
+	}
+
+	/**
+	 * BetweenColumns Operator
+	 */
+	public static class BetweenColumns<V> extends Operator {
+		protected final String toCol;
+		protected final V value;
+		protected final TableMetadata metadata;
+
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public BetweenColumns(final V value, final String fromCol, final String toCol, final TableMetadata metadata) {
+			super(fromCol);
+			this.toCol = CaseFormat.CAMEL_CASE.convert(toCol);
+			this.value = value;
+			this.metadata = metadata;
+		}
+
+		/**
+		 * 値の取得
+		 *
+		 * @return To値
+		 */
+		public V getValue() {
+			return value;
+		}
+
+		/**
+		 * FromColの取得
+		 *
+		 * @return FromCol
+		 */
+		public String getFromCol() {
+			return super.getCol();
+		}
+
+		/**
+		 * toColの取得
+		 *
+		 * @return toCol
+		 */
+		public String getToCol() {
+			return this.toCol;
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#useColumnIdentifier()
+		 */
+		@Override
+		public boolean useColumnIdentifier() {
+			return false;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#toConditionString()
+		 */
+		@Override
+		public String toConditionString() {
+			TableMetadata.Column fromColumn = this.metadata.getColumn(getFromCol());
+			TableMetadata.Column toColumn = this.metadata.getColumn(getToCol());
+
+			return wrap(getCol(), "value") + " " + getOperator() + " "
+					+ fromColumn.getColumnIdentifier() + " AND "
+					+ toColumn.getColumnIdentifier();
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "BETWEEN";
+		}
+	}
+
+	/**
+	 * NotBetweenColumns Operator
+	 */
+	public static class NotBetweenColumns<V> extends BetweenColumns<V> {
+
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public NotBetweenColumns(final V value, final String fromCol, final String toCol,
+				final TableMetadata metadata) {
+			super(value, fromCol, toCol, metadata);
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.BetweenColumns#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "NOT BETWEEN";
 		}
 	}
 

@@ -84,6 +84,9 @@ public class DefaultEntityHandlerTest {
 				stmt.execute("drop table if exists test_data_field_increment_lock_version");
 				stmt.execute(
 						"create table if not exists test_data_field_increment_lock_version( id NUMERIC(4), name VARCHAR(10), lock_version SMALLINT)");
+				stmt.execute("drop table if exists test_history");
+				stmt.execute(
+						"create table if not exists test_history( id NUMERIC(4), start_at DATE, finish_at DATE, name VARCHAR(10), primary key(id))");
 			}
 		}
 
@@ -102,6 +105,7 @@ public class DefaultEntityHandlerTest {
 			agent.updateWith("delete from test_data_cyclic_lock_version").count();
 			agent.updateWith("delete from test_data_timestamp_lock_version").count();
 			agent.updateWith("delete from test_data_field_increment_lock_version").count();
+			agent.updateWith("delete from test_history").count();
 			agent.commit();
 		}
 	}
@@ -545,10 +549,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
-				// Between
+				// between
 				list = agent.query(TestEntity.class)
 						.between("birthday", LocalDate.of(1990, Month.APRIL, 15), LocalDate.of(1990, Month.MAY, 15))
-						.collect();
+						.collect(); // 4/15 <= birthday and birthday <= 5/15
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 				list = agent.query(TestEntity.class)
@@ -557,6 +561,21 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
+
+				// not between
+				list = agent.query(TestEntity.class)
+						.notBetween("birthday", LocalDate.of(1990, Month.APRIL, 15), LocalDate.of(1990, Month.MAY, 15))
+						.asc("id")
+						.collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test3));
+				list = agent.query(TestEntity.class)
+						.notBetween("birthday", LocalDate.of(1990, Month.APRIL, 1), LocalDate.of(1990, Month.MAY, 1))
+						.asc("id")
+						.collect(); // birthday < 4/1 or birthday > 5/1
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test3));
 
 				// is null
 				list = agent.query(TestEntity.class).isNull("memo").collect();
@@ -651,6 +670,80 @@ public class DefaultEntityHandlerTest {
 				long count3 = agent.query(TestEntity.class).lessEqual("age", 21).count("memo");
 				assertThat(count3, is(1L));
 
+			});
+		}
+	}
+
+	@Test
+	public void testQueryWithBetweenColumns() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestHistoryEntity test1 = new TestHistoryEntity(1,
+						LocalDate.of(1990, Month.APRIL, 1),
+						LocalDate.of(1990, Month.APRIL, 28),
+						"name1");
+				agent.insert(test1);
+				TestHistoryEntity test2 = new TestHistoryEntity(2,
+						LocalDate.of(1990, Month.APRIL, 15),
+						LocalDate.of(1990, Month.MAY, 15),
+						"name2");
+				agent.insert(test2);
+				TestHistoryEntity test3 = new TestHistoryEntity(3,
+						LocalDate.of(1990, Month.MARCH, 1),
+						LocalDate.of(1990, Month.JUNE, 30),
+						"name3");
+				agent.insert(test3);
+
+				List<TestHistoryEntity> list = null;
+				// Between
+				list = agent.query(TestHistoryEntity.class)
+						.betweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
+						.asc("id")
+						.collect();
+				assertThat(list.size(), is(3));
+				assertThat(list.get(0), is(test1));
+				list = agent.query(TestHistoryEntity.class)
+						.betweenColumns(LocalDate.of(1990, Month.APRIL, 1), "start_at", "finish_at")
+						.collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test3));
+			});
+		}
+	}
+
+	@Test
+	public void testQueryWithNotBetweenColumns() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestHistoryEntity test1 = new TestHistoryEntity(1,
+						LocalDate.of(1990, Month.APRIL, 1),
+						LocalDate.of(1990, Month.APRIL, 28),
+						"name1");
+				agent.insert(test1);
+				TestHistoryEntity test2 = new TestHistoryEntity(2,
+						LocalDate.of(1990, Month.APRIL, 15),
+						LocalDate.of(1990, Month.MAY, 15),
+						"name2");
+				agent.insert(test2);
+				TestHistoryEntity test3 = new TestHistoryEntity(3,
+						LocalDate.of(1990, Month.MARCH, 1),
+						LocalDate.of(1990, Month.JUNE, 30),
+						"name3");
+				agent.insert(test3);
+
+				List<TestHistoryEntity> list = null;
+				// Between
+				list = agent.query(TestHistoryEntity.class)
+						.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
+						.asc("id")
+						.collect(); // 4/15 < start_at or 4/15 > finish_at
+				assertThat(list.size(), is(0));
+				list = agent.query(TestHistoryEntity.class)
+						.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 1), "start_at", "finish_at")
+						.collect();
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test2));
 			});
 		}
 	}
