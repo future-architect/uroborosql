@@ -55,6 +55,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private long offset;
 	private ForUpdateType forUpdateType;
 	private int waitSeconds;
+	private final List<String> includeColumns;
+	private final List<String> excludeColumns;
 
 	/**
 	 * Constructor
@@ -72,11 +74,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.entityType = entityType;
 		this.sortOrders = new ArrayList<>();
 		this.optimizerHints = new ArrayList<>();
+		this.dialect = agent.getSqlConfig().getDialect();
 		this.limit = -1;
 		this.offset = -1;
 		this.forUpdateType = null;
 		this.waitSeconds = -1;
-		this.dialect = agent.getSqlConfig().getDialect();
+		this.includeColumns = new ArrayList<>();
+		this.excludeColumns = new ArrayList<>();
 	}
 
 	/**
@@ -127,7 +131,22 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Stream<E> stream() {
 		try {
-			StringBuilder sql = new StringBuilder(context().getSql()).append(getWhereClause())
+			String selectClause = context().getSql();
+			if (!includeColumns.isEmpty()) {
+				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
+						.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
+						.map(TableMetadata.Column::getColumnIdentifier)
+						.collect(Collectors.joining("|", "(?m)^,*\\s+(", ").+$")), "");
+			} else if (!excludeColumns.isEmpty()) {
+				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
+						.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
+						.map(TableMetadata.Column::getColumnIdentifier)
+						.collect(Collectors.joining("|", "(?m)^,*\\s+(", ").+$")), "");
+			}
+			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
+				selectClause = selectClause.replaceFirst("(?m)(SELECT.+\\s*)(,)", "$1");
+			}
+			StringBuilder sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
@@ -158,6 +177,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException(
 						"field:" + fieldName + " not found in " + entityType.getSimpleName() + "."));
+		includeColumns(fieldName);
 
 		return stream().map(e -> type.cast(BeanAccessor.value(field, e)));
 	}
@@ -562,6 +582,36 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			this.optimizerHints.add(hint);
 		} else {
 			log.warn("Optimizer Hints is not supported.");
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#includeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> includeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (String col : cols) {
+				includeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#excludeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> excludeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (String col : cols) {
+				excludeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
 		}
 		return this;
 	}

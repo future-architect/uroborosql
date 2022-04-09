@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 public class SqlEntityQueryTest extends AbstractDbTest {
 
@@ -180,6 +181,149 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		} catch (Exception ex) {
 			fail();
 		}
+	}
+
+	@Test
+	public void testIncludeColumns() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// camel case
+		Product product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// productIdのみ
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns("productId")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is(nullValue()));
+		assertThat(product.getJanCode(), nullValue());
+		assertThat(product.getProductDescription(), nullValue());
+		assertThat(product.getInsDatetime(), nullValue());
+		assertThat(product.getUpdDatetime(), nullValue());
+		assertThat(product.getVersionNo(), is(0));
+
+		// productId, productName
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns("productId", "productName")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getJanCode(), nullValue());
+		assertThat(product.getProductDescription(), nullValue());
+		assertThat(product.getInsDatetime(), nullValue());
+		assertThat(product.getUpdDatetime(), nullValue());
+		assertThat(product.getVersionNo(), is(0));
+
+		// productName (先頭カラムを含まない)
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns("productName")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getJanCode(), nullValue());
+		assertThat(product.getProductDescription(), nullValue());
+		assertThat(product.getInsDatetime(), nullValue());
+		assertThat(product.getUpdDatetime(), nullValue());
+		assertThat(product.getVersionNo(), is(0));
+	}
+
+	@Test
+	public void testExcludeColumns() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// camel case
+		Product product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// janCodeのみ
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns("janCode")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is(nullValue()));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// productId, productName
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns("productId", "productName")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is(nullValue()));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// productId (先頭カラム)
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns("productId")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
 	}
 
 	@Test
