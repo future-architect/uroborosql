@@ -136,12 +136,12 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
 						.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
 						.map(TableMetadata.Column::getColumnIdentifier)
-						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+\\s")), "");
+						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
 			} else if (!excludeColumns.isEmpty()) {
 				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
 						.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
 						.map(TableMetadata.Column::getColumnIdentifier)
-						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+\\s")), "");
+						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
 			}
 			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
 				selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
