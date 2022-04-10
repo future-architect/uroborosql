@@ -144,7 +144,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 						.collect(Collectors.joining("|", "(?m)\\s*,*\\s+(", ").+\\s")), "");
 			}
 			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
-				selectClause = selectClause.replaceFirst("(?m)(SELECT.+\\s*)(,)", "$1 ");
+				selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
 			}
 			StringBuilder sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());
