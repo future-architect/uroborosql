@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private long offset;
 	private ForUpdateType forUpdateType;
 	private int waitSeconds;
+
+	private List<? extends Column> list;
 	private final List<String> includeColumns;
 	private final List<String> excludeColumns;
 
@@ -132,19 +135,30 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public Stream<E> stream() {
 		try {
 			String selectClause = context().getSql();
-			if (!includeColumns.isEmpty()) {
-				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
-						.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
-						.map(TableMetadata.Column::getColumnIdentifier)
-						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
-			} else if (!excludeColumns.isEmpty()) {
-				selectClause = selectClause.replaceAll(tableMetadata.getColumns().stream()
-						.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
-						.map(TableMetadata.Column::getColumnIdentifier)
-						.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
-			}
 			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
-				selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
+				// 除外対象カラムを取得する
+				List<? extends TableMetadata.Column> excludeCols = Collections.emptyList();
+				if (!includeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+					if (excludeCols.size() == tableMetadata.getColumns().size()) {
+						// includeColumnsに含まれるカラムが1つもselect句に含まれない場合は実行時例外とする
+						throw new UroborosqlRuntimeException("None of the includeColumns matches the column name.");
+					}
+				} else if (!excludeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+				}
+				if (!excludeCols.isEmpty()) {
+					// 除外対象カラムをselect句から除外する置換処理を行う
+					selectClause = selectClause.replaceAll(excludeCols.stream()
+							.map(TableMetadata.Column::getColumnIdentifier)
+							.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
+					// SELECT句の直後にカンマがくる場合はそのカンマを除外する
+					selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
+				}
 			}
 			StringBuilder sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());

@@ -188,9 +188,43 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		// camel case
+		// 通常の検索
 		Product product = agent.query(Product.class)
 				.equal("product_id", 1)
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// 引数なし　（カラムの絞り込みなし）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns()
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		//　null指定　（カラムの絞り込みなし）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns((String[]) null)
 				.first()
 				.orElseThrow(UroborosqlSQLException::new);
 
@@ -214,6 +248,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product, not(nullValue()));
 		assertThat(product.getProductId(), is(1));
 		assertThat(product.getProductName(), is(nullValue()));
+		assertThat(product.getProductKanaName(), is(nullValue()));
 		assertThat(product.getJanCode(), nullValue());
 		assertThat(product.getProductDescription(), nullValue());
 		assertThat(product.getInsDatetime(), nullValue());
@@ -230,6 +265,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product, not(nullValue()));
 		assertThat(product.getProductId(), is(1));
 		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is(nullValue()));
 		assertThat(product.getJanCode(), nullValue());
 		assertThat(product.getProductDescription(), nullValue());
 		assertThat(product.getInsDatetime(), nullValue());
@@ -246,11 +282,41 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product, not(nullValue()));
 		assertThat(product.getProductId(), is(0));
 		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is(nullValue()));
 		assertThat(product.getJanCode(), nullValue());
 		assertThat(product.getProductDescription(), nullValue());
 		assertThat(product.getInsDatetime(), nullValue());
 		assertThat(product.getUpdDatetime(), nullValue());
 		assertThat(product.getVersionNo(), is(0));
+
+		// 片方存在しないカラムの指定（存在するカラムのみで絞り込み）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.includeColumns("productId1", "productName")
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is(nullValue()));
+		assertThat(product.getJanCode(), nullValue());
+		assertThat(product.getProductDescription(), nullValue());
+		assertThat(product.getInsDatetime(), nullValue());
+		assertThat(product.getUpdDatetime(), nullValue());
+		assertThat(product.getVersionNo(), is(0));
+
+		try {
+			// すべて存在しないカラムの指定
+			product = agent.query(Product.class)
+					.equal("product_id", 1)
+					.includeColumns("productId1", "productName1") // 存在しないカラム名
+					.first()
+					.orElseThrow(UroborosqlSQLException::new);
+			fail();
+		} catch (UroborosqlRuntimeException ex) {
+			assertThat(ex.getMessage(), is("None of the includeColumns matches the column name."));
+		}
 	}
 
 	@Test
@@ -258,9 +324,43 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		// camel case
+		// 通常の検索
 		Product product = agent.query(Product.class)
 				.equal("product_id", 1)
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// 引数なし（絞り込み無し）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns()
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// null指定（絞り込み無し）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns((String[]) null)
 				.first()
 				.orElseThrow(UroborosqlSQLException::new);
 
@@ -317,6 +417,40 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 
 		assertThat(product, not(nullValue()));
 		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名1"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// 片方存在しないカラムを指定　（存在するカラムで絞り込み）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns("productId1", "productName") // 存在しないカラム
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is(nullValue()));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
+		assertThat(product.getJanCode(), is("1234567890124"));
+		assertThat(product.getProductDescription(), is("1番目の商品"));
+		assertThat(product.getInsDatetime(), not(nullValue()));
+		assertThat(product.getUpdDatetime(), not(nullValue()));
+		assertThat(product.getVersionNo(), is(0));
+
+		// すべて存在しないカラムを指定　（全カラム取得される）
+		product = agent.query(Product.class)
+				.equal("product_id", 1)
+				.excludeColumns("productId1", "productName1") // 存在しないカラム
+				.first()
+				.orElseThrow(UroborosqlSQLException::new);
+
+		assertThat(product, not(nullValue()));
+		assertThat(product.getProductId(), is(1));
 		assertThat(product.getProductName(), is("商品名1"));
 		assertThat(product.getProductKanaName(), is("ショウヒンメイイチ"));
 		assertThat(product.getJanCode(), is("1234567890124"));
