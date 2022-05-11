@@ -242,7 +242,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T like(final String col, final CharSequence searchValue) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, searchValue));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, searchValue, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -257,7 +259,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T startsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -272,7 +275,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T endsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, true, escaped, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -287,7 +291,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T contains(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, true, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -300,7 +305,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notLike(final String col, final CharSequence searchValue) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, searchValue));
+		Dialect dialect = agent().getSqlConfig().getDialect();
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, searchValue, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -315,7 +322,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notStartsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -330,7 +338,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notEndsWith(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, true, escaped, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -345,7 +354,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notContains(final String col, final CharSequence searchValue) {
 		Dialect dialect = agent().getSqlConfig().getDialect();
 		String escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, true, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -840,15 +850,17 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public static class Like extends SingleOperator<CharSequence> {
 		protected boolean prefix;
 		protected boolean suffix;
+		protected char escapeChar;
 
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final CharSequence value) {
-			this(col, true, value, true);
+		public Like(final String col, final CharSequence value, final char escapeChar) {
+			this(col, true, value, true, escapeChar);
 		}
 
 		/**
@@ -857,9 +869,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final boolean prefix, final CharSequence value) {
-			this(col, prefix, value, false);
+		public Like(final String col, final boolean prefix, final CharSequence value, final char escapeChar) {
+			this(col, prefix, value, false, escapeChar);
 		}
 
 		/**
@@ -868,9 +881,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final CharSequence value, final boolean suffix) {
-			this(col, false, value, suffix);
+		public Like(final String col, final CharSequence value, final boolean suffix, final char escapeChar) {
+			this(col, false, value, suffix, escapeChar);
 		}
 
 		/**
@@ -880,11 +894,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
+		public Like(final String col, final boolean prefix, final CharSequence value, final boolean suffix,
+				final char escapeChar) {
 			super(col, value);
 			this.prefix = prefix;
 			this.suffix = suffix;
+			this.escapeChar = escapeChar;
 		}
 
 		/**
@@ -902,6 +919,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 				searchValue = searchValue + "%";
 			}
 			return searchValue;
+		}
+
+		@Override
+		public String toConditionString() {
+			return super.toConditionString() + " ESCAPE '" + escapeChar + "'";
 		}
 
 		/**
@@ -924,9 +946,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 *
 		 * @param col bind column name
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final CharSequence value) {
-			super(col, value);
+		public NotLike(final String col, final CharSequence value, final char escapeChar) {
+			super(col, value, escapeChar);
 		}
 
 		/**
@@ -935,9 +958,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final boolean prefix, final CharSequence value) {
-			super(col, prefix, value);
+		public NotLike(final String col, final boolean prefix, final CharSequence value, final char escapeChar) {
+			super(col, prefix, value, escapeChar);
 		}
 
 		/**
@@ -946,9 +970,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final CharSequence value, final boolean suffix) {
-			super(col, value, suffix);
+		public NotLike(final String col, final CharSequence value, final boolean suffix, final char escapeChar) {
+			super(col, value, suffix, escapeChar);
 		}
 
 		/**
@@ -958,9 +983,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
-			super(col, prefix, value, suffix);
+		public NotLike(final String col, final boolean prefix, final CharSequence value, final boolean suffix,
+				final char escapeChar) {
+			super(col, prefix, value, suffix, escapeChar);
 		}
 
 		/**
