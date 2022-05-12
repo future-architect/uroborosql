@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.stream.Stream;
@@ -17,6 +18,7 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.annotations.Table;
@@ -252,11 +254,17 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 			stmt.execute("drop table if exists SCHEMA1.TEST");
 			stmt.execute(
 					"create table if not exists SCHEMA1.TEST( \"Id\" NUMERIC(4),\"Name\" VARCHAR(10), primary key(\"Id\"))");
+			stmt.execute("drop table if exists SCHEMA1.TEST_S1ONLY");
+			stmt.execute(
+					"create table if not exists SCHEMA1.TEST_S1ONLY( \"Id_S1\" NUMERIC(4),\"Name_S1\" VARCHAR(10), primary key(\"Id_S1\"))");
 
 			stmt.execute("create schema SCHEMA2");
 			stmt.execute("drop table if exists SCHEMA2.TEST");
 			stmt.execute(
 					"create table if not exists SCHEMA2.TEST( \"Id\" NUMERIC(4),\"Name\" VARCHAR(10), primary key(\"Id\"))");
+			stmt.execute("drop table if exists SCHEMA2.TEST_S2ONLY");
+			stmt.execute(
+					"create table if not exists SCHEMA2.TEST_S2ONLY( \"Id_S2\" NUMERIC(4),\"Name_S2\" VARCHAR(10), primary key(\"Id_S2\"))");
 		}
 		conn.setSchema("SCHEMA1");
 
@@ -478,4 +486,123 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 		}
 	}
 
+	@Test
+	public void testCreateTableEntityMetadata_existCurrentSchema() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+							new jp.co.future.uroborosql.mapping.Table() {
+
+								@Override
+								public String getSchema() {
+									return null;
+								}
+
+								@Override
+								public String getName() {
+									return "TEST_S1ONLY";
+								}
+							});
+					assertThat(metadata.getTableName(), is("TEST_S1ONLY"));
+					assertThat(metadata.getSchema(), is("SCHEMA1"));
+					assertThat(metadata.getKeyColumns().size(), is(1));
+					assertThat(metadata.getKeyColumns().get(0).getColumnName(), is("Id_S1"));
+				} catch (SQLException e) {
+					throw new UroborosqlRuntimeException(e);
+				}
+			});
+		}
+	}
+
+	@Test
+	public void testCreateTableEntityMetadata_notExistCurrentSchema() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+							new jp.co.future.uroborosql.mapping.Table() {
+
+								@Override
+								public String getSchema() {
+									return null;
+								}
+
+								@Override
+								public String getName() {
+									return "TEST_S1ONLY";
+								}
+							});
+					assertThat(metadata.getTableName(), is("TEST_S1ONLY"));
+					assertThat(metadata.getSchema(), is("SCHEMA1"));
+					assertThat(metadata.getKeyColumns().size(), is(1));
+					assertThat(metadata.getKeyColumns().get(0).getColumnName(), is("Id_S1"));
+				} catch (SQLException e) {
+					throw new UroborosqlRuntimeException(e);
+				}
+			});
+		}
+	}
+
+	@Test
+	public void testCreateTableEntityMetadata_withSchema() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+							new jp.co.future.uroborosql.mapping.Table() {
+
+								@Override
+								public String getSchema() {
+									return "SCHEMA1";
+								}
+
+								@Override
+								public String getName() {
+									return "TEST_S1ONLY";
+								}
+							});
+					assertThat(metadata.getTableName(), is("TEST_S1ONLY"));
+					assertThat(metadata.getSchema(), is("SCHEMA1"));
+					assertThat(metadata.getKeyColumns().size(), is(1));
+					assertThat(metadata.getKeyColumns().get(0).getColumnName(), is("Id_S1"));
+				} catch (SQLException e) {
+					throw new UroborosqlRuntimeException(e);
+				}
+			});
+		}
+	}
+
+	@Test
+	public void testCreateTableEntityMetadata_withWidlcard() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+							new jp.co.future.uroborosql.mapping.Table() {
+
+								@Override
+								public String getSchema() {
+									return "SCHEMA%";
+								}
+
+								@Override
+								public String getName() {
+									return "TEST_S1ONLY";
+								}
+							});
+					assertThat(metadata.getTableName(), is("TEST_S1ONLY"));
+					assertThat(metadata.getSchema(), is("SCHEMA1"));
+					assertThat(metadata.getKeyColumns().size(), is(1));
+					assertThat(metadata.getKeyColumns().get(0).getColumnName(), is("Id_S1"));
+				} catch (SQLException e) {
+					throw new UroborosqlRuntimeException(e);
+				}
+			});
+		}
+	}
 }
