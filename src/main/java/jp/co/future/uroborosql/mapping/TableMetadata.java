@@ -247,9 +247,10 @@ public interface TableMetadata {
 		TableMetadataImpl entityMetadata = new TableMetadataImpl();
 
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
+		String actualSchema = schema;
 
-		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
-		while (tryCount < 2 && columns.isEmpty()) {
+		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索, 3回目:schema指定なしで検索
+		while (tryCount < 3 && columns.isEmpty()) {
 			tryCount++;
 			if (tryCount == 2) {
 				// case 変換
@@ -265,6 +266,9 @@ public interface TableMetadata {
 						schema = schema.toUpperCase();
 					}
 				}
+			} else if (tryCount == 3) {
+				// スキーマ指定なし
+				schema = null;
 			}
 			String versionColumnName = null;
 			Class<? extends OptimisticLockSupplier> optimisticLockType = null;
@@ -277,6 +281,7 @@ public interface TableMetadata {
 			try (ResultSet rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
 				while (rs.next()) {
 					String columnName = rs.getString("COLUMN_NAME");
+					actualSchema = rs.getString("TABLE_SCHEM");
 					int sqlType = rs.getInt("DATA_TYPE");
 					// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
 					if (sqlType == java.sql.Types.DISTINCT) {
@@ -308,14 +313,14 @@ public interface TableMetadata {
 				}
 			}
 		}
-		entityMetadata.setSchema(schema);
+		entityMetadata.setSchema(StringUtils.isNotEmpty(actualSchema) ? actualSchema : schema);
 		entityMetadata.setTableName(tableName);
 		if (TABLE_NAME_PATTERN.matcher(tableName).matches()) {
 			entityMetadata.setIdentifierQuoteString(identifierQuoteString);
 		} else {
 			entityMetadata.setIdentifierQuoteString("");
 		}
-		try (ResultSet rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
+		try (ResultSet rs = metaData.getPrimaryKeys(null, entityMetadata.getSchema(), entityMetadata.getTableName())) {
 			while (rs.next()) {
 				String columnName = rs.getString(4);
 				short keySeq = rs.getShort(5);
