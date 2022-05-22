@@ -3,7 +3,7 @@ package jp.co.future.uroborosql.mapping;
 import java.time.LocalDate;
 
 public class TestHistoryEntity {
-	private long id;
+	private Long id;
 	private LocalDate startAt;
 	private LocalDate finishAt;
 	private String name;
@@ -11,18 +11,18 @@ public class TestHistoryEntity {
 	public TestHistoryEntity() {
 	}
 
-	public TestHistoryEntity(final long id, final LocalDate startAt, final LocalDate finishAt, final String name) {
+	public TestHistoryEntity(final Long id, final LocalDate startAt, final LocalDate finishAt, final String name) {
 		this.id = id;
 		this.startAt = startAt;
 		this.finishAt = finishAt;
 		this.name = name;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(final long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 

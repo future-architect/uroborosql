@@ -6,16 +6,16 @@ import jp.co.future.uroborosql.mapping.annotations.Table;
 
 @Table(name = "TEST")
 public class TestEntityForInserts {
-	private long id;
+	private Long id;
 	private String name;
-	private int age;
+	private Integer age;
 	private LocalDate birthday;
 	private String memo;
 
 	public TestEntityForInserts() {
 	}
 
-	public TestEntityForInserts(final long id, final String name, final int age, final LocalDate birthday,
+	public TestEntityForInserts(final Long id, final String name, final Integer age, final LocalDate birthday,
 			final String memo) {
 		this.id = id;
 		this.name = name;
@@ -24,7 +24,7 @@ public class TestEntityForInserts {
 		this.memo = memo;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return this.id;
 	}
 
@@ -32,7 +32,7 @@ public class TestEntityForInserts {
 		return this.name;
 	}
 
-	public int getAge() {
+	public Integer getAge() {
 		return this.age;
 	}
 
@@ -44,7 +44,7 @@ public class TestEntityForInserts {
 		return this.memo;
 	}
 
-	public void setId(final long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
@@ -52,7 +52,7 @@ public class TestEntityForInserts {
 		this.name = name;
 	}
 
-	public void setAge(final int age) {
+	public void setAge(final Integer age) {
 		this.age = age;
 	}
 

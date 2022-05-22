@@ -129,11 +129,11 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1");
+				TestEntity test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2");
+				TestEntity test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3");
+				TestEntity test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
@@ -151,11 +151,11 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1");
+				TestEntity test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2");
+				TestEntity test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3");
+				TestEntity test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 
 				List<TestEntity> list = agent.query(TestEntity.class).collect();
@@ -176,7 +176,7 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1");
+				TestEntity test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -194,7 +194,7 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1");
+				TestEntity test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
@@ -213,9 +213,9 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1");
-				TestEntity test2 = new TestEntity(2, "name2");
-				TestEntity test3 = new TestEntity(3, "name3");
+				TestEntity test1 = new TestEntity(1L, "name1");
+				TestEntity test2 = new TestEntity(2L, "name2");
+				TestEntity test3 = new TestEntity(3L, "name3");
 
 				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
@@ -236,9 +236,9 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1");
-				TestEntity test2 = new TestEntity(2, "name2");
-				TestEntity test3 = new TestEntity(3, "name3");
+				TestEntity test1 = new TestEntity(1L, "name1");
+				TestEntity test2 = new TestEntity(2L, "name2");
+				TestEntity test3 = new TestEntity(3L, "name3");
 
 				int count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));

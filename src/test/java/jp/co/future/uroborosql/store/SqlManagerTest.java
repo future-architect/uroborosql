@@ -160,7 +160,7 @@ public class SqlManagerTest {
 		SqlManagerImpl manager = new SqlManagerImpl(loadPaths);
 		manager.initialize();
 
-		assertThat(manager.getSqlPathList().size(), is(37));
+		assertThat(manager.getSqlPathList().size(), is(36));
 	}
 
 	@Test

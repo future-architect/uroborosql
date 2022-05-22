@@ -8,7 +8,7 @@ public class TestEntityCustomLockVersion {
 	private Long id;
 	private String name;
 	@Version(supplier = CustomOptimisticLockSupplier.class)
-	private long lockVersion = 0;
+	private Long lockVersion = 0L;
 
 	public TestEntityCustomLockVersion() {
 	}
@@ -44,11 +44,11 @@ public class TestEntityCustomLockVersion {
 		this.name = name;
 	}
 
-	public long getLockVersion() {
+	public Long getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final long lockVersion) {
+	public void setLockVersion(final Long lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 

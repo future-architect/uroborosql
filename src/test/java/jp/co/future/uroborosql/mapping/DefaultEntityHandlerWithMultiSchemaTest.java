@@ -314,11 +314,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1, "name1");
+				TestEntity1 test1 = new TestEntity1(1L, "name1");
 				agent.insert(test1);
-				TestEntity1 test2 = new TestEntity1(2, "name2");
+				TestEntity1 test2 = new TestEntity1(2L, "name2");
 				agent.insert(test2);
-				TestEntity1 test3 = new TestEntity1(3, "name3");
+				TestEntity1 test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
 				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test1));
@@ -338,11 +338,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1, "name1");
+				TestEntity2 test1 = new TestEntity2(1L, "name1");
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2, "name2");
+				TestEntity2 test2 = new TestEntity2(2L, "name2");
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3, "name3");
+				TestEntity2 test3 = new TestEntity2(3L, "name3");
 				agent.insert(test3);
 				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
@@ -362,11 +362,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1, "name1");
+				TestEntity1 test1 = new TestEntity1(1L, "name1");
 				agent.insert(test1);
-				TestEntity1 test2 = new TestEntity1(2, "name2");
+				TestEntity1 test2 = new TestEntity1(2L, "name2");
 				agent.insert(test2);
-				TestEntity1 test3 = new TestEntity1(3, "name3");
+				TestEntity1 test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
 
 				List<TestEntity1> list = agent.query(TestEntity1.class).collect();
@@ -387,7 +387,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1, "name1");
+				TestEntity1 test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -405,7 +405,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1, "name1");
+				TestEntity1 test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -426,7 +426,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1, "name1");
+				TestEntity1 test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
 				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
@@ -445,9 +445,9 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1, "name1");
-				TestEntity1 test2 = new TestEntity1(2, "name2");
-				TestEntity1 test3 = new TestEntity1(3, "name3");
+				TestEntity1 test1 = new TestEntity1(1L, "name1");
+				TestEntity1 test2 = new TestEntity1(2L, "name2");
+				TestEntity1 test3 = new TestEntity1(3L, "name3");
 
 				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
@@ -468,9 +468,9 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1, "name1");
-				TestEntity1 test2 = new TestEntity1(2, "name2");
-				TestEntity1 test3 = new TestEntity1(3, "name3");
+				TestEntity1 test1 = new TestEntity1(1L, "name1");
+				TestEntity1 test2 = new TestEntity1(2L, "name2");
+				TestEntity1 test3 = new TestEntity1(3L, "name3");
 
 				int count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));

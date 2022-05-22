@@ -79,12 +79,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						Optional.empty());
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
 						.of("memo3"));
 				agent.insert(test3);
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
@@ -103,13 +104,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
 						.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
 				agent.insert(test3);
 
 				List<TestEntity> list = agent.query(TestEntity.class).collect();
@@ -131,13 +132,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
+				TestEntity test1 = new TestEntity(1L, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
 						Optional.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
+				TestEntity test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
 				// Equal
@@ -411,7 +412,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
@@ -430,7 +431,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
@@ -450,13 +451,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -479,13 +480,13 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -506,7 +507,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testCreateSelectContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -566,7 +567,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testCreateUpdateContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -589,7 +590,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	@Test
 	public void testCreateDeleteContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 

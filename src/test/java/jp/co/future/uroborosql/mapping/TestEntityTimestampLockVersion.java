@@ -8,7 +8,7 @@ public class TestEntityTimestampLockVersion {
 	private Long id;
 	private String name;
 	@Version(supplier = TimestampOptimisticLockSupplier.class)
-	private long lockVersion = 0;
+	private Long lockVersion = 0L;
 
 	public TestEntityTimestampLockVersion() {
 	}
@@ -44,11 +44,11 @@ public class TestEntityTimestampLockVersion {
 		this.name = name;
 	}
 
-	public long getLockVersion() {
+	public Long getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final long lockVersion) {
+	public void setLockVersion(final Long lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
@@ -81,7 +81,7 @@ public class TestEntityTimestampLockVersion {
 		} else if (!id.equals(other.id)) {
 			return false;
 		}
-		if (lockVersion != other.lockVersion) {
+		if (!lockVersion.equals(other.lockVersion)) {
 			return false;
 		}
 		if (name == null) {
