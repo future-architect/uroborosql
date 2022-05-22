@@ -2,22 +2,13 @@ package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,17 +17,8 @@ import org.junit.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.enums.InsertsType;
-import jp.co.future.uroborosql.exception.OptimisticLockException;
-import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
-import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
-import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
-import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
-import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
-import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
 public class DefaultEntityHandlerWithDefaultValueTest {
 
