@@ -99,6 +99,13 @@ public interface TableMetadata {
 		String getRemarks();
 
 		/**
+		 * カラムのデフォルト値（文字列）取得
+		 *
+		 * @return カラムのデフォルト値（文字列）
+		 */
+		String getColumnDefault();
+
+		/**
 		 * NULLが許可されるかどうかを取得
 		 *
 		 * @return NULLが許可される場合<code>true</code>
@@ -291,6 +298,7 @@ public interface TableMetadata {
 					if (remarks != null) {
 						remarks = NEWLINE_CHARS_PATTERN.matcher(remarks).replaceAll(" ");
 					}
+					String columnDefault = rs.getString("COLUMN_DEF");
 					String isNullable = rs.getString("IS_NULLABLE");
 					String isAutoincrement = rs.getString("IS_AUTOINCREMENT");
 					boolean isVersion = columnName.equalsIgnoreCase(versionColumnName);
@@ -302,6 +310,7 @@ public interface TableMetadata {
 							sqlType,
 							columnSize,
 							remarks,
+							columnDefault,
 							isNullable,
 							isAutoincrement,
 							isVersion,

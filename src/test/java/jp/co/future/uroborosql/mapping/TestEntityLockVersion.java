@@ -8,7 +8,7 @@ public class TestEntityLockVersion {
 	private Long id;
 	private String name;
 	@Version
-	private int lockVersion = 0;
+	private Integer lockVersion = 0;
 
 	public TestEntityLockVersion() {
 	}
@@ -44,11 +44,11 @@ public class TestEntityLockVersion {
 		this.name = name;
 	}
 
-	public int getLockVersion() {
+	public Integer getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final int lockVersion) {
+	public void setLockVersion(final Integer lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 

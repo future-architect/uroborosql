@@ -61,6 +61,7 @@ public class DefaultEntityHandlerTest {
 				stmt.execute("comment on column test.\"Age\" is 'age'");
 				stmt.execute("comment on column test.birthday is 'birthday'");
 				stmt.execute("comment on column test.memo is 'memo'");
+				stmt.execute("comment on column test.lock_version is 'lockVersion'");
 
 				stmt.execute("drop table if exists test_data_no_key");
 				stmt.execute(
@@ -115,12 +116,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2), Optional.empty());
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+						Optional.empty());
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3), Optional
 						.of("memo3"));
 				agent.insert(test3);
 				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
@@ -139,11 +141,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity2 test1 = new TestEntity2(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
+				TestEntity2 test2 = new TestEntity2(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
+				TestEntity2 test3 = new TestEntity2(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
 				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
@@ -161,11 +163,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3));
 				agent.insert(test3);
 				assertThat(agent.find(TestEntity3.class, 1).orElse(null), is(test1));
 				assertThat(agent.find(TestEntity3.class, 2).orElse(null), is(test2));
@@ -179,13 +181,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1), Optional
 						.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
 				agent.insert(test3);
 
 				List<TestEntity> list = agent.query(TestEntity.class).collect();
@@ -207,11 +209,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity2 test1 = new TestEntity2(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity2 test2 = new TestEntity2(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity2 test3 = new TestEntity2(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
 				List<TestEntity2> list = agent.query(TestEntity2.class).collect();
@@ -233,11 +235,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
 				List<TestEntity3> list = agent.query(TestEntity3.class).collect();
@@ -259,13 +261,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				TestEntity3 test4 = new TestEntity3(4L, "name4", 23, null);
 				agent.insert(test4);
 
 				long count1 = agent.query(TestEntity3.class).count();
@@ -329,13 +331,13 @@ public class DefaultEntityHandlerTest {
 	public void testQueryCountUnmatchColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				TestEntity3 test4 = new TestEntity3(4L, "name4", 23, null);
 				agent.insert(test4);
 
 				agent.query(TestEntity3.class).count("unmatch");
@@ -347,13 +349,13 @@ public class DefaultEntityHandlerTest {
 	public void testQuerySumUnmatchColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				TestEntity3 test4 = new TestEntity3(4L, "name4", 23, null);
 				agent.insert(test4);
 
 				agent.query(TestEntity3.class).sum("unmatch");
@@ -365,13 +367,13 @@ public class DefaultEntityHandlerTest {
 	public void testQuerySumNoNumberColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				TestEntity3 test4 = new TestEntity3(4L, "name4", 23, null);
 				agent.insert(test4);
 
 				agent.query(TestEntity3.class).sum("birthday");
@@ -384,13 +386,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
+				TestEntity test1 = new TestEntity(1L, "name1", 22, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo"));
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1),
 						Optional.of("memo2"));
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
+				TestEntity test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
 				// Equal
@@ -678,17 +680,17 @@ public class DefaultEntityHandlerTest {
 	public void testQueryWithBetweenColumns() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestHistoryEntity test1 = new TestHistoryEntity(1,
+				TestHistoryEntity test1 = new TestHistoryEntity(1L,
 						LocalDate.of(1990, Month.APRIL, 1),
 						LocalDate.of(1990, Month.APRIL, 28),
 						"name1");
 				agent.insert(test1);
-				TestHistoryEntity test2 = new TestHistoryEntity(2,
+				TestHistoryEntity test2 = new TestHistoryEntity(2L,
 						LocalDate.of(1990, Month.APRIL, 15),
 						LocalDate.of(1990, Month.MAY, 15),
 						"name2");
 				agent.insert(test2);
-				TestHistoryEntity test3 = new TestHistoryEntity(3,
+				TestHistoryEntity test3 = new TestHistoryEntity(3L,
 						LocalDate.of(1990, Month.MARCH, 1),
 						LocalDate.of(1990, Month.JUNE, 30),
 						"name3");
@@ -716,17 +718,17 @@ public class DefaultEntityHandlerTest {
 	public void testQueryWithNotBetweenColumns() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestHistoryEntity test1 = new TestHistoryEntity(1,
+				TestHistoryEntity test1 = new TestHistoryEntity(1L,
 						LocalDate.of(1990, Month.APRIL, 1),
 						LocalDate.of(1990, Month.APRIL, 28),
 						"name1");
 				agent.insert(test1);
-				TestHistoryEntity test2 = new TestHistoryEntity(2,
+				TestHistoryEntity test2 = new TestHistoryEntity(2L,
 						LocalDate.of(1990, Month.APRIL, 15),
 						LocalDate.of(1990, Month.MAY, 15),
 						"name2");
 				agent.insert(test2);
-				TestHistoryEntity test3 = new TestHistoryEntity(3,
+				TestHistoryEntity test3 = new TestHistoryEntity(3L,
 						LocalDate.of(1990, Month.MARCH, 1),
 						LocalDate.of(1990, Month.JUNE, 30),
 						"name3");
@@ -753,13 +755,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test1 = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test1 = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test1);
-				TestEntity3 test2 = new TestEntity3(2, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test2 = new TestEntity3(2L, "name2", 21, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test2);
-				TestEntity3 test3 = new TestEntity3(3, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
+				TestEntity3 test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
-				TestEntity3 test4 = new TestEntity3(4, "name4", 23, null);
+				TestEntity3 test4 = new TestEntity3(4L, "name4", 23, null);
 				agent.insert(test4);
 
 				assertThat(config.getSqlAgentFactory().getDefaultForUpdateWaitSeconds(), is(10));
@@ -846,7 +848,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
@@ -880,7 +882,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity2 test = new TestEntity2(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -917,7 +919,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -935,7 +937,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity3 test = new TestEntity3(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity3 test = new TestEntity3(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				test.setLockVersion(1);
 				agent.insert(test);
 
@@ -1084,7 +1086,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
 				agent.insert(test);
 
@@ -1104,7 +1106,7 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test = new TestEntity2(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
+				TestEntity2 test = new TestEntity2(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1));
 				agent.insert(test);
 
 				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
@@ -1162,11 +1164,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+				TestEntity test2 = new TestEntity(2L, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
 						.of("memo2"));
-				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+				TestEntity test3 = new TestEntity(3L, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
 						.empty());
 				agent.insert(test1);
 				agent.insert(test2);
@@ -1233,11 +1235,11 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 						.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
+				TestEntity test2 = new TestEntity(2L, "name2", 30, LocalDate.of(1980, Month.MAY, 1), Optional
 						.of("memo2"));
-				TestEntity test3 = new TestEntity(3, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
+				TestEntity test3 = new TestEntity(3L, "name3", 40, LocalDate.of(1970, Month.JUNE, 1), Optional
 						.empty());
 				agent.insert(test1);
 				agent.insert(test2);
@@ -1412,13 +1414,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1441,13 +1443,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1471,13 +1473,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1501,16 +1503,16 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
-				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23,
+				TestEntityForInserts test4 = new TestEntityForInserts(4L, "name4", 23,
 						LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
@@ -1536,13 +1538,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
 						Optional.empty());
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						Optional.of("memo3"));
-				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+				TestEntity test4 = new TestEntity(4L, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						Optional.of("memo4"));
 
 				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
@@ -1608,13 +1610,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1637,13 +1639,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1666,13 +1668,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
@@ -1695,16 +1697,16 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityForInserts test1 = new TestEntityForInserts(1, "name1", 20,
+				TestEntityForInserts test1 = new TestEntityForInserts(1L, "name1", 20,
 						LocalDate.of(1990, Month.APRIL, 1),
 						"memo1");
-				TestEntityForInserts test2 = new TestEntityForInserts(2, "name2", 21,
+				TestEntityForInserts test2 = new TestEntityForInserts(2L, "name2", 21,
 						LocalDate.of(1990, Month.APRIL, 2),
 						null);
-				TestEntityForInserts test3 = new TestEntityForInserts(3, "name3", 22,
+				TestEntityForInserts test3 = new TestEntityForInserts(3L, "name3", 22,
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
-				TestEntityForInserts test4 = new TestEntityForInserts(4, "name4", 23,
+				TestEntityForInserts test4 = new TestEntityForInserts(4L, "name4", 23,
 						LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
@@ -1729,13 +1731,13 @@ public class DefaultEntityHandlerTest {
 
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
+				TestEntity test1 = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1),
 						Optional.of("memo1"));
-				TestEntity test2 = new TestEntity(2, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
+				TestEntity test2 = new TestEntity(2L, "name2", 21, LocalDate.of(1990, Month.APRIL, 2),
 						Optional.empty());
-				TestEntity test3 = new TestEntity(3, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
+				TestEntity test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.APRIL, 3),
 						Optional.of("memo3"));
-				TestEntity test4 = new TestEntity(4, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
+				TestEntity test4 = new TestEntity(4L, "name4", 23, LocalDate.of(1990, Month.APRIL, 4),
 						Optional.of("memo4"));
 
 				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
@@ -1836,7 +1838,7 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testCreateSelectContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1859,7 +1861,7 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testCreateSelectContextEmptyNotEqualsNull() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1893,8 +1895,11 @@ public class DefaultEntityHandlerTest {
 			String sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
-			ctx.param("id", 1).param("name", "name1").param("age", 20)
-					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+			ctx.param("id", 1)
+					.param("name", "name1")
+					.param("age", 20)
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1))
+					.param("memo", Optional.of("memo1"));
 			assertThat(agent.update(ctx), is(1));
 		}
 	}
@@ -1911,8 +1916,12 @@ public class DefaultEntityHandlerTest {
 			String sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
-			ctx.param("id", 1).param("name", "name1").param("age", 20)
-					.param("birthday", LocalDate.of(1990, Month.APRIL, 1)).param("memo", Optional.of("memo1"));
+			ctx.param("id", 1)
+					.param("name", "name1")
+					.param("age", 20)
+					.param("birthday", LocalDate.of(1990, Month.APRIL, 1))
+					.param("memo", Optional.of("memo1"))
+					.param("lockVersion", 1);
 			assertThat(agent.update(ctx), is(1));
 
 			handler.setEmptyStringEqualsNull(true);
@@ -1922,7 +1931,7 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testCreateUpdateContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1945,7 +1954,7 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testCreateUpdateContextEmptyStringEqualsNull() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 
@@ -1971,7 +1980,7 @@ public class DefaultEntityHandlerTest {
 	@Test
 	public void testCreateDeleteContext() throws Exception {
 		try (SqlAgent agent = config.agent()) {
-			TestEntity test = new TestEntity(1, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
+			TestEntity test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
 			agent.insert(test);
 

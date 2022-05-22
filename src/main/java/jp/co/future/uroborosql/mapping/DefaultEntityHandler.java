@@ -650,7 +650,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
+			if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+					|| autoIncrementColumn) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);
@@ -707,7 +708,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(parts);
 			} else {
 				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-				if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
+				if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+						|| autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {
 					sql.append(parts);
