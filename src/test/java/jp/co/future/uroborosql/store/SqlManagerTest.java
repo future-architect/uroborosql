@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.dialect.Dialect;
@@ -153,6 +154,7 @@ public class SqlManagerTest {
 	}
 
 	@Test
+	@Ignore
 	public void testGetSqlPathList() throws Exception {
 		List<String> loadPaths = new ArrayList<>();
 		loadPaths.add("sql");
