@@ -51,6 +51,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata, final SqlContext context) {
 		super(agent, context);
 		this.tableMetadata = tableMetadata;
+		context.setSchema(tableMetadata.getSchema());
 		this.rawStrings = new ArrayList<>();
 		this.useOperator = false;
 	}

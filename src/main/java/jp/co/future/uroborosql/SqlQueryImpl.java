@@ -258,8 +258,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(
-				new EntityResultSetConverter<>(type, new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
+		return stream(new EntityResultSetConverter<>(context().getSchema(), type,
+				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
 	}
 
 }

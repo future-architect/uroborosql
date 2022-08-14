@@ -57,7 +57,6 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private ForUpdateType forUpdateType;
 	private int waitSeconds;
 
-	private List<? extends Column> list;
 	private final List<String> includeColumns;
 	private final List<String> excludeColumns;
 
@@ -256,7 +255,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T sum(final String col) {
 		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -291,7 +290,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T min(final String col) {
 		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
 		StringBuilder sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
@@ -317,7 +316,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T max(final String col) {
 		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
 		StringBuilder sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")

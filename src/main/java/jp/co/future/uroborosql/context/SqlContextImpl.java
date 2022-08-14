@@ -103,6 +103,9 @@ public class SqlContextImpl implements SqlContext {
 	/** SQL文の識別子 */
 	private String sqlId;
 
+	/** SQLを実行するスキーマ */
+	private String schema;
+
 	/** SQL実行の最大リトライ数 */
 	private int maxRetryCount = 0;
 
@@ -300,6 +303,27 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext setSqlId(final String sqlId) {
 		this.sqlId = sqlId;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#getSchema()
+	 */
+	@Override
+	public String getSchema() {
+		return this.schema;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#setSchema(java.lang.String)
+	 */
+	@Override
+	public SqlContext setSchema(String schema) {
+		this.schema = schema;
 		return this;
 	}
 

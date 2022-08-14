@@ -72,6 +72,21 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	SqlContext setSqlId(String sqlId);
 
 	/**
+	 * SQLを実行するスキーマを取得
+	 *
+	 * @return スキーマ
+	 */
+	String getSchema();
+
+	/**
+	 * SQLを実行するスキーマを設定
+	 *
+	 * @param schema スキーマ
+	 * @return 自身のSqlContext
+	 */
+	SqlContext setSchema(String schema);
+
+	/**
 	 * 最大リトライ回数 を取得する
 	 *
 	 * @return 最大リトライ回数
