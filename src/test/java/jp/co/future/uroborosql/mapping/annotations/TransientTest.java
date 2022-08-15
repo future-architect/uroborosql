@@ -18,6 +18,8 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
+import jp.co.future.uroborosql.mapping.MappingColumn;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 
 public class TransientTest {
 
@@ -479,6 +481,16 @@ public class TransientTest {
 			assertThat(data3, notNullValue());
 			assertThat(data3.name, is("name1"));
 			assertThat(data3.birthday, is(date));
+		}
+	}
+
+	@Test
+	public void testMapping() throws Exception {
+		try (SqlAgent agent = config.agent()) {
+			MappingColumn idColumn = MappingUtils.getMappingColumn(TransientAnnoTestEntity.class, "id");
+			assertThat(idColumn.getTransient(), nullValue());
+			MappingColumn nameColumn = MappingUtils.getMappingColumn(TransientAnnoTestEntity.class, "name");
+			assertThat(nameColumn.getTransient(), instanceOf(Transient.class));
 		}
 	}
 }

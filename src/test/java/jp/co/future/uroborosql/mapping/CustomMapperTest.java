@@ -90,7 +90,7 @@ public class CustomMapperTest {
 		// Mapperの登録
 		CustomMapper customMapper = new CustomMapper();
 		config.getSqlContextFactory().addBindParamMapper(customMapper);
-		config.getSqlAgentFactory().getEntityHandler().addPropertyMapper(customMapper);
+		config.getEntityHandler().addPropertyMapper(customMapper);
 
 		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
