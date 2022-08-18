@@ -54,7 +54,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 		try {
 			this.constructor = (Constructor<E>) entityType.getConstructor();
 		} catch (NoSuchMethodException e) {
-			throw new UroborosqlRuntimeException(e);
+			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", e);
 		}
 
 		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(entityType))
