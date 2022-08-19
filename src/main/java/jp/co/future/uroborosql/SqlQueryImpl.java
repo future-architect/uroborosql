@@ -266,7 +266,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		if (SingleColumnResultSetConverter.accept(type)) {
 			return stream(new SingleColumnResultSetConverter<>(null, type, manager));
 		} else {
-			return stream(new EntityResultSetConverter<>(type, manager));
+			return stream(new EntityResultSetConverter<>(context().getSchema(), type, manager));
 		}
 	}
 

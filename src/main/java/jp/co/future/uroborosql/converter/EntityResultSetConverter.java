@@ -45,11 +45,13 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param schema スキーマ
 	 * @param entityType エンティティタイプ
 	 * @param mapperManager PropertyMapperManager
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public EntityResultSetConverter(final Class<? extends E> entityType, final PropertyMapperManager mapperManager) {
+	public EntityResultSetConverter(String schema, final Class<? extends E> entityType,
+			final PropertyMapperManager mapperManager) {
 		this.mapperManager = mapperManager;
 		try {
 			this.constructor = (Constructor<E>) entityType.getConstructor();
@@ -57,7 +59,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", e);
 		}
 
-		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(entityType))
+		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(schema, entityType))
 				.collect(Collectors.toMap(c -> CaseFormat.UPPER_SNAKE_CASE.convert(c.getName()), Function.identity()));
 	}
 
