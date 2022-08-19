@@ -173,7 +173,7 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	<T> List<T> collect(Class<T> type);
 
 	/**
-	 * 検索結果をStreamとして取得（終端処理）
+	 * 検索結果をStreamとして取得
 	 *
 	 * @param <T> Streamの型
 	 * @param converter ResultSetの各行を変換するための変換器
@@ -182,14 +182,14 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	<T> Stream<T> stream(ResultSetConverter<T> converter);
 
 	/**
-	 * 検索結果をMapのStreamとして取得（終端処理）
+	 * 検索結果をMapのStreamとして取得
 	 *
 	 * @return 検索結果を順次取得するStream
 	 */
 	Stream<Map<String, Object>> stream();
 
 	/**
-	 * 検索結果をMapのStreamとして取得（終端処理）
+	 * 検索結果をMapのStreamとして取得
 	 *
 	 * @param caseFormat Mapのキーの変換書式
 	 * @return 検索結果を順次取得するStream
@@ -197,11 +197,31 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	Stream<Map<String, Object>> stream(CaseFormat caseFormat);
 
 	/**
-	 * 検索結果をEntityのStreamとして取得（終端処理）
+	 * 検索結果をEntityのStreamとして取得
 	 *
 	 * @param <T> Streamの型
 	 * @param type 受け取りたいEntityの型
 	 * @return 検索結果を順次取得するStream
 	 */
 	<T> Stream<T> stream(Class<T> type);
+
+	/**
+	 * 検索結果の先頭カラムをStreamとして取得
+	 *
+	 * @param <T> Streamの型
+	 * @param type 取得するカラムの型
+	 * @return 検索結果を順次取得するStream
+	 */
+	<T> Stream<T> select(Class<T> type);
+
+	/**
+	 * 検索結果の指定したカラムをStreamとして取得
+	 *
+	 * @param <T> Streamの型
+	 * @param col 取得するカラムの名前
+	 * @param type 取得するカラムの型
+	 * @return 検索結果を順次取得するStream
+	 */
+	<T> Stream<T> select(String col, Class<T> type);
+
 }

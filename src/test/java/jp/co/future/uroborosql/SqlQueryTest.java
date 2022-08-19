@@ -1,23 +1,52 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Month;
+import java.time.MonthDay;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
@@ -31,6 +60,7 @@ import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.fluent.SqlQuery;
+import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -301,6 +331,20 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
 		assertEquals("1234567890123", product.getJanCode());
 		assertEquals("0番目の商品", product.getProductDescription());
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentCollectSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Integer> ans = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
+				.collect(Integer.class);
+		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertThat(ans.get(0), is(0));
 	}
 
 	/**
@@ -739,6 +783,19 @@ public class SqlQueryTest extends AbstractDbTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFirstSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Integer ans = agent.query("example/select_product")
+				.first(Integer.class);
+		assertThat(ans, is(0));
+	}
+
+	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
@@ -765,6 +822,19 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findFirst(Product.class);
 
 		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindFirstSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		Optional<Integer> ans = agent.query("example/select_product")
+				.findFirst(Integer.class);
+		assertThat(ans.orElse(null), is(0));
 	}
 
 	/**
@@ -802,6 +872,20 @@ public class SqlQueryTest extends AbstractDbTest {
 	}
 
 	/**
+	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentOneByClassSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+		Integer productId = agent.query("example/select_product")
+				.param("product_id", Arrays.asList(0))
+				.one(Integer.class);
+
+		assertThat(productId, is(0));
+	}
+
+	/**
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
@@ -835,6 +919,20 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findOne(Product.class);
 
 		assertFalse(optional.isPresent());
+	}
+
+	/**
+	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentFindOneByClassSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+		Optional<Integer> productId = agent.query("example/select_product")
+				.param("product_id", Arrays.asList(0))
+				.findOne(Integer.class);
+
+		assertThat(productId.orElse(null), is(0));
 	}
 
 	/**
@@ -1000,6 +1098,198 @@ public class SqlQueryTest extends AbstractDbTest {
 				});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
+
+		try {
+			agent.query("example/select_product").stream((Class<?>) null);
+			assertTrue(false);
+		} catch (IllegalArgumentException ex) {
+			assertThat(ex.getMessage(), is("Argument 'type' is required."));
+		} catch (Exception ex) {
+			assertTrue(false);
+		}
+	}
+
+	/**
+	 * クエリ実行処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentStreamSingleType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		List<Integer> results = agent.query("example/select_product")
+				.stream(Integer.class)
+				.collect(Collectors.toList());
+		assertThat(results.size(), is(2));
+		assertThat(results.get(0), is(0));
+		assertThat(results.get(1), is(1));
+
+		List<String> stringResults = agent.query("example/select_product")
+				.stream(String.class)
+				.collect(Collectors.toList());
+		assertThat(stringResults.size(), is(2));
+	}
+
+	/**
+	 * クエリ実行（１カラム）処理のテストケース(Fluent API)。
+	 */
+	@Test
+	public void testQueryFluentSelect() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// 先頭カラムの取得
+		List<Integer> idResults = agent.query("example/select_product")
+				.select(Integer.class)
+				.collect(Collectors.toList());
+		assertThat(idResults.size(), is(2));
+		assertThat(idResults.get(0), is(0));
+		assertThat(idResults.get(1), is(1));
+
+		// カラム指定の取得
+		List<String> nameResults = agent.query("example/select_product")
+				.select("productName", String.class)
+				.collect(Collectors.toList());
+		assertThat(nameResults.size(), is(2));
+		assertThat(nameResults.get(0), is("商品名0"));
+		assertThat(nameResults.get(1), is("商品名1"));
+
+		try {
+			// 存在しないカラムの指定
+			agent.query("example/select_product")
+					.select("productNameNothing", String.class)
+					.collect(Collectors.toList());
+			assertTrue(false);
+		} catch (UroborosqlRuntimeException ex) {
+			assertThat(ex.getMessage(), is("PRODUCT_NAME_NOTHING not found in query result."));
+		} catch (Exception ex) {
+			assertTrue(false);
+		}
+	}
+
+	/**
+	 * クエリ実行（１カラム）処理のテストケース(Fluent API)。
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testQueryFluentSelectByType() throws Exception {
+		// 基本の型
+		assertThat(agent.queryWith("select 'abc'").select(String.class).findFirst().orElse(null), is("abc"));
+		assertThat(agent.queryWith("select true").select(boolean.class).findFirst().orElse(null), is(true));
+		assertThat(agent.queryWith("select false").select(boolean.class).findFirst().orElse(null), is(false));
+		assertThat(agent.queryWith("select true").select(Boolean.class).findFirst().orElse(null), is(true));
+		assertThat(agent.queryWith("select false").select(Boolean.class).findFirst().orElse(null), is(false));
+		assertThat(agent.queryWith("select X'61'").select(byte.class).findFirst().orElse(null), is("a".getBytes()[0]));
+		assertThat(agent.queryWith("select X'61'").select(Byte.class).findFirst().orElse(null), is("a".getBytes()[0]));
+		assertThat(agent.queryWith("select 1").select(short.class).findFirst().orElse(null), is((short) 1));
+		assertThat(agent.queryWith("select 1").select(Short.class).findFirst().orElse(null), is((short) 1));
+		assertThat(agent.queryWith("select 1").select(int.class).findFirst().orElse(null), is(1));
+		assertThat(agent.queryWith("select 1").select(Integer.class).findFirst().orElse(null), is(1));
+		assertThat(agent.queryWith("select 10000000000").select(long.class).findFirst().orElse(null), is(10000000000l));
+		assertThat(agent.queryWith("select 10000000000").select(Long.class).findFirst().orElse(null), is(10000000000l));
+		assertThat(agent.queryWith("select 1000.123").select(float.class).findFirst().orElse(null), is(1000.123f));
+		assertThat(agent.queryWith("select 1000.123").select(Float.class).findFirst().orElse(null), is(1000.123f));
+		assertThat(agent.queryWith("select 10000000000.123").select(double.class).findFirst().orElse(null),
+				is(10000000000.123d));
+		assertThat(agent.queryWith("select 10000000000.123").select(Double.class).findFirst().orElse(null),
+				is(10000000000.123d));
+		assertThat(agent.queryWith("select 1000000000000").select(BigInteger.class).findFirst().orElse(null),
+				is(new BigInteger("1000000000000")));
+		assertThat(agent.queryWith("select 10000000000.123").select(BigDecimal.class).findFirst().orElse(null),
+				is(new BigDecimal("10000000000.123")));
+
+		// 日付型
+		assertThat(
+				agent.queryWith("select CURRENT_DATE").select(java.sql.Date.class).findFirst().orElse(null).toString(),
+				is(new java.sql.Date(Calendar.getInstance().getTimeInMillis()).toString()));
+		assertThat(
+				agent.queryWith("select CURRENT_DATE").select(Date.class).findFirst().orElse(null),
+				instanceOf(Date.class));
+		assertThat(
+				agent.queryWith("select CURRENT_TIME").select(Time.class).findFirst().orElse(null),
+				instanceOf(Time.class));
+		assertThat(agent.queryWith("select CURRENT_TIMESTAMP").select(Timestamp.class).findFirst().orElse(null),
+				instanceOf(Timestamp.class));
+
+		// java.time API
+		assertThat(agent.queryWith("select CURRENT_DATE").select(LocalDate.class).findFirst().orElse(null),
+				is(LocalDate.now()));
+		assertThat(agent.queryWith("select CURRENT_TIME").select(LocalTime.class).findFirst().orElse(null),
+				instanceOf(LocalTime.class));
+		assertThat(agent.queryWith("select CURRENT_TIME").select(OffsetTime.class).findFirst().orElse(null),
+				instanceOf(OffsetTime.class));
+		assertThat(agent.queryWith("select CURRENT_TIMESTAMP").select(LocalDateTime.class).findFirst().orElse(null),
+				instanceOf(LocalDateTime.class));
+		assertThat(agent.queryWith("select CURRENT_TIMESTAMP").select(OffsetDateTime.class).findFirst().orElse(null),
+				instanceOf(OffsetDateTime.class));
+		assertThat(agent.queryWith("select CURRENT_TIMESTAMP").select(ZonedDateTime.class).findFirst().orElse(null),
+				instanceOf(ZonedDateTime.class));
+		assertThat(agent.queryWith("select YEAR(CURRENT_DATE)").select(Year.class).findFirst().orElse(null),
+				is(Year.now()));
+		assertThat(agent.queryWith("select 202208").select(YearMonth.class).findFirst().orElse(null),
+				is(YearMonth.of(2022, 8)));
+		assertThat(agent.queryWith("select 823").select(MonthDay.class).findFirst().orElse(null),
+				is(MonthDay.of(8, 23)));
+		assertThat(agent.queryWith("select MONTH(CURRENT_DATE)").select(Month.class).findFirst().orElse(null),
+				is(Month.from(LocalDate.now())));
+		assertThat(
+				agent.queryWith("select ISO_DAY_OF_WEEK(CURRENT_DATE)").select(DayOfWeek.class).findFirst()
+						.orElse(null),
+				is(DayOfWeek.from(LocalDate.now())));
+
+		// 配列型
+		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Object[].class).findFirst().orElse(null)[1], is(2));
+		assertThat(agent.queryWith("select X'616263'").select(byte[].class).findFirst().orElse(null),
+				is("abc".getBytes()));
+		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Array.class).findFirst().orElse(null).getArray(),
+				is(new int[] { 1, 2 }));
+
+		// java.sqlの型
+		assertThat(agent.queryWith("select CAST('abc' as CLOB)").select(Clob.class).findFirst().orElse(null)
+				.getSubString(1, 3), is("abc"));
+		assertThat(agent.queryWith("select CAST('abc' as NCLOB)").select(NClob.class).findFirst().orElse(null)
+				.getSubString(1, 3), is("abc"));
+		assertThat(agent.queryWith("select CAST(X'616263' as BLOB)").select(Blob.class).findFirst().orElse(null)
+				.getBytes(1, 3),
+				is("abc".getBytes()));
+		// TODO java.sql.REF, java.sql.SQLXML は H2DBが対応していないためテストできていない
+
+		// Optional型
+		assertThat(agent.queryWith("select 'abc'").select(Optional.class).findFirst().orElse(null).orElse(null),
+				is("abc"));
+		assertThat(agent.queryWith("select 1").select(OptionalInt.class).findFirst().orElse(null).orElse(0), is(1));
+		assertThat(agent.queryWith("select 10000000000").select(OptionalLong.class).findFirst().orElse(null).orElse(0l),
+				is(10000000000l));
+		assertThat(
+				agent.queryWith("select 10000000000.123").select(OptionalDouble.class).findFirst().orElse(null)
+						.orElse(0d),
+				is(10000000000.123d));
+
+		// Domain型
+		assertThat(agent.queryWith("select 'abc'").select(NameDomain.class).findFirst().orElse(null).getName(),
+				is("abc"));
+		// Enum型
+		assertThat(agent.queryWith("select 'NAME1'").select(NameEnum.class).findFirst().orElse(null),
+				is(NameEnum.NAME1));
+
+		// 例外
+		try {
+			agent.queryWith("select 'abc'").select(null);
+			assertTrue(false);
+		} catch (IllegalArgumentException ex) {
+			assertThat(ex.getMessage(), is("Argument 'type' is required."));
+		} catch (Exception ex) {
+			assertTrue(false);
+		}
+
+		try {
+			agent.queryWith("select 'abc'").select(Object.class);
+			assertTrue(false);
+		} catch (IllegalArgumentException ex) {
+			assertThat(ex.getMessage(), is("java.lang.Object is not supported."));
+		} catch (Exception ex) {
+			assertTrue(false);
+		}
 	}
 
 	/**
@@ -1082,6 +1372,61 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
+	}
+
+	//Enumを定義
+	public enum NameEnum {
+		NAME1, NAME2, NAME3;
+	}
+
+	// Doaminを定義
+	@Domain(valueType = String.class, toJdbcMethod = "getName")
+	public static class NameDomain {
+		private final String name;
+
+		public NameDomain(final String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			NameDomain other = (NameDomain) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "NameDomain [name=" + name + "]";
+		}
+
 	}
 
 }
