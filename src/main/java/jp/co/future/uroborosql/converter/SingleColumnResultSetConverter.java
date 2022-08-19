@@ -23,12 +23,17 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
+import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -58,7 +63,8 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 	public static final boolean accept(Class<?> type) {
 		if (type == null) {
 			return false;
-		} else if (String.class.equals(type) ||
+		} else if ( // 基本的な型は受付可能とする
+		String.class.equals(type) ||
 				boolean.class.equals(type) ||
 				Boolean.class.equals(type) ||
 				byte.class.equals(type) ||
@@ -74,13 +80,22 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 				double.class.equals(type) ||
 				Double.class.equals(type) ||
 				BigInteger.class.equals(type) ||
-				BigDecimal.class.equals(type)) {
-			// 基本的な型は受付可能とする
-			return true;
-		} else if (Date.class.isAssignableFrom(type)) {
-			// Date型かDate型を継承するクラス（Timestampなど）は受付可能とする
-			return true;
-		} else if (LocalDateTime.class.equals(type) ||
+				BigDecimal.class.equals(type) ||
+				type.isEnum() ||
+				// Date型かDate型を継承するクラス（Timestampなど）は受付可能とする
+				Date.class.equals(type) ||
+				java.sql.Date.class.equals(type) ||
+				java.sql.Time.class.equals(type) ||
+				java.sql.Timestamp.class.equals(type) ||
+				// jdbcの提供するカラム型は受付可能とする
+				java.sql.Array.class.equals(type) ||
+				java.sql.Clob.class.equals(type) ||
+				java.sql.NClob.class.equals(type) ||
+				java.sql.Blob.class.equals(type) ||
+				java.sql.Ref.class.equals(type) ||
+				java.sql.SQLXML.class.equals(type) ||
+				// java.time配下の時間オブジェクトは受付可能とする
+				LocalDateTime.class.equals(type) ||
 				OffsetDateTime.class.equals(type) ||
 				ZonedDateTime.class.equals(type) ||
 				LocalDate.class.equals(type) ||
@@ -90,12 +105,17 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 				YearMonth.class.equals(type) ||
 				MonthDay.class.equals(type) ||
 				Month.class.equals(type) ||
-				DayOfWeek.class.equals(type)) {
-			// java.time配下の時間オブジェクトは受付可能とする
-			return true;
-		} else if (Object[].class.equals(type) ||
-				byte[].class.equals(type)) {
-			// 配列型でコンポーネント型が受入対象の型である場合は受入可能とする
+				DayOfWeek.class.equals(type) ||
+				// Optional（とその特殊型）は受付可能とする
+				Optional.class.equals(type) ||
+				OptionalInt.class.equals(type) ||
+				OptionalLong.class.equals(type) ||
+				OptionalDouble.class.equals(type) ||
+				// 配列型でコンポーネント型が受入対象の型である場合は受入可能とする
+				Object[].class.equals(type) ||
+				byte[].class.equals(type) ||
+				// Domain型は受入可能とする
+				type.getAnnotation(Domain.class) != null) {
 			return true;
 		} else {
 			return false;

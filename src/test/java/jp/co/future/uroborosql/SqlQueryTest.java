@@ -12,6 +12,10 @@ import static org.junit.Assert.fail;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Time;
@@ -38,6 +42,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -53,6 +60,7 @@ import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.fluent.SqlQuery;
+import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**
@@ -1162,6 +1170,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	/**
 	 * クエリ実行（１カラム）処理のテストケース(Fluent API)。
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testQueryFluentSelectByType() throws Exception {
 		// 基本の型
@@ -1176,8 +1185,8 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select 1").select(Short.class).findFirst().orElse(null), is((short) 1));
 		assertThat(agent.queryWith("select 1").select(int.class).findFirst().orElse(null), is(1));
 		assertThat(agent.queryWith("select 1").select(Integer.class).findFirst().orElse(null), is(1));
-		assertThat(agent.queryWith("select 10000000000").select(long.class).findFirst().orElse(null), is(10000000000L));
-		assertThat(agent.queryWith("select 10000000000").select(Long.class).findFirst().orElse(null), is(10000000000L));
+		assertThat(agent.queryWith("select 10000000000").select(long.class).findFirst().orElse(null), is(10000000000l));
+		assertThat(agent.queryWith("select 10000000000").select(Long.class).findFirst().orElse(null), is(10000000000l));
 		assertThat(agent.queryWith("select 1000.123").select(float.class).findFirst().orElse(null), is(1000.123f));
 		assertThat(agent.queryWith("select 1000.123").select(Float.class).findFirst().orElse(null), is(1000.123f));
 		assertThat(agent.queryWith("select 10000000000.123").select(double.class).findFirst().orElse(null),
@@ -1232,6 +1241,36 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Object[].class).findFirst().orElse(null)[1], is(2));
 		assertThat(agent.queryWith("select X'616263'").select(byte[].class).findFirst().orElse(null),
 				is("abc".getBytes()));
+		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Array.class).findFirst().orElse(null).getArray(),
+				is(new int[] { 1, 2 }));
+
+		// java.sqlの型
+		assertThat(agent.queryWith("select CAST('abc' as CLOB)").select(Clob.class).findFirst().orElse(null)
+				.getSubString(1, 3), is("abc"));
+		assertThat(agent.queryWith("select CAST('abc' as NCLOB)").select(NClob.class).findFirst().orElse(null)
+				.getSubString(1, 3), is("abc"));
+		assertThat(agent.queryWith("select CAST(X'616263' as BLOB)").select(Blob.class).findFirst().orElse(null)
+				.getBytes(1, 3),
+				is("abc".getBytes()));
+		// TODO java.sql.REF, java.sql.SQLXML は H2DBが対応していないためテストできていない
+
+		// Optional型
+		assertThat(agent.queryWith("select 'abc'").select(Optional.class).findFirst().orElse(null).orElse(null),
+				is("abc"));
+		assertThat(agent.queryWith("select 1").select(OptionalInt.class).findFirst().orElse(null).orElse(0), is(1));
+		assertThat(agent.queryWith("select 10000000000").select(OptionalLong.class).findFirst().orElse(null).orElse(0l),
+				is(10000000000l));
+		assertThat(
+				agent.queryWith("select 10000000000.123").select(OptionalDouble.class).findFirst().orElse(null)
+						.orElse(0d),
+				is(10000000000.123d));
+
+		// Domain型
+		assertThat(agent.queryWith("select 'abc'").select(NameDomain.class).findFirst().orElse(null).getName(),
+				is("abc"));
+		// Enum型
+		assertThat(agent.queryWith("select 'NAME1'").select(NameEnum.class).findFirst().orElse(null),
+				is(NameEnum.NAME1));
 
 		// 例外
 		try {
@@ -1333,6 +1372,61 @@ public class SqlQueryTest extends AbstractDbTest {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
+	}
+
+	//Enumを定義
+	public enum NameEnum {
+		NAME1, NAME2, NAME3;
+	}
+
+	// Doaminを定義
+	@Domain(valueType = String.class, toJdbcMethod = "getName")
+	public static class NameDomain {
+		private final String name;
+
+		public NameDomain(final String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			NameDomain other = (NameDomain) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "NameDomain [name=" + name + "]";
+		}
+
 	}
 
 }
