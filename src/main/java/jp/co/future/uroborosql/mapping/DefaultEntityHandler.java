@@ -10,8 +10,6 @@ import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,6 +25,7 @@ import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -40,14 +39,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DefaultEntityHandler implements EntityHandler<Object> {
 	protected static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
-	protected static final Map<String, TableMetadata> CACHE = Collections
-			.synchronizedMap(new LinkedHashMap<String, TableMetadata>(CACHE_SIZE) {
-
-				@Override
-				protected boolean removeEldestEntry(final Map.Entry<String, TableMetadata> eldest) {
-					return size() > CACHE_SIZE;
-				}
-			});
+	protected static final ConcurrentLruCache<String, TableMetadata> CACHE = new ConcurrentLruCache<>(CACHE_SIZE);
 	protected PropertyMapperManager propertyMapperManager;
 	protected boolean emptyStringEqualsNull = true;
 	protected SqlConfig sqlConfig = null;
@@ -249,12 +241,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public TableMetadata getMetadata(final ConnectionManager connectionManager, final Class<?> entityType)
 			throws SQLException {
 		String cacheKey = getCacheKey(connectionManager, entityType);
-		TableMetadata metadata = CACHE.get(cacheKey);
-		if (metadata == null) {
-			metadata = createMetadata(connectionManager, entityType);
-			CACHE.put(cacheKey, metadata);
-		}
-		return metadata;
+		return CACHE.get(cacheKey, key -> {
+			try {
+				return createMetadata(connectionManager, entityType);
+			} catch (SQLException e) {
+				throw new UroborosqlSQLException(e);
+			}
+		});
 	}
 
 	private String getCacheKey(final ConnectionManager connectionManager, final Class<?> entityType) {

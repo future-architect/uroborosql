@@ -9,7 +9,6 @@ package jp.co.future.uroborosql.mapping;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -37,14 +36,8 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public final class MappingUtils {
 	private static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
 
-	private static final Map<String, Map<SqlKind, MappingColumn[]>> CACHE = Collections
-			.synchronizedMap(new LinkedHashMap<String, Map<SqlKind, MappingColumn[]>>(CACHE_SIZE) {
-
-				@Override
-				protected boolean removeEldestEntry(final Map.Entry<String, Map<SqlKind, MappingColumn[]>> eldest) {
-					return size() > CACHE_SIZE;
-				}
-			});
+	private static final ConcurrentLruCache<String, Map<SqlKind, MappingColumn[]>> CACHE = new ConcurrentLruCache<>(
+			CACHE_SIZE);
 
 	private MappingUtils() {
 	}
@@ -371,24 +364,17 @@ public final class MappingUtils {
 		}
 
 		String cacheKey = getCacheKey(schema, entityType);
-		Map<SqlKind, MappingColumn[]> cols = CACHE.get(cacheKey);
-		if (cols != null) {
-			return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
-		} else {
+
+		Map<SqlKind, MappingColumn[]> cols = CACHE.get(cacheKey, key -> {
 			Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
 					.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
-
 			JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
-
 			walkFields(entityType, implementClass, fieldsMap);
-
-			Map<SqlKind, MappingColumn[]> entityCols = fieldsMap.entrySet().stream()
+			return fieldsMap.entrySet().stream()
 					.collect(Collectors.toConcurrentMap(Map.Entry::getKey,
 							e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
-
-			CACHE.put(cacheKey, entityCols);
-			return entityCols.computeIfAbsent(kind, k -> entityCols.get(SqlKind.NONE));
-		}
+		});
+		return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
 	}
 
 	private static String getCacheKey(String schema, Class<?> entityType) {
