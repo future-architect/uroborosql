@@ -387,7 +387,7 @@ LICENSE file in the root directory of this source tree.
 		<dependency>
 			<groupId>org.fusesource.jansi</groupId>
 			<artifactId>jansi</artifactId>
-			<version>1.18</version>
+			<version>${jansi.version}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -445,7 +445,7 @@ LICENSE file in the root directory of this source tree.
 		<doc.encoding>${project.build.sourceEncoding}</doc.encoding>
 
 		<ognl.version>3.1.23</ognl.version>
-		<spring.version>5.2.2.RELEASE</spring.version>
+		<spring.version>5.3.20</spring.version>
 		<jline.version>3.11.0</jline.version>
 		<jansi.version>1.18</jansi.version>
 		<slf4j.version>1.7.26</slf4j.version>
