@@ -19,8 +19,6 @@ for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/
 
 ## Installation
 
-------------
-
 ### for Maven
 
 ```xml
@@ -67,19 +65,13 @@ compile group: 'org.springframework', name: 'spring-expression', version: '5.3.2
 
 ## Documentation
 
-------------
-
 [https://future-architect.github.io/uroborosql-doc/](https://future-architect.github.io/uroborosql-doc/)
 
 ## Requirement
 
-------------
-
 - Java 1.8 or later.
 
 ## Quick start
-
-------------
 
 ### 2Way-SQL
 
@@ -160,8 +152,6 @@ try (SqlAgent agent = config.agent()) {
 
 ## Sample application
 
-------------
-
 - CLI
   - <https://github.com/future-architect/uroborosql-sample>
 - Web application(with Spring Boot)
@@ -169,14 +159,10 @@ try (SqlAgent agent = config.agent()) {
 
 ## Automated code generation
 
-------------
-
 - uroboroSQL source generator
   - <https://github.com/shout-star/uroborosql-generator>
 
 ## SQL Formatter
-
-------------
 
 <img src="https://github.com/future-architect/uroboroSQL-formatter/raw/master/image/uroboroSQLformatter_logo.png" style="max-width: 500px;" alt="uroboroSQL" />
 
@@ -192,7 +178,5 @@ We also prepare a SQL formatter useful for development.
   - <https://github.com/future-architect/eclipse-uroborosql-formatter>
 
 ## License
-
-------------
 
 Released under the [MIT License](https://github.com/future-architect/uroborosql/blob/master/LICENSE).
