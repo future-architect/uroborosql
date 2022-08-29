@@ -38,10 +38,15 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class DefaultEntityHandler implements EntityHandler<Object> {
+	/** TableMetadataのキャッシュサイズ. */
 	protected static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+	/** TableMetadataのLRUキャッシュ. */
 	protected static final ConcurrentLruCache<String, TableMetadata> CACHE = new ConcurrentLruCache<>(CACHE_SIZE);
+	/** プロパティマッパーマネージャー. */
 	protected PropertyMapperManager propertyMapperManager;
+	/** 空文字をNULLとして扱うか. */
 	protected boolean emptyStringEqualsNull = true;
+	/** SQLコンフィグ. */
 	protected SqlConfig sqlConfig = null;
 
 	/**
