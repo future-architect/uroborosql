@@ -34,6 +34,10 @@ public interface TableMetadata {
 	/** remark中の改行文字を除外するためのパターン */
 	Pattern NEWLINE_CHARS_PATTERN = Pattern.compile("\r\n|\r|\n");
 
+	/** SQL文構築時、スキーマ名で修飾されたテーブル名を使用するかどうか. */
+	boolean USE_QUALIFIED_TABLE_NAME = Boolean
+			.valueOf(System.getProperty("uroborosql.use.qualified.table.name", "true"));
+
 	/**
 	 * カラム情報
 	 */
@@ -197,7 +201,7 @@ public interface TableMetadata {
 		if (StringUtils.isEmpty(identifierQuoteString)) {
 			identifierQuoteString = "";
 		}
-		if (StringUtils.isEmpty(getSchema())) {
+		if (!USE_QUALIFIED_TABLE_NAME || StringUtils.isEmpty(getSchema())) {
 			return identifierQuoteString + getTableName() + identifierQuoteString;
 		} else {
 			return identifierQuoteString + getSchema() + identifierQuoteString + "." + identifierQuoteString
