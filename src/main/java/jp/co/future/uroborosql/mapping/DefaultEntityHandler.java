@@ -870,4 +870,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return this.sqlConfig;
 	}
 
+	/**
+	 * TableMetadataのLRUキャッシュをクリアします.
+	 */
+	public static void clearCache() {
+		CACHE.clear();
+	}
+
 }

@@ -1,8 +1,11 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -2018,6 +2021,18 @@ public class DefaultEntityHandlerTest {
 		handler.removePropertyMapper(customMapper);
 
 		assertThat(instance.contains(customMapper), is(false));
+
+	}
+
+	@Test
+	public void testClearCache() throws Exception {
+		EntityHandler<?> handler = config.getEntityHandler();
+
+		if (handler instanceof DefaultEntityHandler) {
+			DefaultEntityHandler.clearCache();
+		} else {
+			fail();
+		}
 
 	}
 

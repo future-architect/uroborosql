@@ -455,6 +455,13 @@ public final class MappingUtils {
 				.findFirst();
 	}
 
+	/**
+	 * MappingColumnのキャッシュをクリアします.
+	 */
+	public static void clearCache() {
+		CACHE.clear();
+	}
+
 	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass,
 			final Map<SqlKind, Map<String, MappingColumn>> fieldsMap) {
 		if (type.equals(Object.class)) {

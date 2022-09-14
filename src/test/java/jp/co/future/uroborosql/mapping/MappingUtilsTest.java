@@ -198,6 +198,11 @@ public class MappingUtilsTest {
 		}
 	}
 
+	@Test
+	public void testClearCache() throws Exception {
+		MappingUtils.clearCache();
+	}
+
 	@Table(name = "TEST")
 	public static class Test1 {
 		@Id
