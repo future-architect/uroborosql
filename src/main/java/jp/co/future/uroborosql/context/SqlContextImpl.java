@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -163,7 +164,11 @@ public class SqlContextImpl implements SqlContext {
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
 
+	/** パラメータ名Set */
 	private ParameterNames parameterNames;
+
+	/** 更新処理実行時に通常の更新SQL発行の代わりに疑似的に実行する処理. */
+	private Function<SqlContext, Integer> updateMockAction;
 
 	/**
 	 * コンストラクタ。
@@ -1227,6 +1232,27 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public boolean hasGeneratedKeyColumns() {
 		return getGeneratedKeyColumns() != null && getGeneratedKeyColumns().length > 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#getUpdateMockAction()
+	 */
+	@Override
+	public Function<SqlContext, Integer> getUpdateMockAction() {
+		return this.updateMockAction;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.SqlContext#setUpdateMockAction(java.util.function.Function)
+	 */
+	@Override
+	public SqlContext setUpdateMockAction(Function<SqlContext, Integer> updateMockAction) {
+		this.updateMockAction = updateMockAction;
+		return this;
 	}
 
 }

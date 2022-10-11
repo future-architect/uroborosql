@@ -1,6 +1,10 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -16,6 +20,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 public class SqlUpdateTest extends AbstractDbTest {
@@ -106,4 +111,20 @@ public class SqlUpdateTest extends AbstractDbTest {
 			fail(e.getMessage());
 		}
 	}
+
+	/**
+	 * updateMockActionが指定された場合のテストケース。
+	 */
+	@Test
+	public void testUpdateMockAction() throws Exception {
+		SqlUpdate update = agent.update("example/selectinsert_product")
+				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
+				.param("jan_code", "1234567890123", Types.CHAR);
+		SqlContext ctx = update.context();
+		ctx.setUpdateMockAction(context -> 2);
+
+		assertThat(update.count(), is(2));
+
+	}
+
 }

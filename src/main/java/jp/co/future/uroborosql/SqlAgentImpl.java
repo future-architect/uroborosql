@@ -274,6 +274,11 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public int update(final SqlContext sqlContext) throws SQLException {
+		if (sqlContext.getUpdateMockAction() != null) {
+			LOG.debug("Performs Mock action of update process");
+			return sqlContext.getUpdateMockAction().apply(sqlContext);
+		}
+
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
@@ -400,6 +405,10 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public int[] batch(final SqlContext sqlContext) throws SQLException {
+		if (sqlContext.getUpdateMockAction() != null) {
+			LOG.debug("Performs Mock action of batch process");
+			return new int[] { sqlContext.getUpdateMockAction().apply(sqlContext) };
+		}
 		// バッチ処理の場合大量のログが出力されるため、パラメータログの出力を抑止する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
 
