@@ -274,11 +274,6 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public int update(final SqlContext sqlContext) throws SQLException {
-		if (sqlContext.getUpdateMockAction() != null) {
-			LOG.debug("Performs Mock action of update process");
-			return sqlContext.getUpdateMockAction().apply(sqlContext);
-		}
-
 		// パラメータログを出力する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
 
@@ -288,6 +283,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// コンテキスト変換
 		transformContext(sqlContext, false);
+
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (sqlContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of update process");
+			return sqlContext.getUpdateDelegate().apply(sqlContext);
+		}
 
 		Instant startTime = null;
 
@@ -405,10 +407,6 @@ public class SqlAgentImpl extends AbstractAgent {
 	 */
 	@Override
 	public int[] batch(final SqlContext sqlContext) throws SQLException {
-		if (sqlContext.getUpdateMockAction() != null) {
-			LOG.debug("Performs Mock action of batch process");
-			return new int[] { sqlContext.getUpdateMockAction().apply(sqlContext) };
-		}
 		// バッチ処理の場合大量のログが出力されるため、パラメータログの出力を抑止する
 		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
 
@@ -418,6 +416,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// コンテキスト変換
 		transformContext(sqlContext, false);
+
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (sqlContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of batch process");
+			return new int[] { sqlContext.getUpdateDelegate().apply(sqlContext) };
+		}
 
 		Instant startTime = null;
 

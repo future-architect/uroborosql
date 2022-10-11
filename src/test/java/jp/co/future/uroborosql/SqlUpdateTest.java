@@ -113,18 +113,17 @@ public class SqlUpdateTest extends AbstractDbTest {
 	}
 
 	/**
-	 * updateMockActionが指定された場合のテストケース。
+	 * updateDelegateが指定された場合のテストケース。
 	 */
 	@Test
-	public void testUpdateMockAction() throws Exception {
+	public void testUpdateDelegate() throws Exception {
 		SqlUpdate update = agent.update("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR);
 		SqlContext ctx = update.context();
-		ctx.setUpdateMockAction(context -> 2);
+		ctx.setUpdateDelegate(context -> 2);
 
 		assertThat(update.count(), is(2));
-
 	}
 
 }

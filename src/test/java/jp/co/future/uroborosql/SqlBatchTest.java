@@ -381,10 +381,10 @@ public class SqlBatchTest extends AbstractDbTest {
 	}
 
 	/**
-	 * updateMockActionが指定された場合のテストケース。
+	 * updateDelegateが指定された場合のテストケース。
 	 */
 	@Test
-	public void testUpdateMockAction() throws Exception {
+	public void testUpdateDelegate() throws Exception {
 		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<Map<String, Object>> rows = new ArrayList<>();
 		for (int i = 1; i <= 1000; i++) {
@@ -403,7 +403,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		SqlBatch batch = agent.batch("example/insert_product")
 				.paramStream(rows.stream());
 		SqlContext ctx = batch.context();
-		ctx.setUpdateMockAction(context -> 2);
+		ctx.setUpdateDelegate(context -> 2);
 
 		assertThat(batch.count(), is(4));
 	}

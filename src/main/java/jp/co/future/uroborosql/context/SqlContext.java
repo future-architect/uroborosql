@@ -290,21 +290,21 @@ public interface SqlContext extends TransformContext, SqlFluent<SqlContext>, Pro
 	void setGeneratedKeyValues(Object[] generatedKeyValues);
 
 	/**
-	 * 更新処理実行時に通常の更新SQL発行の代わりに疑似的に実行する処理を取得する.<br>
+	 * 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理を取得する.<br>
 	 * デフォルト実装は<code>null</code> を返却する. 必要に応じて子クラスでオーバーライドすること.
 	 *
 	 * @return 通常の更新SQL発行の代わりに行う疑似動作. <code>null</code> が返る場合は通常の更新処理を行う.
 	 */
-	default Function<SqlContext, Integer> getUpdateMockAction() {
+	default Function<SqlContext, Integer> getUpdateDelegate() {
 		return null;
 	}
 
 	/**
-	 * 更新処理実行時に通常の更新SQL発行の代わりに疑似的に実行する処理を設定する.
+	 * 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理を設定する.
 	 *
-	 * @param updateMockAction 通常の更新SQL発行の代わりに行う疑似動作. <code>null</code> を設定した場合は通常の更新処理を行う.
+	 * @param updateDelegate 通常の更新SQL発行の代わりに移譲する処理. <code>null</code> を設定した場合は通常の更新処理を行う.
 	 * @return 自身のSqlContext
 	 */
-	SqlContext setUpdateMockAction(Function<SqlContext, Integer> updateMockAction);
+	SqlContext setUpdateDelegate(Function<SqlContext, Integer> updateDelegate);
 
 }

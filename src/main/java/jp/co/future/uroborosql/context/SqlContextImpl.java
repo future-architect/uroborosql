@@ -167,8 +167,8 @@ public class SqlContextImpl implements SqlContext {
 	/** パラメータ名Set */
 	private ParameterNames parameterNames;
 
-	/** 更新処理実行時に通常の更新SQL発行の代わりに疑似的に実行する処理. */
-	private Function<SqlContext, Integer> updateMockAction;
+	/** 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理. */
+	private Function<SqlContext, Integer> updateDelegate;
 
 	/**
 	 * コンストラクタ。
@@ -1237,21 +1237,21 @@ public class SqlContextImpl implements SqlContext {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#getUpdateMockAction()
+	 * @see jp.co.future.uroborosql.context.SqlContext#getUpdateDelegate()
 	 */
 	@Override
-	public Function<SqlContext, Integer> getUpdateMockAction() {
-		return this.updateMockAction;
+	public Function<SqlContext, Integer> getUpdateDelegate() {
+		return this.updateDelegate;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.context.SqlContext#setUpdateMockAction(java.util.function.Function)
+	 * @see jp.co.future.uroborosql.context.SqlContext#setUpdateDelegate(java.util.function.Function)
 	 */
 	@Override
-	public SqlContext setUpdateMockAction(Function<SqlContext, Integer> updateMockAction) {
-		this.updateMockAction = updateMockAction;
+	public SqlContext setUpdateDelegate(Function<SqlContext, Integer> updateDelegate) {
+		this.updateDelegate = updateDelegate;
 		return this;
 	}
 
