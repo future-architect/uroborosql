@@ -284,6 +284,13 @@ public class SqlAgentImpl extends AbstractAgent {
 		// コンテキスト変換
 		transformContext(sqlContext, false);
 
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (sqlContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of update process");
+			return sqlContext.getUpdateDelegate().apply(sqlContext);
+		}
+
 		Instant startTime = null;
 
 		try (PreparedStatement stmt = getPreparedStatement(sqlContext)) {
@@ -409,6 +416,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// コンテキスト変換
 		transformContext(sqlContext, false);
+
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (sqlContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of batch process");
+			return new int[] { sqlContext.getUpdateDelegate().apply(sqlContext) };
+		}
 
 		Instant startTime = null;
 

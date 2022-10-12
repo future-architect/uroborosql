@@ -1,6 +1,9 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 public class SqlBatchTest extends AbstractDbTest {
@@ -374,6 +378,34 @@ public class SqlBatchTest extends AbstractDbTest {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
+	}
+
+	/**
+	 * updateDelegateが指定された場合のテストケース。
+	 */
+	@Test
+	public void testUpdateDelegate() throws Exception {
+		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		List<Map<String, Object>> rows = new ArrayList<>();
+		for (int i = 1; i <= 1000; i++) {
+			Map<String, Object> row = new HashMap<>();
+			row.put("product_id", i);
+			row.put("product_name", "商品名" + i);
+			row.put("product_kana_name", "ショウヒンメイ" + i);
+			row.put("jan_code", "1234567890124");
+			row.put("product_description", i + "番目の商品");
+			row.put("ins_datetime", currentDatetime);
+			row.put("upd_datetime", currentDatetime);
+			row.put("version_no", 1);
+			rows.add(row);
+		}
+		// 処理実行
+		SqlBatch batch = agent.batch("example/insert_product")
+				.paramStream(rows.stream());
+		SqlContext ctx = batch.context();
+		ctx.setUpdateDelegate(context -> 2);
+
+		assertThat(batch.count(), is(4));
 	}
 
 }
