@@ -1567,7 +1567,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		public boolean tryAdvance(final Consumer<? super T> action) {
 			try {
 				if (finished || !rs.next()) {
-					rs.close();
+					if (!rs.isClosed()) {
+						rs.close();
+					}
 					finished = true;
 					return false;
 				}

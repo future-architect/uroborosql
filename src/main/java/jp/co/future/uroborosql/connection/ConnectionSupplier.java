@@ -47,7 +47,7 @@ public interface ConnectionSupplier {
 			throw new UroborosqlSQLException(ex);
 		} finally {
 			try {
-				if (conn != null) {
+				if (conn != null && !conn.isClosed()) {
 					conn.close();
 				}
 			} catch (SQLException ex) {

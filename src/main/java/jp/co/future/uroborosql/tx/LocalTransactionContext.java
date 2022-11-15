@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.SqlContext;
@@ -29,6 +32,8 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  * @author ota
  */
 class LocalTransactionContext implements AutoCloseable {
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger(LocalTransactionContext.class);
 
 	/** セーブポイント名リスト */
 	private final List<String> savepointNames = new ArrayList<>();
@@ -239,12 +244,12 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
 	 */
 	void commit() {
-		if (connection != null) {
-			try {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				connection.commit();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
 			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
 		clearState();
 	}
@@ -255,12 +260,12 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
 	 */
 	void rollback() {
-		if (connection != null) {
-			try {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				connection.rollback();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
 			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
 		clearState();
 	}
@@ -272,19 +277,21 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	@Override
 	public void close() {
-		if (connection != null) {
-			try {
-				if (!isRollbackOnly()) {
-					commit();
-				} else {
-					rollback();
-				}
-				connection.close();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+		try {
+			if (!isRollbackOnly()) {
+				commit();
+			} else {
+				rollback();
 			}
-			connection = null;
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			} else {
+				LOG.trace("Connection close was skipped because the connection was already closed.");
+			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
+		connection = null;
 	}
 
 	/**
