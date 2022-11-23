@@ -11,7 +11,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,7 +106,7 @@ class LocalTransactionContext implements AutoCloseable {
 				if (sqlContext.hasGeneratedKeyColumns()) {
 					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), sqlContext.getGeneratedKeyColumns());
 				} else {
-					stmt = conn.prepareStatement(sqlContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+					stmt = conn.prepareStatement(sqlContext.getExecutableSql());
 				}
 			} else {
 				throw new UroborosqlTransactionException("Transaction not started.");
