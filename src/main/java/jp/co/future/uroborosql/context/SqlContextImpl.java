@@ -398,25 +398,26 @@ public class SqlContextImpl implements SqlContext {
 	 * @return パラメータ
 	 */
 	private Parameter getBindParameter(final String paramName) {
-		// メソッド呼び出しかどうかで処理を振り分け
-		if (paramName.contains(".") && paramName.contains("(") && paramName.contains(")")) {
-			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+		if (!paramName.contains(".")) {
 			return parameterMap.get(paramName);
 		} else {
-			String[] keys = paramName.split("\\.");
-			String baseName = keys[0];
+			// メソッド呼び出しかどうかで処理を振り分け
+			if (paramName.contains("(") && paramName.contains(")")) {
+				// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+				return parameterMap.get(paramName);
+			} else {
+				// サブパラメータの作成
+				String[] keys = paramName.split("\\.");
+				String baseName = keys[0];
 
-			Parameter parameter = parameterMap.get(baseName);
-			if (parameter == null) {
-				return null;
-			}
+				Parameter parameter = parameterMap.get(baseName);
+				if (parameter == null) {
+					return null;
+				}
 
-			if (keys.length > 1) {
 				String propertyName = keys[1];
 				return parameter.createSubParameter(propertyName);
 			}
-
-			return parameter;
 		}
 	}
 
@@ -961,7 +962,10 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext addBatch() {
 		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
-		parameterMap = new HashMap<>();
+		// バッチ処理では毎回同じ数のパラメータが追加されることが多いのでMap生成時のinitialCapacityを指定してマップのリサイズ処理を極力発生させないようにする
+		// MapのloadFactorはデフォルト0.75(3/4)なので1.34(4/3)を掛けてcapacityを計算する
+		int initialCapacity = (int) (parameterMap.size() * 1.34);
+		parameterMap = new HashMap<>(initialCapacity);
 		return this;
 	}
 
