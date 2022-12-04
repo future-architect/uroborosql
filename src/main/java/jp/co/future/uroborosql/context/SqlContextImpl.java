@@ -901,7 +901,7 @@ public class SqlContextImpl implements SqlContext {
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
 		Parameter[] bindParameters = getBindParameters();
 
-		Set<String> matchParams = new HashSet<>();
+		Set<String> matchParams = new HashSet<>(calcInitialCapacity(bindParameters.length));
 		int parameterIndex = 1;
 		for (Parameter bindParameter : bindParameters) {
 			Parameter parameter = getSqlFilterManager().doParameter(bindParameter);
@@ -963,10 +963,18 @@ public class SqlContextImpl implements SqlContext {
 		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
 		// バッチ処理では毎回同じ数のパラメータが追加されることが多いのでMap生成時のinitialCapacityを指定してマップのリサイズ処理を極力発生させないようにする
-		// MapのloadFactorはデフォルト0.75(3/4)なので1.34(4/3)を掛けてcapacityを計算する
-		int initialCapacity = (int) (parameterMap.size() * 1.34);
-		parameterMap = new HashMap<>(initialCapacity);
+		parameterMap = new HashMap<>(calcInitialCapacity(parameterMap.size()));
 		return this;
+	}
+
+	/**
+	 * HashMapで指定されたbaseSize内で収まっていればresizeが発生しない初期容量を計算する.
+	 * @param baseSize 基底となるMapのサイズ
+	 * @return 初期容量
+	 */
+	private int calcInitialCapacity(int baseSize) {
+		// MapのloadFactorはデフォルト0.75(3/4)なので1.34(4/3)を掛けてcapacityを計算する
+		return (int) (baseSize * 1.34);
 	}
 
 	/**
