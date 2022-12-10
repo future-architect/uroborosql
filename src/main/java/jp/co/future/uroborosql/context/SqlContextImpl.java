@@ -974,7 +974,7 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	private int calcInitialCapacity(int baseSize) {
 		// MapのloadFactorはデフォルト0.75(3/4)なので1.34(4/3)を掛けてcapacityを計算する
-		return (int) (baseSize * 1.34);
+		return baseSize * 4 / 3 + 1;
 	}
 
 	/**

@@ -85,7 +85,8 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 			}
 		}
 
-		Map<String, Object> record = new LinkedHashMap<>(columnCount);
+		// resizeが発生しないよう、初期loadFactorで溢れないサイズを指定
+		Map<String, Object> record = new LinkedHashMap<>(columnCount * 4 / 3 + 1);
 
 		for (int i = 1; i <= columnCount; i++) {
 			record.put(this.columnLabels[i], this.mapperManager.getValue(this.javaTypes[i], rs, i));
