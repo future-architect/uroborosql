@@ -415,8 +415,11 @@ public class SqlContextImpl implements SqlContext {
 					return null;
 				}
 
-				String propertyName = keys[1];
-				return parameter.createSubParameter(propertyName);
+				if (keys.length > 1) {
+					String propertyName = keys[1];
+					return parameter.createSubParameter(propertyName);
+				}
+				return parameter;
 			}
 		}
 	}
