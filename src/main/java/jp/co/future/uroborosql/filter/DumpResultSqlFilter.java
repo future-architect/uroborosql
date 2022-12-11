@@ -59,8 +59,10 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				LOG.warn(
 						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			StringBuilder builder = displayResult(resultSet);
-			LOG.info(builder.toString());
+			if (LOG.isInfoEnabled()) {
+				StringBuilder builder = displayResult(resultSet);
+				LOG.info(builder.toString());
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

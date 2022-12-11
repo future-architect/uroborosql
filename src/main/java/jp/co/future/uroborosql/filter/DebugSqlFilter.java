@@ -10,11 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import jp.co.future.uroborosql.context.SqlContext;
-import jp.co.future.uroborosql.parameter.Parameter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.co.future.uroborosql.context.SqlContext;
+import jp.co.future.uroborosql.parameter.Parameter;
 
 /**
  * デバッグログを出力するSqlFilter
@@ -27,7 +27,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 
 	@Override
 	public Parameter doParameter(final Parameter parameter) {
-		LOG.debug("Parameter:{}", parameter);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Parameter:{}", parameter);
+		}
 		return parameter;
 	}
 
@@ -38,7 +40,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public Object doOutParameter(final String key, final Object val) {
-		LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		}
 		return val;
 	}
 
@@ -50,7 +54,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public ResultSet doQuery(final SqlContext sqlContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
-		LOG.debug("SQL:{} executed.", sqlContext.getSqlName());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed.", sqlContext.getSqlName());
+		}
 		return resultSet;
 	}
 
@@ -61,7 +67,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public int doUpdate(final SqlContext sqlContext, final PreparedStatement preparedStatement, final int result) {
-		LOG.debug("SQL:{} executed. Count:{} items.", sqlContext.getSqlName(), result);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed. Count:{} items.", sqlContext.getSqlName(), result);
+		}
 		return result;
 	}
 

@@ -398,25 +398,29 @@ public class SqlContextImpl implements SqlContext {
 	 * @return パラメータ
 	 */
 	private Parameter getBindParameter(final String paramName) {
-		// メソッド呼び出しかどうかで処理を振り分け
-		if (paramName.contains(".") && paramName.contains("(") && paramName.contains(")")) {
-			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+		if (!paramName.contains(".")) {
 			return parameterMap.get(paramName);
 		} else {
-			String[] keys = paramName.split("\\.");
-			String baseName = keys[0];
+			// メソッド呼び出しかどうかで処理を振り分け
+			if (paramName.contains("(") && paramName.contains(")")) {
+				// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+				return parameterMap.get(paramName);
+			} else {
+				// サブパラメータの作成
+				String[] keys = paramName.split("\\.");
+				String baseName = keys[0];
 
-			Parameter parameter = parameterMap.get(baseName);
-			if (parameter == null) {
-				return null;
+				Parameter parameter = parameterMap.get(baseName);
+				if (parameter == null) {
+					return null;
+				}
+
+				if (keys.length > 1) {
+					String propertyName = keys[1];
+					return parameter.createSubParameter(propertyName);
+				}
+				return parameter;
 			}
-
-			if (keys.length > 1) {
-				String propertyName = keys[1];
-				return parameter.createSubParameter(propertyName);
-			}
-
-			return parameter;
 		}
 	}
 
@@ -900,7 +904,7 @@ public class SqlContextImpl implements SqlContext {
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
 		Parameter[] bindParameters = getBindParameters();
 
-		Set<String> matchParams = new HashSet<>();
+		Set<String> matchParams = new HashSet<>(calcInitialCapacity(bindParameters.length));
 		int parameterIndex = 1;
 		for (Parameter bindParameter : bindParameters) {
 			Parameter parameter = getSqlFilterManager().doParameter(bindParameter);
@@ -961,8 +965,19 @@ public class SqlContextImpl implements SqlContext {
 	public SqlContext addBatch() {
 		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
-		parameterMap = new HashMap<>();
+		// バッチ処理では毎回同じ数のパラメータが追加されることが多いのでMap生成時のinitialCapacityを指定してマップのリサイズ処理を極力発生させないようにする
+		parameterMap = new HashMap<>(calcInitialCapacity(parameterMap.size()));
 		return this;
+	}
+
+	/**
+	 * HashMapで指定されたbaseSize内で収まっていればresizeが発生しない初期容量を計算する.
+	 * @param baseSize 基底となるMapのサイズ
+	 * @return 初期容量
+	 */
+	private int calcInitialCapacity(int baseSize) {
+		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けてcapacityを計算する。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
+		return baseSize * 4 / 3 + 1;
 	}
 
 	/**

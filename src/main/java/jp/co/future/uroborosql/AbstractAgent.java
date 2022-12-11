@@ -291,9 +291,13 @@ public abstract class AbstractAgent implements SqlAgent {
 			}
 		}
 
-		LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(),
-				System.lineSeparator());
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), sqlContext.getExecutableSql(),
+					System.lineSeparator());
+		}
 	}
 
 	/**

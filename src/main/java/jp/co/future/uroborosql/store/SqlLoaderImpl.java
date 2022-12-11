@@ -94,8 +94,10 @@ public class SqlLoaderImpl implements SqlLoader {
 	@Override
 	public void setLoadPath(final String loadPath) {
 		if (loadPath == null) {
-			LOG.warn("Use the default value because SQL template path is set to NULL.");
-			LOG.warn("Default load path[{}]", DEFAULT_LOAD_PATH);
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("Use the default value because SQL template path is set to NULL.");
+				LOG.warn("Default load path[{}]", DEFAULT_LOAD_PATH);
+			}
 			this.loadPath = DEFAULT_LOAD_PATH;
 		} else {
 			this.loadPath = loadPath;
@@ -120,8 +122,10 @@ public class SqlLoaderImpl implements SqlLoader {
 	@Override
 	public void setFileExtension(final String fileExtension) {
 		if (fileExtension == null) {
-			LOG.warn("Use the default value because SQL template extension is set to NULL.");
-			LOG.warn("Default SQL template extension[{}]", DEFAULT_FILE_EXTENSION);
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("Use the default value because SQL template extension is set to NULL.");
+				LOG.warn("Default SQL template extension[{}]", DEFAULT_FILE_EXTENSION);
+			}
 			this.fileExtension = DEFAULT_FILE_EXTENSION;
 		} else {
 			this.fileExtension = fileExtension;
@@ -168,18 +172,22 @@ public class SqlLoaderImpl implements SqlLoader {
 						continue;
 					}
 
-					LOG.warn("Ignore because not directory.[{}]", rootDir.getAbsolutePath());
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Ignore because not directory.[{}]", rootDir.getAbsolutePath());
+					}
 					continue;
 				}
 
-				LOG.debug("Start loading SQL template.[{}]", rootDir.getAbsolutePath());
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Start loading SQL template.[{}]", rootDir.getAbsolutePath());
+				}
 				putAllIfAbsent(loadedSqlMap, load(new StringBuilder(), rootDir));
 			}
 		} catch (IOException e) {
 			throw new UroborosqlRuntimeException("Failed to load SQL template.", e);
 		}
 
-		if (loadedSqlMap.isEmpty()) {
+		if (loadedSqlMap.isEmpty() && LOG.isWarnEnabled()) {
 			LOG.warn("SQL template could not be found.");
 			LOG.warn("Returns an empty SQL cache.");
 		}
@@ -210,7 +218,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	 */
 	private ConcurrentHashMap<String, String> load(final JarURLConnection jarUrlConnection, final String loadPath)
 			throws IOException {
-		LOG.debug("Loading the following SQL template.[{}]", jarUrlConnection);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Loading the following SQL template.[{}]", jarUrlConnection);
+		}
 
 		ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
 		JarFile jarFile = jarUrlConnection.getJarFile();
@@ -224,8 +234,10 @@ public class SqlLoaderImpl implements SqlLoader {
 				fileName = fileName.substring(loadPath.length() + 1, fileName.length() - 4);
 				sqlMap.put(fileName, sql);
 
-				LOG.trace("SQL template loaded.[{}]", fileName);
-				LOG.trace("Add SQL template. [{}],[{}]", fileName, sql);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("SQL template loaded.[{}]", fileName);
+					LOG.trace("Add SQL template. [{}],[{}]", fileName, sql);
+				}
 			}
 		}
 		return sqlMap;
@@ -242,7 +254,9 @@ public class SqlLoaderImpl implements SqlLoader {
 	 * @throws IOException ファイルアクセスに失敗した場合
 	 */
 	private ConcurrentHashMap<String, String> load(final StringBuilder packageName, final File dir) throws IOException {
-		LOG.debug("Loading SQL template.[{}]", packageName);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Loading SQL template.[{}]", packageName);
+		}
 
 		ConcurrentHashMap<String, String> sqlMap = new ConcurrentHashMap<>();
 		File[] files = dir.listFiles();
@@ -256,8 +270,10 @@ public class SqlLoaderImpl implements SqlLoader {
 				String sqlName = makeSqlName(packageName, fileName);
 				sqlMap.put(sqlName, sql);
 
-				LOG.trace("Loaded SQL template.[{}]", fileName);
-				LOG.trace("Add SQL template.[{}],[{}]", sqlName, sql);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("Loaded SQL template.[{}]", fileName);
+					LOG.trace("Add SQL template.[{}],[{}]", sqlName, sql);
+				}
 			}
 		}
 		return sqlMap;
@@ -287,7 +303,9 @@ public class SqlLoaderImpl implements SqlLoader {
 
 				sql = trimSlash(read(new BufferedReader(new InputStreamReader(is))));
 
-				LOG.debug("Loaded SQL template.[{}]", targetFilePath);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Loaded SQL template.[{}]", targetFilePath);
+				}
 			} catch (IOException e) {
 				throw new UroborosqlRuntimeException("Failed to load SQL template[" + targetFilePath + "].", e);
 			}
