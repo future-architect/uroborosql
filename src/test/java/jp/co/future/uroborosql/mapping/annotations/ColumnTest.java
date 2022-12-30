@@ -1,35 +1,38 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Objects;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 
 public class ColumnTest {
 
 	private static SqlConfig config;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:ColumnTest;DB_CLOSE_DELAY=-1";
+		String url = "jdbc:h2:mem:ColumnTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -39,13 +42,13 @@ public class ColumnTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		var sqlFilterManager = config.getSqlFilterManager();
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -79,7 +82,14 @@ public class ColumnTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(ageAaaaAaaa, birthdayAaaaAaaa, idAaaaAaaa, memoAaaaAaaa, nameAaaaAaaa);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ageAaaaAaaa;
+			result = prime * result + (birthdayAaaaAaaa == null ? 0 : birthdayAaaaAaaa.hashCode());
+			result = prime * result + (int) (idAaaaAaaa ^ idAaaaAaaa >>> 32);
+			result = prime * result + (memoAaaaAaaa == null ? 0 : memoAaaaAaaa.hashCode());
+			result = prime * result + (nameAaaaAaaa == null ? 0 : nameAaaaAaaa.hashCode());
+			return result;
 		}
 
 		@Override
@@ -93,20 +103,32 @@ public class ColumnTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (ColumnAnnoTestEntity) obj;
+			ColumnAnnoTestEntity other = (ColumnAnnoTestEntity) obj;
 			if (ageAaaaAaaa != other.ageAaaaAaaa) {
 				return false;
 			}
-			if (!Objects.equals(birthdayAaaaAaaa, other.birthdayAaaaAaaa)) {
+			if (birthdayAaaaAaaa == null) {
+				if (other.birthdayAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!birthdayAaaaAaaa.equals(other.birthdayAaaaAaaa)) {
 				return false;
 			}
 			if (idAaaaAaaa != other.idAaaaAaaa) {
 				return false;
 			}
-			if (!Objects.equals(memoAaaaAaaa, other.memoAaaaAaaa)) {
+			if (memoAaaaAaaa == null) {
+				if (other.memoAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!memoAaaaAaaa.equals(other.memoAaaaAaaa)) {
 				return false;
 			}
-			if (!Objects.equals(nameAaaaAaaa, other.nameAaaaAaaa)) {
+			if (nameAaaaAaaa == null) {
+				if (other.nameAaaaAaaa != null) {
+					return false;
+				}
+			} else if (!nameAaaaAaaa.equals(other.nameAaaaAaaa)) {
 				return false;
 			}
 			return true;
@@ -123,25 +145,25 @@ public class ColumnTest {
 	@Test
 	public void test() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				// insert
-				var test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate
+				ColumnAnnoTestEntity test1 = new ColumnAnnoTestEntity(1, "name1", 20, LocalDate
 						.of(1990, Month.APRIL, 1), "memo1");
 				agent.insert(test1);
 				test1.memoAaaaAaaa = null;
 
-				var test2 = new ColumnAnnoTestEntity(2, "name2", 21, LocalDate
+				ColumnAnnoTestEntity test2 = new ColumnAnnoTestEntity(2, "name2", 21, LocalDate
 						.of(1990, Month.APRIL, 2), null);
 				agent.insert(test2);
 				test2.memoAaaaAaaa = null;
 
-				var test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate
+				ColumnAnnoTestEntity test3 = new ColumnAnnoTestEntity(3, "name3", 22, LocalDate
 						.of(1990, Month.APRIL, 3), "memo3");
 				agent.insert(test3);
 				test3.memoAaaaAaaa = null;
 
-				var data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
+				ColumnAnnoTestEntity data = agent.find(ColumnAnnoTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(ColumnAnnoTestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));

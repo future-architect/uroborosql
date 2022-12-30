@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,9 +10,9 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -31,7 +31,7 @@ public class QueryCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -39,7 +39,7 @@ public class QueryCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -50,7 +50,7 @@ public class QueryCommandTest extends ReaderTestSupport {
 		command = new QueryCommand();
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -59,18 +59,18 @@ public class QueryCommandTest extends ReaderTestSupport {
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
-		var flag = command.execute(reader, "query example/select_product".split("\\s+"), sqlConfig,
+		boolean flag = command.execute(reader, "query example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("query sql[example/select_product] end.");
 
 		command.execute(reader, "query example/insert_product".split("\\s+"), sqlConfig, new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("Error : ");
 
 		command.execute(reader, "query example/select_product_not_found".split("\\s+"), sqlConfig,
 				new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("SQL not found. sql=example/select_product_not_found");
 	}
 

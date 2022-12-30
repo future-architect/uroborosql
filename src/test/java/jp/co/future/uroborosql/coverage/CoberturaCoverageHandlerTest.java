@@ -1,15 +1,13 @@
 package jp.co.future.uroborosql.coverage;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
+import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
@@ -17,52 +15,56 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 public class CoberturaCoverageHandlerTest {
 	/**
-	 * SQLリソース管理クラス
+	 * SQL管理クラス
 	 */
 	SqlConfig config;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:CoberturaCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null).build();
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("create table if not exists test ( \n id VARCHAR, name  VARCHAR \n )").count();
 			agent.commit();
 		}
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() {
 	}
 
 	@Test
 	public void testReport() throws Exception {
-		var path = Paths.get("target", "coverage", "test-sql-cover.xml");
+		Path path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		Field field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
-		var ref = (AtomicReference<CoverageHandler>) field.get(null);
+		AtomicReference<CoverageHandler> ref = (AtomicReference<CoverageHandler>) field.get(null);
 
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE, "true");
 		System.setProperty(SqlAgent.KEY_SQL_COVERAGE + ".file", "target/coverage/test-sql-cover.xml");
-		var before = ref.get();
+		CoverageHandler before = ref.get();
 		ref.set(new CoberturaCoverageHandler());
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("example/select_test").param("id", "A001").collect();
 
 			agent.query("covertest/test01").param("id", 1).collect();
 			agent.query("covertest/test02").collect();
 		}
 
-		var filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
+		WrapContextSqlFilter filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		config.getSqlFilterManager().addSqlFilter(filter);
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.query("covertest/test01").param("id", 1).collect();
 
 		}

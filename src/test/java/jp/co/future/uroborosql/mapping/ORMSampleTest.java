@@ -1,21 +1,25 @@
 package jp.co.future.uroborosql.mapping;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
@@ -28,16 +32,16 @@ public class ORMSampleTest {
 
 	private static SqlConfig config;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:ORMSampleTest;DB_CLOSE_DELAY=-1";
+		String url = "jdbc:h2:mem:ORMSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -47,19 +51,19 @@ public class ORMSampleTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		var sqlFilterManager = config.getSqlFilterManager();
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("delete from test").count();
 
 				// 準備
-				for (var i = 0; i < 24; i++) {
-					var test = new TestEntity();
+				for (int i = 0; i < 24; i++) {
+					TestEntity test = new TestEntity();
 					test.setId(i + 1);
 					test.setName("name" + (i + 1));
 					test.setAge(20 + i);
@@ -72,6 +76,7 @@ public class ORMSampleTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private String name;
@@ -110,7 +115,14 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(age, birthday, id, memo, name);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + age;
+			result = prime * result + (birthday == null ? 0 : birthday.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (memo == null ? 0 : memo.hashCode());
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
@@ -124,20 +136,32 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (TestEntity) obj;
+			TestEntity other = (TestEntity) obj;
 			if (age != other.age) {
 				return false;
 			}
-			if (!Objects.equals(birthday, other.birthday)) {
+			if (birthday == null) {
+				if (other.birthday != null) {
+					return false;
+				}
+			} else if (!birthday.equals(other.birthday)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(memo, other.memo)) {
+			if (memo == null) {
+				if (other.memo != null) {
+					return false;
+				}
+			} else if (!memo.equals(other.memo)) {
 				return false;
 			}
-			if (!Objects.equals(name, other.name)) {
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
 				return false;
 			}
 			return true;
@@ -154,10 +178,10 @@ public class ORMSampleTest {
 	@Test
 	public void testFind() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 
 			// KEYを指定して取得
-			var data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
+			TestEntity data = agent.find(TestEntity.class, /* KEY */2).orElse(null);
 			assertThat(data.getName(), is("name2"));
 
 		}
@@ -166,10 +190,10 @@ public class ORMSampleTest {
 	@Test
 	public void testQuery() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 
 			// 条件なし
-			var list = agent.query(TestEntity.class).collect();
+			List<TestEntity> list = agent.query(TestEntity.class).collect();
 			assertThat(list.size(), is(24));
 
 			// 条件あり
@@ -183,10 +207,10 @@ public class ORMSampleTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
-				var test = new TestEntity();
+				TestEntity test = new TestEntity();
 				test.setId(100);
 				test.setName("name100");
 				test.setAge(20);
@@ -195,7 +219,7 @@ public class ORMSampleTest {
 				agent.insert(test);
 
 				// check
-				var data = agent.find(TestEntity.class, 100).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
@@ -204,16 +228,16 @@ public class ORMSampleTest {
 	@Test
 	public void testUpdate() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
 
 				// UPDATE
 				test.setName("update!!");
 				agent.update(test);
 
 				// check
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("update!!"));
 			});
@@ -223,16 +247,16 @@ public class ORMSampleTest {
 	@Test
 	public void testDelete() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity test = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(test, is(not(nullValue())));
 
 				// DELETE
 				agent.delete(test);
 
 				// check
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
 		}
@@ -253,7 +277,10 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(name);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
@@ -267,8 +294,12 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (NameDomain) obj;
-			if (!Objects.equals(name, other.name)) {
+			NameDomain other = (NameDomain) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
 				return false;
 			}
 			return true;
@@ -281,6 +312,7 @@ public class ORMSampleTest {
 
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;
@@ -292,7 +324,11 @@ public class ORMSampleTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(id, name);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
@@ -306,11 +342,15 @@ public class ORMSampleTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (DomainTestEntity) obj;
+			DomainTestEntity other = (DomainTestEntity) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(name, other.name)) {
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
 				return false;
 			}
 			return true;
@@ -326,16 +366,16 @@ public class ORMSampleTest {
 	@Test
 	public void testDomain() throws Exception {
 		// Domainを定義したクラスを扱う
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
 				// INSERT
-				var test = new DomainTestEntity();
+				DomainTestEntity test = new DomainTestEntity();
 				test.id = 100;
 				test.name = new NameDomain("name1");
 				agent.insert(test);
 
 				// SELECT
-				var data = agent.find(DomainTestEntity.class, 100).orElse(null);
+				DomainTestEntity data = agent.find(DomainTestEntity.class, 100).orElse(null);
 				assertThat(data, is(test));
 			});
 		}

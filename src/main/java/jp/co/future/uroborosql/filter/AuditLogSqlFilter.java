@@ -99,8 +99,10 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
+					.getExecutableSql(), rowCount).toString());
+		}
 		return resultSet;
 	}
 
@@ -123,8 +125,10 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), result).toString());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
+					.getExecutableSql(), result).toString());
+		}
 		return result;
 
 	}
@@ -154,9 +158,9 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
+			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
+					.getExecutableSql(), rowCount).toString());
 		}
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
 		return result;
 	}
 

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.ResultSet;
 import java.util.Arrays;
@@ -12,8 +13,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.event.Level;
 
 import jp.co.future.uroborosql.UroboroSQL;
@@ -26,24 +27,24 @@ public class ExecutionContextProviderTest {
 
 	private SqlConfig sqlConfig;
 
-	private ExecutionContextProvider executionContextFactory;
+	private ExecutionContextProvider ExecutionContextProvider;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL
 				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
-		executionContextFactory = sqlConfig.getExecutionContextProvider();
+		ExecutionContextProvider = sqlConfig.getExecutionContextProvider();
 	}
 
 	@Test
 	public void testConst_class() {
-		executionContextFactory.addBindParamMapper((original, connection, parameterMapperManager) -> null);
+		ExecutionContextProvider.addBindParamMapper((original, connection, parameterMapperManager) -> null);
 
-		executionContextFactory.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
+		ExecutionContextProvider.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
 
-		executionContextFactory.initialize();
+		ExecutionContextProvider.initialize();
 
-		var constParameterMap = executionContextFactory.getConstParameterMap();
+		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Map<String, ?> map = constParameterMap.entrySet().stream()
 				.collect(Collector.of(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getValue()), (m1, m2) -> {
 					m1.putAll(m2);
@@ -87,20 +88,20 @@ public class ExecutionContextProviderTest {
 
 	private Map<String, ?> mapOf(final Object... args) {
 		Map<String, Object> map = new HashMap<>();
-		for (var i = 0; i < args.length; i += 2) {
+		for (int i = 0; i < args.length; i += 2) {
 			map.put((String) args[i], args[i + 1]);
 		}
 		return map;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testConst_enum() {
-		executionContextFactory.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
+		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
 
-		executionContextFactory.initialize();
+		ExecutionContextProvider.initialize();
 
-		var constParameterMap = executionContextFactory.getConstParameterMap();
+		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -116,14 +117,14 @@ public class ExecutionContextProviderTest {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testConst_enumForJar() {
-		executionContextFactory.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
+		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
 
-		executionContextFactory.initialize();
+		ExecutionContextProvider.initialize();
 
-		var constParameterMap = executionContextFactory.getConstParameterMap();
+		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -138,28 +139,28 @@ public class ExecutionContextProviderTest {
 
 	@Test
 	public void testSetDefaultResultSetType() throws Exception {
-		executionContextFactory.initialize();
+		ExecutionContextProvider.initialize();
 
-		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+		ExecutionContextProvider.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
+		assertThat(ExecutionContextProvider.createExecutionContext().getResultSetType(),
 				is(ResultSet.TYPE_FORWARD_ONLY));
-		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+		ExecutionContextProvider.setDefaultResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+		assertThat(ExecutionContextProvider.createExecutionContext().getResultSetType(),
 				is(ResultSet.TYPE_SCROLL_INSENSITIVE));
-		executionContextFactory.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetType(),
+		ExecutionContextProvider.setDefaultResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
+		assertThat(ExecutionContextProvider.createExecutionContext().getResultSetType(),
 				is(ResultSet.TYPE_SCROLL_SENSITIVE));
 	}
 
 	@Test
 	public void testSetDefaultResultSetConcurrency() throws Exception {
-		executionContextFactory.initialize();
+		ExecutionContextProvider.initialize();
 
-		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+		ExecutionContextProvider.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);
+		assertThat(ExecutionContextProvider.createExecutionContext().getResultSetConcurrency(),
 				is(ResultSet.CONCUR_READ_ONLY));
-		executionContextFactory.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-		assertThat(executionContextFactory.createExecutionContext().getResultSetConcurrency(),
+		ExecutionContextProvider.setDefaultResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
+		assertThat(ExecutionContextProvider.createExecutionContext().getResultSetConcurrency(),
 				is(ResultSet.CONCUR_UPDATABLE));
 	}
 

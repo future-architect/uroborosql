@@ -54,6 +54,7 @@ public class JdbcConnectionContext extends ConnectionContext {
 	 * @param schema 接続スキーマ
 	 */
 	JdbcConnectionContext(final String url, final String user, final String password, final String schema) {
+		super();
 		if (url == null) {
 			throw new IllegalArgumentException("url is required but null.");
 		}

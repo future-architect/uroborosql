@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -17,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -30,14 +33,16 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public class ExecutionContextProviderAutoParameterBinderTest {
 	private static SqlConfig config;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpClass() throws Exception {
-		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextProviderUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
-				"sa",
-				null).build();
+		config = UroboroSQL
+				.builder("jdbc:h2:mem:ExecutionContextProviderUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
+						"sa",
+						null)
+				.build();
 
-		try (var agent = config.agent()) {
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (SqlAgent agent = config.agent()) {
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -47,14 +52,14 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
-		try (var agent = config.agent()) {
-			var dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);
+		try (SqlAgent agent = config.agent()) {
+			LocalDateTime dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);
 
 			agent.updateWith("truncate table PRODUCT").count();
 			agent.update("example/insert_product")
@@ -73,13 +78,13 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testSingleQueryAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
+		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		Consumer<ExecutionContext> binder = (ctx) -> ctx.param("upd_datetime", insDate);
 		config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
 
-		try (var agent = config.agent()) {
-			var productId = 10;
+		try (SqlAgent agent = config.agent()) {
+			int productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -92,14 +97,14 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
 			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
 
-			binder = ctx -> ctx.param("upd_datetime", updDate);
+			binder = (ctx) -> ctx.param("upd_datetime", updDate);
 			config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
 
 			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
@@ -111,13 +116,13 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testSingleUpdateAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
+		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		Consumer<ExecutionContext> binder = (ctx) -> ctx.param("upd_datetime", updDate);
 		config.getExecutionContextProvider().addUpdateAutoParameterBinder(binder);
 
-		try (var agent = config.agent()) {
-			var productId = 10;
+		try (SqlAgent agent = config.agent()) {
+			int productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -130,7 +135,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
@@ -148,20 +153,20 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testMultiQueryAutoParameterBinder() {
-		final var colVarchar = "varchar";
-		final var colNumeric = new BigDecimal("10.00");
-		final var colTimestamp = LocalDateTime.now();
+		final String colVarchar = "varchar";
+		final BigDecimal colNumeric = new BigDecimal("10.00");
+		final LocalDateTime colTimestamp = LocalDateTime.now();
 
-		var factory = config.getExecutionContextProvider();
+		ExecutionContextProvider factory = config.getExecutionContextProvider();
 
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
+		Consumer<ExecutionContext> binder1 = (ctx) -> ctx.param("col_varchar", colVarchar);
 		factory.addQueryAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
+		Consumer<ExecutionContext> binder2 = (ctx) -> ctx.param("col_numeric", colNumeric);
 		factory.addQueryAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
+		Consumer<ExecutionContext> binder3 = (ctx) -> ctx.param("col_timestamp", colTimestamp);
 		factory.addQueryAutoParameterBinder(binder3);
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			// insert match
 			agent.update("example/insert_column_type_test")
 					.param("col_varchar", colVarchar)
@@ -211,10 +216,10 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.count();
 			agent.commit();
 
-			var data = agent.query("example/select_column_type_test").collect(
+			List<Map<String, Object>> data = agent.query("example/select_column_type_test").collect(
 					CaseFormat.LOWER_SNAKE_CASE);
 			assertThat(data.size(), is(1));
-			var row = data.get(0);
+			Map<String, Object> row = data.get(0);
 			assertThat(row.get("col_varchar"), is(colVarchar));
 			assertThat(row.get("col_numeric"), is(colNumeric));
 			assertThat(row.get("col_timestamp"), is(Timestamp.valueOf(colTimestamp)));
@@ -227,21 +232,22 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testMultiUpdateAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
+		ExecutionContextProvider factory = config.getExecutionContextProvider();
 
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
+		Consumer<ExecutionContext> binder1 = (ctx) -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
+		Consumer<ExecutionContext> binder2 = (ctx) -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("upd_datetime", ((LocalDateTime) ctx.getParam("upd_datetime")
-				.getValue()).plusDays(1));
+		Consumer<ExecutionContext> binder3 = (ctx) -> ctx.param("upd_datetime",
+				((LocalDateTime) ctx.getParam("upd_datetime")
+						.getValue()).plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
-		try (var agent = config.agent()) {
-			var productId = 10;
+		try (SqlAgent agent = config.agent()) {
+			int productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -252,7 +258,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
@@ -265,20 +271,20 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testMultiUpdateAutoParameterBinderIfAbsent() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		final LocalDateTime insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		final LocalDateTime updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
+		ExecutionContextProvider factory = config.getExecutionContextProvider();
 
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
+		Consumer<ExecutionContext> binder1 = (ctx) -> ctx.param("ins_datetime", insDate);
 		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
+		Consumer<ExecutionContext> binder2 = (ctx) -> ctx.param("upd_datetime", updDate);
 		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
+		Consumer<ExecutionContext> binder3 = (ctx) -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
 		factory.addUpdateAutoParameterBinder(binder3);
 
-		try (var agent = config.agent()) {
-			var productId = 10;
+		try (SqlAgent agent = config.agent()) {
+			int productId = 10;
 			// insert
 			agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -291,7 +297,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("upd_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			Map<String, Object> row = agent.query("example/select_product").param("product_id", productId).first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
@@ -304,13 +310,13 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testQueryAutoBindIfCase() {
-		var factory = config.getExecutionContextProvider();
+		ExecutionContextProvider factory = config.getExecutionContextProvider();
 
-		final var productId = 2;
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
+		final int productId = 2;
+		Consumer<ExecutionContext> binder1 = (ctx) -> ctx.paramIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			// insert
 			assertThat(agent.update("example/insert_product")
 					.param("product_id", productId)
@@ -334,17 +340,17 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	public void testBatchUpdateAutoBind() {
-		var factory = config.getExecutionContextProvider();
+		ExecutionContextProvider factory = config.getExecutionContextProvider();
 
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
+		Consumer<ExecutionContext> binder1 = (ctx) -> ctx.param("ins_datetime", LocalDateTime.now());
 		factory.addUpdateAutoParameterBinder(binder1);
 
-		var count = 1000;
-		try (var agent = config.agent()) {
+		int count = 1000;
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("truncate table PRODUCT").count();
 
 			List<Map<String, Object>> input = new ArrayList<>();
-			for (var i = 1; i <= count; i++) {
+			for (int i = 1; i <= count; i++) {
 				Map<String, Object> map = new HashMap<>();
 				map.put("product_id", i * 10);
 				map.put("product_name", "name");
@@ -359,11 +365,11 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			// insert
 			assertThat(agent.batch("example/insert_product").paramStream(input.stream()).count(), is(count));
 
-			var dateCount = agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
+			long dateCount = agent.query("example/select_product").stream(CaseFormat.LOWER_SNAKE_CASE)
 					.map(r -> r.get("ins_datetime"))
 					.distinct().count();
 			// ins_datetimeが同じ時間になっていないことを確認
-			assertThat(dateCount, not(1));
+			assertNotEquals(1, dateCount);
 		}
 
 		factory.removeUpdateAutoParameterBinder(binder1);

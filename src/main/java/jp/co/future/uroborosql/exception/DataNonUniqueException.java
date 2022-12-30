@@ -14,6 +14,7 @@ package jp.co.future.uroborosql.exception;
 public class DataNonUniqueException extends UroborosqlRuntimeException {
 
 	public DataNonUniqueException() {
+		super();
 	}
 
 	public DataNonUniqueException(final String message) {

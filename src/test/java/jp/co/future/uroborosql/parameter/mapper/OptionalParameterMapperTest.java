@@ -1,28 +1,28 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.time.Clock;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class OptionalParameterMapperTest {
 	private Clock clock = null;
 
-	@BeforeEach
+	@Before
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
 	public void test() {
-		var parameterMapperManager = new BindParameterMapperManager(this.clock);
-		var value = "ABC";
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
+		String value = "ABC";
 
-		var mapper = new OptionalParameterMapper();
+		OptionalParameterMapper mapper = new OptionalParameterMapper();
 		Optional<String> optional = Optional.of(value);
 		assertThat(mapper.toJdbc(optional, null, parameterMapperManager), is(value));
 
@@ -32,8 +32,8 @@ public class OptionalParameterMapperTest {
 
 	@Test
 	public void testEmpty() {
-		var parameterMapperManager = new BindParameterMapperManager(this.clock);
-		var mapper = new OptionalParameterMapper();
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
+		OptionalParameterMapper mapper = new OptionalParameterMapper();
 		Optional<String> optional = Optional.empty();
 		assertThat(mapper.toJdbc(optional, null, parameterMapperManager), is(nullValue()));
 	}

@@ -1,15 +1,17 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Objects;
+import java.sql.Statement;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.SqlAgentProviderImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -63,7 +65,12 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(firstName, id, lastName);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (firstName == null ? 0 : firstName.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (lastName == null ? 0 : lastName.hashCode());
+			return result;
 		}
 
 		@Override
@@ -77,14 +84,22 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (TestEntity) obj;
-			if (!Objects.equals(firstName, other.firstName)) {
+			TestEntity other = (TestEntity) obj;
+			if (firstName == null) {
+				if (other.firstName != null) {
+					return false;
+				}
+			} else if (!firstName.equals(other.firstName)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(lastName, other.lastName)) {
+			if (lastName == null) {
+				if (other.lastName != null) {
+					return false;
+				}
+			} else if (!lastName.equals(other.lastName)) {
 				return false;
 			}
 			return true;
@@ -97,17 +112,17 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 	}
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:" + DefaultEntityHandlerIdentifierPascalCaseTest.class.getSimpleName()
+		String url = "jdbc:h2:mem:" + DefaultEntityHandlerIdentifierPascalCaseTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists \"PascalTable\"");
 				stmt.execute(
 						"create table if not exists \"PascalTable\"( \"Id\" NUMERIC(4), \"LastName\" VARCHAR(10), \"FirstName\" VARCHAR(10), primary key(\"Id\"))");
@@ -120,9 +135,9 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 				.build();
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from \"PascalTable\"").count();
 			agent.commit();
 		}
@@ -134,11 +149,11 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test1 = new TestEntity(1, "lastName1", "firstName1");
+	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test1);
-	//				TestEntity test2 = new TestEntity(2, "lastName2", "firstName2");
+	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");
 	//				agent.insert(test2);
-	//				TestEntity test3 = new TestEntity(3, "lastName3", "firstName3");
+	//				TestEntity test3 = new TestEntity(3L, "lastName3", "firstName3");
 	//				agent.insert(test3);
 	//				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 	//				assertThat(data, is(test1));
@@ -154,7 +169,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	@Test
 	public void testSqlQuery() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith(
 					"insert into \"PascalTable\" (\"Id\", \"LastName\", \"FirstName\") values (/*id*/1, /*lastName*/'', /*firstName*/'')")
 					.param("id", 1)
@@ -162,7 +177,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 					.param("firstName", "firstName1")
 					.count();
 
-			var entity = agent.queryWith("select * from \"PascalTable\"").first(TestEntity.class);
+			TestEntity entity = agent.queryWith("select * from \"PascalTable\"").first(TestEntity.class);
 			assertThat(entity.getId(), is(1L));
 			assertThat(entity.getLastName(), is("lastName1"));
 			assertThat(entity.getFirstName(), is("firstName1"));
@@ -175,11 +190,11 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test1 = new TestEntity(1, "lastName1", "firstName1");
+	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test1);
-	//				TestEntity test2 = new TestEntity(2, "lastName2", "firstName2");
+	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");
 	//				agent.insert(test2);
-	//				TestEntity test3 = new TestEntity(3, "lastName3", "firstName3");
+	//				TestEntity test3 = new TestEntity(3L, "lastName3", "firstName3");
 	//				agent.insert(test3);
 	//
 	//				List<TestEntity> list = agent.query(TestEntity.class).collect();
@@ -200,7 +215,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test = new TestEntity(1, "lastName1", "firstName1");
+	//				TestEntity test = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test);
 	//
 	//				test.setLastName("updatename");
@@ -218,7 +233,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test = new TestEntity(1, "lastName1", "firstName1");
+	//				TestEntity test = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test);
 	//
 	//				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
@@ -237,9 +252,9 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test1 = new TestEntity(1, "lastName1", "firstName1");
-	//				TestEntity test2 = new TestEntity(2, "lastName2", "firstName2");
-	//				TestEntity test3 = new TestEntity(3, "lastName3", "firstName3");
+	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
+	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");
+	//				TestEntity test3 = new TestEntity(3L, "lastName3", "firstName3");
 	//
 	//				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 	//				assertThat(count, is(3));
@@ -260,9 +275,9 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//
 	//		try (SqlAgent agent = config.agent()) {
 	//			agent.required(() -> {
-	//				TestEntity test1 = new TestEntity(1, "lastName1", "firstName1");
-	//				TestEntity test2 = new TestEntity(2, "lastName2", "firstName2");
-	//				TestEntity test3 = new TestEntity(3, "lastName3", "firstName3");
+	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
+	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");
+	//				TestEntity test3 = new TestEntity(3L, "lastName3", "firstName3");
 	//
 	//				int count = agent.inserts(Stream.of(test1, test2, test3));
 	//				assertThat(count, is(3));

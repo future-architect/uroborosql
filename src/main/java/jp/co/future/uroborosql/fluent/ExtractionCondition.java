@@ -204,6 +204,39 @@ public interface ExtractionCondition<T> extends SqlFluent<T> {
 	<V> T between(String col, V fromValue, V toValue);
 
 	/**
+	 * Where句に not between 条件を追加する.
+	 *
+	 * @param <V> 値の型
+	 * @param col bind column name
+	 * @param fromValue 開始値
+	 * @param toValue 終了値
+	 * @return T
+	 */
+	<V> T notBetween(String col, V fromValue, V toValue);
+
+	/**
+	 * Where句に between 条件を追加する.(値に対してfrom/toのカラムを指定する場合)
+	 *
+	 * @param <V> 値の型
+	 * @param value betweenの評価対象となる値
+	 * @param fromCol 開始値となるカラムの名前
+	 * @param toCol 終了値となるカラムの名前
+	 * @return T
+	 */
+	<V> T betweenColumns(V value, String fromCol, String toCol);
+
+	/**
+	 * Where句に not between 条件を追加する.(値に対してfrom/toのカラムを指定する場合)
+	 *
+	 * @param <V> 値の型
+	 * @param value betweenの評価対象となる値
+	 * @param fromCol 開始値となるカラムの名前
+	 * @param toCol 終了値となるカラムの名前
+	 * @return T
+	 */
+	<V> T notBetweenColumns(V value, String fromCol, String toCol);
+
+	/**
 	 * Where句に is null 条件を追加する.
 	 *
 	 * @param col bind column name

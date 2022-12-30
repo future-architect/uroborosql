@@ -204,4 +204,24 @@ public interface SqlQuery extends SqlFluent<SqlQuery> {
 	 * @return 検索結果を順次取得するStream
 	 */
 	<T> Stream<T> stream(Class<T> type);
+
+	/**
+	 * 検索結果の先頭カラムをStreamとして取得
+	 *
+	 * @param <T> Streamの型
+	 * @param type 取得するカラムの型
+	 * @return 検索結果を順次取得するStream
+	 */
+	<T> Stream<T> select(Class<T> type);
+
+	/**
+	 * 検索結果の指定したカラムをStreamとして取得
+	 *
+	 * @param <T> Streamの型
+	 * @param col 取得するカラムの名前
+	 * @param type 取得するカラムの型
+	 * @return 検索結果を順次取得するStream
+	 */
+	<T> Stream<T> select(String col, Class<T> type);
+
 }

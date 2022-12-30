@@ -27,7 +27,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 
 	@Override
 	public Parameter doParameter(final Parameter parameter) {
-		LOG.debug("Parameter:{}", parameter);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Parameter:{}", parameter);
+		}
 		return parameter;
 	}
 
@@ -38,7 +40,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public Object doOutParameter(final String key, final Object val) {
-		LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		}
 		return val;
 	}
 
@@ -50,7 +54,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
-		LOG.debug("SQL:{} executed.", executionContext.getSqlName());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed.", executionContext.getSqlName());
+		}
 		return resultSet;
 	}
 
@@ -61,7 +67,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result) {
-		LOG.debug("SQL:{} executed. Count:{} items.", executionContext.getSqlName(), result);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed. Count:{} items.", executionContext.getSqlName(), result);
+		}
 		return result;
 	}
 

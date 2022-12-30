@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
  * ローカルトランザクションマネージャ
@@ -405,6 +406,50 @@ public class LocalTransactionManager implements TransactionManager {
 	@Override
 	public void savepointScope(final SQLRunnable runnable) {
 		savepointScope(toSupplier(runnable));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 */
+	@Override
+	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
+		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true,
+				this.connectionContext)) {
+			this.txCtxStack.push(txContext);
+
+			Connection conn = txContext.getConnection();
+			boolean preserveAutoCommitState = conn.getAutoCommit();
+			try {
+				// autoCommit=trueに設定する
+				if (!preserveAutoCommitState) {
+					conn.setAutoCommit(true);
+				}
+				return supplier.get();
+			} catch (Throwable th) {
+				txContext.setRollbackOnly();
+				throw th;
+			} finally {
+				if (!preserveAutoCommitState) {
+					conn.setAutoCommit(preserveAutoCommitState);
+				}
+			}
+		} catch (SQLException se) {
+			throw new UroborosqlSQLException(se);
+		} finally {
+			this.txCtxStack.pop().close();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 */
+	@Override
+	public void autoCommitScope(final SQLRunnable runnable) {
+		autoCommitScope(toSupplier(runnable));
 	}
 
 }

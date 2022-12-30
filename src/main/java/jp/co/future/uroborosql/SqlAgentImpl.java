@@ -49,6 +49,7 @@ import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
+import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
@@ -142,7 +143,8 @@ public class SqlAgentImpl extends AbstractAgent {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						rs = new InnerResultSet(getSqlFilterManager().doQuery(executionContext, stmt, stmt.executeQuery()),
+						rs = new InnerResultSet(
+								getSqlFilterManager().doQuery(executionContext, stmt, stmt.executeQuery()),
 								stmt);
 						stmt.closeOnCompletion();
 						return rs;
@@ -167,17 +169,21 @@ public class SqlAgentImpl extends AbstractAgent {
 										// do nothing
 									}
 								}
-							} else if (pessimisticLockingErrorCodes.contains(errorCode)
+							} else {
+								if (pessimisticLockingErrorCodes.contains(errorCode)
+										|| pessimisticLockingErrorCodes.contains(sqlState)) {
+									throw new PessimisticLockException(executionContext, ex);
+								} else {
+									throw ex;
+								}
+							}
+						} else {
+							if (pessimisticLockingErrorCodes.contains(errorCode)
 									|| pessimisticLockingErrorCodes.contains(sqlState)) {
 								throw new PessimisticLockException(executionContext, ex);
 							} else {
 								throw ex;
 							}
-						} else if (pessimisticLockingErrorCodes.contains(errorCode)
-								|| pessimisticLockingErrorCodes.contains(sqlState)) {
-							throw new PessimisticLockException(executionContext, ex);
-						} else {
-							throw ex;
 						}
 					} finally {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
@@ -200,7 +206,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterQuery(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -230,7 +237,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	 *      jp.co.future.uroborosql.converter.ResultSetConverter)
 	 */
 	@Override
-	public <T> Stream<T> query(final ExecutionContext executionContext, final ResultSetConverter<T> converter) throws SQLException {
+	public <T> Stream<T> query(final ExecutionContext executionContext, final ResultSetConverter<T> converter)
+			throws SQLException {
 		final var rs = query(executionContext);
 		return StreamSupport.stream(new ResultSetSpliterator<>(rs, converter), false).onClose(() -> {
 			try {
@@ -272,6 +280,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// コンテキスト変換
 		transformContext(executionContext, false);
+
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (executionContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of update process");
+			return executionContext.getUpdateDelegate().apply(executionContext);
+		}
 
 		Instant startTime = null;
 
@@ -361,7 +376,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			afterUpdate(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -398,6 +414,13 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		// コンテキスト変換
 		transformContext(executionContext, false);
+
+		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
+		if (executionContext.getUpdateDelegate() != null) {
+			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			LOG.debug("Performs update delegate of batch process");
+			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
+		}
 
 		Instant startTime = null;
 
@@ -488,7 +511,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			// 後処理
 			afterBatch(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext), executionContext.getSqlKind(),
+				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+						executionContext.getSqlKind(),
 						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
@@ -605,7 +629,8 @@ public class SqlAgentImpl extends AbstractAgent {
 			afterProcedure(executionContext);
 			if (LOG.isDebugEnabled() && startTime != null) {
 				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(executionContext),
-						executionContext.getSqlKind(), formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						executionContext.getSqlKind(),
+						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -706,9 +731,11 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			var metadata = handler.getMetadata(this.transactionManager, entityType);
 
-			var keyNames = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
+			var keyNames = metadata.getColumns().stream()
+					.filter(TableMetadata.Column::isKey)
 					.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
-					.map(TableMetadata.Column::getColumnName).map(CaseFormat.CAMEL_CASE::convert)
+					.map(TableMetadata.Column::getColumnName)
+					.map(CaseFormat.CAMEL_CASE::convert)
 					.toArray(String[]::new);
 
 			if (keyNames.length != keys.length) {
@@ -755,7 +782,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			context.setSqlKind(SqlKind.INSERT);
 
 			// 自動採番カラムの取得とcontextへの設定を行う
-			var mappingColumns = MappingUtils.getMappingColumns(entityType);
+			MappingColumn[] mappingColumns = MappingUtils.getMappingColumns(metadata.getSchema(), entityType);
 			List<MappingColumn> autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata,
 					entity);
 
@@ -766,8 +793,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				var ids = context.getGeneratedKeyValues();
 				var idx = 0;
 				for (MappingColumn col : autoGeneratedColumns) {
-					var id = ids[idx++];
-					setEntityIdValue(entity, id, col);
+					setEntityIdValue(entity, ids[idx++], col);
 				}
 			}
 
@@ -943,21 +969,19 @@ public class SqlAgentImpl extends AbstractAgent {
 			handler.setUpdateParams(context, entity);
 			var count = handler.doUpdate(this, context, entity);
 
-			MappingUtils.getVersionMappingColumn(type).ifPresent(versionColumn -> {
+			MappingUtils.getVersionMappingColumn(metadata.getSchema(), type).ifPresent(versionColumn -> {
 				if (count == 0) {
 					throw new OptimisticLockException(context);
 				} else {
-					var columnMap = MappingUtils.getMappingColumnMap(type, SqlKind.NONE);
-					var keys = metadata.getColumns().stream().filter(TableMetadata.Column::isKey)
+					Map<String, MappingColumn> columnMap = MappingUtils.getMappingColumnMap(metadata.getSchema(), type,
+							SqlKind.NONE);
+					Object[] keys = metadata.getColumns().stream()
+							.filter(TableMetadata.Column::isKey)
 							.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
-							.map(c -> {
-								MappingColumn col = columnMap.get(c.getCamelColumnName());
-								return col.getValue(entity);
-							}).toArray();
+							.map(c -> columnMap.get(c.getCamelColumnName()).getValue(entity))
+							.toArray();
 
-					find(type, keys).ifPresent(e -> {
-						versionColumn.setValue(entity, versionColumn.getValue(e));
-					});
+					find(type, keys).ifPresent(e -> versionColumn.setValue(entity, versionColumn.getValue(e)));
 				}
 			});
 			return count;
@@ -1000,6 +1024,108 @@ public class SqlAgentImpl extends AbstractAgent {
 			return new SqlEntityUpdateImpl<>(this, handler, metadata, context);
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#merge(java.lang.Object)
+	 */
+	@Override
+	public <E> int merge(final E entity) {
+		mergeAndReturn(entity);
+		return 1;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#mergeAndReturn(java.lang.Object)
+	 */
+	@Override
+	public <E> E mergeAndReturn(final E entity) {
+		return mergeAndReturn(entity, false);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#mergeWithLocking(java.lang.Object)
+	 */
+	@Override
+	public <E> int mergeWithLocking(final E entity) {
+		mergeWithLockingAndReturn(entity);
+		return 1;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#mergeWithLockingAndReturn(java.lang.Object)
+	 */
+	@Override
+	public <E> E mergeWithLockingAndReturn(final E entity) {
+		return mergeAndReturn(entity, true);
+	}
+
+	/**
+	 * エンティティのMERGE（INSERTまたはUPDATE）を実行し、MERGEしたエンティティを返却する.<br>
+	 * locking引数が<code>true</code>の場合、マージの最初に発行するEntityの検索で悲観ロック（forUpdateNoWait）を行う
+	 *
+	 * @param <E> エンティティ型
+	 * @param entity エンティティ
+	 * @param locking エンティティの悲観ロックを行うかどうか
+	 * @return MERGEしたエンティティ
+	 *
+	 */
+	@SuppressWarnings("unchecked")
+	private <E> E mergeAndReturn(final E entity, final boolean locking) {
+		if (entity instanceof Stream) {
+			throw new IllegalArgumentException("Stream type not supported.");
+		}
+
+		@SuppressWarnings("rawtypes")
+		EntityHandler handler = this.getEntityHandler();
+		if (!handler.getEntityType().isInstance(entity)) {
+			throw new IllegalArgumentException("Entity type not supported.");
+		}
+
+		Class<?> type = entity.getClass();
+
+		try {
+			TableMetadata metadata = handler.getMetadata(this.transactionManager, type);
+			List<? extends TableMetadata.Column> keyColumns = metadata.getKeyColumns();
+
+			if (keyColumns.isEmpty()) {
+				throw new IllegalArgumentException("Entity has no keys.");
+			}
+
+			Map<String, MappingColumn> mappingColumns = MappingUtils.getMappingColumnMap(metadata.getSchema(), type,
+					SqlKind.UPDATE);
+
+			SqlEntityQuery<E> query = (SqlEntityQuery<E>) query(type);
+			for (TableMetadata.Column column : keyColumns) {
+				String camelName = column.getCamelColumnName();
+				query.equal(camelName, mappingColumns.get(camelName).getValue(entity));
+			}
+			if (locking) {
+				query.forUpdateNoWait();
+			}
+			return query.first()
+					.map(findEntity -> {
+						for (MappingColumn mappingColumn : mappingColumns.values()) {
+							if (!mappingColumn.isId()) {
+								Object value = mappingColumn.getValue(entity);
+								if (value != null) {
+									mappingColumn.setValue(findEntity, value);
+								}
+							}
+						}
+						return updateAndReturn(findEntity);
+					}).orElseGet(() -> insertAndReturn(entity));
+		} catch (SQLException e) {
+			throw new EntitySqlRuntimeException(SqlKind.MERGE, e);
 		}
 	}
 
@@ -1159,7 +1285,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 				if (isFirst) {
 					isFirst = false;
-					var mappingColumns = MappingUtils.getMappingColumns(entityType);
+					MappingColumn[] mappingColumns = MappingUtils.getMappingColumns(metadata.getSchema(), entityType);
 					autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata, entity);
 
 					// SQLのID項目IF分岐判定をtrueにするために値が設定されているID項目を保持しておく
@@ -1246,7 +1372,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 				if (isFirst) {
 					isFirst = false;
-					var mappingColumns = MappingUtils.getMappingColumns(entityType);
+					MappingColumn[] mappingColumns = MappingUtils.getMappingColumns(metadata.getSchema(), entityType);
 					autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata, entity);
 
 					// SQLのID項目IF分岐判定をtrueにするために値が設定されているID項目を保持しておく
@@ -1293,7 +1419,8 @@ public class SqlAgentImpl extends AbstractAgent {
 		}
 	}
 
-	protected <E> int doBulkInsert(final ExecutionContext context, final Class<E> entityType, final EntityHandler<E> handler,
+	protected <E> int doBulkInsert(final ExecutionContext context, final Class<E> entityType,
+			final EntityHandler<E> handler,
 			final TableMetadata metadata, final List<MappingColumn> autoGeneratedColumns, final List<E> entityList)
 			throws SQLException {
 		var count = handler.doBulkInsert(this,
@@ -1332,14 +1459,13 @@ public class SqlAgentImpl extends AbstractAgent {
 			var context = handler.createBatchUpdateContext(this, metadata, entityType);
 			context.setSqlKind(SqlKind.BATCH_UPDATE);
 
-			var versionColumn = updatedEntities != null
-					? MappingUtils.getVersionMappingColumn(entityType)
-					: null;
-
-			var count = 0;
+			Optional<MappingColumn> versionColumn = MappingUtils.getVersionMappingColumn(metadata.getSchema(),
+					entityType);
+			int entityCount = 0;
+			int updateCount = 0;
 			List<E> entityList = new ArrayList<>();
 			for (var iterator = entities.iterator(); iterator.hasNext();) {
-				var entity = iterator.next();
+				E entity = iterator.next();
 
 				if (!entityType.isInstance(entity)) {
 					throw new IllegalArgumentException("Entity types do not match");
@@ -1349,16 +1475,17 @@ public class SqlAgentImpl extends AbstractAgent {
 				if (updatedEntities != null) {
 					updatedEntities.add(entity);
 				}
+				entityCount++;
 
 				handler.setUpdateParams(context, entity);
 				context.addBatch();
 
 				if (condition.test(context, context.batchCount(), entity)) {
-					count += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
+					updateCount += Arrays.stream(handler.doBatchUpdate(this, context)).sum();
 					entityList.clear();
 				}
 			}
-			count = count + (context.batchCount() != 0
+			updateCount = updateCount + (context.batchCount() != 0
 					? Arrays.stream(handler.doBatchUpdate(this, context)).sum()
 					: 0);
 
@@ -1367,7 +1494,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				List<MappingColumn> keyColumns = metadata.getColumns().stream()
 						.filter(TableMetadata.Column::isKey)
 						.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
-						.map(c -> MappingUtils.getMappingColumnMap(entityType, SqlKind.NONE)
+						.map(c -> MappingUtils.getMappingColumnMap(metadata.getSchema(), entityType, SqlKind.NONE)
 								.get(c.getCamelColumnName()))
 						.collect(Collectors.toList());
 
@@ -1404,7 +1531,16 @@ public class SqlAgentImpl extends AbstractAgent {
 							}).count();
 				}
 			}
-			return count;
+			if (versionColumn.isPresent()) {
+				if (getSqlConfig().getDialect().supportsEntityBulkUpdateOptimisticLock()
+						&& updateCount != entityCount) {
+					// バージョンカラムの指定があり、更新件数と更新対象Entityの件数が不一致の場合は楽観ロックエラーとする
+					throw new OptimisticLockException(String.format(
+							"An error occurred due to optimistic locking.%nExecuted SQL [%n%s]%nBatch Entity Count: %d, Update Count: %d.",
+							context.getExecutableSql(), entityCount, updateCount));
+				}
+			}
+			return updateCount;
 		} catch (SQLException e) {
 			throw new EntitySqlRuntimeException(SqlKind.BATCH_UPDATE, e);
 		}
@@ -1432,7 +1568,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		public boolean tryAdvance(final Consumer<? super T> action) {
 			try {
 				if (finished || !rs.next()) {
-					rs.close();
+					if (!rs.isClosed()) {
+						rs.close();
+					}
 					finished = true;
 					return false;
 				}

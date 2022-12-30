@@ -16,6 +16,7 @@ import java.sql.SQLException;
 public class UroborosqlSQLException extends UroborosqlRuntimeException {
 
 	public UroborosqlSQLException() {
+		super();
 	}
 
 	public UroborosqlSQLException(final Throwable cause) {

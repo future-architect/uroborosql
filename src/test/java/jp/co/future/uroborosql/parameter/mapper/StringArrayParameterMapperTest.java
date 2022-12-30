@@ -1,36 +1,36 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Array;
 import java.sql.Connection;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.time.Clock;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class StringArrayParameterMapperTest {
 	private Clock clock = null;
 
-	@BeforeEach
+	@Before
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
 	public void test() {
-		var parameterMapperManager = new BindParameterMapperManager(this.clock);
-		var jdbcArray = newProxy(Array.class);
+		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
+		Array jdbcArray = newProxy(Array.class);
 		String[] array = { "A" };
 
-		var conn = newProxy(Connection.class, (proxy, method, args) -> {
+		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if (method.getName().equals("createArrayOf")) {
 				assertThat(args[0], is("VARCHAR"));
 				assertThat(args[1], is(array));
@@ -64,7 +64,7 @@ public class StringArrayParameterMapperTest {
 	}
 
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		var o = new Object();
+		Object o = new Object();
 
 		Method getOriginal;
 		try {
@@ -73,7 +73,7 @@ public class StringArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		var proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		I proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}

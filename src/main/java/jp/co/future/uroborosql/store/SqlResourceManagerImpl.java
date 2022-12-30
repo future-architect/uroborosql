@@ -6,10 +6,19 @@
  */
 package jp.co.future.uroborosql.store;
 
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
@@ -24,6 +33,7 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -295,7 +307,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				if (Files.isDirectory(path) || !isSqlFile) {
 					// ENTRY_DELETEの時はFiles.isDirectory()がfalseになるので拡張子での判定も行う
 					if (kind == ENTRY_CREATE) {
-						traverse(path, true, false);
+						traverseFile(path, true, false);
 					} else if (kind == ENTRY_DELETE) {
 						key.cancel();
 						watchDirs.remove(key);
@@ -303,10 +315,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					}
 				} else if (isSqlFile) {
 					if (kind == ENTRY_CREATE) {
-						traverse(path, true, false);
+						traverseFile(path, true, false);
 					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
 						var sqlName = getSqlName(path);
-						sqlInfos.computeIfPresent(sqlName, (k, v) -> v.computePath(path, kind == ENTRY_DELETE));
+						sqlInfos.computeIfPresent(sqlName, (k, v) -> {
+							return v.computePath(path, kind == ENTRY_DELETE);
+						});
 					}
 				}
 			}
@@ -391,24 +405,17 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		try {
 			for (Path loadPath : this.loadPaths) {
 				var loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
-				var root = Thread.currentThread().getContextClassLoader()
-						.getResources(loadPathSlash);
+				var root = Thread.currentThread().getContextClassLoader().getResources(loadPathSlash);
 
 				while (root.hasMoreElements()) {
-					var uri = root.nextElement().toURI();
-					var scheme = uri.getScheme();
-					if (SCHEME_FILE.equals(scheme)) {
-						traverse(Paths.get(uri), detectChanges && true, false);
-					} else if (SCHEME_JAR.equals(scheme)) {
-						FileSystem fs = null;
-						try {
-							fs = FileSystems.getFileSystem(uri);
-						} catch (FileSystemNotFoundException ex) {
-							Map<String, String> env = new HashMap<>();
-							env.put("create", "false");
-							fs = FileSystems.newFileSystem(uri, env);
-						}
-						traverse(fs.getPath(loadPathSlash), false, false);
+					URL url = root.nextElement();
+					String scheme = url.toURI().getScheme();
+					if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
+						traverseFile(Paths.get(url.toURI()), detectChanges && true, false);
+					} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
+						traverseJar(url, loadPathSlash);
+					} else {
+						log.warn("Unsupported scheme. scheme : {}, url : {}", scheme, url);
 					}
 				}
 			}
@@ -553,8 +560,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param watch 監視対象指定。<code>true</code>の場合監視対象
 	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
 	 */
-	private void traverse(final Path path, final boolean watch, final boolean remove) {
-		log.debug("traverse start. path : {}, watch : {}, remove : {}", path, watch, remove);
+	private void traverseFile(final Path path, final boolean watch, final boolean remove) {
+		log.debug("traverseFile start. path : {}, watch : {}, remove : {}.", path, watch, remove);
 		if (Files.notExists(path)) {
 			return;
 		}
@@ -566,7 +573,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						watchDirs.put(key, path);
 					}
 					for (Path child : ds) {
-						traverse(child, watch, remove);
+						traverseFile(child, watch, remove);
 					}
 				} catch (IOException ex) {
 					throw new UroborosqlRuntimeException("I/O error occurred.", ex);
@@ -577,6 +584,55 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			this.sqlInfos.compute(sqlName,
 					(k, v) -> v == null ? new SqlInfo(sqlName, path, loadPaths, dialect, charset)
 							: v.computePath(path, remove));
+		}
+	}
+
+	/**
+	 * 指定されたjarのURL配下のファイルを順次追跡し、sqlInfosに格納を行う。<br>
+	 *
+	 * @param url 追跡を行うディレクトリ、またはファイルのURL
+	 * @param loadPath SQLファイルをロードするパス
+	 */
+	@SuppressWarnings("resource")
+	private void traverseJar(final URL url, final String loadPath) {
+		log.debug("traverseJar start. url : {}, loadPath : {}.", url, loadPath);
+
+		FileSystem fs = null;
+		try {
+			URI uri = url.toURI();
+			try {
+				fs = FileSystems.getFileSystem(uri);
+			} catch (FileSystemNotFoundException ex) {
+				Map<String, String> env = new HashMap<>();
+				env.put("create", "false");
+				fs = FileSystems.newFileSystem(uri, env);
+			}
+
+			JarURLConnection conn = (JarURLConnection) url.openConnection();
+			try (JarFile jarFile = conn.getJarFile()) {
+				Enumeration<JarEntry> jarEntries = jarFile.entries();
+				while (jarEntries.hasMoreElements()) {
+					JarEntry jarEntry = jarEntries.nextElement();
+					String name = jarEntry.getName();
+					if (!jarEntry.isDirectory() && name.startsWith(loadPath) && name.endsWith(fileExtension)) {
+						Path path = fs.getPath(name);
+						String sqlName = getSqlName(path);
+						this.sqlInfos.compute(sqlName, (k, v) -> v == null
+								? new SqlInfo(sqlName, path, loadPaths, dialect, charset)
+								: v.computePath(path, false));
+					}
+				}
+			}
+		} catch (IOException | URISyntaxException ex) {
+			throw new UroborosqlRuntimeException("I/O error occurred.", ex);
+		} finally {
+			if (fs != null) {
+				try {
+					fs.close();
+				} catch (IOException ex) {
+					throw new UroborosqlRuntimeException("I/O error occurred.", ex);
+				}
+			}
 		}
 	}
 
@@ -607,8 +663,14 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @param dialect dialect
 		 * @param charset charset
 		 */
-		SqlInfo(final String sqlName, final Path path, final List<Path> loadPaths, final Dialect dialect,
+		SqlInfo(final String sqlName,
+				final Path path,
+				final List<Path> loadPaths,
+				final Dialect dialect,
 				final Charset charset) {
+			super();
+			log.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
+					sqlName, path, dialect, charset);
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
@@ -624,10 +686,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @return 最終更新日時
 		 */
 		private static FileTime getLastModifiedTime(final Path path) {
-			try {
-				return Files.getLastModifiedTime(path);
-			} catch (IOException e) {
-				log.error("Can't get lastModifiedTime. path:" + path, e);
+			if (SCHEME_FILE.equalsIgnoreCase(path.toUri().getScheme())) {
+				try {
+					return Files.getLastModifiedTime(path);
+				} catch (IOException e) {
+					log.warn("Can't get lastModifiedTime. path:" + path, e);
+				}
 			}
 			return FileTime.fromMillis(0L);
 		}
@@ -672,30 +736,67 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 */
 		private String getSqlBody() {
 			if (sqlBody == null) {
-				var path = getPath();
-				if (Files.notExists(path)) {
-					throw new UroborosqlRuntimeException("SQL template could not found.["
-							+ path.toAbsolutePath().toString() + "]");
-				}
+				Path path = getPath();
+				String scheme = path.toUri().getScheme();
 
-				synchronized (sqlName) {
-					try {
-						var body = new String(Files.readAllBytes(path), charset).trim();
-						if (body.endsWith("/") && !body.endsWith("*/")) {
-							body = StringUtils.removeEnd(body, "/");
-						} else {
-							body = body + System.lineSeparator();
+				if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
+					// ファイルパスの場合
+					if (Files.notExists(path)) {
+						throw new UroborosqlRuntimeException("SQL template could not found.["
+								+ path.toAbsolutePath().toString() + "]");
+					}
+					synchronized (sqlName) {
+						try {
+							String body = new String(Files.readAllBytes(path), charset);
+							sqlBody = formatSqlBody(body);
+							log.debug("Loaded SQL template.[{}]", path);
+						} catch (IOException e) {
+							throw new UroborosqlRuntimeException("Failed to load SQL template["
+									+ path.toAbsolutePath().toString() + "].", e);
 						}
-						sqlBody = body;
-						log.debug("Loaded SQL template.[{}]", path);
-					} catch (IOException e) {
-						throw new UroborosqlRuntimeException("Failed to load SQL template["
-								+ path.toAbsolutePath().toString() + "].", e);
+					}
+				} else {
+					// jarパスの場合
+					URL url = Thread.currentThread().getContextClassLoader().getResource(getResourcePath(path));
+					if (url == null) {
+						throw new UroborosqlRuntimeException("SQL template could not found.["
+								+ path.toAbsolutePath().toString() + "]");
+					}
+					synchronized (sqlName) {
+						try {
+							URLConnection conn = url.openConnection();
+							try (BufferedReader reader = new BufferedReader(
+									new InputStreamReader(conn.getInputStream(), charset))) {
+								String body = reader.lines()
+										.collect(Collectors.joining(System.lineSeparator()));
+								sqlBody = formatSqlBody(body);
+								log.debug("Loaded SQL template.[{}]", path);
+							}
+						} catch (IOException e) {
+							throw new UroborosqlRuntimeException("Failed to load SQL template["
+									+ path.toAbsolutePath().toString() + "].", e);
+						}
 					}
 				}
 			}
 
 			return sqlBody;
+		}
+
+		/**
+		 * SQL文の不要な文字削除と末尾の改行文字付与を行う.
+		 *
+		 * @param sqlBody 元となるSQL文
+		 * @return 整形後のSQL文
+		 */
+		protected String formatSqlBody(final String sqlBody) {
+			String newBody = sqlBody.trim();
+			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
+				newBody = StringUtils.removeEnd(newBody, "/");
+			} else {
+				newBody = newBody + System.lineSeparator();
+			}
+			return newBody;
 		}
 
 		/**
@@ -716,18 +817,20 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					if (!remove) {
 						pathList.add(newPath);
 					}
-				} else if (remove) {
-					pathList.remove(newPath);
-					if (pathList.isEmpty()) {
-						// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
-						return null;
+				} else {
+					if (remove) {
+						pathList.remove(newPath);
+						if (pathList.isEmpty()) {
+							// pathListが空になった場合はこのSqlInfoをsqlInfosから除外するためにnullを返す
+							return null;
+						}
 					}
 				}
 
 				if (pathList.size() > 1) {
 					// 優先度が高いPathが先頭に来るようにソートを行う
 					// 1. Dialect付Pathを優先
-					// 2. file schemeをjar schemeよりも優先
+					// 2. file を jar よりも優先
 					// 3. Path同士のcompare
 					pathList.sort((p1, p2) -> {
 						if (p1 == null && p2 == null) {
@@ -801,10 +904,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					replaceFlag = true;
 					log.trace("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
 							oldPath, currentPath, currentTimeStamp.toString());
-				} else if (!this.lastModified.equals(currentTimeStamp)) {
-					replaceFlag = true;
-					log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
-							currentTimeStamp.toString());
+				} else {
+					if (!this.lastModified.equals(currentTimeStamp)) {
+						replaceFlag = true;
+						log.trace("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+								currentTimeStamp.toString());
+					}
 				}
 
 				if (replaceFlag) {
@@ -813,6 +918,29 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				}
 				return this;
 			}
+		}
+
+		/**
+		 * クラスローダーから取得する際のリソースパス（loadPathで始まるパス）を取得する.<br>
+		 * loadPathと一致する部分がなかった場合は、引数のpathの値をそのまま返却する
+		 *
+		 * @param path 計算対象のパス
+		 * @return クラスローダーから取得する際のリソースパス
+		 */
+		private String getResourcePath(final Path path) {
+			int pathSize = path.getNameCount();
+
+			for (Path loadPath : this.loadPaths) {
+				int loadPathSize = loadPath.getNameCount();
+
+				for (int i = 0; i < pathSize - loadPathSize; i++) {
+					Path subPath = path.subpath(i, i + loadPathSize);
+					if (loadPath.equals(subPath)) {
+						return path.subpath(i, pathSize).toString();
+					}
+				}
+			}
+			return path.toString(); // loadPathと一致しなかった場合はパスをそのまま返却する。
 		}
 	}
 }

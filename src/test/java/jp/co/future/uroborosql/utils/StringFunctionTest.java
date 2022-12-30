@@ -1,17 +1,16 @@
 package jp.co.future.uroborosql.utils;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import ognl.Ognl;
@@ -20,25 +19,25 @@ import ognl.OgnlContext;
 public class StringFunctionTest {
 	private StringFunction expressionFunction;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		expressionFunction = new StringFunction(new DefaultDialect());
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() throws Exception {
 	}
 
 	@Test
 	public void test() throws Exception {
 		Map<Object, Object> root = new HashMap<>();
-		var context = (OgnlContext) Ognl.createDefaultContext(root);
+		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val1", null);
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
 		Ognl.parseExpression("SF.isEmpty(val1)");
 
-		assertThat((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null), is(true));
+		assertTrue((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null));
 	}
 
 	@Test
@@ -55,16 +54,16 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.startsWith(Optional.of(123)), is("123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		var context = (OgnlContext) Ognl.createDefaultContext(root);
+		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.startsWith(val)"), context, root), is("abc%"));
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testStartsWithNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().startsWith("abc"));
+		new StringFunction().startsWith("abc");
 	}
 
 	@Test
@@ -81,16 +80,16 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.contains(Optional.of(123)), is("%123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		var context = (OgnlContext) Ognl.createDefaultContext(root);
+		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.contains(val)"), context, root), is("%abc%"));
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testContainsNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().contains("abc"));
+		new StringFunction().contains("abc");
 	}
 
 	@Test
@@ -107,16 +106,16 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.endsWith(Optional.of(123)), is("%123"));
 
 		Map<Object, Object> root = new HashMap<>();
-		var context = (OgnlContext) Ognl.createDefaultContext(root);
+		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
 		assertThat(Ognl.getValue(Ognl.parseExpression("SF.endsWith(val)"), context, root), is("%abc"));
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testEndsWithNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().endsWith("abc"));
+		new StringFunction().endsWith("abc");
 	}
 
 	@Test
@@ -428,9 +427,9 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.increment(Long.MAX_VALUE), is(Long.MIN_VALUE));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void testIncrementWithException() throws Exception {
-		assertThrows(IllegalArgumentException.class, () -> expressionFunction.increment(1f));
+		expressionFunction.increment(1f);
 	}
 
 }

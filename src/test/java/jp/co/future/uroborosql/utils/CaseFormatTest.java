@@ -3,10 +3,9 @@
  */
 package jp.co.future.uroborosql.utils;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * ConvertUtilsのテストクラス
@@ -18,103 +17,103 @@ public class CaseFormatTest {
 
 	@Test
 	public void testToUpperSnake() {
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("snake"), is("SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("convertToSnake"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("ConvertToSnake"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("convert_to_snake"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("CONVERT_TO_SNAKE"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("SNAKE"), is("SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert("toSnake"), is("TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert(null), is(""));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert(""), is(""));
-		assertThat(CaseFormat.UPPER_SNAKE_CASE.convert(" "), is(""));
+		assertEquals("SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("convertToSnake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("ConvertToSnake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("convert_to_snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("SNAKE"));
+		assertEquals("TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.UPPER_SNAKE_CASE.convert(null));
+		assertEquals("", CaseFormat.UPPER_SNAKE_CASE.convert(""));
+		assertEquals("", CaseFormat.UPPER_SNAKE_CASE.convert(" "));
 	}
 
 	@Test
 	public void testToLowerSnake() {
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("snake"), is("snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("convertToSnake"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("ConvertToSnake"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("convert_to_snake"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("CONVERT_TO_SNAKE"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("SNAKE"), is("snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert("toSnake"), is("to_snake"));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert(null), is(""));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert(""), is(""));
-		assertThat(CaseFormat.LOWER_SNAKE_CASE.convert(" "), is(""));
+		assertEquals("snake", CaseFormat.LOWER_SNAKE_CASE.convert("snake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("convertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("ConvertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("convert_to_snake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("snake", CaseFormat.LOWER_SNAKE_CASE.convert("SNAKE"));
+		assertEquals("to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.LOWER_SNAKE_CASE.convert(null));
+		assertEquals("", CaseFormat.LOWER_SNAKE_CASE.convert(""));
+		assertEquals("", CaseFormat.LOWER_SNAKE_CASE.convert(" "));
 	}
 
 	@Test
 	public void testToPascal() {
-		assertThat(CaseFormat.PASCAL_CASE.convert("PASCAL"), is("Pascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("CONVERT_TO_PASCAL"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("convert_to_pascal"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("convertToPascal"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("convert_to_pascal_"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("ConvertToPascal"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("convertToPascal"), is("ConvertToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("_TO_PASCAL"), is("ToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert("_TO_PASCAL_"), is("ToPascal"));
-		assertThat(CaseFormat.PASCAL_CASE.convert(null), is(""));
-		assertThat(CaseFormat.PASCAL_CASE.convert(""), is(""));
-		assertThat(CaseFormat.PASCAL_CASE.convert(" "), is(""));
+		assertEquals("Pascal", CaseFormat.PASCAL_CASE.convert("PASCAL"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("CONVERT_TO_PASCAL"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convert_to_pascal"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convertToPascal"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convert_to_pascal_"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("ConvertToPascal"));
+		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convertToPascal"));
+		assertEquals("ToPascal", CaseFormat.PASCAL_CASE.convert("_TO_PASCAL"));
+		assertEquals("ToPascal", CaseFormat.PASCAL_CASE.convert("_TO_PASCAL_"));
+		assertEquals("", CaseFormat.PASCAL_CASE.convert(null));
+		assertEquals("", CaseFormat.PASCAL_CASE.convert(""));
+		assertEquals("", CaseFormat.PASCAL_CASE.convert(" "));
 	}
 
 	@Test
 	public void testToCamel() {
-		assertThat(CaseFormat.CAMEL_CASE.convert("CAMEL"), is("camel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("CONVERT_TO_CAMEL"), is("convertToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("convert_to_camel"), is("convertToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("convertToCamel"), is("convertToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("ConvertToCamel"), is("convertToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("convert_to_camel_"), is("convertToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("_TO_CAMEL"), is("ToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert("_TO_CAMEL_"), is("ToCamel"));
-		assertThat(CaseFormat.CAMEL_CASE.convert(null), is(""));
-		assertThat(CaseFormat.CAMEL_CASE.convert(""), is(""));
-		assertThat(CaseFormat.CAMEL_CASE.convert(" "), is(""));
+		assertEquals("camel", CaseFormat.CAMEL_CASE.convert("CAMEL"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("CONVERT_TO_CAMEL"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convert_to_camel"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convertToCamel"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("ConvertToCamel"));
+		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convert_to_camel_"));
+		assertEquals("ToCamel", CaseFormat.CAMEL_CASE.convert("_TO_CAMEL"));
+		assertEquals("ToCamel", CaseFormat.CAMEL_CASE.convert("_TO_CAMEL_"));
+		assertEquals("", CaseFormat.CAMEL_CASE.convert(null));
+		assertEquals("", CaseFormat.CAMEL_CASE.convert(""));
+		assertEquals("", CaseFormat.CAMEL_CASE.convert(" "));
 	}
 
 	@Test
 	public void testToUpper() {
-		assertThat(CaseFormat.UPPER_CASE.convert("snake"), is("SNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("convertToSnake"), is("CONVERTTOSNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("ConvertToSnake"), is("CONVERTTOSNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("convert_to_snake"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("CONVERT_TO_SNAKE"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("SNAKE"), is("SNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert("toSnake"), is("TOSNAKE"));
-		assertThat(CaseFormat.UPPER_CASE.convert(null), is(""));
-		assertThat(CaseFormat.UPPER_CASE.convert(""), is(""));
-		assertThat(CaseFormat.UPPER_CASE.convert(" "), is(""));
+		assertEquals("SNAKE", CaseFormat.UPPER_CASE.convert("snake"));
+		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("convertToSnake"));
+		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("ConvertToSnake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_CASE.convert("convert_to_snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.UPPER_CASE.convert("SNAKE"));
+		assertEquals("TOSNAKE", CaseFormat.UPPER_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(null));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(""));
+		assertEquals("", CaseFormat.UPPER_CASE.convert(" "));
 	}
 
 	@Test
 	public void testToLower() {
-		assertThat(CaseFormat.LOWER_CASE.convert("snake"), is("snake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("convertToSnake"), is("converttosnake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("ConvertToSnake"), is("converttosnake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("convert_to_snake"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("CONVERT_TO_SNAKE"), is("convert_to_snake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("SNAKE"), is("snake"));
-		assertThat(CaseFormat.LOWER_CASE.convert("toSnake"), is("tosnake"));
-		assertThat(CaseFormat.LOWER_CASE.convert(null), is(""));
-		assertThat(CaseFormat.LOWER_CASE.convert(""), is(""));
-		assertThat(CaseFormat.LOWER_CASE.convert(" "), is(""));
+		assertEquals("snake", CaseFormat.LOWER_CASE.convert("snake"));
+		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("convertToSnake"));
+		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("ConvertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_CASE.convert("convert_to_snake"));
+		assertEquals("convert_to_snake", CaseFormat.LOWER_CASE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("snake", CaseFormat.LOWER_CASE.convert("SNAKE"));
+		assertEquals("tosnake", CaseFormat.LOWER_CASE.convert("toSnake"));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(null));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(""));
+		assertEquals("", CaseFormat.LOWER_CASE.convert(" "));
 	}
 
 	@Test
 	public void testNone() {
-		assertThat(CaseFormat.NONE.convert("snake"), is("snake"));
-		assertThat(CaseFormat.NONE.convert("convertToSnake"), is("convertToSnake"));
-		assertThat(CaseFormat.NONE.convert("ConvertToSnake"), is("ConvertToSnake"));
-		assertThat(CaseFormat.NONE.convert("convert_to_snake"), is("convert_to_snake"));
-		assertThat(CaseFormat.NONE.convert("CONVERT_TO_SNAKE"), is("CONVERT_TO_SNAKE"));
-		assertThat(CaseFormat.NONE.convert("SNAKE"), is("SNAKE"));
-		assertThat(CaseFormat.NONE.convert("toSnake"), is("toSnake"));
-		assertThat(CaseFormat.NONE.convert(null), is(""));
-		assertThat(CaseFormat.NONE.convert(""), is(""));
-		assertThat(CaseFormat.NONE.convert(" "), is(""));
+		assertEquals("snake", CaseFormat.NONE.convert("snake"));
+		assertEquals("convertToSnake", CaseFormat.NONE.convert("convertToSnake"));
+		assertEquals("ConvertToSnake", CaseFormat.NONE.convert("ConvertToSnake"));
+		assertEquals("convert_to_snake", CaseFormat.NONE.convert("convert_to_snake"));
+		assertEquals("CONVERT_TO_SNAKE", CaseFormat.NONE.convert("CONVERT_TO_SNAKE"));
+		assertEquals("SNAKE", CaseFormat.NONE.convert("SNAKE"));
+		assertEquals("toSnake", CaseFormat.NONE.convert("toSnake"));
+		assertEquals("", CaseFormat.NONE.convert(null));
+		assertEquals("", CaseFormat.NONE.convert(""));
+		assertEquals("", CaseFormat.NONE.convert(" "));
 	}
 
 }

@@ -15,7 +15,7 @@ public class TestAppender extends AbstractEncodedAppender<ILoggingEvent> {
 		void run() throws Exception;
 	}
 
-	public static List<String> getLogbackLogs(final TestRunnable runnable) throws Exception {
+	public static List<String> getLogbackLogs(TestRunnable runnable) throws Exception {
 		List<String> logs = new ArrayList<>();
 		try {
 			LOGS_LIST.set(logs);
@@ -28,14 +28,14 @@ public class TestAppender extends AbstractEncodedAppender<ILoggingEvent> {
 	}
 
 	@Override
-	protected void append(final byte[] encodedLog) {
-		var reader = new StringReader(toStringLog(encodedLog));
-		var bufferedReader = new BufferedReader(reader);
+	protected void append(byte[] encodedLog) {
+		StringReader reader = new StringReader(toStringLog(encodedLog));
+		BufferedReader bufferedReader = new BufferedReader(reader);
 		bufferedReader.lines().forEach(this::append);
 	}
 
-	private void append(final String encodedLog) {
-		var logs = LOGS_LIST.get();
+	private void append(String encodedLog) {
+		List<String> logs = LOGS_LIST.get();
 		if (logs != null) {
 			logs.add(encodedLog);
 		}

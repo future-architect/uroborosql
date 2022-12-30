@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -27,7 +27,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 	private SqlAgent agent;
 
 	@Override
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -40,7 +40,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 
 		agent = config.agent();
 
-		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -51,14 +51,14 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 		agent.commit();
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() throws Exception {
 		agent.close();
 	}
 
 	@Test
 	public void testComplete() throws Exception {
-		var completer = new TableNameCompleter(commands, config.getConnectionSupplier());
+		TableNameCompleter completer = new TableNameCompleter(commands, config.getConnectionSupplier());
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

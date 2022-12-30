@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -16,15 +16,17 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import jp.co.future.uroborosql.utils.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.fluent.SqlQuery;
 
 public class SecretResultSetTest {
 
@@ -32,7 +34,7 @@ public class SecretResultSetTest {
 	private static SqlFilterManager sqlFilterManager;
 	private static AbstractSecretColumnSqlFilter filter;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpClass() throws Exception {
 		sqlFilterManager = new SqlFilterManagerImpl();
 		filter = new SecretColumnSqlFilter();
@@ -51,8 +53,8 @@ public class SecretResultSetTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.setSqlFilterManager(sqlFilterManager.addSqlFilter(filter)).build();
 
-		try (var agent = config.agent()) {
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (SqlAgent agent = config.agent()) {
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -62,14 +64,14 @@ public class SecretResultSetTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
-		try (var agent = config.agent()) {
-			var dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
+		try (SqlAgent agent = config.agent()) {
+			LocalDateTime dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
 
 			agent.updateWith("truncate table PRODUCT").count();
 			agent.update("example/insert_product")
@@ -85,15 +87,15 @@ public class SecretResultSetTest {
 		}
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() throws Exception {
 	}
 
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testQuery() throws Exception {
-		try (var agent = config.agent()) {
-			try (var rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
+		try (SqlAgent agent = config.agent()) {
+			try (ResultSet rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
 				assertThat(rs.next(), is(true));
 				assertThat(rs.getString("PRODUCT_ID"), is("1"));
 				assertThat(rs.getString(1), is("1"));
@@ -164,23 +166,23 @@ public class SecretResultSetTest {
 				assertThat(rs.getConcurrency(), is(1007));
 				assertThat(rs.getMetaData().getColumnCount(), is(8));
 				rs.clearWarnings();
-				assertThat(rs.getWarnings(), is(nullValue()));
+				assertNull(rs.getWarnings());
 			}
 		}
 	}
 
 	@Test
 	public void testUpdate() throws Exception {
-		try (var agent = config.agent()) {
-			var query = agent.query("example/select_product").param("product_id", 1);
+		try (SqlAgent agent = config.agent()) {
+			SqlQuery query = agent.query("example/select_product").param("product_id", 1);
 			query.context().setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-			try (var rs = query.resultSet()) {
+			try (ResultSet rs = query.resultSet()) {
 				assertThat(rs.next(), is(true));
 				rs.updateNull("PRODUCT_KANA_NAME");
 				rs.updateNull(2);
 				rs.updateRow();
-				assertThat(rs.getString("PRODUCT_KANA_NAME"), is(nullValue()));
-				assertThat(rs.getString(2), is(nullValue()));
+				assertNull(rs.getString("PRODUCT_KANA_NAME"));
+				assertNull(rs.getString(2));
 
 				rs.updateBoolean("PRODUCT_KANA_NAME", true);
 				rs.updateBoolean(2, false);
@@ -265,7 +267,7 @@ public class SecretResultSetTest {
 
 	@Test
 	public void testIsClose() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			ResultSet rs = null;
 			try {
 				rs = agent.query("example/select_product").param("product_id", 1).resultSet();

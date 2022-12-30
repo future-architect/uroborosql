@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.mapping;
 
-import java.util.Objects;
-
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
@@ -56,7 +54,12 @@ public class TestEntityFieldIncrementLockVersion {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, lockVersion, name);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (id == null ? 0 : id.hashCode());
+		result = prime * result + lockVersion;
+		result = prime * result + (name == null ? 0 : name.hashCode());
+		return result;
 	}
 
 	@Override
@@ -70,14 +73,22 @@ public class TestEntityFieldIncrementLockVersion {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		var other = (TestEntityFieldIncrementLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
+		TestEntityFieldIncrementLockVersion other = (TestEntityFieldIncrementLockVersion) obj;
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
 		}
 		if (lockVersion != other.lockVersion) {
 			return false;
 		}
-		if (!Objects.equals(name, other.name)) {
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
 		}
 		return true;

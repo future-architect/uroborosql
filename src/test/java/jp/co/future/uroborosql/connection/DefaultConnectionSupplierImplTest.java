@@ -1,12 +1,12 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Testcase of {@link DefaultConnectionSupplierImpl}
@@ -17,24 +17,24 @@ public class DefaultConnectionSupplierImplTest {
 
 	@Test
 	public void testDefaultConnectionSupplierImpl() throws Exception {
-		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		var user = "";
-		var password = "";
-		var conn = DriverManager.getConnection(url, user, password);
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+		Connection conn = DriverManager.getConnection(url, user, password);
 
-		var supplier = new DefaultConnectionSupplierImpl(conn);
+		DefaultConnectionSupplierImpl supplier = new DefaultConnectionSupplierImpl(conn);
 		assertThat(supplier.getConnection(), instanceOf(CloseIgnoringConnectionWrapper.class));
 	}
 
-	@Test
+	@Test(expected = UnsupportedOperationException.class)
 	public void testGetConnectionWithProps() throws Exception {
-		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		var user = "";
-		var password = "";
-		var conn = DriverManager.getConnection(url, user, password);
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+		Connection conn = DriverManager.getConnection(url, user, password);
 
-		var supplier = new DefaultConnectionSupplierImpl(conn);
-		assertThrows(UnsupportedOperationException.class, () -> supplier.getConnection(null));
+		DefaultConnectionSupplierImpl supplier = new DefaultConnectionSupplierImpl(conn);
+		supplier.getConnection(null);
 	}
 
 }

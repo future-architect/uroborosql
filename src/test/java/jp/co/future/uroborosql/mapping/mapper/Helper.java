@@ -23,21 +23,21 @@ class Helper {
 			throw new IllegalArgumentException();
 		}
 
-		var wasNull = ResultSet.class.getMethod("wasNull");
+		Method wasNull = ResultSet.class.getMethod("wasNull");
 
 		Map<Method, Object> values = new LinkedHashMap<>();
-		for (var i = 0; i < defs.length; i += 2) {
-			var methodName = defs[i].toString();
-			var target = methodName.equals("wasNull") ? wasNull
+		for (int i = 0; i < defs.length; i += 2) {
+			String methodName = defs[i].toString();
+			Method target = methodName.equals("wasNull") ? wasNull
 					: ResultSet.class.getMethod(methodName, int.class);
-			var value = defs[i + 1];
+			Object value = defs[i + 1];
 			values.put(target, value);
 			if (!methodName.equals("wasNull") && value instanceof String) {
 				values.put(ResultSet.class.getMethod("getString", int.class), value);
 			}
 		}
 
-		var flg = new AtomicBoolean(false);
+		AtomicBoolean flg = new AtomicBoolean(false);
 
 		return (ResultSet) Proxy.newProxyInstance(Helper.class.getClassLoader(), new Class[] { ResultSet.class },
 				(proxy, method, args) -> {
@@ -45,7 +45,7 @@ class Helper {
 						return newResultSetMetaData(new ArrayList<>(values.values()));
 					}
 					if (values.containsKey(method)) {
-						var o = values.get(method);
+						Object o = values.get(method);
 						flg.set(o == null);
 						return o;
 					}
@@ -63,7 +63,7 @@ class Helper {
 				new Class[] { ResultSetMetaData.class },
 				(proxy, method, args) -> {
 					if (method.getName().equals("getColumnType")) {
-						var columnIndex = (int) args[0] - 1;
+						int columnIndex = (int) args[0] - 1;
 						if (values.get(columnIndex) instanceof String) {
 							return Types.VARCHAR;
 						} else {
@@ -81,7 +81,7 @@ class Helper {
 
 	@SuppressWarnings("unchecked")
 	public static <I> I newProxy(final Class<I> interfaceType) {
-		var o = new Object();
+		Object o = new Object();
 
 		Method getOriginal;
 		try {
@@ -90,7 +90,7 @@ class Helper {
 			throw new AssertionError(e);
 		}
 
-		var proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
 					if (getOriginal.equals(method)) {
 						return o;

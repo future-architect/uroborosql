@@ -32,6 +32,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	 * コンストラクタ
 	 */
 	public OgnlExpressionParser() {
+		super();
 	}
 
 	/**

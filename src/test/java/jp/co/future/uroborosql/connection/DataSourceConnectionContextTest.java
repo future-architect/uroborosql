@@ -1,18 +1,17 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.sql.Connection;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class DataSourceConnectionContextTest {
 
 	@Test
 	public void testDataSourceConnectionContext() {
-		var ctx = ConnectionContextBuilder.dataSource();
+		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
@@ -21,21 +20,21 @@ public class DataSourceConnectionContextTest {
 
 	@Test
 	public void testDataSourceConnectionContextWithDataSourceName() {
-		var ctx = ConnectionContextBuilder.dataSource("dataSourceName");
+		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource("dataSourceName");
 		assertThat(ctx.dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void testDataSourceConnectionContextWithDataSourceNameNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource(null));
+		ConnectionContextBuilder.dataSource(null);
 	}
 
 	@Test
 	public void testSetter() {
-		var ctx = ConnectionContextBuilder.dataSource();
+		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.dataSourceName("dataSourceName").dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(true).autoCommit(), is(true));
@@ -44,8 +43,8 @@ public class DataSourceConnectionContextTest {
 				is(Connection.TRANSACTION_REPEATABLE_READ));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void testSetDataSourceNameNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource().dataSourceName(null));
+		ConnectionContextBuilder.dataSource().dataSourceName(null);
 	}
 }

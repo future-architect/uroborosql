@@ -18,6 +18,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.converter.SingleColumnResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -258,8 +259,42 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(
-				new EntityResultSetConverter<>(type, new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
+		if (type == null) {
+			throw new IllegalArgumentException("Argument 'type' is required.");
+		}
+		PropertyMapperManager manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
+		if (SingleColumnResultSetConverter.accept(type)) {
+			return stream(new SingleColumnResultSetConverter<>(null, type, manager));
+		} else {
+			return stream(new EntityResultSetConverter<>(context().getSchema(), type, manager));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.Class)
+	 */
+	@Override
+	public <T> Stream<T> select(Class<T> type) {
+		return select(null, type);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.String, java.lang.Class)
+	 */
+	@Override
+	public <T> Stream<T> select(String col, Class<T> type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Argument 'type' is required.");
+		}
+		if (!SingleColumnResultSetConverter.accept(type)) {
+			throw new IllegalArgumentException(type.getName() + " is not supported.");
+		}
+		return stream(new SingleColumnResultSetConverter<>(col, type,
+				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
 	}
 
 }

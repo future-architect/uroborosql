@@ -1,9 +1,10 @@
 package jp.co.future.uroborosql.parameter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -16,11 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -28,7 +31,7 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 public class ParameterTest {
 	private SqlConfig config;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:ParameterTest", null, null).build();
 	}
@@ -36,11 +39,11 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_mapperForDate() throws ParseException, SQLException {
 
-		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
 
-			try (var rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
 				assertThat(rs.getDate("TARGET_DATE"), is(new java.sql.Date(date.getTime())));
 
@@ -52,12 +55,12 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
 
-		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
-		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
+		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
 
-			try (var rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
 				assertThat(rs.getDate("TARGET_DATE"), is(new java.sql.Date(date.getTime())));
 
@@ -70,12 +73,12 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
 
-		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
-		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
+		LocalDate localDate = LocalDate.of(2002, Month.JANUARY, 1);
+		Date date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
 
-			try (var rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
 				assertThat(rs.getDate("TARGET_DATE"), is(new java.sql.Date(date.getTime())));
 
@@ -103,10 +106,10 @@ public class ParameterTest {
 			}
 		});
 
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING2").param("targetStr", param);
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("test/PARAM_MAPPING2").param("targetStr", param);
 
-			try (var rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
 				assertThat(rs.getString("TARGET_STR"), is("123"));
 
@@ -123,10 +126,10 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_array() throws SQLException {
 
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
 
-			try (var rs = agent.query(ctx)) {
+			try (ResultSet rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
 				assertThat(rs.getString("TARGET_STR"), is("1"));
 				assertThat(rs.next(), is(true));
@@ -147,7 +150,7 @@ public class ParameterTest {
 	@Test
 	public void testSetInParameter_bytearray() throws SQLException {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
 
 			assertThat("更新件数が一致しません",
@@ -160,17 +163,17 @@ public class ParameterTest {
 	@Test
 	public void testSetParameter_subParameter() throws ParseException, SQLException {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 
-			var bean = new ColumnTypeTest("test", 'A', 10, true, new Timestamp(System.currentTimeMillis()),
+			ColumnTypeTest bean = new ColumnTypeTest("test", 'A', 10, true, new Timestamp(System.currentTimeMillis()),
 					new Date(), Time.valueOf("10:20:30"));
 			agent.insert(bean);
 
-			var sql = "select * from COLUMN_TYPE_TEST WHERE 1 = 1 /*IF bean.colVarchar != null*/ AND COL_VARCHAR = /*bean.colVarchar*//*END*//*IF bean.colBoolean != null*/ AND COL_BOOLEAN = /*bean.colBoolean*//*END*/";
+			String sql = "select * from COLUMN_TYPE_TEST WHERE 1 = 1 /*IF bean.colVarchar != null*/ AND COL_VARCHAR = /*bean.colVarchar*//*END*//*IF bean.colBoolean != null*/ AND COL_BOOLEAN = /*bean.colBoolean*//*END*/";
 			List<Map<String, Object>> list = null;
 
-			var child1 = new ColumnTypeChild("test", 'X', 0, null, null, null, null);
+			ColumnTypeChild child1 = new ColumnTypeChild("test", 'X', 0, null, null, null, null);
 			list = agent.queryWith(sql).param("bean", child1).collect();
 			assertThat(list.size(), is(1));
 			assertThat(list.get(0).get("COL_VARCHAR"), is("test"));
@@ -180,7 +183,7 @@ public class ParameterTest {
 			list = agent.queryWith(sql).param("bean", child1).collect();
 			assertThat(list.size(), is(0));
 
-			var child2 = new ColumnTypeChild(null, 'X', 0, true, null, null, null);
+			ColumnTypeChild child2 = new ColumnTypeChild(null, 'X', 0, true, null, null, null);
 			list = agent.queryWith(sql).param("bean", child2).collect();
 			assertThat(list.size(), is(1));
 			assertThat(list.get(0).get("COL_VARCHAR"), is("test"));
@@ -205,6 +208,7 @@ public class ParameterTest {
 		public ColumnTypeTest(final String colVarchar, final char colChar, final int colNumeric,
 				final Boolean colBoolean,
 				final Timestamp colTimestamp, final Date colDate, final Time colTime) {
+			super();
 			this.colVarchar = colVarchar;
 			this.colChar = colChar;
 			this.colNumeric = colNumeric;

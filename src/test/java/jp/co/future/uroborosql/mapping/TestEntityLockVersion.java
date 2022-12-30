@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.mapping;
 
-import java.util.Objects;
-
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
@@ -10,7 +8,7 @@ public class TestEntityLockVersion {
 	private Long id;
 	private String name;
 	@Version
-	private int lockVersion = 0;
+	private Integer lockVersion = 0;
 
 	public TestEntityLockVersion() {
 	}
@@ -46,17 +44,22 @@ public class TestEntityLockVersion {
 		this.name = name;
 	}
 
-	public int getLockVersion() {
+	public Integer getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final int lockVersion) {
+	public void setLockVersion(final Integer lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, lockVersion, name);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (id == null ? 0 : id.hashCode());
+		result = prime * result + lockVersion;
+		result = prime * result + (name == null ? 0 : name.hashCode());
+		return result;
 	}
 
 	@Override
@@ -70,14 +73,22 @@ public class TestEntityLockVersion {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		var other = (TestEntityLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
+		TestEntityLockVersion other = (TestEntityLockVersion) obj;
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
 		}
 		if (lockVersion != other.lockVersion) {
 			return false;
 		}
-		if (!Objects.equals(name, other.name)) {
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
 		}
 		return true;

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.client.command.ReplCommand;
 public class ReplCommandCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
 		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
@@ -25,7 +25,7 @@ public class ReplCommandCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		var completer = new ReplCommandCompleter(commands);
+		ReplCommandCompleter completer = new ReplCommandCompleter(commands);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

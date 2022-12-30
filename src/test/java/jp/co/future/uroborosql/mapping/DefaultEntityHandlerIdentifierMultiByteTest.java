@@ -1,16 +1,19 @@
 package jp.co.future.uroborosql.mapping;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Objects;
+import java.sql.Statement;
+import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
@@ -53,7 +56,11 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(id, name);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			return result;
 		}
 
 		@Override
@@ -67,11 +74,15 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (TestEntity) obj;
+			TestEntity other = (TestEntity) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(name, other.name)) {
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
 				return false;
 			}
 			return true;
@@ -84,16 +95,16 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 
 	}
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:DefaultEntityHandlerBuildSqlTest;DB_CLOSE_DELAY=-1";
+		String url = "jdbc:h2:mem:DefaultEntityHandlerBuildSqlTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists \"日本語table\"");
 				stmt.execute(
 						"create table if not exists \"日本語table\"( \"Id\" NUMERIC(4),\"Name\" VARCHAR(10), primary key(\"Id\"))");
@@ -105,9 +116,9 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 				.build();
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from \"日本語table\"").count();
 			agent.commit();
 		}
@@ -116,15 +127,15 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
+				TestEntity test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				var test2 = new TestEntity(2, "name2");
+				TestEntity test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				var test3 = new TestEntity(3, "name3");
+				TestEntity test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -138,16 +149,16 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testQuery1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
+				TestEntity test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				var test2 = new TestEntity(2, "name2");
+				TestEntity test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				var test3 = new TestEntity(3, "name3");
+				TestEntity test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity.class).collect();
+				List<TestEntity> list = agent.query(TestEntity.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -163,15 +174,15 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testUpdate1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test = new TestEntity(1, "name1");
+				TestEntity test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -181,12 +192,12 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testDelete1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test = new TestEntity(1, "name1");
+				TestEntity test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -200,16 +211,16 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testBatchInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
-				var test2 = new TestEntity(2, "name2");
-				var test3 = new TestEntity(3, "name3");
+				TestEntity test1 = new TestEntity(1L, "name1");
+				TestEntity test2 = new TestEntity(2L, "name2");
+				TestEntity test3 = new TestEntity(3L, "name3");
 
-				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
+				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -223,16 +234,16 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	@Test
 	public void testBulkInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
-				var test2 = new TestEntity(2, "name2");
-				var test3 = new TestEntity(3, "name3");
+				TestEntity test1 = new TestEntity(1L, "name1");
+				TestEntity test2 = new TestEntity(2L, "name2");
+				TestEntity test3 = new TestEntity(3L, "name3");
 
-				var count = agent.inserts(Stream.of(test1, test2, test3));
+				int count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));
 
-				var data = agent.find(TestEntity.class, 1).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));

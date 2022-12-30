@@ -8,6 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
+import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
@@ -53,6 +55,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private ForUpdateType forUpdateType;
 	private int waitSeconds;
 
+	private final List<String> includeColumns;
+	private final List<String> excludeColumns;
+
 	/**
 	 * Constructor
 	 *
@@ -69,11 +74,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.entityType = entityType;
 		this.sortOrders = new ArrayList<>();
 		this.optimizerHints = new ArrayList<>();
+		this.dialect = agent.getSqlConfig().getDialect();
 		this.limit = -1;
 		this.offset = -1;
 		this.forUpdateType = null;
 		this.waitSeconds = -1;
-		this.dialect = agent.getSqlConfig().getDialect();
+		this.includeColumns = new ArrayList<>();
+		this.excludeColumns = new ArrayList<>();
 	}
 
 	/**
@@ -124,7 +131,33 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Stream<E> stream() {
 		try {
-			var sql = new StringBuilder(context().getSql()).append(getWhereClause())
+			String selectClause = context().getSql();
+			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
+				// 除外対象カラムを取得する
+				List<? extends TableMetadata.Column> excludeCols = Collections.emptyList();
+				if (!includeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+					if (excludeCols.size() == tableMetadata.getColumns().size()) {
+						// includeColumnsに含まれるカラムが1つもselect句に含まれない場合は実行時例外とする
+						throw new UroborosqlRuntimeException("None of the includeColumns matches the column name.");
+					}
+				} else if (!excludeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+				}
+				if (!excludeCols.isEmpty()) {
+					// 除外対象カラムをselect句から除外する置換処理を行う
+					selectClause = selectClause.replaceAll(excludeCols.stream()
+							.map(TableMetadata.Column::getColumnIdentifier)
+							.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
+					// SELECT句の直後にカンマがくる場合はそのカンマを除外する
+					selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
+				}
+			}
+			StringBuilder sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
@@ -155,6 +188,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException(
 						"field:" + fieldName + " not found in " + entityType.getSimpleName() + "."));
+		includeColumns(fieldName);
 
 		return stream().map(e -> type.cast(BeanAccessor.value(field, e)));
 	}
@@ -218,8 +252,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T sum(final String col) {
-		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -229,8 +263,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
-		var column = tableMetadata.getColumn(camelColumnName);
-		var sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -253,10 +287,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T min(final String col) {
-		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
-		var column = tableMetadata.getColumn(camelColumnName);
-		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -279,10 +313,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T max(final String col) {
-		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
-		var column = tableMetadata.getColumn(camelColumnName);
-		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
+		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
+		StringBuilder sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -559,6 +593,36 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			this.optimizerHints.add(hint);
 		} else {
 			log.warn("Optimizer Hints is not supported.");
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#includeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> includeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (String col : cols) {
+				includeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#excludeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> excludeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (String col : cols) {
+				excludeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
 		}
 		return this;
 	}

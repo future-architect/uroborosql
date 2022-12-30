@@ -14,10 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Test;
-
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
+
+import org.junit.Test;
 
 /**
  * エラーハンドリングのテスト
@@ -31,22 +32,23 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(executionContext.getExecutableSql()));
-				return super.doQuery(executionContext, preparedStatement, resultSet);
+				querys.add(toLines(ExecutionContext.getExecutableSql()));
+				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product").collect();
 		}
@@ -61,22 +63,23 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(executionContext.getExecutableSql()));
-				return super.doQuery(executionContext, preparedStatement, resultSet);
+				querys.add(toLines(ExecutionContext.getExecutableSql()));
+				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}
@@ -90,23 +93,24 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
-			public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 					final ResultSet resultSet)
 					throws SQLException {
-				querys.add(toLines(executionContext.getExecutableSql()));
-				return super.doQuery(executionContext, preparedStatement, resultSet);
+				querys.add(toLines(ExecutionContext.getExecutableSql()));
+				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
 			}
 
 		});
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}

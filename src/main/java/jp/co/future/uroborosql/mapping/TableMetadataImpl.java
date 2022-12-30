@@ -32,6 +32,7 @@ public class TableMetadataImpl implements TableMetadata {
 		private Integer keySeq = null;
 		private final String identifierQuoteString;
 		private final String remarks;
+		private final String columnDefault;
 		private final boolean nullable;
 		private final boolean autoincrement;
 		private final boolean version;
@@ -45,6 +46,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param dataType データタイプ
 		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
+		 * @param columnDefault カラムのデフォルト値. nullの可能性もある
 		 * @param nullable NULL可かどうか
 		 * @param autoincrement 自動インクリメントされるかどうか
 		 * @param version バージョンカラムかどうか
@@ -56,14 +58,24 @@ public class TableMetadataImpl implements TableMetadata {
 				final SQLType dataType,
 				final int columnSize,
 				final String remarks,
+				final String columnDefault,
 				final String nullable,
 				final String autoincrement,
 				final boolean version,
 				final Class<? extends OptimisticLockSupplier> optimisticLockType,
 				final int ordinalPosition,
 				final String identifierQuoteString) {
-			this(columnName, dataType.getVendorTypeNumber(), columnSize, remarks, nullable, autoincrement, version,
-					optimisticLockType, ordinalPosition, identifierQuoteString);
+			this(columnName,
+					dataType.getVendorTypeNumber(),
+					columnSize,
+					remarks,
+					columnDefault,
+					nullable,
+					autoincrement,
+					version,
+					optimisticLockType,
+					ordinalPosition,
+					identifierQuoteString);
 		}
 
 		/**
@@ -73,6 +85,7 @@ public class TableMetadataImpl implements TableMetadata {
 		 * @param dataType データタイプ
 		 * @param columnSize カラムサイズ
 		 * @param remarks コメント文字列
+		 * @param columnDefault カラムのデフォルト値. nullの可能性もある
 		 * @param nullable NULL可かどうか
 		 * @param autoincrement 自動インクリメントされるかどうか
 		 * @param version バージョンカラムかどうか
@@ -84,6 +97,7 @@ public class TableMetadataImpl implements TableMetadata {
 				final int dataType,
 				final int columnSize,
 				final String remarks,
+				final String columnDefault,
 				final String nullable,
 				final String autoincrement,
 				final boolean version,
@@ -94,6 +108,7 @@ public class TableMetadataImpl implements TableMetadata {
 			this.dataType = dataType;
 			this.columnSize = columnSize;
 			this.remarks = remarks;
+			this.columnDefault = columnDefault;
 			this.nullable = "YES".equalsIgnoreCase(nullable);
 			this.autoincrement = "YES".equalsIgnoreCase(autoincrement);
 			this.version = version;
@@ -208,6 +223,16 @@ public class TableMetadataImpl implements TableMetadata {
 		@Override
 		public String getRemarks() {
 			return this.remarks;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.mapping.TableMetadata.Column#getColumnDefault()
+		 */
+		@Override
+		public String getColumnDefault() {
+			return this.columnDefault;
 		}
 
 		/**
@@ -336,7 +361,7 @@ public class TableMetadataImpl implements TableMetadata {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setSchema(java.lang.String)
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setSchema(String)
 	 */
 	@Override
 	public void setSchema(final String schema) {
@@ -357,7 +382,7 @@ public class TableMetadataImpl implements TableMetadata {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setIdentifierQuoteString(java.lang.String)
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#setIdentifierQuoteString(String)
 	 */
 	@Override
 	public void setIdentifierQuoteString(final String identifierQuoteString) {
@@ -388,7 +413,7 @@ public class TableMetadataImpl implements TableMetadata {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getColumn(java.lang.String)
+	 * @see jp.co.future.uroborosql.mapping.TableMetadata#getColumn(String)
 	 */
 	@Override
 	public TableMetadata.Column getColumn(final String camelColumnName) {

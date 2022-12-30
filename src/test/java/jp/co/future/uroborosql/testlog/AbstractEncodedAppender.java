@@ -42,7 +42,7 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 	 *
 	 * @param encoder {@code <encoder>}
 	 */
-	public void setEncoder(final Encoder<E> encoder) {
+	public void setEncoder(Encoder<E> encoder) {
 		this.encoder = encoder;
 	}
 
@@ -52,8 +52,8 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 	 *
 	 * @param layout {@code <layout>}
 	 */
-	public void setLayout(final Layout<E> layout) {
-		var lwe = new LayoutWrappingEncoder<E>();
+	public void setLayout(Layout<E> layout) {
+		LayoutWrappingEncoder<E> lwe = new LayoutWrappingEncoder<>();
 		lwe.setLayout(layout);
 		lwe.setContext(this.context);
 		this.encoder = lwe;
@@ -70,7 +70,7 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 	}
 
 	@Override
-	protected final void append(final E eventObject) {
+	protected final void append(E eventObject) {
 		subAppend(eventObject);
 	}
 
@@ -87,8 +87,8 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 	 * @param encodedLog ログbyte配列
 	 * @return 変換後文字列
 	 */
-	protected String toStringLog(final byte[] encodedLog) {
-		var s = new String(encodedLog, getCharset());
+	protected String toStringLog(byte[] encodedLog) {
+		String s = new String(encodedLog, getCharset());
 		if (s.endsWith(CoreConstants.LINE_SEPARATOR)) {
 			s = s.substring(0, s.length() - CoreConstants.LINE_SEPARATOR.length());
 		}
@@ -115,7 +115,7 @@ public abstract class AbstractEncodedAppender<E> extends UnsynchronizedAppenderB
 		super.stop();
 	}
 
-	private void subAppend(final E event) {
+	private void subAppend(E event) {
 		if (event instanceof DeferredProcessingAware) {
 			((DeferredProcessingAware) event).prepareForDeferredProcessing();
 		}

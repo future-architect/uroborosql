@@ -288,9 +288,13 @@ public abstract class AbstractAgent implements SqlAgent {
 			}
 		}
 
-		LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
-				System.lineSeparator());
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
+					System.lineSeparator());
+		}
 	}
 
 	/**
@@ -451,6 +455,26 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void savepointScope(final SQLRunnable runnable) {
 		transactionManager.savepointScope(runnable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 */
+	@Override
+	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
+		return transactionManager.autoCommitScope(supplier);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 */
+	@Override
+	public void autoCommitScope(final SQLRunnable runnable) {
+		transactionManager.autoCommitScope(runnable);
 	}
 
 	/**

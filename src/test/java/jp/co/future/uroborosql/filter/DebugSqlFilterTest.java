@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,16 +22,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.testlog.TestAppender;
+
 import jp.co.future.uroborosql.utils.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class DebugSqlFilterTest {
 
@@ -39,16 +39,16 @@ public class DebugSqlFilterTest {
 
 	private SqlAgent agent;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws SQLException, IOException {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DebugSqlFilterTest")).build();
-		var sqlFilterManager = config.getSqlFilterManager();
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new DebugSqlFilter());
 		sqlFilterManager.initialize();
 
 		agent = config.agent();
 
-		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -57,7 +57,9 @@ public class DebugSqlFilterTest {
 		}
 	}
 
-	@AfterEach
+	;
+
+	@After
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -67,9 +69,9 @@ public class DebugSqlFilterTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				var parts = line.split("\t");
+				String[] parts = line.split("\t");
 				for (String part : parts) {
-					var keyValue = part.split(":", 2);
+					String[] keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -87,33 +89,33 @@ public class DebugSqlFilterTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
 	private void cleanInsert(final Path path) {
-		var dataList = getDataFromFile(path);
+		List<Map<String, Object>> dataList = getDataFromFile(path);
 
 		try {
 			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-					.forEach(this::truncateTable);
+					.forEach(tbl -> truncateTable(tbl));
 
 			dataList.stream().forEach(map -> {
 				try {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -121,7 +123,7 @@ public class DebugSqlFilterTest {
 	public void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var log = TestAppender.getLogbackLogs(() -> {
+		List<String> log = TestAppender.getLogbackLogs(() -> {
 			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal("0"))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
@@ -138,7 +140,7 @@ public class DebugSqlFilterTest {
 	@Test
 	public void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
-		var log = TestAppender.getLogbackLogs(() -> {
+		List<String> log = TestAppender.getLogbackLogs(() -> {
 			ExecutionContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
 					.param("_userName", "testUserName").param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
@@ -155,8 +157,8 @@ public class DebugSqlFilterTest {
 	@Test
 	public void testExecuteBatchFilter() throws Exception {
 		truncateTable("product");
-		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
-		var log = TestAppender.getLogbackLogs(() -> {
+		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		List<String> log = TestAppender.getLogbackLogs(() -> {
 			ExecutionContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
 					.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
 					.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
@@ -177,10 +179,10 @@ public class DebugSqlFilterTest {
 	}
 
 	public void assertFile(final String expectedFilePath, final String actualFilePath) throws IOException {
-		var expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
-		var actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
+		String expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
+		String actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
 
-		assertThat(actual, is(expected));
+		assertEquals(expected, actual);
 	}
 
 }

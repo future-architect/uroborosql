@@ -74,7 +74,7 @@ public class TestConsts {
 
 	@SuppressWarnings("unchecked")
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		var o = new Object();
+		Object o = new Object();
 
 		Method getOriginal;
 		try {
@@ -83,7 +83,7 @@ public class TestConsts {
 			throw new AssertionError(e);
 		}
 
-		var proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
 					if (getOriginal.equals(method)) {
 						return o;

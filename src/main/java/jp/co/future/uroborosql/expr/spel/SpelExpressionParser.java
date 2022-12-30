@@ -38,6 +38,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	 * コンストラクタ
 	 */
 	public SpelExpressionParser() {
+		super();
 	}
 
 	/**
@@ -171,14 +172,17 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 */
 		private void traverseNode(final SpelNode node, final Set<PropertyOrFieldReference> props) {
 			if (node == null) {
-			} else if (node instanceof PropertyOrFieldReference) {
-				var prop = (PropertyOrFieldReference) node;
-				props.add(prop);
+				return;
 			} else {
-				var childCount = node.getChildCount();
-				for (var i = 0; i < childCount; i++) {
-					var child = node.getChild(i);
-					traverseNode(child, props);
+				if (node instanceof PropertyOrFieldReference) {
+					var prop = (PropertyOrFieldReference) node;
+					props.add(prop);
+				} else {
+					var childCount = node.getChildCount();
+					for (var i = 0; i < childCount; i++) {
+						var child = node.getChild(i);
+						traverseNode(child, props);
+					}
 				}
 			}
 		}

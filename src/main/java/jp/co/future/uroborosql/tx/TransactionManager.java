@@ -120,4 +120,20 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param runnable 実行する処理
 	 */
 	void savepointScope(SQLRunnable runnable);
+
+	/**
+	 * AutoCommit=trueに設定したコネクションを使用してsupplierの内容を実行する.
+	 *
+	 * @param supplier トランザクション内で実行する処理
+	 * @param <R> 結果の型
+	 * @return 処理の結果
+	 */
+	<R> R autoCommitScope(SQLSupplier<R> supplier);
+
+	/**
+	 * AutoCommit=trueに設定したコネクションを使用してrunnableの内容を実行する.
+	 *
+	 * @param runnable トランザクション内で実行する処理
+	 */
+	void autoCommitScope(SQLRunnable runnable);
 }

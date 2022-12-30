@@ -33,6 +33,7 @@ public class MetaTable implements Table {
 	 */
 	public MetaTable(final String name, final String schema, final String versionColumnName,
 			final String optimisticLockSupplierClassName) {
+		super();
 		this.name = name;
 		this.schema = schema;
 		this.versionColumnName = versionColumnName;

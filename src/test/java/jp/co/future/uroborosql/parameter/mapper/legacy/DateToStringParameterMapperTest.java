@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 
@@ -19,28 +19,28 @@ public class DateToStringParameterMapperTest {
 
 	@Test
 	public void test() throws ParseException {
-		var mapper = new DateToStringParameterMapper();
-		var clock = Clock.systemDefaultZone();
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
+		Clock clock = Clock.systemDefaultZone();
 		mapper.setClock(clock);
 		assertThat(mapper.getClock(), is(clock));
 
-		var date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 
 		assertThat(mapper.toJdbc(date, null, null), is("20000101"));
 	}
 
 	@Test
 	public void testSqlDate() throws ParseException {
-		var mapper = new DateToStringParameterMapper();
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
-		var date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
-		var sqlDate = new java.sql.Date(date.getTime());
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		java.sql.Date sqlDate = new java.sql.Date(date.getTime());
 		assertThat(mapper.toJdbc(sqlDate, null, null), is("20000101"));
 	}
 
 	@Test
 	public void testCanAccept() throws Exception {
-		var mapper = new DateToStringParameterMapper();
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
 
 		assertThat(mapper.canAccept(new Date()), is(true));
@@ -52,7 +52,7 @@ public class DateToStringParameterMapperTest {
 
 	@Test
 	public void testTargetType() throws Exception {
-		var mapper = new DateToStringParameterMapper();
+		DateToStringParameterMapper mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
 
 		assertThat(mapper.targetType(), sameInstance(Date.class));
@@ -60,10 +60,10 @@ public class DateToStringParameterMapperTest {
 
 	@Test
 	public void testManagerToJdbc() throws Exception {
-		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
+		BindParameterMapperManager manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new DateToStringParameterMapper());
 
-		var date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		assertThat(manager.toJdbc(date, null), is("20000101"));
 	}
 

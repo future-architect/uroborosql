@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,14 +22,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import jp.co.future.uroborosql.utils.StringUtils;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * Test case of SecretColumnSqlFilter when using CBC mode
@@ -45,7 +47,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	private AbstractSecretColumnSqlFilter filter;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
 		sqlFilterManager = config.getSqlFilterManager();
@@ -64,8 +66,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 		filter.setTransformationType("AES/CBC/PKCS5Padding");
 		sqlFilterManager.initialize();
 
-		try (var agent = config.agent()) {
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (SqlAgent agent = config.agent()) {
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -75,7 +77,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -84,9 +86,9 @@ public class SecretColumnSqlFilterUseCbcTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				var parts = line.split("\t");
+				String[] parts = line.split("\t");
 				for (String part : parts) {
-					var keyValue = part.split(":", 2);
+					String[] keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -100,38 +102,38 @@ public class SecretColumnSqlFilterUseCbcTest {
 	private void truncateTable(final Object... tables) {
 		try {
 			Arrays.asList(tables).stream().forEach(tbl -> {
-				try (var agent = config.agent()) {
+				try (SqlAgent agent = config.agent()) {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
 	private void cleanInsert(final Path path) {
-		var dataList = getDataFromFile(path);
+		List<Map<String, Object>> dataList = getDataFromFile(path);
 
 		try {
 			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-					.forEach(this::truncateTable);
+					.forEach(tbl -> truncateTable(tbl));
 
 			dataList.stream().forEach(map -> {
-				try (var agent = config.agent()) {
+				try (SqlAgent agent = config.agent()) {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -149,9 +151,9 @@ public class SecretColumnSqlFilterUseCbcTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
-		var skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
+		SqlConfig skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.build();
-		var skipSqlFilterManager = skipConfig.getSqlFilterManager();
+		SqlFilterManager skipSqlFilterManager = skipConfig.getSqlFilterManager();
 		AbstractSecretColumnSqlFilter skipFilter = new SecretColumnSqlFilter();
 		skipSqlFilterManager.addSqlFilter(skipFilter);
 
@@ -162,8 +164,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 		skipFilter.setSkipFilter(true);
 
 		// 復号化しないで取得した場合 (skipFilter = true)
-		try (var skipAgent = skipConfig.agent()) {
-			var result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
+		try (SqlAgent skipAgent = skipConfig.agent()) {
+			ResultSet result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
 					.resultSet();
 
 			while (result.next()) {
@@ -173,8 +175,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 
 		// 復号化して取得した場合 (skipFilter = false)
-		try (var agent = config.agent()) {
-			var result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+		try (SqlAgent agent = config.agent()) {
+			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
 
 			while (result.next()) {
 				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
@@ -190,12 +192,14 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 	}
 
+	;
+
 	@Test
 	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var result = agent.query("example/select_product")
+		try (SqlAgent agent = config.agent()) {
+			ResultSet result = agent.query("example/select_product")
 					.param("product_id", new BigDecimal(0)).resultSet();
 
 			while (result.next()) {
@@ -210,14 +214,16 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 	}
 
+	;
+
 	@Test
 	public void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
 
-			var result = agent.query(ctx);
+			ResultSet result = agent.query(ctx);
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
 				assertThat(result.getObject("PRODUCT_NAME"), is("商品名0"));
@@ -227,15 +233,17 @@ public class SecretColumnSqlFilterUseCbcTest {
 		}
 	}
 
+	;
+
 	@Test
 	public void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+		try (SqlAgent agent = config.agent()) {
+			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
-			var result = agent.query(ctx);
+			ResultSet result = agent.query(ctx);
 			while (result.next()) {
 				result.first();
 				assertThat(result.isFirst(), is(true));
@@ -265,32 +273,33 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	@Disabled
+	@Ignore
 	public void testSecretResultSetPerformance01() throws Exception {
-		for (var i = 0; i < 30; i++) {
+		for (int i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");
-			try (var agent = config.agent()) {
-				var startTime = System.currentTimeMillis();
-				agent.batch("example/insert_product")
-						.paramStream(IntStream.range(1, 100000).mapToObj(count -> new HashMap<String, Object>() {
-							{
-								put("product_id", count);
-								put("product_name", "商品名" + count);
-								put("product_kana_name", "ショウヒンメイ" + count);
-								put("jan_code", "1234567890123");
-								put("product_description", count + "番目の商品");
-								put("ins_datetime", "2005-12-12 10:10:10");
-								put("upd_datetime", "2005-12-13 10:10:10");
-								put("version_no", count);
-							}
-						})).count();
+			try (SqlAgent agent = config.agent()) {
+				long startTime = System.currentTimeMillis();
+				agent.batch("example/insert_product").paramStream(IntStream.range(1, 100000).mapToObj(count -> {
+					return new HashMap<String, Object>() {
+						{
+							put("product_id", count);
+							put("product_name", "商品名" + count);
+							put("product_kana_name", "ショウヒンメイ" + count);
+							put("jan_code", "1234567890123");
+							put("product_description", count + "番目の商品");
+							put("ins_datetime", "2005-12-12 10:10:10");
+							put("upd_datetime", "2005-12-13 10:10:10");
+							put("version_no", count);
+						}
+					};
+				})).count();
 
-				var lapTime = System.currentTimeMillis();
+				long lapTime = System.currentTimeMillis();
 
 				agent.query("example/select_product").stream()
 						.forEach(m -> assertThat(m.get("PRODUCT_NAME").toString(), containsString("商品名")));
 
-				var endTime = System.currentTimeMillis();
+				long endTime = System.currentTimeMillis();
 
 				System.out.printf("update\t%d\tquery\t%d\ttotal\t%d\r\n", lapTime - startTime, endTime - lapTime,
 						endTime - startTime);

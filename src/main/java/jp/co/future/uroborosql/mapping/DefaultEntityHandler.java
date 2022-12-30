@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -24,6 +24,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
@@ -36,16 +37,22 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class DefaultEntityHandler implements EntityHandler<Object> {
-
-	protected static Map<Class<?>, TableMetadata> CONTEXTS = new ConcurrentHashMap<>();
+	/** TableMetadataのキャッシュサイズ. */
+	protected static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+	/** TableMetadataのLRUキャッシュ. */
+	protected static final ConcurrentLruCache<String, TableMetadata> CACHE = new ConcurrentLruCache<>(CACHE_SIZE);
+	/** プロパティマッパーマネージャー. */
 	protected PropertyMapperManager propertyMapperManager;
+	/** 空文字をNULLとして扱うか. */
 	protected boolean emptyStringEqualsNull = true;
+	/** SQLコンフィグ. */
 	protected SqlConfig sqlConfig = null;
 
 	/**
 	 * コンストラクタ
 	 */
 	public DefaultEntityHandler() {
+		super();
 	}
 
 	/**
@@ -72,60 +79,66 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createSelectContext(SqlAgent, TableMetadata, Class, boolean)
 	 */
 	@Override
 	public ExecutionContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#doSelect(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.context.ExecutionContext, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#doSelect(SqlAgent, ExecutionContext, Class)
 	 */
 	@Override
-	public <E> Stream<E> doSelect(final SqlAgent agent, final ExecutionContext context, final Class<? extends E> entityType)
+	public <E> Stream<E> doSelect(final SqlAgent agent, final ExecutionContext context,
+			final Class<? extends E> entityType)
 			throws SQLException {
-		return agent.query(context, new EntityResultSetConverter<>(entityType, propertyMapperManager));
+		return agent.query(context,
+				new EntityResultSetConverter<>(context.getSchema(), entityType, propertyMapperManager));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createInsertContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createInsertContext(SqlAgent, TableMetadata, Class)
 	 */
 	@Override
 	public ExecutionContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createUpdateContext(SqlAgent, TableMetadata, Class, boolean)
 	 */
 	@Override
 	public ExecutionContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class, boolean)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createDeleteContext(SqlAgent, TableMetadata, Class, boolean)
 	 */
 	@Override
 	public ExecutionContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
@@ -137,7 +150,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public ExecutionContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
@@ -148,19 +162,22 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createBulkInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.context().setSqlId(createSqlId(metadata, entityType));
+		return agent.context()
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBatchUpdateContext(jp.co.future.uroborosql.SqlAgent, jp.co.future.uroborosql.mapping.TableMetadata, java.lang.Class)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#createBatchUpdateContext(SqlAgent, TableMetadata, Class)
 	 */
 	@Override
 	public ExecutionContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
-				.setSqlId(createSqlId(metadata, entityType));
+				.setSqlId(createSqlId(metadata, entityType))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
@@ -171,13 +188,14 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext setupSqlBulkInsertContext(final SqlAgent agent, final ExecutionContext context,
 			final TableMetadata metadata, final Class<? extends Object> entityType, final int numberOfRecords) {
-		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig(), numberOfRecords));
+		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig(), numberOfRecords))
+				.setSchema(metadata.getSchema());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setInsertParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setInsertParams(ExecutionContext, Object)
 	 */
 	@Override
 	public void setInsertParams(final ExecutionContext context, final Object entity) {
@@ -187,7 +205,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setUpdateParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setUpdateParams(ExecutionContext, Object)
 	 */
 	@Override
 	public void setUpdateParams(final ExecutionContext context, final Object entity) {
@@ -197,7 +215,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setDeleteParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setDeleteParams(ExecutionContext, Object)
 	 */
 	@Override
 	public void setDeleteParams(final ExecutionContext context, final Object entity) {
@@ -207,7 +225,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setBulkInsertParams(jp.co.future.uroborosql.context.ExecutionContext, java.lang.Object, int)
+	 * @see jp.co.future.uroborosql.mapping.EntityHandler#setBulkInsertParams(ExecutionContext, Object, int)
 	 */
 	@Override
 	public void setBulkInsertParams(final ExecutionContext context, final Object entity, final int entityIndex) {
@@ -227,12 +245,25 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public TableMetadata getMetadata(final ConnectionManager connectionManager, final Class<?> entityType)
 			throws SQLException {
-		var context = CONTEXTS.get(entityType);
-		if (context == null) {
-			context = createMetadata(connectionManager, entityType);
-			CONTEXTS.put(entityType, context);
+		String cacheKey = getCacheKey(connectionManager, entityType);
+		return CACHE.get(cacheKey, key -> {
+			try {
+				return createMetadata(connectionManager, entityType);
+			} catch (SQLException e) {
+				throw new UroborosqlSQLException(e);
+			}
+		});
+	}
+
+	private String getCacheKey(final ConnectionManager connectionManager, final Class<?> entityType) {
+		try {
+			Table table = MappingUtils.getTable(entityType);
+			String schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+					: Objects.toString(connectionManager.getConnection().getSchema(), "");
+			return String.format("%s.%s", schema.toUpperCase(), entityType.getName());
+		} catch (SQLException ex) {
+			return entityType.getName();
 		}
-		return context;
 	}
 
 	/**
@@ -391,7 +422,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final boolean ignoreWhenEmpty) {
-		var mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.INSERT);
+		var mappingColumns = MappingUtils.getMappingColumnMap(metadata.getSchema(), type, SqlKind.INSERT);
 		var sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty);
 		sql.append(" VALUES ");
 		sql.append(buildInsertRowBlock(metadata, mappingColumns, sqlConfig, ignoreWhenEmpty,
@@ -410,7 +441,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildBulkInsertSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final int numberOfRecords) {
-		var mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.INSERT);
+		var mappingColumns = MappingUtils.getMappingColumnMap(metadata.getSchema(), type, SqlKind.INSERT);
 		var sql = buildInsertTargetBlock(metadata, mappingColumns, sqlConfig, false);
 		sql.append(" VALUES ");
 
@@ -440,7 +471,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(sqlConfig.getSqlAgentProvider().getSqlIdKeyName()).append(" */")
 				.append(" ").append(metadata.getTableIdentifier()).append(" SET ").append(System.lineSeparator());
 
-		var mappingColumns = MappingUtils.getMappingColumnMap(type, SqlKind.UPDATE);
+		var mappingColumns = MappingUtils.getMappingColumnMap(metadata.getSchema(), type, SqlKind.UPDATE);
 
 		String versionColumnName = null;
 		OptimisticLockSupplier optimisticLockSupplier = null;
@@ -452,7 +483,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				optimisticLockSupplier = OptimisticLockSupplier.getSupplier(versionColumn.getOptimisticLockType());
 			}
 		} else {
-			var versionColumn = MappingUtils.getVersionMappingColumn(type);
+			var versionColumn = MappingUtils.getVersionMappingColumn(metadata.getSchema(), type);
 			versionColumnName = versionColumn.map(MappingColumn::getCamelName).orElse(null);
 			optimisticLockSupplier = versionColumn
 					.map(vc -> OptimisticLockSupplier.getSupplier(vc.getVersion().supplier())).orElse(null);
@@ -461,8 +492,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		var firstFlag = true;
 		for (TableMetadata.Column col : metadata.getColumns()) {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
-			var autoIncrementColumn = mappingColumn != null && mappingColumn.isId() ||
-					col.isAutoincrement();
+			var autoIncrementColumn = mappingColumn != null && mappingColumn.isId() || col.isAutoincrement();
 
 			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
@@ -506,10 +536,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				} else {
 					sql.append(parts);
 				}
-			} else if (ignoreWhenEmpty || autoIncrementColumn) {
-				wrapIfComment(sql, parts, col);
 			} else {
-				sql.append(parts);
+				if (ignoreWhenEmpty || autoIncrementColumn) {
+					wrapIfComment(sql, parts, col);
+				} else {
+					sql.append(parts);
+				}
 			}
 		}
 
@@ -575,8 +607,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("WHERE").append(System.lineSeparator());
 
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays
-							.asList(metadata.getColumns().get(0));
+					: Arrays.asList(metadata.getColumns().get(0));
 			for (TableMetadata.Column col : cols) {
 				var parts = new StringBuilder().append("\t");
 				if (firstFlag) {
@@ -646,7 +677,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
+			if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+					|| autoIncrementColumn) {
 				wrapIfComment(sql, parts, col);
 			} else {
 				sql.append(parts);
@@ -703,7 +735,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(parts);
 			} else {
 				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-				if (ignoreWhenEmpty && col.isNullable() || autoIncrementColumn) {
+				if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+						|| autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {
 					sql.append(parts);
@@ -782,7 +815,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				generatedKeyColumns.add(CaseFormat.CAMEL_CASE.convert(keyColumn));
 			}
 		}
-		for (MappingColumn column : MappingUtils.getMappingColumns(entity.getClass(), kind)) {
+		for (MappingColumn column : MappingUtils.getMappingColumns(context.getSchema(), entity.getClass(), kind)) {
 			if (SqlKind.INSERT.equals(kind) && generatedKeyColumns.contains(column.getCamelName())) {
 				continue;
 			}
@@ -830,6 +863,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public SqlConfig getSqlConfig() {
 		return this.sqlConfig;
+	}
+
+	/**
+	 * TableMetadataのLRUキャッシュをクリアします.
+	 */
+	public static void clearCache() {
+		CACHE.clear();
 	}
 
 }

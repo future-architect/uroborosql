@@ -138,7 +138,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	public void initialize() {
 		parameterMapperManager = new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock());
 
-		Map<String, Parameter> paramMap = new HashMap<>(buildConstParamMap());
+		Map<String, Parameter> paramMap = new HashMap<>();
+		paramMap.putAll(buildConstParamMap());
 		paramMap.putAll(buildEnumConstParamMap());
 		constParameterMap = Collections.unmodifiableMap(paramMap);
 	}

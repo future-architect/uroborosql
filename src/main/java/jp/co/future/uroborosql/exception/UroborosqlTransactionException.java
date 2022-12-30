@@ -15,6 +15,7 @@ package jp.co.future.uroborosql.exception;
 public class UroborosqlTransactionException extends UroborosqlRuntimeException {
 
 	public UroborosqlTransactionException() {
+		super();
 	}
 
 	public UroborosqlTransactionException(final String message) {

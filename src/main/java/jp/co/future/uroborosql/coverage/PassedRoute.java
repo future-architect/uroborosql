@@ -33,7 +33,7 @@ public class PassedRoute {
 	 * @param end 終了位置（文字index）
 	 * @param state カバレッジ状態
 	 */
-	public void appendBranchState(final int start, final int end, final BranchCoverageState state) {
+	public void appendBranchState(int start, int end, BranchCoverageState state) {
 		this.passed.put(new Range(start, end), state);
 	}
 
@@ -43,7 +43,7 @@ public class PassedRoute {
 	 * @param start 開始位置（文字index）
 	 * @param end 終了位置（文字index）
 	 */
-	public void appendHitRange(final int start, final int end) {
+	public void appendHitRange(int start, int end) {
 		hits.add(new Range(start, end));
 		ranges = null;//キャッシュをクリア
 	}
@@ -83,7 +83,7 @@ public class PassedRoute {
 	 * @param index 判定位置
 	 * @return 通過
 	 */
-	public boolean isHit(final int index) {
+	public boolean isHit(int index) {
 		for (Range range : getRanges()) {
 			if (range.contains(index)) {
 				return true;
@@ -98,7 +98,7 @@ public class PassedRoute {
 	 * @param target 判定範囲
 	 * @return 通過
 	 */
-	public boolean isHit(final Range target) {
+	public boolean isHit(Range target) {
 		for (Range range : getRanges()) {
 			if (range.hasIntersection(target)) {
 				return true;

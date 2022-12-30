@@ -3,20 +3,22 @@
  */
 package jp.co.future.uroborosql.config;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestConsts;
@@ -38,18 +40,18 @@ public class SqlConfigTest {
 
 	private Connection conn;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		ds = new JdbcDataSource();
 		ds.setURL(JDBC_URL + System.currentTimeMillis() + ";DB_CLOSE_DELAY=-1");
 		ds.setUser(JDBC_USER);
 		ds.setPassword(JDBC_PASSWORD);
 
-		var config = UroboroSQL.builder(ds).build();
+		SqlConfig config = UroboroSQL.builder(ds).build();
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			// create table
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -73,7 +75,7 @@ public class SqlConfigTest {
 
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() throws Exception {
 		conn.close();
 	}
@@ -95,20 +97,20 @@ public class SqlConfigTest {
 	}
 
 	private void validate(final SqlConfig config) throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 		}
 	}
 
 	@Test
 	public void testWithExecutionContextProviderConstantSettings() throws Exception {
-		var config = UroboroSQL.builder(ds)
+		SqlConfig config = UroboroSQL.builder(ds)
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(Arrays.asList(TestConsts.class.getName()))
 						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
 				.build();
-		try (var agent = config.agent()) {
-			var ans = agent
+		try (SqlAgent agent = config.agent()) {
+			Map<String, Object> ans = agent
 					.queryWith("select /*#CLS_INNER_CLASS_ISTRING*/'' as VAL, /*#CLS_TEST_ENUM1_A*/ as ENUM").one();
 
 			assertThat(ans.get("VAL"), is(TestConsts.InnerClass.ISTRING));

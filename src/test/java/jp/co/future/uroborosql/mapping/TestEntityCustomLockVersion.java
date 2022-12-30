@@ -1,7 +1,5 @@
 package jp.co.future.uroborosql.mapping;
 
-import java.util.Objects;
-
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
@@ -10,7 +8,7 @@ public class TestEntityCustomLockVersion {
 	private Long id;
 	private String name;
 	@Version(supplier = CustomOptimisticLockSupplier.class)
-	private long lockVersion = 0;
+	private Long lockVersion = 0L;
 
 	public TestEntityCustomLockVersion() {
 	}
@@ -46,17 +44,22 @@ public class TestEntityCustomLockVersion {
 		this.name = name;
 	}
 
-	public long getLockVersion() {
+	public Long getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final long lockVersion) {
+	public void setLockVersion(final Long lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, lockVersion, name);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (id == null ? 0 : id.hashCode());
+		result = prime * result + (int) (lockVersion ^ lockVersion >>> 32);
+		result = prime * result + (name == null ? 0 : name.hashCode());
+		return result;
 	}
 
 	@Override
@@ -70,14 +73,22 @@ public class TestEntityCustomLockVersion {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		var other = (TestEntityCustomLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
+		TestEntityCustomLockVersion other = (TestEntityCustomLockVersion) obj;
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
 		}
 		if (lockVersion != other.lockVersion) {
 			return false;
 		}
-		if (!Objects.equals(name, other.name)) {
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
 		}
 		return true;

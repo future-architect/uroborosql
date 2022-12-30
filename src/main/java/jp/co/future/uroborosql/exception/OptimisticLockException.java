@@ -16,7 +16,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 public class OptimisticLockException extends UroborosqlRuntimeException {
 
 	public OptimisticLockException(final ExecutionContext context) {
-		super(String.format("An error occurred due to optimistic locking.\nExecuted SQL [\n%s]\nparams:%s",
+		super(String.format("An error occurred due to optimistic locking.%nExecuted SQL [%n%s]%nparams:%s",
 				context.getExecutableSql(), context.formatParams()));
 	}
 

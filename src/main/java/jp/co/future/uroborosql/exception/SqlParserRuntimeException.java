@@ -14,6 +14,7 @@ package jp.co.future.uroborosql.exception;
 public class SqlParserRuntimeException extends UroborosqlRuntimeException {
 
 	public SqlParserRuntimeException() {
+		super();
 	}
 
 	public SqlParserRuntimeException(final String message) {

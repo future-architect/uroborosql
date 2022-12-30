@@ -140,6 +140,7 @@ public class SqlParserImpl implements SqlParser {
 			} else if (isBeginComment(comment)) {
 				parseBegin();
 			} else if (isEndComment(comment)) {
+				return;
 			} else {
 				parseCommentBindVariable();
 			}
@@ -343,7 +344,7 @@ public class SqlParserImpl implements SqlParser {
 	 * @return BEGINコメントの場合は<code>true</code>
 	 */
 	private static boolean isBeginComment(final String content) {
-		return "BEGIN".equals(content);
+		return content != null && "BEGIN".equals(content);
 	}
 
 	/**
@@ -353,7 +354,7 @@ public class SqlParserImpl implements SqlParser {
 	 * @return ENDコメントの場合は<code>true</code>
 	 */
 	private static boolean isEndComment(final String content) {
-		return "END".equals(content);
+		return content != null && "END".equals(content);
 	}
 
 }

@@ -30,6 +30,7 @@ public class MsSqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public MsSqlDialect() {
+		super();
 	}
 
 	/**

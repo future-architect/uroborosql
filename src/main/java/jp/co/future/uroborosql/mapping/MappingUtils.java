@@ -11,8 +11,9 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +26,7 @@ import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
  * マッピング情報ユーティリティ
@@ -32,6 +34,11 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author ota
  */
 public final class MappingUtils {
+	private static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+
+	private static final ConcurrentLruCache<String, Map<SqlKind, MappingColumn[]>> CACHE = new ConcurrentLruCache<>(
+			CACHE_SIZE);
+
 	private MappingUtils() {
 	}
 
@@ -95,7 +102,7 @@ public final class MappingUtils {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getValue(java.lang.Object)
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#getValue(Object)
 		 */
 		@Override
 		public Object getValue(final Object entity) {
@@ -109,7 +116,7 @@ public final class MappingUtils {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.mapping.MappingColumn#setValue(java.lang.Object, java.lang.Object)
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#setValue(Object, Object)
 		 */
 		@Override
 		public void setValue(final Object entity, final Object value) {
@@ -193,7 +200,7 @@ public final class MappingUtils {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isTransient(jp.co.future.uroborosql.enums.SqlKind)
+		 * @see jp.co.future.uroborosql.mapping.MappingColumn#isTransient(SqlKind)
 		 */
 		@Override
 		public boolean isTransient(final SqlKind sqlKind) {
@@ -232,15 +239,6 @@ public final class MappingUtils {
 		}
 	}
 
-	private static final Map<Class<?>, Map<SqlKind, MappingColumn[]>> CACHE = new LinkedHashMap<>() {
-		private final int cacheSize = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
-
-		@Override
-		protected boolean removeEldestEntry(final Map.Entry<Class<?>, Map<SqlKind, MappingColumn[]>> eldest) {
-			return size() > cacheSize;
-		}
-	};
-
 	/**
 	 * エンティティ型からテーブル情報の取得
 	 *
@@ -248,8 +246,7 @@ public final class MappingUtils {
 	 * @return テーブル情報
 	 */
 	public static Table getTable(final Class<?> entityType) {
-		var table = entityType.getAnnotation(
-				jp.co.future.uroborosql.mapping.annotations.Table.class);
+		var table = entityType.getAnnotation(jp.co.future.uroborosql.mapping.annotations.Table.class);
 		if (table != null) {
 			return new TableImpl(table.name(), table.schema());
 		}
@@ -269,7 +266,21 @@ public final class MappingUtils {
 	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
 	 */
 	public static MappingColumn getMappingColumn(final Class<?> entityType, final String camelColumnName) {
-		return getMappingColumn(entityType, SqlKind.NONE, camelColumnName);
+		return getMappingColumn(null, entityType, camelColumnName);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @param camelColumnName 取得するカラムのキャメルケース名
+	 * @return カラムマッピング情報
+	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
+	 */
+	public static MappingColumn getMappingColumn(String schema, final Class<?> entityType,
+			final String camelColumnName) {
+		return getMappingColumn(schema, entityType, SqlKind.NONE, camelColumnName);
 	}
 
 	/**
@@ -283,8 +294,25 @@ public final class MappingUtils {
 	 */
 	public static MappingColumn getMappingColumn(final Class<?> entityType, final SqlKind kind,
 			final String camelColumnName) {
-		return getMappingColumnMap(entityType, kind).entrySet().stream()
-				.filter(entry -> entry.getKey().equals(camelColumnName)).map(Entry::getValue).findFirst()
+		return getMappingColumn(null, entityType, kind, camelColumnName);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @param kind SQL種別
+	 * @param camelColumnName 取得するカラムのキャメルケース名
+	 * @return カラムマッピング情報
+	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
+	 */
+	public static MappingColumn getMappingColumn(String schema, final Class<?> entityType, final SqlKind kind,
+			final String camelColumnName) {
+		return getMappingColumnMap(schema, entityType, kind).entrySet().stream()
+				.filter(entry -> entry.getKey().equals(camelColumnName))
+				.map(Map.Entry::getValue)
+				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException("No such column found. col:" + camelColumnName));
 	}
 
@@ -295,7 +323,18 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType) {
-		return getMappingColumns(entityType, SqlKind.NONE);
+		return getMappingColumns(null, entityType);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @return カラムマッピング情報
+	 */
+	public static MappingColumn[] getMappingColumns(final String schema, final Class<?> entityType) {
+		return getMappingColumns(schema, entityType, SqlKind.NONE);
 	}
 
 	/**
@@ -306,33 +345,42 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getMappingColumns(final Class<?> entityType, final SqlKind kind) {
+		return getMappingColumns(null, entityType, kind);
+	}
+
+	/**
+	 * カラムマッピング情報取得
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @param kind SQL種別
+	 * @return カラムマッピング情報
+	 */
+	public static MappingColumn[] getMappingColumns(final String schema, final Class<?> entityType,
+			final SqlKind kind) {
 		if (entityType == null) {
 			return new MappingColumn[0];
 		}
 
-		Map<SqlKind, MappingColumn[]> cols;
-		synchronized (CACHE) {
-			cols = CACHE.get(entityType);
+		String cacheKey = getCacheKey(schema, entityType);
+
+		Map<SqlKind, MappingColumn[]> cols = CACHE.get(cacheKey, key -> {
+			Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
+						.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
+				JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+			walkFields(entityType, implementClass, fieldsMap);
+				return fieldsMap.entrySet().stream()
+						.collect(Collectors.toConcurrentMap(Map.Entry::getKey,
+							e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
+		});
+		return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
 		}
-		if (cols != null) {
-			return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
-		}
 
-		Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
-				.collect(Collectors.toMap(e -> e, e -> new LinkedHashMap<>()));
-
-		var implementClass = new JavaType.ImplementClass(entityType);
-
-		walkFields(entityType, implementClass, fieldsMap);
-
-		final Map<SqlKind, MappingColumn[]> entityCols = fieldsMap.entrySet().stream()
-				.collect(Collectors.toConcurrentMap(Entry::getKey,
-						e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
-
-		synchronized (CACHE) {
-			CACHE.put(entityType, entityCols);
-		}
-		return entityCols.computeIfAbsent(kind, k -> entityCols.get(SqlKind.NONE));
+	private static String getCacheKey(String schema, Class<?> entityType) {
+		Table table = getTable(entityType);
+		String currentSchema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+				: Objects.toString(schema, "");
+		return String.format("%s.%s", currentSchema.toUpperCase(), entityType.getName());
 	}
 
 	/**
@@ -343,8 +391,21 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static Map<String, MappingColumn> getMappingColumnMap(final Class<?> entityType, final SqlKind kind) {
-		return Arrays.stream(MappingUtils.getMappingColumns(entityType, kind))
-				.collect(Collectors.toMap(MappingColumn::getCamelName, c -> c));
+		return getMappingColumnMap(null, entityType, kind);
+	}
+
+	/**
+	 * カラム名（小文字）をキーとしたMapにカラムマッピング情報を取得
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @param kind SQL種別
+	 * @return カラムマッピング情報
+	 */
+	public static Map<String, MappingColumn> getMappingColumnMap(final String schema, final Class<?> entityType,
+			final SqlKind kind) {
+		return Arrays.stream(getMappingColumns(schema, entityType, kind))
+				.collect(Collectors.toMap(MappingColumn::getCamelName, Function.identity()));
 	}
 
 	/**
@@ -354,7 +415,19 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static MappingColumn[] getIdMappingColumns(final Class<?> entityType) {
-		return Arrays.stream(MappingUtils.getMappingColumns(entityType)).filter(MappingColumn::isId)
+		return getIdMappingColumns(null, entityType);
+	}
+
+	/**
+	 * IDカラムマッピング情報を返す
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @return カラムマッピング情報
+	 */
+	public static MappingColumn[] getIdMappingColumns(String schema, final Class<?> entityType) {
+		return Arrays.stream(getMappingColumns(schema, entityType))
+				.filter(MappingColumn::isId)
 				.toArray(MappingColumn[]::new);
 	}
 
@@ -365,9 +438,27 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 */
 	public static Optional<MappingColumn> getVersionMappingColumn(final Class<?> entityType) {
-		return Arrays.stream(getMappingColumns(entityType))
+		return getVersionMappingColumn(null, entityType);
+	}
+
+	/**
+	 * バージョン情報のカラムマッピング情報を返す
+	 *
+	 * @param schema スキーマ
+	 * @param entityType エンティティ型
+	 * @return カラムマッピング情報
+	 */
+	public static Optional<MappingColumn> getVersionMappingColumn(String schema, final Class<?> entityType) {
+		return Arrays.stream(getMappingColumns(schema, entityType))
 				.filter(MappingColumn::isVersion)
 				.findFirst();
+	}
+
+	/**
+	 * MappingColumnのキャッシュをクリアします.
+	 */
+	public static void clearCache() {
+		CACHE.clear();
 	}
 
 	private static void walkFields(final Class<?> type, final JavaType.ImplementClass implementClass,

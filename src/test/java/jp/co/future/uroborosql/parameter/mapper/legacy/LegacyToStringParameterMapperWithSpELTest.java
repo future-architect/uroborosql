@@ -1,9 +1,11 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 import java.sql.Time;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -15,13 +17,14 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.Objects;
+import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
@@ -43,20 +46,20 @@ public class LegacyToStringParameterMapperWithSpELTest {
 
 	private static SqlConfig config;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:" + LegacyToStringParameterMapperWithSpELTest.class.getSimpleName()
+		String url = "jdbc:h2:mem:" + LegacyToStringParameterMapperWithSpELTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 
-				var builder = new StringBuilder();
+				StringBuilder builder = new StringBuilder();
 				builder.append("create table if not exists test( ")
 						.append("id integer auto_increment, ")
 						.append("date_time varchar(17), ")
@@ -90,9 +93,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 				.build();
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -101,9 +104,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test = new TestEntity(
+				TestEntity test = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -114,8 +117,8 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						LocalTime.of(10, 20, 30),
 						YearMonth.of(2020, 5),
 						Year.of(2020));
-				var entity = agent.insertAndReturn(test);
-				var data = agent.find(TestEntity.class, entity.getId()).orElse(null);
+				TestEntity entity = agent.insertAndReturn(test);
+				TestEntity data = agent.find(TestEntity.class, entity.getId()).orElse(null);
 				assertThat(data, is(test));
 			});
 		}
@@ -124,9 +127,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testQuery1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(
+				TestEntity test1 = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -138,7 +141,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						YearMonth.of(2020, 5),
 						Year.of(2020));
 				agent.insertAndReturn(test1);
-				var test2 = new TestEntity(
+				TestEntity test2 = new TestEntity(
 						LocalDateTime.of(2021, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2001-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.MONDAY,
@@ -151,7 +154,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						Year.of(2021));
 				agent.insertAndReturn(test2);
 
-				var list = agent.query(TestEntity.class).collect();
+				List<TestEntity> list = agent.query(TestEntity.class).collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
@@ -234,9 +237,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testUpdate1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(
+				TestEntity test1 = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -247,8 +250,8 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						LocalTime.of(10, 20, 30),
 						YearMonth.of(2020, 5),
 						Year.of(2020));
-				var entity1 = agent.insertAndReturn(test1);
-				var test2 = new TestEntity(
+				TestEntity entity1 = agent.insertAndReturn(test1);
+				TestEntity test2 = new TestEntity(
 						LocalDateTime.of(2021, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2001-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.MONDAY,
@@ -261,11 +264,11 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						Year.of(2021));
 				agent.insertAndReturn(test2);
 
-				var updateTime = LocalTime.of(11, 22, 33);
+				LocalTime updateTime = LocalTime.of(11, 22, 33);
 				test1.setTime(updateTime);
-				var updateEntity = agent.updateAndReturn(test1);
+				TestEntity updateEntity = agent.updateAndReturn(test1);
 
-				var data = agent.find(TestEntity.class, entity1.getId()).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, entity1.getId()).orElse(null);
 				assertThat(data, is(updateEntity));
 				assertThat(data.getTime(), is(updateTime));
 			});
@@ -275,9 +278,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testDelete1() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(
+				TestEntity test1 = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -288,8 +291,8 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						LocalTime.of(10, 20, 30),
 						YearMonth.of(2020, 5),
 						Year.of(2020));
-				var entity1 = agent.insertAndReturn(test1);
-				var test2 = new TestEntity(
+				TestEntity entity1 = agent.insertAndReturn(test1);
+				TestEntity test2 = new TestEntity(
 						LocalDateTime.of(2021, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2001-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.MONDAY,
@@ -304,7 +307,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 
 				agent.delete(test1);
 
-				var data = agent.find(TestEntity.class, entity1.getId()).orElse(null);
+				TestEntity data = agent.find(TestEntity.class, entity1.getId()).orElse(null);
 				assertThat(data, is(nullValue()));
 			});
 		}
@@ -313,9 +316,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testBatchInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(
+				TestEntity test1 = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -326,7 +329,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						LocalTime.of(10, 20, 30),
 						YearMonth.of(2020, 5),
 						Year.of(2020));
-				var test2 = new TestEntity(
+				TestEntity test2 = new TestEntity(
 						LocalDateTime.of(2021, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2001-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.MONDAY,
@@ -338,7 +341,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						YearMonth.of(2021, 12),
 						Year.of(2021));
 
-				var count = agent.inserts(Stream.of(test1, test2), InsertsType.BATCH);
+				int count = agent.inserts(Stream.of(test1, test2), InsertsType.BATCH);
 				assertThat(count, is(2));
 			});
 		}
@@ -347,9 +350,9 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	@Test
 	public void testBulkInsert() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(
+				TestEntity test1 = new TestEntity(
 						LocalDateTime.of(2020, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.SUNDAY,
@@ -360,7 +363,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						LocalTime.of(10, 20, 30),
 						YearMonth.of(2020, 5),
 						Year.of(2020));
-				var test2 = new TestEntity(
+				TestEntity test2 = new TestEntity(
 						LocalDateTime.of(2021, 1, 2, 10, 20, 30),
 						Date.from(LocalDate.parse("2001-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()),
 						DayOfWeek.MONDAY,
@@ -372,7 +375,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 						YearMonth.of(2021, 12),
 						Year.of(2021));
 
-				var count = agent.inserts(Stream.of(test1, test2), InsertsType.BULK);
+				int count = agent.inserts(Stream.of(test1, test2), InsertsType.BULK);
 				assertThat(count, is(2));
 			});
 		}
@@ -407,6 +410,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 				final LocalTime time,
 				final YearMonth yearMonth,
 				final Year year) {
+			super();
 			this.dateTime = dateTime;
 			this.date = date;
 			this.dayOfWeek = dayOfWeek;
@@ -509,8 +513,20 @@ public class LegacyToStringParameterMapperWithSpELTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(date, dateTime, dayOfWeek, id, localDate, month, monthDay, sqlTime, time,
-					year, yearMonth);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (date == null ? 0 : date.hashCode());
+			result = prime * result + (dateTime == null ? 0 : dateTime.hashCode());
+			result = prime * result + (dayOfWeek == null ? 0 : dayOfWeek.hashCode());
+			result = prime * result + (id == null ? 0 : id.hashCode());
+			result = prime * result + (localDate == null ? 0 : localDate.hashCode());
+			result = prime * result + (month == null ? 0 : month.hashCode());
+			result = prime * result + (monthDay == null ? 0 : monthDay.hashCode());
+			result = prime * result + (sqlTime == null ? 0 : sqlTime.hashCode());
+			result = prime * result + (time == null ? 0 : time.hashCode());
+			result = prime * result + (year == null ? 0 : year.hashCode());
+			result = prime * result + (yearMonth == null ? 0 : yearMonth.hashCode());
+			return result;
 		}
 
 		@Override
@@ -524,7 +540,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (TestEntity) obj;
+			TestEntity other = (TestEntity) obj;
 			if (date == null) {
 				if (other.date != null) {
 					return false;
@@ -532,34 +548,66 @@ public class LegacyToStringParameterMapperWithSpELTest {
 			} else if (date.compareTo(other.date) != 0) {
 				return false;
 			}
-			if (!Objects.equals(dateTime, other.dateTime)) {
+			if (dateTime == null) {
+				if (other.dateTime != null) {
+					return false;
+				}
+			} else if (!dateTime.equals(other.dateTime)) {
 				return false;
 			}
 			if (dayOfWeek != other.dayOfWeek) {
 				return false;
 			}
-			if (!Objects.equals(id, other.id)) {
+			if (id == null) {
+				if (other.id != null) {
+					return false;
+				}
+			} else if (!id.equals(other.id)) {
 				return false;
 			}
-			if (!Objects.equals(localDate, other.localDate)) {
+			if (localDate == null) {
+				if (other.localDate != null) {
+					return false;
+				}
+			} else if (!localDate.equals(other.localDate)) {
 				return false;
 			}
 			if (month != other.month) {
 				return false;
 			}
-			if (!Objects.equals(monthDay, other.monthDay)) {
+			if (monthDay == null) {
+				if (other.monthDay != null) {
+					return false;
+				}
+			} else if (!monthDay.equals(other.monthDay)) {
 				return false;
 			}
-			if (!Objects.equals(sqlTime, other.sqlTime)) {
+			if (sqlTime == null) {
+				if (other.sqlTime != null) {
+					return false;
+				}
+			} else if (!sqlTime.equals(other.sqlTime)) {
 				return false;
 			}
-			if (!Objects.equals(time, other.time)) {
+			if (time == null) {
+				if (other.time != null) {
+					return false;
+				}
+			} else if (!time.equals(other.time)) {
 				return false;
 			}
-			if (!Objects.equals(year, other.year)) {
+			if (year == null) {
+				if (other.year != null) {
+					return false;
+				}
+			} else if (!year.equals(other.year)) {
 				return false;
 			}
-			if (!Objects.equals(yearMonth, other.yearMonth)) {
+			if (yearMonth == null) {
+				if (other.yearMonth != null) {
+					return false;
+				}
+			} else if (!yearMonth.equals(other.yearMonth)) {
 				return false;
 			}
 			return true;

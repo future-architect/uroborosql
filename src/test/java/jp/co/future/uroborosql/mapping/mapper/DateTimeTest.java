@@ -1,9 +1,11 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -11,41 +13,41 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class DateTimeTest {
 
 	private static SqlConfig config;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		var url = "jdbc:h2:mem:DateTimeTest;DB_CLOSE_DELAY=-1";
+		String url = "jdbc:h2:mem:DateTimeTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (var conn = DriverManager.getConnection(url, user, password)) {
+		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (var stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
 						"create table if not exists test( "
 								+ "id NUMERIC(4)"
 								+ ",date_value DATE"
-								+ ",datetime_value DATETIME"
+								+ ",datetime_value TIMESTAMP(9)"
 								+ ",time_value TIME"
 								+ ", primary key(id))");
 			}
@@ -53,18 +55,19 @@ public class DateTimeTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		var sqlFilterManager = config.getSqlFilterManager();
+		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@BeforeEach
+	@Before
 	public void setUpBefore() throws Exception {
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class LocalTestEntity {
 		private long id;
@@ -84,7 +87,13 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(dateValue, datetimeValue, id, timeValue);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
@@ -98,17 +107,29 @@ public class DateTimeTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (LocalTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
+			LocalTestEntity other = (LocalTestEntity) obj;
+			if (dateValue == null) {
+				if (other.dateValue != null) {
+					return false;
+				}
+			} else if (!dateValue.equals(other.dateValue)) {
 				return false;
 			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -121,6 +142,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DateTestEntity {
 		private long id;
@@ -140,7 +162,13 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(dateValue, datetimeValue, id, timeValue);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
@@ -154,17 +182,29 @@ public class DateTimeTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (DateTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
+			DateTestEntity other = (DateTestEntity) obj;
+			if (dateValue == null) {
+				if (other.dateValue != null) {
+					return false;
+				}
+			} else if (!dateValue.equals(other.dateValue)) {
 				return false;
 			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -177,6 +217,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class OffsetTestEntity {
 		private long id;
@@ -194,7 +235,12 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(datetimeValue, id, timeValue);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
+			return result;
 		}
 
 		@Override
@@ -208,14 +254,22 @@ public class DateTimeTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (OffsetTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
+			OffsetTestEntity other = (OffsetTestEntity) obj;
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (timeValue == null) {
+				if (other.timeValue != null) {
+					return false;
+				}
+			} else if (!timeValue.equals(other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -227,6 +281,7 @@ public class DateTimeTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class ZonedTestEntity {
 		private long id;
@@ -242,7 +297,11 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(datetimeValue, id);
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
+			result = prime * result + (int) (id ^ id >>> 32);
+			return result;
 		}
 
 		@Override
@@ -256,8 +315,12 @@ public class DateTimeTest {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			var other = (ZonedTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
+			ZonedTestEntity other = (ZonedTestEntity) obj;
+			if (datetimeValue == null) {
+				if (other.datetimeValue != null) {
+					return false;
+				}
+			} else if (!datetimeValue.equals(other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
@@ -275,13 +338,13 @@ public class DateTimeTest {
 	@Test
 	public void testZoned() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new ZonedTestEntity(1);
+				ZonedTestEntity test1 = new ZonedTestEntity(1);
 				agent.insert(test1);
-				var zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
-				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(zoned.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
+				ZonedTestEntity zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				assertThat(zoned.datetimeValue, is(test1.datetimeValue));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
 		}
@@ -290,13 +353,12 @@ public class DateTimeTest {
 	@Test
 	public void testOffset() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new OffsetTestEntity(1);
+				OffsetTestEntity test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
-				test1.datetimeValue = test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
-				var offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
-				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				OffsetTestEntity offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(offset.datetimeValue, is(test1.datetimeValue));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
@@ -307,23 +369,23 @@ public class DateTimeTest {
 	@Test
 	public void testDate() throws Exception {
 
-		try (var agent = config.agent()) {
+		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new DateTestEntity(1);
+				DateTestEntity test1 = new DateTestEntity(1);
 				agent.insert(test1);
-				var date = agent.find(DateTestEntity.class, 1).orElse(null);
-				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				DateTestEntity date = agent.find(DateTestEntity.class, 1).orElse(null);
+				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(date.datetimeValue.getTime(), is(test1.datetimeValue.getTime()));
 				assertThat(date.dateValue.getTime(), is(test1.dateValue.getTime()));
 				System.out.println(date.timeValue);
 
-				final var c = Calendar.getInstance();
+				final Calendar c = Calendar.getInstance();
 				c.setLenient(false);
 				c.setTime(date.timeValue);
 				c.set(Calendar.YEAR, 1970);
 				c.set(Calendar.MONTH, 0);
 				c.set(Calendar.DAY_OF_MONTH, 1);
-				var time = c.getTime();
+				Date time = c.getTime();
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
 				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
 						.toLocalDateTime(),
@@ -335,5 +397,4 @@ public class DateTimeTest {
 			});
 		}
 	}
-
 }

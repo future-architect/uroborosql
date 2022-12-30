@@ -23,7 +23,7 @@ public enum BranchCoverageState {
 
 	private final int val;
 
-	BranchCoverageState(final int val) {
+	private BranchCoverageState(final int val) {
 		this.val = val;
 	}
 

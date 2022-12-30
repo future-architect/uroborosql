@@ -1,11 +1,11 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.sql.JDBCType;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class ArrayTypeTest extends AbstractDbTest {
 	/**
@@ -20,7 +20,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -29,7 +29,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -38,7 +38,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -47,7 +47,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -56,7 +56,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -65,7 +65,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -74,7 +74,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 		try {
 			truncateTable("COLUMN_TYPE_ARRAY");
@@ -83,7 +83,7 @@ public class ArrayTypeTest extends AbstractDbTest {
 					.param("col_array", vals, JDBCType.ARRAY).count();
 			assertThat(agent.queryWith("select COL_ARRAY from COLUMN_TYPE_ARRAY").first().get("COL_ARRAY"), is(vals));
 		} catch (Exception ex) {
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 
 	}

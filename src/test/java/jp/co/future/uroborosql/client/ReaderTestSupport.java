@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.jline.reader.LineReader.*;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,7 +21,7 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 
 public abstract class ReaderTestSupport {
 	protected Terminal terminal;
@@ -30,7 +30,7 @@ public abstract class ReaderTestSupport {
 	protected ByteArrayOutputStream out;
 	protected Character mask;
 
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		in = new EofPipedInputStream();
 		out = new ByteArrayOutputStream();
@@ -42,12 +42,12 @@ public abstract class ReaderTestSupport {
 	}
 
 	protected void assertConsoleOutputContains(final String s) {
-		var output = out.toString();
+		String output = out.toString();
 		assertThat(output, containsString(s));
 	}
 
 	protected void assertConsoleOutputNotContains(final String s) {
-		var output = out.toString();
+		String output = out.toString();
 		assertThat(output, not(containsString(s)));
 	}
 
@@ -239,7 +239,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer back(final int n) {
-			for (var i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				op(BACKWARD_DELETE_CHAR);
 			}
 			return this;
@@ -250,7 +250,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer left(final int n) {
-			for (var i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				left();
 			}
 			return this;
@@ -261,7 +261,7 @@ public abstract class ReaderTestSupport {
 		}
 
 		public TestBuffer right(final int n) {
-			for (var i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				right();
 			}
 			return this;

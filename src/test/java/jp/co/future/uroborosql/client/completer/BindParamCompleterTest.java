@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.jline.reader.LineReader;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
@@ -21,7 +21,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
 	private SqlConfig sqlConfig;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
 		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
@@ -30,7 +30,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	}
 
 	@Override
-	@BeforeEach
+	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
@@ -41,7 +41,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		var completer = new BindParamCompleter(commands, sqlConfig);
+		BindParamCompleter completer = new BindParamCompleter(commands, sqlConfig);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
