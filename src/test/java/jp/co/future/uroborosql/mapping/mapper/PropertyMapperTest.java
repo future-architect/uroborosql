@@ -72,7 +72,6 @@ public class PropertyMapperTest {
 		A_VALUE, B_VALUE,
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class PropertyMapperTestEntity {
 		private long id;
@@ -115,7 +114,9 @@ public class PropertyMapperTest {
 				return false;
 			}
 			var other = (PropertyMapperTestEntity) obj;
-			if (!Objects.equals(bigIntValue, other.bigIntValue) || !Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || !Objects.equals(doubleValue, other.doubleValue)) {
+			if (!Objects.equals(bigIntValue, other.bigIntValue) || !Objects.equals(dateValue, other.dateValue)
+					|| !Objects.equals(datetimeValue, other.datetimeValue)
+					|| !Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
 			if (enumValue != other.enumValue) {

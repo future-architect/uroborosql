@@ -65,7 +65,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class LocalTestEntity {
 		private long id;
@@ -97,7 +96,8 @@ public class DateTimeTest {
 				return false;
 			}
 			var other = (LocalTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
+					|| (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -110,7 +110,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DateTestEntity {
 		private long id;
@@ -142,7 +141,8 @@ public class DateTimeTest {
 				return false;
 			}
 			var other = (DateTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
+					|| (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -155,7 +155,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class OffsetTestEntity {
 		private long id;
@@ -185,7 +184,8 @@ public class DateTimeTest {
 				return false;
 			}
 			var other = (OffsetTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id)
+					|| !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -197,7 +197,6 @@ public class DateTimeTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class ZonedTestEntity {
 		private long id;

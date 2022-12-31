@@ -74,7 +74,6 @@ public class ORMSampleTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private String name;
@@ -125,7 +124,8 @@ public class ORMSampleTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(memo, other.memo)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+					|| !Objects.equals(memo, other.memo)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -269,7 +269,6 @@ public class ORMSampleTest {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class DomainTestEntity {
 		private long id;

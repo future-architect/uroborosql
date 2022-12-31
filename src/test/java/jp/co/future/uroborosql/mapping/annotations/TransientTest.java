@@ -133,7 +133,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt) || (id != other.id)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt)
+					|| (id != other.id)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -186,7 +187,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt) || (id != other.id)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt)
+					|| (id != other.id)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -202,7 +204,6 @@ public class TransientTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoInsTestEntity {
 		private long id;
@@ -236,7 +237,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoInsTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(name, other.name)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+					|| !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -249,7 +251,6 @@ public class TransientTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class TransientAnnoUpdTestEntity {
 		private long id;
@@ -283,7 +284,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoUpdTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(name, other.name)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+					|| !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
