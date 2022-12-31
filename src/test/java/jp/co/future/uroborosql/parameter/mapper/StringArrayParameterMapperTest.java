@@ -1,17 +1,17 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Array;
 import java.sql.Connection;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.time.Clock;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,12 +26,12 @@ public class StringArrayParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(this.clock);
-		Array jdbcArray = newProxy(Array.class);
+		var parameterMapperManager = new BindParameterMapperManager(this.clock);
+		var jdbcArray = newProxy(Array.class);
 		String[] array = { "A" };
 
-		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
-			if (method.getName().equals("createArrayOf")) {
+		var conn = newProxy(Connection.class, (proxy, method, args) -> {
+			if ("createArrayOf".equals(method.getName())) {
 				assertThat(args[0], is("VARCHAR"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
@@ -64,7 +64,7 @@ public class StringArrayParameterMapperTest {
 	}
 
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -73,18 +73,17 @@ public class StringArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		return newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}
 
-			for (int i = 0; i < args.length; i++) {
+			for (var i = 0; i < args.length; i++) {
 				if (args[i] instanceof ProxyContainer) {
 					args[i] = ((ProxyContainer) args[i]).getOriginal();
 				}
 			}
 			return method.invoke(o, args);
 		});
-		return proxyInstance;
 	}
 }

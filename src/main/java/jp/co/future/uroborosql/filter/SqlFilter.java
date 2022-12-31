@@ -99,7 +99,8 @@ public interface SqlFilter {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int doUpdate(ExecutionContext executionContext, PreparedStatement preparedStatement, int result) throws SQLException;
+	int doUpdate(ExecutionContext executionContext, PreparedStatement preparedStatement, int result)
+			throws SQLException;
 
 	/**
 	 * バッチ処理に対するフィルター処理を行う
@@ -111,7 +112,8 @@ public interface SqlFilter {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	int[] doBatch(ExecutionContext executionContext, PreparedStatement preparedStatement, int[] result) throws SQLException;
+	int[] doBatch(ExecutionContext executionContext, PreparedStatement preparedStatement, int[] result)
+			throws SQLException;
 
 	/**
 	 * CallableProcedure処理に対するフィルター処理を行う
@@ -123,5 +125,6 @@ public interface SqlFilter {
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	boolean doProcedure(ExecutionContext executionContext, CallableStatement callableStatement, boolean result) throws SQLException;
+	boolean doProcedure(ExecutionContext executionContext, CallableStatement callableStatement, boolean result)
+			throws SQLException;
 }

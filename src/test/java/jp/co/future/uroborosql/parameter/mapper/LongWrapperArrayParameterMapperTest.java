@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -26,12 +26,12 @@ public class LongWrapperArrayParameterMapperTest {
 
 	@Test
 	public void test() {
-		BindParameterMapperManager parameterMapperManager = new BindParameterMapperManager(clock);
-		Array jdbcArray = newProxy(Array.class);
-		Long[] array = { Long.valueOf(111L), Long.valueOf(222L) };
+		var parameterMapperManager = new BindParameterMapperManager(clock);
+		var jdbcArray = newProxy(Array.class);
+		Long[] array = { 111L, 222L };
 
-		Connection conn = newProxy(Connection.class, (proxy, method, args) -> {
-			if (method.getName().equals("createArrayOf")) {
+		var conn = newProxy(Connection.class, (proxy, method, args) -> {
+			if ("createArrayOf".equals(method.getName())) {
 				assertThat(args[0], is("BIGINT"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
@@ -64,7 +64,7 @@ public class LongWrapperArrayParameterMapperTest {
 	}
 
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -73,18 +73,17 @@ public class LongWrapperArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		return newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}
 
-			for (int i = 0; i < args.length; i++) {
+			for (var i = 0; i < args.length; i++) {
 				if (args[i] instanceof ProxyContainer) {
 					args[i] = ((ProxyContainer) args[i]).getOriginal();
 				}
 			}
 			return method.invoke(o, args);
 		});
-		return proxyInstance;
 	}
 }

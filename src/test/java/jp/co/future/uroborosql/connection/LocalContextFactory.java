@@ -1,6 +1,5 @@
 package jp.co.future.uroborosql.connection;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.naming.Binding;
@@ -29,8 +28,8 @@ public class LocalContextFactory implements InitialContextFactory {
 		private final Hashtable<Object, Object> environment = new Hashtable<>();
 
 		private String nameToString(final Name name) {
-			Enumeration<String> enumeration = name.getAll();
-			StringBuilder builder = new StringBuilder();
+			var enumeration = name.getAll();
+			var builder = new StringBuilder();
 			while (enumeration.hasMoreElements()) {
 				builder.append(enumeration.nextElement());
 			}

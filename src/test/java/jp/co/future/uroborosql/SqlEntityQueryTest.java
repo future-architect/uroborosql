@@ -1,11 +1,15 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -21,7 +25,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Product> products = agent.query(Product.class)
+		var products = agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.collect();
 
@@ -63,7 +67,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		Optional<Product> product = agent.query(Product.class)
+		var product = agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.first();
 
@@ -80,7 +84,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 			assertNotNull(p.getVersionNo());
 		});
 
-		Optional<Product> empty = agent.query(Product.class)
+		var empty = agent.query(Product.class)
 				.in("product_id", 10)
 				.first();
 
@@ -99,7 +103,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 			// OK
 		}
 
-		Optional<Product> product = agent.query(Product.class)
+		var product = agent.query(Product.class)
 				.in("product_id", 0)
 				.one();
 
@@ -116,7 +120,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 			assertNotNull(p.getVersionNo());
 		});
 
-		Optional<Product> empty = agent.query(Product.class)
+		var empty = agent.query(Product.class)
 				.in("product_id", 10)
 				.one();
 
@@ -128,7 +132,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Product> products = agent.query(Product.class)
+		var products = agent.query(Product.class)
 				.equal("productId", 0)
 				.collect();
 
@@ -151,13 +155,13 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// camel case
-		String productName = agent.query(Product.class)
+		var productName = agent.query(Product.class)
 				.equal("product_id", 1)
 				.select("productName", String.class).findFirst().get();
 		assertEquals(productName, "商品名1");
 
 		// snake case
-		String janCode = agent.query(Product.class)
+		var janCode = agent.query(Product.class)
 				.equal("product_id", 1)
 				.select("jan_code", String.class).findFirst().get();
 		assertEquals(janCode, "1234567890124");
@@ -189,7 +193,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// 通常の検索
-		Product product = agent.query(Product.class)
+		var product = agent.query(Product.class)
 				.equal("product_id", 1)
 				.first()
 				.orElseThrow(UroborosqlSQLException::new);
@@ -325,7 +329,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// 通常の検索
-		Product product = agent.query(Product.class)
+		var product = agent.query(Product.class)
 				.equal("product_id", 1)
 				.first()
 				.orElseThrow(UroborosqlSQLException::new);
@@ -465,7 +469,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		List<Product> products = agent.query(Product.class)
+		var products = agent.query(Product.class)
 				.hint("IX_PRODUCT")
 				.collect();
 		assertThat(products.size(), is(2));

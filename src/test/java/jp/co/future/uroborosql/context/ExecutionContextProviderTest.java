@@ -44,7 +44,7 @@ public class ExecutionContextProviderTest {
 
 		ExecutionContextProvider.initialize();
 
-		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
+		var constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Map<String, ?> map = constParameterMap.entrySet().stream()
 				.collect(Collector.of(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getValue()), (m1, m2) -> {
 					m1.putAll(m2);
@@ -88,7 +88,7 @@ public class ExecutionContextProviderTest {
 
 	private Map<String, ?> mapOf(final Object... args) {
 		Map<String, Object> map = new HashMap<>();
-		for (int i = 0; i < args.length; i += 2) {
+		for (var i = 0; i < args.length; i += 2) {
 			map.put((String) args[i], args[i + 1]);
 		}
 		return map;
@@ -101,7 +101,7 @@ public class ExecutionContextProviderTest {
 
 		ExecutionContextProvider.initialize();
 
-		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
+		var constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 
@@ -124,7 +124,7 @@ public class ExecutionContextProviderTest {
 
 		ExecutionContextProvider.initialize();
 
-		Map<String, Parameter> constParameterMap = ExecutionContextProvider.getConstParameterMap();
+		var constParameterMap = ExecutionContextProvider.getConstParameterMap();
 		Set<String> set = constParameterMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue().getValue())
 				.collect(Collectors.toSet());
 

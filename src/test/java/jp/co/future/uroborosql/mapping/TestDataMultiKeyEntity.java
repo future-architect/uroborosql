@@ -1,5 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
+import java.util.Objects;
+
 @SuppressWarnings("unused")
 public class TestDataMultiKeyEntity {
 	private long id;
@@ -17,12 +19,7 @@ public class TestDataMultiKeyEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (id ^ id >>> 32);
-		result = prime * result + (key == null ? 0 : key.hashCode());
-		result = prime * result + (name == null ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(id, key, name);
 	}
 
 	@Override
@@ -30,28 +27,17 @@ public class TestDataMultiKeyEntity {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		TestDataMultiKeyEntity other = (TestDataMultiKeyEntity) obj;
+		var other = (TestDataMultiKeyEntity) obj;
 		if (id != other.id) {
 			return false;
 		}
-		if (key == null) {
-			if (other.key != null) {
-				return false;
-			}
-		} else if (!key.equals(other.key)) {
+		if (!Objects.equals(key, other.key)) {
 			return false;
 		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
+		if (!Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

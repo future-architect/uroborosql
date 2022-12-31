@@ -43,7 +43,6 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 * @param wrapped 元となるResultSet
 	 */
 	public AbstractResultSetWrapper(final ResultSet wrapped) {
-		super();
 		this.wrapped = wrapped;
 	}
 

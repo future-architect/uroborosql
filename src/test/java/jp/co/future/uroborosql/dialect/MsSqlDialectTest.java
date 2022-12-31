@@ -2,9 +2,9 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class MsSqlDialectTest {
 			}
 		};
 
-		Dialect dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
+		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
 		assertThat(dialect, instanceOf(MsSqlDialect.class));
@@ -105,7 +105,7 @@ public class MsSqlDialectTest {
 
 	@Test
 	public void testAddForUpdateClause() {
-		StringBuilder sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
 				.append(System.lineSeparator())
@@ -129,7 +129,7 @@ public class MsSqlDialectTest {
 
 	@Test
 	public void testAddOptimizerHints1() {
-		StringBuilder sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
 				.append(System.lineSeparator())
@@ -158,7 +158,7 @@ public class MsSqlDialectTest {
 
 	@Test
 	public void testAddOptimizerHints2() {
-		StringBuilder sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
 		List<String> hints = new ArrayList<>();

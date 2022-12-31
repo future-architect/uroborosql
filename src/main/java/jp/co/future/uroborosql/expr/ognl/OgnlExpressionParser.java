@@ -32,7 +32,6 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	 * コンストラクタ
 	 */
 	public OgnlExpressionParser() {
-		super();
 	}
 
 	/**
@@ -66,7 +65,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private class OgnlExpression implements Expression {
+	private static class OgnlExpression implements Expression {
 		private final Object expression;
 
 		/**

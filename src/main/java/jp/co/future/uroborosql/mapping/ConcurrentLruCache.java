@@ -42,7 +42,7 @@ public class ConcurrentLruCache<K, V> {
 	 *
 	 * @param sizeLimit キャッシュに格納できる値の上限. (0はキャッシュを行わず、常に新しい値を生成することを示す)
 	 */
-	public ConcurrentLruCache(int sizeLimit) {
+	public ConcurrentLruCache(final int sizeLimit) {
 		if (sizeLimit < 0) {
 			throw new IllegalArgumentException("Cache size limit must not be negative.");
 		}
@@ -56,7 +56,7 @@ public class ConcurrentLruCache<K, V> {
 	 * @param generator 与えられたキーに対する新しい値を生成する関数
 	 * @return キャッシュされた値、あるいは新たに生成された値
 	 */
-	public V get(K key, Function<K, V> generator) {
+	public V get(final K key, final Function<K, V> generator) {
 		if (generator == null) {
 			throw new IllegalArgumentException("Generator function must not be null.");
 		}
@@ -65,7 +65,7 @@ public class ConcurrentLruCache<K, V> {
 			return generator.apply(key);
 		}
 
-		V cached = this.cache.get(key);
+		var cached = this.cache.get(key);
 		if (cached != null) {
 			if (this.size < this.sizeLimit) {
 				return cached;
@@ -92,9 +92,9 @@ public class ConcurrentLruCache<K, V> {
 				return cached;
 			}
 			// サイズの不一致を防ぐため、最初に値を生成する
-			V value = generator.apply(key);
+			var value = generator.apply(key);
 			if (this.size == this.sizeLimit) {
-				K leastUsed = this.queue.poll();
+				var leastUsed = this.queue.poll();
 				if (leastUsed != null) {
 					this.cache.remove(leastUsed);
 				}
@@ -114,7 +114,7 @@ public class ConcurrentLruCache<K, V> {
 	 * @param key 確認するキー
 	 * @return キーが存在する場合 {@code true}, 一致するキーがなかった場合は {@code false} を返す.
 	 */
-	public boolean contains(K key) {
+	public boolean contains(final K key) {
 		return this.cache.containsKey(key);
 	}
 
@@ -124,10 +124,10 @@ public class ConcurrentLruCache<K, V> {
 	 * @param key エントリーを消去するためのキー
 	 * @return キーが以前から存在していた場合 {@code true},一致するキーがなかった場合 {@code false} を返す.
 	 */
-	public boolean remove(K key) {
+	public boolean remove(final K key) {
 		this.lock.writeLock().lock();
 		try {
-			boolean wasPresent = (this.cache.remove(key) != null);
+			var wasPresent = this.cache.remove(key) != null;
 			this.queue.remove(key);
 			this.size = this.cache.size();
 			return wasPresent;

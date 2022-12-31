@@ -41,7 +41,7 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		BindParamCompleter completer = new BindParamCompleter(commands, sqlConfig);
+		var completer = new BindParamCompleter(commands, sqlConfig);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

@@ -35,7 +35,7 @@ public class UpdateDelegateTest {
 	 */
 	@Test
 	public void testUpdateDelegate() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			assertThat(agent.update("example/selectinsert_product")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 					.param("jan_code", "1234567890123", Types.CHAR).count(), is(2));
@@ -47,9 +47,9 @@ public class UpdateDelegateTest {
 	 */
 	@Test
 	public void testBatchUpdateDelegate() throws Exception {
-		Timestamp currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
+		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<Map<String, Object>> rows = new ArrayList<>();
-		for (int i = 1; i <= 1000; i++) {
+		for (var i = 1; i <= 1000; i++) {
 			Map<String, Object> row = new HashMap<>();
 			row.put("product_id", i);
 			row.put("product_name", "商品名" + i);
@@ -62,7 +62,7 @@ public class UpdateDelegateTest {
 			rows.add(row);
 		}
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			// 処理実行
 			assertThat(agent.batch("example/insert_product")
 					.paramStream(rows.stream())

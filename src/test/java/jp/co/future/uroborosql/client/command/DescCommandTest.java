@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,7 +39,7 @@ public class DescCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -58,7 +59,7 @@ public class DescCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
+		var flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
 		assertTrue(flag);
 		assertConsoleOutputContains(
 				"|TABLE_NAME|COLUMN_NAME        |TYPE_NAME|COLUMN_SIZE|DECIMAL_DIGITS|IS_NULLABLE|COLUMN_DEF|REMARKS|");

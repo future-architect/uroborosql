@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,26 +42,26 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(Optional.of("住所2_new"));
 
 			assertThat(agent.merge(updateEntity), is(1));
-			TestEntity result1 = agent.find(TestEntity.class, 2).orElse(null);
+			var result1 = agent.find(TestEntity.class, 2).orElse(null);
 			assertThat(result1, not(nullValue()));
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
 			assertThat(agent.merge(insertEntity), is(1));
-			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
+			var result2 = agent.find(TestEntity.class, 10).orElse(null);
 			assertThat(result2, not(nullValue()));
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
@@ -88,23 +90,23 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(Optional.of("住所2_new"));
 
-			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			var result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
-			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			var result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(10));
 			assertThat(result2.getName(), is(insertEntity.getName()));
 			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
@@ -132,26 +134,26 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(Optional.of("住所2_new"));
 
 			assertThat(agent.mergeWithLocking(updateEntity), is(1));
-			TestEntity result1 = agent.find(TestEntity.class, 2).orElse(null);
+			var result1 = agent.find(TestEntity.class, 2).orElse(null);
 			assertThat(result1, not(nullValue()));
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
 			assertThat(agent.mergeWithLocking(insertEntity), is(1));
-			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
+			var result2 = agent.find(TestEntity.class, 10).orElse(null);
 			assertThat(result2, not(nullValue()));
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
@@ -180,23 +182,23 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(Optional.of("住所2_new"));
 
-			TestEntity result1 = agent.mergeWithLockingAndReturn(updateEntity);
+			var result1 = agent.mergeWithLockingAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
 					.setVersion(0);
 
-			TestEntity result2 = agent.mergeWithLockingAndReturn(insertEntity);
+			var result2 = agent.mergeWithLockingAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
 			assertThat(result2.getAddress(), is(Optional.of("住所10_new")));
@@ -224,23 +226,23 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(Optional.empty());
 
-			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			var result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.empty()));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.empty())
 					.setVersion(0);
 
-			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			var result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
 			assertThat(result2.getAddress(), is(Optional.empty()));
@@ -268,23 +270,23 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(null);
 
-			TestEntity result1 = agent.mergeAndReturn(updateEntity);
+			var result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2"))); // 更新されないこと
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntity insertEntity = new TestEntity()
+			var insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(null)
 					.setVersion(0);
 
-			TestEntity result2 = agent.mergeAndReturn(insertEntity);
+			var result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getName(), is(insertEntity.getName()));
 			assertThat(result2.getAddress(), nullValue());
@@ -298,7 +300,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testEntityMergeThrowWhenStreamParam() throws Exception {
 		agent.required(() -> {
-			TestEntity updateEntity = new TestEntity()
+			var updateEntity = new TestEntity()
 					.setId(2)
 					.setName("名前2_new")
 					.setAddress(null);
@@ -331,26 +333,26 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntityMultiKey.class, entities.stream()), is(9));
 
-			TestEntityMultiKey beforeEntity = entities.get(1);
-			TestEntityMultiKey updateEntity = new TestEntityMultiKey()
+			var beforeEntity = entities.get(1);
+			var updateEntity = new TestEntityMultiKey()
 					.setId(beforeEntity.getId())
 					.setEndAt(beforeEntity.getEndAt())
 					.setName(beforeEntity.getName() + "_new")
 					.setVersion(beforeEntity.getVersion());
 
-			TestEntityMultiKey result1 = agent.mergeAndReturn(updateEntity);
+			var result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getEndAt(), is(updateEntity.getEndAt()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
 
-			TestEntityMultiKey insertEntity = new TestEntityMultiKey()
+			var insertEntity = new TestEntityMultiKey()
 					.setId(11)
 					.setEndAt(LocalDate.now().plusDays(11))
 					.setName("名前11_new")
 					.setVersion(0);
 
-			TestEntityMultiKey result2 = agent.mergeAndReturn(insertEntity);
+			var result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
 			assertThat(result2.getEndAt(), is(insertEntity.getEndAt()));
 			assertThat(result2.getName(), is(insertEntity.getName()));

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.util.OptionalLong;
 
@@ -11,17 +12,17 @@ public class OptionalLongParameterMapperTest {
 
 	@Test
 	public void test() {
-		long value = 123;
+		var value = 123L;
 
-		OptionalLongParameterMapper mapper = new OptionalLongParameterMapper();
-		OptionalLong optional = OptionalLong.of(value);
+		var mapper = new OptionalLongParameterMapper();
+		var optional = OptionalLong.of(value);
 		assertThat(mapper.toJdbc(optional, null, null), is(value));
 	}
 
 	@Test
 	public void testEmpty() {
-		OptionalLongParameterMapper mapper = new OptionalLongParameterMapper();
-		OptionalLong optional = OptionalLong.empty();
+		var mapper = new OptionalLongParameterMapper();
+		var optional = OptionalLong.empty();
 		assertThat(mapper.toJdbc(optional, null, null), is(nullValue()));
 	}
 

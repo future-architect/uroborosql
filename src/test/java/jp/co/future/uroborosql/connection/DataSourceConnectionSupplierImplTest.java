@@ -32,9 +32,9 @@ public class DataSourceConnectionSupplierImplTest {
 		System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "jp.co.future.uroborosql.connection.LocalContextFactory");
 		System.setProperty(Context.URL_PKG_PREFIXES, "local");
 
-		JdbcDataSource ds1 = new JdbcDataSource();
+		var ds1 = new JdbcDataSource();
 		ds1.setURL(URL1);
-		JdbcDataSource ds2 = new JdbcDataSource();
+		var ds2 = new JdbcDataSource();
 		ds2.setURL(URL2);
 
 		Context ic = new InitialContext();
@@ -48,8 +48,8 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testDataSourceConnection() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		try (Connection conn = supplier.getConnection()) {
+		var supplier = new DataSourceConnectionSupplierImpl();
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
 			assertThat(conn.getSchema(), is("PUBLIC"));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -60,12 +60,12 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testDataSourceConnectionWithDataSource() throws Exception {
-		String url = "jdbc:h2:mem:ds";
-		JdbcDataSource dataSource = new JdbcDataSource();
+		var url = "jdbc:h2:mem:ds";
+		var dataSource = new JdbcDataSource();
 		dataSource.setURL(url);
 
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl(dataSource);
-		try (Connection conn = supplier.getConnection()) {
+		var supplier = new DataSourceConnectionSupplierImpl(dataSource);
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is("PUBLIC"));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -76,46 +76,46 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testGetConnectionWithContext() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
-		try (Connection conn = supplier.getConnection()) {
+		var supplier = new DataSourceConnectionSupplierImpl();
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
 		}
 
-		try (Connection conn = supplier.getConnection(ConnectionContextBuilder.dataSource(DS_NAME2))) {
+		try (var conn = supplier.getConnection(ConnectionContextBuilder.dataSource(DS_NAME2))) {
 			assertThat(conn.getMetaData().getURL(), is(URL2));
 		}
 	}
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testGetConnectionMissingName() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.getConnection(ConnectionContextBuilder.dataSource("dummy"));
 	}
 
 	@Test
 	public void testGetDefaultDataSourceName() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDefaultDataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
-		String dataSourceName = "changedDataSourceName";
+		var dataSourceName = "changedDataSourceName";
 		supplier.setDefaultDataSourceName(dataSourceName);
 		assertThat(supplier.getDefaultDataSourceName(), is(dataSourceName));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetDefaultDataSourceNameIsNull() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultDataSourceName(null);
 	}
 
 	@Test
 	public void testSetDefaultAutoCommit() throws Exception {
-		boolean autoCommit = true;
-		boolean readonly = false;
+		var autoCommit = true;
+		var readonly = false;
 
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultAutoCommit(autoCommit);
 		assertThat(supplier.isDefaultAutoCommit(), is(autoCommit));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
 			assertThat(conn.getAutoCommit(), is(autoCommit));
 			assertThat(conn.isReadOnly(), is(readonly));
@@ -125,13 +125,13 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultReadOnly() throws Exception {
-		boolean autoCommit = false;
-		boolean readonly = true;
+		var autoCommit = false;
+		var readonly = true;
 
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultReadOnly(readonly);
 		assertThat(supplier.isDefaultReadOnly(), is(readonly));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
 			assertThat(conn.getAutoCommit(), is(autoCommit));
 			// assertThat(conn.isReadOnly(), is(readonly)); // H2はreadonlyオプションが適用されないためコメントアウト
@@ -142,23 +142,23 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultTransactionIsolation() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 		assertThat(supplier.getDefaultTransactionIsolation(), is(Connection.TRANSACTION_READ_UNCOMMITTED));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_UNCOMMITTED));
 		}
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 		// H2 not support TRANSACTION_REPEATABLE_READ. TRANSACTION_SERIALIZABLEになってしまう
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_SERIALIZABLE));
 		}
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_SERIALIZABLE));
 		}
 		try {
@@ -171,13 +171,13 @@ public class DataSourceConnectionSupplierImplTest {
 
 	@Test
 	public void testGetDatabaseName() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetConnectionMissingClass() throws Exception {
-		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.getConnection(ConnectionContextBuilder.jdbc("dummy"));
 	}
 

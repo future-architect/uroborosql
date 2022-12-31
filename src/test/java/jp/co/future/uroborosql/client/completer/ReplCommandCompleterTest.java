@@ -25,7 +25,7 @@ public class ReplCommandCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		ReplCommandCompleter completer = new ReplCommandCompleter(commands);
+		var completer = new ReplCommandCompleter(commands);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

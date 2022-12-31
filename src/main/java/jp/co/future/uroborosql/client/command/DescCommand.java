@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.client.command;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -145,7 +146,7 @@ public class DescCommand extends ReplCommand {
 		}
 		var str = val.toString();
 		try {
-			return str.getBytes(System.getProperty("file.encoding")).length;
+			return str.getBytes(Charset.defaultCharset().displayName()).length;
 		} catch (UnsupportedEncodingException ex) {
 			return 1;
 		}

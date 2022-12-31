@@ -28,7 +28,6 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 	 * コンストラクタ
 	 */
 	protected ConnectionContext() {
-		super();
 	}
 
 	/**

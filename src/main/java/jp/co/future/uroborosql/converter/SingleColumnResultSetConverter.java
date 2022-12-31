@@ -9,7 +9,6 @@ package jp.co.future.uroborosql.converter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -60,7 +59,7 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 	 * @param type 判定対象の型
 	 * @return 受付可能な場合<code>true</code> を返す.
 	 */
-	public static final boolean accept(Class<?> type) {
+	public static final boolean accept(final Class<?> type) {
 		if (type == null) {
 			return false;
 		} else if ( // 基本的な型は受付可能とする
@@ -129,7 +128,7 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 	 * @param columnType カラムの型
 	 * @param mapperManager PropertyMapperManager
 	 */
-	public SingleColumnResultSetConverter(String col, final Class<? extends E> columnType,
+	public SingleColumnResultSetConverter(final String col, final Class<? extends E> columnType,
 			final PropertyMapperManager mapperManager) {
 		this.col = CaseFormat.UPPER_SNAKE_CASE.convert(col);
 		this.javaType = JavaType.of(columnType);
@@ -147,12 +146,12 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 	public E createRecord(final ResultSet rs) throws SQLException {
 		try {
 			if (this.columnPosition == -1) {
-				ResultSetMetaData rsmd = rs.getMetaData();
-				int columnCount = rsmd.getColumnCount();
+				var rsmd = rs.getMetaData();
+				var columnCount = rsmd.getColumnCount();
 
 				// 指定されたカラムのpositionを取得
-				for (int i = 1; i <= columnCount; i++) {
-					String columnLabel = CaseFormat.UPPER_SNAKE_CASE.convert(rsmd.getColumnLabel(i));
+				for (var i = 1; i <= columnCount; i++) {
+					var columnLabel = CaseFormat.UPPER_SNAKE_CASE.convert(rsmd.getColumnLabel(i));
 					if (col.equalsIgnoreCase(columnLabel)) {
 						this.columnPosition = i;
 						break;

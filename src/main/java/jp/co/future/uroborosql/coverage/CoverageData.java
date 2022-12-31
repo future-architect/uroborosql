@@ -34,7 +34,6 @@ public class CoverageData {
 	 * @param passRoute 分岐情報
 	 */
 	public CoverageData(final String sqlName, final String sql, final PassedRoute passRoute) {
-		super();
 		this.sqlName = sqlName;
 		this.sql = sql;
 		this.md5 = makeMd5(sql);

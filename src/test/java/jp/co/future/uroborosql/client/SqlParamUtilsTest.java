@@ -1,7 +1,13 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.sql.DriverManager;
@@ -9,14 +15,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.ExecutionContext;
 
 public class SqlParamUtilsTest {
 	private SqlConfig sqlConfig;
@@ -30,8 +34,8 @@ public class SqlParamUtilsTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSetSqlParams() {
-		String sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFAULT*/, /*$CLS_FLAG_OFF*/";
-		ExecutionContext ctx = sqlConfig.context();
+		var sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFAULT*/, /*$CLS_FLAG_OFF*/";
+		var ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=1", "key2", "key3=[true, false]");
@@ -61,7 +65,7 @@ public class SqlParamUtilsTest {
 		assertThat(ctx.hasParam("key2"), is(true));
 		assertThat(ctx.getParam("key2").getValue(), is(nullValue()));
 		assertThat(ctx.hasParam("key3"), is(true));
-		List<Integer> val3 = (List<Integer>) ctx.getParam("key3").getValue();
+		var val3 = (List<Integer>) ctx.getParam("key3").getValue();
 		assertThat(val3, hasItem(10));
 		assertThat(val3, hasItem(20));
 		assertThat(val3, hasItem(30));
@@ -204,8 +208,8 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testSetSqlParamsIfNode() {
-		String sql = "/*IF check1 != null*/ /*key1*/ /*ELSE*/ /*key2*/ /*END*/";
-		ExecutionContext ctx = sqlConfig.context();
+		var sql = "/*IF check1 != null*/ /*key1*/ /*ELSE*/ /*key2*/ /*END*/";
+		var ctx = sqlConfig.context();
 		ctx.setSql(sql);
 		SqlParamUtils.getSqlParams(ctx.getSql(), sqlConfig);
 		SqlParamUtils.setSqlParams(sqlConfig, ctx, "key1=value1", "key2=value2");
@@ -213,7 +217,7 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testGetSqlParams() {
-		Set<String> params = SqlParamUtils
+		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test where id = /*id*/1 and name = /*name*/'name1 age = /*CLS_AGE_DEFAULT*/0",
 						sqlConfig);
@@ -223,7 +227,7 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testGetSqlParamsIfNode() {
-		Set<String> params = SqlParamUtils
+		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test where /*IF id != null*/id = /*id*/1 and id2 = /*id2*/'' /*ELIF name != null*/and name = /*name*/'name1' and name2 = /*name2*/'name2' /*ELIF age != null*/and age = /*age*/0 and age2 = /*age2*/1 */ /*ELSE*/and height = /*height*/0 and height2 = /*height2*/1 /*END*/",
 						sqlConfig);
@@ -233,7 +237,7 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testGetSqlParamsParenExpression() {
-		Set<String> params = SqlParamUtils
+		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
 						sqlConfig);
@@ -242,7 +246,7 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testGetSqlParamsEmbeddedExpression() {
-		Set<String> params = SqlParamUtils
+		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from /*$tableName*/ /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
 						sqlConfig);
@@ -257,7 +261,7 @@ public class SqlParamUtilsTest {
 
 	@Test
 	public void testParseLine() {
-		String[] parts = SqlParamUtils.parseLine("update /sss/bbb param1=[1, 2, 3] param2=3 param3=[1, 2]");
+		var parts = SqlParamUtils.parseLine("update /sss/bbb param1=[1, 2, 3] param2=3 param3=[1, 2]");
 		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=[1,2,3]", "param2=3", "param3=[1,2]"));
 
 		parts = SqlParamUtils.parseLine("update /sss/bbb param1=[NULL] param2=[EMPTY]");

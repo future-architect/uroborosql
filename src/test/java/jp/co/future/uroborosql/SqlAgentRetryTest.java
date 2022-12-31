@@ -29,7 +29,6 @@ import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
-import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -51,7 +50,7 @@ public class SqlAgentRetryTest {
 
 		agent = config.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -71,10 +70,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -84,10 +83,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryNoWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -97,10 +96,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product").param("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -111,10 +110,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product").param("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -125,8 +124,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlQuery query = null;
@@ -145,9 +144,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryOverSqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "60";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "60";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		SqlQuery query = null;
@@ -167,8 +166,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryNoRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlQuery query = null;
@@ -187,9 +186,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryNoRetrySqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "1";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "1";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		SqlQuery query = null;
@@ -209,8 +208,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testQueryRetryWithPessimisticLock() throws Exception {
-		int retryCount = 3;
-		int errorCode = 50200;
+		var retryCount = 3;
+		var errorCode = 50200;
 		// SqlRetryCodeListを空にして、悲観ロック対象エラーコードで判定する
 		config.getSqlAgentProvider().setSqlRetryCodeList(Collections.emptyList());
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -233,10 +232,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		update.count();
@@ -248,10 +247,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryNoWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		update.count();
@@ -263,10 +262,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		update.count();
@@ -278,10 +277,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		update.count();
@@ -293,8 +292,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlUpdate update = null;
@@ -315,9 +314,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateRetryOverSqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "60";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "60";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		SqlUpdate update = null;
@@ -339,8 +338,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateNotRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlUpdate update = null;
@@ -361,9 +360,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testUpdateNotRetrySqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "1";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "1";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		SqlUpdate update = null;
@@ -385,7 +384,7 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testBatchRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
 		var paramList = new ArrayList<Map<String, Object>>();
@@ -397,7 +396,7 @@ public class SqlAgentRetryTest {
 		paramMap.put("ins_datetime", LocalDate.now());
 		paramList.add(paramMap);
 
-		paramMap = new HashMap<String, Object>();
+		paramMap = new HashMap<>();
 		paramMap.put("product_name", "test2");
 		paramMap.put("product_kana_name", "test_kana2");
 		paramMap.put("jan_code", "1234567890124");
@@ -405,7 +404,7 @@ public class SqlAgentRetryTest {
 		paramMap.put("ins_datetime", LocalDate.now());
 		paramList.add(paramMap);
 
-		SqlBatch batch = agent.batch("example/insert_product_regist_work")
+		var batch = agent.batch("example/insert_product_regist_work")
 				.paramStream(paramList.stream())
 				.retry(retryCount + 1);
 		batch.count();
@@ -417,10 +416,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		proc.call();
@@ -432,10 +431,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryNoWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		proc.call();
@@ -447,10 +446,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		proc.call();
@@ -462,10 +461,10 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryWaitSqlState() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		proc.call();
@@ -477,8 +476,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		Procedure proc = null;
@@ -499,9 +498,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureRetryOverSqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "60";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "60";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		Procedure proc = null;
@@ -523,8 +522,8 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureNoRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		Procedure proc = null;
@@ -545,9 +544,9 @@ public class SqlAgentRetryTest {
 	 */
 	@Test
 	public void testProcedureNoRetrySqlState() throws Exception {
-		int retryCount = 3;
-		int errorCode = 0;
-		String sqlState = "1";
+		var retryCount = 3;
+		var errorCode = 0;
+		var sqlState = "1";
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode, sqlState));
 
 		Procedure proc = null;

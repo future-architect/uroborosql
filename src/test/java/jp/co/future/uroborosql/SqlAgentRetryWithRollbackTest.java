@@ -13,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +48,7 @@ public class SqlAgentRetryWithRollbackTest {
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(0, 0));
 		agent = config.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -65,7 +64,7 @@ public class SqlAgentRetryWithRollbackTest {
 	}
 
 	private void setRetryFilter(final int retryCount, final int errorCode) {
-		List<SqlFilter> filters = config.getSqlFilterManager().getFilters();
+		var filters = config.getSqlFilterManager().getFilters();
 		for (SqlFilter filter : filters) {
 			if (filter instanceof RetrySqlFilter) {
 				((RetrySqlFilter) filter).initialize(retryCount, errorCode);
@@ -79,10 +78,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testQueryRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -92,10 +91,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testQueryRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlQuery query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product").param("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -106,8 +105,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testQueryRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlQuery query = null;
@@ -126,8 +125,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testQueryNoRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlQuery query = null;
@@ -146,10 +145,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testUpdateRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		update.count();
@@ -161,10 +160,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testUpdateRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		SqlUpdate update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		update.count();
@@ -176,8 +175,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testUpdateRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlUpdate update = null;
@@ -198,8 +197,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testUpdateNotRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlUpdate update = null;
@@ -220,10 +219,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testProcedureRetryNoWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		proc.call();
@@ -235,10 +234,10 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testProcedureRetryWait() throws Exception {
-		int retryCount = 3;
+		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		Procedure proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
 				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		proc.call();
@@ -250,8 +249,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testProcedureRetryOver() throws Exception {
-		int retryCount = 3;
-		int errorCode = 60;
+		var retryCount = 3;
+		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
 
 		Procedure proc = null;
@@ -272,8 +271,8 @@ public class SqlAgentRetryWithRollbackTest {
 	 */
 	@Test
 	public void testProcedureNoRetry() throws Exception {
-		int retryCount = 3;
-		int errorCode = 1;
+		var retryCount = 3;
+		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
 
 		Procedure proc = null;

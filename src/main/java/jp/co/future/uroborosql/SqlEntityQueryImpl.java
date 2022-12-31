@@ -28,7 +28,6 @@ import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
@@ -131,7 +130,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Stream<E> stream() {
 		try {
-			String selectClause = context().getSql();
+			var selectClause = context().getSql();
 			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
 				// 除外対象カラムを取得する
 				List<? extends TableMetadata.Column> excludeCols = Collections.emptyList();
@@ -157,7 +156,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 					selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
 				}
 			}
-			StringBuilder sql = new StringBuilder(selectClause).append(getWhereClause())
+			var sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
@@ -252,8 +251,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T sum(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -263,8 +262,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -287,10 +286,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T min(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())
@@ -313,10 +312,10 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T max(final String col) {
-		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
-		StringBuilder sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
+		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var column = tableMetadata.getColumn(camelColumnName);
+		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
 				.append(aggregationSourceSql())

@@ -92,7 +92,7 @@ public class Range implements Comparable<Range> {
 	 * @param range 判定Range
 	 * @return 内包
 	 */
-	public boolean include(Range range) {
+	public boolean include(final Range range) {
 		return start <= range.start && range.end <= end;
 	}
 
@@ -102,7 +102,7 @@ public class Range implements Comparable<Range> {
 	 * @param i 判定ポジション
 	 * @return 内包
 	 */
-	public boolean include(int i) {
+	public boolean include(final int i) {
 		return start <= i && i <= end;
 	}
 
@@ -120,11 +120,9 @@ public class Range implements Comparable<Range> {
 
 	@Override
 	public int hashCode() {
-		var result = 0;
-		result = 17;
+		var result = 17;
 		result = 37 * result + Integer.hashCode(start);
-		result = 37 * result + Integer.hashCode(end);
-		return result;
+		return 37 * result + Integer.hashCode(end);
 	}
 
 	@Override
@@ -133,7 +131,7 @@ public class Range implements Comparable<Range> {
 	}
 
 	@Override
-	public int compareTo(Range o) {
+	public int compareTo(final Range o) {
 		return COMPARATOR.compare(this, o);
 	}
 

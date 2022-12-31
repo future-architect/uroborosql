@@ -97,7 +97,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	default int doInsert(final SqlAgent agent, final ExecutionContext context, final ENTITY entity) throws SQLException {
+	default int doInsert(final SqlAgent agent, final ExecutionContext context, final ENTITY entity)
+			throws SQLException {
 		return agent.update(context);
 	}
 
@@ -130,7 +131,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	default int doUpdate(final SqlAgent agent, final ExecutionContext context, final ENTITY entity) throws SQLException {
+	default int doUpdate(final SqlAgent agent, final ExecutionContext context, final ENTITY entity)
+			throws SQLException {
 		return agent.update(context);
 	}
 
@@ -163,7 +165,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @return SQL実行結果
 	 * @throws SQLException SQL例外
 	 */
-	default int doDelete(final SqlAgent agent, final ExecutionContext context, final ENTITY entity) throws SQLException {
+	default int doDelete(final SqlAgent agent, final ExecutionContext context, final ENTITY entity)
+			throws SQLException {
 		return agent.update(context);
 	}
 
@@ -175,7 +178,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @param entityType エンティティタイプ
 	 * @return INSERT ExecutionContext
 	 */
-	ExecutionContext createBatchInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	ExecutionContext createBatchInsertContext(SqlAgent agent, TableMetadata metadata,
+			Class<? extends ENTITY> entityType);
 
 	/**
 	 * BATCH INSERTを実行します。
@@ -197,7 +201,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @param entityType エンティティタイプ
 	 * @return INSERT ExecutionContext
 	 */
-	ExecutionContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	ExecutionContext createBulkInsertContext(SqlAgent agent, TableMetadata metadata,
+			Class<? extends ENTITY> entityType);
 
 	/**
 	 * ExecutionContextのパラメーターににエンティティの値をセットします。
@@ -242,7 +247,8 @@ public interface EntityHandler<ENTITY> extends SqlConfigAware {
 	 * @param entityType エンティティタイプ
 	 * @return UPDATE ExecutionContext
 	 */
-	ExecutionContext createBatchUpdateContext(SqlAgent agent, TableMetadata metadata, Class<? extends ENTITY> entityType);
+	ExecutionContext createBatchUpdateContext(SqlAgent agent, TableMetadata metadata,
+			Class<? extends ENTITY> entityType);
 
 	/**
 	 * BATCH UPDATEを実行します。

@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql.tx;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
@@ -36,7 +39,7 @@ public class LocalTxManagerTest {
 	@Before
 	public void setUp() {
 		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("create table if not exists emp ( id integer, name VARCHAR(30), PRIMARY KEY (id) )")
 					.count();
 
@@ -88,7 +91,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentSample01_required() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				//トランザクション開始
 
@@ -112,7 +115,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentSample02_requiresNew() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				//トランザクション開始
 
@@ -142,7 +145,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentSample03_rollback() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				//トランザクション開始
 
@@ -163,7 +166,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentSample04_error_rollback() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			try {
 				agent.required(() -> {
 					//トランザクション開始
@@ -185,7 +188,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentSample05_savepoint() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "A");
 				ins(agent, 2, "B");
@@ -205,36 +208,27 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagent02() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 
 				assertThat(select(agent), is(Arrays.asList("ABC")));
 
-				assertThat(agent.required(() -> {
-					//同Connection
-					return select(agent);
-				}), is(Arrays.asList("ABC")));
+				assertThat(agent.required(() -> select(agent)), is(Arrays.asList("ABC")));
 
 				agent.requiresNew(() -> {
 					//別Connection
 					assertThat(select(agent), is(Arrays.asList()));
 				});
 
-				assertThat(agent.requiresNew(() -> {
-					//別Connection
-					return select(agent);
-				}), is(Arrays.asList()));
+				assertThat(agent.requiresNew(() -> select(agent)), is(Arrays.asList()));
 
 				agent.notSupported(() -> {
 					//別Connection
 					assertThat(select(agent), is(Arrays.asList()));
 				});
 
-				assertThat(agent.notSupported(() -> {
-					//別Connection
-					return select(agent);
-				}), is(Arrays.asList()));
+				assertThat(agent.notSupported(() -> select(agent)), is(Arrays.asList()));
 			});
 		}
 	}
@@ -242,7 +236,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagent03() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 			});//commit
@@ -261,7 +255,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagent04() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 				agent.setRollbackOnly();//ロールバックを予約
@@ -282,7 +276,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagent05() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.setSavepoint("X");
 				ins(agent, 1, "A");
@@ -332,7 +326,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSavepointScopeRunnable() {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.savepointScope(() -> {
 					ins(agent, 1, "A");
@@ -364,7 +358,7 @@ public class LocalTxManagerTest {
 
 	@Test
 	public void testSavepointScopeSupplier() {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
 					agent.savepointScope(() -> {
@@ -386,7 +380,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentEx01() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.notSupported(() -> {
 					ins(agent, 1, "ABC");
@@ -416,7 +410,7 @@ public class LocalTxManagerTest {
 	@Test
 	public void testagentEx02() {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 				ins(agent, 2, "DEF");
@@ -443,7 +437,7 @@ public class LocalTxManagerTest {
 	public void testSelectWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				select(agent);
 				assertThat(agent.query(Emp.class).collect().size(), is(0));
@@ -455,7 +449,7 @@ public class LocalTxManagerTest {
 	public void testSelectWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.requiresNew(() -> {
 				select(agent);
 				assertThat(agent.query(Emp.class).collect().size(), is(0));
@@ -467,7 +461,7 @@ public class LocalTxManagerTest {
 	public void testSelectWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.notSupported(() -> {
 				select(agent);
 				assertThat(agent.query(Emp.class).collect().size(), is(0));
@@ -479,7 +473,7 @@ public class LocalTxManagerTest {
 	public void testSelectWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			select(agent);
 			assertThat(agent.query(Emp.class).collect().size(), is(0));
 		}
@@ -489,11 +483,11 @@ public class LocalTxManagerTest {
 	public void testInsertWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 
-				Emp emp = new Emp();
+				var emp = new Emp();
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
@@ -519,11 +513,11 @@ public class LocalTxManagerTest {
 	public void testInsertWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.requiresNew(() -> {
 				ins(agent, 1, "ABC");
 
-				Emp emp = new Emp();
+				var emp = new Emp();
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
@@ -549,7 +543,7 @@ public class LocalTxManagerTest {
 	public void testInsertWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.notSupported(() -> {
 				try {
 					ins(agent, 1, "ABC");
@@ -561,7 +555,7 @@ public class LocalTxManagerTest {
 				}
 
 				try {
-					Emp emp = new Emp();
+					var emp = new Emp();
 					emp.setId(2);
 					emp.setName("DEF");
 					agent.insert(emp);
@@ -615,7 +609,7 @@ public class LocalTxManagerTest {
 	public void testInsertWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			try {
 				ins(agent, 1, "ABC");
 				Assert.fail();
@@ -626,7 +620,7 @@ public class LocalTxManagerTest {
 			}
 
 			try {
-				Emp emp = new Emp();
+				var emp = new Emp();
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
@@ -679,7 +673,7 @@ public class LocalTxManagerTest {
 	public void testUpdateWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 
@@ -694,7 +688,7 @@ public class LocalTxManagerTest {
 	public void testUpdateWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -711,7 +705,7 @@ public class LocalTxManagerTest {
 	public void testUpdateWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -742,7 +736,7 @@ public class LocalTxManagerTest {
 	public void testUpdateWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -771,7 +765,7 @@ public class LocalTxManagerTest {
 	public void testDeleteWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 
@@ -788,7 +782,7 @@ public class LocalTxManagerTest {
 	public void testDeleteWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -807,7 +801,7 @@ public class LocalTxManagerTest {
 	public void testDeleteWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -856,7 +850,7 @@ public class LocalTxManagerTest {
 	public void testDeleteWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
 			});
@@ -903,7 +897,7 @@ public class LocalTxManagerTest {
 	public void testCallStoredFunctionWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
 				agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
@@ -913,7 +907,7 @@ public class LocalTxManagerTest {
 						"$$;").count();
 
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
@@ -927,7 +921,7 @@ public class LocalTxManagerTest {
 	public void testCallStoredFunctionWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
 				agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
@@ -939,7 +933,7 @@ public class LocalTxManagerTest {
 
 			agent.requiresNew(() -> {
 				try {
-					Map<String, Object> ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
+					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
@@ -953,7 +947,7 @@ public class LocalTxManagerTest {
 	public void testCallStoredFunctionWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
 				agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
@@ -981,7 +975,7 @@ public class LocalTxManagerTest {
 	public void testCallStoredFunctionWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
 				agent.updateWith("CREATE ALIAS MYFUNCTION AS $$\r\n" +
@@ -1007,7 +1001,7 @@ public class LocalTxManagerTest {
 	public void testInsertRunnableWithinAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.autoCommitScope(() -> {
 					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
@@ -1033,7 +1027,7 @@ public class LocalTxManagerTest {
 	public void testInsertRunnableWithinAutoCommitNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.autoCommitScope(() -> {
 				agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
 
@@ -1057,21 +1051,19 @@ public class LocalTxManagerTest {
 	public void testInsertSupplierWithinAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
-			Emp emp = agent.required(() -> {
-				return agent.autoCommitScope(() -> {
-					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
+		try (var agent = config.agent()) {
+			var emp = agent.required(() -> agent.autoCommitScope(() -> {
+				agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
 
-					// 明示的にロールバックする
-					agent.rollback();
+				// 明示的にロールバックする
+				agent.rollback();
 
-					// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
-					return agent.query(Emp.class)
-							.equal("id", 1)
-							.first()
-							.orElseThrow(UroborosqlRuntimeException::new);
-				});
-			});
+				// ロールバックしてもautoCommitで実行されたEmpが登録されていることの確認
+				return agent.query(Emp.class)
+						.equal("id", 1)
+						.first()
+						.orElseThrow(UroborosqlRuntimeException::new);
+			}));
 			assertThat(emp, notNullValue());
 		}
 	}
@@ -1080,8 +1072,8 @@ public class LocalTxManagerTest {
 	public void testInsertSupplierWithinAutoCommitNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
-			Emp emp = agent.autoCommitScope(() -> {
+		try (var agent = config.agent()) {
+			var emp = agent.autoCommitScope(() -> {
 				agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
 
 				// 明示的にロールバックする
@@ -1101,8 +1093,8 @@ public class LocalTxManagerTest {
 	public void testUpdateSupplierWithinAutoCommitThrowException() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
-			Emp emp = agent.required(() -> {
+		try (var agent = config.agent()) {
+			var emp = agent.required(() -> {
 				try {
 					agent.autoCommitScope(() -> {
 						agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
@@ -1127,9 +1119,9 @@ public class LocalTxManagerTest {
 	public void testUpdateSupplierWithinAutoCommitBeforeAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent(ConnectionContextBuilder
+		try (var agent = config.agent(ConnectionContextBuilder
 				.jdbc("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).autoCommit(true))) {
-			Emp emp = agent.required(() -> {
+			var emp = agent.required(() -> {
 				try {
 					agent.autoCommitScope(() -> {
 						agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
@@ -1154,7 +1146,7 @@ public class LocalTxManagerTest {
 	public void testUpdateRunnableWithinAutoCommitThrowExceptionNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			try {
 				agent.autoCommitScope(() -> {
 					agent.insert(new Emp(1, "name1")); // autoCommit=trueで実行される
@@ -1166,7 +1158,7 @@ public class LocalTxManagerTest {
 				// ここでは握りつぶす
 			}
 			// 例外がスローされる前にInsertされたレコードが登録されている
-			Emp emp = agent.query(Emp.class)
+			var emp = agent.query(Emp.class)
 					.equal("id", 1)
 					.first()
 					.orElseThrow(UroborosqlRuntimeException::new);

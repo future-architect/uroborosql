@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,10 +27,8 @@ import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
@@ -61,8 +61,8 @@ public class SecretColumnSqlFilterTest {
 		filter.setTransformationType("AES/ECB/PKCS5Padding");
 		sqlFilterManager.initialize();
 
-		try (SqlAgent agent = config.agent()) {
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (var agent = config.agent()) {
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -81,9 +81,9 @@ public class SecretColumnSqlFilterTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				String[] parts = line.split("\t");
+				var parts = line.split("\t");
 				for (String part : parts) {
-					String[] keyValue = part.split(":", 2);
+					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -97,7 +97,7 @@ public class SecretColumnSqlFilterTest {
 	private void truncateTable(final Object... tables) {
 		try {
 			Arrays.asList(tables).stream().forEach(tbl -> {
-				try (SqlAgent agent = config.agent()) {
+				try (var agent = config.agent()) {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -111,14 +111,14 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	private void cleanInsert(final Path path) {
-		List<Map<String, Object>> dataList = getDataFromFile(path);
+		var dataList = getDataFromFile(path);
 
 		try {
 			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-					.forEach(tbl -> truncateTable(tbl));
+					.forEach(this::truncateTable);
 
 			dataList.stream().forEach(map -> {
-				try (SqlAgent agent = config.agent()) {
+				try (var agent = config.agent()) {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -144,10 +144,10 @@ public class SecretColumnSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
-		SqlConfig skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
+		var skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
 				.build();
-		SqlFilterManager skipSqlFilterManager = skipConfig.getSqlFilterManager();
-		SecretColumnSqlFilter skipFilter = new SecretColumnSqlFilter();
+		var skipSqlFilterManager = skipConfig.getSqlFilterManager();
+		var skipFilter = new SecretColumnSqlFilter();
 		skipSqlFilterManager.addSqlFilter(skipFilter);
 
 		skipFilter.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
@@ -157,8 +157,8 @@ public class SecretColumnSqlFilterTest {
 		skipFilter.setSkipFilter(true);
 
 		// 復号化しないで取得した場合 (skipFilter = true)
-		try (SqlAgent skipAgent = skipConfig.agent()) {
-			ResultSet result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
+		try (var skipAgent = skipConfig.agent()) {
+			var result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
 					.resultSet();
 
 			while (result.next()) {
@@ -168,8 +168,8 @@ public class SecretColumnSqlFilterTest {
 		}
 
 		// 復号化して取得した場合 (skipFilter = false)
-		try (SqlAgent agent = config.agent()) {
-			ResultSet result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+		try (var agent = config.agent()) {
+			var result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
 
 			while (result.next()) {
 				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
@@ -189,8 +189,8 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
-			ResultSet result = agent.query("example/select_product")
+		try (var agent = config.agent()) {
+			var result = agent.query("example/select_product")
 					.param("product_id", new BigDecimal(0)).resultSet();
 
 			while (result.next()) {
@@ -209,10 +209,10 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
-			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+		try (var agent = config.agent()) {
+			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
 
-			ResultSet result = agent.query(ctx);
+			var result = agent.query(ctx);
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
 				assertThat(result.getObject("PRODUCT_NAME"), is("商品名0"));
@@ -226,11 +226,11 @@ public class SecretColumnSqlFilterTest {
 	public void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
-			ExecutionContext ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+		try (var agent = config.agent()) {
+			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
-			ResultSet result = agent.query(ctx);
+			var result = agent.query(ctx);
 			while (result.next()) {
 				result.first();
 				assertThat(result.isFirst(), is(true));
@@ -263,15 +263,15 @@ public class SecretColumnSqlFilterTest {
 	public void testWithModel() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
-			Product product = new Product();
+		try (var agent = config.agent()) {
+			var product = new Product();
 			product.setProductId(10);
 			product.setProductName(Optional.of("商品名１０"));
 			product.setVersionNo(1);
 
 			agent.insert(product);
 
-			Product result = agent.query(Product.class)
+			var result = agent.query(Product.class)
 					.equal("productId", new BigDecimal(10))
 					.first().orElseThrow(Exception::new);
 			assertThat(result.getProductName().isPresent(), is(true));
@@ -283,7 +283,7 @@ public class SecretColumnSqlFilterTest {
 	public void testSqlInsertOptional() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("example/insert_product_for_optional")
 					.param("product_id", 10)
 					.param("product_name", Optional.of("商品名１０"))
@@ -295,7 +295,7 @@ public class SecretColumnSqlFilterTest {
 					.param("version_no", 1)
 					.count();
 
-			Product result = agent.query(Product.class)
+			var result = agent.query(Product.class)
 					.equal("productId", new BigDecimal(10))
 					.first().orElseThrow(Exception::new);
 			assertThat(result.getProductName().isPresent(), is(true));
@@ -307,7 +307,7 @@ public class SecretColumnSqlFilterTest {
 	public void testSqlInsertOptionalEmpty() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("example/insert_product_for_optional")
 					.param("product_id", 10)
 					.param("product_name", Optional.empty())
@@ -319,7 +319,7 @@ public class SecretColumnSqlFilterTest {
 					.param("version_no", 1)
 					.count();
 
-			Product result = agent.query(Product.class)
+			var result = agent.query(Product.class)
 					.equal("productId", new BigDecimal(10))
 					.first().orElseThrow(Exception::new);
 			assertThat(result.getProductName().isPresent(), is(false));
@@ -350,7 +350,6 @@ public class SecretColumnSqlFilterTest {
 				final Date insDatetime,
 				final Date updDatetime,
 				final int versionNo) {
-			super();
 			this.productId = productId;
 			this.productName = productName;
 			this.productKanaName = productKanaName;

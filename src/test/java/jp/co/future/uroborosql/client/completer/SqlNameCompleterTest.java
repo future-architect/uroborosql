@@ -32,7 +32,7 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		SqlNameCompleter completer = new SqlNameCompleter(commands, sqlManager);
+		var completer = new SqlNameCompleter(commands, sqlManager);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
@@ -64,14 +65,7 @@ public class TestEntity2 {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + age;
-		result = prime * result + (birthday == null ? 0 : birthday.hashCode());
-		result = prime * result + (int) (id ^ id >>> 32);
-		result = prime * result + lockVersion;
-		result = prime * result + (name == null ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(age, birthday, id, lockVersion, name);
 	}
 
 	@Override
@@ -79,21 +73,14 @@ public class TestEntity2 {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		TestEntity2 other = (TestEntity2) obj;
+		var other = (TestEntity2) obj;
 		if (age != other.age) {
 			return false;
 		}
-		if (birthday == null) {
-			if (other.birthday != null) {
-				return false;
-			}
-		} else if (!birthday.equals(other.birthday)) {
+		if (!Objects.equals(birthday, other.birthday)) {
 			return false;
 		}
 		if (id != other.id) {
@@ -102,11 +89,7 @@ public class TestEntity2 {
 		if (lockVersion != other.lockVersion) {
 			return false;
 		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
+		if (!Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

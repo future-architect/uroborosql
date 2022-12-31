@@ -4,10 +4,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,10 +13,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
 import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 
@@ -35,14 +31,14 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:DefaultEntityHandlerWithDefaultValueTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:DefaultEntityHandlerWithDefaultValueTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute(
 						"create table if not exists test(id INTEGER auto_increment ,name VARCHAR(20) default 'default name',age NUMERIC(5) not null default 10,birthday DATE default '2000-01-01',memo VARCHAR(500),lock_version INTEGER, primary key(id))");
@@ -65,7 +61,7 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -73,12 +69,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testSelectContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createSelectContext(agent, metadata, TestEntity.class, false);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createSelectContext(agent, metadata, TestEntity.class, false);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -89,12 +85,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testInsertContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createInsertContext(agent, metadata, TestEntity.class);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createInsertContext(agent, metadata, TestEntity.class);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -105,12 +101,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testUpdateContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createUpdateContext(agent, metadata, TestEntity.class, false);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createUpdateContext(agent, metadata, TestEntity.class, false);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -121,12 +117,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testDeleteContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createDeleteContext(agent, metadata, TestEntity.class, false);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createDeleteContext(agent, metadata, TestEntity.class, false);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -137,12 +133,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testBatchInsertContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createBatchInsertContext(agent, metadata, TestEntity.class);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createBatchInsertContext(agent, metadata, TestEntity.class);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -153,12 +149,12 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testBatchUpdateContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
-					DefaultEntityHandler handler = (DefaultEntityHandler) config.getEntityHandler();
-					TableMetadata metadata = handler.getMetadata(agent, TestEntity.class);
-					ExecutionContext context = handler.createBatchUpdateContext(agent, metadata, TestEntity.class);
+					var handler = (DefaultEntityHandler) config.getEntityHandler();
+					var metadata = handler.getMetadata(agent, TestEntity.class);
+					var context = handler.createBatchUpdateContext(agent, metadata, TestEntity.class);
 					assertThat(context.getSql(), not(containsString("PUBLIC")));
 				} catch (SQLException e) {
 					Assert.fail(e.getMessage());
@@ -169,7 +165,7 @@ public class DefaultEntityHandlerNoUseQualifiedTableNameTest {
 
 	@Test
 	public void testTruncateContext() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				// SQL文が取得できないので、成功することで確認とする
 				agent.truncate(TestEntity.class);

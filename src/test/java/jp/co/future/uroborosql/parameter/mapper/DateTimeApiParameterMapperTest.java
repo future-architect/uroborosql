@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -41,7 +43,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testLocalDateTime() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(LocalDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(LocalDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -50,7 +52,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testOffsetDateTime() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(OffsetDateTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(Timestamp.class));
 		assertThat(
@@ -63,7 +65,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testZonedDateTime() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(createDateTime("2000-01-01T10:10:10"), null, null),
 				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(
@@ -74,7 +76,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testLocalDate() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(LocalDate.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(java.sql.Date.class));
 		assertThat(mapper.toJdbc(LocalDate.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -83,7 +85,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testLocalTime() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(LocalTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(Time.class));
 		assertThat(mapper.toJdbc(LocalTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -92,7 +94,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testOffsetTime() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(OffsetTime.from(createDateTime("2000-01-01T10:10:10.123")), null, null),
 				instanceOf(Time.class));
 		assertThat(mapper.toJdbc(OffsetTime.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -101,7 +103,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testYear() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(Year.of(2000), null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(Year.of(2000), null, null), is(2000));
 		assertThat(mapper.toJdbc(Year.of(200), null, null), is(200));
@@ -109,7 +111,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testYearMonth() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(YearMonth.of(2001, Month.JANUARY), null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(YearMonth.of(2001, Month.JANUARY), null, null), is(200101));
 		assertThat(mapper.toJdbc(YearMonth.of(201, Month.JANUARY), null, null), is(20101));
@@ -117,7 +119,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testMonthDay() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(MonthDay.of(Month.JANUARY, 10), null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(MonthDay.of(Month.JANUARY, 10), null, null), is(110));
 		assertThat(mapper.toJdbc(MonthDay.of(Month.JANUARY, 1), null, null), is(101));
@@ -125,7 +127,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testMonth() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(Month.JANUARY, null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(Month.JANUARY, null, null), is(1));
 		assertThat(mapper.toJdbc(Month.DECEMBER, null, null), is(12));
@@ -133,7 +135,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testDayOfWeek() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(DayOfWeek.SUNDAY, null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(DayOfWeek.SUNDAY, null, null), is(7));
 		assertThat(mapper.toJdbc(DayOfWeek.MONDAY, null, null), is(1));
@@ -141,7 +143,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testEra() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(JapaneseEra.HEISEI, null, null), instanceOf(Integer.class));
 		assertThat(mapper.toJdbc(JapaneseEra.HEISEI, null, null), is(2));
 		assertThat(mapper.toJdbc(JapaneseEra.MEIJI, null, null), is(-1));
@@ -149,7 +151,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testChronoLocalDate() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(JapaneseDate.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(java.sql.Date.class));
 		assertThat(mapper.toJdbc(JapaneseDate.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -158,7 +160,7 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testInstant() throws ParseException {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(Instant.from(createDateTime("2000-01-01T10:10:10")), null, null),
 				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(Instant.from(createDateTime("2000-01-01T10:10:10")), null, null),
@@ -185,7 +187,7 @@ public class DateTimeApiParameterMapperTest {
 			}
 		};
 
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(java.sql.Date.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(createDate("2000-01-05")));
 	}
@@ -213,7 +215,7 @@ public class DateTimeApiParameterMapperTest {
 			}
 		};
 
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null),
 				is(new Timestamp(createDateTime("2000-01-05T00:00:00.123").toInstant().toEpochMilli())));
@@ -221,18 +223,18 @@ public class DateTimeApiParameterMapperTest {
 
 	@Test
 	public void testTemporalAccessorDate2() throws ParseException {
-		TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH").parse("2000-05-05 10");
+		var temporalAccessor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH").parse("2000-05-05 10");
 
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(createTimestamp("2000-05-05T10:00:00")));
 	}
 
 	@Test
 	public void testTemporalAccessorDate3() throws ParseException {
-		TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern("HH").parse("10");
+		var temporalAccessor = DateTimeFormatter.ofPattern("HH").parse("10");
 
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(Time.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(createTime("10:00:00")));
 	}
@@ -260,20 +262,20 @@ public class DateTimeApiParameterMapperTest {
 			}
 		};
 
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), instanceOf(TemporalAccessor.class));
 		assertThat(mapper.toJdbc(temporalAccessor, null, null), is(temporalAccessor));
 	}
 
 	@Test
 	public void testClock() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		mapper.setClock(this.clock);
 		assertThat(mapper.getClock(), is(this.clock));
 	}
 
 	public void testTargetType() {
-		DateTimeApiParameterMapper mapper = new DateTimeApiParameterMapper(this.clock);
+		var mapper = new DateTimeApiParameterMapper(this.clock);
 		mapper.setClock(this.clock);
 		assertThat(mapper.targetType(), sameInstance(TemporalAccessor.class));
 	}

@@ -34,7 +34,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public final class MappingUtils {
-	private static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+	private static final int CACHE_SIZE = Integer.getInteger("uroborosql.entity.cache.size", 30);
 
 	private static final ConcurrentLruCache<String, Map<SqlKind, MappingColumn[]>> CACHE = new ConcurrentLruCache<>(
 			CACHE_SIZE);
@@ -278,7 +278,7 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
 	 */
-	public static MappingColumn getMappingColumn(String schema, final Class<?> entityType,
+	public static MappingColumn getMappingColumn(final String schema, final Class<?> entityType,
 			final String camelColumnName) {
 		return getMappingColumn(schema, entityType, SqlKind.NONE, camelColumnName);
 	}
@@ -307,7 +307,7 @@ public final class MappingUtils {
 	 * @return カラムマッピング情報
 	 * @exception UroborosqlRuntimeException 指定したキャメルケースカラム名に該当する{@link MappingColumn}が見つからなかった場合
 	 */
-	public static MappingColumn getMappingColumn(String schema, final Class<?> entityType, final SqlKind kind,
+	public static MappingColumn getMappingColumn(final String schema, final Class<?> entityType, final SqlKind kind,
 			final String camelColumnName) {
 		return getMappingColumnMap(schema, entityType, kind).entrySet().stream()
 				.filter(entry -> entry.getKey().equals(camelColumnName))
@@ -362,23 +362,23 @@ public final class MappingUtils {
 			return new MappingColumn[0];
 		}
 
-		String cacheKey = getCacheKey(schema, entityType);
+		var cacheKey = getCacheKey(schema, entityType);
 
-		Map<SqlKind, MappingColumn[]> cols = CACHE.get(cacheKey, key -> {
+		var cols = CACHE.get(cacheKey, key -> {
 			Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
-						.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
-				JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+					.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
+			JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
 			walkFields(entityType, implementClass, fieldsMap);
-				return fieldsMap.entrySet().stream()
-						.collect(Collectors.toConcurrentMap(Map.Entry::getKey,
+			return fieldsMap.entrySet().stream()
+					.collect(Collectors.toConcurrentMap(Map.Entry::getKey,
 							e -> e.getValue().values().toArray(new MappingColumn[e.getValue().size()])));
 		});
 		return cols.computeIfAbsent(kind, k -> cols.get(SqlKind.NONE));
-		}
+	}
 
-	private static String getCacheKey(String schema, Class<?> entityType) {
-		Table table = getTable(entityType);
-		String currentSchema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+	private static String getCacheKey(final String schema, final Class<?> entityType) {
+		var table = getTable(entityType);
+		var currentSchema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
 				: Objects.toString(schema, "");
 		return String.format("%s.%s", currentSchema.toUpperCase(), entityType.getName());
 	}
@@ -425,7 +425,7 @@ public final class MappingUtils {
 	 * @param entityType エンティティ型
 	 * @return カラムマッピング情報
 	 */
-	public static MappingColumn[] getIdMappingColumns(String schema, final Class<?> entityType) {
+	public static MappingColumn[] getIdMappingColumns(final String schema, final Class<?> entityType) {
 		return Arrays.stream(getMappingColumns(schema, entityType))
 				.filter(MappingColumn::isId)
 				.toArray(MappingColumn[]::new);
@@ -448,7 +448,7 @@ public final class MappingUtils {
 	 * @param entityType エンティティ型
 	 * @return カラムマッピング情報
 	 */
-	public static Optional<MappingColumn> getVersionMappingColumn(String schema, final Class<?> entityType) {
+	public static Optional<MappingColumn> getVersionMappingColumn(final String schema, final Class<?> entityType) {
 		return Arrays.stream(getMappingColumns(schema, entityType))
 				.filter(MappingColumn::isVersion)
 				.findFirst();

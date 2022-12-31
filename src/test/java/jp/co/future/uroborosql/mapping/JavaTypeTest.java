@@ -5,8 +5,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -27,8 +25,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test01() throws NoSuchFieldException, SecurityException {
-		Field field = Test01.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test01.class, field);
+		var field = Test01.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test01.class, field);
 		assertThat(javaType.toString(), is("java.lang.String"));
 	}
 
@@ -44,8 +42,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test02() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test02.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test02.class, field);
+		var field = Abs2Test02.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test02.class, field);
 		assertThat(javaType.toString(), is("java.math.BigDecimal"));
 
 		javaType = JavaType.of(Abs1Test02.class, field);
@@ -64,8 +62,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test03() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test03.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test03.class, field);
+		var field = Abs2Test03.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test03.class, field);
 		assertThat(javaType.toString(), is("java.math.BigDecimal[]"));
 
 		javaType = JavaType.of(Abs1Test03.class, field);
@@ -84,8 +82,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test04() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test04.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test04.class, field);
+		var field = Abs2Test04.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test04.class, field);
 		assertThat(javaType.toString(), is("java.util.List<java.lang.Number>"));
 
 		javaType = JavaType.of(Abs1Test04.class, field);
@@ -104,8 +102,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test05() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test05.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test05.class, field);
+		var field = Abs2Test05.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test05.class, field);
 		assertThat(javaType.toString(), is("java.lang.Number[]"));
 
 		javaType = JavaType.of(Abs1Test05.class, field);
@@ -124,8 +122,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test06() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test06.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test06.class, field);
+		var field = Abs2Test06.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test06.class, field);
 		assertThat(javaType.toString(), is("java.util.List<? extends java.lang.Number>"));
 
 		javaType = JavaType.of(Abs1Test06.class, field);
@@ -144,8 +142,8 @@ public class JavaTypeTest {
 
 	@Test
 	public void test07() throws NoSuchFieldException, SecurityException {
-		Field field = Abs2Test07.class.getDeclaredField("test");
-		JavaType javaType = JavaType.of(Test07.class, field);
+		var field = Abs2Test07.class.getDeclaredField("test");
+		var javaType = JavaType.of(Test07.class, field);
 		assertThat(javaType.toString(), is("java.util.List<?>"));
 		assertThat(javaType.getParam(0).getRawType(), is(equalTo(Object.class)));
 
@@ -163,13 +161,13 @@ public class JavaTypeTest {
 
 	@Test
 	public void test08() throws SecurityException, NoSuchMethodException {
-		ImplementClass implementClass = new ImplementClass(Test08.class);
+		var implementClass = new ImplementClass(Test08.class);
 
 		assertThat(implementClass.getSubclass(List.class), is(equalTo(Test08.class)));
 		assertThat(implementClass.getSubclass(Collection.class), is(equalTo(List.class)));
 
-		Method method = Iterable.class.getMethod("iterator");
-		JavaType javaType = JavaType.of(new ImplementClass(Test08.class), method.getGenericReturnType());
+		var method = Iterable.class.getMethod("iterator");
+		var javaType = JavaType.of(new ImplementClass(Test08.class), method.getGenericReturnType());
 		assertThat(javaType.toString(), is("java.util.Iterator<java.lang.String>"));
 		assertThat(javaType.getParam(0).toString(), is("java.lang.String"));
 
@@ -181,12 +179,12 @@ public class JavaTypeTest {
 
 	@Test
 	public void test09() throws SecurityException, NoSuchMethodException {
-		ImplementClass implementClass = new ImplementClass(Test09.class);
+		var implementClass = new ImplementClass(Test09.class);
 
 		assertThat(implementClass.getSubclass(Enum.class), is(equalTo(Test09.class)));
 
-		Method method = Enum.class.getMethod("compareTo", Enum.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test09.class),
+		var method = Enum.class.getMethod("compareTo", Enum.class);
+		var javaType = JavaType.of(new ImplementClass(Test09.class),
 				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("jp.co.future.uroborosql.mapping.JavaTypeTest$Test09"));
 
@@ -211,8 +209,8 @@ public class JavaTypeTest {
 	@Test
 	public void test10() throws SecurityException, NoSuchMethodException {
 
-		Method method = Abs1Test10.class.getMethod("e");
-		JavaType javaType = JavaType.of(new ImplementClass(Test10.class), method.getGenericReturnType());
+		var method = Abs1Test10.class.getMethod("e");
+		var javaType = JavaType.of(new ImplementClass(Test10.class), method.getGenericReturnType());
 		assertThat(javaType.toString(), is("jp.co.future.uroborosql.mapping.JavaTypeTest$Test10"));
 
 		javaType = JavaType.of(new ImplementClass(Abs2Test10.class), method.getGenericReturnType());
@@ -256,8 +254,8 @@ public class JavaTypeTest {
 	@Test
 	public void test11() throws SecurityException, NoSuchMethodException {
 
-		Method method = Test11.class.getMethod("test", List.class, List.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test11.class),
+		var method = Test11.class.getMethod("test", List.class, List.class);
+		var javaType = JavaType.of(new ImplementClass(Test11.class),
 				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("java.util.List<? extends java.lang.Comparable>"));
 		assertThat(javaType.getParam(0).toString(), is("? extends java.lang.Comparable<?>"));
@@ -292,8 +290,8 @@ public class JavaTypeTest {
 	@Test
 	public void test12() throws SecurityException, NoSuchMethodException {
 
-		Method method = Test12.class.getMethod("test", List.class, List.class);
-		JavaType javaType = JavaType.of(new ImplementClass(Test12.class),
+		var method = Test12.class.getMethod("test", List.class, List.class);
+		var javaType = JavaType.of(new ImplementClass(Test12.class),
 				method.getParameters()[0].getParameterizedType());
 		assertThat(javaType.toString(), is("java.util.List<? extends java.lang.Comparable>"));
 		assertThat(javaType.getParam(0).toString(), is("? extends java.lang.Comparable<?>"));
@@ -308,7 +306,7 @@ public class JavaTypeTest {
 
 	@Test
 	public void test13() throws SecurityException, NoSuchMethodException {
-		JavaType javaType = JavaType.of(new ImplementClass(Test13.class), Test13.class.getGenericInterfaces()[0]);
+		var javaType = JavaType.of(new ImplementClass(Test13.class), Test13.class.getGenericInterfaces()[0]);
 		assertThat(javaType.toString(), is("java.util.List<java.lang.Object>"));
 		assertThat(javaType.getParam(0).toString(), is("java.lang.Object"));
 
@@ -325,7 +323,7 @@ public class JavaTypeTest {
 
 	@Test
 	public void test14() throws SecurityException, NoSuchMethodException {
-		JavaType javaType = JavaType.of(new ImplementClass(Test14.class), Test14.class.getGenericInterfaces()[0]);
+		var javaType = JavaType.of(new ImplementClass(Test14.class), Test14.class.getGenericInterfaces()[0]);
 		assertThat(javaType.toString(), is("java.util.List<java.lang.String>"));
 		assertThat(javaType.getParam(0).toString(), is("java.lang.String"));
 

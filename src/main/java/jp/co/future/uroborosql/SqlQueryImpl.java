@@ -262,7 +262,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		if (type == null) {
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}
-		PropertyMapperManager manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
+		var manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
 		if (SingleColumnResultSetConverter.accept(type)) {
 			return stream(new SingleColumnResultSetConverter<>(null, type, manager));
 		} else {
@@ -276,7 +276,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.Class)
 	 */
 	@Override
-	public <T> Stream<T> select(Class<T> type) {
+	public <T> Stream<T> select(final Class<T> type) {
 		return select(null, type);
 	}
 
@@ -286,7 +286,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.String, java.lang.Class)
 	 */
 	@Override
-	public <T> Stream<T> select(String col, Class<T> type) {
+	public <T> Stream<T> select(final String col, final Class<T> type) {
 		if (type == null) {
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}

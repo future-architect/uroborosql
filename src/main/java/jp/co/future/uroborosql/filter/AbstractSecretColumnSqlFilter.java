@@ -85,7 +85,6 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
 	public AbstractSecretColumnSqlFilter() {
-		super();
 	}
 
 	/**

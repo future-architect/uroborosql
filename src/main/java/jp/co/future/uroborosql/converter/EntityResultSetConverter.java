@@ -49,7 +49,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	 * @param mapperManager PropertyMapperManager
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public EntityResultSetConverter(String schema, final Class<? extends E> entityType,
+	public EntityResultSetConverter(final String schema, final Class<? extends E> entityType,
 			final PropertyMapperManager mapperManager) {
 		this.mapperManager = mapperManager;
 		try {
@@ -85,7 +85,7 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 				}
 			}
 
-			E rec = constructor.newInstance();
+			var rec = constructor.newInstance();
 			for (var entry : columnPositionMap.entrySet()) {
 				var column = entry.getKey();
 				var position = entry.getValue();

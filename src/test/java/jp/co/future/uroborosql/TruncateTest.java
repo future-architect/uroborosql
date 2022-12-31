@@ -1,10 +1,9 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.Test;
 
@@ -43,7 +42,7 @@ public class TruncateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		List<Product> products = agent.query(Product.class).collect();
+		var products = agent.query(Product.class).collect();
 		assertThat(products.isEmpty(), is(false));
 
 		products = agent.truncate(Product.class).query(Product.class).collect();

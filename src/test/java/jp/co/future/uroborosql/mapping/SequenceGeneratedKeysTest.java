@@ -1,18 +1,16 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.GenerationType;
@@ -31,14 +29,14 @@ public class SequenceGeneratedKeysTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:SequenceGeneratedKeysTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:SequenceGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute("drop sequence if exists test_id_seq");
 				stmt.execute("create sequence test_id_seq");
@@ -62,7 +60,7 @@ public class SequenceGeneratedKeysTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.updateWith("delete from test_multikey").count();
 			agent.commit();
@@ -71,24 +69,24 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithSeq test1 = new TestEntityWithSeq("name1");
+				var test1 = new TestEntityWithSeq("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestEntityWithSeq test2 = new TestEntityWithSeq("name2");
+				var test2 = new TestEntityWithSeq("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++currVal));
 
-				TestEntityWithSeq test3 = new TestEntityWithSeq("name3");
+				var test3 = new TestEntityWithSeq("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++currVal));
 
-				TestEntityWithSeq data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithSeq.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -100,16 +98,16 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testInsertAndUpdate() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithSeq test1 = new TestEntityWithSeq("name1");
+				var test1 = new TestEntityWithSeq("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestEntityWithSeq data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
 				assertThat(data.getName(), is("name1"));
 
 				test1.setName("rename1");
@@ -124,29 +122,29 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testInsertMultikey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithSeqMultikey test1 = new TestEntityWithSeqMultikey("name1");
+				var test1 = new TestEntityWithSeqMultikey("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++idCurrVal));
 				assertThat(test1.getId2(), is(++id2CurrVal));
 
-				TestEntityWithSeqMultikey test2 = new TestEntityWithSeqMultikey("name2");
+				var test2 = new TestEntityWithSeqMultikey("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++idCurrVal));
 				assertThat(test2.getId2(), is(++id2CurrVal));
 
-				TestEntityWithSeqMultikey test3 = new TestEntityWithSeqMultikey("name3");
+				var test3 = new TestEntityWithSeqMultikey("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++idCurrVal));
 				assertThat(test3.getId2(), is(++id2CurrVal));
 
-				TestEntityWithSeqMultikey data = agent
+				var data = agent
 						.find(TestEntityWithSeqMultikey.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -160,9 +158,9 @@ public class SequenceGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testEntityNotSequenceGenerator() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityWithSeqError test1 = new TestEntityWithSeqError("name1");
+				var test1 = new TestEntityWithSeqError("name1");
 				agent.insert(test1);
 			});
 		}
@@ -170,17 +168,17 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testBulkInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithSeq test1 = new TestEntityWithSeq("name1");
-				TestEntityWithSeq test2 = new TestEntityWithSeq("name2");
-				TestEntityWithSeq test3 = new TestEntityWithSeq("name3");
-				TestEntityWithSeq test4 = new TestEntityWithSeq("name4");
+				var test1 = new TestEntityWithSeq("name1");
+				var test2 = new TestEntityWithSeq("name2");
+				var test3 = new TestEntityWithSeq("name3");
+				var test4 = new TestEntityWithSeq("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -188,7 +186,7 @@ public class SequenceGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithSeq data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithSeq.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -202,19 +200,19 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testBulkInserMultikey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithSeqMultikey test1 = new TestEntityWithSeqMultikey("name1");
-				TestEntityWithSeqMultikey test2 = new TestEntityWithSeqMultikey("name2");
-				TestEntityWithSeqMultikey test3 = new TestEntityWithSeqMultikey("name3");
-				TestEntityWithSeqMultikey test4 = new TestEntityWithSeqMultikey("name4");
+				var test1 = new TestEntityWithSeqMultikey("name1");
+				var test2 = new TestEntityWithSeqMultikey("name2");
+				var test3 = new TestEntityWithSeqMultikey("name3");
+				var test4 = new TestEntityWithSeqMultikey("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -226,7 +224,7 @@ public class SequenceGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithSeqMultikey data = agent
+				var data = agent
 						.find(TestEntityWithSeqMultikey.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -242,17 +240,17 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithSeq test1 = new TestEntityWithSeq("name1");
-				TestEntityWithSeq test2 = new TestEntityWithSeq("name2");
-				TestEntityWithSeq test3 = new TestEntityWithSeq("name3");
-				TestEntityWithSeq test4 = new TestEntityWithSeq("name4");
+				var test1 = new TestEntityWithSeq("name1");
+				var test2 = new TestEntityWithSeq("name2");
+				var test3 = new TestEntityWithSeq("name3");
+				var test4 = new TestEntityWithSeq("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -260,7 +258,7 @@ public class SequenceGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithSeq data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithSeq.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithSeq.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -274,19 +272,19 @@ public class SequenceGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertMultikey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithSeqMultikey test1 = new TestEntityWithSeqMultikey("name1");
-				TestEntityWithSeqMultikey test2 = new TestEntityWithSeqMultikey("name2");
-				TestEntityWithSeqMultikey test3 = new TestEntityWithSeqMultikey("name3");
-				TestEntityWithSeqMultikey test4 = new TestEntityWithSeqMultikey("name4");
+				var test1 = new TestEntityWithSeqMultikey("name1");
+				var test2 = new TestEntityWithSeqMultikey("name2");
+				var test3 = new TestEntityWithSeqMultikey("name3");
+				var test4 = new TestEntityWithSeqMultikey("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -298,7 +296,7 @@ public class SequenceGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithSeqMultikey data = agent
+				var data = agent
 						.find(TestEntityWithSeqMultikey.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -345,11 +343,7 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -357,25 +351,14 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestEntityWithSeq) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestEntityWithSeq other = (TestEntityWithSeq) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -433,12 +416,7 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (id2 == null ? 0 : id2.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, id2, name);
 		}
 
 		@Override
@@ -446,32 +424,17 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestEntityWithSeqMultikey) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestEntityWithSeqMultikey other = (TestEntityWithSeqMultikey) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
+			if (!Objects.equals(id2, other.id2)) {
 				return false;
 			}
-			if (id2 == null) {
-				if (other.id2 != null) {
-					return false;
-				}
-			} else if (!id2.equals(other.id2)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -516,11 +479,7 @@ public class SequenceGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -528,25 +487,14 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestEntityWithSeqError) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestEntityWithSeqError other = (TestEntityWithSeqError) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

@@ -4,11 +4,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigInteger;
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -18,11 +17,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class PropertyMapperTest {
@@ -30,14 +27,14 @@ public class PropertyMapperTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:PropertyMapperTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:PropertyMapperTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -59,13 +56,13 @@ public class PropertyMapperTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		var sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -105,18 +102,7 @@ public class PropertyMapperTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (bigIntValue == null ? 0 : bigIntValue.hashCode());
-			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
-			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
-			result = prime * result + (doubleValue == null ? 0 : doubleValue.hashCode());
-			result = prime * result + (enumValue == null ? 0 : enumValue.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (intValue == null ? 0 : intValue.hashCode());
-			result = prime * result + (longValue == null ? 0 : longValue.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(bigIntValue, dateValue, datetimeValue, doubleValue, enumValue, id, intValue, longValue, name);
 		}
 
 		@Override
@@ -124,39 +110,20 @@ public class PropertyMapperTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (PropertyMapperTestEntity) obj;
+			if (!Objects.equals(bigIntValue, other.bigIntValue)) {
 				return false;
 			}
-			PropertyMapperTestEntity other = (PropertyMapperTestEntity) obj;
-			if (bigIntValue == null) {
-				if (other.bigIntValue != null) {
-					return false;
-				}
-			} else if (!bigIntValue.equals(other.bigIntValue)) {
+			if (!Objects.equals(dateValue, other.dateValue)) {
 				return false;
 			}
-			if (dateValue == null) {
-				if (other.dateValue != null) {
-					return false;
-				}
-			} else if (!dateValue.equals(other.dateValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
 				return false;
 			}
-			if (datetimeValue == null) {
-				if (other.datetimeValue != null) {
-					return false;
-				}
-			} else if (!datetimeValue.equals(other.datetimeValue)) {
-				return false;
-			}
-			if (doubleValue == null) {
-				if (other.doubleValue != null) {
-					return false;
-				}
-			} else if (!doubleValue.equals(other.doubleValue)) {
+			if (!Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
 			if (enumValue != other.enumValue) {
@@ -165,25 +132,13 @@ public class PropertyMapperTest {
 			if (id != other.id) {
 				return false;
 			}
-			if (intValue == null) {
-				if (other.intValue != null) {
-					return false;
-				}
-			} else if (!intValue.equals(other.intValue)) {
+			if (!Objects.equals(intValue, other.intValue)) {
 				return false;
 			}
-			if (longValue == null) {
-				if (other.longValue != null) {
-					return false;
-				}
-			} else if (!longValue.equals(other.longValue)) {
+			if (!Objects.equals(longValue, other.longValue)) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -200,11 +155,11 @@ public class PropertyMapperTest {
 	@Test
 	public void test01() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				PropertyMapperTestEntity test1 = new PropertyMapperTestEntity(1);
+				var test1 = new PropertyMapperTestEntity(1);
 				agent.insert(test1);
-				PropertyMapperTestEntity data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
+				var data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}
@@ -213,9 +168,9 @@ public class PropertyMapperTest {
 	@Test
 	public void test02() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				PropertyMapperTestEntity test1 = new PropertyMapperTestEntity(1);
+				var test1 = new PropertyMapperTestEntity(1);
 				test1.intValue = OptionalInt.empty();
 				test1.longValue = OptionalLong.empty();
 				test1.doubleValue = OptionalDouble.empty();
@@ -224,7 +179,7 @@ public class PropertyMapperTest {
 				test1.enumValue = null;
 				test1.bigIntValue = null;
 				agent.insert(test1);
-				PropertyMapperTestEntity data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
+				var data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}

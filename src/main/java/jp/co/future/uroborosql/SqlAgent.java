@@ -114,7 +114,8 @@ public interface SqlAgent extends TransactionManager, SqlConfigAware {
 	 * @return 検索結果の各行のキーと値をMapに詰めたList
 	 * @throws SQLException SQL例外
 	 */
-	List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat) throws SQLException;
+	List<Map<String, Object>> query(final ExecutionContext executionContext, final CaseFormat caseFormat)
+			throws SQLException;
 
 	/**
 	 * DB更新処理。

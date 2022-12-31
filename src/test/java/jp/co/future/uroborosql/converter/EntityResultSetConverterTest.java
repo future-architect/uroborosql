@@ -1,19 +1,19 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Optional;
 
-import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
-
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.UroboroSQL;
+import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class EntityResultSetConverterTest {
 
@@ -106,7 +106,7 @@ public class EntityResultSetConverterTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:EntityResultSetConverterTest")).build();
 		agent = config.agent();
 
-		String sql = "create table if not exists COLUMN_TYPE_TEST2 (" +
+		var sql = "create table if not exists COLUMN_TYPE_TEST2 (" +
 				"	COL_CLOB			CLOB," +
 				"	COL_NCLOB			NCLOB," +
 				"	COL_BLOB			BLOB," +
@@ -124,12 +124,12 @@ public class EntityResultSetConverterTest {
 
 	@Test
 	public void testCreateRecord() {
-		String clob = StringUtils.repeat('1', 10000);
-		String nclob = StringUtils.repeat('あ', 10000);
-		byte[] blob = StringUtils.repeat('x', 20000).getBytes();
+		var clob = StringUtils.repeat('1', 10000);
+		var nclob = StringUtils.repeat('あ', 10000);
+		var blob = StringUtils.repeat('x', 20000).getBytes();
 		Object[] arr = { 1, 2 };
 
-		ColumnTypeTest2 entity = new ColumnTypeTest2();
+		var entity = new ColumnTypeTest2();
 		entity.setColClob(clob);
 		entity.setColNclob(nclob);
 		entity.setColBlob(blob);
@@ -140,7 +140,7 @@ public class EntityResultSetConverterTest {
 		Optional<ColumnTypeTest2> optional = agent.queryWith("select * from COLUMN_TYPE_TEST2").findFirst(
 				ColumnTypeTest2.class);
 		assertThat(optional.isPresent(), is(true));
-		ColumnTypeTest2 row = optional.get();
+		var row = optional.get();
 
 		assertThat(row.getColClob(), is(clob));
 		assertThat(row.getColNclob(), is(nclob));

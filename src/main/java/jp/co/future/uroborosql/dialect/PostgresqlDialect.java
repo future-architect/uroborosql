@@ -31,7 +31,6 @@ public class PostgresqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public PostgresqlDialect() {
-		super();
 	}
 
 	/**

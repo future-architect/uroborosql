@@ -19,7 +19,7 @@ public class TestConsts {
 	public static final double DOUBLE = 1;
 	public static final float FLOAT = 1;
 	public static final BigDecimal BIG_DECIMAL = BigDecimal.TEN;
-	public static final byte[] BYTES = new byte[] { 1, 2 };
+	public static final byte[] BYTES = { 1, 2 };
 
 	public static final java.sql.Date SQL_DATE = new java.sql.Date(1);
 	public static final java.sql.Time SQL_TIME = new java.sql.Time(2);
@@ -55,7 +55,7 @@ public class TestConsts {
 	}
 
 	@SuppressWarnings("unused")
-	private final class PrivateInnerClass {
+	private static final class PrivateInnerClass {
 		public static final String ISTRING = "BBB";
 	}
 
@@ -74,7 +74,7 @@ public class TestConsts {
 
 	@SuppressWarnings("unchecked")
 	private static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -83,14 +83,14 @@ public class TestConsts {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+		return (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
 					if (getOriginal.equals(method)) {
 						return o;
 					}
 
 					if (args != null) {
-						for (int i = 0; i < args.length; i++) {
+						for (var i = 0; i < args.length; i++) {
 							if (args[i] instanceof ProxyContainer) {
 								args[i] = ((ProxyContainer) args[i]).getOriginal();
 							}
@@ -98,6 +98,5 @@ public class TestConsts {
 					}
 					return method.invoke(o, args);
 				});
-		return proxyInstance;
 	}
 }

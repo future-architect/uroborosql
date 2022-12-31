@@ -1,11 +1,8 @@
 package jp.co.future.uroborosql.sample;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,18 +33,18 @@ public class SqlAgentSampleTest {
 	@SuppressWarnings("deprecation")
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:SqlAgentSampleTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:SqlAgentSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute(
 						"create table if not exists test( id NUMERIC(4),name VARCHAR(10),age NUMERIC(5),birthday DATE )");
 
-				try (PreparedStatement pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)")) {
+				try (var pstmt = conn.prepareStatement("insert into test values (?, ?, ?, ?)")) {
 					pstmt.setInt(1, 1);
 					pstmt.setString(2, "aaa");
 					pstmt.setInt(3, 10);
@@ -93,7 +90,7 @@ public class SqlAgentSampleTest {
 
 	@Test
 	public void sqlQueryTestNoParam() throws Exception {
-		List<Map<String, Object>> actual = app.query("example/select_test");
+		var actual = app.query("example/select_test");
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row1);
@@ -107,7 +104,7 @@ public class SqlAgentSampleTest {
 	public void sqlQueryTestWithId() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", 1);
-		List<Map<String, Object>> actual = app.query("example/select_test", params);
+		var actual = app.query("example/select_test", params);
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row1);
@@ -119,7 +116,7 @@ public class SqlAgentSampleTest {
 	public void sqlQueryTestWithName() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("name", "あああ");
-		List<Map<String, Object>> actual = app.query("example/select_test", params);
+		var actual = app.query("example/select_test", params);
 
 		List<Map<String, Object>> expected = new ArrayList<>();
 		expected.add(row2);

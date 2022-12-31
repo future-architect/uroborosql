@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.utils;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +33,7 @@ public class StringFunctionTest {
 	@Test
 	public void test() throws Exception {
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val1", null);
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -54,7 +56,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.startsWith(Optional.of(123)), is("123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -80,7 +82,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.contains(Optional.of(123)), is("%123%"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 
@@ -106,7 +108,7 @@ public class StringFunctionTest {
 		assertThat(expressionFunction.endsWith(Optional.of(123)), is("%123"));
 
 		Map<Object, Object> root = new HashMap<>();
-		OgnlContext context = (OgnlContext) Ognl.createDefaultContext(root);
+		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val", "abc");
 		root.put(StringFunction.SHORT_NAME, expressionFunction);
 

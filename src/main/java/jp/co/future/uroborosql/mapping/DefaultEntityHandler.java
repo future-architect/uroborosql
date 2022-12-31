@@ -38,7 +38,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DefaultEntityHandler implements EntityHandler<Object> {
 	/** TableMetadataのキャッシュサイズ. */
-	protected static final int CACHE_SIZE = Integer.valueOf(System.getProperty("uroborosql.entity.cache.size", "30"));
+	protected static final int CACHE_SIZE = Integer.getInteger("uroborosql.entity.cache.size", 30);
 	/** TableMetadataのLRUキャッシュ. */
 	protected static final ConcurrentLruCache<String, TableMetadata> CACHE = new ConcurrentLruCache<>(CACHE_SIZE);
 	/** プロパティマッパーマネージャー. */
@@ -52,7 +52,6 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 * コンストラクタ
 	 */
 	public DefaultEntityHandler() {
-		super();
 	}
 
 	/**
@@ -245,7 +244,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public TableMetadata getMetadata(final ConnectionManager connectionManager, final Class<?> entityType)
 			throws SQLException {
-		String cacheKey = getCacheKey(connectionManager, entityType);
+		var cacheKey = getCacheKey(connectionManager, entityType);
 		return CACHE.get(cacheKey, key -> {
 			try {
 				return createMetadata(connectionManager, entityType);
@@ -257,8 +256,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 	private String getCacheKey(final ConnectionManager connectionManager, final Class<?> entityType) {
 		try {
-			Table table = MappingUtils.getTable(entityType);
-			String schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+			var table = MappingUtils.getTable(entityType);
+			var schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
 					: Objects.toString(connectionManager.getConnection().getSchema(), "");
 			return String.format("%s.%s", schema.toUpperCase(), entityType.getName());
 		} catch (SQLException ex) {
@@ -494,13 +493,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
 			var autoIncrementColumn = mappingColumn != null && mappingColumn.isId() || col.isAutoincrement();
 
-			if (!mappingColumns.isEmpty() && mappingColumn == null) {
-				// Transient annotation のついているカラムをスキップ
-				continue;
-			}
-
-			if (addCondition && autoIncrementColumn) {
-				// WHERE条件を追加する場合、自動採番カラムは更新対象としないためスキップする
+			if ((!mappingColumns.isEmpty() && mappingColumn == null) || (addCondition && autoIncrementColumn)) {
+				// Transient annotation のついているカラムはスキップ、または、WHERE条件を追加する場合、自動採番カラムは更新対象としないためスキップ
 				continue;
 			}
 
@@ -784,13 +778,9 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final TableMetadata.Column col) {
 		var camelColName = col.getCamelColumnName();
 		// フィールドがセットされていない場合はカラム自体を削る
-		if (isStringType(col.getDataType())) {
-			if (emptyStringEqualsNull && !col.isNullable()) {
-				original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
-						.append(System.lineSeparator());
-			} else {
-				original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
-			}
+		if (isStringType(col.getDataType()) && (emptyStringEqualsNull && !col.isNullable())) {
+			original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
+					.append(System.lineSeparator());
 		} else {
 			original.append("/*IF ").append(camelColName).append(" != null */").append(System.lineSeparator());
 		}

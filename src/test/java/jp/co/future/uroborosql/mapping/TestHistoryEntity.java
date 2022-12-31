@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class TestHistoryEntity {
 	private Long id;
@@ -52,13 +53,7 @@ public class TestHistoryEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (finishAt == null ? 0 : finishAt.hashCode());
-		result = prime * result + (int) (id ^ id >>> 32);
-		result = prime * result + (name == null ? 0 : name.hashCode());
-		result = prime * result + (startAt == null ? 0 : startAt.hashCode());
-		return result;
+		return Objects.hash(finishAt, id, name, startAt);
 	}
 
 	@Override
@@ -66,35 +61,20 @@ public class TestHistoryEntity {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		TestHistoryEntity other = (TestHistoryEntity) obj;
-		if (finishAt == null) {
-			if (other.finishAt != null) {
-				return false;
-			}
-		} else if (!finishAt.equals(other.finishAt)) {
+		var other = (TestHistoryEntity) obj;
+		if (!Objects.equals(finishAt, other.finishAt)) {
 			return false;
 		}
 		if (id != other.id) {
 			return false;
 		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
+		if (!Objects.equals(name, other.name)) {
 			return false;
 		}
-		if (startAt == null) {
-			if (other.startAt != null) {
-				return false;
-			}
-		} else if (!startAt.equals(other.startAt)) {
+		if (!Objects.equals(startAt, other.startAt)) {
 			return false;
 		}
 		return true;

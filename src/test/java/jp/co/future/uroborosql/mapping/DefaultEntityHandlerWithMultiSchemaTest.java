@@ -1,20 +1,19 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
@@ -58,11 +57,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -70,21 +65,14 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntity other = (TestEntity) obj;
+			var other = (TestEntity) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -128,11 +116,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -140,21 +124,14 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntity1 other = (TestEntity1) obj;
+			var other = (TestEntity1) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -198,11 +175,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -210,21 +183,14 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntity2 other = (TestEntity2) obj;
+			var other = (TestEntity2) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -241,7 +207,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:" + DefaultEntityHandlerWithMultiSchemaTest.class.getSimpleName()
+		var url = "jdbc:h2:mem:" + DefaultEntityHandlerWithMultiSchemaTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
@@ -249,7 +215,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 		conn = DriverManager.getConnection(url, user, password);
 		conn.setAutoCommit(false);
 		// テーブル作成
-		try (Statement stmt = conn.createStatement()) {
+		try (var stmt = conn.createStatement()) {
 			stmt.execute("create schema SCHEMA1");
 			stmt.execute("drop table if exists SCHEMA1.TEST");
 			stmt.execute(
@@ -275,7 +241,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from SCHEMA1.TEST").count();
 			agent.updateWith("delete from SCHEMA2.TEST").count();
 			agent.commit();
@@ -285,25 +251,25 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testInsertWithNoSchema() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity test1 = new TestEntity(1, "name1");
+				var test1 = new TestEntity(1, "name1");
 				agent.insert(test1);
-				TestEntity test2 = new TestEntity(2, "name2");
+				var test2 = new TestEntity(2, "name2");
 				agent.insert(test2);
-				TestEntity test3 = new TestEntity(3, "name3");
+				var test3 = new TestEntity(3, "name3");
 				agent.insert(test3);
-				TestEntity data = agent.find(TestEntity.class, 1).orElse(null);
+				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity.class, 2).orElse(null);
 				assertThat(data, is(test2));
 				data = agent.find(TestEntity.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
-				TestEntity1 schema1Data = agent.find(TestEntity1.class, 1).orElse(null);
+				var schema1Data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(schema1Data.getId(), is(1L));
 
-				TestEntity2 schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
+				var schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(schema2Data, is(nullValue()));
 			});
 		}
@@ -312,22 +278,22 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1L, "name1");
+				var test1 = new TestEntity1(1L, "name1");
 				agent.insert(test1);
-				TestEntity1 test2 = new TestEntity1(2L, "name2");
+				var test2 = new TestEntity1(2L, "name2");
 				agent.insert(test2);
-				TestEntity1 test3 = new TestEntity1(3L, "name3");
+				var test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity1.class, 2).orElse(null);
 				assertThat(data, is(test2));
 				data = agent.find(TestEntity1.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
-				TestEntity2 schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
+				var schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(schema2Data, is(nullValue()));
 			});
 		}
@@ -336,22 +302,22 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testInsertSchema2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity2 test1 = new TestEntity2(1L, "name1");
+				var test1 = new TestEntity2(1L, "name1");
 				agent.insert(test1);
-				TestEntity2 test2 = new TestEntity2(2L, "name2");
+				var test2 = new TestEntity2(2L, "name2");
 				agent.insert(test2);
-				TestEntity2 test3 = new TestEntity2(3L, "name3");
+				var test3 = new TestEntity2(3L, "name3");
 				agent.insert(test3);
-				TestEntity2 data = agent.find(TestEntity2.class, 1).orElse(null);
+				var data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity2.class, 2).orElse(null);
 				assertThat(data, is(test2));
 				data = agent.find(TestEntity2.class, 3).orElse(null);
 				assertThat(data, is(test3));
 
-				TestEntity1 schema1Data = agent.find(TestEntity1.class, 1).orElse(null);
+				var schema1Data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(schema1Data, is(nullValue()));
 			});
 		}
@@ -360,16 +326,16 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testQuery1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1L, "name1");
+				var test1 = new TestEntity1(1L, "name1");
 				agent.insert(test1);
-				TestEntity1 test2 = new TestEntity1(2L, "name2");
+				var test2 = new TestEntity1(2L, "name2");
 				agent.insert(test2);
-				TestEntity1 test3 = new TestEntity1(3L, "name3");
+				var test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
 
-				List<TestEntity1> list = agent.query(TestEntity1.class).collect();
+				var list = agent.query(TestEntity1.class).collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -385,15 +351,15 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testUpdate1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1L, "name1");
+				var test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 			});
@@ -403,19 +369,19 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testUpdateSchema2() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1L, "name1");
+				var test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
 				agent.update(test);
 
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test));
 				assertThat(data.getName(), is("updatename"));
 
-				TestEntity2 schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
+				var schema2Data = agent.find(TestEntity2.class, 1).orElse(null);
 				assertThat(schema2Data, is(nullValue()));
 			});
 		}
@@ -424,12 +390,12 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testDelete1() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test = new TestEntity1(1L, "name1");
+				var test = new TestEntity1(1L, "name1");
 				agent.insert(test);
 
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test));
 
 				agent.delete(test);
@@ -443,16 +409,16 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testBatchInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1L, "name1");
-				TestEntity1 test2 = new TestEntity1(2L, "name2");
-				TestEntity1 test3 = new TestEntity1(3L, "name3");
+				var test1 = new TestEntity1(1L, "name1");
+				var test2 = new TestEntity1(2L, "name2");
+				var test3 = new TestEntity1(3L, "name3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
+				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
 
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity1.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -466,16 +432,16 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 	@Test
 	public void testBulkInsert() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntity1 test1 = new TestEntity1(1L, "name1");
-				TestEntity1 test2 = new TestEntity1(2L, "name2");
-				TestEntity1 test3 = new TestEntity1(3L, "name3");
+				var test1 = new TestEntity1(1L, "name1");
+				var test2 = new TestEntity1(2L, "name2");
+				var test3 = new TestEntity1(3L, "name3");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3));
+				var count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));
 
-				TestEntity1 data = agent.find(TestEntity1.class, 1).orElse(null);
+				var data = agent.find(TestEntity1.class, 1).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntity1.class, 2).orElse(null);
 				assertThat(data, is(test2));
@@ -488,11 +454,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@Test
 	public void testCreateTableEntityMetadata_existCurrentSchema() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
 					agent.getConnection().setSchema("SCHEMA1");
-					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					var metadata = TableMetadata.createTableEntityMetadata(agent,
 							new jp.co.future.uroborosql.mapping.Table() {
 
 								@Override
@@ -518,11 +484,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@Test
 	public void testCreateTableEntityMetadata_notExistCurrentSchema() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
 					agent.getConnection().setSchema("SCHEMA2");
-					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					var metadata = TableMetadata.createTableEntityMetadata(agent,
 							new jp.co.future.uroborosql.mapping.Table() {
 
 								@Override
@@ -548,11 +514,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@Test
 	public void testCreateTableEntityMetadata_withSchema() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
 					agent.getConnection().setSchema("SCHEMA2");
-					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					var metadata = TableMetadata.createTableEntityMetadata(agent,
 							new jp.co.future.uroborosql.mapping.Table() {
 
 								@Override
@@ -578,11 +544,11 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 
 	@Test
 	public void testCreateTableEntityMetadata_withWidlcard() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
 					agent.getConnection().setSchema("SCHEMA2");
-					TableMetadata metadata = TableMetadata.createTableEntityMetadata(agent,
+					var metadata = TableMetadata.createTableEntityMetadata(agent,
 							new jp.co.future.uroborosql.mapping.Table() {
 
 								@Override

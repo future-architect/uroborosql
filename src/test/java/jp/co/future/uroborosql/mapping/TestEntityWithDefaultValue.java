@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 import jp.co.future.uroborosql.enums.GenerationType;
@@ -21,9 +22,8 @@ public class TestEntityWithDefaultValue {
 	public TestEntityWithDefaultValue() {
 	}
 
-	public TestEntityWithDefaultValue(Long id, Optional<String> name, Optional<Integer> age,
-			Optional<LocalDate> birthday, Optional<String> memo) {
-		super();
+	public TestEntityWithDefaultValue(final Long id, final Optional<String> name, final Optional<Integer> age,
+			final Optional<LocalDate> birthday, final Optional<String> memo) {
 		this.id = id;
 		this.name = name;
 		this.age = age;
@@ -35,7 +35,7 @@ public class TestEntityWithDefaultValue {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
@@ -43,7 +43,7 @@ public class TestEntityWithDefaultValue {
 		return name;
 	}
 
-	public void setName(Optional<String> name) {
+	public void setName(final Optional<String> name) {
 		this.name = name;
 	}
 
@@ -51,7 +51,7 @@ public class TestEntityWithDefaultValue {
 		return age;
 	}
 
-	public void setAge(Optional<Integer> age) {
+	public void setAge(final Optional<Integer> age) {
 		this.age = age;
 	}
 
@@ -59,7 +59,7 @@ public class TestEntityWithDefaultValue {
 		return birthday;
 	}
 
-	public void setBirthday(Optional<LocalDate> birthday) {
+	public void setBirthday(final Optional<LocalDate> birthday) {
 		this.birthday = birthday;
 	}
 
@@ -67,56 +67,39 @@ public class TestEntityWithDefaultValue {
 		return memo;
 	}
 
-	public void setMemo(Optional<String> memo) {
+	public void setMemo(final Optional<String> memo) {
 		this.memo = memo;
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((age == null) ? 0 : age.hashCode());
-		result = prime * result + ((birthday == null) ? 0 : birthday.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((memo == null) ? 0 : memo.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(age, birthday, id, memo, name);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(final Object obj) {
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		var other = (TestEntityWithDefaultValue) obj;
+		if (!Objects.equals(age, other.age)) {
 			return false;
-		TestEntityWithDefaultValue other = (TestEntityWithDefaultValue) obj;
-		if (age == null) {
-			if (other.age != null)
-				return false;
-		} else if (!age.equals(other.age))
+		}
+		if (!Objects.equals(birthday, other.birthday)) {
 			return false;
-		if (birthday == null) {
-			if (other.birthday != null)
-				return false;
-		} else if (!birthday.equals(other.birthday))
+		}
+		if (!Objects.equals(id, other.id)) {
 			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
+		}
+		if (!Objects.equals(memo, other.memo)) {
 			return false;
-		if (memo == null) {
-			if (other.memo != null)
-				return false;
-		} else if (!memo.equals(other.memo))
+		}
+		if (!Objects.equals(name, other.name)) {
 			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
+		}
 		return true;
 	}
 

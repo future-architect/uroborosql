@@ -3,9 +3,7 @@ package jp.co.future.uroborosql.mapping.mapper;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -16,16 +14,15 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class DateTimeTest {
@@ -34,14 +31,14 @@ public class DateTimeTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:DateTimeTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:DateTimeTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute(
 						"drop table if exists test");
 				stmt.execute(
@@ -56,13 +53,13 @@ public class DateTimeTest {
 
 		config = UroboroSQL.builder(url, user, password).build();
 
-		SqlFilterManager sqlFilterManager = config.getSqlFilterManager();
+		var sqlFilterManager = config.getSqlFilterManager();
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.commit();
 		}
@@ -88,13 +85,7 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
-			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
-			return result;
+			return Objects.hash(dateValue, datetimeValue, id, timeValue);
 		}
 
 		@Override
@@ -102,35 +93,20 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (LocalTestEntity) obj;
+			if (!Objects.equals(dateValue, other.dateValue)) {
 				return false;
 			}
-			LocalTestEntity other = (LocalTestEntity) obj;
-			if (dateValue == null) {
-				if (other.dateValue != null) {
-					return false;
-				}
-			} else if (!dateValue.equals(other.dateValue)) {
-				return false;
-			}
-			if (datetimeValue == null) {
-				if (other.datetimeValue != null) {
-					return false;
-				}
-			} else if (!datetimeValue.equals(other.datetimeValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (timeValue == null) {
-				if (other.timeValue != null) {
-					return false;
-				}
-			} else if (!timeValue.equals(other.timeValue)) {
+			if (!Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -163,13 +139,7 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (dateValue == null ? 0 : dateValue.hashCode());
-			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
-			return result;
+			return Objects.hash(dateValue, datetimeValue, id, timeValue);
 		}
 
 		@Override
@@ -177,35 +147,20 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (DateTestEntity) obj;
+			if (!Objects.equals(dateValue, other.dateValue)) {
 				return false;
 			}
-			DateTestEntity other = (DateTestEntity) obj;
-			if (dateValue == null) {
-				if (other.dateValue != null) {
-					return false;
-				}
-			} else if (!dateValue.equals(other.dateValue)) {
-				return false;
-			}
-			if (datetimeValue == null) {
-				if (other.datetimeValue != null) {
-					return false;
-				}
-			} else if (!datetimeValue.equals(other.datetimeValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (timeValue == null) {
-				if (other.timeValue != null) {
-					return false;
-				}
-			} else if (!timeValue.equals(other.timeValue)) {
+			if (!Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -236,12 +191,7 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (timeValue == null ? 0 : timeValue.hashCode());
-			return result;
+			return Objects.hash(datetimeValue, id, timeValue);
 		}
 
 		@Override
@@ -249,28 +199,17 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			OffsetTestEntity other = (OffsetTestEntity) obj;
-			if (datetimeValue == null) {
-				if (other.datetimeValue != null) {
-					return false;
-				}
-			} else if (!datetimeValue.equals(other.datetimeValue)) {
+			var other = (OffsetTestEntity) obj;
+			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
 				return false;
 			}
-			if (timeValue == null) {
-				if (other.timeValue != null) {
-					return false;
-				}
-			} else if (!timeValue.equals(other.timeValue)) {
+			if (!Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -298,11 +237,7 @@ public class DateTimeTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (datetimeValue == null ? 0 : datetimeValue.hashCode());
-			result = prime * result + (int) (id ^ id >>> 32);
-			return result;
+			return Objects.hash(datetimeValue, id);
 		}
 
 		@Override
@@ -310,18 +245,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			ZonedTestEntity other = (ZonedTestEntity) obj;
-			if (datetimeValue == null) {
-				if (other.datetimeValue != null) {
-					return false;
-				}
-			} else if (!datetimeValue.equals(other.datetimeValue)) {
+			var other = (ZonedTestEntity) obj;
+			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
 				return false;
 			}
 			if (id != other.id) {
@@ -339,12 +267,12 @@ public class DateTimeTest {
 	@Test
 	public void testZoned() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				ZonedTestEntity test1 = new ZonedTestEntity(1);
+				var test1 = new ZonedTestEntity(1);
 				agent.insert(test1);
-				ZonedTestEntity zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				var zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
+				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(zoned.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
@@ -354,12 +282,12 @@ public class DateTimeTest {
 	@Test
 	public void testOffset() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				OffsetTestEntity test1 = new OffsetTestEntity(1);
+				var test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
-				OffsetTestEntity offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				var offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
+				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(offset.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
@@ -370,23 +298,23 @@ public class DateTimeTest {
 	@Test
 	public void testDate() throws Exception {
 
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				DateTestEntity test1 = new DateTestEntity(1);
+				var test1 = new DateTestEntity(1);
 				agent.insert(test1);
-				DateTestEntity date = agent.find(DateTestEntity.class, 1).orElse(null);
-				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
+				var date = agent.find(DateTestEntity.class, 1).orElse(null);
+				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
 				assertThat(date.datetimeValue.getTime(), is(test1.datetimeValue.getTime()));
 				assertThat(date.dateValue.getTime(), is(test1.dateValue.getTime()));
 				System.out.println(date.timeValue);
 
-				final Calendar c = Calendar.getInstance();
+				final var c = Calendar.getInstance();
 				c.setLenient(false);
 				c.setTime(date.timeValue);
 				c.set(Calendar.YEAR, 1970);
 				c.set(Calendar.MONTH, 0);
 				c.set(Calendar.DAY_OF_MONTH, 1);
-				Date time = c.getTime();
+				var time = c.getTime();
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
 				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
 						.toLocalDateTime(),

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,7 +38,7 @@ public class HistoryCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -60,7 +61,7 @@ public class HistoryCommandTest extends ReaderTestSupport {
 		assertBuffer("list", new TestBuffer("list"), true);
 		assertBuffer("desc PRODUCT", new TestBuffer("desc PRODUCT"), false);
 
-		boolean flag = command.execute(reader, "history".split("\\s+"), sqlConfig, new Properties());
+		var flag = command.execute(reader, "history".split("\\s+"), sqlConfig, new Properties());
 		assertTrue(flag);
 		assertConsoleOutputContains("list");
 		assertConsoleOutputContains("desc PRODUCT");

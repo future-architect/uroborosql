@@ -30,7 +30,6 @@ public class H2Dialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public H2Dialect() {
-		super();
 	}
 
 	/**

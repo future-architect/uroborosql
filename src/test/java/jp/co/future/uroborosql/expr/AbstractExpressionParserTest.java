@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.expr;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.time.Duration;
@@ -25,7 +26,6 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.Dialect;
-import jp.co.future.uroborosql.parser.ContextTransformer;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
@@ -71,17 +71,17 @@ public abstract class AbstractExpressionParserTest {
 		SqlParser parser = new SqlParserImpl(original, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 
-		ContextTransformer transformer = parser.parse();
+		var transformer = parser.parse();
 		transformer.transform(ctx);
-		String transformed = ctx.getExecutableSql().trim().replaceAll("\\s+", " ");
+		var transformed = ctx.getExecutableSql().trim().replaceAll("\\s+", " ");
 		assertThat("結果が一致しません。", transformed, is(expected));
 	}
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
 	public void testElif() throws Exception {
-		String sql = "/*IF false*/1=1/*ELIF true*/2=2/*ELSE*/3=3/*END*/";
-		String sql2 = "2=2";
+		var sql = "/*IF false*/1=1/*ELIF true*/2=2/*ELSE*/3=3/*END*/";
+		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -89,8 +89,8 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testFunction() throws Exception {
 		ctx.param("param1", 1);
-		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
-		String sql2 = "?/*param1*/";
+		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		var sql2 = "?/*param1*/";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -98,8 +98,8 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testFunctionWithOptional() throws Exception {
 		ctx.param("param1", Optional.of("text"));
-		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
-		String sql2 = "?/*param1*/";
+		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		var sql2 = "?/*param1*/";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -107,8 +107,8 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testFunctionWithOptionalNull() throws Exception {
 		ctx.param("param1", Optional.ofNullable(null));
-		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
-		String sql2 = "false";
+		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		var sql2 = "false";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -116,8 +116,8 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testFunctionWithOptionalEmpty() throws Exception {
 		ctx.param("param1", Optional.of(""));
-		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
-		String sql2 = "false";
+		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		var sql2 = "false";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -125,8 +125,8 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testFunctionWithOptionalBlank() throws Exception {
 		ctx.param("param1", Optional.of(" "));
-		String sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
-		String sql2 = "?/*param1*/";
+		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
+		var sql2 = "?/*param1*/";
 		sqlAssertion(sql, sql2);
 	}
 
@@ -134,14 +134,14 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testEscChar() throws Exception {
 		ctx.param(Dialect.PARAM_KEY_ESCAPE_CHAR, sqlConfig.getDialect().getEscapeChar());
-		String sql = "select * from test like 'a%' escape /*#ESC_CHAR*/";
-		String sql2 = "select * from test like 'a%' escape '$'/*#ESC_CHAR*/";
+		var sql = "select * from test like 'a%' escape /*#ESC_CHAR*/";
+		var sql2 = "select * from test like 'a%' escape '$'/*#ESC_CHAR*/";
 		sqlAssertion(sql, sql2);
 	}
 
 	@Test
 	public void testIsPropertyAccess() {
-		ExpressionParser parser = sqlConfig.getExpressionParser();
+		var parser = sqlConfig.getExpressionParser();
 		assertThat(parser.isPropertyAccess(null), is(true));
 		assertThat(parser.isPropertyAccess(""), is(true));
 		assertThat(parser.isPropertyAccess("SF.isEmpty(param1)"), is(false));
@@ -152,7 +152,7 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testGetValue() {
 		ctx.param("param1", 1);
-		ExpressionParser parser = sqlConfig.getExpressionParser();
+		var parser = sqlConfig.getExpressionParser();
 		assertThat(parser.parse("param1").getValue(ctx), is(1));
 		assertThat(parser.parse("param2").getValue(ctx), is(nullValue()));
 	}
@@ -163,7 +163,7 @@ public abstract class AbstractExpressionParserTest {
 		ctx.param("param1", Optional.of(1));
 		ctx.param("paramEmpty", Optional.of(""));
 		ctx.param("paramBlank", Optional.of(" "));
-		ExpressionParser parser = sqlConfig.getExpressionParser();
+		var parser = sqlConfig.getExpressionParser();
 		assertThat(parser.parse("paramNull").getValue(ctx), is(Optional.empty()));
 		assertThat(parser.parse("param1").getValue(ctx), is(Optional.of(1)));
 		assertThat(parser.parse("param2").getValue(ctx), is(nullValue()));
@@ -174,7 +174,7 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testDumpNode() {
 		ctx.param("param1", 1);
-		ExpressionParser parser = sqlConfig.getExpressionParser();
+		var parser = sqlConfig.getExpressionParser();
 
 		assertThat(parser.parse("param1 != null and param2 == null").dumpNode(ctx).toString(),
 				is("param1:[1],param2:[null],"));
@@ -185,7 +185,7 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	public void testCollectParams() {
 		ctx.param("param1", 1);
-		ExpressionParser parser = sqlConfig.getExpressionParser();
+		var parser = sqlConfig.getExpressionParser();
 
 		Set<String> params = new HashSet<>();
 		parser.parse("param1 != null and param2 == null").collectParams(params);
@@ -200,14 +200,14 @@ public abstract class AbstractExpressionParserTest {
 	public void testPerformance() {
 		if (log.isTraceEnabled()) {
 			log.trace("\r\n{}", getPerformanceHeader());
-			ExpressionParser parser = getExpressionParser();
+			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
 			parser.initialize();
-			for (int i = 0; i < 10; i++) {
-				Instant start = Instant.now();
-				for (int j = 0; j < 20000; j++) {
-					ExecutionContext context = sqlConfig.getExecutionContextProvider().createExecutionContext();
-					Expression expr = parser.parse("param" + j + " == null");
+			for (var i = 0; i < 10; i++) {
+				var start = Instant.now();
+				for (var j = 0; j < 20000; j++) {
+					var context = sqlConfig.getExecutionContextProvider().createExecutionContext();
+					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
 				log.trace("No" + i + ":"

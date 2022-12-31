@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -14,11 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.config.SqlConfig;
+import org.junit.Test;
+
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-
-import org.junit.Test;
 
 /**
  * エラーハンドリングのテスト
@@ -36,7 +36,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
@@ -48,7 +48,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product").collect();
 		}
@@ -67,7 +67,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
 			@Override
@@ -79,7 +79,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}
@@ -97,7 +97,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	public void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		SqlConfig config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
 
@@ -110,7 +110,7 @@ public class SqlAgentSqlIdTest {
 			}
 
 		});
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.query("sqlid_test/select_product_custom").collect();
 		}

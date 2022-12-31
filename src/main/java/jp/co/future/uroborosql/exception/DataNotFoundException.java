@@ -14,7 +14,6 @@ package jp.co.future.uroborosql.exception;
 public class DataNotFoundException extends UroborosqlRuntimeException {
 
 	public DataNotFoundException() {
-		super();
 	}
 
 	public DataNotFoundException(final String message) {

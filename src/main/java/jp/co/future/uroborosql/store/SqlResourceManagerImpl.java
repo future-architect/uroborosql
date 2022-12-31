@@ -15,10 +15,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.JarURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
@@ -33,7 +31,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +40,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -224,7 +219,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			this.loadPathPartsList.add(pathList.toArray(new String[pathList.size()]));
 		}
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
-		this.charset = charset != null ? charset : Charset.forName(System.getProperty("file.encoding"));
+		this.charset = charset != null ? charset : Charset.forName(Charset.defaultCharset().displayName());
 		this.detectChanges = detectChanges;
 	}
 
@@ -318,9 +313,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						traverseFile(path, true, false);
 					} else if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE) {
 						var sqlName = getSqlName(path);
-						sqlInfos.computeIfPresent(sqlName, (k, v) -> {
-							return v.computePath(path, kind == ENTRY_DELETE);
-						});
+						sqlInfos.computeIfPresent(sqlName, (k, v) -> v.computePath(path, kind == ENTRY_DELETE));
 					}
 				}
 			}
@@ -408,8 +401,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var root = Thread.currentThread().getContextClassLoader().getResources(loadPathSlash);
 
 				while (root.hasMoreElements()) {
-					URL url = root.nextElement();
-					String scheme = url.toURI().getScheme();
+					var url = root.nextElement();
+					var scheme = url.toURI().getScheme();
 					if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
 						traverseFile(Paths.get(url.toURI()), detectChanges && true, false);
 					} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
@@ -599,7 +592,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 
 		FileSystem fs = null;
 		try {
-			URI uri = url.toURI();
+			var uri = url.toURI();
 			try {
 				fs = FileSystems.getFileSystem(uri);
 			} catch (FileSystemNotFoundException ex) {
@@ -608,15 +601,15 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				fs = FileSystems.newFileSystem(uri, env);
 			}
 
-			JarURLConnection conn = (JarURLConnection) url.openConnection();
-			try (JarFile jarFile = conn.getJarFile()) {
-				Enumeration<JarEntry> jarEntries = jarFile.entries();
+			var conn = (JarURLConnection) url.openConnection();
+			try (var jarFile = conn.getJarFile()) {
+				var jarEntries = jarFile.entries();
 				while (jarEntries.hasMoreElements()) {
-					JarEntry jarEntry = jarEntries.nextElement();
-					String name = jarEntry.getName();
+					var jarEntry = jarEntries.nextElement();
+					var name = jarEntry.getName();
 					if (!jarEntry.isDirectory() && name.startsWith(loadPath) && name.endsWith(fileExtension)) {
-						Path path = fs.getPath(name);
-						String sqlName = getSqlName(path);
+						var path = fs.getPath(name);
+						var sqlName = getSqlName(path);
 						this.sqlInfos.compute(sqlName, (k, v) -> v == null
 								? new SqlInfo(sqlName, path, loadPaths, dialect, charset)
 								: v.computePath(path, false));
@@ -668,7 +661,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				final List<Path> loadPaths,
 				final Dialect dialect,
 				final Charset charset) {
-			super();
 			log.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
 					sqlName, path, dialect, charset);
 			this.sqlName = sqlName;
@@ -736,8 +728,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 */
 		private String getSqlBody() {
 			if (sqlBody == null) {
-				Path path = getPath();
-				String scheme = path.toUri().getScheme();
+				var path = getPath();
+				var scheme = path.toUri().getScheme();
 
 				if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
 					// ファイルパスの場合
@@ -747,7 +739,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					}
 					synchronized (sqlName) {
 						try {
-							String body = new String(Files.readAllBytes(path), charset);
+							var body = new String(Files.readAllBytes(path), charset);
 							sqlBody = formatSqlBody(body);
 							log.debug("Loaded SQL template.[{}]", path);
 						} catch (IOException e) {
@@ -757,17 +749,17 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					}
 				} else {
 					// jarパスの場合
-					URL url = Thread.currentThread().getContextClassLoader().getResource(getResourcePath(path));
+					var url = Thread.currentThread().getContextClassLoader().getResource(getResourcePath(path));
 					if (url == null) {
 						throw new UroborosqlRuntimeException("SQL template could not found.["
 								+ path.toAbsolutePath().toString() + "]");
 					}
 					synchronized (sqlName) {
 						try {
-							URLConnection conn = url.openConnection();
-							try (BufferedReader reader = new BufferedReader(
+							var conn = url.openConnection();
+							try (var reader = new BufferedReader(
 									new InputStreamReader(conn.getInputStream(), charset))) {
-								String body = reader.lines()
+								var body = reader.lines()
 										.collect(Collectors.joining(System.lineSeparator()));
 								sqlBody = formatSqlBody(body);
 								log.debug("Loaded SQL template.[{}]", path);
@@ -790,7 +782,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @return 整形後のSQL文
 		 */
 		protected String formatSqlBody(final String sqlBody) {
-			String newBody = sqlBody.trim();
+			var newBody = sqlBody.trim();
 			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
 				newBody = StringUtils.removeEnd(newBody, "/");
 			} else {
@@ -856,7 +848,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						var p2Scheme = p2.toUri().getScheme();
 
 						if (!p1Scheme.equals(p2Scheme)) {
-							if (p1Scheme.equals(SCHEME_FILE)) {
+							if (SCHEME_FILE.equals(p1Scheme)) {
 								return -1;
 							} else {
 								return 1;
@@ -928,13 +920,13 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @return クラスローダーから取得する際のリソースパス
 		 */
 		private String getResourcePath(final Path path) {
-			int pathSize = path.getNameCount();
+			var pathSize = path.getNameCount();
 
 			for (Path loadPath : this.loadPaths) {
-				int loadPathSize = loadPath.getNameCount();
+				var loadPathSize = loadPath.getNameCount();
 
-				for (int i = 0; i < pathSize - loadPathSize; i++) {
-					Path subPath = path.subpath(i, i + loadPathSize);
+				for (var i = 0; i < pathSize - loadPathSize; i++) {
+					var subPath = path.subpath(i, i + loadPathSize);
 					if (loadPath.equals(subPath)) {
 						return path.subpath(i, pathSize).toString();
 					}

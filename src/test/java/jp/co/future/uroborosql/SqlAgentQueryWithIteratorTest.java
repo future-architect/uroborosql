@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ public class SqlAgentQueryWithIteratorTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -55,9 +55,9 @@ public class SqlAgentQueryWithIteratorTest {
 		try {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
-				String[] parts = line.split("\t");
+				var parts = line.split("\t");
 				for (String part : parts) {
-					String[] keyValue = part.split(":", 2);
+					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
@@ -80,10 +80,10 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	private void cleanInsert(final Path path) {
-		List<Map<String, Object>> dataList = getDataFromFile(path);
+		var dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-				.forEach(tbl -> truncateTable(tbl));
+				.forEach(this::truncateTable);
 
 		dataList.forEach(map -> {
 			try {
@@ -105,7 +105,7 @@ public class SqlAgentQueryWithIteratorTest {
 				.stream()
 				.iterator();
 
-		int c = 0;
+		var c = 0;
 		while (itr.hasNext()) {
 			itr.next();
 			c++;
@@ -124,7 +124,7 @@ public class SqlAgentQueryWithIteratorTest {
 				.map(r -> r)
 				.iterator();
 
-		int c = 0;
+		var c = 0;
 		while (itr.hasNext()) {
 			itr.next();
 			c++;

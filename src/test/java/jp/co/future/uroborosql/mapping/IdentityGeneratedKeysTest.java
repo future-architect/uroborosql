@@ -1,14 +1,14 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.GenerationType;
@@ -38,14 +37,14 @@ public class IdentityGeneratedKeysTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String url = "jdbc:h2:mem:IdentityGeneratedKeysTest;DB_CLOSE_DELAY=-1";
+		var url = "jdbc:h2:mem:IdentityGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
 		String password = null;
 
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
+		try (var conn = DriverManager.getConnection(url, user, password)) {
 			conn.setAutoCommit(false);
 			// テーブル作成
-			try (Statement stmt = conn.createStatement()) {
+			try (var stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists test");
 				stmt.execute("drop sequence if exists test_id_seq");
 				stmt.execute("create sequence test_id_seq");
@@ -77,7 +76,7 @@ public class IdentityGeneratedKeysTest {
 
 	@Before
 	public void setUpBefore() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
 			agent.updateWith("delete from test_multikey").count();
 			agent.commit();
@@ -86,24 +85,24 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++currVal));
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -115,28 +114,28 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertWithNoId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				TestAutoEntityWithNoId test1 = new TestAutoEntityWithNoId("name1");
+				var test1 = new TestAutoEntityWithNoId("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestAutoEntityWithNoId test2 = new TestAutoEntityWithNoId("name2");
+				var test2 = new TestAutoEntityWithNoId("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++currVal));
 
-				TestAutoEntityWithNoId test3 = new TestAutoEntityWithNoId("name3");
+				var test3 = new TestAutoEntityWithNoId("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++currVal));
 
-				TestAutoEntityWithNoId data = agent.find(TestAutoEntityWithNoId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestAutoEntityWithNoId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestAutoEntityWithNoId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -148,27 +147,27 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertWithNoIdObj() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
-				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
+				var test1 = new TestAutoEntityWithNoIdObj("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
+				var test2 = new TestAutoEntityWithNoIdObj("name2");
 				test2.id = idVal;
 				agent.insert(test2);
 				assertThat(test2.getId(), is(idVal));
 
-				TestAutoEntityWithNoIdObj data = agent.find(TestAutoEntityWithNoIdObj.class, test1.getId())
+				var data = agent.find(TestAutoEntityWithNoIdObj.class, test1.getId())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestAutoEntityWithNoIdObj.class, test2.getId()).orElse(null);
@@ -179,16 +178,16 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				test1.setId(100);
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}
@@ -196,15 +195,15 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertWithObjectKeyValueNotSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
-				TestEntityWithIdObj data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}
@@ -212,17 +211,17 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertWithObjectKeyValueSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long id = currVal + 100;
+				var id = currVal + 100;
 
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				test1.setId(id);
 				agent.insert(test1);
 				assertThat(test1.getId(), is(id));
-				TestEntityWithIdObj data = agent.find(TestEntityWithIdObj.class, id).orElse(null);
+				var data = agent.find(TestEntityWithIdObj.class, id).orElse(null);
 				assertThat(data, is(test1));
 			});
 		}
@@ -230,19 +229,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInserts() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream());
@@ -259,9 +258,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsNoId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
@@ -269,13 +268,13 @@ public class IdentityGeneratedKeysTest {
 						.findFirst().getAsLong();
 
 				List<TestAutoEntityWithNoId> entities = new ArrayList<>();
-				TestAutoEntityWithNoId test1 = new TestAutoEntityWithNoId("name1");
+				var test1 = new TestAutoEntityWithNoId("name1");
 				entities.add(test1);
 
-				TestAutoEntityWithNoId test2 = new TestAutoEntityWithNoId("name2");
+				var test2 = new TestAutoEntityWithNoId("name2");
 				entities.add(test2);
 
-				TestAutoEntityWithNoId test3 = new TestAutoEntityWithNoId("name3");
+				var test3 = new TestAutoEntityWithNoId("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream());
@@ -292,9 +291,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsNoIdObjNotSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
@@ -302,13 +301,13 @@ public class IdentityGeneratedKeysTest {
 						.findFirst().getAsLong();
 
 				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
-				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
+				var test1 = new TestAutoEntityWithNoIdObj("name1");
 				entities.add(test1);
 
-				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
+				var test2 = new TestAutoEntityWithNoIdObj("name2");
 				entities.add(test2);
 
-				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
+				var test3 = new TestAutoEntityWithNoIdObj("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream());
@@ -325,27 +324,27 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsNoIdObjSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
-				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
+				var test1 = new TestAutoEntityWithNoIdObj("name1");
 				test1.id = idVal + 1;
 				entities.add(test1);
 
-				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
+				var test2 = new TestAutoEntityWithNoIdObj("name2");
 				test2.id = idVal + 2;
 				entities.add(test2);
 
-				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
+				var test3 = new TestAutoEntityWithNoIdObj("name3");
 				test3.id = idVal + 3;
 				entities.add(test3);
 
@@ -363,22 +362,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				test1.id = idVal++;
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				test2.id = idVal++;
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				test3.id = idVal++;
 				entities.add(test3);
 
@@ -396,19 +395,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsWithObjectKeyValueNotSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
 				List<TestEntityWithIdObj> entities = new ArrayList<>();
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				entities.add(test1);
 
-				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
+				var test2 = new TestEntityWithIdObj("name2");
 				entities.add(test2);
 
-				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
+				var test3 = new TestEntityWithIdObj("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream());
@@ -425,22 +424,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsWithObjectKeyValueSetValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestEntityWithIdObj> entities = new ArrayList<>();
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal;
 				entities.add(test1);
 
-				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
+				var test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 1;
 				entities.add(test2);
 
-				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
+				var test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 2;
 				entities.add(test3);
 
@@ -458,19 +457,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatch() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream(), InsertsType.BATCH);
@@ -487,9 +486,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatchNoId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
@@ -497,13 +496,13 @@ public class IdentityGeneratedKeysTest {
 						.findFirst().getAsLong();
 
 				List<TestAutoEntityWithNoId> entities = new ArrayList<>();
-				TestAutoEntityWithNoId test1 = new TestAutoEntityWithNoId("name1");
+				var test1 = new TestAutoEntityWithNoId("name1");
 				entities.add(test1);
 
-				TestAutoEntityWithNoId test2 = new TestAutoEntityWithNoId("name2");
+				var test2 = new TestAutoEntityWithNoId("name2");
 				entities.add(test2);
 
-				TestAutoEntityWithNoId test3 = new TestAutoEntityWithNoId("name3");
+				var test3 = new TestAutoEntityWithNoId("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream(), InsertsType.BATCH);
@@ -520,9 +519,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatchNoIdNotSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by current_value desc")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
@@ -530,13 +529,13 @@ public class IdentityGeneratedKeysTest {
 						.findFirst().getAsLong();
 
 				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
-				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
+				var test1 = new TestAutoEntityWithNoIdObj("name1");
 				entities.add(test1);
 
-				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
+				var test2 = new TestAutoEntityWithNoIdObj("name2");
 				entities.add(test2);
 
-				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
+				var test3 = new TestAutoEntityWithNoIdObj("name3");
 				entities.add(test3);
 
 				agent.inserts(entities.stream(), InsertsType.BATCH);
@@ -553,27 +552,27 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatchNoIdSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = agent.queryWith(
+				var currVal = agent.queryWith(
 						"select sequence_schema, sequence_name, current_value, increment from information_schema.sequences order by sequence_name")
 						.stream()
 						.filter(map -> Objects.toString(map.get("SEQUENCE_NAME")).startsWith("SYSTEM_SEQUENCE"))
 						.mapToLong(map -> (Long) map.get("CURRENT_VALUE"))
 						.findFirst().getAsLong();
 
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestAutoEntityWithNoIdObj> entities = new ArrayList<>();
-				TestAutoEntityWithNoIdObj test1 = new TestAutoEntityWithNoIdObj("name1");
+				var test1 = new TestAutoEntityWithNoIdObj("name1");
 				test1.id = idVal + 1;
 				entities.add(test1);
 
-				TestAutoEntityWithNoIdObj test2 = new TestAutoEntityWithNoIdObj("name2");
+				var test2 = new TestAutoEntityWithNoIdObj("name2");
 				test2.id = idVal + 2;
 				entities.add(test2);
 
-				TestAutoEntityWithNoIdObj test3 = new TestAutoEntityWithNoIdObj("name3");
+				var test3 = new TestAutoEntityWithNoIdObj("name3");
 				test3.id = idVal + 3;
 				entities.add(test3);
 
@@ -591,22 +590,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatchWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				test1.id = idVal;
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				test2.id = idVal + 1;
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				test3.id = idVal + 2;
 				entities.add(test3);
 
@@ -624,22 +623,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsBatchWithObjectKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
 				List<TestEntityWithIdObj> entities = new ArrayList<>();
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal;
 				entities.add(test1);
 
-				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
+				var test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 1;
 				entities.add(test2);
 
-				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
+				var test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 2;
 				entities.add(test3);
 
@@ -657,19 +656,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsAndReturn() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				entities.add(test3);
 
 				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entities.stream())
@@ -687,19 +686,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertsAndReturnBatch() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
 				List<TestEntityWithId> entities = new ArrayList<>();
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				entities.add(test1);
 
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				entities.add(test2);
 
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				entities.add(test3);
 
 				List<TestEntityWithId> insertedEntities = agent.insertsAndReturn(entities.stream(), InsertsType.BATCH)
@@ -717,16 +716,16 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertAndUpdate() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data.getName(), is("name1"));
 
 				test1.setName("rename1");
@@ -741,9 +740,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testEntityNotGeneratedValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityWithIdError test1 = new TestEntityWithIdError("name1");
+				var test1 = new TestEntityWithIdError("name1");
 				agent.insert(test1);
 			});
 		}
@@ -751,9 +750,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testEntityInvalidTypeGeneratedValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestEntityWithIdError2 test1 = new TestEntityWithIdError2("name1");
+				var test1 = new TestEntityWithIdError2("name1");
 				agent.insert(test1);
 			});
 		}
@@ -761,29 +760,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertMultiKey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
+				var test1 = new TestEntityWithMultiId("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++idCurrVal));
 				assertThat(test1.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
+				var test2 = new TestEntityWithMultiId("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++idCurrVal));
 				assertThat(test2.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
+				var test3 = new TestEntityWithMultiId("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++idCurrVal));
 				assertThat(test3.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -796,7 +795,7 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertMultiKeyWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
@@ -804,7 +803,7 @@ public class IdentityGeneratedKeysTest {
 						.get().get("ID");
 
 				// 複数のIDすべてに値を設定した場合
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
+				var test1 = new TestEntityWithMultiId("name1");
 				test1.id = idCurrVal + 10;
 				test1.id2 = id2CurrVal + 10;
 
@@ -813,21 +812,21 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getId2(), is(++id2CurrVal));
 
 				// 複数のIDの片方に値を設定した場合
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
+				var test2 = new TestEntityWithMultiId("name2");
 				test2.id = idCurrVal + 10;
 
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++idCurrVal));
 				assertThat(test2.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
+				var test3 = new TestEntityWithMultiId("name3");
 				test3.id2 = id2CurrVal + 10;
 
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++idCurrVal));
 				assertThat(test3.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -840,9 +839,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdType() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIds test1 = new TestIds();
+				var test1 = new TestIds();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -851,7 +850,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIds test2 = new TestIds();
+				var test2 = new TestIds();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -865,9 +864,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdTypeStr() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsStr test1 = new TestIdsStr();
+				var test1 = new TestIdsStr();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -875,7 +874,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIdsStr test2 = new TestIdsStr();
+				var test2 = new TestIdsStr();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -888,9 +887,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdTypeInteger() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsInteger test1 = new TestIdsInteger();
+				var test1 = new TestIdsInteger();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -898,7 +897,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIdsInteger test2 = new TestIdsInteger();
+				var test2 = new TestIdsInteger();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -911,9 +910,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdTypeLong() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsLong test1 = new TestIdsLong();
+				var test1 = new TestIdsLong();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -921,7 +920,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIdsLong test2 = new TestIdsLong();
+				var test2 = new TestIdsLong();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -934,9 +933,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdTypeBigInteger() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsBigInteger test1 = new TestIdsBigInteger();
+				var test1 = new TestIdsBigInteger();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -944,7 +943,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIdsBigInteger test2 = new TestIdsBigInteger();
+				var test2 = new TestIdsBigInteger();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -957,9 +956,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertIdTypeBigDecimal() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsBigDecimal test1 = new TestIdsBigDecimal();
+				var test1 = new TestIdsBigDecimal();
 
 				agent.insert(test1);
 				assertThat(test1.getIdStr(), not(nullValue()));
@@ -967,7 +966,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getIdBigint(), not(nullValue()));
 				assertThat(test1.getIdDecimal(), not(nullValue()));
 
-				TestIdsBigDecimal test2 = new TestIdsBigDecimal();
+				var test2 = new TestIdsBigDecimal();
 
 				agent.insert(test2);
 				assertThat(test2.getIdStr(), not(test1.getIdStr()));
@@ -980,9 +979,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testInsertIdTypeErrInteger() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsErrInteger test1 = new TestIdsErrInteger();
+				var test1 = new TestIdsErrInteger();
 				agent.insert(test1);
 			});
 		}
@@ -990,9 +989,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testInsertIdTypeErrBigint() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsErrBigint test1 = new TestIdsErrBigint();
+				var test1 = new TestIdsErrBigint();
 				agent.insert(test1);
 			});
 		}
@@ -1000,9 +999,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testInsertIdTypeErrBigInteger() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsErrBigInteger test1 = new TestIdsErrBigInteger();
+				var test1 = new TestIdsErrBigInteger();
 				agent.insert(test1);
 			});
 		}
@@ -1010,9 +1009,9 @@ public class IdentityGeneratedKeysTest {
 
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testInsertIdTypeErrBigDecimal() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				TestIdsErrBigDecimal test1 = new TestIdsErrBigDecimal();
+				var test1 = new TestIdsErrBigDecimal();
 				agent.insert(test1);
 			});
 		}
@@ -1020,29 +1019,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertMultiKeyWithObjectKeyValueNotSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				agent.insert(test1);
 				assertThat(test1.getId(), is(++idCurrVal));
 				assertThat(test1.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				agent.insert(test2);
 				assertThat(test2.getId(), is(++idCurrVal));
 				assertThat(test2.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++idCurrVal));
 				assertThat(test3.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1056,18 +1055,18 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testInsertMultiKeyWithObjectKeyValueSetId() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				long idVal = idCurrVal + 100;
-				long id2Val = id2CurrVal + 100;
+				var idVal = idCurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
 				// 複数のIDすべてに値を設定した場合
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				test1.id = idVal;
 				test1.id2 = id2Val;
 
@@ -1076,21 +1075,21 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test1.getId2(), is(id2Val));
 
 				// 複数のIDの片方に値を設定した場合
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				test2.id = ++idVal;
 
 				agent.insert(test2);
 				assertThat(test2.getId(), is(idVal));
 				assertThat(test2.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				test3.id2 = ++id2Val;
 
 				agent.insert(test3);
 				assertThat(test3.getId(), is(++idCurrVal));
 				assertThat(test3.getId2(), is(id2Val));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1104,17 +1103,17 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
-				TestEntityWithId test2 = new TestEntityWithId("name2");
-				TestEntityWithId test3 = new TestEntityWithId("name3");
-				TestEntityWithId test4 = new TestEntityWithId("name4");
+				var test1 = new TestEntityWithId("name1");
+				var test2 = new TestEntityWithId("name2");
+				var test3 = new TestEntityWithId("name3");
+				var test4 = new TestEntityWithId("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -1122,7 +1121,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1136,22 +1135,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInsertWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				test1.id = idVal + 1;
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				test2.id = idVal + 2;
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				test3.id = idVal + 3;
-				TestEntityWithId test4 = new TestEntityWithId("name4");
+				var test4 = new TestEntityWithId("name4");
 				test4.id = idVal + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -1159,7 +1158,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1173,22 +1172,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInsertWithObjectKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal + 1;
-				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
+				var test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 2;
-				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
+				var test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 3;
-				TestEntityWithIdObj test4 = new TestEntityWithIdObj("name4");
+				var test4 = new TestEntityWithIdObj("name4");
 				test4.id = idVal + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(idVal + 1));
@@ -1196,7 +1195,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(idVal + 3));
 				assertThat(test4.getId(), is(idVal + 4));
 
-				TestEntityWithIdObj data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithIdObj.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1210,19 +1209,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInserMultikey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
-				TestEntityWithMultiId test4 = new TestEntityWithMultiId("name4");
+				var test1 = new TestEntityWithMultiId("name1");
+				var test2 = new TestEntityWithMultiId("name2");
+				var test3 = new TestEntityWithMultiId("name3");
+				var test4 = new TestEntityWithMultiId("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1234,7 +1233,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -1249,29 +1248,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInserMultikeyWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long idVal = idCurrVal + 100;
-				long id2Val = id2CurrVal + 100;
+				var idVal = idCurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
+				var test1 = new TestEntityWithMultiId("name1");
 				test1.id = idVal + 1;
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
+				var test2 = new TestEntityWithMultiId("name2");
 				test1.id = idVal + 2;
 				test1.id2 = id2Val + 2;
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
+				var test3 = new TestEntityWithMultiId("name3");
 				test1.id = idVal + 3;
 				test1.id2 = id2Val + 3;
-				TestEntityWithMultiId test4 = new TestEntityWithMultiId("name4");
+				var test4 = new TestEntityWithMultiId("name4");
 				test1.id = idVal + 4;
 				test1.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1283,7 +1282,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -1298,29 +1297,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInserMultikeyWithObjectKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long idVal = idCurrVal + 100;
-				long id2Val = id2CurrVal + 100;
+				var idVal = idCurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				test1.id = idVal + 1;
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				test2.id = idVal + 2;
 				test2.id2 = id2Val + 2;
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				test3.id = idVal + 3;
 				test3.id2 = id2Val + 3;
-				TestEntityWithMultiIdObj test4 = new TestEntityWithMultiIdObj("name4");
+				var test4 = new TestEntityWithMultiIdObj("name4");
 				test4.id = idVal + 4;
 				test4.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(idVal + 1));
@@ -1332,7 +1331,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(idVal + 4));
 				assertThat(test4.getId2(), is(id2Val + 4));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1348,24 +1347,24 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBulkInserMultikeyWithObjectKeyValue2() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long id2Val = id2CurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				test2.id2 = id2Val + 2;
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				test3.id2 = id2Val + 3;
-				TestEntityWithMultiIdObj test4 = new TestEntityWithMultiIdObj("name4");
+				var test4 = new TestEntityWithMultiIdObj("name4");
 				test4.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BULK);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1377,7 +1376,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(id2Val + 4));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1393,17 +1392,17 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsert() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
-				TestEntityWithId test2 = new TestEntityWithId("name2");
-				TestEntityWithId test3 = new TestEntityWithId("name3");
-				TestEntityWithId test4 = new TestEntityWithId("name4");
+				var test1 = new TestEntityWithId("name1");
+				var test2 = new TestEntityWithId("name2");
+				var test3 = new TestEntityWithId("name3");
+				var test4 = new TestEntityWithId("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -1411,7 +1410,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1425,22 +1424,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
-				TestEntityWithId test1 = new TestEntityWithId("name1");
+				var test1 = new TestEntityWithId("name1");
 				test1.id = idVal + 1;
-				TestEntityWithId test2 = new TestEntityWithId("name2");
+				var test2 = new TestEntityWithId("name2");
 				test2.id = idVal + 2;
-				TestEntityWithId test3 = new TestEntityWithId("name3");
+				var test3 = new TestEntityWithId("name3");
 				test3.id = idVal + 3;
-				TestEntityWithId test4 = new TestEntityWithId("name4");
+				var test4 = new TestEntityWithId("name4");
 				test4.id = idVal + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++currVal));
@@ -1448,7 +1447,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(++currVal));
 				assertThat(test4.getId(), is(++currVal));
 
-				TestEntityWithId data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithId.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithId.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1462,22 +1461,22 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertWithObjectKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
 						.get("ID");
-				long idVal = currVal + 100;
+				var idVal = currVal + 100;
 
-				TestEntityWithIdObj test1 = new TestEntityWithIdObj("name1");
+				var test1 = new TestEntityWithIdObj("name1");
 				test1.id = idVal + 1;
-				TestEntityWithIdObj test2 = new TestEntityWithIdObj("name2");
+				var test2 = new TestEntityWithIdObj("name2");
 				test2.id = idVal + 2;
-				TestEntityWithIdObj test3 = new TestEntityWithIdObj("name3");
+				var test3 = new TestEntityWithIdObj("name3");
 				test3.id = idVal + 3;
-				TestEntityWithIdObj test4 = new TestEntityWithIdObj("name4");
+				var test4 = new TestEntityWithIdObj("name4");
 				test4.id = idVal + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(idVal + 1));
@@ -1485,7 +1484,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test3.getId(), is(idVal + 3));
 				assertThat(test4.getId(), is(idVal + 4));
 
-				TestEntityWithIdObj data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
+				var data = agent.find(TestEntityWithIdObj.class, test1.getId()).orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithIdObj.class, test2.getId()).orElse(null);
 				assertThat(data, is(test2));
@@ -1499,19 +1498,19 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertMultikey() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
 
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
-				TestEntityWithMultiId test4 = new TestEntityWithMultiId("name4");
+				var test1 = new TestEntityWithMultiId("name1");
+				var test2 = new TestEntityWithMultiId("name2");
+				var test3 = new TestEntityWithMultiId("name3");
+				var test4 = new TestEntityWithMultiId("name4");
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1523,7 +1522,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -1538,29 +1537,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertMultikeyWithPrimitiveKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long idVal = idCurrVal + 100;
-				long id2Val = id2CurrVal + 100;
+				var idVal = idCurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiId test1 = new TestEntityWithMultiId("name1");
+				var test1 = new TestEntityWithMultiId("name1");
 				test1.id = idVal + 1;
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiId test2 = new TestEntityWithMultiId("name2");
+				var test2 = new TestEntityWithMultiId("name2");
 				test2.id = idVal + 2;
 				test2.id2 = id2Val + 2;
-				TestEntityWithMultiId test3 = new TestEntityWithMultiId("name3");
+				var test3 = new TestEntityWithMultiId("name3");
 				test3.id = idVal + 3;
 				test3.id2 = id2Val + 3;
-				TestEntityWithMultiId test4 = new TestEntityWithMultiId("name4");
+				var test4 = new TestEntityWithMultiId("name4");
 				test4.id = idVal + 4;
 				test4.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1572,7 +1571,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(++id2CurrVal));
 
-				TestEntityWithMultiId data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
+				var data = agent.find(TestEntityWithMultiId.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithMultiId.class, test2.getId(), test2.getId2()).orElse(null);
@@ -1587,29 +1586,29 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertMultikeyWithObjectKeyValue() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long idVal = idCurrVal + 100;
-				long id2Val = id2CurrVal + 100;
+				var idVal = idCurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				test1.id = idVal + 1;
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				test2.id = idVal + 2;
 				test2.id2 = id2Val + 2;
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				test3.id = idVal + 3;
 				test3.id2 = id2Val + 3;
-				TestEntityWithMultiIdObj test4 = new TestEntityWithMultiIdObj("name4");
+				var test4 = new TestEntityWithMultiIdObj("name4");
 				test4.id = idVal + 4;
 				test4.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(idVal + 1));
@@ -1621,7 +1620,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(idVal + 4));
 				assertThat(test4.getId2(), is(id2Val + 4));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1637,24 +1636,24 @@ public class IdentityGeneratedKeysTest {
 
 	@Test
 	public void testBatchInsertMultikeyWithObjectKeyValue2() throws Exception {
-		try (SqlAgent agent = config.agent()) {
+		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
 						.get().get("ID");
 				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
 						.get().get("ID");
-				long id2Val = id2CurrVal + 100;
+				var id2Val = id2CurrVal + 100;
 
-				TestEntityWithMultiIdObj test1 = new TestEntityWithMultiIdObj("name1");
+				var test1 = new TestEntityWithMultiIdObj("name1");
 				test1.id2 = id2Val + 1;
-				TestEntityWithMultiIdObj test2 = new TestEntityWithMultiIdObj("name2");
+				var test2 = new TestEntityWithMultiIdObj("name2");
 				test2.id2 = id2Val + 2;
-				TestEntityWithMultiIdObj test3 = new TestEntityWithMultiIdObj("name3");
+				var test3 = new TestEntityWithMultiIdObj("name3");
 				test3.id2 = id2Val + 3;
-				TestEntityWithMultiIdObj test4 = new TestEntityWithMultiIdObj("name4");
+				var test4 = new TestEntityWithMultiIdObj("name4");
 				test4.id2 = id2Val + 4;
 
-				int count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, idx, entity) -> idx == 2,
 						InsertsType.BATCH);
 				assertThat(count, is(4));
 				assertThat(test1.getId(), is(++idCurrVal));
@@ -1666,7 +1665,7 @@ public class IdentityGeneratedKeysTest {
 				assertThat(test4.getId(), is(++idCurrVal));
 				assertThat(test4.getId2(), is(id2Val + 4));
 
-				TestEntityWithMultiIdObj data = agent
+				var data = agent
 						.find(TestEntityWithMultiIdObj.class, test1.getId(), test1.getId2())
 						.orElse(null);
 				assertThat(data, is(test1));
@@ -1712,11 +1711,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -1724,21 +1719,14 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntityWithId other = (TestEntityWithId) obj;
+			var other = (TestEntityWithId) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1781,11 +1769,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -1793,21 +1777,14 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestAutoEntityWithNoId other = (TestAutoEntityWithNoId) obj;
+			var other = (TestAutoEntityWithNoId) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1849,11 +1826,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -1861,25 +1834,14 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestAutoEntityWithNoIdObj) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestAutoEntityWithNoIdObj other = (TestAutoEntityWithNoIdObj) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1923,11 +1885,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -1935,25 +1893,14 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestEntityWithIdObj) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestEntityWithIdObj other = (TestEntityWithIdObj) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1997,11 +1944,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, name);
 		}
 
 		@Override
@@ -2009,21 +1952,14 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntityWithIdError other = (TestEntityWithIdError) obj;
+			var other = (TestEntityWithIdError) obj;
 			if (id != other.id) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -2105,12 +2041,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (int) (id ^ id >>> 32);
-			result = prime * result + (int) (id2 ^ id2 >>> 32);
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, id2, name);
 		}
 
 		@Override
@@ -2118,24 +2049,17 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			TestEntityWithMultiId other = (TestEntityWithMultiId) obj;
+			var other = (TestEntityWithMultiId) obj;
 			if (id != other.id) {
 				return false;
 			}
 			if (id2 != other.id2) {
 				return false;
 			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -2180,12 +2104,7 @@ public class IdentityGeneratedKeysTest {
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (id == null ? 0 : id.hashCode());
-			result = prime * result + (id2 == null ? 0 : id2.hashCode());
-			result = prime * result + (name == null ? 0 : name.hashCode());
-			return result;
+			return Objects.hash(id, id2, name);
 		}
 
 		@Override
@@ -2193,32 +2112,17 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+			if ((obj == null) || (getClass() != obj.getClass())) {
 				return false;
 			}
-			if (getClass() != obj.getClass()) {
+			var other = (TestEntityWithMultiIdObj) obj;
+			if (!Objects.equals(id, other.id)) {
 				return false;
 			}
-			TestEntityWithMultiIdObj other = (TestEntityWithMultiIdObj) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
+			if (!Objects.equals(id2, other.id2)) {
 				return false;
 			}
-			if (id2 == null) {
-				if (other.id2 != null) {
-					return false;
-				}
-			} else if (!id2.equals(other.id2)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
+			if (!Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

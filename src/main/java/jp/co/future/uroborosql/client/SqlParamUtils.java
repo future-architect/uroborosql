@@ -81,16 +81,14 @@ public final class SqlParamUtils {
 					parts.add(part.toString());
 					part = new StringBuilder();
 				}
-			} else if (c == '[') {
-				bracketFlag = true;
-				part.append(c);
-			} else if (c == ']') {
-				bracketFlag = false;
-				part.append(c);
-			} else if (c == '\'') {
-				singleQuoteFlag = !singleQuoteFlag;
-				part.append(c);
 			} else {
+				if (c == '[') {
+					bracketFlag = true;
+				} else if (c == ']') {
+					bracketFlag = false;
+				} else if (c == '\'') {
+					singleQuoteFlag = !singleQuoteFlag;
+				}
 				part.append(c);
 			}
 		}
@@ -106,7 +104,8 @@ public final class SqlParamUtils {
 	 * @param ctx ExecutionContext
 	 * @param paramsArray パラメータ配列
 	 */
-	public static void setSqlParams(final SqlConfig sqlConfig, final ExecutionContext ctx, final String... paramsArray) {
+	public static void setSqlParams(final SqlConfig sqlConfig, final ExecutionContext ctx,
+			final String... paramsArray) {
 		var bindParams = getSqlParams(ctx.getSql(), sqlConfig);
 
 		for (String element : paramsArray) {
@@ -150,7 +149,7 @@ public final class SqlParamUtils {
 	 * @param val パラメータ値
 	 */
 	private static void setParam(final ExecutionContext ctx, final String key, final String val) {
-		if (val.startsWith("[") && val.endsWith("]") && !(val.equals("[NULL]") || val.equals("[EMPTY]"))) {
+		if (val.startsWith("[") && val.endsWith("]") && (!"[NULL]".equals(val) && !"[EMPTY]".equals(val))) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
 			var parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
 			var vals = new Object[parts.length];
@@ -171,9 +170,7 @@ public final class SqlParamUtils {
 	 */
 	private static Object convertSingleValue(final String val) {
 		var value = val == null ? null : val.trim();
-		if (StringUtils.isEmpty(value)) {
-			return null;
-		} else if ("[NULL]".equalsIgnoreCase(value)) {
+		if (StringUtils.isEmpty(value) || "[NULL]".equalsIgnoreCase(value)) {
 			return null;
 		} else if ("[EMPTY]".equalsIgnoreCase(value)) {
 			return "";

@@ -415,12 +415,12 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
-		try (LocalTransactionContext txContext = new LocalTransactionContext(this.sqlConfig, true,
+		try (var txContext = new LocalTransactionContext(this.sqlConfig, true,
 				this.connectionContext)) {
 			this.txCtxStack.push(txContext);
 
-			Connection conn = txContext.getConnection();
-			boolean preserveAutoCommitState = conn.getAutoCommit();
+			var conn = txContext.getConnection();
+			var preserveAutoCommitState = conn.getAutoCommit();
 			try {
 				// autoCommit=trueに設定する
 				if (!preserveAutoCommitState) {

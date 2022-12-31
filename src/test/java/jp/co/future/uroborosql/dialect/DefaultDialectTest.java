@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.sql.JDBCType;
@@ -237,7 +239,7 @@ public class DefaultDialectTest {
 
 	@Test
 	public void testAddForUpdateClause() {
-		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NOWAIT, -1).toString(),
@@ -248,7 +250,7 @@ public class DefaultDialectTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void testAddOptimizerHints() {
-		StringBuilder sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		List<String> hints = new ArrayList<>();
 		hints.add("USE_NL");
 		dialect.addOptimizerHints(sql, hints);

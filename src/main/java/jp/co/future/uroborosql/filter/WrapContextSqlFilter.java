@@ -34,7 +34,6 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	 * コンストラクタ
 	 */
 	public WrapContextSqlFilter() {
-		super();
 	}
 
 	/**
@@ -46,7 +45,6 @@ public class WrapContextSqlFilter extends AbstractSqlFilter {
 	 */
 	public WrapContextSqlFilter(final String wrappedSqlBeginParts, final String wrappedSqlEndParts,
 			final String wrapIgnorePattern) {
-		super();
 		this.wrappedSqlBeginParts = wrappedSqlBeginParts;
 		this.wrappedSqlEndParts = wrappedSqlEndParts;
 		this.wrapIgnorePattern = wrapIgnorePattern;

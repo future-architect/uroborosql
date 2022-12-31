@@ -22,7 +22,6 @@ public abstract class AbstractExpressionParser implements ExpressionParser {
 	 * コンストラクタ
 	 */
 	public AbstractExpressionParser() {
-		super();
 	}
 
 	/**

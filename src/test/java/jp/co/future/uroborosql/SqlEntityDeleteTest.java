@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.nio.file.Paths;
 import java.util.stream.Stream;
@@ -16,7 +16,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.required(() -> {
-			Product product = new Product();
+			var product = new Product();
 			product.setProductId(0);
 			assertThat(agent.delete(product), is(1));
 		});
@@ -38,7 +38,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.required(() -> {
-			Product product = new Product();
+			var product = new Product();
 			product.setProductId(1);
 			assertThat(agent.deleteAndReturn(product), is(product));
 		});
@@ -50,7 +50,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.required(() -> {
-			Product product = new Product();
+			var product = new Product();
 			product.setProductId(1);
 			agent.delete(Stream.of(product));
 		});

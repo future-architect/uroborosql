@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 public class TestEntity {
@@ -74,56 +75,36 @@ public class TestEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((age == null) ? 0 : age.hashCode());
-		result = prime * result + ((birthday == null) ? 0 : birthday.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((lockVersion == null) ? 0 : lockVersion.hashCode());
-		result = prime * result + ((memo == null) ? 0 : memo.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(age, birthday, id, lockVersion, memo, name);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(final Object obj) {
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		var other = (TestEntity) obj;
+		if (!Objects.equals(age, other.age)) {
 			return false;
-		TestEntity other = (TestEntity) obj;
-		if (age == null) {
-			if (other.age != null)
-				return false;
-		} else if (!age.equals(other.age))
+		}
+		if (!Objects.equals(birthday, other.birthday)) {
 			return false;
-		if (birthday == null) {
-			if (other.birthday != null)
-				return false;
-		} else if (!birthday.equals(other.birthday))
+		}
+		if (!Objects.equals(id, other.id)) {
 			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
+		}
+		if (!Objects.equals(lockVersion, other.lockVersion)) {
 			return false;
-		if (lockVersion == null) {
-			if (other.lockVersion != null)
-				return false;
-		} else if (!lockVersion.equals(other.lockVersion))
+		}
+		if (!Objects.equals(memo, other.memo)) {
 			return false;
-		if (memo == null) {
-			if (other.memo != null)
-				return false;
-		} else if (!memo.equals(other.memo))
+		}
+		if (!Objects.equals(name, other.name)) {
 			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
+		}
 		return true;
 	}
 

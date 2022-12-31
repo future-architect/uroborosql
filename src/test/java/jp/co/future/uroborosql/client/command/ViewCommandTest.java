@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,7 +10,6 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import jp.co.future.uroborosql.utils.StringUtils;
 import org.jline.reader.LineReader;
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +21,7 @@ import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.utils.StringUtils;
 
 public class ViewCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -38,7 +39,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 				.build();
 		agent = sqlConfig.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -57,7 +58,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 	@Test
 	public void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
-		boolean flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
+		var flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
 		assertTrue(flag);
 		assertConsoleOutputContains("SELECT /* _SQL_ID_ */");

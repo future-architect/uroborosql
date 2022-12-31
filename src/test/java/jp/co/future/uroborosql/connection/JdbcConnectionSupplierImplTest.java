@@ -8,7 +8,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.junit.Test;
@@ -22,13 +21,13 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testJdbcConnection() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is("PUBLIC"));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -39,15 +38,15 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testJdbcConnectionWithProps() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
 
-		String checkSql = "select current timestamp from SYSIBM.SYSDUMMY1";
+		var checkSql = "select current timestamp from SYSIBM.SYSDUMMY1";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			conn.prepareStatement(checkSql);
 			fail();
 		} catch (SQLException ex) {
@@ -59,8 +58,8 @@ public class JdbcConnectionSupplierImplTest {
 				.user("sa")
 				.password("sa")
 				.set("MODE", "DB2"));
-		try (Connection conn = supplier.getConnection()) {
-			PreparedStatement stmt = conn.prepareStatement(checkSql);
+		try (var conn = supplier.getConnection()) {
+			var stmt = conn.prepareStatement(checkSql);
 			assertThat(stmt.executeQuery(), not(nullValue()));
 		}
 	}
@@ -72,26 +71,26 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNotInstanceOfJdbcConnectionContext() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
 
 		ConnectionContext ctx = ConnectionContextBuilder.dataSource();
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password));
 		supplier.getConnection(ctx);
 	}
 
 	@Test
 	public void testJdbcConnectionWithSchema() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password, schema));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -102,7 +101,7 @@ public class JdbcConnectionSupplierImplTest {
 		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
 				.transactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
-		try (Connection conn = supplier.getConnection(ctx)) {
+		try (var conn = supplier.getConnection(ctx)) {
 			assertThat(conn.getMetaData().getURL(), is(ctx.url()));
 			assertThat(conn.getSchema(), is(ctx.schema()));
 			assertThat(conn.getAutoCommit(), is(ctx.autoCommit()));
@@ -113,18 +112,18 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testJdbcConnectionWithOption() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
-		boolean autoCommit = true;
-		boolean readonly = true;
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+		var autoCommit = true;
+		var readonly = true;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password, schema));
 		supplier.setDefaultAutoCommit(autoCommit);
 		supplier.setDefaultReadOnly(readonly);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(autoCommit));
@@ -135,18 +134,18 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testGetConnectionWithContext() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 		}
 
-		String url2 = url + "_2";
-		try (Connection conn = supplier.getConnection(
+		var url2 = url + "_2";
+		try (var conn = supplier.getConnection(
 				ConnectionContextBuilder.jdbc(url2, user, password))) {
 			assertThat(conn.getMetaData().getURL(), is(url2));
 		}
@@ -154,15 +153,15 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testSetSchema() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				new JdbcConnectionContext(url, user, password));
 		supplier.setDefaultSchema(schema);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -173,15 +172,15 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultSchema() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultSchema(schema);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(false));
@@ -192,17 +191,17 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultAutoCommit() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
-		boolean autoCommit = true;
-		boolean readonly = false;
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+		var autoCommit = true;
+		var readonly = false;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultAutoCommit(autoCommit);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(autoCommit));
@@ -213,17 +212,17 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultReadOnly() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
-		boolean autoCommit = false;
-		boolean readonly = true;
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+		var autoCommit = false;
+		var readonly = true;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultReadOnly(readonly);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(autoCommit));
@@ -235,28 +234,28 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testSetDefaultTransactionIsolation() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
-		String schema = "PUBLIC";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password, schema));
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_UNCOMMITTED));
 		}
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 		// H2 not support TRANSACTION_REPEATABLE_READ. TRANSACTION_SERIALIZABLEになってしまう
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_SERIALIZABLE));
 		}
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-		try (Connection conn = supplier.getConnection()) {
+		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_SERIALIZABLE));
 		}
 		try {
@@ -269,11 +268,11 @@ public class JdbcConnectionSupplierImplTest {
 
 	@Test
 	public void testGetDatabaseName() throws Exception {
-		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		String user = "";
-		String password = "";
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		var supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}

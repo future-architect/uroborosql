@@ -1,9 +1,13 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
-import java.sql.Connection;
 import java.sql.Driver;
 import java.util.ServiceLoader;
 
@@ -22,7 +26,7 @@ public class DriverShimTest {
 
 	@Test
 	public void testConnect() throws Exception {
-		Connection conn = driver.connect("jdbc:h2:mem:" + this.getClass().getSimpleName(), null);
+		var conn = driver.connect("jdbc:h2:mem:" + this.getClass().getSimpleName(), null);
 		assertThat(conn, is(notNullValue()));
 	}
 

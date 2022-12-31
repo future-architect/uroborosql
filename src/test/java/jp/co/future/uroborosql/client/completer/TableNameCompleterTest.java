@@ -40,7 +40,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 
 		agent = config.agent();
 
-		String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (String sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
@@ -58,7 +58,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 
 	@Test
 	public void testComplete() throws Exception {
-		TableNameCompleter completer = new TableNameCompleter(commands, config.getConnectionSupplier());
+		var completer = new TableNameCompleter(commands, config.getConnectionSupplier());
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

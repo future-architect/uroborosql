@@ -320,7 +320,7 @@ public final class UroboroSQL {
 				this.clock = clock;
 			}
 			if (log.isDebugEnabled()) {
-			log.debug("SqlConfig - Clock : " + this.clock.toString() + " has been selected.");
+				log.debug("SqlConfig - Clock : " + this.clock.toString() + " has been selected.");
 			}
 
 			if (dialect == null) {
@@ -330,7 +330,7 @@ public final class UroboroSQL {
 				this.dialect = dialect;
 			}
 			if (log.isDebugEnabled()) {
-			log.debug("SqlConfig - Dialect : " + this.dialect.getClass().getSimpleName() + " has been selected.");
+				log.debug("SqlConfig - Dialect : " + this.dialect.getClass().getSimpleName() + " has been selected.");
 			}
 
 			if (expressionParser == null) {
@@ -343,8 +343,8 @@ public final class UroboroSQL {
 				this.expressionParser = expressionParser;
 			}
 			if (log.isDebugEnabled()) {
-			log.debug("SqlConfig - ExpressionParser : " + this.expressionParser.getClass().getSimpleName()
-					+ " has been selected.");
+				log.debug("SqlConfig - ExpressionParser : " + this.expressionParser.getClass().getSimpleName()
+						+ " has been selected.");
 			}
 
 			this.sqlResourceManager.setDialect(this.dialect);

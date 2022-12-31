@@ -33,7 +33,7 @@ public interface TableMetadata {
 
 	/** SQL文構築時、スキーマ名で修飾されたテーブル名を使用するかどうか. */
 	boolean USE_QUALIFIED_TABLE_NAME = Boolean
-			.valueOf(System.getProperty("uroborosql.use.qualified.table.name", "true"));
+			.parseBoolean(System.getProperty("uroborosql.use.qualified.table.name", "true"));
 
 	/**
 	 * カラム情報
@@ -255,9 +255,9 @@ public interface TableMetadata {
 		var entityMetadata = new TableMetadataImpl();
 
 		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
-		String actualSchema = schema;
+		var actualSchema = schema;
 
-		int tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索, 3回目:schema指定なしで検索
+		var tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索, 3回目:schema指定なしで検索
 		while (tryCount < 3 && columns.isEmpty()) {
 			tryCount++;
 			if (tryCount == 2) {

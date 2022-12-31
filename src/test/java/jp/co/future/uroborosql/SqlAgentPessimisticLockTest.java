@@ -7,8 +7,6 @@ import static org.junit.Assert.fail;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,15 +28,15 @@ public class SqlAgentPessimisticLockTest {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentPessimisticLockTest;DB_CLOSE_DELAY=-1;MVCC=true;", "sa", "sa")
 				.setSqlAgentProvider(new SqlAgentProviderImpl().setQueryTimeout(10))
 				.build();
-		try (SqlAgent agent = config.agent()) {
-			String[] ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+		try (var agent = config.agent()) {
+			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String ddl : ddls) {
 				if (StringUtils.isNotBlank(ddl)) {
 					agent.updateWith(ddl.trim()).count();
 				}
 			}
-			String[] sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (String sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
@@ -53,10 +51,10 @@ public class SqlAgentPessimisticLockTest {
 	 */
 	@Test
 	public void testQueryNoRetry() throws Exception {
-		String sql = "select * from product where product_id = 1 for update";
-		try (SqlAgent agent = config.agent()) {
+		var sql = "select * from product where product_id = 1 for update";
+		try (var agent = config.agent()) {
 			agent.required(() -> {
-				List<Map<String, Object>> products1 = agent.queryWith(sql).collect();
+				var products1 = agent.queryWith(sql).collect();
 				assertThat(products1.size(), is(1));
 
 				agent.requiresNew(() -> {

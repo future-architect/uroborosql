@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.converter;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,11 +73,11 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	@Override
 	public Map<String, Object> createRecord(final ResultSet rs) throws SQLException {
 		if (this.javaTypes == null) {
-			ResultSetMetaData rsmd = rs.getMetaData();
+			var rsmd = rs.getMetaData();
 			this.columnCount = rsmd.getColumnCount();
 			this.columnLabels = new String[columnCount + 1];
 			this.javaTypes = new JavaType[columnCount + 1];
-			for (int i = 1; i <= columnCount; i++) {
+			for (var i = 1; i <= columnCount; i++) {
 				this.columnLabels[i] = caseFormat.convert(rsmd.getColumnLabel(i));
 				this.javaTypes[i] = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(i),
 						rsmd.getColumnTypeName(i));
@@ -89,7 +88,7 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けている。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
 		Map<String, Object> record = new LinkedHashMap<>(columnCount * 4 / 3 + 1);
 
-		for (int i = 1; i <= columnCount; i++) {
+		for (var i = 1; i <= columnCount; i++) {
 			record.put(this.columnLabels[i], this.mapperManager.getValue(this.javaTypes[i], rs, i));
 		}
 		return record;

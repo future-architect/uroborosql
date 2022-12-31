@@ -38,7 +38,6 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	 * コンストラクタ
 	 */
 	public SpelExpressionParser() {
-		super();
 	}
 
 	/**
@@ -69,7 +68,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private class SpringElExpression implements Expression {
+	private static class SpringElExpression implements Expression {
 		/** 評価式 */
 		private final org.springframework.expression.Expression expr;
 
@@ -172,7 +171,6 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 */
 		private void traverseNode(final SpelNode node, final Set<PropertyOrFieldReference> props) {
 			if (node == null) {
-				return;
 			} else {
 				if (node instanceof PropertyOrFieldReference) {
 					var prop = (PropertyOrFieldReference) node;

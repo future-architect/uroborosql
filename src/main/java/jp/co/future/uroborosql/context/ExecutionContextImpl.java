@@ -216,33 +216,31 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public String getExecutableSql() {
-		if (StringUtils.isEmpty(executableSqlCache)) {
-			if (executableSql.length() > 0) {
-				executableSqlCache = executableSql.toString();
-				if (executableSqlCache.toUpperCase().contains("WHERE")) {
-					// where句の直後に来るANDやORの除去
-					var buff = new StringBuffer();
-					var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
-					while (matcher.find()) {
-						var whereClause = matcher.group("clause");
-						matcher.appendReplacement(buff, whereClause);
-					}
-					matcher.appendTail(buff);
-					executableSqlCache = buff.toString();
-				}
-				// 各句の直後に現れる不要なカンマの除去
+		if (StringUtils.isEmpty(executableSqlCache) && (executableSql.length() > 0)) {
+			executableSqlCache = executableSql.toString();
+			if (executableSqlCache.toUpperCase().contains("WHERE")) {
+				// where句の直後に来るANDやORの除去
 				var buff = new StringBuffer();
-				var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
-				while (removeCommaMatcher.find()) {
-					var clauseWords = removeCommaMatcher.group("keyword");
-					removeCommaMatcher.appendReplacement(buff, clauseWords);
+				var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
+				while (matcher.find()) {
+					var whereClause = matcher.group("clause");
+					matcher.appendReplacement(buff, whereClause);
 				}
-				removeCommaMatcher.appendTail(buff);
+				matcher.appendTail(buff);
 				executableSqlCache = buff.toString();
-
-				// 空行の除去
-				executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");
 			}
+			// 各句の直後に現れる不要なカンマの除去
+			var buff = new StringBuffer();
+			var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
+			while (removeCommaMatcher.find()) {
+				var clauseWords = removeCommaMatcher.group("keyword");
+				removeCommaMatcher.appendReplacement(buff, clauseWords);
+			}
+			removeCommaMatcher.appendTail(buff);
+			executableSqlCache = buff.toString();
+
+			// 空行の除去
+			executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");
 		}
 		return executableSqlCache;
 	}
@@ -326,7 +324,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSchema(java.lang.String)
 	 */
 	@Override
-	public ExecutionContext setSchema(String schema) {
+	public ExecutionContext setSchema(final String schema) {
 		this.schema = schema;
 		return this;
 	}
@@ -399,27 +397,24 @@ public class ExecutionContextImpl implements ExecutionContext {
 	private Parameter getBindParameter(final String paramName) {
 		if (!paramName.contains(".")) {
 			return parameterMap.get(paramName);
+		} else if (paramName.contains("(") && paramName.contains(")")) {
+			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
+			return parameterMap.get(paramName);
 		} else {
-			// メソッド呼び出しかどうかで処理を振り分け
-			if (paramName.contains("(") && paramName.contains(")")) {
-				// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
-				return parameterMap.get(paramName);
-			} else {
-				// サブパラメータの作成
-				var keys = paramName.split("\\.");
-				var baseName = keys[0];
+			// サブパラメータの作成
+			var keys = paramName.split("\\.");
+			var baseName = keys[0];
 
-				var parameter = parameterMap.get(baseName);
-				if (parameter == null) {
-					return null;
-				}
-
-				if (keys.length > 1) {
-					var propertyName = keys[1];
-					return parameter.createSubParameter(propertyName);
-				}
-				return parameter;
+			var parameter = parameterMap.get(baseName);
+			if (parameter == null) {
+				return null;
 			}
+
+			if (keys.length > 1) {
+				var propertyName = keys[1];
+				return parameter.createSubParameter(propertyName);
+			}
+			return parameter;
 		}
 	}
 
@@ -938,7 +933,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @param baseSize 基底となるMapのサイズ
 	 * @return 初期容量
 	 */
-	private int calcInitialCapacity(int baseSize) {
+	private int calcInitialCapacity(final int baseSize) {
 		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けてcapacityを計算する。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
 		return baseSize * 4 / 3 + 1;
 	}
@@ -1228,7 +1223,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setUpdateDelegate(java.util.function.Function)
 	 */
 	@Override
-	public ExecutionContext setUpdateDelegate(Function<ExecutionContext, Integer> updateDelegate) {
+	public ExecutionContext setUpdateDelegate(final Function<ExecutionContext, Integer> updateDelegate) {
 		this.updateDelegate = updateDelegate;
 		return this;
 	}

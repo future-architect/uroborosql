@@ -17,7 +17,6 @@ public class ExpressionRuntimeException extends RuntimeException {
 	 * コンストラクタ
 	 */
 	public ExpressionRuntimeException() {
-		super();
 	}
 
 	/**

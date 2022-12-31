@@ -21,8 +21,8 @@ public class ConcurrentLruCacheTest {
 	 */
 	@Test
 	public void testCache() throws Exception {
-		ConcurrentLruCache<String, Integer> cache = new ConcurrentLruCache<>(3);
-		AtomicInteger counter = new AtomicInteger();
+		var cache = new ConcurrentLruCache<String, Integer>(3);
+		var counter = new AtomicInteger();
 
 		// 値の追加
 		assertThat(cache.get("key1", key -> counter.incrementAndGet()), is(1));
@@ -78,8 +78,8 @@ public class ConcurrentLruCacheTest {
 	 */
 	@Test
 	public void testNoCache() throws Exception {
-		ConcurrentLruCache<String, Integer> cache = new ConcurrentLruCache<>(0);
-		AtomicInteger counter = new AtomicInteger();
+		var cache = new ConcurrentLruCache<String, Integer>(0);
+		var counter = new AtomicInteger();
 
 		// 値の追加
 		assertThat(cache.get("key1", key -> counter.incrementAndGet()), is(1));
@@ -109,7 +109,7 @@ public class ConcurrentLruCacheTest {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalGenerator() throws NoSuchFieldException, SecurityException {
-		ConcurrentLruCache<String, Integer> cache = new ConcurrentLruCache<>(3);
+		var cache = new ConcurrentLruCache<String, Integer>(3);
 		// generatorの指定なし
 		cache.get("key1", null);
 	}

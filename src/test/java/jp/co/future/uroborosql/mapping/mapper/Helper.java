@@ -23,29 +23,29 @@ class Helper {
 			throw new IllegalArgumentException();
 		}
 
-		Method wasNull = ResultSet.class.getMethod("wasNull");
+		var wasNull = ResultSet.class.getMethod("wasNull");
 
 		Map<Method, Object> values = new LinkedHashMap<>();
-		for (int i = 0; i < defs.length; i += 2) {
-			String methodName = defs[i].toString();
-			Method target = methodName.equals("wasNull") ? wasNull
+		for (var i = 0; i < defs.length; i += 2) {
+			var methodName = defs[i].toString();
+			var target = "wasNull".equals(methodName) ? wasNull
 					: ResultSet.class.getMethod(methodName, int.class);
-			Object value = defs[i + 1];
+			var value = defs[i + 1];
 			values.put(target, value);
-			if (!methodName.equals("wasNull") && value instanceof String) {
+			if (!"wasNull".equals(methodName) && value instanceof String) {
 				values.put(ResultSet.class.getMethod("getString", int.class), value);
 			}
 		}
 
-		AtomicBoolean flg = new AtomicBoolean(false);
+		var flg = new AtomicBoolean(false);
 
 		return (ResultSet) Proxy.newProxyInstance(Helper.class.getClassLoader(), new Class[] { ResultSet.class },
 				(proxy, method, args) -> {
-					if (method.getName().equals("getMetaData")) {
+					if ("getMetaData".equals(method.getName())) {
 						return newResultSetMetaData(new ArrayList<>(values.values()));
 					}
 					if (values.containsKey(method)) {
-						Object o = values.get(method);
+						var o = values.get(method);
 						flg.set(o == null);
 						return o;
 					}
@@ -62,8 +62,8 @@ class Helper {
 		return (ResultSetMetaData) Proxy.newProxyInstance(Helper.class.getClassLoader(),
 				new Class[] { ResultSetMetaData.class },
 				(proxy, method, args) -> {
-					if (method.getName().equals("getColumnType")) {
-						int columnIndex = (int) args[0] - 1;
+					if ("getColumnType".equals(method.getName())) {
+						var columnIndex = (int) args[0] - 1;
 						if (values.get(columnIndex) instanceof String) {
 							return Types.VARCHAR;
 						} else {
@@ -81,7 +81,7 @@ class Helper {
 
 	@SuppressWarnings("unchecked")
 	public static <I> I newProxy(final Class<I> interfaceType) {
-		Object o = new Object();
+		var o = new Object();
 
 		Method getOriginal;
 		try {
@@ -90,19 +90,18 @@ class Helper {
 			throw new AssertionError(e);
 		}
 
-		I proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+		return (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
 					if (getOriginal.equals(method)) {
 						return o;
 					}
 
-					for (int i = 0; i < args.length; i++) {
+					for (var i = 0; i < args.length; i++) {
 						if (args[i] instanceof ProxyContainer) {
 							args[i] = ((ProxyContainer) args[i]).getOriginal();
 						}
 					}
 					return method.invoke(o, args);
 				});
-		return proxyInstance;
 	}
 }
