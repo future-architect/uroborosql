@@ -452,8 +452,8 @@ LICENSE file in the root directory of this source tree.
 		<src.encoding>${project.build.sourceEncoding}</src.encoding>
 		<doc.encoding>${project.build.sourceEncoding}</doc.encoding>
 
-		<ognl.version>3.2.19</ognl.version>
-		<spring.version>5.3.5</spring.version>
+		<ognl.version>3.3.4</ognl.version>
+		<spring.version>5.3.24</spring.version>
 		<jline.version>3.21.0</jline.version>
 		<jansi.version>2.4.0</jansi.version>
 		<slf4j.version>1.7.36</slf4j.version>
