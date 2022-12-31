@@ -28,9 +28,7 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
@@ -51,10 +49,15 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 
 	/**
 	 * yyyyMMddHHmmssSSS文字列からLocalDateTimeに変換するためのフォーマッター.<br>
-	 * Java8での不具合のため、DateTimeFormatterはBuilderを使用して生成する.
 	 */
-	private static final DateTimeFormatter FORMATTER_SHORT_DATE_TIME_WITH_MILLS = new DateTimeFormatterBuilder()
-			.appendPattern("yyyyMMddHHmmss").appendValue(ChronoField.MILLI_OF_SECOND, 3).toFormatter();
+	private static final DateTimeFormatter FORMATTER_SHORT_DATE_TIME_WITH_MILLS = DateTimeFormatter
+			.ofPattern("yyyyMMddHHmmssSSS");
+
+	/**
+	 * yyyyMMddHHmmssSSSSSSSSS文字列からLocalDateTimeに変換するためのフォーマッター.<br>
+	 */
+	private static final DateTimeFormatter FORMATTER_SHORT_DATE_TIME_WITH_NANOS = DateTimeFormatter
+			.ofPattern("yyyyMMddHHmmssSSSSSSSSS");
 
 	/**
 	 * HHmm文字列からLocalTimeに変換するためのフォーマッター.
@@ -70,6 +73,12 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	 * HHmmssSSS文字列からLocalTimeに変換するためのフォーマッター.
 	 */
 	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITH_MILLS = DateTimeFormatter.ofPattern("HHmmssSSS");
+
+	/**
+	 * HHmmssSSSSSSSSS文字列からLocalTimeに変換するためのフォーマッター.
+	 */
+	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITH_NANOS = DateTimeFormatter
+			.ofPattern("HHmmssSSSSSSSSS");
 
 	/**
 	 * 日時の変換に使用するClock
@@ -309,6 +318,8 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME);
 							} else if (str.length() == 17) { // yyyyMMddHHmmssSSS
 								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME_WITH_MILLS);
+							} else if (str.length() == 23) { // yyyyMMddHHmmssSSSSSSSSS
+								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME_WITH_NANOS);
 							} else { // yyyy-MM-ddTHH:mm:ss, yyyy-MM-ddTHH:mm:ss.SSS
 								return LocalDateTime.parse(str, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 							}
@@ -346,6 +357,8 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 								return LocalTime.parse(str, FORMATTER_SHORT_TIME);
 							} else if (str.length() == 9) { // HHmmssSSS
 								return LocalTime.parse(str, FORMATTER_SHORT_TIME_WITH_MILLS);
+							} else if (str.length() == 15) { // HHmmssSSSSSSSSS
+								return LocalTime.parse(str, FORMATTER_SHORT_TIME_WITH_NANOS);
 							} else { // HH:mm, HH:mm:ss, HH:mm:ss.SSS
 								return LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);
 							}

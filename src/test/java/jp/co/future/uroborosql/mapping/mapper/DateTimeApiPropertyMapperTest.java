@@ -24,6 +24,7 @@ import java.time.chrono.JapaneseDate;
 import java.time.chrono.JapaneseEra;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 
@@ -60,7 +61,11 @@ public class DateTimeApiPropertyMapperTest {
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(localDateTime)), 1),
 				is(localDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
-				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssn").format(localDateTime)),
+				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(localDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(localDateTime));
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
 				newResultSet("getTimestamp",
@@ -79,7 +84,11 @@ public class DateTimeApiPropertyMapperTest {
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(localDateTime)), 1),
 				is(offsetDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
-				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssn").format(localDateTime)),
+				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(offsetDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(offsetDateTime));
 		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
 				newResultSet("getTimestamp",
@@ -99,6 +108,10 @@ public class DateTimeApiPropertyMapperTest {
 				is(zonedDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(zonedDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(zonedDateTime));
 		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
 				newResultSet("getTimestamp",
@@ -117,7 +130,8 @@ public class DateTimeApiPropertyMapperTest {
 		assertThat(mapper.getValue(JavaType.of(LocalDate.class),
 				newResultSet("getDate", DateTimeFormatter.ISO_LOCAL_DATE.format(localDate)), 1), is(localDate));
 
-		assertThat(mapper.getValue(JavaType.of(LocalTime.class), newResultSet("getTime", time), 1), is(localTime));
+		assertThat(mapper.getValue(JavaType.of(LocalTime.class), newResultSet("getTime", time), 1),
+				is(localTime.truncatedTo(ChronoUnit.MILLIS)));
 		assertThat(mapper.getValue(JavaType.of(LocalTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmm").format(localTime)), 1),
 				is(localTime.withSecond(0).with(ChronoField.MILLI_OF_SECOND, 0L)));
@@ -131,7 +145,8 @@ public class DateTimeApiPropertyMapperTest {
 				newResultSet("getTime", DateTimeFormatter.ISO_LOCAL_TIME.format(localTime)), 1),
 				is(localTime));
 
-		assertThat(mapper.getValue(JavaType.of(OffsetTime.class), newResultSet("getTime", time), 1), is(offsetTime));
+		assertThat(mapper.getValue(JavaType.of(OffsetTime.class), newResultSet("getTime", time), 1),
+				is(offsetTime.truncatedTo(ChronoUnit.MILLIS)));
 		assertThat(mapper.getValue(JavaType.of(OffsetTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmm").format(localTime)), 1),
 				is(offsetTime.withSecond(0).with(ChronoField.MILLI_OF_SECOND, 0L)));

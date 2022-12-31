@@ -327,8 +327,8 @@ public class MapResultSetConverterTest {
 				"	COL_REAL			REAL," +
 				"	COL_TIME			TIME," +
 				"	COL_DATE			DATE," +
-				"	COL_TIMESTAMP		TIMESTAMP," +
-				"	COL_TIMESTAMPWTZ	TIMESTAMP WITH TIME ZONE," +
+				"	COL_TIMESTAMP		TIMESTAMP(9)," +
+				"	COL_TIMESTAMPWTZ	TIMESTAMP(9) WITH TIME ZONE," +
 				"	COL_BINARY			BINARY," +
 				"	COL_CHAR			CHAR," +
 				"	COL_NCHAR			NCHAR," +

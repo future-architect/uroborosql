@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -344,7 +345,7 @@ public class DateTimeTest {
 				agent.insert(test1);
 				ZonedTestEntity zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(zoned.datetimeValue, is(test1.datetimeValue));
+				assertThat(zoned.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
 		}
@@ -359,7 +360,7 @@ public class DateTimeTest {
 				agent.insert(test1);
 				OffsetTestEntity offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
 				LocalTestEntity local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(offset.datetimeValue, is(test1.datetimeValue));
+				assertThat(offset.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
 			});
