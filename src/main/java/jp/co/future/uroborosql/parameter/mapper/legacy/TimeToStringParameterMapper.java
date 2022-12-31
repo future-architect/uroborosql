@@ -40,8 +40,8 @@ public class TimeToStringParameterMapper implements BindParameterMapper<Temporal
 	 */
 	@Override
 	public boolean canAccept(final Object object) {
-		return (object instanceof LocalTime) ||
-				(object instanceof OffsetTime);
+		return object instanceof LocalTime ||
+				object instanceof OffsetTime;
 	}
 
 	/**

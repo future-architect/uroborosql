@@ -209,8 +209,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		var count = agent.batch("example/insert_product").paramStream(input.stream())
 				.by((ctx, row) -> {
-					Object current = row.get("ins_datetime");
-					Object pre = ctx.contextAttrs().put("prevRowValue", current);
+					var current = row.get("ins_datetime");
+					var pre = ctx.contextAttrs().put("prevRowValue", current);
 					return pre != null && !current.equals(pre);
 				}).count();
 

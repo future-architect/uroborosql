@@ -67,7 +67,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 
 			if (this.useOperator) {
 				var param = context().getParam(PREFIX + camelColName);
-				if ((param != null) && (param.getValue() instanceof Operator)) {
+				if (param != null && param.getValue() instanceof Operator) {
 					var ope = (Operator) param.getValue();
 					where.append("\t").append("AND ");
 					if (ope.useColumnIdentifier()) {

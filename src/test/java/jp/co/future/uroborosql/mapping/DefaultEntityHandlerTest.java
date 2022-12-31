@@ -394,7 +394,7 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
-				List<TestEntity> list = agent.query(TestEntity.class).equal("id", 2).collect();
+				var list = agent.query(TestEntity.class).equal("id", 2).collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 
@@ -693,12 +693,11 @@ public class DefaultEntityHandlerTest {
 						"name3");
 				agent.insert(test3);
 
-				
 				// Between
-				List<TestHistoryEntity> list = agent.query(TestHistoryEntity.class)
-										.betweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
-										.asc("id")
-										.collect();
+				var list = agent.query(TestHistoryEntity.class)
+						.betweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
+						.asc("id")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				list = agent.query(TestHistoryEntity.class)
@@ -731,12 +730,11 @@ public class DefaultEntityHandlerTest {
 						"name3");
 				agent.insert(test3);
 
-				
 				// Between
-				List<TestHistoryEntity> list = agent.query(TestHistoryEntity.class)
-										.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
-										.asc("id")
-										.collect(); // 4/15 < start_at or 4/15 > finish_at
+				var list = agent.query(TestHistoryEntity.class)
+						.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
+						.asc("id")
+						.collect(); // 4/15 < start_at or 4/15 > finish_at
 				assertThat(list.size(), is(0));
 				list = agent.query(TestHistoryEntity.class)
 						.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 1), "start_at", "finish_at")

@@ -155,7 +155,8 @@ public class SqlAgentImpl extends AbstractAgent {
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						var pessimisticLockingErrorCodes = dialect.getPessimisticLockingErrorCodes();
-						if ((maxRetryCount > loopCount) && (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState))) {
+						if (maxRetryCount > loopCount
+								&& (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState))) {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug(String.format(
 										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
@@ -1522,8 +1523,8 @@ public class SqlAgentImpl extends AbstractAgent {
 							}).count();
 				}
 			}
-			if (versionColumn.isPresent() && (getSqlConfig().getDialect().supportsEntityBulkUpdateOptimisticLock()
-					&& updateCount != entityCount)) {
+			if (versionColumn.isPresent() && getSqlConfig().getDialect().supportsEntityBulkUpdateOptimisticLock()
+					&& updateCount != entityCount) {
 				// バージョンカラムの指定があり、更新件数と更新対象Entityの件数が不一致の場合は楽観ロックエラーとする
 				throw new OptimisticLockException(String.format(
 						"An error occurred due to optimistic locking.%nExecuted SQL [%n%s]%nBatch Entity Count: %d, Update Count: %d.",

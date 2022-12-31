@@ -98,7 +98,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
+		var ctx = ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
 				.transactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
 		try (var conn = supplier.getConnection(ctx)) {

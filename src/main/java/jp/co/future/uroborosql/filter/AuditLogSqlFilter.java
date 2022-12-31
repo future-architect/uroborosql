@@ -100,8 +100,12 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-					.getExecutableSql(), rowCount).toString());
+			LOG.debug(new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					rowCount).toString());
 		}
 		return resultSet;
 	}
@@ -112,7 +116,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result) {
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int result) {
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -126,8 +131,12 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-					.getExecutableSql(), result).toString());
+			LOG.debug(new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					result).toString());
 		}
 		return result;
 
@@ -139,7 +148,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result) {
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int[] result) {
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -158,8 +168,12 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
-			LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-					.getExecutableSql(), rowCount).toString());
+			LOG.debug(new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					rowCount).toString());
 		}
 		return result;
 	}

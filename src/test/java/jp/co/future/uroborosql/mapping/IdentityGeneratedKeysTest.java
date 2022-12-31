@@ -1719,14 +1719,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithId) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1777,14 +1774,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestAutoEntityWithNoId) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1834,14 +1828,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestAutoEntityWithNoIdObj) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1893,14 +1884,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithIdObj) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1952,14 +1940,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithIdError) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -2049,17 +2034,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithMultiId) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (id2 != other.id2) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || (id2 != other.id2) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -2112,17 +2091,11 @@ public class IdentityGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithMultiIdObj) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(id2, other.id2)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(id2, other.id2) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

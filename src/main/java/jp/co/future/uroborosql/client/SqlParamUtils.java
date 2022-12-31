@@ -149,7 +149,7 @@ public final class SqlParamUtils {
 	 * @param val パラメータ値
 	 */
 	private static void setParam(final ExecutionContext ctx, final String key, final String val) {
-		if (val.startsWith("[") && val.endsWith("]") && (!"[NULL]".equals(val) && !"[EMPTY]".equals(val))) {
+		if (val.startsWith("[") && val.endsWith("]") && !"[NULL]".equals(val) && !"[EMPTY]".equals(val)) {
 			// [] で囲まれた値は配列に変換する。ex) [1, 2] => {"1", "2"}
 			var parts = val.substring(1, val.length() - 1).split("\\s*,\\s*");
 			var vals = new Object[parts.length];

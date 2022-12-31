@@ -64,17 +64,11 @@ public class TestEntityLockVersion {
 		if (this == obj) {
 			return true;
 		}
-		if ((obj == null) || (getClass() != obj.getClass())) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntityLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || (lockVersion != other.lockVersion) || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

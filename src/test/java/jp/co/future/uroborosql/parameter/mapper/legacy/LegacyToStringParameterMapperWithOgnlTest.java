@@ -519,7 +519,7 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
@@ -530,16 +530,7 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 			} else if (date.compareTo(other.date) != 0) {
 				return false;
 			}
-			if (!Objects.equals(dateTime, other.dateTime)) {
-				return false;
-			}
-			if (dayOfWeek != other.dayOfWeek) {
-				return false;
-			}
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(localDate, other.localDate)) {
+			if (!Objects.equals(dateTime, other.dateTime) || (dayOfWeek != other.dayOfWeek) || !Objects.equals(id, other.id) || !Objects.equals(localDate, other.localDate)) {
 				return false;
 			}
 			if (month != other.month) {

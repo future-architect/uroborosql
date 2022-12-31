@@ -367,7 +367,7 @@ public final class MappingUtils {
 		var cols = CACHE.get(cacheKey, key -> {
 			Map<SqlKind, Map<String, MappingColumn>> fieldsMap = Stream.of(SqlKind.NONE, SqlKind.INSERT, SqlKind.UPDATE)
 					.collect(Collectors.toMap(Function.identity(), e -> new LinkedHashMap<>()));
-			JavaType.ImplementClass implementClass = new JavaType.ImplementClass(entityType);
+			var implementClass = new JavaType.ImplementClass(entityType);
 			walkFields(entityType, implementClass, fieldsMap);
 			return fieldsMap.entrySet().stream()
 					.collect(Collectors.toConcurrentMap(Map.Entry::getKey,

@@ -93,20 +93,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (LocalTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -147,20 +138,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DateTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -199,17 +181,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (OffsetTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -245,14 +221,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (ZonedTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id)) {
 				return false;
 			}
 			return true;

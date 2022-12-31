@@ -493,7 +493,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
 			var autoIncrementColumn = mappingColumn != null && mappingColumn.isId() || col.isAutoincrement();
 
-			if ((!mappingColumns.isEmpty() && mappingColumn == null) || (addCondition && autoIncrementColumn)) {
+			if (!mappingColumns.isEmpty() && mappingColumn == null || addCondition && autoIncrementColumn) {
 				// Transient annotation のついているカラムはスキップ、または、WHERE条件を追加する場合、自動採番カラムは更新対象としないためスキップ
 				continue;
 			}
@@ -778,7 +778,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final TableMetadata.Column col) {
 		var camelColName = col.getCamelColumnName();
 		// フィールドがセットされていない場合はカラム自体を削る
-		if (isStringType(col.getDataType()) && (emptyStringEqualsNull && !col.isNullable())) {
+		if (isStringType(col.getDataType()) && emptyStringEqualsNull && !col.isNullable()) {
 			original.append("/*IF SF.isNotEmpty(").append(camelColName).append(") */")
 					.append(System.lineSeparator());
 		} else {

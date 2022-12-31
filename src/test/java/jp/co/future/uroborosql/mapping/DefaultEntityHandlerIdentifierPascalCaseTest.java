@@ -71,17 +71,11 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (!Objects.equals(firstName, other.firstName)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(lastName, other.lastName)) {
+			if (!Objects.equals(firstName, other.firstName) || (id != other.id) || !Objects.equals(lastName, other.lastName)) {
 				return false;
 			}
 			return true;

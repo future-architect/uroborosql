@@ -129,20 +129,11 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (finalInt != other.finalInt) {
-				return false;
-			}
-			if (id != other.id) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt) || (id != other.id)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -191,20 +182,11 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (finalInt != other.finalInt) {
-				return false;
-			}
-			if (id != other.id) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt) || (id != other.id)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -250,20 +232,11 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoInsTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -306,20 +279,11 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoUpdTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

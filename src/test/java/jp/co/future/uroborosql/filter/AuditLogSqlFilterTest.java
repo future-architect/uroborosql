@@ -123,7 +123,7 @@ public class AuditLogSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = agent.contextFrom("example/select_product").setSqlId("111")
+			var ctx = agent.contextFrom("example/select_product").setSqlId("111")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName")
 					.param("_funcId", "testFunction");
@@ -145,7 +145,7 @@ public class AuditLogSqlFilterTest {
 		filter.setFuncIdKey("_customFuncId").setUserNameKey("_customUserName");
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = agent.contextFrom("example/select_product").setSqlId("111")
+			var ctx = agent.contextFrom("example/select_product").setSqlId("111")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName1")
 					.param("_funcId", "testFunction1")
@@ -166,7 +166,7 @@ public class AuditLogSqlFilterTest {
 	public void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
+			var ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
 					.param("_userName", "testUserName")
 					.param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
@@ -184,7 +184,7 @@ public class AuditLogSqlFilterTest {
 		truncateTable("product");
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = agent.contextFrom("example/insert_product").setSqlId("333")
+			var ctx = agent.contextFrom("example/insert_product").setSqlId("333")
 					// 1件目
 					.param("product_id", new BigDecimal(1))
 					.param("product_name", "商品名1")

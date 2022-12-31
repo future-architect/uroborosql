@@ -102,7 +102,8 @@ public class PropertyMapperTest {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(bigIntValue, dateValue, datetimeValue, doubleValue, enumValue, id, intValue, longValue, name);
+			return Objects.hash(bigIntValue, dateValue, datetimeValue, doubleValue, enumValue, id, intValue, longValue,
+					name);
 		}
 
 		@Override
@@ -110,20 +111,11 @@ public class PropertyMapperTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (PropertyMapperTestEntity) obj;
-			if (!Objects.equals(bigIntValue, other.bigIntValue)) {
-				return false;
-			}
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (!Objects.equals(doubleValue, other.doubleValue)) {
+			if (!Objects.equals(bigIntValue, other.bigIntValue) || !Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue) || !Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
 			if (enumValue != other.enumValue) {

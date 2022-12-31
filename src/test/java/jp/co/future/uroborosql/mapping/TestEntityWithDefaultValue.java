@@ -81,20 +81,11 @@ public class TestEntityWithDefaultValue {
 		if (this == obj) {
 			return true;
 		}
-		if ((obj == null) || (getClass() != obj.getClass())) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntityWithDefaultValue) obj;
-		if (!Objects.equals(age, other.age)) {
-			return false;
-		}
-		if (!Objects.equals(birthday, other.birthday)) {
-			return false;
-		}
-		if (!Objects.equals(id, other.id)) {
-			return false;
-		}
-		if (!Objects.equals(memo, other.memo)) {
+		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday) || !Objects.equals(id, other.id) || !Objects.equals(memo, other.memo)) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

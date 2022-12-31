@@ -25,8 +25,8 @@ import jp.co.future.uroborosql.utils.BeanAccessor;
  * @since 0.5.0
  */
 final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch {
-	private static final BiPredicate<ExecutionContext, Map<String, Object>> DEFAULT_BATCH_WHEN_CONDITION = (ctx, row) -> ctx
-			.batchCount() == 1000;
+	private static final BiPredicate<ExecutionContext, Map<String, Object>> DEFAULT_BATCH_WHEN_CONDITION = (ctx,
+			row) -> ctx.batchCount() == 1000;
 
 	private static final BiConsumer<SqlAgent, ExecutionContext> DEFAULT_BATCH_ACTION = (agent, ctx) -> {
 		/* do nothing */

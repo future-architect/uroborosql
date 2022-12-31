@@ -1375,7 +1375,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (NameDomain) obj;

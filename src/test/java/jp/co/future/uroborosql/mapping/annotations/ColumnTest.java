@@ -87,20 +87,11 @@ public class ColumnTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (ColumnAnnoTestEntity) obj;
-			if (ageAaaaAaaa != other.ageAaaaAaaa) {
-				return false;
-			}
-			if (!Objects.equals(birthdayAaaaAaaa, other.birthdayAaaaAaaa)) {
-				return false;
-			}
-			if (idAaaaAaaa != other.idAaaaAaaa) {
-				return false;
-			}
-			if (!Objects.equals(memoAaaaAaaa, other.memoAaaaAaaa)) {
+			if ((ageAaaaAaaa != other.ageAaaaAaaa) || !Objects.equals(birthdayAaaaAaaa, other.birthdayAaaaAaaa) || (idAaaaAaaa != other.idAaaaAaaa) || !Objects.equals(memoAaaaAaaa, other.memoAaaaAaaa)) {
 				return false;
 			}
 			if (!Objects.equals(nameAaaaAaaa, other.nameAaaaAaaa)) {

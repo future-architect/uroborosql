@@ -64,7 +64,7 @@ public class SqlNameCompleter extends AbstractCompleter {
 		var isBlank = buffer.endsWith(" ");
 		SortedSet<String> sqlNames = new TreeSet<>(sqlResourceManager.getSqlPathList());
 
-		if ((isBlank ? len == startArgNo : len == startArgNo + 1)) {
+		if (isBlank ? len == startArgNo : len == startArgNo + 1) {
 			// コマンドが引数ありの場合
 			var args = len == startArgNo + 1 ? parts[startArgNo] : "";
 			if (StringUtils.isEmpty(args)) {

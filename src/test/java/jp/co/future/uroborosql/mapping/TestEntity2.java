@@ -73,20 +73,11 @@ public class TestEntity2 {
 		if (this == obj) {
 			return true;
 		}
-		if ((obj == null) || (getClass() != obj.getClass())) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntity2) obj;
-		if (age != other.age) {
-			return false;
-		}
-		if (!Objects.equals(birthday, other.birthday)) {
-			return false;
-		}
-		if (id != other.id) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
+		if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || (lockVersion != other.lockVersion)) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

@@ -61,20 +61,11 @@ public class TestHistoryEntity {
 		if (this == obj) {
 			return true;
 		}
-		if ((obj == null) || (getClass() != obj.getClass())) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestHistoryEntity) obj;
-		if (!Objects.equals(finishAt, other.finishAt)) {
-			return false;
-		}
-		if (id != other.id) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
-			return false;
-		}
-		if (!Objects.equals(startAt, other.startAt)) {
+		if (!Objects.equals(finishAt, other.finishAt) || (id != other.id) || !Objects.equals(name, other.name) || !Objects.equals(startAt, other.startAt)) {
 			return false;
 		}
 		return true;

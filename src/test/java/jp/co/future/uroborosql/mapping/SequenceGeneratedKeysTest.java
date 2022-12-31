@@ -351,14 +351,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeq) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -424,17 +421,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeqMultikey) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(id2, other.id2)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(id2, other.id2) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -487,14 +478,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeqError) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

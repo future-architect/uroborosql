@@ -97,7 +97,7 @@ public class IfNode extends BranchNode {
 		var result = expr.getValue(transformContext);
 
 		if (result instanceof Boolean) {
-			var resultValue = ((Boolean) result);
+			var resultValue = (Boolean) result;
 			if (LOG.isDebugEnabled()) {
 				if (Boolean.TRUE.toString().equalsIgnoreCase(expression)
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {

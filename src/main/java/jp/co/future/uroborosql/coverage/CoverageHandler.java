@@ -66,7 +66,7 @@ public interface CoverageHandler {
 			var lineRange = iterator.next();
 			var line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
 			var trimLine = line.trim();
-			if (trimLine.isEmpty() || ("/*END*/".equals(trimLine) || "/*ELSE*/".equals(trimLine))) {
+			if (trimLine.isEmpty() || "/*END*/".equals(trimLine) || "/*ELSE*/".equals(trimLine)) {
 				iterator.remove();
 			} else {
 				if (trimLine.startsWith("--")) {

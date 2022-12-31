@@ -71,7 +71,7 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (NameDomain) obj;
@@ -111,14 +111,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -220,14 +217,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity2) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -335,14 +329,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity3) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -405,14 +396,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity4) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (name != other.name) {
+			if ((id != other.id) || (name != other.name)) {
 				return false;
 			}
 			return true;

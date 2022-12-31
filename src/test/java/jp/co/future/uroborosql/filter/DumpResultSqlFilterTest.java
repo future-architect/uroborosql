@@ -134,7 +134,7 @@ public class DumpResultSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = agent.contextFrom("example/select_product")
+			var ctx = agent.contextFrom("example/select_product")
 					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
@@ -156,7 +156,7 @@ public class DumpResultSqlFilterTest {
 
 		// 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = config.context();
+			var ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
 
@@ -178,7 +178,7 @@ public class DumpResultSqlFilterTest {
 
 		// 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = config.context();
+			var ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select col1 from many_column_table");
 
@@ -222,7 +222,7 @@ public class DumpResultSqlFilterTest {
 
 		// select 結果の検証
 		var log = TestAppender.getLogbackLogs(() -> {
-			ExecutionContext ctx = config.context();
+			var ctx = config.context();
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 			ctx.setSql("select * from many_column_table");
 

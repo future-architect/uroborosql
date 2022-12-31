@@ -62,14 +62,11 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 			if (this == obj) {
 				return true;
 			}
-			if ((obj == null) || (getClass() != obj.getClass())) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if ((id != other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

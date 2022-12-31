@@ -343,7 +343,7 @@ public class ExecutionContextImplTest {
 
 	@Test
 	public void testIfAbsent() throws Exception {
-		ExecutionContext ctx = getExecutionContext("select * from dummy");
+		var ctx = getExecutionContext("select * from dummy");
 
 		ctx.paramIfAbsent("key1", "value1");
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));

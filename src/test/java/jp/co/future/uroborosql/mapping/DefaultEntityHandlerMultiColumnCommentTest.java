@@ -139,7 +139,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 				var test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
-				List<TestEntity> list = agent.query(TestEntity.class).equal("id", 2).collect();
+				var list = agent.query(TestEntity.class).equal("id", 2).collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 
