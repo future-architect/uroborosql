@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 public class UpdateDelegateTest {
 	protected SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
@@ -34,7 +34,7 @@ public class UpdateDelegateTest {
 	 * updateDelegateが指定されたupdateメソッドのテストケース。
 	 */
 	@Test
-	public void testUpdateDelegate() throws Exception {
+	void testUpdateDelegate() throws Exception {
 		try (var agent = config.agent()) {
 			assertThat(agent.update("example/selectinsert_product")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
@@ -46,7 +46,7 @@ public class UpdateDelegateTest {
 	 * updateDelegateが指定されたbatchメソッドのテストケース。
 	 */
 	@Test
-	public void testBatchUpdateDelegate() throws Exception {
+	void testBatchUpdateDelegate() throws Exception {
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<Map<String, Object>> rows = new ArrayList<>();
 		for (var i = 1; i <= 1000; i++) {

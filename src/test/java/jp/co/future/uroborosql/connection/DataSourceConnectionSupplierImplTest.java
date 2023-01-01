@@ -2,8 +2,9 @@ package jp.co.future.uroborosql.connection;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
 
@@ -11,8 +12,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
@@ -27,7 +28,7 @@ public class DataSourceConnectionSupplierImplTest {
 	private static final String DS_NAME1 = DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME;
 	private static final String DS_NAME2 = "java:comp/env/jdbc/second_datasource";
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "jp.co.future.uroborosql.connection.LocalContextFactory");
 		System.setProperty(Context.URL_PKG_PREFIXES, "local");
@@ -47,7 +48,7 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testDataSourceConnection() throws Exception {
+	void testDataSourceConnection() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
@@ -59,7 +60,7 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testDataSourceConnectionWithDataSource() throws Exception {
+	void testDataSourceConnectionWithDataSource() throws Exception {
 		var url = "jdbc:h2:mem:ds";
 		var dataSource = new JdbcDataSource();
 		dataSource.setURL(url);
@@ -75,7 +76,7 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetConnectionWithContext() throws Exception {
+	void testGetConnectionWithContext() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(URL1));
@@ -86,14 +87,16 @@ public class DataSourceConnectionSupplierImplTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testGetConnectionMissingName() throws Exception {
-		var supplier = new DataSourceConnectionSupplierImpl();
-		supplier.getConnection(ConnectionContextBuilder.dataSource("dummy"));
+	@Test
+	void testGetConnectionMissingName() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			var supplier = new DataSourceConnectionSupplierImpl();
+			supplier.getConnection(ConnectionContextBuilder.dataSource("dummy"));
+		});
 	}
 
 	@Test
-	public void testGetDefaultDataSourceName() throws Exception {
+	void testGetDefaultDataSourceName() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDefaultDataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		var dataSourceName = "changedDataSourceName";
@@ -101,14 +104,16 @@ public class DataSourceConnectionSupplierImplTest {
 		assertThat(supplier.getDefaultDataSourceName(), is(dataSourceName));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testSetDefaultDataSourceNameIsNull() throws Exception {
-		var supplier = new DataSourceConnectionSupplierImpl();
-		supplier.setDefaultDataSourceName(null);
+	@Test
+	void testSetDefaultDataSourceNameIsNull() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			var supplier = new DataSourceConnectionSupplierImpl();
+			supplier.setDefaultDataSourceName(null);
+		});
 	}
 
 	@Test
-	public void testSetDefaultAutoCommit() throws Exception {
+	void testSetDefaultAutoCommit() throws Exception {
 		var autoCommit = true;
 		var readonly = false;
 
@@ -124,7 +129,7 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultReadOnly() throws Exception {
+	void testSetDefaultReadOnly() throws Exception {
 		var autoCommit = false;
 		var readonly = true;
 
@@ -141,7 +146,7 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultTransactionIsolation() throws Exception {
+	void testSetDefaultTransactionIsolation() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 		assertThat(supplier.getDefaultTransactionIsolation(), is(Connection.TRANSACTION_READ_UNCOMMITTED));
@@ -170,15 +175,17 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetDatabaseName() throws Exception {
+	void testGetDatabaseName() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		assertThat(supplier.getDatabaseName(), is("H2-1.4"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetConnectionMissingClass() throws Exception {
-		var supplier = new DataSourceConnectionSupplierImpl();
-		supplier.getConnection(ConnectionContextBuilder.jdbc("dummy"));
+	@Test
+	void testGetConnectionMissingClass() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			var supplier = new DataSourceConnectionSupplierImpl();
+			supplier.getConnection(ConnectionContextBuilder.jdbc("dummy"));
+		});
 	}
 
 }

@@ -2,14 +2,15 @@ package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.DriverManager;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -27,7 +28,7 @@ public class SequenceGeneratedKeysTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:SequenceGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -58,7 +59,7 @@ public class SequenceGeneratedKeysTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -68,7 +69,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -97,7 +98,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertAndUpdate() throws Exception {
+	void testInsertAndUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -121,7 +122,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertMultikey() throws Exception {
+	void testInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -156,18 +157,20 @@ public class SequenceGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testEntityNotSequenceGenerator() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestEntityWithSeqError("name1");
-				agent.insert(test1);
-			});
-		}
+	@Test
+	void testEntityNotSequenceGenerator() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestEntityWithSeqError("name1");
+					agent.insert(test1);
+				});
+			}
+		});
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -199,7 +202,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikey() throws Exception {
+	void testBulkInserMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -239,7 +242,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -271,7 +274,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikey() throws Exception {
+	void testBatchInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()

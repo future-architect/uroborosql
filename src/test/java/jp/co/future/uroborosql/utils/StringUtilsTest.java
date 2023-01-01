@@ -2,14 +2,14 @@ package jp.co.future.uroborosql.utils;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StringUtilsTest {
 	@Test
-	public void testCapitalize() throws Exception {
+	void testCapitalize() throws Exception {
 		assertThat(StringUtils.capitalize(null), nullValue());
 		assertThat(StringUtils.capitalize(""), is(""));
 		assertThat(StringUtils.capitalize("cat"), is("Cat"));
@@ -21,7 +21,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testUncapitalize() throws Exception {
+	void testUncapitalize() throws Exception {
 		assertThat(StringUtils.uncapitalize(null), nullValue());
 		assertThat(StringUtils.uncapitalize(""), is(""));
 		assertThat(StringUtils.uncapitalize("Cat"), is("cat"));
@@ -33,7 +33,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testIsBlank() throws Exception {
+	void testIsBlank() throws Exception {
 		assertThat(StringUtils.isBlank(null), is(true));
 		assertThat(StringUtils.isBlank(""), is(true));
 		assertThat(StringUtils.isBlank(" "), is(true));
@@ -42,7 +42,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testIsEmpty() throws Exception {
+	void testIsEmpty() throws Exception {
 		assertThat(StringUtils.isEmpty(null), is(true));
 		assertThat(StringUtils.isEmpty(""), is(true));
 		assertThat(StringUtils.isEmpty(" "), is(false));
@@ -51,7 +51,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testIsNotBlank() throws Exception {
+	void testIsNotBlank() throws Exception {
 		assertThat(StringUtils.isNotBlank(null), is(false));
 		assertThat(StringUtils.isNotBlank(""), is(false));
 		assertThat(StringUtils.isNotBlank(" "), is(false));
@@ -60,7 +60,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testIsNotEmpty() throws Exception {
+	void testIsNotEmpty() throws Exception {
 		assertThat(StringUtils.isNotEmpty(null), is(false));
 		assertThat(StringUtils.isNotEmpty(""), is(false));
 		assertThat(StringUtils.isNotEmpty(" "), is(true));
@@ -69,7 +69,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testIsNumeric() throws Exception {
+	void testIsNumeric() throws Exception {
 		assertThat(StringUtils.isNumeric(null), is(false));
 		assertThat(StringUtils.isNumeric(""), is(false));
 		assertThat(StringUtils.isNumeric("   "), is(false));
@@ -84,7 +84,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testLeft() throws Exception {
+	void testLeft() throws Exception {
 		assertThat(StringUtils.left(null, 1), nullValue());
 		assertThat(StringUtils.left("abc", -1), is(""));
 		assertThat(StringUtils.left("", 2), is(""));
@@ -94,7 +94,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testLeftPad() throws Exception {
+	void testLeftPad() throws Exception {
 		assertThat(StringUtils.leftPad(null, 3), nullValue());
 		assertThat(StringUtils.leftPad("", 3), is("   "));
 		assertThat(StringUtils.leftPad("bat", 3), is("bat"));
@@ -104,7 +104,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testLeftPadWithChar() throws Exception {
+	void testLeftPadWithChar() throws Exception {
 		assertThat(StringUtils.leftPad(null, 3, ' '), nullValue());
 		assertThat(StringUtils.leftPad("", 3, 'z'), is("zzz"));
 		assertThat(StringUtils.leftPad("bat", 3, 'z'), is("bat"));
@@ -114,7 +114,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testLeftPadWithCharStr() throws Exception {
+	void testLeftPadWithCharStr() throws Exception {
 		assertThat(StringUtils.leftPad(null, 3, " "), nullValue());
 		assertThat(StringUtils.leftPad("", 3, "z"), is("zzz"));
 		assertThat(StringUtils.leftPad("bat", 3, "yz"), is("bat"));
@@ -128,7 +128,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testMid() throws Exception {
+	void testMid() throws Exception {
 		assertThat(StringUtils.mid(null, 1, 2), nullValue());
 		assertThat(StringUtils.mid("abc", 1, -1), is(""));
 		assertThat(StringUtils.mid("", 0, 2), is(""));
@@ -140,7 +140,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testRemoveEnd() throws Exception {
+	void testRemoveEnd() throws Exception {
 		assertThat(StringUtils.removeEnd(null, ".com"), nullValue());
 		assertThat(StringUtils.removeEnd("abc", null), is("abc"));
 		assertThat(StringUtils.removeEnd("www.domain.com", ".com."), is("www.domain.com"));
@@ -151,14 +151,14 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testRepeat() throws Exception {
+	void testRepeat() throws Exception {
 		assertThat(StringUtils.repeat('e', 0), is(""));
 		assertThat(StringUtils.repeat('e', 3), is("eee"));
 		assertThat(StringUtils.repeat('e', -2), is(""));
 	}
 
 	@Test
-	public void testRight() throws Exception {
+	void testRight() throws Exception {
 		assertThat(StringUtils.right(null, 1), nullValue());
 		assertThat(StringUtils.right("abc", -1), is(""));
 		assertThat(StringUtils.right("", 2), is(""));
@@ -168,7 +168,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testRightPad() throws Exception {
+	void testRightPad() throws Exception {
 		assertThat(StringUtils.rightPad(null, 3), nullValue());
 		assertThat(StringUtils.rightPad("", 3), is("   "));
 		assertThat(StringUtils.rightPad("bat", 3), is("bat"));
@@ -178,7 +178,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testRightPadWithChar() throws Exception {
+	void testRightPadWithChar() throws Exception {
 		assertThat(StringUtils.rightPad(null, 3, ' '), nullValue());
 		assertThat(StringUtils.rightPad("", 3, 'z'), is("zzz"));
 		assertThat(StringUtils.rightPad("bat", 3, 'z'), is("bat"));
@@ -188,7 +188,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testRightPadWithCharStr() throws Exception {
+	void testRightPadWithCharStr() throws Exception {
 		assertThat(StringUtils.rightPad(null, 3, " "), nullValue());
 		assertThat(StringUtils.rightPad("", 3, "z"), is("zzz"));
 		assertThat(StringUtils.rightPad("bat", 3, "yz"), is("bat"));
@@ -202,7 +202,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testSplit() throws Exception {
+	void testSplit() throws Exception {
 		assertThat(StringUtils.split(null), nullValue());
 		assertThat(StringUtils.split(""), is(Matchers.emptyArray()));
 		assertThat(StringUtils.split("abc def"), is(Matchers.arrayContaining("abc", "def")));
@@ -211,7 +211,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testSplitWithChar() throws Exception {
+	void testSplitWithChar() throws Exception {
 		assertThat(StringUtils.split(null, '.'), nullValue());
 		assertThat(StringUtils.split("", '.'), is(Matchers.emptyArray()));
 		assertThat(StringUtils.split("a.b.c", '.'), is(Matchers.arrayContaining("a", "b", "c")));
@@ -221,7 +221,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testSplitWithMax() throws Exception {
+	void testSplitWithMax() throws Exception {
 		assertThat(StringUtils.split(null, ".", 2), nullValue());
 		assertThat(StringUtils.split("", ".", 2), is(Matchers.emptyArray()));
 		assertThat(StringUtils.split("ab cd ef", null, 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
@@ -231,7 +231,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testTrim() throws Exception {
+	void testTrim() throws Exception {
 		assertThat(StringUtils.trim(null), nullValue());
 		assertThat(StringUtils.trim(""), is(""));
 		assertThat(StringUtils.trim(""), is(""));
@@ -241,7 +241,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void testTrimToEmpty() throws Exception {
+	void testTrimToEmpty() throws Exception {
 		assertThat(StringUtils.trimToEmpty(null), is(""));
 		assertThat(StringUtils.trimToEmpty(""), is(""));
 		assertThat(StringUtils.trimToEmpty(""), is(""));

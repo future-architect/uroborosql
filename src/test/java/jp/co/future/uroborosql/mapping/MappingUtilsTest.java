@@ -5,9 +5,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -24,7 +24,7 @@ public class MappingUtilsTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:MappingUtilsTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -54,7 +54,7 @@ public class MappingUtilsTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			//			agent.updateWith("delete from test").count();
@@ -63,7 +63,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testMultiSchema() throws Exception {
+	void testMultiSchema() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -92,7 +92,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testGetMappingColumn() throws Exception {
+	void testGetMappingColumn() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -108,7 +108,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testGetMappingColumns() throws Exception {
+	void testGetMappingColumns() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -127,7 +127,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testGetMappingColumnMap() throws Exception {
+	void testGetMappingColumnMap() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -146,7 +146,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testGetIdMappingColumns() throws Exception {
+	void testGetIdMappingColumns() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -170,7 +170,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testGetVersionMappingColumn() throws Exception {
+	void testGetVersionMappingColumn() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
@@ -194,7 +194,7 @@ public class MappingUtilsTest {
 	}
 
 	@Test
-	public void testClearCache() throws Exception {
+	void testClearCache() throws Exception {
 		MappingUtils.clearCache();
 	}
 

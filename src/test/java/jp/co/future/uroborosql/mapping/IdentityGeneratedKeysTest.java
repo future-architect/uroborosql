@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -16,9 +17,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -35,7 +36,7 @@ public class IdentityGeneratedKeysTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:IdentityGeneratedKeysTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -74,7 +75,7 @@ public class IdentityGeneratedKeysTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -84,7 +85,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -113,7 +114,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertWithNoId() throws Exception {
+	void testInsertWithNoId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -146,7 +147,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertWithNoIdObj() throws Exception {
+	void testInsertWithNoIdObj() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -177,7 +178,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertWithPrimitiveKeyValue() throws Exception {
+	void testInsertWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -194,7 +195,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertWithObjectKeyValueNotSetId() throws Exception {
+	void testInsertWithObjectKeyValueNotSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -210,7 +211,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertWithObjectKeyValueSetId() throws Exception {
+	void testInsertWithObjectKeyValueSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -228,7 +229,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInserts() throws Exception {
+	void testInserts() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -257,7 +258,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsNoId() throws Exception {
+	void testInsertsNoId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -290,7 +291,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsNoIdObjNotSetId() throws Exception {
+	void testInsertsNoIdObjNotSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -323,7 +324,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsNoIdObjSetId() throws Exception {
+	void testInsertsNoIdObjSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -361,7 +362,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsWithPrimitiveKeyValue() throws Exception {
+	void testInsertsWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -394,7 +395,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsWithObjectKeyValueNotSetId() throws Exception {
+	void testInsertsWithObjectKeyValueNotSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -423,7 +424,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsWithObjectKeyValueSetValue() throws Exception {
+	void testInsertsWithObjectKeyValueSetValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -456,7 +457,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatch() throws Exception {
+	void testInsertsBatch() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -485,7 +486,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatchNoId() throws Exception {
+	void testInsertsBatchNoId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -518,7 +519,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatchNoIdNotSetId() throws Exception {
+	void testInsertsBatchNoIdNotSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -551,7 +552,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatchNoIdSetId() throws Exception {
+	void testInsertsBatchNoIdSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var currVal = agent.queryWith(
@@ -589,7 +590,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatchWithPrimitiveKeyValue() throws Exception {
+	void testInsertsBatchWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -622,7 +623,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsBatchWithObjectKeyValue() throws Exception {
+	void testInsertsBatchWithObjectKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -655,7 +656,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsAndReturn() throws Exception {
+	void testInsertsAndReturn() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -685,7 +686,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertsAndReturnBatch() throws Exception {
+	void testInsertsAndReturnBatch() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -715,7 +716,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertAndUpdate() throws Exception {
+	void testInsertAndUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -738,28 +739,32 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testEntityNotGeneratedValue() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestEntityWithIdError("name1");
-				agent.insert(test1);
-			});
-		}
-	}
-
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testEntityInvalidTypeGeneratedValue() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestEntityWithIdError2("name1");
-				agent.insert(test1);
-			});
-		}
+	@Test
+	void testEntityNotGeneratedValue() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestEntityWithIdError("name1");
+					agent.insert(test1);
+				});
+			}
+		});
 	}
 
 	@Test
-	public void testInsertMultiKey() throws Exception {
+	void testEntityInvalidTypeGeneratedValue() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestEntityWithIdError2("name1");
+					agent.insert(test1);
+				});
+			}
+		});
+	}
+
+	@Test
+	void testInsertMultiKey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -794,7 +799,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertMultiKeyWithPrimitiveKeyValue() throws Exception {
+	void testInsertMultiKeyWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -838,7 +843,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdType() throws Exception {
+	void testInsertIdType() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIds();
@@ -863,7 +868,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdTypeStr() throws Exception {
+	void testInsertIdTypeStr() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIdsStr();
@@ -886,7 +891,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdTypeInteger() throws Exception {
+	void testInsertIdTypeInteger() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIdsInteger();
@@ -909,7 +914,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdTypeLong() throws Exception {
+	void testInsertIdTypeLong() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIdsLong();
@@ -932,7 +937,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdTypeBigInteger() throws Exception {
+	void testInsertIdTypeBigInteger() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIdsBigInteger();
@@ -955,7 +960,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertIdTypeBigDecimal() throws Exception {
+	void testInsertIdTypeBigDecimal() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new TestIdsBigDecimal();
@@ -977,48 +982,56 @@ public class IdentityGeneratedKeysTest {
 		}
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testInsertIdTypeErrInteger() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestIdsErrInteger();
-				agent.insert(test1);
-			});
-		}
-	}
-
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testInsertIdTypeErrBigint() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestIdsErrBigint();
-				agent.insert(test1);
-			});
-		}
-	}
-
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testInsertIdTypeErrBigInteger() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestIdsErrBigInteger();
-				agent.insert(test1);
-			});
-		}
-	}
-
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testInsertIdTypeErrBigDecimal() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestIdsErrBigDecimal();
-				agent.insert(test1);
-			});
-		}
+	@Test
+	void testInsertIdTypeErrInteger() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestIdsErrInteger();
+					agent.insert(test1);
+				});
+			}
+		});
 	}
 
 	@Test
-	public void testInsertMultiKeyWithObjectKeyValueNotSetId() throws Exception {
+	void testInsertIdTypeErrBigint() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestIdsErrBigint();
+					agent.insert(test1);
+				});
+			}
+		});
+	}
+
+	@Test
+	void testInsertIdTypeErrBigInteger() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestIdsErrBigInteger();
+					agent.insert(test1);
+				});
+			}
+		});
+	}
+
+	@Test
+	void testInsertIdTypeErrBigDecimal() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestIdsErrBigDecimal();
+					agent.insert(test1);
+				});
+			}
+		});
+	}
+
+	@Test
+	void testInsertMultiKeyWithObjectKeyValueNotSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1054,7 +1067,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertMultiKeyWithObjectKeyValueSetId() throws Exception {
+	void testInsertMultiKeyWithObjectKeyValueSetId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1102,7 +1115,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1134,7 +1147,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInsertWithPrimitiveKeyValue() throws Exception {
+	void testBulkInsertWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1171,7 +1184,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInsertWithObjectKeyValue() throws Exception {
+	void testBulkInsertWithObjectKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1208,7 +1221,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikey() throws Exception {
+	void testBulkInserMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1247,7 +1260,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikeyWithPrimitiveKeyValue() throws Exception {
+	void testBulkInserMultikeyWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1296,7 +1309,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikeyWithObjectKeyValue() throws Exception {
+	void testBulkInserMultikeyWithObjectKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1346,7 +1359,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikeyWithObjectKeyValue2() throws Exception {
+	void testBulkInserMultikeyWithObjectKeyValue2() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1391,7 +1404,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1423,7 +1436,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertWithPrimitiveKeyValue() throws Exception {
+	void testBatchInsertWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1460,7 +1473,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertWithObjectKeyValue() throws Exception {
+	void testBatchInsertWithObjectKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -1497,7 +1510,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikey() throws Exception {
+	void testBatchInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1536,7 +1549,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikeyWithPrimitiveKeyValue() throws Exception {
+	void testBatchInsertMultikeyWithPrimitiveKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1585,7 +1598,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikeyWithObjectKeyValue() throws Exception {
+	void testBatchInsertMultikeyWithObjectKeyValue() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -1635,7 +1648,7 @@ public class IdentityGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikeyWithObjectKeyValue2() throws Exception {
+	void testBatchInsertMultikeyWithObjectKeyValue2() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()

@@ -4,13 +4,14 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testcase for {@link JdbcConnectionSupplierImpl}
@@ -20,7 +21,7 @@ import org.junit.Test;
 public class JdbcConnectionSupplierImplTest {
 
 	@Test
-	public void testJdbcConnection() throws Exception {
+	void testJdbcConnection() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -37,7 +38,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testJdbcConnectionWithProps() throws Exception {
+	void testJdbcConnectionWithProps() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -64,25 +65,29 @@ public class JdbcConnectionSupplierImplTest {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testJdbcConnectionNull() throws Exception {
-		new JdbcConnectionSupplierImpl(new JdbcConnectionContext(null, null, null));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testNotInstanceOfJdbcConnectionContext() throws Exception {
-		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
-		var user = "";
-		var password = "";
-
-		ConnectionContext ctx = ConnectionContextBuilder.dataSource();
-		var supplier = new JdbcConnectionSupplierImpl(
-				new JdbcConnectionContext(url, user, password));
-		supplier.getConnection(ctx);
+	@Test
+	void testJdbcConnectionNull() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new JdbcConnectionSupplierImpl(new JdbcConnectionContext(null, null, null));
+		});
 	}
 
 	@Test
-	public void testJdbcConnectionWithSchema() throws Exception {
+	void testNotInstanceOfJdbcConnectionContext() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+			var user = "";
+			var password = "";
+
+			ConnectionContext ctx = ConnectionContextBuilder.dataSource();
+			var supplier = new JdbcConnectionSupplierImpl(
+					new JdbcConnectionContext(url, user, password));
+			supplier.getConnection(ctx);
+		});
+	}
+
+	@Test
+	void testJdbcConnectionWithSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -111,7 +116,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testJdbcConnectionWithOption() throws Exception {
+	void testJdbcConnectionWithOption() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -133,7 +138,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetConnectionWithContext() throws Exception {
+	void testGetConnectionWithContext() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -152,7 +157,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetSchema() throws Exception {
+	void testSetSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -171,7 +176,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultSchema() throws Exception {
+	void testSetDefaultSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -190,7 +195,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultAutoCommit() throws Exception {
+	void testSetDefaultAutoCommit() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -211,7 +216,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultReadOnly() throws Exception {
+	void testSetDefaultReadOnly() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -233,7 +238,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultTransactionIsolation() throws Exception {
+	void testSetDefaultTransactionIsolation() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -267,7 +272,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetDatabaseName() throws Exception {
+	void testGetDatabaseName() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";

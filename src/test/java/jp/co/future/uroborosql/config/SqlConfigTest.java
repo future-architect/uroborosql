@@ -4,7 +4,7 @@
 package jp.co.future.uroborosql.config;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,9 +13,9 @@ import java.sql.Connection;
 import java.util.Arrays;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
@@ -38,7 +38,7 @@ public class SqlConfigTest {
 
 	private Connection conn;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		ds = new JdbcDataSource();
 		ds.setURL(JDBC_URL + System.currentTimeMillis() + ";DB_CLOSE_DELAY=-1");
@@ -73,7 +73,7 @@ public class SqlConfigTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		conn.close();
 	}
@@ -82,7 +82,7 @@ public class SqlConfigTest {
 	 * Testcase of {@link jp.co.future.uroborosql.config.DefaultSqlConfig#getConfig(java.sql.Connection)}
 	 */
 	@Test
-	public void testGetConfigConnection() throws Exception {
+	void testGetConfigConnection() throws Exception {
 		validate(UroboroSQL.builder(conn).build());
 	}
 
@@ -90,7 +90,7 @@ public class SqlConfigTest {
 	 * Testcase of {@link jp.co.future.uroborosql.config.DefaultSqlConfig#getConfig(javax.sql.DataSource)} のためのテスト・メソッド。
 	 */
 	@Test
-	public void testGetConfigDataSource() throws Exception {
+	void testGetConfigDataSource() throws Exception {
 		validate(UroboroSQL.builder(ds).build());
 	}
 
@@ -101,7 +101,7 @@ public class SqlConfigTest {
 	}
 
 	@Test
-	public void testWithExecutionContextProviderConstantSettings() throws Exception {
+	void testWithExecutionContextProviderConstantSettings() throws Exception {
 		var config = UroboroSQL.builder(ds)
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(Arrays.asList(TestConsts.class.getName()))

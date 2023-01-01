@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -34,7 +34,7 @@ public class SecretResultSetTest {
 	private static SqlFilterManager sqlFilterManager;
 	private static AbstractSecretColumnSqlFilter filter;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		sqlFilterManager = new SqlFilterManagerImpl();
 		filter = new SecretColumnSqlFilter();
@@ -68,7 +68,7 @@ public class SecretResultSetTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		try (var agent = config.agent()) {
 			var dt = LocalDateTime.of(2017, 1, 2, 12, 23, 30);
@@ -87,13 +87,13 @@ public class SecretResultSetTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 
 	@SuppressWarnings("deprecation")
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 		try (var agent = config.agent()) {
 			try (var rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
 				assertThat(rs.next(), is(true));
@@ -172,7 +172,7 @@ public class SecretResultSetTest {
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			var query = agent.query("example/select_product").param("product_id", 1);
 			query.context().setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
@@ -266,7 +266,7 @@ public class SecretResultSetTest {
 	}
 
 	@Test
-	public void testIsClose() throws Exception {
+	void testIsClose() throws Exception {
 		try (var agent = config.agent()) {
 			ResultSet rs = null;
 			try {

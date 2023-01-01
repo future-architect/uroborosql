@@ -7,9 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
@@ -24,7 +24,7 @@ public class HtmlReportCoverageHandlerTest {
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:HtmlReportCoverageHandlerTest;DB_CLOSE_DELAY=-1", null, null).build();
 
@@ -34,12 +34,12 @@ public class HtmlReportCoverageHandlerTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
 	@Test
-	public void testReport() throws Exception {
+	void testReport() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReport");
 
 		Files.deleteIfExists(path.resolve("example/select_test.html"));
@@ -86,7 +86,7 @@ public class HtmlReportCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReportNoBranch() throws Exception {
+	void testReportNoBranch() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReportNoBranch");
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"));
@@ -112,7 +112,7 @@ public class HtmlReportCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReportLastNoBranch() throws Exception {
+	void testReportLastNoBranch() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReportLastNoBranch");
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"));

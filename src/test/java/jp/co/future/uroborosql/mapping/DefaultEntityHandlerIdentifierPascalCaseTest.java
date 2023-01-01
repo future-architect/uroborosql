@@ -6,9 +6,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.sql.DriverManager;
 import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgentProviderImpl;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -88,7 +88,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:" + DefaultEntityHandlerIdentifierPascalCaseTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
@@ -111,7 +111,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 				.build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from \"PascalTable\"").count();
@@ -143,7 +143,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	}
 
 	@Test
-	public void testSqlQuery() throws Exception {
+	void testSqlQuery() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.updateWith(

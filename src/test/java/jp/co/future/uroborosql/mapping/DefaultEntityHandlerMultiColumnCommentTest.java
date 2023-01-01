@@ -15,9 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -35,7 +35,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:" + DefaultEntityHandlerMultiColumnCommentTest.class.getSimpleName()
 				+ ";DB_CLOSE_DELAY=-1";
@@ -61,9 +61,12 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 		config = UroboroSQL.builder(url, user, password)
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
+
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -72,7 +75,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -97,7 +100,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testQuery1() throws Exception {
+	void testQuery1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -125,7 +128,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testQueryWithCondition() throws Exception {
+	void testQueryWithCondition() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -403,7 +406,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testUpdate1() throws Exception {
+	void testUpdate1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -422,7 +425,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testDelete1() throws Exception {
+	void testDelete1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -442,7 +445,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -471,7 +474,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -500,7 +503,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testCreateSelectContext() throws Exception {
+	void testCreateSelectContext() throws Exception {
 		try (var agent = config.agent()) {
 			var test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
@@ -523,7 +526,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testCreateInsertContext() throws Exception {
+	void testCreateInsertContext() throws Exception {
 		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
 			var metadata = TableMetadata.createTableEntityMetadata(agent,
@@ -540,7 +543,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testCreateInsertContextEmptyNotEqualsNull() throws Exception {
+	void testCreateInsertContextEmptyNotEqualsNull() throws Exception {
 		try (var agent = config.agent()) {
 			EntityHandler<?> handler = config.getEntityHandler();
 			handler.setEmptyStringEqualsNull(false);
@@ -560,7 +563,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testCreateUpdateContext() throws Exception {
+	void testCreateUpdateContext() throws Exception {
 		try (var agent = config.agent()) {
 			var test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));
@@ -583,7 +586,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 	}
 
 	@Test
-	public void testCreateDeleteContext() throws Exception {
+	void testCreateDeleteContext() throws Exception {
 		try (var agent = config.agent()) {
 			var test = new TestEntity(1L, "name1", 20, LocalDate.of(1990, Month.APRIL, 1), Optional
 					.of("memo1"));

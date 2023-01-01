@@ -2,12 +2,12 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,9 +48,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.context.ExecutionContext;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -70,7 +70,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -81,21 +81,21 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertNotNull(rs, "ResultSetが取得できませんでした。");
+		assertTrue(rs.next(), "結果が0件です。");
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertFalse(rs.next(), "結果が複数件です。");
 	}
 
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryParamListWithSet() throws Exception {
+	void testQueryParamListWithSet() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -107,21 +107,21 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertNotNull(rs, "ResultSetが取得できませんでした。");
+		assertTrue(rs.next(), "結果が0件です。");
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertFalse(rs.next(), "結果が複数件です。");
 	}
 
 	/**
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryFilter() throws Exception {
+	void testQueryFilter() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -136,21 +136,21 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("maxRowCount", 1);
 
 		var rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertNotNull(rs, "ResultSetが取得できませんでした。");
+		assertTrue(rs.next(), "結果が0件です。");
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse("結果が複数件です。", rs.next());
+		assertFalse(rs.next(), "結果が複数件です。");
 	}
 
 	/**
 	 * SQLのdoTransformフィルターのテストケース。
 	 */
 	@Test
-	public void testQueryFilterQueryWith() throws Exception {
+	void testQueryFilterQueryWith() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -172,7 +172,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * LIKE句によるクエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryWithLikeClause() throws Exception {
+	void testQueryWithLikeClause() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -188,7 +188,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryList() throws Exception {
+	void testQueryList() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -196,8 +196,8 @@ public class SqlQueryTest extends AbstractDbTest {
 				Arrays.asList(0, 1, 2, 3));
 
 		var rs = agent.query(ctx);
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertNotNull(rs, "ResultSetが取得できませんでした。");
+		assertTrue(rs.next(), "結果が0件です。");
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
@@ -209,13 +209,13 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentArray() throws Exception {
+	void testQueryFluentArray() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var rs = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3)).resultSet();
-		assertNotNull("ResultSetが取得できませんでした。", rs);
-		assertTrue("結果が0件です。", rs.next());
+		assertNotNull(rs, "ResultSetが取得できませんでした。");
+		assertTrue(rs.next(), "結果が0件です。");
 		assertEquals("0", rs.getString("PRODUCT_ID"));
 		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
@@ -227,14 +227,14 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollect() throws Exception {
+	void testQueryFluentCollect() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size(), "結果の件数が一致しません。");
 		var map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
@@ -247,7 +247,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectWithPerformance() throws Exception {
+	void testQueryFluentCollectWithPerformance() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 		var rowsize = 500000;
@@ -271,14 +271,14 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectCaseFormat() throws Exception {
+	void testQueryFluentCollectCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(CaseFormat.LOWER_SNAKE_CASE);
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size(), "結果の件数が一致しません。");
 		var map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -291,13 +291,13 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectEntity() throws Exception {
+	void testQueryFluentCollectEntity() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		List<Product> ans = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(Product.class);
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size(), "結果の件数が一致しません。");
 		var product = ans.get(0);
 		assertEquals(0, product.getProductId());
 		assertEquals("商品名0", product.getProductName());
@@ -310,13 +310,13 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectSingleType() throws Exception {
+	void testQueryFluentCollectSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		List<Integer> ans = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect(Integer.class);
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size(), "結果の件数が一致しません。");
 		assertThat(ans.get(0), is(0));
 	}
 
@@ -324,7 +324,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectEntityWithPerformance() throws Exception {
+	void testQueryFluentCollectEntityWithPerformance() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 		var rowsize = 500000;
@@ -349,7 +349,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentCollectSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentCollectSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -363,7 +363,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		var ans = agent.query("example/select_product")
 				.param("product_id", Arrays.asList(0, 1, 2, 3))
 				.collect();
-		assertEquals("結果の件数が一致しません。", 2, ans.size());
+		assertEquals(2, ans.size(), "結果の件数が一致しません。");
 		var map = ans.get(0);
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
@@ -376,7 +376,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFirst() throws Exception {
+	void testQueryFluentFirst() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -399,7 +399,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentOne() throws Exception {
+	void testQueryFluentOne() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		try {
@@ -428,7 +428,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFirstSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentFirstSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -458,7 +458,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentOneSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentOneSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -496,7 +496,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindFirst() throws Exception {
+	void testQueryFluentFindFirst() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -519,7 +519,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindOne() throws Exception {
+	void testQueryFluentFindOne() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -550,7 +550,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindFirstSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentFindFirstSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -580,7 +580,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindOneSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentFindOneSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -618,7 +618,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFirstCaseFormat() throws Exception {
+	void testQueryFluentFirstCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -643,7 +643,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentOneCaseFormat() throws Exception {
+	void testQueryFluentOneCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -677,7 +677,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindFirstCaseFormat() throws Exception {
+	void testQueryFluentFindFirstCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -700,7 +700,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindOneCaseFormat() throws Exception {
+	void testQueryFluentFindOneCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -732,7 +732,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFirstByClass() throws Exception {
+	void testQueryFluentFirstByClass() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -759,7 +759,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFirstSingleType() throws Exception {
+	void testQueryFluentFirstSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -772,7 +772,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindFirstByClass() throws Exception {
+	void testQueryFluentFindFirstByClass() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -801,7 +801,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindFirstSingleType() throws Exception {
+	void testQueryFluentFindFirstSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -814,7 +814,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentOneByClass() throws Exception {
+	void testQueryFluentOneByClass() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		try {
@@ -848,7 +848,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentOneByClassSingleType() throws Exception {
+	void testQueryFluentOneByClassSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		var productId = agent.query("example/select_product")
@@ -862,7 +862,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindOneByClass() throws Exception {
+	void testQueryFluentFindOneByClass() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -898,7 +898,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理(1件取得:Optional)のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentFindOneByClassSingleType() throws Exception {
+	void testQueryFluentFindOneByClassSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 		Optional<Integer> productId = agent.query("example/select_product")
@@ -912,7 +912,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryLambda() throws Exception {
+	void testQueryLambda() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -946,21 +946,21 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLambda() throws Exception {
+	void testQueryFluentLambda() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("PRODUCT_ID"));
-					assertTrue(m.containsKey("PRODUCT_NAME"));
-					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-					assertTrue(m.containsKey("JAN_CODE"));
-					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-					assertTrue(m.containsKey("INS_DATETIME"));
-					assertTrue(m.containsKey("UPD_DATETIME"));
-					assertTrue(m.containsKey("VERSION_NO"));
-				});
+			assertTrue(m.containsKey("PRODUCT_ID"));
+			assertTrue(m.containsKey("PRODUCT_NAME"));
+			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+			assertTrue(m.containsKey("JAN_CODE"));
+			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+			assertTrue(m.containsKey("INS_DATETIME"));
+			assertTrue(m.containsKey("UPD_DATETIME"));
+			assertTrue(m.containsKey("VERSION_NO"));
+		});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 
@@ -970,21 +970,21 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLambdaCaseFormat() throws Exception {
+	void testQueryFluentLambdaCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach(m -> {
-					assertTrue(m.containsKey("product_id"));
-					assertTrue(m.containsKey("product_name"));
-					assertTrue(m.containsKey("product_kana_name"));
-					assertTrue(m.containsKey("jan_code"));
-					assertTrue(m.containsKey("product_description"));
-					assertTrue(m.containsKey("ins_datetime"));
-					assertTrue(m.containsKey("upd_datetime"));
-					assertTrue(m.containsKey("version_no"));
-				});
+			assertTrue(m.containsKey("product_id"));
+			assertTrue(m.containsKey("product_name"));
+			assertTrue(m.containsKey("product_kana_name"));
+			assertTrue(m.containsKey("jan_code"));
+			assertTrue(m.containsKey("product_description"));
+			assertTrue(m.containsKey("ins_datetime"));
+			assertTrue(m.containsKey("upd_datetime"));
+			assertTrue(m.containsKey("version_no"));
+		});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 	}
@@ -993,7 +993,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLambdaSetDefaultCaseFormat() throws Exception {
+	void testQueryFluentLambdaSetDefaultCaseFormat() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1006,15 +1006,15 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("product_id"));
-					assertTrue(m.containsKey("product_name"));
-					assertTrue(m.containsKey("product_kana_name"));
-					assertTrue(m.containsKey("jan_code"));
-					assertTrue(m.containsKey("product_description"));
-					assertTrue(m.containsKey("ins_datetime"));
-					assertTrue(m.containsKey("upd_datetime"));
-					assertTrue(m.containsKey("version_no"));
-				});
+			assertTrue(m.containsKey("product_id"));
+			assertTrue(m.containsKey("product_name"));
+			assertTrue(m.containsKey("product_kana_name"));
+			assertTrue(m.containsKey("jan_code"));
+			assertTrue(m.containsKey("product_description"));
+			assertTrue(m.containsKey("ins_datetime"));
+			assertTrue(m.containsKey("upd_datetime"));
+			assertTrue(m.containsKey("version_no"));
+		});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 	}
@@ -1023,7 +1023,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLambdaWithParamBean() throws Exception {
+	void testQueryFluentLambdaWithParamBean() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1034,15 +1034,15 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product_param_camel")
 				.paramBean(bean)
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("PRODUCT_ID"));
-					assertTrue(m.containsKey("PRODUCT_NAME"));
-					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-					assertTrue(m.containsKey("JAN_CODE"));
-					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-					assertTrue(m.containsKey("INS_DATETIME"));
-					assertTrue(m.containsKey("UPD_DATETIME"));
-					assertTrue(m.containsKey("VERSION_NO"));
-				});
+			assertTrue(m.containsKey("PRODUCT_ID"));
+			assertTrue(m.containsKey("PRODUCT_NAME"));
+			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+			assertTrue(m.containsKey("JAN_CODE"));
+			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+			assertTrue(m.containsKey("INS_DATETIME"));
+			assertTrue(m.containsKey("UPD_DATETIME"));
+			assertTrue(m.containsKey("VERSION_NO"));
+		});
 
 		assertThat(agent.query("example/select_product_param_camel").paramBean(bean).stream().count(), is(2L));
 
@@ -1052,7 +1052,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentStreamEntity() throws Exception {
+	void testQueryFluentStreamEntity() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1086,7 +1086,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentStreamSingleType() throws Exception {
+	void testQueryFluentStreamSingleType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1107,7 +1107,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行（１カラム）処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentSelect() throws Exception {
+	void testQueryFluentSelect() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1145,7 +1145,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testQueryFluentSelectByType() throws Exception {
+	void testQueryFluentSelectByType() throws Exception {
 		// 基本の型
 		assertThat(agent.queryWith("select 'abc'").select(String.class).findFirst().orElse(null), is("abc"));
 		assertThat(agent.queryWith("select true").select(boolean.class).findFirst().orElse(null), is(true));
@@ -1215,7 +1215,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select X'616263'").select(byte[].class).findFirst().orElse(null),
 				is("abc".getBytes()));
 		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Array.class).findFirst().orElse(null).getArray(),
-				is(new int[] { 1, 2 }));
+				is(new int[]{1, 2}));
 
 		// java.sqlの型
 		assertThat(agent.queryWith("select CAST('abc' as CLOB)").select(Clob.class).findFirst().orElse(null)
@@ -1223,7 +1223,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select CAST('abc' as NCLOB)").select(NClob.class).findFirst().orElse(null)
 				.getSubString(1, 3), is("abc"));
 		assertThat(agent.queryWith("select CAST(X'616263' as BLOB)").select(Blob.class).findFirst().orElse(null)
-				.getBytes(1, 3),
+						.getBytes(1, 3),
 				is("abc".getBytes()));
 		// TODO java.sql.REF, java.sql.SQLXML は H2DBが対応していないためテストできていない
 
@@ -1269,7 +1269,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース。
 	 */
 	@Test
-	public void testQueryMapResultSetConverter() throws Exception {
+	void testQueryMapResultSetConverter() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -1311,7 +1311,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * クエリ実行処理のテストケース(Fluent API)。
 	 */
 	@Test
-	public void testQueryFluentLambdaAndUpdate() throws Exception {
+	void testQueryFluentLambdaAndUpdate() throws Exception {
 		// 事前条件
 		truncateTable("product_regist_work");
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
@@ -1334,7 +1334,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test
-	public void testNotFoundFile() throws Exception {
+	void testNotFoundFile() throws Exception {
 		try {
 			var ctx = agent.contextFrom("file");
 			agent.query(ctx);

@@ -2,10 +2,11 @@ package jp.co.future.uroborosql.mapping;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * ConcurrentLruCacheのテストケース
@@ -20,7 +21,7 @@ public class ConcurrentLruCacheTest {
 	 * @throws Exception 例外発生時
 	 */
 	@Test
-	public void testCache() throws Exception {
+	void testCache() throws Exception {
 		var cache = new ConcurrentLruCache<String, Integer>(3);
 		var counter = new AtomicInteger();
 
@@ -77,7 +78,7 @@ public class ConcurrentLruCacheTest {
 	 * @throws Exception 例外発生時
 	 */
 	@Test
-	public void testNoCache() throws Exception {
+	void testNoCache() throws Exception {
 		var cache = new ConcurrentLruCache<String, Integer>(0);
 		var counter = new AtomicInteger();
 
@@ -97,9 +98,11 @@ public class ConcurrentLruCacheTest {
 	 *
 	 * @throws Exception 例外発生時
 	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testIllegalCache() throws Exception {
-		new ConcurrentLruCache<>(-1);
+	@Test
+	void testIllegalCache() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new ConcurrentLruCache<>(-1);
+		});
 	}
 
 	/**
@@ -107,10 +110,12 @@ public class ConcurrentLruCacheTest {
 	 *
 	 * @throws Exception 例外発生時
 	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testIllegalGenerator() throws NoSuchFieldException, SecurityException {
-		var cache = new ConcurrentLruCache<String, Integer>(3);
-		// generatorの指定なし
-		cache.get("key1", null);
+	@Test
+	void testIllegalGenerator() throws NoSuchFieldException, SecurityException {
+		assertThrows(IllegalArgumentException.class, () -> {
+			var cache = new ConcurrentLruCache<String, Integer>(3);
+			// generatorの指定なし
+			cache.get("key1", null);
+		});
 	}
 }

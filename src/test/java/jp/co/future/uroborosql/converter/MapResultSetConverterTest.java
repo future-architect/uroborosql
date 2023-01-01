@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -77,13 +77,13 @@ public class MapResultSetConverterTest {
 			"	/*arr*/" +
 			")";
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		url = "jdbc:h2:mem:" + this.getClass().getSimpleName() + System.currentTimeMillis();
 	}
 
 	@Test
-	public void testCreateRecord() throws Exception {
+	void testCreateRecord() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.build();
 		try (var agent = config.agent()) {
@@ -94,7 +94,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = { 1, 2 };
+			int[] arr = {1, 2};
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
@@ -156,7 +156,7 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecordWithDialect() throws Exception {
+	void testCreateRecordWithDialect() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new Oracle12Dialect())
 				.build();
@@ -168,7 +168,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = { 1, 2 };
+			int[] arr = {1, 2};
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
@@ -233,7 +233,7 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecordWithSnakeCase() throws Exception {
+	void testCreateRecordWithSnakeCase() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new PostgresqlDialect())
 				.build();
@@ -245,7 +245,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = { 1, 2 };
+			int[] arr = {1, 2};
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());

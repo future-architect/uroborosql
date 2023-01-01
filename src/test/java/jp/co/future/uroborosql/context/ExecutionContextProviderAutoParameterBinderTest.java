@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.context;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -32,7 +32,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public class ExecutionContextProviderAutoParameterBinderTest {
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		config = UroboroSQL
 				.builder("jdbc:h2:mem:ExecutionContextProviderUpdateAutoParameterBinderTest;DB_CLOSE_DELAY=-1",
@@ -55,7 +55,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		try (var agent = config.agent()) {
 			var dt = LocalDateTime.of(2017, 1, 1, 0, 0, 0);
@@ -76,7 +76,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testSingleQueryAutoParameterBinder() {
+	void testSingleQueryAutoParameterBinder() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
@@ -114,7 +114,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testSingleUpdateAutoParameterBinder() {
+	void testSingleUpdateAutoParameterBinder() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
@@ -151,7 +151,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testMultiQueryAutoParameterBinder() {
+	void testMultiQueryAutoParameterBinder() {
 		final var colVarchar = "varchar";
 		final var colNumeric = new BigDecimal("10.00");
 		final var colTimestamp = LocalDateTime.now();
@@ -230,7 +230,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testMultiUpdateAutoParameterBinder() {
+	void testMultiUpdateAutoParameterBinder() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
@@ -269,7 +269,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testMultiUpdateAutoParameterBinderIfAbsent() {
+	void testMultiUpdateAutoParameterBinderIfAbsent() {
 		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
@@ -308,7 +308,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testQueryAutoBindIfCase() {
+	void testQueryAutoBindIfCase() {
 		var factory = config.getExecutionContextProvider();
 
 		final var productId = 2;
@@ -338,7 +338,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	}
 
 	@Test
-	public void testBatchUpdateAutoBind() {
+	void testBatchUpdateAutoBind() {
 		var factory = config.getExecutionContextProvider();
 
 		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());

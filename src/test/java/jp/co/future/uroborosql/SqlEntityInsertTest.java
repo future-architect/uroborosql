@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -10,14 +11,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.enums.InsertsType;
+
+import org.junit.jupiter.api.Test;
 
 public class SqlEntityInsertTest extends AbstractDbTest {
 
 	@Test
-	public void testInsert() {
+	void testInsert() {
 		truncateTable("PRODUCT");
 		agent.required(() -> {
 			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
@@ -28,7 +29,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testInsertAndReturn() {
+	void testInsertAndReturn() {
 		truncateTable("PRODUCT");
 		agent.required(() -> {
 			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
@@ -39,12 +40,14 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testInsertThrowException() {
-		truncateTable("PRODUCT");
-		agent.required(() -> {
-			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
-			agent.insert(Stream.of(product));
+	@Test
+	void testInsertThrowException() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			truncateTable("PRODUCT");
+			agent.required(() -> {
+				var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
+				agent.insert(Stream.of(product));
+			});
 		});
 	}
 
@@ -52,7 +55,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInserts() throws Exception {
+	void testInserts() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -90,7 +93,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース（Streamが空の場合）。
 	 */
 	@Test
-	public void testInsertsEmpty() throws Exception {
+	void testInsertsEmpty() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -114,7 +117,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsWithInsertsTypeBatch() throws Exception {
+	void testInsertsWithInsertsTypeBatch() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -152,7 +155,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsWithInsertsTypeBulk() throws Exception {
+	void testInsertsWithInsertsTypeBulk() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -190,7 +193,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsWithEntityType() throws Exception {
+	void testInsertsWithEntityType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -228,7 +231,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsWithEntityTypeAndInsertsType() throws Exception {
+	void testInsertsWithEntityTypeAndInsertsType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -298,7 +301,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsAndReturn() throws Exception {
+	void testInsertsAndReturn() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -338,7 +341,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース（Streamが空の場合）。
 	 */
 	@Test
-	public void testInsertsAndReturnEmpty() throws Exception {
+	void testInsertsAndReturnEmpty() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -362,7 +365,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsAndReturnWithInsertsTypeBatch() throws Exception {
+	void testInsertsAndReturnWithInsertsTypeBatch() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -402,7 +405,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsAndReturnWithInsertsTypeBulk() throws Exception {
+	void testInsertsAndReturnWithInsertsTypeBulk() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -442,7 +445,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsAndReturnWithType() throws Exception {
+	void testInsertsAndReturnWithType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -484,7 +487,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 	 * Entityを使った一括挿入処理のテストケース。
 	 */
 	@Test
-	public void testInsertsAndReturnWithTypeAndInsertsType() throws Exception {
+	void testInsertsAndReturnWithTypeAndInsertsType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 

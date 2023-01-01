@@ -2,24 +2,24 @@ package jp.co.future.uroborosql.parameter.mapper;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OptionalParameterMapperTest {
 	private Clock clock = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var value = "ABC";
 
@@ -32,7 +32,7 @@ public class OptionalParameterMapperTest {
 	}
 
 	@Test
-	public void testEmpty() {
+	void testEmpty() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var mapper = new OptionalParameterMapper();
 		Optional<String> optional = Optional.empty();

@@ -10,31 +10,31 @@ import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.time.Clock;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
 public class ArrayPropertyMapperTest {
 	private Clock clock = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException, SQLException {
+	void test() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 		mapper.addMapper(new ArrayPropertyMapper());
 		var array = newDummyArray("a,b,c".split(","));
 		assertThat(mapper.getValue(JavaType.of(String[].class), newResultSet("getArray", array), 1),
 				is("a,b,c".split(",")));
 
-		array = newDummyArray(new Number[] { 1, 2, 3 });
+		array = newDummyArray(new Number[]{1, 2, 3});
 		assertThat(mapper.getValue(JavaType.of(Integer[].class), newResultSet(
 				"getArray", array,
-				"getObject", new Integer[] { 1, 2, 3 }), 1), is(new Integer[] { 1, 2, 3 }));
+				"getObject", new Integer[]{1, 2, 3}), 1), is(new Integer[]{1, 2, 3}));
 
 		assertThat(mapper.getValue(JavaType.of(Integer[].class), newResultSet("getArray", null), 1), is(nullValue()));
 

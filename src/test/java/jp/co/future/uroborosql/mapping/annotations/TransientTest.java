@@ -11,9 +11,9 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -24,7 +24,7 @@ public class TransientTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:TransientTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -47,7 +47,7 @@ public class TransientTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -299,7 +299,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testAll() throws Exception {
+	void testAll() throws Exception {
 
 		try (var agent = config.agent()) {
 			var test1 = new TransientAnnoTestEntity(1, "name1", 20, LocalDate.of(1990,
@@ -312,7 +312,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -334,7 +334,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -356,7 +356,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -380,7 +380,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testMapping() throws Exception {
+	void testMapping() throws Exception {
 		try (var agent = config.agent()) {
 			var idColumn = MappingUtils.getMappingColumn(TransientAnnoTestEntity.class, "id");
 			assertThat(idColumn.getTransient(), nullValue());

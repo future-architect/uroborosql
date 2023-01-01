@@ -19,21 +19,21 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.mapping.JavaType;
 
 public class PropertyMapperManagerTest {
 	private Clock clock = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException, SQLException {
+	void test() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", "value"), 1), is("value"));
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", null), 1), nullValue());
@@ -179,7 +179,7 @@ public class PropertyMapperManagerTest {
 	}
 
 	@Test
-	public void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
+	void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 
 		mapper.addMapper(new PropertyMapper<String>() {

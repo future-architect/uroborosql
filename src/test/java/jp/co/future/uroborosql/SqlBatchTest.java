@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース。
 	 */
 	@Test
-	public void testExecuteBatch() throws Exception {
+	void testExecuteBatch() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -49,9 +49,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 2, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
-		assertEquals("2行目のデータの登録に失敗しました。", 1, count[1]);
+		assertEquals(2, count.length, "データの登録件数が不正です。");
+		assertEquals(1, count[0], "1行目のデータの登録に失敗しました。");
+		assertEquals(1, count[1], "2行目のデータの登録に失敗しました。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -68,7 +68,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース。(複数回)
 	 */
 	@Test
-	public void testExecuteBatchRepeat() throws Exception {
+	void testExecuteBatchRepeat() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -82,8 +82,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 1, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+		assertEquals(1, count.length, "データの登録件数が不正です。");
+		assertEquals(1, count[0], "1行目のデータの登録に失敗しました。");
 
 		ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
 				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
@@ -91,8 +91,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 1, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
+		assertEquals(1, count.length, "データの登録件数が不正です。");
+		assertEquals(1, count[0], "1行目のデータの登録に失敗しました。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -109,7 +109,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理(Null挿入）のテストケース。
 	 */
 	@Test
-	public void testExecuteBatchNull() throws Exception {
+	void testExecuteBatchNull() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -125,9 +125,9 @@ public class SqlBatchTest extends AbstractDbTest {
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
-		assertEquals("データの登録件数が不正です。", 2, count.length);
-		assertEquals("1行目のデータの登録に失敗しました。", 1, count[0]);
-		assertEquals("2行目のデータの登録に失敗しました。", 1, count[1]);
+		assertEquals(2, count.length, "データの登録件数が不正です。");
+		assertEquals(1, count[0], "1行目のデータの登録に失敗しました。");
+		assertEquals(1, count[1], "2行目のデータの登録に失敗しました。");
 
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
@@ -143,7 +143,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース(Stream)。
 	 */
 	@Test
-	public void testExecuteBatchStream() throws Exception {
+	void testExecuteBatchStream() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -152,7 +152,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		var count = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count, "データの登録件数が不正です。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -168,7 +168,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース(Bean Stream)。
 	 */
 	@Test
-	public void testExecuteBatchBeanStream() {
+	void testExecuteBatchBeanStream() {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -184,7 +184,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		var count = agent.batch("example/insert_product_for_bean").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count, "データの登録件数が不正です。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -200,7 +200,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース(Stream)。
 	 */
 	@Test
-	public void testExecuteBatchStreamWithBatchWhen() throws Exception {
+	void testExecuteBatchStreamWithBatchWhen() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -214,7 +214,7 @@ public class SqlBatchTest extends AbstractDbTest {
 					return pre != null && !current.equals(pre);
 				}).count();
 
-		assertEquals("データの登録件数が不正です。", 100, count);
+		assertEquals(100, count, "データの登録件数が不正です。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -230,7 +230,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * バッチ処理のテストケース(Query結果のStream）。
 	 */
 	@Test
-	public void testExecuteBatchStreamWithQuery() throws Exception {
+	void testExecuteBatchStreamWithQuery() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -239,7 +239,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		var productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount);
+		assertEquals(100, productCount, "データの登録件数が不正です。");
 
 		agent.commit();
 
@@ -249,14 +249,14 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 7)
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 100, workCount);
+		assertEquals(100, workCount, "データの登録件数が不正です。");
 	}
 
 	/**
 	 * バッチ処理のテストケース(Query結果のStream）。
 	 */
 	@Test
-	public void testExecuteBatchStreamMultiStream() throws Exception {
+	void testExecuteBatchStreamMultiStream() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -264,7 +264,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		var productCount = agent.batch("example/insert_product").paramStream(input.stream()).count();
 
-		assertEquals("データの登録件数が不正です。", 100, productCount);
+		assertEquals(100, productCount, "データの登録件数が不正です。");
 
 		agent.commit();
 
@@ -288,14 +288,14 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 150, workCount);
+		assertEquals(150, workCount, "データの登録件数が不正です。");
 	}
 
 	/**
 	 * バッチ処理のテストケース(Query結果のStream）。
 	 */
 	@Test
-	public void testExecuteBatchStreamCommitTiming() throws Exception {
+	void testExecuteBatchStreamCommitTiming() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -321,14 +321,14 @@ public class SqlBatchTest extends AbstractDbTest {
 				})
 				.count();
 
-		assertEquals("データの登録件数が不正です。", 60, count);
+		assertEquals(60, count, "データの登録件数が不正です。");
 	}
 
 	/**
 	 * バッチ処理のテストケース(Query結果のStream）。
 	 */
 	@Test
-	public void testExecuteManyInsert() throws Exception {
+	void testExecuteManyInsert() throws Exception {
 		// 事前条件
 		truncateTable("PRODUCT");
 
@@ -346,7 +346,7 @@ public class SqlBatchTest extends AbstractDbTest {
 			// 処理実行
 			var count = agent.update("example/insert_product")
 					.paramMap(row).count();
-			assertEquals("データの登録件数が不正です。", 1, count);
+			assertEquals(1, count, "データの登録件数が不正です。");
 		}
 	}
 
@@ -354,7 +354,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test
-	public void testNotFoundFile() throws Exception {
+	void testNotFoundFile() throws Exception {
 		try {
 			var ctx = agent.contextFrom("file");
 			agent.batch(ctx);
@@ -371,7 +371,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	 * updateDelegateが指定された場合のテストケース。
 	 */
 	@Test
-	public void testUpdateDelegate() throws Exception {
+	void testUpdateDelegate() throws Exception {
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		List<Map<String, Object>> rows = new ArrayList<>();
 		for (var i = 1; i <= 1000; i++) {

@@ -2,8 +2,9 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.sql.JDBCType;
@@ -17,8 +18,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -27,28 +28,30 @@ import jp.co.future.uroborosql.mapping.JavaType;
 public class DefaultDialectTest {
 	private Dialect dialect;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		dialect = new DefaultDialect();
 	}
 
 	@Test
-	public void testGetDatabaseName() {
+	void testGetDatabaseName() {
 		assertThat(dialect.getDatabaseName(), is("default"));
 	}
 
 	@Test
-	public void testAccept() {
+	void testAccept() {
 		assertThat(dialect.accept(null), is(true));
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testGetSequenceNextValSql() {
-		dialect.getSequenceNextValSql("test_sequence");
+	@Test
+	void testGetSequenceNextValSql() {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			dialect.getSequenceNextValSql("test_sequence");
+		});
 	}
 
 	@Test
-	public void testEscapeLikePattern() {
+	void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
@@ -64,17 +67,17 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void testGetDatabaseType() {
+	void testGetDatabaseType() {
 		assertThat(dialect.getDatabaseType(), is("default"));
 	}
 
 	@Test
-	public void testGetEscapeChar() {
+	void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('$'));
 	}
 
 	@Test
-	public void testSupport() {
+	void testSupport() {
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(false));
 		assertThat(dialect.supportsNullValuesOrdering(), is(false));
@@ -90,7 +93,7 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void testGetLimitClause() {
+	void testGetLimitClause() {
 		Dialect dialect = new MySqlDialect();
 		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
@@ -99,7 +102,7 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void getJavaTypeWithSQLType() {
+	void getJavaTypeWithSQLType() {
 		assertEquals(dialect.getJavaType(JDBCType.CHAR, "").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.VARCHAR, "").getClass(), JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.LONGVARCHAR, "").getClass(), JavaType.of(String.class).getClass());
@@ -161,7 +164,7 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void getJavaTypeWithVendorTypeNumber() {
+	void getJavaTypeWithVendorTypeNumber() {
 		assertEquals(dialect.getJavaType(JDBCType.CHAR.getVendorTypeNumber(), "").getClass(),
 				JavaType.of(String.class).getClass());
 		assertEquals(dialect.getJavaType(JDBCType.VARCHAR.getVendorTypeNumber(), "").getClass(),
@@ -238,7 +241,7 @@ public class DefaultDialectTest {
 	}
 
 	@Test
-	public void testAddForUpdateClause() {
+	void testAddForUpdateClause() {
 		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
@@ -248,16 +251,18 @@ public class DefaultDialectTest {
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE WAIT 10"));
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void testAddOptimizerHints() {
-		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
-		List<String> hints = new ArrayList<>();
-		hints.add("USE_NL");
-		dialect.addOptimizerHints(sql, hints);
+	@Test
+	void testAddOptimizerHints() {
+		assertThrows(IllegalStateException.class, () -> {
+			var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
+			List<String> hints = new ArrayList<>();
+			hints.add("USE_NL");
+			dialect.addOptimizerHints(sql, hints);
+		});
 	}
 
 	@Test
-	public void testGetPessimisticLockingErrorCodes() {
+	void testGetPessimisticLockingErrorCodes() {
 		assertThat(dialect.getPessimisticLockingErrorCodes().isEmpty(), is(true));
 	}
 }

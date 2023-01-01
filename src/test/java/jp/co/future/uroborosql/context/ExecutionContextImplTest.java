@@ -3,10 +3,10 @@ package jp.co.future.uroborosql.context;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -30,7 +30,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
 public class ExecutionContextImplTest {
 	private static SqlConfig config = null;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() {
 		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextImplTest", "sa", "").build();
 	}
@@ -47,7 +47,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstAndKeyWordWhenWhereClause() throws Exception {
+	void removeFirstAndKeyWordWhenWhereClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test where[LF][LF][LF] and aaa = 1");
 		assertEquals(replaceLineSep("select * from test where[LF] aaa = 1"),
 				ctx11.getExecutableSql());
@@ -93,7 +93,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstCommaWhenSelectClause() throws Exception {
+	void removeFirstCommaWhenSelectClause() throws Exception {
 		var ctx1 = getExecutionContext("select ,aaa,bbb,ccc from test");
 		assertEquals(replaceLineSep("select aaa,bbb,ccc from test"), ctx1.getExecutableSql());
 
@@ -131,7 +131,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstCommaWhenOrderByClause() throws Exception {
+	void removeFirstCommaWhenOrderByClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test order by ,aaa, bbb");
 		assertEquals(replaceLineSep("select * from test order by aaa, bbb"), ctx11.getExecutableSql());
 		var ctx12 = getExecutionContext("select * from test[LF]order by ,aaa, bbb");
@@ -171,7 +171,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstCommaWhenGroupByClause() throws Exception {
+	void removeFirstCommaWhenGroupByClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test group by ,aaa, bbb");
 		assertEquals(replaceLineSep("select * from test group by aaa, bbb"), ctx11.getExecutableSql());
 		var ctx12 = getExecutionContext("select * from test[LF]group by ,aaa, bbb");
@@ -213,7 +213,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstCommaWhenStartBracket() throws Exception {
+	void removeFirstCommaWhenStartBracket() throws Exception {
 		var ctx11 = getExecutionContext("insert into (,aaa,bbb,ccc) values (,111,222,333)");
 		assertEquals(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)"), ctx11.getExecutableSql());
 		var ctx12 = getExecutionContext("insert into[LF](,aaa,bbb,ccc) values (,111,222,333)");
@@ -264,7 +264,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void removeFirstCommaWhenSetClause() throws Exception {
+	void removeFirstCommaWhenSetClause() throws Exception {
 		var ctx11 = getExecutionContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
 		assertEquals(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
 				ctx11.getExecutableSql());
@@ -320,7 +320,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void dontRemoveFirstComma() throws Exception {
+	void dontRemoveFirstComma() throws Exception {
 		var ctx11 = getExecutionContext(
 				"SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)");
 		assertEquals("SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)",
@@ -334,7 +334,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testHasParam() throws Exception {
+	void testHasParam() throws Exception {
 		var ctx = getExecutionContext("select * from dummy");
 		ctx.param("key1", "value1");
 		assertTrue(ctx.hasParam("key1"));
@@ -342,7 +342,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testIfAbsent() throws Exception {
+	void testIfAbsent() throws Exception {
 		var ctx = getExecutionContext("select * from dummy");
 
 		ctx.paramIfAbsent("key1", "value1");
@@ -412,7 +412,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testParamOptionalHasValue() throws Exception {
+	void testParamOptionalHasValue() throws Exception {
 		var ctx = config
 				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.of("testId");
@@ -457,7 +457,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testParamOptionalNullValue() throws Exception {
+	void testParamOptionalNullValue() throws Exception {
 		var ctx = config
 				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.empty();
@@ -502,7 +502,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testParamOptionalBean() throws Exception {
+	void testParamOptionalBean() throws Exception {
 		var sql = "insert into test ("
 				+ "/*IF id > 0 */, id/*END*/"
 				+ "/*IF name != null */, name/*END*/"
@@ -545,7 +545,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testParamOptionalMap() throws Exception {
+	void testParamOptionalMap() throws Exception {
 		var sql = "insert into test ("
 				+ "/*IF id > 0 */, id/*END*/"
 				+ "/*IF name != null */, name/*END*/"
@@ -597,13 +597,13 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testContext() {
+	void testContext() {
 		var ctx = config.contextWith("select * from test");
 		assertEquals(ctx, ctx.context());
 	}
 
 	@Test
-	public void testGetParameterNames() {
+	void testGetParameterNames() {
 		var ctx = config.contextWith("select * from test")
 				.param("param1", 1)
 				.param("param2", "2");
@@ -613,7 +613,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testSetRetry() {
+	void testSetRetry() {
 		var ctx = config.contextWith("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
@@ -630,7 +630,7 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testGetDefineColumnType() {
+	void testGetDefineColumnType() {
 		var ctx = config.contextWith("select * from test");
 		ctx.addDefineColumnType(1, JDBCType.CHAR.getVendorTypeNumber());
 
@@ -638,13 +638,13 @@ public class ExecutionContextImplTest {
 	}
 
 	@Test
-	public void testGetParameterMapperManager() {
+	void testGetParameterMapperManager() {
 		var ctx = config.contextWith("select * from test");
 		assertThat(((ExecutionContextImpl) ctx).getParameterMapperManager(), not(nullValue()));
 	}
 
 	@Test
-	public void testSqlId() {
+	void testSqlId() {
 		final var testSqlId = "TEST_SQL_ID";
 		var ctx = config.contextWith("select * from test").sqlId(testSqlId);
 		assertThat(ctx.getSqlId(), is(testSqlId));

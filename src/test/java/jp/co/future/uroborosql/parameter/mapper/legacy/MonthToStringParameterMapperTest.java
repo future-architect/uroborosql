@@ -1,20 +1,20 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.Month;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
+
+import org.junit.jupiter.api.Test;
 
 public class MonthToStringParameterMapperTest {
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var mapper = new MonthToStringParameterMapper();
 
 		assertThat(mapper.toJdbc(Month.APRIL, null, null), is("04"));
@@ -22,7 +22,7 @@ public class MonthToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testManagerToJdbc() throws Exception {
+	void testManagerToJdbc() throws Exception {
 		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new MonthToStringParameterMapper());
 

@@ -3,25 +3,25 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 public class SqlEntityQueryTest extends AbstractDbTest {
 
 	@Test
-	public void testCollect() {
+	void testCollect() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -43,27 +43,27 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testStream() {
+	void testStream() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.stream().forEach(p -> {
-					assertNotNull(p.getProductId());
-					assertNotNull(p.getProductName());
-					assertNotNull(p.getProductKanaName());
-					assertNotNull(p.getJanCode());
-					assertNotNull(p.getProductDescription());
-					assertNotNull(p.getInsDatetime());
-					assertNotNull(p.getUpdDatetime());
-					assertNotNull(p.getVersionNo());
-				});
+			assertNotNull(p.getProductId());
+			assertNotNull(p.getProductName());
+			assertNotNull(p.getProductKanaName());
+			assertNotNull(p.getJanCode());
+			assertNotNull(p.getProductDescription());
+			assertNotNull(p.getInsDatetime());
+			assertNotNull(p.getUpdDatetime());
+			assertNotNull(p.getVersionNo());
+		});
 		assertThat(agent.query(Product.class).in("product_id", 0, 1).count(), is(2L));
 	}
 
 	@Test
-	public void testFirst() {
+	void testFirst() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -92,7 +92,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testOne() {
+	void testOne() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -128,7 +128,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCollectParam() {
+	void testCollectParam() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -150,7 +150,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testSelect() {
+	void testSelect() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -188,7 +188,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testIncludeColumns() {
+	void testIncludeColumns() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -324,7 +324,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testExcludeColumns() {
+	void testExcludeColumns() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -465,7 +465,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testOptimizerHints() {
+	void testOptimizerHints() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 

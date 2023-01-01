@@ -2,8 +2,9 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Paths;
 import java.sql.JDBCType;
@@ -16,9 +17,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.enums.GenerationType;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
@@ -28,7 +29,7 @@ import jp.co.future.uroborosql.mapping.annotations.Version;
 public class SqlEntityUpdateTest extends AbstractDbTest {
 
 	@Test
-	public void testCountByEntitySingle() {
+	void testCountByEntitySingle() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -39,7 +40,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySingleSnakeCase() {
+	void testCountByEntitySingleSnakeCase() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -51,7 +52,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntityMulti() {
+	void testCountByEntityMulti() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -73,7 +74,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetSupplier() {
+	void testCountByEntitySetSupplier() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -88,7 +89,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetSupplierSnakeCase() {
+	void testCountByEntitySetSupplierSnakeCase() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -103,7 +104,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetIntType() {
+	void testCountByEntitySetIntType() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -119,7 +120,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetIntTypeSnakeCase() {
+	void testCountByEntitySetIntTypeSnakeCase() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -135,7 +136,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetType() {
+	void testCountByEntitySetType() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -151,7 +152,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByEntitySetTypeSnakeCase() {
+	void testCountByEntitySetTypeSnakeCase() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -170,7 +171,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使ったDB更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdate() throws Exception {
+	void testEntityUpdate() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -191,7 +192,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使ったDB更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdateAndReturn() throws Exception {
+	void testEntityUpdateAndReturn() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -212,7 +213,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使ったDB更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesAndReturnManyRecord() throws Exception {
+	void testEntityUpdatesAndReturnManyRecord() throws Exception {
 		for (var row = 500; row <= 2000; row = row + 500) {
 			// 事前条件
 			truncateTable("PRODUCT");
@@ -253,38 +254,42 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(楽観ロックエラー）
 	 */
-	@Test(expected = OptimisticLockException.class)
-	public void testEntityUpdateThrowException() throws Exception {
-		// 事前条件
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
+	@Test
+	void testEntityUpdateThrowException() throws Exception {
+		assertThrows(OptimisticLockException.class, () -> {
+			// 事前条件
+			cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		var product = new Product();
-		product.setProductId(2);
-		product.setProductName("商品名_new");
-		product.setVersionNo(1);
-		agent.update(product);
+			var product = new Product();
+			product.setProductId(2);
+			product.setProductName("商品名_new");
+			product.setVersionNo(1);
+			agent.update(product);
+		});
 	}
 
 	/**
 	 * Entityを使ったDB更新処理のテストケース。(Stream型引数エラー）
 	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testEntityUpdateStreamError() throws Exception {
-		// 事前条件
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
+	@Test
+	void testEntityUpdateStreamError() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			// 事前条件
+			cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		var product = new Product();
-		product.setProductId(2);
-		product.setProductName("商品名_new");
-		product.setVersionNo(1);
-		agent.update(Stream.of(product));
+			var product = new Product();
+			product.setProductId(2);
+			product.setProductName("商品名_new");
+			product.setVersionNo(1);
+			agent.update(Stream.of(product));
+		});
 	}
 
 	/**
 	 * Entityを使った一括更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdates() throws Exception {
+	void testEntityUpdates() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -308,7 +313,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使った一括更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesAndReturn() throws Exception {
+	void testEntityUpdatesAndReturn() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -335,7 +340,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使った一括更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesWithEntityType() throws Exception {
+	void testEntityUpdatesWithEntityType() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -359,7 +364,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使った一括更新処理で楽観ロックエラーが発生するケース
 	 */
 	@Test
-	public void testEntityUpdatesOptimisticLockException() throws Exception {
+	void testEntityUpdatesOptimisticLockException() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -397,7 +402,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * Entityを使った一括更新処理(IN句の上限を超える場合)のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesWithCondition() throws Exception {
+	void testEntityUpdatesWithCondition() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
@@ -421,7 +426,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * 複合キーを持つEntityを使った一括更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdatesMultiKey() throws Exception {
+	void testEntityUpdatesMultiKey() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity_multi_key cascade").count();
@@ -455,7 +460,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	 * @IdをもつEntityを使った更新処理のテストケース。
 	 */
 	@Test
-	public void testEntityUpdateWithId() throws Exception {
+	void testEntityUpdateWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();

@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -43,7 +43,7 @@ public class SqlAgentRetryTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentRetryTest")).build();
 		config.getSqlAgentProvider().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
@@ -60,7 +60,7 @@ public class SqlAgentRetryTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -69,7 +69,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryRetryNoWait() throws Exception {
+	void testQueryRetryNoWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -82,7 +82,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryRetryNoWaitSqlState() throws Exception {
+	void testQueryRetryNoWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -95,7 +95,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（待機あり）
 	 */
 	@Test
-	public void testQueryRetryWait() throws Exception {
+	void testQueryRetryWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -109,7 +109,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（待機あり）
 	 */
 	@Test
-	public void testQueryRetryWaitSqlState() throws Exception {
+	void testQueryRetryWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -123,7 +123,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testQueryRetryOver() throws Exception {
+	void testQueryRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -143,7 +143,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testQueryRetryOverSqlState() throws Exception {
+	void testQueryRetryOverSqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "60";
@@ -165,7 +165,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testQueryNoRetry() throws Exception {
+	void testQueryNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -185,7 +185,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testQueryNoRetrySqlState() throws Exception {
+	void testQueryNoRetrySqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "1";
@@ -207,7 +207,7 @@ public class SqlAgentRetryTest {
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testQueryRetryWithPessimisticLock() throws Exception {
+	void testQueryRetryWithPessimisticLock() throws Exception {
 		var retryCount = 3;
 		var errorCode = 50200;
 		// SqlRetryCodeListを空にして、悲観ロック対象エラーコードで判定する
@@ -231,7 +231,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryNoWait() throws Exception {
+	void testUpdateRetryNoWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -246,7 +246,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryNoWaitSqlState() throws Exception {
+	void testUpdateRetryNoWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -261,7 +261,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryWait() throws Exception {
+	void testUpdateRetryWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -276,7 +276,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryWaitSqlState() throws Exception {
+	void testUpdateRetryWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -291,7 +291,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testUpdateRetryOver() throws Exception {
+	void testUpdateRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -313,7 +313,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testUpdateRetryOverSqlState() throws Exception {
+	void testUpdateRetryOverSqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "60";
@@ -337,7 +337,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testUpdateNotRetry() throws Exception {
+	void testUpdateNotRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -359,7 +359,7 @@ public class SqlAgentRetryTest {
 	 * 更新のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testUpdateNotRetrySqlState() throws Exception {
+	void testUpdateNotRetrySqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "1";
@@ -383,7 +383,7 @@ public class SqlAgentRetryTest {
 	 * バッチ更新のリトライ
 	 */
 	@Test
-	public void testBatchRetryNoWait() throws Exception {
+	void testBatchRetryNoWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -415,7 +415,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryNoWait() throws Exception {
+	void testProcedureRetryNoWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -430,7 +430,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryNoWaitSqlState() throws Exception {
+	void testProcedureRetryNoWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -445,7 +445,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryWait() throws Exception {
+	void testProcedureRetryWait() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 60));
 
@@ -460,7 +460,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryWaitSqlState() throws Exception {
+	void testProcedureRetryWaitSqlState() throws Exception {
 		var retryCount = 3;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, 0, "60"));
 
@@ -475,7 +475,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testProcedureRetryOver() throws Exception {
+	void testProcedureRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -497,7 +497,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testProcedureRetryOverSqlState() throws Exception {
+	void testProcedureRetryOverSqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "60";
@@ -521,7 +521,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testProcedureNoRetry() throws Exception {
+	void testProcedureNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
@@ -543,7 +543,7 @@ public class SqlAgentRetryTest {
 	 * プロシージャのリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testProcedureNoRetrySqlState() throws Exception {
+	void testProcedureNoRetrySqlState() throws Exception {
 		var retryCount = 3;
 		var errorCode = 0;
 		var sqlState = "1";

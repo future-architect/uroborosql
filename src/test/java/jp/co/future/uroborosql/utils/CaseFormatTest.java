@@ -3,9 +3,9 @@
  */
 package jp.co.future.uroborosql.utils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * ConvertUtilsのテストクラス
@@ -16,7 +16,7 @@ import org.junit.Test;
 public class CaseFormatTest {
 
 	@Test
-	public void testToUpperSnake() {
+	void testToUpperSnake() {
 		assertEquals("SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("snake"));
 		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("convertToSnake"));
 		assertEquals("CONVERT_TO_SNAKE", CaseFormat.UPPER_SNAKE_CASE.convert("ConvertToSnake"));
@@ -30,7 +30,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testToLowerSnake() {
+	void testToLowerSnake() {
 		assertEquals("snake", CaseFormat.LOWER_SNAKE_CASE.convert("snake"));
 		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("convertToSnake"));
 		assertEquals("convert_to_snake", CaseFormat.LOWER_SNAKE_CASE.convert("ConvertToSnake"));
@@ -44,7 +44,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testToPascal() {
+	void testToPascal() {
 		assertEquals("Pascal", CaseFormat.PASCAL_CASE.convert("PASCAL"));
 		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("CONVERT_TO_PASCAL"));
 		assertEquals("ConvertToPascal", CaseFormat.PASCAL_CASE.convert("convert_to_pascal"));
@@ -60,7 +60,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testToCamel() {
+	void testToCamel() {
 		assertEquals("camel", CaseFormat.CAMEL_CASE.convert("CAMEL"));
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("CONVERT_TO_CAMEL"));
 		assertEquals("convertToCamel", CaseFormat.CAMEL_CASE.convert("convert_to_camel"));
@@ -75,7 +75,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testToUpper() {
+	void testToUpper() {
 		assertEquals("SNAKE", CaseFormat.UPPER_CASE.convert("snake"));
 		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("convertToSnake"));
 		assertEquals("CONVERTTOSNAKE", CaseFormat.UPPER_CASE.convert("ConvertToSnake"));
@@ -89,7 +89,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testToLower() {
+	void testToLower() {
 		assertEquals("snake", CaseFormat.LOWER_CASE.convert("snake"));
 		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("convertToSnake"));
 		assertEquals("converttosnake", CaseFormat.LOWER_CASE.convert("ConvertToSnake"));
@@ -103,7 +103,7 @@ public class CaseFormatTest {
 	}
 
 	@Test
-	public void testNone() {
+	void testNone() {
 		assertEquals("snake", CaseFormat.NONE.convert("snake"));
 		assertEquals("convertToSnake", CaseFormat.NONE.convert("convertToSnake"));
 		assertEquals("ConvertToSnake", CaseFormat.NONE.convert("ConvertToSnake"));

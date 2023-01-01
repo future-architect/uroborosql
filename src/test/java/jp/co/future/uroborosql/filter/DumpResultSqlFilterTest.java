@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -37,7 +37,7 @@ public class DumpResultSqlFilterTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DumpResultSqlFilterTest")).build();
 		var sqlFilterManager = config.getSqlFilterManager();
@@ -68,7 +68,7 @@ public class DumpResultSqlFilterTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -129,7 +129,7 @@ public class DumpResultSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
@@ -149,7 +149,7 @@ public class DumpResultSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilterManyColumn() throws Exception {
+	void testExecuteQueryFilterManyColumn() throws Exception {
 		// データのクリア
 		agent.updateWith("truncate table many_column_table").count();
 
@@ -171,7 +171,7 @@ public class DumpResultSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilterOneColumn() throws Exception {
+	void testExecuteQueryFilterOneColumn() throws Exception {
 		// データのクリア
 		agent.updateWith("truncate table many_column_table").count();
 
@@ -193,7 +193,7 @@ public class DumpResultSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilterManyColumnWithData() throws Exception {
+	void testExecuteQueryFilterManyColumnWithData() throws Exception {
 		// データ投入
 		var builder = new StringBuilder();
 		builder.append("insert into many_column_table").append(System.lineSeparator())

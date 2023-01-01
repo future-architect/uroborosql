@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -42,7 +42,7 @@ public class SecretColumnSqlFilterTest {
 
 	private SecretColumnSqlFilter filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
 		sqlFilterManager = config.getSqlFilterManager();
@@ -133,14 +133,14 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testFilterSettings() {
+	void testFilterSettings() {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/ECB/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
@@ -186,7 +186,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet01() throws Exception {
+	void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -206,7 +206,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet02() throws Exception {
+	void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -223,7 +223,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet03() throws Exception {
+	void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -260,7 +260,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testWithModel() throws Exception {
+	void testWithModel() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -280,7 +280,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSqlInsertOptional() throws Exception {
+	void testSqlInsertOptional() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -304,7 +304,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSqlInsertOptionalEmpty() throws Exception {
+	void testSqlInsertOptionalEmpty() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {

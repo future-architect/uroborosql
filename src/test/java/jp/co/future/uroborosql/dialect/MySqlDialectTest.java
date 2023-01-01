@@ -2,9 +2,10 @@ package jp.co.future.uroborosql.dialect;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -12,9 +13,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.connection.ConnectionContext;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -29,7 +30,7 @@ public class MySqlDialectTest {
 	private final Dialect dialect = new MySqlDialect();
 
 	@Test
-	public void testAccept12() {
+	void testAccept12() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -54,13 +55,15 @@ public class MySqlDialectTest {
 		assertThat(dialect, instanceOf(MySqlDialect.class));
 	}
 
-	@Test(expected = UroborosqlRuntimeException.class)
-	public void testGetSequenceNextValSql() {
-		dialect.getSequenceNextValSql("test_sequence");
+	@Test
+	void testGetSequenceNextValSql() {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			dialect.getSequenceNextValSql("test_sequence");
+		});
 	}
 
 	@Test
-	public void testEscapeLikePattern() {
+	void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
@@ -76,12 +79,12 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testGetEscapeChar() {
+	void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('$'));
 	}
 
 	@Test
-	public void testSupports() {
+	void testSupports() {
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(false));
@@ -97,7 +100,7 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testGetLimitClause() {
+	void testGetLimitClause() {
 		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
@@ -105,7 +108,7 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testAddForUpdateClause() {
+	void testAddForUpdateClause() {
 		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
@@ -116,7 +119,7 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints1() {
+	void testAddOptimizerHints1() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
@@ -136,7 +139,7 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints2() {
+	void testAddOptimizerHints2() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
@@ -152,7 +155,7 @@ public class MySqlDialectTest {
 	}
 
 	@Test
-	public void testGetPessimisticLockingErrorCodes() {
+	void testGetPessimisticLockingErrorCodes() {
 		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("3572")));
 	}
 

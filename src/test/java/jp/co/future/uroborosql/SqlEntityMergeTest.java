@@ -3,7 +3,8 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,9 +13,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.enums.GenerationType;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.Table;
@@ -26,7 +27,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース。
 	 */
 	@Test
-	public void testEntityMergeWithId() throws Exception {
+	void testEntityMergeWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -74,7 +75,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース。
 	 */
 	@Test
-	public void testEntityMergeAndReturnWithId() throws Exception {
+	void testEntityMergeAndReturnWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -118,7 +119,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース(悲観ロックあり)。
 	 */
 	@Test
-	public void testEntityMergeWithLockingWithId() throws Exception {
+	void testEntityMergeWithLockingWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -166,7 +167,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース（悲観ロックあり）。
 	 */
 	@Test
-	public void testEntityMergeWithLockingAndReturnWithId() throws Exception {
+	void testEntityMergeWithLockingAndReturnWithId() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -210,7 +211,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース。Optional.empty()を設定した場合
 	 */
 	@Test
-	public void testEntityMergeWithIdOptionalEmpty() throws Exception {
+	void testEntityMergeWithIdOptionalEmpty() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -254,7 +255,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * @IdをもつEntityを使ったマージ処理のテストケース。Optionalフィールドにnullを設定した場合
 	 */
 	@Test
-	public void testEntityMergeWithIdOptionalNull() throws Exception {
+	void testEntityMergeWithIdOptionalNull() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity cascade").count();
@@ -297,18 +298,20 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	/**
 	 * mergeの引数がStream型の場合は例外がスローされることを確認
 	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testEntityMergeThrowWhenStreamParam() throws Exception {
-		agent.required(() -> {
-			var updateEntity = new TestEntity()
-					.setId(2)
-					.setName("名前2_new")
-					.setAddress(null);
+	@Test
+	void testEntityMergeThrowWhenStreamParam() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			agent.required(() -> {
+				var updateEntity = new TestEntity()
+						.setId(2)
+						.setName("名前2_new")
+						.setAddress(null);
 
-			List<TestEntity> input = new ArrayList<>();
-			input.add(updateEntity);
+				List<TestEntity> input = new ArrayList<>();
+				input.add(updateEntity);
 
-			agent.merge(input.stream());
+				agent.merge(input.stream());
+			});
 		});
 	}
 
@@ -316,7 +319,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 	 * 複合キーを持つEntityを使った一括マージ処理のテストケース。
 	 */
 	@Test
-	public void testEntityMergesMultiKey() throws Exception {
+	void testEntityMergesMultiKey() throws Exception {
 		agent.required(() -> {
 			// テーブル作成
 			agent.updateWith("drop table if exists test_entity_multi_key cascade").count();

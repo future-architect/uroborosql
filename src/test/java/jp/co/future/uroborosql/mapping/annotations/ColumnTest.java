@@ -8,9 +8,9 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -20,7 +20,7 @@ public class ColumnTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:ColumnTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -43,7 +43,7 @@ public class ColumnTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -109,7 +109,7 @@ public class ColumnTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	void test() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {

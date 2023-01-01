@@ -4,16 +4,16 @@
 package jp.co.future.uroborosql.config;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -32,7 +32,7 @@ public class SqlConfigConnectionPoolTest {
 
 	private static JdbcConnectionPool pool;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 
 		pool = JdbcConnectionPool.create(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
@@ -63,7 +63,7 @@ public class SqlConfigConnectionPoolTest {
 		}
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownClass() throws Exception {
 		pool.dispose();
 	}
@@ -72,7 +72,7 @@ public class SqlConfigConnectionPoolTest {
 	 * Testcase of {@link DefaultSqlConfig#getConfig(javax.sql.DataSource)} のためのテスト・メソッド。
 	 */
 	@Test
-	public void testGetConfigDataSourceNoQuery() throws Exception {
+	void testGetConfigDataSourceNoQuery() throws Exception {
 		try (var agent = config.agent()) {
 			assertThat(pool.getActiveConnections(), is(0));
 		}
@@ -83,7 +83,7 @@ public class SqlConfigConnectionPoolTest {
 	 * Testcase of {@link DefaultSqlConfig#getConfig(javax.sql.DataSource)} のためのテスト・メソッド。
 	 */
 	@Test
-	public void testGetConfigDataSource() throws Exception {
+	void testGetConfigDataSource() throws Exception {
 		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
@@ -95,7 +95,7 @@ public class SqlConfigConnectionPoolTest {
 	 * Testcase of {@link DefaultSqlConfig#getConfig(javax.sql.DataSource)} のためのテスト・メソッド。
 	 */
 	@Test
-	public void testGetConfigDataSourceRequired() throws Exception {
+	void testGetConfigDataSourceRequired() throws Exception {
 		try (var agent = config.agent()) {
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));

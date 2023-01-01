@@ -8,9 +8,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -65,7 +65,7 @@ public class CustomMapperTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:CustomMapperTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -93,7 +93,7 @@ public class CustomMapperTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -117,7 +117,7 @@ public class CustomMapperTest {
 	}
 
 	@Test
-	public void testFind() throws Exception {
+	void testFind() throws Exception {
 
 		try (var agent = config.agent()) {
 			var data = agent.find(TestEntity.class, 2).orElse(null);

@@ -2,7 +2,7 @@ package jp.co.future.uroborosql.parameter.mapper.legacy;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -13,14 +13,14 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.temporal.TemporalAccessor;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
+
+import org.junit.jupiter.api.Test;
 
 public class TimeToStringParameterMapperTest {
 
 	@Test
-	public void testLocalTime() throws ParseException {
+	void testLocalTime() throws ParseException {
 		var mapper = new TimeToStringParameterMapper();
 		var localTime = LocalTime.of(11, 22, 33);
 		assertThat(mapper.toJdbc(localTime, null, null), is("112233"));
@@ -30,7 +30,7 @@ public class TimeToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testOffsetTime() throws ParseException {
+	void testOffsetTime() throws ParseException {
 		var mapper = new TimeToStringParameterMapper();
 		var localTime = LocalTime.of(11, 22, 33);
 		var offset = Clock.systemDefaultZone().getZone().getRules().getOffset(localTime.atDate(LocalDate.now()));
@@ -42,7 +42,7 @@ public class TimeToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testCanAccept() throws Exception {
+	void testCanAccept() throws Exception {
 		var mapper = new TimeToStringParameterMapper();
 
 		assertThat(mapper.canAccept(LocalTime.now()), is(true));
@@ -53,14 +53,14 @@ public class TimeToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testTargetType() throws Exception {
+	void testTargetType() throws Exception {
 		var mapper = new TimeToStringParameterMapper();
 
 		assertThat(mapper.targetType(), sameInstance(TemporalAccessor.class));
 	}
 
 	@Test
-	public void testManagerToJdbc() throws Exception {
+	void testManagerToJdbc() throws Exception {
 		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new TimeToStringParameterMapper());
 

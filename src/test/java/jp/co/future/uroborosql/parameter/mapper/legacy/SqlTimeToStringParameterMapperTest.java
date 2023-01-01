@@ -1,21 +1,21 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Time;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.LocalTime;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
+
+import org.junit.jupiter.api.Test;
 
 public class SqlTimeToStringParameterMapperTest {
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var mapper = new SqlTimeToStringParameterMapper();
 		var time = Time.valueOf(LocalTime.parse("11:22:33"));
 
@@ -23,7 +23,7 @@ public class SqlTimeToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testManagerToJdbc() throws Exception {
+	void testManagerToJdbc() throws Exception {
 		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new SqlTimeToStringParameterMapper());
 

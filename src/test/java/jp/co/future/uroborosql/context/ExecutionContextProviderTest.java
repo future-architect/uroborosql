@@ -13,8 +13,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.event.Level;
 
 import jp.co.future.uroborosql.UroboroSQL;
@@ -29,7 +29,7 @@ public class ExecutionContextProviderTest {
 
 	private ExecutionContextProvider ExecutionContextProvider;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL
 				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
@@ -37,7 +37,7 @@ public class ExecutionContextProviderTest {
 	}
 
 	@Test
-	public void testConst_class() {
+	void testConst_class() {
 		ExecutionContextProvider.addBindParamMapper((original, connection, parameterMapperManager) -> null);
 
 		ExecutionContextProvider.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
@@ -94,9 +94,9 @@ public class ExecutionContextProviderTest {
 		return map;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
-	public void testConst_enum() {
+	void testConst_enum() {
 		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
 
 		ExecutionContextProvider.initialize();
@@ -117,9 +117,9 @@ public class ExecutionContextProviderTest {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
-	public void testConst_enumForJar() {
+	void testConst_enumForJar() {
 		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
 
 		ExecutionContextProvider.initialize();
@@ -138,7 +138,7 @@ public class ExecutionContextProviderTest {
 	}
 
 	@Test
-	public void testSetDefaultResultSetType() throws Exception {
+	void testSetDefaultResultSetType() throws Exception {
 		ExecutionContextProvider.initialize();
 
 		ExecutionContextProvider.setDefaultResultSetType(ResultSet.TYPE_FORWARD_ONLY);
@@ -153,7 +153,7 @@ public class ExecutionContextProviderTest {
 	}
 
 	@Test
-	public void testSetDefaultResultSetConcurrency() throws Exception {
+	void testSetDefaultResultSetConcurrency() throws Exception {
 		ExecutionContextProvider.initialize();
 
 		ExecutionContextProvider.setDefaultResultSetConcurrency(ResultSet.CONCUR_READ_ONLY);

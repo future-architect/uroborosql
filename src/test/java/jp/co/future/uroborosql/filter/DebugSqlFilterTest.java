@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -40,7 +40,7 @@ public class DebugSqlFilterTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws SQLException, IOException {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DebugSqlFilterTest")).build();
 		var sqlFilterManager = config.getSqlFilterManager();
@@ -58,7 +58,7 @@ public class DebugSqlFilterTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -119,7 +119,7 @@ public class DebugSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
@@ -137,7 +137,7 @@ public class DebugSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteUpdateFilter() throws Exception {
+	void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			var ctx = agent.contextFrom("example/selectinsert_product").setSqlId("222")
@@ -154,7 +154,7 @@ public class DebugSqlFilterTest {
 	}
 
 	@Test
-	public void testExecuteBatchFilter() throws Exception {
+	void testExecuteBatchFilter() throws Exception {
 		truncateTable("product");
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		var log = TestAppender.getLogbackLogs(() -> {

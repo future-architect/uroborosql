@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,9 +14,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -39,7 +39,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentRetryWithRollbackTest;DB_CLOSE_DELAY=-1", "sa", "sa")
 				.setDialect(new PostgresqlDialect())
@@ -58,7 +58,7 @@ public class SqlAgentRetryWithRollbackTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -77,7 +77,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryRetryNoWait() throws Exception {
+	void testQueryRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -90,7 +90,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（待機あり）
 	 */
 	@Test
-	public void testQueryRetryWait() throws Exception {
+	void testQueryRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -104,7 +104,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testQueryRetryOver() throws Exception {
+	void testQueryRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
@@ -124,7 +124,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testQueryNoRetry() throws Exception {
+	void testQueryNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
@@ -144,7 +144,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryNoWait() throws Exception {
+	void testUpdateRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -159,7 +159,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryWait() throws Exception {
+	void testUpdateRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -174,7 +174,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testUpdateRetryOver() throws Exception {
+	void testUpdateRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
@@ -196,7 +196,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testUpdateNotRetry() throws Exception {
+	void testUpdateNotRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
@@ -218,7 +218,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryNoWait() throws Exception {
+	void testProcedureRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -233,7 +233,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryWait() throws Exception {
+	void testProcedureRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -248,7 +248,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testProcedureRetryOver() throws Exception {
+	void testProcedureRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
@@ -270,7 +270,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testProcedureNoRetry() throws Exception {
+	void testProcedureNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);

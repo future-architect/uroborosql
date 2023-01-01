@@ -11,9 +11,9 @@ import java.time.Month;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -30,7 +30,7 @@ public class ORMSampleTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:ORMSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -53,7 +53,7 @@ public class ORMSampleTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -143,7 +143,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testFind() throws Exception {
+	void testFind() throws Exception {
 
 		try (var agent = config.agent()) {
 
@@ -155,7 +155,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 
 		try (var agent = config.agent()) {
 
@@ -172,7 +172,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -193,7 +193,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -212,7 +212,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testDelete() throws Exception {
+	void testDelete() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -306,7 +306,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testDomain() throws Exception {
+	void testDomain() throws Exception {
 		// Domainを定義したクラスを扱う
 		try (var agent = config.agent()) {
 			agent.required(() -> {

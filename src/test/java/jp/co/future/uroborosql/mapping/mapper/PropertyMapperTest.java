@@ -13,9 +13,9 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -25,7 +25,7 @@ import jp.co.future.uroborosql.mapping.annotations.Table;
 public class PropertyMapperTest {
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:PropertyMapperTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -60,7 +60,7 @@ public class PropertyMapperTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -146,7 +146,7 @@ public class PropertyMapperTest {
 	}
 
 	@Test
-	public void test01() throws Exception {
+	void test01() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -159,7 +159,7 @@ public class PropertyMapperTest {
 	}
 
 	@Test
-	public void test02() throws Exception {
+	void test02() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {

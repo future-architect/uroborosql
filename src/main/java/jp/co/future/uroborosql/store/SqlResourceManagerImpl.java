@@ -682,7 +682,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				try {
 					return Files.getLastModifiedTime(path);
 				} catch (IOException e) {
-					log.warn("Can't get lastModifiedTime. path:" + path, e);
+					log.warn("Can't get lastModifiedTime. path:{}", path, e);
 				}
 			}
 			return FileTime.fromMillis(0L);

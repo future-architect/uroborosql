@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,9 +11,9 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -30,7 +30,7 @@ public class ThisCommandTest extends ReaderTestSupport {
 	private ReplCommand command;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
@@ -48,13 +48,13 @@ public class ThisCommandTest extends ReaderTestSupport {
 		command = new ThisCommand();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
 
 	@Test
-	public void testExecute() throws Exception {
+	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var flag = command.execute(reader, "this".split("\\s+"), sqlConfig, new Properties());
 		assertTrue(flag);
@@ -62,18 +62,18 @@ public class ThisCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testShowHelp() throws Exception {
+	void testShowHelp() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		command.showHelp(reader.getTerminal());
 	}
 
 	@Test
-	public void testGetStartArgNo() throws Exception {
+	void testGetStartArgNo() throws Exception {
 		assertThat(command.getStartArgNo(ReplCommandCompleter.class), is(-1));
 	}
 
 	@Test
-	public void testUtilityMethods() throws Exception {
+	void testUtilityMethods() throws Exception {
 		assertThat(command.isHidden(), is(true));
 		assertThat(command.match("This"), is(false));
 		assertThat(command.match("NoMatchCommand"), is(false));

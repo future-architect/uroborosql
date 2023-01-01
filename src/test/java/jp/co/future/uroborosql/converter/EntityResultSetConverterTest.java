@@ -1,14 +1,14 @@
 package jp.co.future.uroborosql.converter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Optional;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -101,7 +101,7 @@ public class EntityResultSetConverterTest {
 
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:EntityResultSetConverterTest")).build();
 		agent = config.agent();
@@ -117,17 +117,17 @@ public class EntityResultSetConverterTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
 
 	@Test
-	public void testCreateRecord() {
+	void testCreateRecord() {
 		var clob = StringUtils.repeat('1', 10000);
 		var nclob = StringUtils.repeat('あ', 10000);
 		var blob = StringUtils.repeat('x', 20000).getBytes();
-		Object[] arr = { 1, 2 };
+		Object[] arr = {1, 2};
 
 		var entity = new ColumnTypeTest2();
 		entity.setColClob(clob);

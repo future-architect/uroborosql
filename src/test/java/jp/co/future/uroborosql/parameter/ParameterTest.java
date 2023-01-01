@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,8 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -27,13 +27,13 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 public class ParameterTest {
 	private SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:ParameterTest", null, null).build();
 	}
 
 	@Test
-	public void testSetInParameter_mapperForDate() throws ParseException, SQLException {
+	void testSetInParameter_mapperForDate() throws ParseException, SQLException {
 
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
@@ -49,7 +49,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
+	void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
 
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -67,7 +67,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
+	void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
 
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -84,9 +84,9 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForArray() throws SQLException {
+	void testSetInParameter_mapperForArray() throws SQLException {
 
-		String[] param = { "1", "2", "3" };
+		String[] param = {"1", "2", "3"};
 
 		config.getExecutionContextProvider().addBindParamMapper(new BindParameterMapper<String[]>() {
 
@@ -120,7 +120,7 @@ public class ParameterTest {
 	 * @throws SQLException SQL例外
 	 */
 	@Test
-	public void testSetInParameter_array() throws SQLException {
+	void testSetInParameter_array() throws SQLException {
 
 		try (var agent = config.agent()) {
 			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
@@ -144,7 +144,7 @@ public class ParameterTest {
 	 * @throws SQLException SQL例外
 	 */
 	@Test
-	public void testSetInParameter_bytearray() throws SQLException {
+	void testSetInParameter_bytearray() throws SQLException {
 
 		try (var agent = config.agent()) {
 			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
@@ -157,7 +157,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetParameter_subParameter() throws ParseException, SQLException {
+	void testSetParameter_subParameter() throws ParseException, SQLException {
 
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();

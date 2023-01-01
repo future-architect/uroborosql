@@ -3,7 +3,7 @@ package jp.co.future.uroborosql.parameter.mapper;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -17,21 +17,21 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.parameter.mapper.legacy.DateToStringParameterMapper;
 
 public class BindParameterMapperManagerTest {
 	private Clock clock;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		assertThat(parameterMapperManager.toJdbc(null, null), is(nullValue()));
@@ -46,7 +46,7 @@ public class BindParameterMapperManagerTest {
 		assertThat(parameterMapperManager.toJdbc(BigDecimal.TEN, null), is(BigDecimal.TEN));
 		assertThat(parameterMapperManager.toJdbc("A", null), is("A"));
 
-		assertThat(parameterMapperManager.toJdbc(new byte[] { 1, 2 }, null), is(new byte[] { 1, 2 }));
+		assertThat(parameterMapperManager.toJdbc(new byte[]{1, 2}, null), is(new byte[]{1, 2}));
 
 		assertThat(parameterMapperManager.toJdbc(new java.sql.Date(1), null), is(new java.sql.Date(1)));
 		assertThat(parameterMapperManager.toJdbc(new java.sql.Time(1), null), is(new java.sql.Time(1)));
@@ -74,7 +74,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testWithCustom() throws ParseException {
+	void testWithCustom() throws ParseException {
 		var original = new BindParameterMapperManager(this.clock);
 		original.addMapper(new EmptyStringToNullParameterMapper());
 		var mapper = new DateToStringParameterMapper();
@@ -91,7 +91,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testCustom() {
+	void testCustom() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		parameterMapperManager.addMapper(new BindParameterMapper<String>() {
@@ -114,7 +114,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testCustomWithClock() {
+	void testCustomWithClock() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		parameterMapperManager.addMapper(new BindParameterMapperWithClock<String>() {

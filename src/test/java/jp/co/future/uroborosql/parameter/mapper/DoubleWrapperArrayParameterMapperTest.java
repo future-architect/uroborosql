@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -13,22 +13,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DoubleWrapperArrayParameterMapperTest {
 	private Clock clock = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.clock = Clock.systemDefaultZone();
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var jdbcArray = newProxy(Array.class);
-		Double[] array = { 111.11d, 222.22d };
+		Double[] array = {111.11d, 222.22d};
 
 		var conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if ("createArrayOf".equals(method.getName())) {
@@ -41,7 +41,7 @@ public class DoubleWrapperArrayParameterMapperTest {
 
 		assertThat(parameterMapperManager.toJdbc(array, conn), is(jdbcArray));
 
-		Object[] objArray = { Double.valueOf(333.33d), "A" };
+		Object[] objArray = {Double.valueOf(333.33d), "A"};
 		assertThat(parameterMapperManager.toJdbc(objArray, conn), is(objArray));
 
 	}

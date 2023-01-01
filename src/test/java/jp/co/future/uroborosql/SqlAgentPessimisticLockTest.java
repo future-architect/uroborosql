@@ -1,15 +1,15 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
 public class SqlAgentPessimisticLockTest {
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentPessimisticLockTest;DB_CLOSE_DELAY=-1;MVCC=true;", "sa", "sa")
 				.setSqlAgentProvider(new SqlAgentProviderImpl().setQueryTimeout(10))
@@ -50,7 +50,7 @@ public class SqlAgentPessimisticLockTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryNoRetry() throws Exception {
+	void testQueryNoRetry() throws Exception {
 		var sql = "select * from product where product_id = 1 for update";
 		try (var agent = config.agent()) {
 			agent.required(() -> {

@@ -16,9 +16,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -29,7 +29,7 @@ public class DateTimeTest {
 
 	private static SqlConfig config;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:DateTimeTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -57,7 +57,7 @@ public class DateTimeTest {
 		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
 	}
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		try (var agent = config.agent()) {
 			agent.updateWith("delete from test").count();
@@ -237,7 +237,7 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testZoned() throws Exception {
+	void testZoned() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -252,7 +252,7 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testOffset() throws Exception {
+	void testOffset() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -268,7 +268,7 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testDate() throws Exception {
+	void testDate() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -289,7 +289,7 @@ public class DateTimeTest {
 				var time = c.getTime();
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
 				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
-						.toLocalDateTime(),
+								.toLocalDateTime(),
 						is(local.datetimeValue));
 				assertThat(new Date(date.dateValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
 						is(local.dateValue));

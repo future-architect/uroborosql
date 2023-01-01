@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql.sample;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.DriverManager;
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * SqlAgentSampleクラスのテストケース
@@ -31,7 +31,7 @@ public class SqlAgentSampleTest {
 	private static Map<String, Object> row3 = new LinkedHashMap<>();
 
 	@SuppressWarnings("deprecation")
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		var url = "jdbc:h2:mem:SqlAgentSampleTest;DB_CLOSE_DELAY=-1";
 		String user = null;
@@ -89,7 +89,7 @@ public class SqlAgentSampleTest {
 	}
 
 	@Test
-	public void sqlQueryTestNoParam() throws Exception {
+	void sqlQueryTestNoParam() throws Exception {
 		var actual = app.query("example/select_test");
 
 		List<Map<String, Object>> expected = new ArrayList<>();
@@ -101,7 +101,7 @@ public class SqlAgentSampleTest {
 	}
 
 	@Test
-	public void sqlQueryTestWithId() throws Exception {
+	void sqlQueryTestWithId() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", 1);
 		var actual = app.query("example/select_test", params);
@@ -113,7 +113,7 @@ public class SqlAgentSampleTest {
 	}
 
 	@Test
-	public void sqlQueryTestWithName() throws Exception {
+	void sqlQueryTestWithName() throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("name", "あああ");
 		var actual = app.query("example/select_test", params);

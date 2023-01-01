@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-
 import jp.co.future.uroborosql.context.ExecutionContext;
+
+import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 
 /**
@@ -34,7 +34,7 @@ public class SqlAgentSqlIdTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testDefault() throws SQLException {
+	void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
@@ -65,7 +65,7 @@ public class SqlAgentSqlIdTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testDefault2() throws SQLException {
+	void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
@@ -95,7 +95,7 @@ public class SqlAgentSqlIdTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustom() throws SQLException {
+	void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");

@@ -2,16 +2,16 @@ package jp.co.future.uroborosql.parameter.mapper;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.OptionalInt;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OptionalIntParameterMapperTest {
 
 	@Test
-	public void test() {
+	void test() {
 		var value = 123;
 
 		var mapper = new OptionalIntParameterMapper();
@@ -20,7 +20,7 @@ public class OptionalIntParameterMapperTest {
 	}
 
 	@Test
-	public void testEmpty() {
+	void testEmpty() {
 		var mapper = new OptionalIntParameterMapper();
 		var optional = OptionalInt.empty();
 		assertThat(mapper.toJdbc(optional, null, null), is(nullValue()));

@@ -2,7 +2,7 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -30,7 +30,7 @@ public class SqlAgentQueryWithIteratorTest {
 
 	private SqlAgent agent;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
@@ -45,7 +45,7 @@ public class SqlAgentQueryWithIteratorTest {
 		agent.commit();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		agent.close();
 	}
@@ -96,7 +96,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -114,7 +114,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	@Test
-	public void testIssue() {
+	void testIssue() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 

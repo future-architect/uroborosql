@@ -3,8 +3,8 @@ package jp.co.future.uroborosql.tx;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -36,7 +36,7 @@ public class LocalTxManagerTest {
 	 */
 	SqlConfig config;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
 		try (var agent = config.agent()) {
@@ -84,12 +84,12 @@ public class LocalTxManagerTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testagentSample01_required() {
+	void testagentSample01_required() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -113,7 +113,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample02_requiresNew() {
+	void testagentSample02_requiresNew() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -143,7 +143,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample03_rollback() {
+	void testagentSample03_rollback() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -164,7 +164,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample04_error_rollback() {
+	void testagentSample04_error_rollback() {
 
 		try (var agent = config.agent()) {
 			try {
@@ -186,7 +186,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentSample05_savepoint() {
+	void testagentSample05_savepoint() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -206,7 +206,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent02() {
+	void testagent02() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -234,7 +234,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent03() {
+	void testagent03() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -253,7 +253,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent04() {
+	void testagent04() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -274,7 +274,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagent05() {
+	void testagent05() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -325,7 +325,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSavepointScopeRunnable() {
+	void testSavepointScopeRunnable() {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.savepointScope(() -> {
@@ -357,7 +357,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSavepointScopeSupplier() {
+	void testSavepointScopeSupplier() {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				try {
@@ -378,7 +378,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentEx01() {
+	void testagentEx01() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -408,7 +408,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testagentEx02() {
+	void testagentEx02() {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -434,7 +434,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSelectWithinTransaction() {
+	void testSelectWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -446,7 +446,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSelectWithinNewTransaction() {
+	void testSelectWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -458,7 +458,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSelectWithinNotSupportedTransaction() {
+	void testSelectWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -470,7 +470,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testSelectWithoutTransaction() {
+	void testSelectWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -480,7 +480,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertWithinTransaction() {
+	void testInsertWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -510,7 +510,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertWithinNewTransaction() {
+	void testInsertWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -540,18 +540,18 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertWithinNotSupportedTransaction() {
+	void testInsertWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
 			agent.notSupported(() -> {
 				try {
 					ins(agent, 1, "ABC");
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
@@ -559,11 +559,11 @@ public class LocalTxManagerTest {
 					emp.setId(2);
 					emp.setName("DEF");
 					agent.insert(emp);
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
@@ -577,46 +577,46 @@ public class LocalTxManagerTest {
 							.errorWhen((agt, ctx, ex) -> {
 								throw (UroborosqlTransactionException) ex;
 							}).count();
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testInsertWithoutTransaction() {
+	void testInsertWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
 			try {
 				ins(agent, 1, "ABC");
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
@@ -624,11 +624,11 @@ public class LocalTxManagerTest {
 				emp.setId(2);
 				emp.setName("DEF");
 				agent.insert(emp);
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
@@ -642,35 +642,35 @@ public class LocalTxManagerTest {
 						.errorWhen((agt, ctx, ex) -> {
 							throw (UroborosqlTransactionException) ex;
 						}).count();
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BATCH);
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.inserts(IntStream.range(1, 10).mapToObj(i -> new Emp(i, "name" + i)), InsertsType.BULK);
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 		}
 	}
 
 	@Test
-	public void testUpdateWithinTransaction() {
+	void testUpdateWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -685,7 +685,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testUpdateWithinNewTransaction() {
+	void testUpdateWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -702,7 +702,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testUpdateWithinNotSupportedTransaction() {
+	void testUpdateWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -713,27 +713,27 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					upd(agent, 1, "abc");
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.update(new Emp(2, "def"));
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testUpdateWithoutTransaction() {
+	void testUpdateWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -743,26 +743,26 @@ public class LocalTxManagerTest {
 
 			try {
 				upd(agent, 1, "abc");
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.update(new Emp(2, "def"));
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 		}
 	}
 
 	@Test
-	public void testDeleteWithinTransaction() {
+	void testDeleteWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -779,7 +779,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testDeleteWithinNewTransaction() {
+	void testDeleteWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -798,7 +798,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testDeleteWithinNotSupportedTransaction() {
+	void testDeleteWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -809,45 +809,45 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					del(agent, 1);
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.delete(new Emp(2));
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.delete(Emp.class, 3);
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 
 				try {
 					agent.delete(Emp.class).equal("name", "name4").count();
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (Throwable th) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testDeleteWithoutTransaction() {
+	void testDeleteWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -857,44 +857,44 @@ public class LocalTxManagerTest {
 
 			try {
 				del(agent, 1);
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.delete(new Emp(2));
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.delete(Emp.class, 3);
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 
 			try {
 				agent.delete(Emp.class).equal("name", "name4").count();
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (Throwable th) {
-				Assert.fail();
+				Assertions.fail();
 			}
 		}
 	}
 
 	@Test
-	public void testCallStoredFunctionWithinTransaction() {
+	void testCallStoredFunctionWithinTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -911,14 +911,14 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testCallStoredFunctionWithinNewTransaction() {
+	void testCallStoredFunctionWithinNewTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -937,14 +937,14 @@ public class LocalTxManagerTest {
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testCallStoredFunctionWithinNotSupportedTransaction() {
+	void testCallStoredFunctionWithinNotSupportedTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -961,18 +961,18 @@ public class LocalTxManagerTest {
 				try {
 					agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-					Assert.fail();
+					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
 				} catch (SQLException ex) {
-					Assert.fail();
+					Assertions.fail();
 				}
 			});
 		}
 	}
 
 	@Test
-	public void testCallStoredFunctionWithoutTransaction() {
+	void testCallStoredFunctionWithoutTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -988,17 +988,17 @@ public class LocalTxManagerTest {
 			try {
 				agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
 						.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
-				Assert.fail();
+				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK
 			} catch (SQLException ex) {
-				Assert.fail();
+				Assertions.fail();
 			}
 		}
 	}
 
 	@Test
-	public void testInsertRunnableWithinAutoCommit() {
+	void testInsertRunnableWithinAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -1024,7 +1024,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertRunnableWithinAutoCommitNoTransaction() {
+	void testInsertRunnableWithinAutoCommitNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -1048,7 +1048,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertSupplierWithinAutoCommit() {
+	void testInsertSupplierWithinAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -1069,7 +1069,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testInsertSupplierWithinAutoCommitNoTransaction() {
+	void testInsertSupplierWithinAutoCommitNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -1090,7 +1090,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testUpdateSupplierWithinAutoCommitThrowException() {
+	void testUpdateSupplierWithinAutoCommitThrowException() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {
@@ -1116,7 +1116,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testUpdateSupplierWithinAutoCommitBeforeAutoCommit() {
+	void testUpdateSupplierWithinAutoCommitBeforeAutoCommit() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent(ConnectionContextBuilder
@@ -1143,7 +1143,7 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
-	public void testUpdateRunnableWithinAutoCommitThrowExceptionNoTransaction() {
+	void testUpdateRunnableWithinAutoCommitThrowExceptionNoTransaction() {
 		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
 
 		try (var agent = config.agent()) {

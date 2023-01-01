@@ -59,7 +59,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			}
 			if (LOG.isInfoEnabled()) {
 				var builder = displayResult(resultSet);
-				LOG.info(builder.toString());
+				LOG.info("{}", builder);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

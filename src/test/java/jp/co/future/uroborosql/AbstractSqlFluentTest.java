@@ -3,9 +3,9 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -13,10 +13,10 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.fluent.SqlQuery;
@@ -26,21 +26,21 @@ import jp.co.future.uroborosql.parameter.StreamParameter;
 public class AbstractSqlFluentTest {
 	private static SqlConfig config = null;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() {
 		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextImplTest", "sa", "").build();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testHasParam() throws Exception {
+	void testHasParam() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
@@ -51,7 +51,7 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testIfAbsent() throws Exception {
+	void testIfAbsent() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
@@ -111,7 +111,7 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testSqlId() throws Exception {
+	void testSqlId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.update("setup/insert_product").count();
@@ -125,7 +125,7 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testParamWithSupplier() throws Exception {
+	void testParamWithSupplier() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");

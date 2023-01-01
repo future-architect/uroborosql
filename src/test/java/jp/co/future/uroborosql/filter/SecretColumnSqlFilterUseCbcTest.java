@@ -3,8 +3,8 @@ package jp.co.future.uroborosql.filter;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -48,7 +48,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	private AbstractSecretColumnSqlFilter filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
 		sqlFilterManager = config.getSqlFilterManager();
@@ -139,7 +139,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testFilterSettings() {
+	void testFilterSettings() {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/CBC/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
@@ -148,7 +148,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
@@ -194,7 +194,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet01() throws Exception {
+	void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -214,7 +214,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet02() throws Exception {
+	void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -231,7 +231,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet03() throws Exception {
+	void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -268,8 +268,8 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	@Ignore
-	public void testSecretResultSetPerformance01() throws Exception {
+	@Disabled
+	void testSecretResultSetPerformance01() throws Exception {
 		for (var i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");
 			try (var agent = config.agent()) {

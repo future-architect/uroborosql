@@ -1,10 +1,10 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +26,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
 import jp.co.future.uroborosql.connection.DataSourceConnectionContext;
@@ -64,7 +64,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithConnection() throws Exception {
+	void builderWithConnection() throws Exception {
 		var config = UroboroSQL
 				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName())).build();
 		try (var agent = config.agent()) {
@@ -82,7 +82,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetConnectionSupplier() throws Exception {
+	void builderSetConnectionSupplier() throws Exception {
 		var config = UroboroSQL
 				.builder()
 				.setConnectionSupplier(
@@ -104,7 +104,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetUrl() throws Exception {
+	void builderSetUrl() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "").build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -121,7 +121,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetUrlWithSchema() throws Exception {
+	void builderSetUrlWithSchema() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null).build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -138,7 +138,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetUrlMultiConnection() throws Exception {
+	void builderSetUrlMultiConnection() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null).build();
 
 		var checkSql = "select table_name from information_schema.tables where table_name = 'PRODUCT'";
@@ -162,7 +162,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderSetSqlResourceManager() throws Exception {
+	void builderSetSqlResourceManager() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
 				.setSqlResourceManager(new SqlResourceManagerImpl(false)).build();
 		try (var agent = config.agent()) {
@@ -182,7 +182,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithDataSource() throws Exception {
+	void builderWithDataSource() throws Exception {
 		var ds = new JdbcDataSource();
 		ds.setURL("jdbc:h2:mem:" + this.getClass().getSimpleName());
 
@@ -204,7 +204,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithMultiDataSource() throws Exception {
+	void builderWithMultiDataSource() throws Exception {
 		System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "jp.co.future.uroborosql.connection.LocalContextFactory");
 		System.setProperty(Context.URL_PKG_PREFIXES, "local");
 
@@ -273,7 +273,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithSqlAgentFactory() throws Exception {
+	void builderWithSqlAgentFactory() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
 				.setSqlAgentProvider(new SqlAgentProviderImpl().setDefaultMapKeyCaseFormat(CaseFormat.CAMEL_CASE))
 				.build();
@@ -290,15 +290,15 @@ public class UroboroSQLTest {
 
 			agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 					.stream().forEach(m -> {
-						assertTrue(m.containsKey("productId"));
-						assertTrue(m.containsKey("productName"));
-						assertTrue(m.containsKey("productKanaName"));
-						assertTrue(m.containsKey("janCode"));
-						assertTrue(m.containsKey("productDescription"));
-						assertTrue(m.containsKey("insDatetime"));
-						assertTrue(m.containsKey("updDatetime"));
-						assertTrue(m.containsKey("versionNo"));
-					});
+				assertTrue(m.containsKey("productId"));
+				assertTrue(m.containsKey("productName"));
+				assertTrue(m.containsKey("productKanaName"));
+				assertTrue(m.containsKey("janCode"));
+				assertTrue(m.containsKey("productDescription"));
+				assertTrue(m.containsKey("insDatetime"));
+				assertTrue(m.containsKey("updDatetime"));
+				assertTrue(m.containsKey("versionNo"));
+			});
 
 			agent.rollback();
 		}
@@ -307,7 +307,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderWithClock() throws Exception {
+	void builderWithClock() throws Exception {
 		var zoneId = ZoneId.of("Asia/Singapore");
 		var clock = Clock.system(zoneId);
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
@@ -318,7 +318,7 @@ public class UroboroSQLTest {
 	}
 
 	@Test
-	public void builderConnectionSupplierNull() throws Exception {
+	void builderConnectionSupplierNull() throws Exception {
 		try {
 			UroboroSQL.builder().build();
 		} catch (IllegalStateException ex) {
