@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
 
 /**
@@ -32,7 +32,6 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
@@ -63,7 +62,6 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
@@ -93,7 +91,6 @@ public class SqlAgentSqlIdTest {
 	 *
 	 * @throws SQLException SQL実行エラー
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
