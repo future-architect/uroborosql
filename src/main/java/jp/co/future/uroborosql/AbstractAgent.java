@@ -104,7 +104,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	protected int fetchSize = -1;
 
 	/** SQL実行エラー時にリトライするエラーコードのリスト */
-	protected List<String> sqlRetryCodes = Collections.emptyList();
+	protected List<String> sqlRetryCodes = List.of();
 
 	/** SQL実行エラー時の最大リトライ回数 */
 	protected int maxRetryCount = 0;
@@ -718,13 +718,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		var firstEntity = iterator.next();
-
-		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
-		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
-		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
-
 		@SuppressWarnings("unchecked")
 		var type = (Class<E>) firstEntity.getClass();
+
+		var stream = Stream.concat(Stream.of(firstEntity),
+				StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false));
 
 		return inserts(type, stream, condition, insertsType);
 	}
@@ -770,7 +768,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	public <E> Stream<E> insertsAndReturn(final Class<E> entityType, final Stream<E> entities,
 			final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
-		List<E> insertedEntities = new ArrayList<>();
+		var insertedEntities = new ArrayList<E>();
 		if (insertsType == InsertsType.BULK && sqlConfig.getDialect().supportsBulkInsert()) {
 			bulkInsert(entityType, entities, condition, insertedEntities);
 		} else {
@@ -826,17 +824,15 @@ public abstract class AbstractAgent implements SqlAgent {
 			final InsertsType insertsType) {
 		var iterator = entities.iterator();
 		if (!iterator.hasNext()) {
-			return new ArrayList<E>().stream();
+			return Stream.empty();
 		}
 
 		var firstEntity = iterator.next();
-
-		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
-		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
-		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
-
 		@SuppressWarnings("unchecked")
 		var type = (Class<E>) firstEntity.getClass();
+
+		Stream<E> stream = Stream.concat(Stream.of(firstEntity),
+				StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false));
 
 		return insertsAndReturn(type, stream, condition, insertsType);
 	}
@@ -893,7 +889,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public <E> Stream<E> updatesAndReturn(final Class<E> entityType, final Stream<E> entities,
 			final UpdatesCondition<? super E> condition) {
-		List<E> updatedEntities = new ArrayList<>();
+		var updatedEntities = new ArrayList<E>();
 		batchUpdate(entityType, entities, condition, updatedEntities);
 		return updatedEntities.stream();
 	}
@@ -931,13 +927,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		var firstEntity = iterator.next();
-
-		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
-		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
-		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
-
 		@SuppressWarnings("unchecked")
 		var type = (Class<E>) firstEntity.getClass();
+
+		Stream<E> stream = Stream.concat(Stream.of(firstEntity),
+				StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false));
 
 		return updates(type, stream, condition);
 	}
@@ -955,13 +949,11 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		var firstEntity = iterator.next();
-
-		Spliterator<E> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);
-		Stream<E> otherStream = StreamSupport.stream(spliterator, false);
-		Stream<E> stream = Stream.concat(Stream.of(firstEntity), otherStream);
-
 		@SuppressWarnings("unchecked")
 		var type = (Class<E>) firstEntity.getClass();
+
+		Stream<E> stream = Stream.concat(Stream.of(firstEntity),
+				StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false));
 
 		return updatesAndReturn(type, stream, condition);
 	}

@@ -325,7 +325,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final SqlConfig sqlConfig, final boolean addCondition) {
 		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
-		final var sql = new StringBuilder(
+		var sql = new StringBuilder(
 				buildSelectClause(metadata, type, sqlConfig.getSqlAgentProvider().getSqlIdKeyName()));
 
 		if (addCondition) {
@@ -333,8 +333,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("WHERE").append(System.lineSeparator());
 
 			for (final TableMetadata.Column col : columns) {
-				final var camelColName = col.getCamelColumnName();
-				final var parts = new StringBuilder().append("\t").append("AND ")
+				var camelColName = col.getCamelColumnName();
+				var parts = new StringBuilder().append("\t").append("AND ")
 						.append(col.getColumnIdentifier())
 						.append(" = ").append("/*").append(camelColName).append("*/''").append(System.lineSeparator());
 				wrapIfComment(sql, parts, col);
@@ -374,7 +374,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final String sqlIdKeyName) {
 		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
 
-		final var sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
+		var sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(System.lineSeparator());
 
 		var firstFlag = true;
@@ -489,7 +489,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		}
 
 		var firstFlag = true;
-		for (TableMetadata.Column col : metadata.getColumns()) {
+		for (var col : metadata.getColumns()) {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
 			var autoIncrementColumn = mappingColumn != null && mappingColumn.isId() || col.isAutoincrement();
 
@@ -541,11 +541,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 		if (addCondition) {
 			sql.append("WHERE").append(System.lineSeparator());
-			final var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
+			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
 					: Arrays.asList(metadata.getColumns().get(0));
 			firstFlag = true;
 			for (final TableMetadata.Column col : cols) {
-				final var parts = new StringBuilder().append("\t");
+				var parts = new StringBuilder().append("\t");
 				if (firstFlag) {
 					if (col.isNullable()) {
 						parts.append("AND ");
@@ -565,7 +565,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 					sql.append(parts);
 				}
 			}
-			final var first = firstFlag;
+			var first = firstFlag;
 			if (versionColumnName != null) {
 				var col = metadata.getColumn(versionColumnName);
 				sql.append("\t");
@@ -602,7 +602,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
 					: Arrays.asList(metadata.getColumns().get(0));
-			for (TableMetadata.Column col : cols) {
+			for (var col : cols) {
 				var parts = new StringBuilder().append("\t");
 				if (firstFlag) {
 					if (col.isNullable()) {
@@ -644,7 +644,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				.append(" INTO ").append(metadata.getTableIdentifier()).append(" (").append(System.lineSeparator());
 
 		var firstFlag = true;
-		for (TableMetadata.Column col : metadata.getColumns()) {
+		for (var col : metadata.getColumns()) {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
 			if (!mappingColumns.isEmpty() && mappingColumn == null) {
 				// Transient annotation のついているカラムをスキップ
@@ -699,7 +699,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Function<TableMetadata.Column, String> getParamName) {
 		var sql = new StringBuilder("(").append(System.lineSeparator());
 		var firstFlag = true;
-		for (TableMetadata.Column col : metadata.getColumns()) {
+		for (var col : metadata.getColumns()) {
 			var mappingColumn = mappingColumns.get(col.getCamelColumnName());
 
 			if (!mappingColumns.isEmpty() && mappingColumn == null) {
@@ -801,11 +801,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Function<MappingColumn, String> getParamName) {
 		List<String> generatedKeyColumns = new ArrayList<>();
 		if (context.getGeneratedKeyColumns() != null) {
-			for (String keyColumn : context.getGeneratedKeyColumns()) {
+			for (var keyColumn : context.getGeneratedKeyColumns()) {
 				generatedKeyColumns.add(CaseFormat.CAMEL_CASE.convert(keyColumn));
 			}
 		}
-		for (MappingColumn column : MappingUtils.getMappingColumns(context.getSchema(), entity.getClass(), kind)) {
+		for (var column : MappingUtils.getMappingColumns(context.getSchema(), entity.getClass(), kind)) {
 			if (SqlKind.INSERT.equals(kind) && generatedKeyColumns.contains(column.getCamelName())) {
 				continue;
 			}

@@ -81,7 +81,7 @@ class SqlCoverageReport {
 	 */
 	void accept(final PassedRoute passRoute) {
 		//各行の通過情報を集計
-		for (LineRange range : lineRanges) {
+		for (var range : lineRanges) {
 			if (passRoute.isHit(range)) {
 				hitLines[range.getLineIndex()]++;
 			}
@@ -92,7 +92,7 @@ class SqlCoverageReport {
 			branch.add(state);
 		});
 
-		//各通過情報を集計
+		//各通過情報を集計v
 		passRanges.addAll(passRoute.getHitRanges());
 
 		updated = true;

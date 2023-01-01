@@ -113,7 +113,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 */
 	@Override
 	public int count() {
-		try (Stream<?> paramStream = stream) {
+		try (var paramStream = stream) {
 			int count = paramStream.map(r -> {
 				var m = toMap(r);
 				paramMap(m);

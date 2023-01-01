@@ -23,7 +23,6 @@ import jp.co.future.uroborosql.node.ElseNode;
 import jp.co.future.uroborosql.node.ExpressionNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
-import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -64,14 +63,14 @@ public class ParseCommand extends ReplCommand {
 				writer.println("");
 				writer.println("SQL :");
 				var sqlLines = sql.split("\\r\\n|\\r|\\n");
-				for (String sqlLine : sqlLines) {
+				for (var sqlLine : sqlLines) {
 					writer.println(sqlLine);
 				}
 
 				// IF分岐の出力
 				writer.println("");
 				writer.println("BRANCHES :");
-				SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				var parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 						sqlConfig.getDialect().isRemoveTerminator(), true);
 				var transformer = parser.parse();
 				var rootNode = transformer.getRoot();

@@ -135,7 +135,7 @@ public class SqlREPL {
 		props = loadProps(path);
 
 		// ReplCommandの読み込み
-		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+		for (var command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
 	}

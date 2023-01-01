@@ -248,7 +248,7 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 				return null;
 			}
 			var buff = str;
-			for (String escChar : ESC_CHARS) {
+			for (var escChar : ESC_CHARS) {
 				var parts = escChar.split(":");
 				buff = buff.replaceAll(parts[0], parts[1]);
 			}

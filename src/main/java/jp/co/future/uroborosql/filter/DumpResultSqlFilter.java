@@ -90,7 +90,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			while (rs.next()) {
 				Map<String, Object> data = new HashMap<>();
 
-				for (String key : keys) {
+				for (var key : keys) {
 					var val = rs.getObject(key);
 					data.put(key, val);
 
@@ -103,15 +103,15 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			var builder = new StringBuilder(System.lineSeparator());
 			// ヘッダ部出力
 			builder.append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 			builder.append(System.lineSeparator()).append("|");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(fillHeader(key, maxLengthList.get(key))).append("|");
 			}
 			builder.append(System.lineSeparator()).append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
@@ -120,7 +120,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			if (rows.isEmpty()) {
 				builder.append(System.lineSeparator()).append("|");
 				var len = 1;
-				for (String key : keys) {
+				for (var key : keys) {
 					len = len + maxLengthList.get(key) + 1;
 				}
 
@@ -130,16 +130,16 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 					builder.append("-").append(StringUtils.repeat(' ', len - 3)).append("|");
 				}
 			} else {
-				for (Map<String, Object> row : rows) {
+				for (var row : rows) {
 					builder.append(System.lineSeparator()).append("|");
-					for (String key : keys) {
+					for (var key : keys) {
 						builder.append(fillData(row.get(key), maxLengthList.get(key))).append("|");
 					}
 				}
 
 			}
 			builder.append(System.lineSeparator()).append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 

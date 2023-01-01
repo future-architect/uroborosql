@@ -50,7 +50,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -65,7 +65,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 	private void setRetryFilter(final int retryCount, final int errorCode) {
 		var filters = config.getSqlFilterManager().getFilters();
-		for (SqlFilter filter : filters) {
+		for (var filter : filters) {
 			if (filter instanceof RetrySqlFilter) {
 				((RetrySqlFilter) filter).initialize(retryCount, errorCode);
 				break;

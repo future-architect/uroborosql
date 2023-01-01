@@ -125,7 +125,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 
 				var ctx = getEvaluationContext(context);
 				var state = new ExpressionState(ctx);
-				for (PropertyOrFieldReference prop : props) {
+				for (var prop : props) {
 					var propName = prop.getName();
 					if (!StringFunction.SHORT_NAME.equals(propName)) {
 						try {
@@ -155,7 +155,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			var root = spel.getAST();
 			Set<PropertyOrFieldReference> props = new LinkedHashSet<>();
 			traverseNode(root, props);
-			for (PropertyOrFieldReference prop : props) {
+			for (var prop : props) {
 				var propName = prop.getName();
 				if (!StringFunction.SHORT_NAME.equals(propName)) {
 					params.add(prop.getName());

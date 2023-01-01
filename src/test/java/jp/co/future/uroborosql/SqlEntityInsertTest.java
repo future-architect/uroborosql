@@ -5,15 +5,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.enums.InsertsType;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.enums.InsertsType;
 
 public class SqlEntityInsertTest extends AbstractDbTest {
 
@@ -99,7 +98,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 
 		agent.setDefaultInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
-			List<Product> emptyList = Collections.emptyList();
+			List<Product> emptyList = List.of();
 			assertThat(agent.inserts(emptyList.stream()), is(0));
 		});
 
@@ -108,7 +107,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 
 		agent.setDefaultInsertsType(InsertsType.BULK);
 		agent.required(() -> {
-			List<Product> emptyList = Collections.emptyList();
+			List<Product> emptyList = List.of();
 			assertThat(agent.inserts(emptyList.stream()), is(0));
 		});
 	}
@@ -347,7 +346,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 
 		agent.setDefaultInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
-			List<Product> emptyList = Collections.emptyList();
+			List<Product> emptyList = List.of();
 			assertThat(agent.insertsAndReturn(emptyList.stream()).collect(Collectors.toList()).size(), is(0));
 		});
 
@@ -356,7 +355,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 
 		agent.setDefaultInsertsType(InsertsType.BULK);
 		agent.required(() -> {
-			List<Product> emptyList = Collections.emptyList();
+			List<Product> emptyList = List.of();
 			assertThat(agent.insertsAndReturn(emptyList.stream()).collect(Collectors.toList()).size(), is(0));
 		});
 	}

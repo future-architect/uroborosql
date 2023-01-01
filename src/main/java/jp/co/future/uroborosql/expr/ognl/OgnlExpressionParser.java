@@ -102,7 +102,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 			if (expression != null) {
 				Set<ASTProperty> props = new LinkedHashSet<>();
 				traverseNode((Node) expression, props);
-				for (ASTProperty prop : props) {
+				for (var prop : props) {
 					var propName = prop.toString();
 					if (!StringFunction.SHORT_NAME.equals(propName)) {
 						try {
@@ -130,7 +130,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 		public void collectParams(final Set<String> params) {
 			Set<ASTProperty> props = new LinkedHashSet<>();
 			traverseNode((Node) expression, props);
-			for (ASTProperty prop : props) {
+			for (var prop : props) {
 				var propName = prop.toString();
 				if (!StringFunction.SHORT_NAME.equals(propName)) {
 					params.add(propName);

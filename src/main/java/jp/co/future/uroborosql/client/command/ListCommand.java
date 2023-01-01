@@ -50,7 +50,7 @@ public class ListCommand extends ReplCommand {
 		} else {
 			pathList = sqlConfig.getSqlResourceManager().getSqlPathList();
 		}
-		for (String key : pathList) {
+		for (var key : pathList) {
 			writer.println(key);
 		}
 		writer.flush();

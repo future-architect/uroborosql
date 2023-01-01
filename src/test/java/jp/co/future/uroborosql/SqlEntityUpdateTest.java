@@ -218,7 +218,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			// 事前条件
 			truncateTable("PRODUCT");
 
-			final var boxSize = row + 1;
+			var boxSize = row + 1;
 
 			agent.required(() -> {
 				var now = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());

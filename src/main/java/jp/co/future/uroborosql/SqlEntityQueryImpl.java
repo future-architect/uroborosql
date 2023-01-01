@@ -8,7 +8,6 @@ package jp.co.future.uroborosql;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,6 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
-import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -133,7 +131,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			var selectClause = context().getSql();
 			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
 				// 除外対象カラムを取得する
-				List<? extends TableMetadata.Column> excludeCols = Collections.emptyList();
+				List<? extends TableMetadata.Column> excludeCols = List.of();
 				if (!includeColumns.isEmpty()) {
 					excludeCols = tableMetadata.getColumns().stream()
 							.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
@@ -226,7 +224,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public long count(final String col) {
-		final var expr = col != null
+		var expr = col != null
 				? tableMetadata.getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
 				: "*";
 		var sql = new StringBuilder("select count(").append(expr).append(") from (")
@@ -388,14 +386,14 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (this.sortOrders.isEmpty()) {
 			// ソート条件の指定がない場合は主キーでソートする
 			keys = (List<TableMetadata.Column>) this.tableMetadata.getKeyColumns();
-			for (Column key : keys) {
+			for (var key : keys) {
 				existsSortOrders.put(key, new SortOrder(key.getCamelColumnName(), Order.ASCENDING));
 			}
 		} else {
 			// ソート条件の指定がある場合は指定されたカラムでソートする
 			keys = new ArrayList<>();
-			for (SortOrder sortOrder : sortOrders) {
-				for (TableMetadata.Column metaCol : this.tableMetadata.getColumns()) {
+			for (var sortOrder : sortOrders) {
+				for (var metaCol : this.tableMetadata.getColumns()) {
 					if (sortOrder.getCol().equals(metaCol.getCamelColumnName())) {
 						keys.add(metaCol);
 						existsSortOrders.put(metaCol, sortOrder);
@@ -437,7 +435,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> asc(final String... cols) {
-		for (String col : cols) {
+		for (var col : cols) {
 			this.sortOrders.add(new SortOrder(col, Order.ASCENDING));
 		}
 		return this;
@@ -461,7 +459,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> desc(final String... cols) {
-		for (String col : cols) {
+		for (var col : cols) {
 			this.sortOrders.add(new SortOrder(col, Order.DESCENDING));
 		}
 		return this;
@@ -604,7 +602,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public SqlEntityQuery<E> includeColumns(final String... cols) {
 		if (cols != null && cols.length != 0) {
-			for (String col : cols) {
+			for (var col : cols) {
 				includeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
 			}
 		}
@@ -619,7 +617,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public SqlEntityQuery<E> excludeColumns(final String... cols) {
 		if (cols != null && cols.length != 0) {
-			for (String col : cols) {
+			for (var col : cols) {
 				excludeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
 			}
 		}

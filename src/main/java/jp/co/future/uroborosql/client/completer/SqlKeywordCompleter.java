@@ -76,7 +76,7 @@ public class SqlKeywordCompleter extends AbstractCompleter {
 			return;
 		}
 
-		final var keyword = key;
+		var keyword = key;
 
 		Stream.of(SqlKeyword.values()).filter(k -> k.match(keyword))
 				.forEach(k -> candidates.add(new Candidate(k.toString().toLowerCase())));

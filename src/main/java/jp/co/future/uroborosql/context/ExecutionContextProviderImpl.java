@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.context;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
@@ -155,7 +154,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 					.convert(targetClass.getSimpleName()) + "_" : "";
 			// 指定されたクラス直下の定数フィールドを追加
 			var fields = targetClass.getFields();
-			for (Field field : fields) {
+			for (var field : fields) {
 				var mod = field.getModifiers();
 				if (Modifier.isFinal(mod) && Modifier.isStatic(mod)) {
 					var value = field.get(null);
@@ -175,7 +174,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 
 			// 内部クラスを持つ場合
 			var memberClasses = targetClass.getDeclaredClasses();
-			for (Class<?> memberClass : memberClasses) {
+			for (var memberClass : memberClasses) {
 				var mod = memberClass.getModifiers();
 				if (Modifier.isFinal(mod) && Modifier.isPublic(mod)) {
 					makeConstParamMap(paramMap, memberClass);
@@ -202,7 +201,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 
 		Enum<?>[] enumValues = targetClass.getEnumConstants();
 
-		for (Enum<?> value : enumValues) {
+		for (var value : enumValues) {
 			var fieldName = getConstParamPrefix() + fieldPrefix + value.name().toUpperCase();
 			fieldName = fieldName.toUpperCase();
 			var newValue = new Parameter(fieldName, value);
@@ -370,7 +369,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 */
 	private Map<? extends String, ? extends Parameter> buildConstParamMap() {
 		Map<String, Parameter> paramMap = new HashMap<>();
-		for (String className : constantClassNames) {
+		for (var className : constantClassNames) {
 			if (StringUtils.isNotBlank(className)) {
 				try {
 					Class<?> targetClass = Class.forName(className, true, Thread.currentThread()
@@ -391,9 +390,9 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 */
 	private Map<? extends String, ? extends Parameter> buildEnumConstParamMap() {
 		Map<String, Parameter> paramMap = new HashMap<>();
-		for (String packageName : enumConstantPackageNames) {
+		for (var packageName : enumConstantPackageNames) {
 			if (StringUtils.isNotBlank(packageName)) {
-				for (Class<? extends Enum<?>> targetClass : listupEnumClasses(packageName)) {
+				for (var targetClass : listupEnumClasses(packageName)) {
 					makeEnumConstParamMap(paramMap, packageName, targetClass);
 				}
 			}
@@ -416,11 +415,11 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			roots = Collections.list(classLoader.getResources(resourceName));
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
-			return Collections.emptySet();
+			return Set.of();
 		}
 
 		Set<Class<?>> classes = new HashSet<>();
-		for (URL root : roots) {
+		for (var root : roots) {
 			if ("file".equalsIgnoreCase(root.getProtocol())) {
 				try {
 					classes.addAll(findEnumClassesWithFile(packageName, Paths.get(root.toURI())));

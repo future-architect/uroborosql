@@ -52,7 +52,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 			throw new ParameterNotFoundRuntimeException("Parameter is not set. [" + expression + "]");
 		} else if (var instanceof Iterable) {
 			List<Object> list = new ArrayList<>();
-			for (Object v : (Iterable<?>) var) {
+			for (var v : (Iterable<?>) var) {
 				list.add(v);
 			}
 			bindArray(transformContext, list.toArray());

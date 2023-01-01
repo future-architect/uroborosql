@@ -31,14 +31,14 @@ public class SqlAgentPessimisticLockTest {
 		try (var agent = config.agent()) {
 			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String ddl : ddls) {
+			for (var ddl : ddls) {
 				if (StringUtils.isNotBlank(ddl)) {
 					agent.updateWith(ddl.trim()).count();
 				}
 			}
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}

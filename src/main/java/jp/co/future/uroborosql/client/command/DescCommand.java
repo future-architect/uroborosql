@@ -59,14 +59,14 @@ public class DescCommand extends ReplCommand {
 
 			List<Map<String, String>> columns = new ArrayList<>();
 			Map<String, Integer> labelLength = new HashMap<>();
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				labelLength.put(label, label.length());
 			}
 			try (var rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
 				while (rs.next()) {
 					Map<String, String> column = new HashMap<>();
-					for (String label : DESC_COLUMN_LABELS) {
-						final var value = Objects.toString(rs.getString(label), "");
+					for (var label : DESC_COLUMN_LABELS) {
+						var value = Objects.toString(rs.getString(label), "");
 						column.put(label, value);
 						labelLength.compute(
 								label,
@@ -79,13 +79,13 @@ public class DescCommand extends ReplCommand {
 
 			// ラベル
 			writer.print("-");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();
 			writer.print("|");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad(label, labelLength.get(label)));
 				writer.print("|");
 			}
@@ -93,14 +93,14 @@ public class DescCommand extends ReplCommand {
 			// カラムデータ
 			String tableName = null;
 			var breakFlag = false;
-			for (Map<String, String> column : columns) {
+			for (var column : columns) {
 				if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
 					tableName = column.get("TABLE_NAME");
 					breakFlag = true;
 				}
 				if (breakFlag) {
 					writer.print("-");
-					for (String label : DESC_COLUMN_LABELS) {
+					for (var label : DESC_COLUMN_LABELS) {
 						writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 						writer.print("-");
 					}
@@ -109,7 +109,7 @@ public class DescCommand extends ReplCommand {
 				}
 
 				writer.print("|");
-				for (String label : DESC_COLUMN_LABELS) {
+				for (var label : DESC_COLUMN_LABELS) {
 					var val = column.get(label);
 					if (StringUtils.isNumeric(val)) {
 						writer.print(StringUtils.leftPad(val, labelLength.get(label)));
@@ -121,7 +121,7 @@ public class DescCommand extends ReplCommand {
 				writer.println();
 			}
 			writer.print("-");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}

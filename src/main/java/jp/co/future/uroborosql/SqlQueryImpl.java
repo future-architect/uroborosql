@@ -101,7 +101,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Optional<T> findFirst(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
+		try (var stream = stream(type)) {
 			return stream.findFirst();
 		}
 	}
@@ -159,7 +159,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 
 	@Override
 	public <T> Optional<T> findOne(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
+		try (var stream = stream(type)) {
 			List<T> resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
@@ -213,7 +213,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> List<T> collect(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
+		try (var stream = stream(type)) {
 			return stream.collect(Collectors.toList());
 		}
 	}

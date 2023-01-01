@@ -169,7 +169,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		 */
 		private void accept(final PassedRoute passRoute) {
 			//各行の通過情報を集計
-			for (LineRange range : lineRanges) {
+			for (var range : lineRanges) {
 				if (passRoute.isHit(range)) {
 					hitLines[range.getLineIndex()]++;
 				}
@@ -182,7 +182,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		}
 
 		private int toRow(final Range target) {
-			for (LineRange range : lineRanges) {
+			for (var range : lineRanges) {
 				if (range.hasIntersection(target)) {
 					return range.getLineIndex();
 				}
@@ -363,7 +363,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	private CoverageSummaryTotal renderPackages(final Document document, final Element packages,
 			final List<PackageSummary> packageNodes) {
 		var allTotal = new CoverageSummaryTotal();
-		for (PackageSummary packageNode : packageNodes) {
+		for (var packageNode : packageNodes) {
 
 			var total = new CoverageSummaryTotal();
 			var packageElm = document.createElement("package");
@@ -373,7 +373,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			var classes = document.createElement("classes");
 			packageElm.appendChild(classes);
 
-			for (SqlCoverage coverageInfo : packageNode.coverageInfos) {
+			for (var coverageInfo : packageNode.coverageInfos) {
 				//class内のrenderとカバレッジ集計
 				total.add(renderClass(document, classes, coverageInfo));
 			}
@@ -403,7 +403,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		classElm.appendChild(lines);
 
 		total.line.valid = coverageInfo.lineRanges.size();
-		for (LineRange range : coverageInfo.lineRanges) {
+		for (var range : coverageInfo.lineRanges) {
 			var no = range.getLineIndex() + 1;
 			var hit = coverageInfo.hitLines[range.getLineIndex()];
 			if (hit > 0) {

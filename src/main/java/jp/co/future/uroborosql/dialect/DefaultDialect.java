@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.dialect;
 
-import java.util.Collections;
 import java.util.Set;
 
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -81,6 +80,6 @@ public class DefaultDialect extends AbstractDialect {
 	 */
 	@Override
 	public Set<String> getPessimisticLockingErrorCodes() {
-		return Collections.emptySet();
+		return Set.of();
 	}
 }

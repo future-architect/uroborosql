@@ -645,7 +645,7 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testSqlId() {
-		final var testSqlId = "TEST_SQL_ID";
+		var testSqlId = "TEST_SQL_ID";
 		var ctx = config.contextWith("select * from test").sqlId(testSqlId);
 		assertThat(ctx.getSqlId(), is(testSqlId));
 	}

@@ -189,7 +189,7 @@ class LocalTransactionContext implements AutoCloseable {
 		var pos = savepointNames.lastIndexOf(savepointName);
 		if (pos > -1) {
 			var subList = savepointNames.subList(pos, savepointNames.size());
-			for (String name : subList) {
+			for (var name : subList) {
 				savepointMap.remove(name);
 			}
 			subList.clear();
@@ -310,7 +310,7 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外
 	 */
 	private void initSavepoints(final Connection connection) {
-		for (String savepointName : savepointNames) {
+		for (var savepointName : savepointNames) {
 			try {
 				savepointMap.put(savepointName, connection.setSavepoint(savepointName));
 			} catch (SQLException e) {

@@ -258,7 +258,7 @@ public final class StringUtils {
 		if (str == null) {
 			return null;
 		}
-		final var pads = size - str.length();
+		var pads = size - str.length();
 		if (pads <= 0) {
 			return str;
 		}
@@ -292,9 +292,9 @@ public final class StringUtils {
 		if (isEmpty(padStr)) {
 			padStr = " ";
 		}
-		final var padLen = padStr.length();
-		final var strLen = str.length();
-		final var pads = size - strLen;
+		var padLen = padStr.length();
+		var strLen = str.length();
+		var pads = size - strLen;
 		if (pads <= 0) {
 			return str;
 		}
@@ -303,8 +303,8 @@ public final class StringUtils {
 		} else if (pads < padLen) {
 			return padStr.substring(0, pads).concat(str);
 		} else {
-			final var padding = new char[pads];
-			final var padChars = padStr.toCharArray();
+			var padding = new char[pads];
+			var padChars = padStr.toCharArray();
 			for (var i = 0; i < pads; i++) {
 				padding[i] = padChars[i % padLen];
 			}
@@ -390,7 +390,7 @@ public final class StringUtils {
 		if (repeat <= 0) {
 			return "";
 		}
-		final var buf = new char[repeat];
+		var buf = new char[repeat];
 		Arrays.fill(buf, ch);
 		return new String(buf);
 	}
@@ -464,7 +464,7 @@ public final class StringUtils {
 		if (str == null) {
 			return null;
 		}
-		final var pads = size - str.length();
+		var pads = size - str.length();
 		if (pads <= 0) {
 			return str;
 		}
@@ -498,9 +498,9 @@ public final class StringUtils {
 		if (isEmpty(padStr)) {
 			padStr = " ";
 		}
-		final var padLen = padStr.length();
-		final var strLen = str.length();
-		final var pads = size - strLen;
+		var padLen = padStr.length();
+		var strLen = str.length();
+		var pads = size - strLen;
 		if (pads <= 0) {
 			return str;
 		}
@@ -509,8 +509,8 @@ public final class StringUtils {
 		} else if (pads < padLen) {
 			return str.concat(padStr.substring(0, pads));
 		} else {
-			final var padding = new char[pads];
-			final var padChars = padStr.toCharArray();
+			var padding = new char[pads];
+			var padChars = padStr.toCharArray();
 			for (var i = 0; i < pads; i++) {
 				padding[i] = padChars[i % padLen];
 			}

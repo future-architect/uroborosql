@@ -126,7 +126,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testInsert() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test1);
@@ -167,7 +167,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testQuery1() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test1);
@@ -192,7 +192,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testUpdate1() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test);
@@ -210,7 +210,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testDelete1() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test = new TestEntity(1L, "lastName1", "firstName1");
 	//				agent.insert(test);
@@ -229,7 +229,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testBatchInsert() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");
@@ -252,7 +252,7 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 	//	@Test
 	//	public void testBulkInsert() throws Exception {
 	//
-	//		try (SqlAgent agent = config.agent()) {
+	//		try (var agent = config.agent()) {
 	//			agent.required(() -> {
 	//				TestEntity test1 = new TestEntity(1L, "lastName1", "firstName1");
 	//				TestEntity test2 = new TestEntity(2L, "lastName2", "firstName2");

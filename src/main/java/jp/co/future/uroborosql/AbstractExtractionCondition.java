@@ -62,8 +62,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	protected String getWhereClause() {
 		var where = new StringBuilder();
-		for (final TableMetadata.Column col : this.tableMetadata.getColumns()) {
-			final var camelColName = col.getCamelColumnName();
+		for (var col : this.tableMetadata.getColumns()) {
+			var camelColName = col.getCamelColumnName();
 
 			if (this.useOperator) {
 				var param = context().getParam(PREFIX + camelColName);
@@ -85,7 +85,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 			}
 		}
 		if (!this.rawStrings.isEmpty()) {
-			for (CharSequence raw : rawStrings) {
+			for (var raw : rawStrings) {
 				if (where.length() > 0) {
 					where.append("\t").append("AND ( ").append(raw).append(" )").append(System.lineSeparator());
 				} else {
@@ -909,7 +909,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		@Override
 		public CharSequence getValue() {
-			CharSequence searchValue = Objects.toString(super.getValue(), "");
+			var searchValue = Objects.toString(super.getValue(), "");
 			if (prefix) {
 				searchValue = "%" + searchValue;
 			}

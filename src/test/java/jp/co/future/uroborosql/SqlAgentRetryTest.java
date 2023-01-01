@@ -15,8 +15,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
@@ -52,7 +52,7 @@ public class SqlAgentRetryTest {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -211,7 +211,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		var errorCode = 50200;
 		// SqlRetryCodeListを空にして、悲観ロック対象エラーコードで判定する
-		config.getSqlAgentProvider().setSqlRetryCodeList(Collections.emptyList());
+		config.getSqlAgentProvider().setSqlRetryCodeList(List.of());
 		config.getSqlFilterManager().addSqlFilter(new RetrySqlFilter(retryCount, errorCode));
 
 		SqlQuery query = null;

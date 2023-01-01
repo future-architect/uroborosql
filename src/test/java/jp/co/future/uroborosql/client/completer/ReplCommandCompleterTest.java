@@ -17,7 +17,7 @@ public class ReplCommandCompleterTest extends ReaderTestSupport {
 	@BeforeAll
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
-		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+		for (var command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
 

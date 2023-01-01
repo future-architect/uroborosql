@@ -71,7 +71,7 @@ public class SqlNameCompleter extends AbstractCompleter {
 				candidates.addAll(sqlNames.stream().map(n -> new Candidate(n, n, null, null, null, null, complete))
 						.collect(Collectors.toList()));
 			} else {
-				for (String match : sqlNames.tailSet(args)) {
+				for (var match : sqlNames.tailSet(args)) {
 					if (!match.startsWith(args)) {
 						break;
 					}

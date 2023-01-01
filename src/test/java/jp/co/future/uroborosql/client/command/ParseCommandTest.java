@@ -53,7 +53,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		assertConsoleOutputContains("SQL :");
 
 		var sqlLine = sqlConfig.getSqlResourceManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
-		for (String line : sqlLine) {
+		for (var line : sqlLine) {
 			assertConsoleOutputContains(line);
 		}
 

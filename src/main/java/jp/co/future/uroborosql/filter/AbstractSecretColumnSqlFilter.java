@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
@@ -100,7 +99,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 		} else {
 			cryptParamKeys = new ArrayList<>();
 			List<String> newColumnNames = new ArrayList<>();
-			for (String columnName : getCryptColumnNames()) {
+			for (var columnName : getCryptColumnNames()) {
 				cryptParamKeys.add(CaseFormat.CAMEL_CASE.convert(columnName));
 				newColumnNames.add(CaseFormat.UPPER_SNAKE_CASE.convert(columnName));
 			}
@@ -140,7 +139,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream is = new BufferedInputStream(Files.newInputStream(storeFile))) {
+			try (var is = new BufferedInputStream(Files.newInputStream(storeFile))) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);

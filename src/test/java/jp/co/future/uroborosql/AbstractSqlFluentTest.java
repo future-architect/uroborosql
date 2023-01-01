@@ -116,7 +116,7 @@ public class AbstractSqlFluentTest {
 			agent.update("ddl/create_tables").count();
 			agent.update("setup/insert_product").count();
 
-			final var sqlId = "SQL_ID_TEST";
+			var sqlId = "SQL_ID_TEST";
 
 			var query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
 			assertThat(query.collect().size(), is(1));

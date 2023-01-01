@@ -204,16 +204,16 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
 		this.loadPaths = new ArrayList<>();
-		for (String loadPath : loadPaths) {
+		for (var loadPath : loadPaths) {
 			if (loadPath == null) {
 				throw new IllegalArgumentException("loadPath is required.");
 			}
 			this.loadPaths.add(Paths.get(loadPath));
 		}
 		this.loadPathPartsList = new ArrayList<>();
-		for (Path loadPath : this.loadPaths) {
+		for (var loadPath : this.loadPaths) {
 			List<String> pathList = new ArrayList<>();
-			for (Path part : loadPath) {
+			for (var part : loadPath) {
 				pathList.add(part.toString());
 			}
 			this.loadPathPartsList.add(pathList.toArray(new String[pathList.size()]));
@@ -284,7 +284,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				break;
 			}
 
-			for (WatchEvent<?> event : key.pollEvents()) {
+			for (var event : key.pollEvents()) {
 				WatchEvent.Kind<?> kind = event.kind();
 
 				if (kind == OVERFLOW) {
@@ -396,7 +396,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	private void generateSqlInfos() {
 		try {
-			for (Path loadPath : this.loadPaths) {
+			for (var loadPath : this.loadPaths) {
 				var loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
 				var root = Thread.currentThread().getContextClassLoader().getResources(loadPathSlash);
 
@@ -471,7 +471,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		var builder = new StringBuilder();
 
 		var dialectFlag = true;
-		for (Path part : relativePath(path)) {
+		for (var part : relativePath(path)) {
 			var s = part.toString();
 			if (dialectFlag) {
 				// loadPathの直下がdialectと一致する場合はその下のフォルダから名前を付ける
@@ -495,11 +495,11 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	private Path relativePath(final Path path) {
 		List<Path> pathList = new ArrayList<>();
-		for (Path part : path) {
+		for (var part : path) {
 			pathList.add(part);
 		}
 
-		for (String[] loadPathParts : this.loadPathPartsList) {
+		for (var loadPathParts : this.loadPathPartsList) {
 			var loadPathSize = loadPathParts.length;
 
 			// loadPathのフォルダの並びと一致する場所を特定し、その下を相対パスとして返却する
@@ -565,7 +565,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						var key = path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 						watchDirs.put(key, path);
 					}
-					for (Path child : ds) {
+					for (var child : ds) {
 						traverseFile(child, watch, remove);
 					}
 				} catch (IOException ex) {
@@ -694,7 +694,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @return Dialect指定Pathの場合<code>true</code>
 		 */
 		private boolean hasDialect(final Path path) {
-			for (Path p : path) {
+			for (var p : path) {
 				if (this.dialect.getDatabaseType().equals(p.toString())) {
 					return true;
 				}
@@ -922,7 +922,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		private String getResourcePath(final Path path) {
 			var pathSize = path.getNameCount();
 
-			for (Path loadPath : this.loadPaths) {
+			for (var loadPath : this.loadPaths) {
 				var loadPathSize = loadPath.getNameCount();
 
 				for (var i = 0; i < pathSize - loadPathSize; i++) {

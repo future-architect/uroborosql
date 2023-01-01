@@ -43,7 +43,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
@@ -77,8 +77,8 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testSingleQueryAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
 		config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
 
@@ -115,8 +115,8 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testSingleUpdateAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
 		config.getExecutionContextProvider().addUpdateAutoParameterBinder(binder);
 
@@ -152,9 +152,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testMultiQueryAutoParameterBinder() {
-		final var colVarchar = "varchar";
-		final var colNumeric = new BigDecimal("10.00");
-		final var colTimestamp = LocalDateTime.now();
+		var colVarchar = "varchar";
+		var colNumeric = new BigDecimal("10.00");
+		var colTimestamp = LocalDateTime.now();
 
 		var factory = config.getExecutionContextProvider();
 
@@ -231,8 +231,8 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testMultiUpdateAutoParameterBinder() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
 		var factory = config.getExecutionContextProvider();
 
@@ -270,8 +270,8 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testMultiUpdateAutoParameterBinderIfAbsent() {
-		final var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
-		final var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
+		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
+		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
 		var factory = config.getExecutionContextProvider();
 
@@ -311,7 +311,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testQueryAutoBindIfCase() {
 		var factory = config.getExecutionContextProvider();
 
-		final var productId = 2;
+		var productId = 2;
 		Consumer<ExecutionContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
 		factory.addQueryAutoParameterBinder(binder1);
 

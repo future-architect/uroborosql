@@ -864,7 +864,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 
 		Set<String> matchParams = new HashSet<>();
 		var parameterIndex = 1;
-		for (Parameter bindParameter : bindParameters) {
+		for (var bindParameter : bindParameters) {
 			var parameter = getSqlFilterManager().doParameter(bindParameter);
 			parameterIndex = parameter.setParameter(preparedStatement, parameterIndex, parameterMapperManager);
 			matchParams.add(parameter.getParameterName());
@@ -884,7 +884,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
-		for (Map<String, Parameter> paramMap : batchParameters) {
+		for (var paramMap : batchParameters) {
 			parameterMap = paramMap;
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
@@ -902,7 +902,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 		Map<String, Object> out = new HashMap<>();
 		var bindParameters = getBindParameters();
 		var parameterIndex = 1;
-		for (Parameter parameter : bindParameters) {
+		for (var parameter : bindParameters) {
 			if (parameter instanceof OutParameter) {
 				var key = parameter.getParameterName();
 				out.put(key, getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));

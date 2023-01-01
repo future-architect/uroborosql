@@ -280,7 +280,7 @@ public class DateTimeTest {
 				assertThat(date.dateValue.getTime(), is(test1.dateValue.getTime()));
 				System.out.println(date.timeValue);
 
-				final var c = Calendar.getInstance();
+				var c = Calendar.getInstance();
 				c.setLenient(false);
 				c.setTime(date.timeValue);
 				c.set(Calendar.YEAR, 1970);

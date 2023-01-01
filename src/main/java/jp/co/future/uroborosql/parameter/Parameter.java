@@ -155,7 +155,7 @@ public class Parameter {
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		var parameterIndex = index;
 		if (value instanceof Iterable) {
-			for (Object e : (Iterable<?>) value) {
+			for (var e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
 
 				parameterLog(parameterIndex);
@@ -218,7 +218,7 @@ public class Parameter {
 	 * @return {@link java.sql.SQLType} の値
 	 */
 	private SQLType toSqlType(final int sqlType) {
-		for (JDBCType type : JDBCType.values()) {
+		for (var type : JDBCType.values()) {
 			if (type.getVendorTypeNumber().intValue() == sqlType) {
 				return type;
 			}

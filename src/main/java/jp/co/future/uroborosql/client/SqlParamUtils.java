@@ -108,7 +108,7 @@ public final class SqlParamUtils {
 			final String... paramsArray) {
 		var bindParams = getSqlParams(ctx.getSql(), sqlConfig);
 
-		for (String element : paramsArray) {
+		for (var element : paramsArray) {
 			var param = element.split("=");
 			var key = param[0];
 			if (bindParams.remove(key)) {

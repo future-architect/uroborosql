@@ -473,7 +473,7 @@ public final class MappingUtils {
 		var insertColumns = fieldsMap.get(SqlKind.INSERT);
 		var updateColumns = fieldsMap.get(SqlKind.UPDATE);
 
-		for (Field field : type.getDeclaredFields()) {
+		for (var field : type.getDeclaredFields()) {
 			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
 				continue;
 			}

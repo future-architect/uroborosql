@@ -84,7 +84,7 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(final int index) {
-		for (Range range : getRanges()) {
+		for (var range : getRanges()) {
 			if (range.contains(index)) {
 				return true;
 			}
@@ -99,7 +99,7 @@ public class PassedRoute {
 	 * @return 通過
 	 */
 	public boolean isHit(final Range target) {
-		for (Range range : getRanges()) {
+		for (var range : getRanges()) {
 			if (range.hasIntersection(target)) {
 				return true;
 			}

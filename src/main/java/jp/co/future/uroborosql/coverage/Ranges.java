@@ -10,7 +10,6 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -150,7 +149,7 @@ public class Ranges extends AbstractSet<Range> {
 		}
 
 		List<Range> newList = new ArrayList<>();
-		for (Iterator<? extends Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
+		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
 			Range r = iterator.next();
 			var hasIntersections = getHasIntersections(targetRanges, r);
 			if (hasIntersections.isEmpty()) {
@@ -163,7 +162,7 @@ public class Ranges extends AbstractSet<Range> {
 					}
 				}
 				iterator.remove();
-				for (Range rangeHasIntersection : hasIntersections) {
+				for (var rangeHasIntersection : hasIntersections) {
 					newList.add(rangeHasIntersection.intersection(r));
 				}
 			}
@@ -178,7 +177,7 @@ public class Ranges extends AbstractSet<Range> {
 
 	private List<Range> getHasIntersections(final Collection<Range> targetRanges, final Range r) {
 		List<Range> ret = new ArrayList<>();
-		for (Range range : targetRanges) {
+		for (var range : targetRanges) {
 			if (range.hasIntersection(r)) {
 				ret.add(range);
 			} else if (r.getEnd() < range.getStart()) {

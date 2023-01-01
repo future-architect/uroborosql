@@ -137,7 +137,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				.flatMap(Collection::stream)
 				.sorted(Comparator.comparing(SqlCoverageReport::getName))
 				.collect(Collectors.toList());
-		for (SqlCoverageReport sqlCoverageReport : list) {
+		for (var sqlCoverageReport : list) {
 
 			var htmlName = sqlCoverageReport.getName();
 			var linkName = sqlCoverageReport.getName();

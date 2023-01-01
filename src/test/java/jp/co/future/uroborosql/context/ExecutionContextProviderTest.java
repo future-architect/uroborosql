@@ -112,7 +112,7 @@ public class ExecutionContextProviderTest {
 						"CLS_PACKTEST_TEST_ENUM2_INNER_G=G", "CLS_PACKTEST_TEST_ENUM2_INNER_H=H",
 						"CLS_PACKTEST_TEST_ENUM2_INNER_I=I"))));
 
-		for (Parameter parameter : constParameterMap.values()) {
+		for (var parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));
 		}
 	}
@@ -132,7 +132,7 @@ public class ExecutionContextProviderTest {
 				set,
 				is(new HashSet<>(Arrays.asList("CLS_LEVEL_ERROR=ERROR", "CLS_LEVEL_DEBUG=DEBUG", "CLS_LEVEL_WARN=WARN",
 						"CLS_LEVEL_TRACE=TRACE", "CLS_LEVEL_INFO=INFO"))));
-		for (Parameter parameter : constParameterMap.values()) {
+		for (var parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));
 		}
 	}
