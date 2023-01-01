@@ -28,7 +28,9 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.Era;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
@@ -54,6 +56,12 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			.ofPattern("yyyyMMddHHmmssSSS");
 
 	/**
+	 * yyyyMMddHHmmssSSSSSS文字列からLocalDateTimeに変換するためのフォーマッター.<br>
+	 */
+	private static final DateTimeFormatter FORMATTER_SHORT_DATE_TIME_WITH_MICROS = DateTimeFormatter
+			.ofPattern("yyyyMMddHHmmssSSSSSS");
+
+	/**
 	 * yyyyMMddHHmmssSSSSSSSSS文字列からLocalDateTimeに変換するためのフォーマッター.<br>
 	 */
 	private static final DateTimeFormatter FORMATTER_SHORT_DATE_TIME_WITH_NANOS = DateTimeFormatter
@@ -65,20 +73,14 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITHOUT_SEC = DateTimeFormatter.ofPattern("HHmm");
 
 	/**
-	 * HHmmss文字列からLocalTimeに変換するためのフォーマッター.
+	 * HHmmss, HHmmssS ~ HHmmssSSSSSSSSSの文字列からLocalTimeに変換するためのフォーマッター.
 	 */
-	private static final DateTimeFormatter FORMATTER_SHORT_TIME = DateTimeFormatter.ofPattern("HHmmss");
-
-	/**
-	 * HHmmssSSS文字列からLocalTimeに変換するためのフォーマッター.
-	 */
-	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITH_MILLS = DateTimeFormatter.ofPattern("HHmmssSSS");
-
-	/**
-	 * HHmmssSSSSSSSSS文字列からLocalTimeに変換するためのフォーマッター.
-	 */
-	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITH_NANOS = DateTimeFormatter
-			.ofPattern("HHmmssSSSSSSSSS");
+	private static final DateTimeFormatter FORMATTER_SHORT_TIME_WITH_NANOS = new DateTimeFormatterBuilder()
+			.appendPattern("HHmmss")
+			.optionalStart()
+			.appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, false)
+			.optionalEnd()
+			.toFormatter();
 
 	/**
 	 * 日時の変換に使用するClock
@@ -313,14 +315,16 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 						try {
 							if (StringUtils.isEmpty(str)) {
 								return null;
+							} else if (str.contains("-") && str.contains(":")) { // yyyy-MM-ddTHH:mm:ss, yyyy-MM-ddTHH:mm:ss.S ~ yyyy-MM-ddTHH:mm:ss.SSSSSSSSS
+								return LocalDateTime.parse(str, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 							} else if (str.length() == 14) { // yyyyMMddHHmmss
 								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME);
 							} else if (str.length() == 17) { // yyyyMMddHHmmssSSS
 								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME_WITH_MILLS);
-							} else if (str.length() == 23) { // yyyyMMddHHmmssSSSSSSSSS
+							} else if (str.length() == 20) { // yyyyMMddHHmmssSSSSSS
+								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME_WITH_MICROS);
+							} else { // yyyyMMddHHmmssSSSSSSSSS
 								return LocalDateTime.parse(str, FORMATTER_SHORT_DATE_TIME_WITH_NANOS);
-							} else { // yyyy-MM-ddTHH:mm:ss, yyyy-MM-ddTHH:mm:ss.SSS
-								return LocalDateTime.parse(str, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 							}
 						} catch (DateTimeParseException ex) {
 							throw new UroborosqlRuntimeException(ex);
@@ -350,16 +354,12 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 						try {
 							if (StringUtils.isEmpty(str)) {
 								return null;
+							} else if (str.contains(":")) { // HH:mm, HH:mm:ss, HH:mm:ss.S ~ HH:mm:ss.SSSSSSSSS
+								return LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);
 							} else if (str.length() == 4) { // HHmm
 								return LocalTime.parse(str, FORMATTER_SHORT_TIME_WITHOUT_SEC);
-							} else if (str.length() == 6) { // HHmmss
-								return LocalTime.parse(str, FORMATTER_SHORT_TIME);
-							} else if (str.length() == 9) { // HHmmssSSS
-								return LocalTime.parse(str, FORMATTER_SHORT_TIME_WITH_MILLS);
-							} else if (str.length() == 15) { // HHmmssSSSSSSSSS
+							} else { // HHmmss, HHmmssS ~ HHmmssSSSSSSSSS
 								return LocalTime.parse(str, FORMATTER_SHORT_TIME_WITH_NANOS);
-							} else { // HH:mm, HH:mm:ss, HH:mm:ss.SSS
-								return LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);
 							}
 						} catch (DateTimeParseException ex) {
 							throw new UroborosqlRuntimeException(ex);
