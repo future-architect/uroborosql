@@ -75,7 +75,8 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (!Objects.equals(firstName, other.firstName) || (id != other.id) || !Objects.equals(lastName, other.lastName)) {
+			if (!Objects.equals(firstName, other.firstName) || (id != other.id)
+					|| !Objects.equals(lastName, other.lastName)) {
 				return false;
 			}
 			return true;
@@ -109,6 +110,8 @@ public class DefaultEntityHandlerIdentifierPascalCaseTest {
 				.setSqlAgentProvider(new SqlAgentProviderImpl().setDefaultMapKeyCaseFormat(CaseFormat.CAMEL_CASE))
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 	}
 
 	@BeforeEach

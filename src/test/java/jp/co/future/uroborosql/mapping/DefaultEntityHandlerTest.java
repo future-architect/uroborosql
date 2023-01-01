@@ -94,6 +94,8 @@ public class DefaultEntityHandlerTest {
 		config = UroboroSQL.builder(url, user, password)
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 	}
 
 	@BeforeEach
@@ -1583,7 +1585,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testBatchInsertTypeError1() throws Exception {
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -1599,7 +1601,7 @@ public class DefaultEntityHandlerTest {
 		});
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testBatchInsertTypeError2() throws Exception {
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -1778,7 +1780,7 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testBulkInsertTypeError1() throws Exception {
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -1794,7 +1796,7 @@ public class DefaultEntityHandlerTest {
 		});
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testBulkInsertTypeError2() throws Exception {
 		assertThrows(IllegalArgumentException.class, () -> {

@@ -228,6 +228,8 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 		config = UroboroSQL.builder(conn)
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 	}
 
 	@BeforeEach

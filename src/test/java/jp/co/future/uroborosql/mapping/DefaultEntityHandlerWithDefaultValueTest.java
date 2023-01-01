@@ -47,6 +47,9 @@ public class DefaultEntityHandlerWithDefaultValueTest {
 		config = UroboroSQL.builder(url, user, password)
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
+
 	}
 
 	@BeforeEach
