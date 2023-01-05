@@ -18,7 +18,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
-import jp.co.future.uroborosql.converter.SingleColumnResultSetConverter;
+import jp.co.future.uroborosql.converter.ScalarResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -149,7 +149,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	@Override
 	public Optional<Map<String, Object>> findOne(final CaseFormat caseFormat) {
 		try (var stream = stream(caseFormat)) {
-			List<Map<String, Object>> resultList = stream.limit(2).collect(Collectors.toList());
+			var resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -160,7 +160,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	@Override
 	public <T> Optional<T> findOne(final Class<T> type) {
 		try (var stream = stream(type)) {
-			List<T> resultList = stream.limit(2).collect(Collectors.toList());
+			var resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -263,8 +263,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}
 		var manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
-		if (SingleColumnResultSetConverter.accept(type)) {
-			return stream(new SingleColumnResultSetConverter<>(null, type, manager));
+		if (ScalarResultSetConverter.accept(type)) {
+			return stream(new ScalarResultSetConverter<>(null, type, manager));
 		} else {
 			return stream(new EntityResultSetConverter<>(context().getSchema(), type, manager));
 		}
@@ -290,10 +290,10 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		if (type == null) {
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}
-		if (!SingleColumnResultSetConverter.accept(type)) {
+		if (!ScalarResultSetConverter.accept(type)) {
 			throw new IllegalArgumentException(type.getName() + " is not supported.");
 		}
-		return stream(new SingleColumnResultSetConverter<>(col, type,
+		return stream(new ScalarResultSetConverter<>(col, type,
 				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
 	}
 

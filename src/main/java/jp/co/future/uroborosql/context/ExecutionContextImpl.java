@@ -74,19 +74,19 @@ public class ExecutionContextImpl implements ExecutionContext {
 	}
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
-	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
+	private static final Pattern WHERE_CLAUSE_PATTERN = Pattern
 			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
+	private static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
 			.compile(
 					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*)(,)");
 
 	/** 不要な空白、改行を除去するための正規表現 */
-	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
+	private static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	/** SQL名 */
 	private String sqlName;
@@ -850,7 +850,10 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @return バインドパラメータ配列
 	 */
 	public Parameter[] getBindParameters() {
-		return bindNames.stream().map(this::getParam).filter(Objects::nonNull).toArray(Parameter[]::new);
+		return bindNames.stream()
+				.map(this::getParam)
+				.filter(Objects::nonNull)
+				.toArray(Parameter[]::new);
 	}
 
 	/**
@@ -862,7 +865,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
 		var bindParameters = getBindParameters();
 
-		Set<String> matchParams = new HashSet<>();
+		var matchParams = new HashSet<String>();
 		var parameterIndex = 1;
 		for (var bindParameter : bindParameters) {
 			var parameter = getSqlFilterManager().doParameter(bindParameter);
@@ -871,7 +874,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 		}
 		// SQL上のバインドパラメータ群（bindNames）に対応する値がすべて設定されているかどうかをチェックする
 		if (!matchParams.containsAll(bindNames)) {
-			Set<String> missMatchParams = new LinkedHashSet<>(bindNames);
+			var missMatchParams = new LinkedHashSet<>(bindNames);
 			missMatchParams.removeAll(matchParams);
 			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not found.");
 		}
@@ -889,7 +892,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
-		LOG.debug("{} items Added for batch process.", batchParameters.size());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("{} items Added for batch process.", batchParameters.size());
+		}
 	}
 
 	/**
@@ -899,7 +904,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public Map<String, Object> getOutParams(final CallableStatement callableStatement) throws SQLException {
-		Map<String, Object> out = new HashMap<>();
+		var out = new HashMap<String, Object>();
 		var bindParameters = getBindParameters();
 		var parameterIndex = 1;
 		for (var parameter : bindParameters) {
@@ -910,7 +915,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 			parameterIndex++;
 		}
 
-		LOG.debug("Stored procedure out parameter[{}]", out);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Stored procedure out parameter[{}]", out);
+		}
 		return out;
 	}
 

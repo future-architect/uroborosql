@@ -109,7 +109,7 @@ public class Ranges extends AbstractSet<Range> {
 	 * @param range Range
 	 */
 	public void minus(final Range range) {
-		List<Range> newList = new ArrayList<>();
+		var newList = new ArrayList<Range>();
 		var target = range;
 		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
 			var r = iterator.next();
@@ -141,16 +141,11 @@ public class Ranges extends AbstractSet<Range> {
 	 * @param ranges Rangeコレクション
 	 */
 	public void intersect(final Collection<? extends Range> ranges) {
-		Ranges targetRanges;
-		if (ranges instanceof Ranges) {
-			targetRanges = (Ranges) ranges;
-		} else {
-			targetRanges = new Ranges(ranges);
-		}
+		var targetRanges = ranges instanceof Ranges ? (Ranges) ranges : new Ranges(ranges);
 
-		List<Range> newList = new ArrayList<>();
+		var newList = new ArrayList<Range>();
 		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
-			Range r = iterator.next();
+			var r = iterator.next();
 			var hasIntersections = getHasIntersections(targetRanges, r);
 			if (hasIntersections.isEmpty()) {
 				iterator.remove();
@@ -176,7 +171,7 @@ public class Ranges extends AbstractSet<Range> {
 	}
 
 	private List<Range> getHasIntersections(final Collection<Range> targetRanges, final Range r) {
-		List<Range> ret = new ArrayList<>();
+		var ret = new ArrayList<Range>();
 		for (var range : targetRanges) {
 			if (range.hasIntersection(r)) {
 				ret.add(range);

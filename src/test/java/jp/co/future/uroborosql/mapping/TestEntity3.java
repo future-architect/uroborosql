@@ -93,7 +93,8 @@ public class TestEntity3 {
 			return false;
 		}
 		var other = (TestEntity3) obj;
-		if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || (lockVersion != other.lockVersion)) {
+		if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+				|| lockVersion != other.lockVersion) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

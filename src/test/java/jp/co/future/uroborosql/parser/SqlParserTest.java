@@ -703,7 +703,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		int[] deptnoArray = {10, 20};
+		int[] deptnoArray = { 10, 20 };
 		ctx.param("deptnoList", deptnoArray);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
@@ -722,8 +722,8 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		String[] enames = {"SCOTT", "MARY"};
-		String[] jobs = {"ANALYST", "FREE"};
+		String[] enames = { "SCOTT", "MARY" };
+		String[] jobs = { "ANALYST", "FREE" };
 		ctx.param("enames", enames);
 		ctx.param("jobs", jobs);
 		var transformer = parser.parse();

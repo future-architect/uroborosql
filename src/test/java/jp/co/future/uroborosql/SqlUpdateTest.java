@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.converter.MapResultSetConverter;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 

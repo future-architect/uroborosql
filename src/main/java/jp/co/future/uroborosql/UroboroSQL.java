@@ -44,8 +44,8 @@ import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
  * @since v0.4.0
  */
 public final class UroboroSQL {
-	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(UroboroSQL.class);
+	/** 設定ロガー */
+	private static final Logger SETTING_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.setting");
 
 	private UroboroSQL() {
 	}
@@ -316,34 +316,42 @@ public final class UroboroSQL {
 			this.entityHandler = entityHandler;
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
+				if (SETTING_LOG.isWarnEnabled()) {
+					SETTING_LOG.warn("SqlConfig - Clock was not set. Set SystemClock.");
+				}
 			} else {
 				this.clock = clock;
 			}
-			if (log.isDebugEnabled()) {
-				log.debug("SqlConfig - Clock : {} has been selected.", this.clock.toString());
+			if (SETTING_LOG.isInfoEnabled()) {
+				SETTING_LOG.info("SqlConfig - Clock : {} has been selected.", this.clock.toString());
 			}
 
 			if (dialect == null) {
 				this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
-						.filter(d -> d.accept(this.connectionSupplier)).findFirst().orElseGet(DefaultDialect::new);
+						.filter(d -> d.accept(this.connectionSupplier))
+						.findFirst()
+						.orElseGet(DefaultDialect::new);
 			} else {
 				this.dialect = dialect;
 			}
-			if (log.isDebugEnabled()) {
-				log.debug("SqlConfig - Dialect : {} has been selected.", this.dialect.getClass().getSimpleName());
+			if (SETTING_LOG.isInfoEnabled()) {
+				SETTING_LOG.info("SqlConfig - Dialect : {} has been selected.",
+						this.dialect.getClass().getSimpleName());
 			}
 
 			if (expressionParser == null) {
 				var expressionParserFactory = StreamSupport
 						.stream(ServiceLoader.load(ExpressionParserFactory.class).spliterator(), false)
-						.filter(ExpressionParserFactory::accept).findFirst()
+						.filter(ExpressionParserFactory::accept)
+						.findFirst()
 						.orElseThrow(() -> new IllegalStateException("ExpressionParser not found."));
 				this.expressionParser = expressionParserFactory.create();
 			} else {
 				this.expressionParser = expressionParser;
 			}
-			if (log.isDebugEnabled()) {
-				log.debug("SqlConfig - ExpressionParser : {} has been selected.", this.expressionParser.getClass().getSimpleName());
+			if (SETTING_LOG.isInfoEnabled()) {
+				SETTING_LOG.info("SqlConfig - ExpressionParser : {} has been selected.",
+						this.expressionParser.getClass().getSimpleName());
 			}
 
 			this.sqlResourceManager.setDialect(this.dialect);

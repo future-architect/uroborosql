@@ -127,7 +127,7 @@ public class EntityResultSetConverterTest {
 		var clob = StringUtils.repeat('1', 10000);
 		var nclob = StringUtils.repeat('あ', 10000);
 		var blob = StringUtils.repeat('x', 20000).getBytes();
-		Object[] arr = {1, 2};
+		Object[] arr = { 1, 2 };
 
 		var entity = new ColumnTypeTest2();
 		entity.setColClob(clob);

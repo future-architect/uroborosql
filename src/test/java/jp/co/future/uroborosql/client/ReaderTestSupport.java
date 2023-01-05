@@ -19,6 +19,7 @@ import static org.jline.reader.LineReader.KILL_WORD;
 import static org.jline.reader.LineReader.UP_HISTORY;
 import static org.jline.reader.LineReader.YANK;
 import static org.jline.reader.LineReader.YANK_POP;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

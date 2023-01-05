@@ -12,9 +12,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Spliterator;
 
-import jp.co.future.uroborosql.mapping.JavaType.ImplementClass;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.mapping.JavaType.ImplementClass;
 
 @SuppressWarnings({ "rawtypes" })
 public class JavaTypeTest {

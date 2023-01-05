@@ -48,9 +48,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -952,15 +952,15 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream().forEach(m -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
-		});
+					assertTrue(m.containsKey("PRODUCT_ID"));
+					assertTrue(m.containsKey("PRODUCT_NAME"));
+					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+					assertTrue(m.containsKey("JAN_CODE"));
+					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+					assertTrue(m.containsKey("INS_DATETIME"));
+					assertTrue(m.containsKey("UPD_DATETIME"));
+					assertTrue(m.containsKey("VERSION_NO"));
+				});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 
@@ -976,15 +976,15 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach(m -> {
-			assertTrue(m.containsKey("product_id"));
-			assertTrue(m.containsKey("product_name"));
-			assertTrue(m.containsKey("product_kana_name"));
-			assertTrue(m.containsKey("jan_code"));
-			assertTrue(m.containsKey("product_description"));
-			assertTrue(m.containsKey("ins_datetime"));
-			assertTrue(m.containsKey("upd_datetime"));
-			assertTrue(m.containsKey("version_no"));
-		});
+					assertTrue(m.containsKey("product_id"));
+					assertTrue(m.containsKey("product_name"));
+					assertTrue(m.containsKey("product_kana_name"));
+					assertTrue(m.containsKey("jan_code"));
+					assertTrue(m.containsKey("product_description"));
+					assertTrue(m.containsKey("ins_datetime"));
+					assertTrue(m.containsKey("upd_datetime"));
+					assertTrue(m.containsKey("version_no"));
+				});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 	}
@@ -1006,15 +1006,15 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 				.stream().forEach(m -> {
-			assertTrue(m.containsKey("product_id"));
-			assertTrue(m.containsKey("product_name"));
-			assertTrue(m.containsKey("product_kana_name"));
-			assertTrue(m.containsKey("jan_code"));
-			assertTrue(m.containsKey("product_description"));
-			assertTrue(m.containsKey("ins_datetime"));
-			assertTrue(m.containsKey("upd_datetime"));
-			assertTrue(m.containsKey("version_no"));
-		});
+					assertTrue(m.containsKey("product_id"));
+					assertTrue(m.containsKey("product_name"));
+					assertTrue(m.containsKey("product_kana_name"));
+					assertTrue(m.containsKey("jan_code"));
+					assertTrue(m.containsKey("product_description"));
+					assertTrue(m.containsKey("ins_datetime"));
+					assertTrue(m.containsKey("upd_datetime"));
+					assertTrue(m.containsKey("version_no"));
+				});
 		assertThat(agent.query("example/select_product").param("product_id", Arrays.asList(0, 1)).stream().count(),
 				is(2L));
 	}
@@ -1034,15 +1034,15 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product_param_camel")
 				.paramBean(bean)
 				.stream().forEach(m -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
-		});
+					assertTrue(m.containsKey("PRODUCT_ID"));
+					assertTrue(m.containsKey("PRODUCT_NAME"));
+					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
+					assertTrue(m.containsKey("JAN_CODE"));
+					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
+					assertTrue(m.containsKey("INS_DATETIME"));
+					assertTrue(m.containsKey("UPD_DATETIME"));
+					assertTrue(m.containsKey("VERSION_NO"));
+				});
 
 		assertThat(agent.query("example/select_product_param_camel").paramBean(bean).stream().count(), is(2L));
 
@@ -1215,7 +1215,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select X'616263'").select(byte[].class).findFirst().orElse(null),
 				is("abc".getBytes()));
 		assertThat(agent.queryWith("select ARRAY[1, 2]").select(Array.class).findFirst().orElse(null).getArray(),
-				is(new int[]{1, 2}));
+				is(new int[] { 1, 2 }));
 
 		// java.sqlの型
 		assertThat(agent.queryWith("select CAST('abc' as CLOB)").select(Clob.class).findFirst().orElse(null)
@@ -1223,7 +1223,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(agent.queryWith("select CAST('abc' as NCLOB)").select(NClob.class).findFirst().orElse(null)
 				.getSubString(1, 3), is("abc"));
 		assertThat(agent.queryWith("select CAST(X'616263' as BLOB)").select(Blob.class).findFirst().orElse(null)
-						.getBytes(1, 3),
+				.getBytes(1, 3),
 				is("abc".getBytes()));
 		// TODO java.sql.REF, java.sql.SQLXML は H2DBが対応していないためテストできていない
 

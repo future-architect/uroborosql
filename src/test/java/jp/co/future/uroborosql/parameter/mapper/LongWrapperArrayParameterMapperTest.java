@@ -28,7 +28,7 @@ public class LongWrapperArrayParameterMapperTest {
 	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(clock);
 		var jdbcArray = newProxy(Array.class);
-		Long[] array = {111L, 222L};
+		Long[] array = { 111L, 222L };
 
 		var conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if ("createArrayOf".equals(method.getName())) {
@@ -41,7 +41,7 @@ public class LongWrapperArrayParameterMapperTest {
 
 		assertThat(parameterMapperManager.toJdbc(array, conn), is(jdbcArray));
 
-		Object[] objArray = {Long.valueOf(333L), "A"};
+		Object[] objArray = { Long.valueOf(333L), "A" };
 		assertThat(parameterMapperManager.toJdbc(objArray, conn), is(objArray));
 
 	}

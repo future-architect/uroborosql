@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
  */
 public class DebugSqlFilter extends AbstractSqlFilter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(DebugSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	@Override
 	public Parameter doParameter(final Parameter parameter) {

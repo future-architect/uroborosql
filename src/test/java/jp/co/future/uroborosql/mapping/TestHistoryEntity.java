@@ -65,7 +65,8 @@ public class TestHistoryEntity {
 			return false;
 		}
 		var other = (TestHistoryEntity) obj;
-		if (!Objects.equals(finishAt, other.finishAt) || (id != other.id) || !Objects.equals(name, other.name) || !Objects.equals(startAt, other.startAt)) {
+		if (!Objects.equals(finishAt, other.finishAt) || id != other.id || !Objects.equals(name, other.name)
+				|| !Objects.equals(startAt, other.startAt)) {
 			return false;
 		}
 		return true;

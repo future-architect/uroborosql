@@ -31,10 +31,10 @@ public class ArrayPropertyMapperTest {
 		assertThat(mapper.getValue(JavaType.of(String[].class), newResultSet("getArray", array), 1),
 				is("a,b,c".split(",")));
 
-		array = newDummyArray(new Number[]{1, 2, 3});
+		array = newDummyArray(new Number[] { 1, 2, 3 });
 		assertThat(mapper.getValue(JavaType.of(Integer[].class), newResultSet(
 				"getArray", array,
-				"getObject", new Integer[]{1, 2, 3}), 1), is(new Integer[]{1, 2, 3}));
+				"getObject", new Integer[] { 1, 2, 3 }), 1), is(new Integer[] { 1, 2, 3 }));
 
 		assertThat(mapper.getValue(JavaType.of(Integer[].class), newResultSet("getArray", null), 1), is(nullValue()));
 

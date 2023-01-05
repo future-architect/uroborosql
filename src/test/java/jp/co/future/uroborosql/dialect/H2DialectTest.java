@@ -5,15 +5,16 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.instanceOf;
+
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import jp.co.future.uroborosql.connection.ConnectionContext;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 

@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.enums.GenerationType;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;

@@ -1736,7 +1736,7 @@ public class IdentityGeneratedKeysTest {
 				return false;
 			}
 			var other = (TestEntityWithId) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1791,7 +1791,7 @@ public class IdentityGeneratedKeysTest {
 				return false;
 			}
 			var other = (TestAutoEntityWithNoId) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -1957,7 +1957,7 @@ public class IdentityGeneratedKeysTest {
 				return false;
 			}
 			var other = (TestEntityWithIdError) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -2051,7 +2051,7 @@ public class IdentityGeneratedKeysTest {
 				return false;
 			}
 			var other = (TestEntityWithMultiId) obj;
-			if ((id != other.id) || (id2 != other.id2) || !Objects.equals(name, other.name)) {
+			if (id != other.id || id2 != other.id2 || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

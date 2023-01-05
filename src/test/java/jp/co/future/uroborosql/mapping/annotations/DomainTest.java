@@ -114,7 +114,7 @@ public class DomainTest {
 				return false;
 			}
 			var other = (DomainTestEntity) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -219,7 +219,7 @@ public class DomainTest {
 				return false;
 			}
 			var other = (DomainTestEntity2) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -330,7 +330,7 @@ public class DomainTest {
 				return false;
 			}
 			var other = (DomainTestEntity3) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -396,7 +396,7 @@ public class DomainTest {
 				return false;
 			}
 			var other = (DomainTestEntity4) obj;
-			if ((id != other.id) || (name != other.name)) {
+			if (id != other.id || name != other.name) {
 				return false;
 			}
 			return true;

@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Paths;
 
-import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 
 /**
  * truncateメソッドのテスト

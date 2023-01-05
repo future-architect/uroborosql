@@ -133,8 +133,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt)
-					|| (id != other.id)) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || finalInt != other.finalInt
+					|| id != other.id) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -187,8 +187,8 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (finalInt != other.finalInt)
-					|| (id != other.id)) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || finalInt != other.finalInt
+					|| id != other.id) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -237,7 +237,7 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoInsTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
 					|| !Objects.equals(name, other.name)) {
 				return false;
 			}
@@ -284,7 +284,7 @@ public class TransientTest {
 				return false;
 			}
 			var other = (TransientAnnoUpdTestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
 					|| !Objects.equals(name, other.name)) {
 				return false;
 			}

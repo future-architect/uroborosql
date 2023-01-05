@@ -30,7 +30,7 @@ public class TestDataMultiKeyEntity {
 			return false;
 		}
 		var other = (TestDataMultiKeyEntity) obj;
-		if ((id != other.id) || !Objects.equals(key, other.key) || !Objects.equals(name, other.name)) {
+		if (id != other.id || !Objects.equals(key, other.key) || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

@@ -46,7 +46,7 @@ public class BindParameterMapperManagerTest {
 		assertThat(parameterMapperManager.toJdbc(BigDecimal.TEN, null), is(BigDecimal.TEN));
 		assertThat(parameterMapperManager.toJdbc("A", null), is("A"));
 
-		assertThat(parameterMapperManager.toJdbc(new byte[]{1, 2}, null), is(new byte[]{1, 2}));
+		assertThat(parameterMapperManager.toJdbc(new byte[] { 1, 2 }, null), is(new byte[] { 1, 2 }));
 
 		assertThat(parameterMapperManager.toJdbc(new java.sql.Date(1), null), is(new java.sql.Date(1)));
 		assertThat(parameterMapperManager.toJdbc(new java.sql.Time(1), null), is(new java.sql.Time(1)));

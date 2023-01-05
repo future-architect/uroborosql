@@ -51,13 +51,13 @@ public class CloseIgnoringConnectionWrapperTest {
 	void testCreateStatement() throws Exception {
 		assertThat(target.createStatement(), is(instanceOf(Statement.class)));
 		assertThat(target.createStatement(
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY),
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY),
 				is(instanceOf(Statement.class)));
 		assertThat(target.createStatement(
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY,
-						ResultSet.HOLD_CURSORS_OVER_COMMIT),
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY,
+				ResultSet.HOLD_CURSORS_OVER_COMMIT),
 				is(instanceOf(Statement.class)));
 	}
 
@@ -68,18 +68,18 @@ public class CloseIgnoringConnectionWrapperTest {
 				is(instanceOf(PreparedStatement.class)));
 		assertThat(target.prepareStatement(sql, 0),
 				is(instanceOf(PreparedStatement.class)));
-		assertThat(target.prepareStatement(sql, new int[]{0}),
+		assertThat(target.prepareStatement(sql, new int[] { 0 }),
 				is(instanceOf(PreparedStatement.class)));
-		assertThat(target.prepareStatement(sql, new String[]{"TABLE_CATALOG"}),
-				is(instanceOf(PreparedStatement.class)));
-		assertThat(target.prepareStatement(sql,
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY),
+		assertThat(target.prepareStatement(sql, new String[] { "TABLE_CATALOG" }),
 				is(instanceOf(PreparedStatement.class)));
 		assertThat(target.prepareStatement(sql,
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY,
-						ResultSet.HOLD_CURSORS_OVER_COMMIT),
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY),
+				is(instanceOf(PreparedStatement.class)));
+		assertThat(target.prepareStatement(sql,
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY,
+				ResultSet.HOLD_CURSORS_OVER_COMMIT),
 				is(instanceOf(PreparedStatement.class)));
 	}
 
@@ -89,13 +89,13 @@ public class CloseIgnoringConnectionWrapperTest {
 		assertThat(target.prepareCall(sql),
 				is(instanceOf(CallableStatement.class)));
 		assertThat(target.prepareCall(sql,
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY),
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY),
 				is(instanceOf(CallableStatement.class)));
 		assertThat(target.prepareCall(sql,
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY,
-						ResultSet.HOLD_CURSORS_OVER_COMMIT),
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_READ_ONLY,
+				ResultSet.HOLD_CURSORS_OVER_COMMIT),
 				is(instanceOf(CallableStatement.class)));
 	}
 
@@ -198,7 +198,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	@Test
 	void testCreateStruct() throws Exception {
 		assertThrows(SQLFeatureNotSupportedException.class, () -> {
-			target.createStruct("char", new Object[]{});
+			target.createStruct("char", new Object[] {});
 		});
 	}
 
@@ -221,7 +221,7 @@ public class CloseIgnoringConnectionWrapperTest {
 
 	@Test
 	void testCreateArrayOf() throws Exception {
-		assertThat(target.createArrayOf("char", new Object[]{}), is(instanceOf(Array.class)));
+		assertThat(target.createArrayOf("char", new Object[] {}), is(instanceOf(Array.class)));
 	}
 
 	@Test

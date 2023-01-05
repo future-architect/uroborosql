@@ -87,13 +87,11 @@ public class TestEntity {
 			return false;
 		}
 		var other = (TestEntity) obj;
-		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday) || !Objects.equals(id, other.id) || !Objects.equals(lockVersion, other.lockVersion)) {
+		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday)
+				|| !Objects.equals(id, other.id) || !Objects.equals(lockVersion, other.lockVersion)) {
 			return false;
 		}
-		if (!Objects.equals(memo, other.memo)) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(memo, other.memo) || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

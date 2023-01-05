@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.client.command;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -43,12 +42,11 @@ public class ListCommand extends ReplCommand {
 		writer.println("LIST:");
 		writer.flush();
 
-		List<String> pathList = null;
+		var pathList = sqlConfig.getSqlResourceManager().getSqlPathList();
 		if (parts.length > 1) {
-			pathList = sqlConfig.getSqlResourceManager().getSqlPathList().stream().filter(p -> p.contains(parts[1]))
+			pathList = pathList.stream()
+					.filter(p -> p.contains(parts[1]))
 					.collect(Collectors.toList());
-		} else {
-			pathList = sqlConfig.getSqlResourceManager().getSqlPathList();
 		}
 		for (var key : pathList) {
 			writer.println(key);

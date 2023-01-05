@@ -32,7 +32,7 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  */
 class LocalTransactionContext implements AutoCloseable {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(LocalTransactionContext.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	/** セーブポイント名リスト */
 	private final List<String> savepointNames = new ArrayList<>();
@@ -286,7 +286,7 @@ class LocalTransactionContext implements AutoCloseable {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			} else {
-				LOG.trace("Connection close was skipped because the connection was already closed.");
+				LOG.debug("Connection close was skipped because the connection was already closed.");
 			}
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);

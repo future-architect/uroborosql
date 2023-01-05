@@ -14,9 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import jp.co.future.uroborosql.dialect.Dialect;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.dialect.Oracle10Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;

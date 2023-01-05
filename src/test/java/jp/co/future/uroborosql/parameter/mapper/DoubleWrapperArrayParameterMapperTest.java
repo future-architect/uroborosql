@@ -28,7 +28,7 @@ public class DoubleWrapperArrayParameterMapperTest {
 	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var jdbcArray = newProxy(Array.class);
-		Double[] array = {111.11d, 222.22d};
+		Double[] array = { 111.11d, 222.22d };
 
 		var conn = newProxy(Connection.class, (proxy, method, args) -> {
 			if ("createArrayOf".equals(method.getName())) {
@@ -41,7 +41,7 @@ public class DoubleWrapperArrayParameterMapperTest {
 
 		assertThat(parameterMapperManager.toJdbc(array, conn), is(jdbcArray));
 
-		Object[] objArray = {Double.valueOf(333.33d), "A"};
+		Object[] objArray = { Double.valueOf(333.33d), "A" };
 		assertThat(parameterMapperManager.toJdbc(objArray, conn), is(objArray));
 
 	}

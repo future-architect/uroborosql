@@ -54,9 +54,8 @@ public class PassedRoute {
 	 * @return 分岐情報
 	 */
 	public Map<Integer, BranchCoverageState> getBranchStatus() {
-		Map<Integer, BranchCoverageState> map = new HashMap<>();
-		passed.forEach((r, s) -> map.put(r.getStart(), s));
-		return Collections.unmodifiableMap(map);
+		return passed.entrySet().stream()
+				.collect(Collectors.toUnmodifiableMap(entry -> entry.getKey().getStart(), Entry::getValue));
 	}
 
 	/**

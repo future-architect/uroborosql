@@ -97,7 +97,7 @@ public class DateTimeTest {
 			}
 			var other = (LocalTestEntity) obj;
 			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
-					|| (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
+					|| id != other.id || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -142,7 +142,7 @@ public class DateTimeTest {
 			}
 			var other = (DateTestEntity) obj;
 			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
-					|| (id != other.id) || !Objects.equals(timeValue, other.timeValue)) {
+					|| id != other.id || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -184,7 +184,7 @@ public class DateTimeTest {
 				return false;
 			}
 			var other = (OffsetTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id)
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || id != other.id
 					|| !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
@@ -224,7 +224,7 @@ public class DateTimeTest {
 				return false;
 			}
 			var other = (ZonedTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue) || (id != other.id)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || id != other.id) {
 				return false;
 			}
 			return true;
@@ -289,7 +289,7 @@ public class DateTimeTest {
 				var time = c.getTime();
 				assertThat(date.timeValue.getTime(), is(time.getTime()));
 				assertThat(new Date(date.datetimeValue.getTime()).toInstant().atZone(ZoneId.systemDefault())
-								.toLocalDateTime(),
+						.toLocalDateTime(),
 						is(local.datetimeValue));
 				assertThat(new Date(date.dateValue.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
 						is(local.dateValue));

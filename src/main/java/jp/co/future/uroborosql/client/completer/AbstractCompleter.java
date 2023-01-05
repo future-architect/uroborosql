@@ -66,7 +66,7 @@ public abstract class AbstractCompleter implements Completer {
 	 */
 	protected String[] getLineParts(final String line) {
 		var parts = line.split(" ");
-		List<String> ans = new ArrayList<>();
+		var ans = new ArrayList<String>();
 		var idx = 0;
 		var len = parts.length;
 		while (idx < len) {

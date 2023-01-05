@@ -77,7 +77,8 @@ public class TestEntity2 {
 			return false;
 		}
 		var other = (TestEntity2) obj;
-		if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || (lockVersion != other.lockVersion)) {
+		if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+				|| lockVersion != other.lockVersion) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +39,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
 	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(SqlEntityQueryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
@@ -112,7 +111,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Optional<E> one() {
 		try (var stream = stream()) {
-			List<E> entities = stream.limit(2).collect(Collectors.toList());
+			var entities = stream.limit(2).collect(Collectors.toList());
 			if (entities.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -381,7 +380,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private String getOrderByClause() {
 		var firstFlag = true;
 		List<TableMetadata.Column> keys;
-		Map<TableMetadata.Column, SortOrder> existsSortOrders = new HashMap<>();
+		var existsSortOrders = new HashMap<TableMetadata.Column, SortOrder>();
 
 		if (this.sortOrders.isEmpty()) {
 			// ソート条件の指定がない場合は主キーでソートする
@@ -531,7 +530,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -550,7 +549,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -571,7 +570,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -589,7 +588,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsOptimizerHints()) {
 			this.optimizerHints.add(hint);
 		} else {
-			log.warn("Optimizer Hints is not supported.");
+			LOG.warn("Optimizer Hints is not supported.");
 		}
 		return this;
 	}

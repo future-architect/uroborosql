@@ -15,7 +15,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -67,7 +66,7 @@ public final class SqlParamUtils {
 		matcher.appendTail(sb);
 
 		var idx = 0;
-		List<String> parts = new ArrayList<>();
+		var parts = new ArrayList<String>();
 		var bracketFlag = false;
 		var singleQuoteFlag = false;
 		var part = new StringBuilder();

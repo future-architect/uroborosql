@@ -52,7 +52,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class CoberturaCoverageHandler implements CoverageHandler {
-	protected static final Logger LOG = LoggerFactory.getLogger(CoberturaCoverageHandler.class);
+	protected static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	/**
 	 * カバレッジ数値 line branch セット
@@ -347,7 +347,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * @return パッケージ単位情報
 	 */
 	private List<PackageSummary> summaryPackages() {
-		Map<String, PackageSummary> summaries = new HashMap<>();
+		var summaries = new HashMap<String, PackageSummary>();
 
 		coverages.forEach((name, c) -> {
 			var p = Paths.get(name).getParent();
@@ -355,7 +355,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			var summary = summaries.computeIfAbsent(pkg, k -> new PackageSummary(pkg));
 			summary.coverageInfos.addAll(c.values());
 		});
-		return summaries.values().stream().sorted(Comparator.comparing(p -> p.packagePath))
+		return summaries.values().stream()
+				.sorted(Comparator.comparing(p -> p.packagePath))
 				.collect(Collectors.toList());
 
 	}
@@ -364,7 +365,6 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			final List<PackageSummary> packageNodes) {
 		var allTotal = new CoverageSummaryTotal();
 		for (var packageNode : packageNodes) {
-
 			var total = new CoverageSummaryTotal();
 			var packageElm = document.createElement("package");
 			packageElm.setAttribute("name", packageNode.packagePath);
@@ -447,8 +447,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		var transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-		transformer
-				.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://cobertura.sourceforge.net/xml/coverage-04.dtd");
+		transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,
+				"http://cobertura.sourceforge.net/xml/coverage-04.dtd");
 		try (var bufferedWriter = Files.newBufferedWriter(this.reportPath)) {
 			transformer.transform(new DOMSource(document), new StreamResult(bufferedWriter));
 		}

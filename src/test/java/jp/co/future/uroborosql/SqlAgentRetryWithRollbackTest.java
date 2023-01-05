@@ -23,7 +23,6 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;

@@ -41,7 +41,7 @@ public final class PropertyMapperManager {
 	private static final List<PropertyMapper<?>> LOADED_MAPPERS = load();
 
 	private static List<PropertyMapper<?>> load() {
-		List<PropertyMapper<?>> list = new ArrayList<>();
+		var list = new ArrayList<PropertyMapper<?>>();
 		ServiceLoader.load(PropertyMapper.class).forEach(list::add);
 		return list;
 	}

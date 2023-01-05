@@ -17,7 +17,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -43,7 +42,8 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class HtmlReportCoverageHandler implements CoverageHandler {
-	protected static final Logger LOG = LoggerFactory.getLogger(HtmlReportCoverageHandler.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	private final Map<String, Map<String, SqlCoverageReport>> coverages = new ConcurrentHashMap<>();
 	private final Path reportDirPath;
@@ -80,11 +80,13 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 			// SQL名の設定されていないSQLは集約しない
 			return;
 		}
-		var map = coverages.computeIfAbsent(coverageData.getSqlName(),
-				k -> new ConcurrentHashMap<>());
+		var map = coverages.computeIfAbsent(coverageData.getSqlName(), k -> new ConcurrentHashMap<>());
 		var sqlCoverage = map.computeIfAbsent(coverageData.getMd5(),
-				k -> new SqlCoverageReport(coverageData.getSqlName(), coverageData.getSql(),
-						coverageData.getMd5(), this.reportDirPath, map.size()));
+				k -> new SqlCoverageReport(coverageData.getSqlName(),
+						coverageData.getSql(),
+						coverageData.getMd5(),
+						this.reportDirPath,
+						map.size()));
 
 		sqlCoverage.accept(coverageData.getPassRoute());
 	}
@@ -132,13 +134,12 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	}
 
 	private void writeTable(final BufferedWriter writer) throws IOException {
-		List<SqlCoverageReport> list = coverages.values().stream()
+		var list = coverages.values().stream()
 				.map(Map::values)
 				.flatMap(Collection::stream)
 				.sorted(Comparator.comparing(SqlCoverageReport::getName))
 				.collect(Collectors.toList());
 		for (var sqlCoverageReport : list) {
-
 			var htmlName = sqlCoverageReport.getName();
 			var linkName = sqlCoverageReport.getName();
 			var lineCount = sqlCoverageReport.getLineValidSize();

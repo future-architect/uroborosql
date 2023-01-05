@@ -94,7 +94,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = {1, 2};
+			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
@@ -168,7 +168,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = {1, 2};
+			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());
@@ -245,7 +245,7 @@ public class MapResultSetConverterTest {
 			var nclob = StringUtils.repeat('あ', 10000);
 			var binary = StringUtils.repeat('y', 20000).getBytes();
 			var blob = StringUtils.repeat('x', 20000).getBytes();
-			int[] arr = {1, 2};
+			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
 					config.getClock().getZone());

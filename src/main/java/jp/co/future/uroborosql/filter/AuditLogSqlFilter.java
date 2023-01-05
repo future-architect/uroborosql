@@ -22,7 +22,8 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  *
  */
 public class AuditLogSqlFilter extends AbstractSqlFilter {
-	private static final Logger LOG = LoggerFactory.getLogger(AuditLogSqlFilter.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";

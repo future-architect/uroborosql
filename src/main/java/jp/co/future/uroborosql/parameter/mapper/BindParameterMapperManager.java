@@ -47,7 +47,7 @@ public final class BindParameterMapperManager {
 	private static final List<BindParameterMapper<?>> LOADED_MAPPERS = load();
 
 	private static List<BindParameterMapper<?>> load() {
-		List<BindParameterMapper<?>> list = new ArrayList<>();
+		var list = new ArrayList<BindParameterMapper<?>>();
 		ServiceLoader.load(BindParameterMapper.class).forEach(list::add);
 		return list;
 	}

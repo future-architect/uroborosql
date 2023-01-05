@@ -28,7 +28,10 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class Parameter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(Parameter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
+	/** SQLロガー */
+	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
 
 	/** 未設定のSQLType */
 	protected static final SQLType SQL_TYPE_NOT_SET = null;
@@ -177,8 +180,8 @@ public class Parameter {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (LOG.isDebugEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			LOG.debug("Set the parameter.[INDEX[{}], {}]", index, this);
+		if (SQL_LOG.isTraceEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
+			SQL_LOG.trace("Set the parameter.[INDEX[{}], {}]", index, this);
 		}
 	}
 

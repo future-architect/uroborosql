@@ -69,7 +69,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -125,7 +125,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 				return false;
 			}
 			var other = (TestEntity1) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -181,7 +181,7 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 				return false;
 			}
 			var other = (TestEntity2) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

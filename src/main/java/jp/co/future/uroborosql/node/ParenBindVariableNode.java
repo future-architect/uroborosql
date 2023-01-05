@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.node;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.expr.ExpressionParser;
@@ -51,7 +50,7 @@ public class ParenBindVariableNode extends ExpressionNode {
 		if (var == null) {
 			throw new ParameterNotFoundRuntimeException("Parameter is not set. [" + expression + "]");
 		} else if (var instanceof Iterable) {
-			List<Object> list = new ArrayList<>();
+			var list = new ArrayList<>();
 			for (var v : (Iterable<?>) var) {
 				list.add(v);
 			}

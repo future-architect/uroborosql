@@ -91,7 +91,8 @@ public class ColumnTest {
 				return false;
 			}
 			var other = (ColumnAnnoTestEntity) obj;
-			if ((ageAaaaAaaa != other.ageAaaaAaaa) || !Objects.equals(birthdayAaaaAaaa, other.birthdayAaaaAaaa) || (idAaaaAaaa != other.idAaaaAaaa) || !Objects.equals(memoAaaaAaaa, other.memoAaaaAaaa)) {
+			if (ageAaaaAaaa != other.ageAaaaAaaa || !Objects.equals(birthdayAaaaAaaa, other.birthdayAaaaAaaa)
+					|| idAaaaAaaa != other.idAaaaAaaa || !Objects.equals(memoAaaaAaaa, other.memoAaaaAaaa)) {
 				return false;
 			}
 			if (!Objects.equals(nameAaaaAaaa, other.nameAaaaAaaa)) {

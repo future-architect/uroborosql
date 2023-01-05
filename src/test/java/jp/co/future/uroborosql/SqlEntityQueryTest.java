@@ -12,9 +12,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jp.co.future.uroborosql.exception.DataNonUniqueException;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
@@ -50,15 +50,15 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.stream().forEach(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
-		});
+					assertNotNull(p.getProductId());
+					assertNotNull(p.getProductName());
+					assertNotNull(p.getProductKanaName());
+					assertNotNull(p.getJanCode());
+					assertNotNull(p.getProductDescription());
+					assertNotNull(p.getInsDatetime());
+					assertNotNull(p.getUpdDatetime());
+					assertNotNull(p.getVersionNo());
+				});
 		assertThat(agent.query(Product.class).in("product_id", 0, 1).count(), is(2L));
 	}
 

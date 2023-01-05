@@ -83,10 +83,14 @@ public class SqlREPL {
 	 * @param args 読み込むプロパティファイルのファイルパス
 	 */
 	public static void main(final String... args) {
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql")).setLevel(Level.DEBUG);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.client")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.context")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.store")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.log")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.dx")).setLevel(Level.TRACE);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.repl")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.setting")).setLevel(Level.ERROR);
 
 		var propFile = "repl.properties";
 		if (args.length != 0) {
@@ -175,7 +179,7 @@ public class SqlREPL {
 		}
 
 		var paths = p("sql.additionalClassPath", ".");
-		List<URL> urls = new ArrayList<>();
+		var urls = new ArrayList<URL>();
 		Arrays.stream(paths.split(";")).forEach(path -> {
 			try {
 				var m = SYSPROP_PAT.matcher(path);
@@ -202,7 +206,7 @@ public class SqlREPL {
 
 		Thread.currentThread().setContextClassLoader(additionalClassLoader);
 
-		ServiceLoader<Driver> loader = ServiceLoader.load(Driver.class, additionalClassLoader);
+		var loader = ServiceLoader.load(Driver.class, additionalClassLoader);
 		loader.forEach(driver -> {
 			try {
 				DriverManager.registerDriver(new DriverShim(driver));
@@ -227,16 +231,18 @@ public class SqlREPL {
 
 		// executionContextProvider
 		var executionContextProvider = sqlConfig.getExecutionContextProvider();
-		List<String> constantClassNames = Arrays
+		var constantClassNames = Arrays
 				.asList(p("executionContextProvider.constantClassNames", "").split("\\s*,\\s*")).stream()
-				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty)
+				.collect(Collectors.toList());
 		if (!constantClassNames.isEmpty()) {
 			executionContextProvider.setConstantClassNames(constantClassNames);
 		}
 
-		List<String> enumConstantPackageNames = Arrays
+		var enumConstantPackageNames = Arrays
 				.asList(p("executionContextProvider.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
-				.filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+				.filter(StringUtils::isNotEmpty)
+				.collect(Collectors.toList());
 		if (!enumConstantPackageNames.isEmpty()) {
 			executionContextProvider.setEnumConstantPackageNames(enumConstantPackageNames);
 		}
@@ -270,7 +276,7 @@ public class SqlREPL {
 	 * @throws IOException I/O例外
 	 */
 	private void listen(final Terminal terminal) throws IOException {
-		List<Completer> completers = new ArrayList<>();
+		var completers = new ArrayList<Completer>();
 
 		// コマンドのコード補完
 		completers.add(new ReplCommandCompleter(commands));

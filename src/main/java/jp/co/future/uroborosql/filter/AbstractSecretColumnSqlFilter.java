@@ -45,8 +45,8 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  */
 public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractSecretColumnSqlFilter.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -98,7 +98,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			return;
 		} else {
 			cryptParamKeys = new ArrayList<>();
-			List<String> newColumnNames = new ArrayList<>();
+			var newColumnNames = new ArrayList<String>();
 			for (var columnName : getCryptColumnNames()) {
 				cryptParamKeys.add(CaseFormat.CAMEL_CASE.convert(columnName));
 				newColumnNames.add(CaseFormat.UPPER_SNAKE_CASE.convert(columnName));

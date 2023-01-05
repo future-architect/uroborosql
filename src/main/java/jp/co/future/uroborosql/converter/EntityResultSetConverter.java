@@ -16,9 +16,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -33,9 +30,6 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  *
  */
 public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(EntityResultSetConverter.class);
-
 	private final PropertyMapperManager mapperManager;
 	private final Constructor<E> constructor;
 	private final Map<String, MappingColumn> mappingColumnMap;
@@ -93,10 +87,8 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 			}
 			return rec;
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-			LOG.error("Error!!", e);
 			throw new UroborosqlRuntimeException(e);
 		} catch (SQLException | RuntimeException | Error e) {
-			LOG.error("Error!!", e);
 			throw e;
 		}
 	}

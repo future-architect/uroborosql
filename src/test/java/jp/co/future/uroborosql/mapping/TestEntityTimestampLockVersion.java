@@ -68,7 +68,8 @@ public class TestEntityTimestampLockVersion {
 			return false;
 		}
 		var other = (TestEntityTimestampLockVersion) obj;
-		if (!Objects.equals(id, other.id) || !lockVersion.equals(other.lockVersion) || !Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || !lockVersion.equals(other.lockVersion)
+				|| !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

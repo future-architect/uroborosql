@@ -36,7 +36,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
  */
 public abstract class AbstractExpressionParserTest {
 	/** ロガー */
-	protected static final Logger log = LoggerFactory.getLogger(AbstractExpressionParserTest.class);
+	protected static final Logger PERFORMANCE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.performance");
 
 	protected SqlConfig sqlConfig;
 	protected ExecutionContext ctx;
@@ -198,8 +198,8 @@ public abstract class AbstractExpressionParserTest {
 
 	@Test
 	void testPerformance() {
-		if (log.isTraceEnabled()) {
-			log.trace("\r\n{}", getPerformanceHeader());
+		if (PERFORMANCE_LOG.isDebugEnabled()) {
+			PERFORMANCE_LOG.debug("\r\n{}", getPerformanceHeader());
 			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
 			parser.initialize();
@@ -210,7 +210,8 @@ public abstract class AbstractExpressionParserTest {
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
-				log.trace("No{}:{}", i, formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))));
+				PERFORMANCE_LOG.debug("No{}:{}", i,
+						formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))));
 			}
 		}
 	}

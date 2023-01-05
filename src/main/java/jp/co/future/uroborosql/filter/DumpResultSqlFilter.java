@@ -18,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DumpResultSqlFilter extends AbstractSqlFilter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(DumpResultSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
@@ -59,7 +58,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			}
 			if (LOG.isInfoEnabled()) {
 				var builder = displayResult(resultSet);
-				LOG.info("{}", builder);
+				LOG.debug("{}", builder);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -75,8 +74,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 */
 	public StringBuilder displayResult(final ResultSet rs) {
 		try {
-			List<String> keys = new ArrayList<>();
-			Map<String, Integer> maxLengthList = new HashMap<>();
+			var keys = new ArrayList<String>();
+			var maxLengthList = new HashMap<String, Integer>();
 			var rsmd = rs.getMetaData();
 			var columnCount = rsmd.getColumnCount();
 			for (var i = 1; i <= columnCount; i++) {
@@ -85,10 +84,10 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				maxLengthList.put(columnLabel, getByteLength(columnLabel));
 			}
 
-			List<Map<String, Object>> rows = new ArrayList<>();
+			var rows = new ArrayList<Map<String, Object>>();
 
 			while (rs.next()) {
-				Map<String, Object> data = new HashMap<>();
+				var data = new HashMap<String, Object>();
 
 				for (var key : keys) {
 					var val = rs.getObject(key);
@@ -211,7 +210,6 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 */
 	private String getSubstringByte(final Object obj, final int capacity) throws CharacterCodingException,
 			UnsupportedEncodingException {
-
 		var str = obj == null ? "null" : obj.toString();
 		if (capacity < 1) {
 			return str;

@@ -11,7 +11,6 @@ import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -57,19 +56,18 @@ public class DescCommand extends ReplCommand {
 			var conn = sqlConfig.getConnectionSupplier().getConnection();
 			var md = conn.getMetaData();
 
-			List<Map<String, String>> columns = new ArrayList<>();
-			Map<String, Integer> labelLength = new HashMap<>();
+			var columns = new ArrayList<Map<String, String>>();
+			var labelLength = new HashMap<String, Integer>();
 			for (var label : DESC_COLUMN_LABELS) {
 				labelLength.put(label, label.length());
 			}
 			try (var rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
 				while (rs.next()) {
-					Map<String, String> column = new HashMap<>();
+					var column = new HashMap<String, String>();
 					for (var label : DESC_COLUMN_LABELS) {
 						var value = Objects.toString(rs.getString(label), "");
 						column.put(label, value);
-						labelLength.compute(
-								label,
+						labelLength.compute(label,
 								(k, v) -> v == null ? getByteLength(value)
 										: v.compareTo(getByteLength(value)) >= 0 ? v : getByteLength(value));
 					}

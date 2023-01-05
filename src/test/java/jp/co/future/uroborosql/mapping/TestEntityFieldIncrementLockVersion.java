@@ -68,7 +68,7 @@ public class TestEntityFieldIncrementLockVersion {
 			return false;
 		}
 		var other = (TestEntityFieldIncrementLockVersion) obj;
-		if (!Objects.equals(id, other.id) || (lockVersion != other.lockVersion) || !Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || lockVersion != other.lockVersion || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

@@ -10,7 +10,6 @@ import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -85,7 +84,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -111,7 +111,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -124,7 +125,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -137,7 +139,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType, final boolean addCondition) {
 		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -150,7 +153,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -163,7 +167,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType) {
 		return agent.context()
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -176,7 +181,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			final Class<? extends Object> entityType) {
 		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
 				.setSqlId(createSqlId(metadata, entityType))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -188,7 +194,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	public ExecutionContext setupSqlBulkInsertContext(final SqlAgent agent, final ExecutionContext context,
 			final TableMetadata metadata, final Class<? extends Object> entityType, final int numberOfRecords) {
 		return context.setSql(buildBulkInsertSQL(metadata, entityType, agent.getSqlConfig(), numberOfRecords))
-				.setSchema(metadata.getSchema());
+				.setSchema(metadata.getSchema())
+				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
 	}
 
 	/**
@@ -323,7 +330,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildSelectSQL(final TableMetadata metadata, final Class<? extends Object> type,
 			final SqlConfig sqlConfig, final boolean addCondition) {
-		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
+		var columns = metadata.getColumns();
 
 		var sql = new StringBuilder(
 				buildSelectClause(metadata, type, sqlConfig.getSqlAgentProvider().getSqlIdKeyName()));
@@ -332,7 +339,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("/*BEGIN*/").append(System.lineSeparator());
 			sql.append("WHERE").append(System.lineSeparator());
 
-			for (final TableMetadata.Column col : columns) {
+			for (var col : columns) {
 				var camelColName = col.getCamelColumnName();
 				var parts = new StringBuilder().append("\t").append("AND ")
 						.append(col.getColumnIdentifier())
@@ -342,11 +349,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("/*END*/").append(System.lineSeparator());
 
 			var firstFlag = true;
-			final List<? extends TableMetadata.Column> keys = metadata.getKeyColumns();
+			var keys = metadata.getKeyColumns();
 			if (!keys.isEmpty()) {
 				sql.append("ORDER BY").append(System.lineSeparator());
 				firstFlag = true;
-				for (final TableMetadata.Column col : keys) {
+				for (var col : keys) {
 					sql.append("\t");
 					if (firstFlag) {
 						sql.append("  ");
@@ -372,13 +379,13 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected String buildSelectClause(final TableMetadata metadata, final Class<? extends Object> type,
 			final String sqlIdKeyName) {
-		final List<? extends TableMetadata.Column> columns = metadata.getColumns();
+		var columns = metadata.getColumns();
 
 		var sql = new StringBuilder("SELECT ").append("/* ").append(sqlIdKeyName).append(" */")
 				.append(System.lineSeparator());
 
 		var firstFlag = true;
-		for (final TableMetadata.Column col : columns) {
+		for (var col : columns) {
 			sql.append("\t");
 			if (firstFlag) {
 				sql.append("  ");
@@ -799,7 +806,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	 */
 	protected void setFields(final ExecutionContext context, final Object entity, final SqlKind kind,
 			final Function<MappingColumn, String> getParamName) {
-		List<String> generatedKeyColumns = new ArrayList<>();
+		var generatedKeyColumns = new ArrayList<String>();
 		if (context.getGeneratedKeyColumns() != null) {
 			for (var keyColumn : context.getGeneratedKeyColumns()) {
 				generatedKeyColumns.add(CaseFormat.CAMEL_CASE.convert(keyColumn));

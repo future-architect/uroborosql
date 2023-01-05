@@ -85,7 +85,8 @@ public class TestEntityWithDefaultValue {
 			return false;
 		}
 		var other = (TestEntityWithDefaultValue) obj;
-		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday) || !Objects.equals(id, other.id) || !Objects.equals(memo, other.memo)) {
+		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday)
+				|| !Objects.equals(id, other.id) || !Objects.equals(memo, other.memo)) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

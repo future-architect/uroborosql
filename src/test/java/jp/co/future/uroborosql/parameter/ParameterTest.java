@@ -86,7 +86,7 @@ public class ParameterTest {
 	@Test
 	void testSetInParameter_mapperForArray() throws SQLException {
 
-		String[] param = {"1", "2", "3"};
+		String[] param = { "1", "2", "3" };
 
 		config.getExecutionContextProvider().addBindParamMapper(new BindParameterMapper<String[]>() {
 

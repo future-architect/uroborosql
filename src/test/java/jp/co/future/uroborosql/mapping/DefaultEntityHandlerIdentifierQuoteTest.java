@@ -66,7 +66,7 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

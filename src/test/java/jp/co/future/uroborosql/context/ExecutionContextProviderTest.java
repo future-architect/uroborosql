@@ -21,7 +21,6 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
-import jp.co.future.uroborosql.parameter.Parameter;
 
 public class ExecutionContextProviderTest {
 
@@ -94,7 +93,7 @@ public class ExecutionContextProviderTest {
 		return map;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testConst_enum() {
 		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
@@ -117,7 +116,7 @@ public class ExecutionContextProviderTest {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testConst_enumForJar() {
 		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));

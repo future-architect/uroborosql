@@ -124,7 +124,7 @@ public class ORMSampleTest {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id)
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
 					|| !Objects.equals(memo, other.memo)) {
 				return false;
 			}
@@ -292,7 +292,7 @@ public class ORMSampleTest {
 				return false;
 			}
 			var other = (DomainTestEntity) obj;
-			if ((id != other.id) || !Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

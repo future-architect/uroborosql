@@ -34,7 +34,9 @@ import jp.co.future.uroborosql.coverage.Ranges;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 class SqlCoverageReport {
-	protected static final Logger LOG = LoggerFactory.getLogger(SqlCoverageReport.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
 	private final String name;
 	private final String sql;
 	private final Path path;
@@ -276,7 +278,7 @@ class SqlCoverageReport {
 	}
 
 	private static List<String> toLines(final String text) {
-		List<String> ret = new ArrayList<>();
+		var ret = new ArrayList<String>();
 		var s = text + "+";//最後の改行を検知するためダミー文字を付与
 		try (var scanner = new Scanner(s)) {
 			while (scanner.hasNextLine()) {

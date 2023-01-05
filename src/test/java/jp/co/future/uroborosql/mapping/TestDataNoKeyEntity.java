@@ -127,7 +127,8 @@ public class TestDataNoKeyEntity {
 			return false;
 		}
 		var other = (TestDataNoKeyEntity) obj;
-		if ((age != other.age) || !Objects.equals(birthday, other.birthday) || (id != other.id) || !Objects.equals(memo, other.memo)) {
+		if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+				|| !Objects.equals(memo, other.memo)) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

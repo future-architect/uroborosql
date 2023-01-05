@@ -20,8 +20,8 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  */
 public class IfNode extends BranchNode {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(IfNode.class);
+	/** パーサーロガー */
+	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.parser");
 
 	private final ExpressionParser expressionParser;
 	/** 評価式 */
@@ -98,13 +98,13 @@ public class IfNode extends BranchNode {
 
 		if (result instanceof Boolean) {
 			var resultValue = (Boolean) result;
-			if (LOG.isDebugEnabled()) {
+			if (PARSER_LOG.isInfoEnabled()) {
 				if (Boolean.TRUE.toString().equalsIgnoreCase(expression)
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
 					var builder = expr.dumpNode(transformContext);
-					LOG.debug("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
+					PARSER_LOG.info("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
 							builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
 				}
 			}

@@ -16,17 +16,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 public class SqlBatchTest extends AbstractDbTest {
-	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(SqlBatchTest.class);
-
 	/**
 	 * バッチ処理のテストケース。
 	 */
@@ -317,7 +312,7 @@ public class SqlBatchTest extends AbstractDbTest {
 				.by((ctx, row) -> ctx.batchCount() == 10)
 				.batchWhen((agent, ctx) -> agent.commit())
 				.errorWhen((agent, ctx, ex) -> {
-					log.error("error occurred. ex:{}", ex.getMessage());
+					// do noting
 				})
 				.count();
 

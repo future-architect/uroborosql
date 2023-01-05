@@ -290,15 +290,15 @@ public class UroboroSQLTest {
 
 			agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
 					.stream().forEach(m -> {
-				assertTrue(m.containsKey("productId"));
-				assertTrue(m.containsKey("productName"));
-				assertTrue(m.containsKey("productKanaName"));
-				assertTrue(m.containsKey("janCode"));
-				assertTrue(m.containsKey("productDescription"));
-				assertTrue(m.containsKey("insDatetime"));
-				assertTrue(m.containsKey("updDatetime"));
-				assertTrue(m.containsKey("versionNo"));
-			});
+						assertTrue(m.containsKey("productId"));
+						assertTrue(m.containsKey("productName"));
+						assertTrue(m.containsKey("productKanaName"));
+						assertTrue(m.containsKey("janCode"));
+						assertTrue(m.containsKey("productDescription"));
+						assertTrue(m.containsKey("insDatetime"));
+						assertTrue(m.containsKey("updDatetime"));
+						assertTrue(m.containsKey("versionNo"));
+					});
 
 			agent.rollback();
 		}

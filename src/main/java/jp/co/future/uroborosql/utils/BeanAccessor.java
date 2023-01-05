@@ -89,7 +89,7 @@ public class BeanAccessor {
 	 * @return {@literal Set<Field>ｊ}
 	 */
 	public static Collection<Field> fields(final Class<?> cls) {
-		Map<String, Field> fieldMap = new HashMap<>();
+		var fieldMap = new HashMap<String, Field>();
 		walkFields(cls, fieldMap);
 		return fieldMap.values();
 	}
@@ -104,7 +104,7 @@ public class BeanAccessor {
 		if (cls.equals(Object.class)) {
 			return;
 		}
-		Class<?> superClass = cls.getSuperclass();
+		var superClass = cls.getSuperclass();
 		walkFields(superClass, fieldMap);
 		Arrays.stream(cls.getDeclaredFields())
 				.filter(f -> !Modifier.isStatic(f.getModifiers()))

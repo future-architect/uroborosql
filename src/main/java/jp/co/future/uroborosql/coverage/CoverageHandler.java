@@ -36,7 +36,7 @@ public interface CoverageHandler {
 	 * @return 各行のRange
 	 */
 	static List<LineRange> getLineRanges(final String sql) {
-		List<LineRange> ret = new ArrayList<>();
+		var ret = new ArrayList<LineRange>();
 		var start = 0;
 		var searchStart = 0;
 		try (var scanner = new Scanner(sql)) {

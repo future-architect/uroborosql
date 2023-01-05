@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import jp.co.future.uroborosql.connection.ConnectionContext;
-
 import org.junit.jupiter.api.Test;
+
+import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;

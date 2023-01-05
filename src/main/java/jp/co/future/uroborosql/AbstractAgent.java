@@ -41,7 +41,6 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
-import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.tx.LocalTransactionManager;
@@ -57,12 +56,11 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  */
 public abstract class AbstractAgent implements SqlAgent {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractAgent.class);
+	/** SQLロガー */
+	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
 
 	/** SQLカバレッジ用ロガー */
-	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
-			+ "sql.coverage");
+	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.sql.coverage");
 
 	/** ログ出力を抑止するためのMDCキー */
 	protected static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
@@ -138,7 +136,7 @@ public abstract class AbstractAgent implements SqlAgent {
 				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
 						Thread.currentThread().getContextClassLoader()).getConstructor().newInstance();
 			} catch (Exception ex) {
-				LOG.warn("Failed to generate CoverageHandler class. Class:{}, Cause:{}", sqlCoverageClassName,
+				COVERAGE_LOG.warn("Failed to generate CoverageHandler class. Class:{}, Cause:{}", sqlCoverageClassName,
 						ex.getMessage());
 			}
 		}
@@ -229,6 +227,15 @@ public abstract class AbstractAgent implements SqlAgent {
 	}
 
 	/**
+	 * Dialect を取得します。
+	 *
+	 * @return Dialect
+	 */
+	protected Dialect getDialect() {
+		return sqlConfig.getDialect();
+	}
+
+	/**
 	 * ExecutionContextの設定内容を元にSQLを構築する
 	 *
 	 * @param executionContext ExecutionContext
@@ -236,10 +243,11 @@ public abstract class AbstractAgent implements SqlAgent {
 	 */
 	protected void transformContext(final ExecutionContext executionContext, final boolean isQuery) {
 		var originalSql = executionContext.getSql();
+		var sqlName = executionContext.getSqlName();
 		if (StringUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
-			originalSql = getSqlResourceManager().getSql(executionContext.getSqlName());
+			originalSql = getSqlResourceManager().getSql(sqlName);
 			if (StringUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("sql file:[" + executionContext.getSqlName() + "] is not found.");
+				throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
 			}
 		}
 		originalSql = getSqlFilterManager().doTransformSql(executionContext, originalSql);
@@ -249,7 +257,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (originalSql.contains(keySqlId)) {
 			var sqlId = executionContext.getSqlId();
 			if (StringUtils.isEmpty(sqlId)) {
-				sqlId = executionContext.getSqlName();
+				sqlId = sqlName;
 			}
 			if (StringUtils.isEmpty(sqlId)) {
 				sqlId = String.valueOf(originalSql.hashCode());
@@ -259,7 +267,7 @@ public abstract class AbstractAgent implements SqlAgent {
 		}
 
 		// Dialectに合わせたエスケープキャラクタの設定
-		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getSqlConfig().getDialect().getEscapeChar());
+		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (executionContext.batchCount() == 0) {
@@ -273,26 +281,33 @@ public abstract class AbstractAgent implements SqlAgent {
 		if (StringUtils.isEmpty(executionContext.getExecutableSql())) {
 			var outputBindComment = (boolean) executionContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
-			SqlParser sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
-					sqlConfig.getDialect().isRemoveTerminator(), outputBindComment);
+			var sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
+					getDialect().isRemoveTerminator(), outputBindComment);
 			var contextTransformer = sqlParser.parse();
 			contextTransformer.transform(executionContext);
 
 			if (coverageHandlerRef.get() != null) {
 				// SQLカバレッジ用のログを出力する
-				var coverageData = new CoverageData(executionContext.getSqlName(), originalSql,
+				var coverageData = new CoverageData(sqlName, originalSql,
 						contextTransformer.getPassedRoute());
-				COVERAGE_LOG.trace("{}", coverageData);
+				COVERAGE_LOG.info("{}", coverageData);
 
 				coverageHandlerRef.get().accept(coverageData);
 			}
 		}
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
+		if (SQL_LOG.isInfoEnabled() && sqlName != null) {
+			if (getSqlResourceManager().existSql(sqlName)) {
+				SQL_LOG.info("SQLPath : {}", getSqlResourceManager().getSqlPath(sqlName));
+			} else {
+				SQL_LOG.info("EntityClass : {}", sqlName);
+			}
 		}
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
+		if (SQL_LOG.isDebugEnabled()) {
+			SQL_LOG.debug("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
+		}
+		if (SQL_LOG.isInfoEnabled()) {
+			SQL_LOG.info("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
 					System.lineSeparator());
 		}
 	}
@@ -661,7 +676,7 @@ public abstract class AbstractAgent implements SqlAgent {
 	public <E> int inserts(final Class<E> entityType, final Stream<E> entities,
 			final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
-		if (insertsType == InsertsType.BULK && sqlConfig.getDialect().supportsBulkInsert()) {
+		if (insertsType == InsertsType.BULK && getDialect().supportsBulkInsert()) {
 			return bulkInsert(entityType, entities, condition, null);
 		} else {
 			return batchInsert(entityType, entities, condition, null);
@@ -769,7 +784,7 @@ public abstract class AbstractAgent implements SqlAgent {
 			final InsertsCondition<? super E> condition,
 			final InsertsType insertsType) {
 		var insertedEntities = new ArrayList<E>();
-		if (insertsType == InsertsType.BULK && sqlConfig.getDialect().supportsBulkInsert()) {
+		if (insertsType == InsertsType.BULK && getDialect().supportsBulkInsert()) {
 			bulkInsert(entityType, entities, condition, insertedEntities);
 		} else {
 			batchInsert(entityType, entities, condition, insertedEntities);

@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -254,7 +253,7 @@ public interface TableMetadata {
 
 		var entityMetadata = new TableMetadataImpl();
 
-		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
+		var columns = new HashMap<String, TableMetadataImpl.Column>();
 		var actualSchema = schema;
 
 		var tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索, 3回目:schema指定なしで検索

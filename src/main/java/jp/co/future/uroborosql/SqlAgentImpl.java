@@ -11,7 +11,6 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -63,7 +62,13 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class SqlAgentImpl extends AbstractAgent {
 	/** ロガー */
-	protected static final Logger LOG = LoggerFactory.getLogger(SqlAgentImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
+	/** SQLロガー */
+	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
+
+	/** パフォーマンスロガー */
+	private static final Logger PERFORMANCE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.performance");
 
 	/** 経過時間のフォーマッタ */
 	private static final DateTimeFormatter ELAPSED_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
@@ -115,7 +120,9 @@ public class SqlAgentImpl extends AbstractAgent {
 		Instant startTime = null;
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Execute search SQL.");
-			startTime = Instant.now(Clock.systemDefaultZone());
+		}
+		if (PERFORMANCE_LOG.isInfoEnabled()) {
+			startTime = Instant.now(getSqlConfig().getClock());
 		}
 
 		// 前処理
@@ -134,7 +141,7 @@ public class SqlAgentImpl extends AbstractAgent {
 				retryWaitTime = executionContext.getRetryWaitTime();
 			}
 			var loopCount = 0;
-			var dialect = getSqlConfig().getDialect();
+			var dialect = getDialect();
 			ResultSet rs = null;
 			try {
 				do {
@@ -196,10 +203,11 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			// 後処理
 			afterQuery(executionContext);
-			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
+				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
+						generateSqlName(executionContext),
 						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -288,7 +296,9 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute update SQL.");
-				startTime = Instant.now(Clock.systemDefaultZone());
+			}
+			if (PERFORMANCE_LOG.isInfoEnabled()) {
+				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			// 前処理
@@ -308,7 +318,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			var loopCount = 0;
 			do {
 				try {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					var count = getSqlFilterManager().doUpdate(executionContext, stmt, stmt.executeUpdate());
@@ -316,7 +326,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							SqlKind.BULK_INSERT.equals(executionContext.getSqlKind()))
 							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
-							List<Object> generatedKeyValues = new ArrayList<>();
+							var generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
 								for (var i = 1; i <= executionContext.getGeneratedKeyColumns().length; i++) {
 									generatedKeyValues.add(rs.getObject(i));
@@ -328,7 +338,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 					return count;
 				} catch (SQLException ex) {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
@@ -354,7 +364,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
@@ -366,10 +376,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			return 0;
 		} finally {
 			afterUpdate(executionContext);
-			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
+				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
+						generateSqlName(executionContext),
 						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -422,7 +433,9 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute batch process.");
-				startTime = Instant.now(Clock.systemDefaultZone());
+			}
+			if (PERFORMANCE_LOG.isInfoEnabled()) {
+				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			// 前処理
@@ -442,14 +455,14 @@ public class SqlAgentImpl extends AbstractAgent {
 			var loopCount = 0;
 			do {
 				try {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					var counts = getSqlFilterManager().doBatch(executionContext, stmt, stmt.executeBatch());
 					if (SqlKind.BATCH_INSERT.equals(executionContext.getSqlKind())
 							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
-							List<Object> generatedKeyValues = new ArrayList<>();
+							var generatedKeyValues = new ArrayList<>();
 							while (rs.next()) {
 								for (var i = 1; i <= executionContext.getGeneratedKeyColumns().length; i++) {
 									generatedKeyValues.add(rs.getObject(i));
@@ -461,7 +474,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					}
 					return counts;
 				} catch (SQLException ex) {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
@@ -487,7 +500,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					executionContext.clearBatch();
@@ -501,10 +514,11 @@ public class SqlAgentImpl extends AbstractAgent {
 		} finally {
 			// 後処理
 			afterBatch(executionContext);
-			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("SQL execution time [{}({})] : [{}]", generateSqlName(executionContext),
+			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
+				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
+						generateSqlName(executionContext),
 						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -555,7 +569,9 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Execute stored procedure.");
-				startTime = Instant.now(Clock.systemDefaultZone());
+			}
+			if (PERFORMANCE_LOG.isInfoEnabled()) {
+				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			beforeProcedure(executionContext);
@@ -574,13 +590,13 @@ public class SqlAgentImpl extends AbstractAgent {
 			var loopCount = 0;
 			do {
 				try {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					getSqlFilterManager().doProcedure(executionContext, callableStatement, callableStatement.execute());
 					break;
 				} catch (SQLException ex) {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						rollback(RETRY_SAVEPOINT_NAME);
 					}
 					if (maxRetryCount > loopCount) {
@@ -606,7 +622,7 @@ public class SqlAgentImpl extends AbstractAgent {
 						throw ex;
 					}
 				} finally {
-					if (maxRetryCount > 0 && getSqlConfig().getDialect().isRollbackToSavepointBeforeRetry()) {
+					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						releaseSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					executionContext.contextAttrs().put(CTX_ATTR_KEY_RETRY_COUNT, loopCount);
@@ -618,10 +634,11 @@ public class SqlAgentImpl extends AbstractAgent {
 			handleException(executionContext, ex);
 		} finally {
 			afterProcedure(executionContext);
-			if (LOG.isDebugEnabled() && startTime != null) {
-				LOG.debug("Stored procedure execution time [{}({})] : [{}]", generateSqlName(executionContext),
+			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
+				PERFORMANCE_LOG.info("Stored procedure execution time [{}({})] : [{}]",
+						generateSqlName(executionContext),
 						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(Clock.systemDefaultZone())));
+						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
 			}
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 		}
@@ -732,7 +749,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			if (keyNames.length != keys.length) {
 				throw new IllegalArgumentException("Number of keys does not match");
 			}
-			Map<String, Object> params = new HashMap<>();
+			var params = new HashMap<String, Object>();
 			for (var i = 0; i < keys.length; i++) {
 				params.put(keyNames[i], keys[i]);
 			}
@@ -774,8 +791,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			// 自動採番カラムの取得とcontextへの設定を行う
 			var mappingColumns = MappingUtils.getMappingColumns(metadata.getSchema(), entityType);
-			List<MappingColumn> autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata,
-					entity);
+			var autoGeneratedColumns = getAutoGeneratedColumns(context, mappingColumns, metadata, entity);
 
 			handler.setInsertParams(context, entity);
 			var count = handler.doInsert(this, context, entity);
@@ -823,8 +839,8 @@ public class SqlAgentImpl extends AbstractAgent {
 	protected <E> List<MappingColumn> getAutoGeneratedColumns(final ExecutionContext context,
 			final MappingColumn[] mappingColumns,
 			final TableMetadata metadata, final E entity) {
-		List<MappingColumn> autoGeneratedColumns = new ArrayList<>();
-		List<String> autoGeneratedColumnNames = new ArrayList<>();
+		var autoGeneratedColumns = new ArrayList<MappingColumn>();
+		var autoGeneratedColumnNames = new ArrayList<String>();
 
 		if (mappingColumns != null && mappingColumns.length > 0) {
 			for (var column : metadata.getColumns()) {
@@ -1086,7 +1102,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 		try {
 			var metadata = handler.getMetadata(this.transactionManager, type);
-			List<? extends TableMetadata.Column> keyColumns = metadata.getKeyColumns();
+			var keyColumns = metadata.getKeyColumns();
 
 			if (keyColumns.isEmpty()) {
 				throw new IllegalArgumentException("Entity has no keys.");
@@ -1178,7 +1194,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			var metadata = handler.getMetadata(this.transactionManager, entityType);
 			TableMetadata.Column keyColumn = null;
-			List<? extends TableMetadata.Column> keyColumns = metadata.getKeyColumns();
+			var keyColumns = metadata.getKeyColumns();
 			if (keyColumns.size() == 1) {
 				keyColumn = keyColumns.get(0);
 			} else if (keyColumns.isEmpty()) {
@@ -1263,7 +1279,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			context.setSqlKind(SqlKind.BATCH_INSERT);
 
 			var count = 0;
-			List<E> entityList = new ArrayList<>();
+			var entityList = new ArrayList<E>();
 			var isFirst = true;
 			List<MappingColumn> autoGeneratedColumns = List.of();
 			Map<String, Object> nonNullObjectIdFlags = null;
@@ -1353,7 +1369,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			var isFirst = true;
 			List<MappingColumn> autoGeneratedColumns = List.of();
 			Map<String, Object> nonNullObjectIdFlags = null;
-			List<E> entityList = new ArrayList<>();
+			var entityList = new ArrayList<E>();
 			for (var iterator = entities.iterator(); iterator.hasNext();) {
 				var entity = iterator.next();
 
@@ -1454,7 +1470,7 @@ public class SqlAgentImpl extends AbstractAgent {
 					entityType);
 			var entityCount = 0;
 			var updateCount = 0;
-			List<E> entityList = new ArrayList<>();
+			var entityList = new ArrayList<E>();
 			for (var iterator = entities.iterator(); iterator.hasNext();) {
 				var entity = iterator.next();
 
@@ -1482,7 +1498,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			if (updatedEntities != null && versionColumn.isPresent()) {
 				var vColumn = versionColumn.get();
-				List<MappingColumn> keyColumns = metadata.getColumns().stream()
+				var keyColumns = metadata.getColumns().stream()
 						.filter(TableMetadata.Column::isKey)
 						.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
 						.map(c -> MappingUtils.getMappingColumnMap(metadata.getSchema(), entityType, SqlKind.NONE)
@@ -1492,11 +1508,11 @@ public class SqlAgentImpl extends AbstractAgent {
 				if (keyColumns.size() == 1) {
 					// 単一キーの場合はIN句で更新した行を一括取得し@Versionのついたフィールドを更新する
 					var keyColumn = keyColumns.get(0);
-					Map<Object, List<E>> updatedEntityMap = updatedEntities.stream()
+					var updatedEntityMap = updatedEntities.stream()
 							.collect(Collectors.groupingBy(e -> keyColumn.getValue(e)));
 
 					// updatedEntitiesのサイズが大きいとin句の上限にあたるため、1000件ずつに分割して検索する
-					List<Object> keyList = new ArrayList<>(updatedEntityMap.keySet());
+					var keyList = new ArrayList<>(updatedEntityMap.keySet());
 					var entitySize = updatedEntities.size();
 
 					for (var start = 0; start < entitySize; start = start + IN_CLAUSE_MAX_PARAM_SIZE) {
@@ -1522,7 +1538,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							}).count();
 				}
 			}
-			if (versionColumn.isPresent() && getSqlConfig().getDialect().supportsEntityBulkUpdateOptimisticLock()
+			if (versionColumn.isPresent() && getDialect().supportsEntityBulkUpdateOptimisticLock()
 					&& updateCount != entityCount) {
 				// バージョンカラムの指定があり、更新件数と更新対象Entityの件数が不一致の場合は楽観ロックエラーとする
 				throw new OptimisticLockException(String.format(

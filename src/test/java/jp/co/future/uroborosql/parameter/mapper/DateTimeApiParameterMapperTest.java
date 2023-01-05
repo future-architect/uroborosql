@@ -69,8 +69,8 @@ public class DateTimeApiParameterMapperTest {
 		assertThat(mapper.toJdbc(createDateTime("2000-01-01T10:10:10"), null, null),
 				instanceOf(Timestamp.class));
 		assertThat(mapper.toJdbc(
-						createDateTime("2000-01-01T10:10:10").withZoneSameInstant(ZoneId.of("Europe/Monaco")), null,
-						null),
+				createDateTime("2000-01-01T10:10:10").withZoneSameInstant(ZoneId.of("Europe/Monaco")), null,
+				null),
 				is(createTimestamp("2000-01-01T10:10:10")));
 	}
 

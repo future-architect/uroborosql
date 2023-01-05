@@ -68,7 +68,7 @@ public class TestEntityCyclicLockVersion {
 			return false;
 		}
 		var other = (TestEntityCyclicLockVersion) obj;
-		if (!Objects.equals(id, other.id) || (lockVersion != other.lockVersion) || !Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || lockVersion != other.lockVersion || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

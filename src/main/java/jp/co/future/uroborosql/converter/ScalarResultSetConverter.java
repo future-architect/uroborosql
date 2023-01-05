@@ -27,9 +27,6 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
@@ -38,16 +35,13 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
- * 検索結果の1行をプリミティブ型（のラッパークラス）に変換する変換器
+ * 検索結果をプリミティブ型（のラッパークラス）に変換する変換器
  *
  * @param <E> プリミティブ型のラッパークラス、またはString型
  * @author H.Sugimoto
  *
  */
-public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(SingleColumnResultSetConverter.class);
-
+public class ScalarResultSetConverter<E> implements ResultSetConverter<E> {
 	private final String col;
 	private final JavaType javaType;
 	private final PropertyMapperManager mapperManager;
@@ -128,7 +122,7 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 	 * @param columnType カラムの型
 	 * @param mapperManager PropertyMapperManager
 	 */
-	public SingleColumnResultSetConverter(final String col, final Class<? extends E> columnType,
+	public ScalarResultSetConverter(final String col, final Class<? extends E> columnType,
 			final PropertyMapperManager mapperManager) {
 		this.col = CaseFormat.UPPER_SNAKE_CASE.convert(col);
 		this.javaType = JavaType.of(columnType);
@@ -165,7 +159,6 @@ public class SingleColumnResultSetConverter<E> implements ResultSetConverter<E> 
 
 			return (E) mapperManager.getValue(this.javaType, rs, this.columnPosition);
 		} catch (SQLException | RuntimeException | Error e) {
-			LOG.error("Error!!", e);
 			throw e;
 		}
 	}

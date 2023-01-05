@@ -86,7 +86,7 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 
 		// resizeが発生しないよう、初期loadFactorで溢れないサイズを指定する。
 		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けている。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
-		Map<String, Object> record = new LinkedHashMap<>(columnCount * 4 / 3 + 1);
+		var record = new LinkedHashMap<String, Object>(columnCount * 4 / 3 + 1);
 
 		for (var i = 1; i <= columnCount; i++) {
 			record.put(this.columnLabels[i], this.mapperManager.getValue(this.javaTypes[i], rs, i));

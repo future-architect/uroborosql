@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -30,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,10 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextProviderImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
+	/** 設定ロガー */
+	private static final Logger SETTING_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.setting");
 
 	/** 定数パラメータプレフィックス */
 	private String constParamPrefix = "CLS_";
@@ -94,7 +99,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContext createExecutionContext() {
 		var executionContext = new ExecutionContextImpl();
-		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
+		var paramMap = new ConcurrentHashMap<>(getConstParameterMap());
 
 		executionContext.setConstParameterMap(paramMap);
 		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
@@ -137,7 +142,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	public void initialize() {
 		parameterMapperManager = new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock());
 
-		Map<String, Parameter> paramMap = new HashMap<>(buildConstParamMap());
+		var paramMap = new HashMap<String, Parameter>(buildConstParamMap());
 		paramMap.putAll(buildEnumConstParamMap());
 		constParameterMap = Collections.unmodifiableMap(paramMap);
 	}
@@ -164,10 +169,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 						var newValue = new Parameter(fieldName, field.get(null));
 						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							LOG.warn("Duplicate constant name. Constant name:{}, Old name:{} destroy.", fieldName,
+							SETTING_LOG.warn("Duplicate constant name. Constant name:{}, old value:{} destroy.",
+									fieldName,
 									prevValue.getValue());
 						}
-						LOG.debug("Constant [name:{}, value:{}] added to parameter.", fieldName, newValue.getValue());
+						SETTING_LOG.info("Constant [name:{}, value:{}] added to parameter.",
+								fieldName,
+								newValue.getValue());
 					}
 				}
 			}
@@ -199,17 +207,20 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 				packageName.length() + 1))
 				+ "_";
 
-		Enum<?>[] enumValues = targetClass.getEnumConstants();
+		var enumValues = targetClass.getEnumConstants();
 
 		for (var value : enumValues) {
-			var fieldName = getConstParamPrefix() + fieldPrefix + value.name().toUpperCase();
-			fieldName = fieldName.toUpperCase();
+			var fieldName = (getConstParamPrefix() + fieldPrefix + value.name().toUpperCase()).toUpperCase();
 			var newValue = new Parameter(fieldName, value);
 			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				LOG.warn("Duplicate Enum name. Enum name:{}, Old name:{} destroy.", fieldName, prevValue.getValue());
+				SETTING_LOG.warn("Duplicate Enum name. Enum name:{}, old value:{} destroy.",
+						fieldName,
+						prevValue.getValue());
 			}
-			LOG.debug("Enum [name:{}, value:{}] added to parameter.", fieldName, newValue.getValue());
+			SETTING_LOG.info("Enum [name:{}, value:{}] added to parameter.",
+					fieldName,
+					newValue.getValue());
 		}
 	}
 
@@ -316,7 +327,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContextProvider addQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
+		queryAutoParameterBinder = queryAutoParameterBinders.stream()
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -329,7 +341,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContextProvider removeQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
 		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
+		queryAutoParameterBinder = queryAutoParameterBinders.stream()
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -368,12 +381,11 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @return 定数クラスパラメータMap
 	 */
 	private Map<? extends String, ? extends Parameter> buildConstParamMap() {
-		Map<String, Parameter> paramMap = new HashMap<>();
+		var paramMap = new HashMap<String, Parameter>();
 		for (var className : constantClassNames) {
 			if (StringUtils.isNotBlank(className)) {
 				try {
-					Class<?> targetClass = Class.forName(className, true, Thread.currentThread()
-							.getContextClassLoader());
+					var targetClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 					makeConstParamMap(paramMap, targetClass);
 				} catch (ClassNotFoundException ex) {
 					LOG.error(ex.getMessage(), ex);
@@ -389,7 +401,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @return Enum定数パラメータMap
 	 */
 	private Map<? extends String, ? extends Parameter> buildEnumConstParamMap() {
-		Map<String, Parameter> paramMap = new HashMap<>();
+		var paramMap = new HashMap<String, Parameter>();
 		for (var packageName : enumConstantPackageNames) {
 			if (StringUtils.isNotBlank(packageName)) {
 				for (var targetClass : listupEnumClasses(packageName)) {
@@ -418,7 +430,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			return Set.of();
 		}
 
-		Set<Class<?>> classes = new HashSet<>();
+		var classes = new HashSet<Class<?>>();
 		for (var root : roots) {
 			if ("file".equalsIgnoreCase(root.getProtocol())) {
 				try {
@@ -449,19 +461,21 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @throws IOException
 	 */
 	private static Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
-		Set<Class<?>> classes = new HashSet<>();
+		var prefix = packageName + ".";
 		try (var stream = Files.walk(dir)) {
-			stream.filter(entry -> entry.getFileName().toString().endsWith(".class")).forEach(file -> {
-				var joiner = new StringJoiner(".", packageName + ".", "");
-				dir.relativize(file).forEach(p -> joiner.add(p.toString()));
-				var className = joiner.toString().replaceAll(".class$", "");
-				loadEnum(className).ifPresent(classes::add);
-			});
+			return stream.filter(entry -> entry.getFileName().toString().endsWith(".class"))
+					.flatMap(file -> {
+						var joiner = new StringJoiner(".", prefix, "");
+						dir.relativize(file).forEach(p -> joiner.add(p.toString()));
+						var className = joiner.toString().replaceAll(".class$", "");
+						return loadEnum(className).stream();
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
+			return Set.of();
 		}
-
-		return classes;
 	}
 
 	/**
@@ -476,13 +490,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
 			final JarFile jarFile) {
 		var resourceName = packageName.replace('.', '/');
-		Set<Class<?>> classes = new HashSet<>();
-		Collections.list(jarFile.entries()).stream().map(JarEntry::getName)
-				.filter(name -> name.startsWith(resourceName)).filter(name -> name.endsWith(".class"))
+		return Collections.list(jarFile.entries()).stream()
+				.map(JarEntry::getName)
+				.filter(name -> name.startsWith(resourceName) && name.endsWith(".class"))
 				.map(name -> name.replace('/', '.').replaceAll(".class$", ""))
-				.forEach(className -> loadEnum(className).ifPresent(classes::add));
-
-		return classes;
+				.flatMap(className -> loadEnum(className).stream())
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -494,7 +508,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 */
 	private static Optional<Class<?>> loadEnum(final String className) {
 		try {
-			Class<?> type = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+			var type = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 			if (type.isEnum()) {
 				return Optional.of(type);
 			}
