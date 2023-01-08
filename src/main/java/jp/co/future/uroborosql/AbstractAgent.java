@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -44,8 +45,6 @@ import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.tx.LocalTransactionManager;
-import jp.co.future.uroborosql.tx.SQLRunnable;
-import jp.co.future.uroborosql.tx.SQLSupplier;
 import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -355,60 +354,60 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.Runnable)
 	 */
 	@Override
-	public void required(final SQLRunnable runnable) {
+	public void required(final Runnable runnable) {
 		transactionManager.required(runnable);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.Supplier)
 	 */
 	@Override
-	public <R> R required(final SQLSupplier<R> supplier) {
+	public <R> R required(final Supplier<R> supplier) {
 		return transactionManager.required(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.Runnable)
 	 */
 	@Override
-	public void requiresNew(final SQLRunnable runnable) {
+	public void requiresNew(final Runnable runnable) {
 		transactionManager.requiresNew(runnable);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.Supplier)
 	 */
 	@Override
-	public <R> R requiresNew(final SQLSupplier<R> supplier) {
+	public <R> R requiresNew(final Supplier<R> supplier) {
 		return transactionManager.requiresNew(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.Runnable)
 	 */
 	@Override
-	public void notSupported(final SQLRunnable runnable) {
+	public void notSupported(final Runnable runnable) {
 		transactionManager.notSupported(runnable);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.Supplier)
 	 */
 	@Override
-	public <R> R notSupported(final SQLSupplier<R> supplier) {
+	public <R> R notSupported(final Supplier<R> supplier) {
 		return transactionManager.notSupported(supplier);
 	}
 
@@ -455,40 +454,40 @@ public abstract class AbstractAgent implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.Supplier)
 	 */
 	@Override
-	public <R> R savepointScope(final SQLSupplier<R> supplier) {
+	public <R> R savepointScope(final Supplier<R> supplier) {
 		return transactionManager.savepointScope(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.Runnable)
 	 */
 	@Override
-	public void savepointScope(final SQLRunnable runnable) {
+	public void savepointScope(final Runnable runnable) {
 		transactionManager.savepointScope(runnable);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.Supplier)
 	 */
 	@Override
-	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
+	public <R> R autoCommitScope(final Supplier<R> supplier) {
 		return transactionManager.autoCommitScope(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.Runnable)
 	 */
 	@Override
-	public void autoCommitScope(final SQLRunnable runnable) {
+	public void autoCommitScope(final Runnable runnable) {
 		transactionManager.autoCommitScope(runnable);
 	}
 

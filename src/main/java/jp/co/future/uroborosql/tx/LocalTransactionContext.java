@@ -149,6 +149,72 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
+	 * トランザクションのコミット
+	 *
+	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
+	 */
+	void commit() {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
+		}
+		clearState();
+	}
+
+	/**
+	 * トランザクションのロールバック
+	 *
+	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
+	 */
+	void rollback() {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
+				connection.rollback();
+			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
+		}
+		clearState();
+	}
+
+	/**
+	 * 現在のトランザクションがロールバック指定になっているかを取得します。
+	 */
+	boolean isRollbackOnly() {
+		return rollbackOnly;
+	}
+
+	/**
+	 * 現在のトランザクションをロールバックすることを予約します。
+	 */
+	void setRollbackOnly() {
+		this.rollbackOnly = true;
+	}
+
+	/**
+	 * 指定されたセーブポイントが設定されたあとに行われたすべての変更をロールバックします。
+	 *
+	 * <pre>
+	 *  この処理は{@link Connection#rollback(java.sql.Savepoint)}の処理に依存します。
+	 * </pre>
+	 *
+	 * @param savepointName セーブポイントの名前
+	 * @throws SQLException SQL例外
+	 */
+	void rollback(final String savepointName) {
+		if (connection != null) {
+			try {
+				connection.rollback(savepointMap.get(savepointName));
+			} catch (SQLException e) {
+				throw new UroborosqlSQLException(e);
+			}
+		}
+	}
+
+	/**
 	 * トランザクションのセーブポイントを作成します。
 	 *
 	 * <pre>
@@ -205,72 +271,7 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * 指定されたセーブポイントが設定されたあとに行われたすべての変更をロールバックします。
 	 *
-	 * <pre>
-	 *  この処理は{@link Connection#rollback(java.sql.Savepoint)}の処理に依存します。
-	 * </pre>
-	 *
-	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
-	 */
-	void rollback(final String savepointName) {
-		if (connection != null) {
-			try {
-				connection.rollback(savepointMap.get(savepointName));
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
-			}
-		}
-	}
-
-	/**
-	 * 現在のトランザクションをロールバックすることを予約します。
-	 */
-	void setRollbackOnly() {
-		this.rollbackOnly = true;
-	}
-
-	/**
-	 * 現在のトランザクションがロールバック指定になっているかを取得します。
-	 */
-	boolean isRollbackOnly() {
-		return rollbackOnly;
-	}
-
-	/**
-	 * トランザクションのコミット
-	 *
-	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
-	 */
-	void commit() {
-		try {
-			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
-				connection.commit();
-			}
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
-		}
-		clearState();
-	}
-
-	/**
-	 * トランザクションのロールバック
-	 *
-	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
-	 */
-	void rollback() {
-		try {
-			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
-				connection.rollback();
-			}
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
-		}
-		clearState();
-	}
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * @see java.lang.AutoCloseable#close()
