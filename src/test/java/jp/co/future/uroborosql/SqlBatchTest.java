@@ -33,7 +33,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
-		var ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
+		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
 				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
 				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
 				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
@@ -70,7 +70,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
-		var ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
+		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
 				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
 				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
 				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
@@ -110,7 +110,7 @@ public class SqlBatchTest extends AbstractDbTest {
 
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
-		var ctx = agent.contextFrom("example/insert_product").param("product_id", new BigDecimal(1))
+		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
 				.param("product_name", null).param("product_kana_name", null).param("jan_code", "1234567890123")
 				.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
 				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
@@ -351,7 +351,7 @@ public class SqlBatchTest extends AbstractDbTest {
 	@Test
 	void testNotFoundFile() throws Exception {
 		try {
-			var ctx = agent.contextFrom("file");
+			var ctx = agent.context().setSqlName("file");
 			agent.batch(ctx);
 			// 例外が発生しなかった場合
 			fail();

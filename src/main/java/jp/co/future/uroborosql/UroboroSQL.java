@@ -380,26 +380,6 @@ public final class UroboroSQL {
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#contextFrom(java.lang.String)
-		 */
-		@Override
-		public ExecutionContext contextFrom(final String sqlName) {
-			return executionContextProvider.createExecutionContext().setSqlName(sqlName);
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#contextWith(java.lang.String)
-		 */
-		@Override
-		public ExecutionContext contextWith(final String sql) {
-			return executionContextProvider.createExecutionContext().setSql(sql);
-		}
-
-		/**
-		 * {@inheritDoc}
-		 *
 		 * @see jp.co.future.uroborosql.config.SqlConfig#agent()
 		 */
 		@Override

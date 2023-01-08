@@ -153,7 +153,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param paramMap 定数パラメータを保持するMap
 	 * @param targetClass 定数パラメータを生成する定数クラス。クラス内に内部クラスを持つ場合は内部クラスの定数フィールドもパラメータに登録する
 	 */
-	protected void makeConstParamMap(final Map<String, Parameter> paramMap, final Class<?> targetClass) {
+	protected void makeConstParamMap(final Map<String, Parameter> paramMap,
+			final Class<?> targetClass) {
 		try {
 			var fieldPrefix = targetClass.isMemberClass() ? CaseFormat.UPPER_SNAKE_CASE
 					.convert(targetClass.getSimpleName()) + "_" : "";
@@ -200,12 +201,12 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param packageName パッケージ名
 	 * @param targetClass 対象Enumクラス
 	 */
-	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
+	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap,
+			final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
 		var fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(
-				packageName.length() + 1))
-				+ "_";
+				packageName.length() + 1)) + "_";
 
 		var enumValues = targetClass.getEnumConstants();
 

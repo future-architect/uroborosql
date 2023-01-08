@@ -11,8 +11,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.SqlAgentImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
@@ -42,7 +42,7 @@ public class CoberturaCoverageHandlerTest {
 		var path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("coverageHandlerRef");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);

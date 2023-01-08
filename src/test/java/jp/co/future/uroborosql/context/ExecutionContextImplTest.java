@@ -37,7 +37,7 @@ public class ExecutionContextImplTest {
 
 	private ExecutionContext getExecutionContext(final String sql) {
 		var s = replaceLineSep(sql);
-		var ctx = config.contextWith(s);
+		var ctx = config.context().setSql(s);
 		ctx.addSqlPart(s);
 		return ctx;
 	}
@@ -414,7 +414,7 @@ public class ExecutionContextImplTest {
 	@Test
 	void testParamOptionalHasValue() throws Exception {
 		var ctx = config
-				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+				.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.of("testId");
 		ctx.param("id", id);
 
@@ -422,7 +422,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.param("id", id, JDBCType.VARCHAR);
 
@@ -430,7 +430,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -438,7 +438,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.inOutParam("id", id, JDBCType.VARCHAR);
 
@@ -446,7 +446,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -459,7 +459,7 @@ public class ExecutionContextImplTest {
 	@Test
 	void testParamOptionalNullValue() throws Exception {
 		var ctx = config
-				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+				.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.empty();
 		ctx.param("id", id);
 
@@ -467,7 +467,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.param("id", id, JDBCType.VARCHAR);
 
@@ -475,7 +475,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -483,7 +483,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.inOutParam("id", id, JDBCType.VARCHAR);
 
@@ -491,7 +491,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -514,7 +514,7 @@ public class ExecutionContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		var ctx = config.contextWith(sql);
+		var ctx = config.context().setSql(sql);
 
 		var entity = new TestEntity(10, "Taro", 20, Optional.of("memo1"));
 		ctx.paramBean(entity);
@@ -524,7 +524,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		entity = new TestEntity(10, "Taro", 20, Optional.empty());
 		ctx.paramBean(entity);
@@ -534,7 +534,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		ctx.paramBean(null);
 
@@ -557,7 +557,7 @@ public class ExecutionContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		var ctx = config.contextWith(sql);
+		var ctx = config.context().setSql(sql);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("id", 10);
@@ -572,7 +572,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		map = new HashMap<>();
 		map.put("id", 10);
@@ -586,7 +586,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		ctx.paramMap(null);
 
@@ -598,13 +598,13 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testContext() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		assertEquals(ctx, ctx.context());
 	}
 
 	@Test
 	void testGetParameterNames() {
-		var ctx = config.contextWith("select * from test")
+		var ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2");
 		assertThat(((ExecutionContextImpl) ctx).getParameterNames().size(), is(2));
@@ -614,14 +614,14 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testSetRetry() {
-		var ctx = config.contextWith("select * from test")
+		var ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
 				.retry(3);
 		assertThat(ctx.getMaxRetryCount(), is(3));
 		assertThat(ctx.getRetryWaitTime(), is(0));
 
-		ctx = config.contextWith("select * from test")
+		ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
 				.retry(4, 10);
@@ -631,7 +631,7 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testGetDefineColumnType() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		ctx.addDefineColumnType(1, JDBCType.CHAR.getVendorTypeNumber());
 
 		assertThat(ctx.getDefineColumnTypes().get(1), is(JDBCType.CHAR.getVendorTypeNumber()));
@@ -639,14 +639,14 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testGetParameterMapperManager() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		assertThat(((ExecutionContextImpl) ctx).getParameterMapperManager(), not(nullValue()));
 	}
 
 	@Test
 	void testSqlId() {
 		var testSqlId = "TEST_SQL_ID";
-		var ctx = config.contextWith("select * from test").sqlId(testSqlId);
+		var ctx = config.context().setSql("select * from test").sqlId(testSqlId);
 		assertThat(ctx.getSqlId(), is(testSqlId));
 	}
 

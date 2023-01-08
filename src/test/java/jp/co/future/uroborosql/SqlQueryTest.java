@@ -77,7 +77,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<BigDecimal> productIdList = new ArrayList<>();
 		productIdList.add(new BigDecimal("0"));
 		productIdList.add(new BigDecimal("2"));
-		var ctx = agent.contextFrom("example/select_product").param("product_id", productIdList)
+		var ctx = agent.context().setSqlName("example/select_product").param("product_id", productIdList)
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
@@ -102,7 +102,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		Set<BigDecimal> params = new HashSet<>();
 		params.add(new BigDecimal("0"));
 		params.add(new BigDecimal("2"));
-		var ctx = agent.contextFrom("example/select_product")
+		var ctx = agent.context().setSqlName("example/select_product")
 				.param("product_id", params)
 				.setSqlId("test_sql_id");
 
@@ -131,7 +131,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		filter.initialize();
 		manager.addSqlFilter(filter);
 
-		var ctx = agent.contextFrom("example/select_product")
+		var ctx = agent.context().setSqlName("example/select_product")
 				.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("1"))).param("startRowIndex", 0)
 				.param("maxRowCount", 1);
 
@@ -192,7 +192,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var ctx = agent.contextFrom("example/select_product").param("product_id",
+		var ctx = agent.context().setSqlName("example/select_product").param("product_id",
 				Arrays.asList(0, 1, 2, 3));
 
 		var rs = agent.query(ctx);
@@ -916,7 +916,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var ctx = agent.contextFrom("example/select_product");
+		var ctx = agent.context().setSqlName("example/select_product");
 		ctx.param("product_id", Arrays.asList(0, 1));
 
 		agent.query(ctx, rs -> {
@@ -1273,7 +1273,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var ctx = agent.contextFrom("example/select_product");
+		var ctx = agent.context().setSqlName("example/select_product");
 		ctx.param("product_id", Arrays.asList(0, 1));
 
 		var ans = agent.query(ctx, CaseFormat.CAMEL_CASE);
@@ -1290,7 +1290,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			assertTrue(m.containsKey("versionNo"));
 		});
 
-		var ctx2 = agent.contextFrom("example/select_product");
+		var ctx2 = agent.context().setSqlName("example/select_product");
 		ctx2.param("product_id", Arrays.asList(0, 1));
 
 		var ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
@@ -1336,7 +1336,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	@Test
 	void testNotFoundFile() throws Exception {
 		try {
-			var ctx = agent.contextFrom("file");
+			var ctx = agent.context().setSqlName("file");
 			agent.query(ctx);
 			// 例外が発生しなかった場合
 			fail();

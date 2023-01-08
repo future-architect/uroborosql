@@ -120,7 +120,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param unmanagedCreate unmanagedTransactionが利用される場合に、unmanagedTransactionが未作成ならunmanagedTransactionを作成するかどうか。<code>true</code>なら作成する.
 	 * @return unmanagedTransactionも含め、現在有効なTransactionContext
 	 */
-	private Optional<LocalTransactionContext> currentTxContext(boolean unmanagedCreate) {
+	private Optional<LocalTransactionContext> currentTxContext(final boolean unmanagedCreate) {
 		return Optional.ofNullable(this.txCtxStack.peek()).or(() -> {
 			if (unmanagedCreate && this.unmanagedTransaction.isEmpty()) {
 				this.unmanagedTransaction = Optional

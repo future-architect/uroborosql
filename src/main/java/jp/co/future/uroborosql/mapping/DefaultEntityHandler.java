@@ -82,7 +82,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+		return agent.context().setSql(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -109,7 +109,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
+		return agent.context().setSql(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -123,7 +123,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
+		return agent.context().setSql(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -137,7 +137,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+		return agent.context().setSql(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -151,7 +151,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
+		return agent.context().setSql(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -179,7 +179,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
+		return agent.context().setSql(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);

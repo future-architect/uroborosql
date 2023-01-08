@@ -58,7 +58,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -74,7 +74,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -96,7 +96,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> emptyList = List.of();
 			assertThat(agent.inserts(emptyList.stream()), is(0));
@@ -105,7 +105,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> emptyList = List.of();
 			assertThat(agent.inserts(emptyList.stream()), is(0));
@@ -120,7 +120,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -136,7 +136,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -158,7 +158,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -174,7 +174,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -196,7 +196,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -212,7 +212,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -234,7 +234,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -250,7 +250,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -266,7 +266,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -282,7 +282,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			assertThat(agent.inserts(Product.class, agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -304,7 +304,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -321,7 +321,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -344,7 +344,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> emptyList = List.of();
 			assertThat(agent.insertsAndReturn(emptyList.stream()).collect(Collectors.toList()).size(), is(0));
@@ -353,7 +353,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> emptyList = List.of();
 			assertThat(agent.insertsAndReturn(emptyList.stream()).collect(Collectors.toList()).size(), is(0));
@@ -368,7 +368,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -385,7 +385,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -408,7 +408,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -425,7 +425,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent.insertsAndReturn(agent.query(Product.class).stream().map(e -> {
 				e.setProductId(e.getProductId() + 10);
@@ -448,7 +448,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
@@ -466,7 +466,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
@@ -490,7 +490,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
@@ -508,7 +508,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BATCH);
+		agent.setInsertsType(InsertsType.BATCH);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
@@ -526,7 +526,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {
@@ -544,7 +544,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
 
-		agent.setDefaultInsertsType(InsertsType.BULK);
+		agent.setInsertsType(InsertsType.BULK);
 		agent.required(() -> {
 			List<Product> insertedEntities = agent
 					.insertsAndReturn(Product.class, agent.query(Product.class).stream().map(e -> {

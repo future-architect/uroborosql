@@ -30,7 +30,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var ctx = agent.contextFrom("example/selectinsert_product")
+		var ctx = agent.context().setSqlName("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR);
 
@@ -99,7 +99,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	void testNotFoundFile() throws Exception {
 		try {
-			var ctx = agent.contextFrom("file");
+			var ctx = agent.context().setSqlName("file");
 			agent.update(ctx);
 			// 例外が発生しなかった場合
 			fail();

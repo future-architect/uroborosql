@@ -38,22 +38,6 @@ public interface SqlConfig {
 	ExecutionContext context();
 
 	/**
-	 * ファイル指定のExecutionContextの生成.
-	 *
-	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 生成したExecutionContext
-	 */
-	ExecutionContext contextFrom(String sqlName);
-
-	/**
-	 * SQL文を指定したExecutionContextの生成.
-	 *
-	 * @param sql SQL文の文字列
-	 * @return 生成したExecutionContext
-	 */
-	ExecutionContext contextWith(String sql);
-
-	/**
 	 * SqlAgentの生成.
 	 *
 	 * @return 生成したSqlAgent.

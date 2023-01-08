@@ -37,7 +37,7 @@ public class ParameterTest {
 
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1").param("targetDate", date);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -54,7 +54,7 @@ public class ParameterTest {
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1").param("targetDate", localDate);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -72,7 +72,7 @@ public class ParameterTest {
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -103,7 +103,7 @@ public class ParameterTest {
 		});
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING2").param("targetStr", param);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING2").param("targetStr", param);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -123,7 +123,7 @@ public class ParameterTest {
 	void testSetInParameter_array() throws SQLException {
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));

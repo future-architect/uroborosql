@@ -218,7 +218,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+			var ctx = agent.context().setSqlName("example/select_product").param("product_id", new BigDecimal(0));
 
 			var result = agent.query(ctx);
 			while (result.next()) {
@@ -235,7 +235,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("example/select_product").param("product_id", new BigDecimal(0));
+			var ctx = agent.context().setSqlName("example/select_product").param("product_id", new BigDecimal(0));
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 			var result = agent.query(ctx);

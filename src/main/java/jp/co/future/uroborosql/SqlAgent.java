@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import jp.co.future.uroborosql.config.SqlConfigAware;
+import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -34,7 +34,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author H.Sugimoto
  */
 
-public interface SqlAgent extends TransactionManager, SqlConfigAware {
+public interface SqlAgent extends TransactionManager {
 	/**
 	 * {@link SqlAgent#inserts(Stream, InsertsCondition)}の一括更新用のフレームの判定条件.<br>
 	 *
@@ -83,6 +83,107 @@ public interface SqlAgent extends TransactionManager, SqlConfigAware {
 	 * 利用してカバレッジの収集を行う。
 	 */
 	String KEY_SQL_COVERAGE = "uroborosql.sql.coverage";
+
+	/** BATCH-INSERT用のバッチフレームの判定条件 */
+	InsertsCondition<Object> DEFAULT_BATCH_INSERTS_WHEN_CONDITION = (context, count, row) -> count == 1000;
+
+	/** BULK-INSERT用のバッチフレームの判定条件 */
+	InsertsCondition<Object> DEFAULT_BULK_INSERTS_WHEN_CONDITION = (context, count, row) -> count == 10;
+
+	/** 一括UPDATE用のバッチフレームの判定条件 */
+	UpdatesCondition<Object> DEFAULT_UPDATES_WHEN_CONDITION = (context, count, row) -> count == 1000;
+
+	/**
+	 * SqlConfigの取得.
+	 *
+	 * @return SqlConfig
+	 */
+	SqlConfig getSqlConfig();
+
+	/**
+	 * 空のExecutionContextの生成
+	 *
+	 * @return 生成したExecutionContext
+	 */
+	ExecutionContext context();
+
+	/**
+	 * ファイル指定のExecutionContextの生成
+	 *
+	 * @deprecated 代わりに context().setSqlName(sqlName) を利用してください
+	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
+	 * @return 生成したExecutionContext
+	 */
+	@Deprecated(since = "1.0.0", forRemoval = true)
+	ExecutionContext contextFrom(String sqlName);
+
+	/**
+	 * SQL文を指定したExecutionContextの生成
+	 *
+	 * @deprecated 代わりに context().setSql(sql) を利用してください
+	 * @param sql SQL文の文字列
+	 * @return 生成したExecutionContext
+	 */
+	@Deprecated(since = "1.0.0", forRemoval = true)
+	ExecutionContext contextWith(String sql);
+
+	/**
+	 * フェッチサイズ取得。
+	 *
+	 * @return フェッチサイズ
+	 */
+	int getFetchSize();
+
+	/**
+	 * フェッチサイズ設定。
+	 *
+	 * @param fetchSize フェッチサイズ
+	 */
+	void setFetchSize(int fetchSize);
+
+	/**
+	 * クエリータイムアウト制限値取得。
+	 *
+	 * @return クエリータイムアウト制限値
+	 */
+	int getQueryTimeout();
+
+	/**
+	 * クエリータイムアウト制限値設定。
+	 *
+	 * @param queryTimeout クエリータイムアウト制限値
+	 */
+	void setQueryTimeout(int queryTimeout);
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
+	 *
+	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	CaseFormat getMapKeyCaseFormat();
+
+	/**
+	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
+	 *
+	 * @param mapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 */
+	void setMapKeyCaseFormat(final CaseFormat mapKeyCaseFormat);
+
+	/**
+	 * {@link InsertsType}を取得する
+	 *
+	 * @return insertsType
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	InsertsType getInsertsType();
+
+	/**
+	 * {@link InsertsType}を設定する
+	 *
+	 * @param insertsType {@link InsertsType}
+	 * @see jp.co.future.uroborosql.enums.InsertsType
+	 */
+	void setInsertsType(InsertsType insertsType);
 
 	/**
 	 * クエリ実行処理。
@@ -145,93 +246,12 @@ public interface SqlAgent extends TransactionManager, SqlConfigAware {
 	Map<String, Object> procedure(ExecutionContext executionContext) throws SQLException;
 
 	/**
-	 * フェッチサイズ取得。
-	 *
-	 * @return フェッチサイズ
-	 */
-	int getFetchSize();
-
-	/**
-	 * フェッチサイズ設定。
-	 *
-	 * @param fetchSize フェッチサイズ
-	 */
-	void setFetchSize(int fetchSize);
-
-	/**
-	 * クエリータイムアウト制限値取得。
-	 *
-	 * @return クエリータイムアウト制限値
-	 */
-	int getQueryTimeout();
-
-	/**
-	 * クエリータイムアウト制限値設定。
-	 *
-	 * @param queryTimeout クエリータイムアウト制限値
-	 */
-	void setQueryTimeout(int queryTimeout);
-
-	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
-	 *
-	 * @return Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
-	 */
-	CaseFormat getDefaultMapKeyCaseFormat();
-
-	/**
-	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
-	 *
-	 * @param defaultMapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
-	 */
-	void setDefaultMapKeyCaseFormat(final CaseFormat defaultMapKeyCaseFormat);
-
-	/**
-	 * デフォルトの{@link InsertsType}を取得する
-	 *
-	 * @return insertsType
-	 * @see jp.co.future.uroborosql.enums.InsertsType
-	 */
-	InsertsType getDefaultInsertsType();
-
-	/**
-	 * デフォルトの{@link InsertsType}を設定する
-	 *
-	 * @param defaultInsertsType デフォルトの{@link InsertsType}
-	 * @see jp.co.future.uroborosql.enums.InsertsType
-	 */
-	void setDefaultInsertsType(InsertsType defaultInsertsType);
-
-	/**
-	 * 空のExecutionContextの生成
-	 *
-	 * @return 生成したExecutionContext
-	 */
-	ExecutionContext context();
-
-	/**
-	 * ファイル指定のExecutionContextの生成
-	 *
-	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 生成したExecutionContext
-	 */
-	ExecutionContext contextFrom(String sqlName);
-
-	/**
-	 * SQL文を指定したExecutionContextの生成
-	 *
-	 * @param sql SQL文の文字列
-	 * @return 生成したExecutionContext
-	 */
-	ExecutionContext contextWith(String sql);
-
-	/**
 	 * Query処理の実行（Fluent API）
 	 *
 	 * @param sqlName 実行するSQLファイル名
 	 * @return SqlQuery
 	 */
-	SqlQuery query(String sqlName);
+	SqlQuery query(final String sqlName);
 
 	/**
 	 * Query処理の実行（Fluent API）
