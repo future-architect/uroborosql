@@ -50,9 +50,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
-import jp.co.future.uroborosql.event.subscriber.AbstractSqlFilter;
 import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -125,11 +123,8 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var manager = config.getSqlFilterManager();
-		var filter = new WrapContextEventSubscriber("",
-				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
-		filter.initialize();
-		manager.addSqlFilter(filter);
+		config.getEventListenerHolder().addEventSubscriber(new WrapContextEventSubscriber("",
+				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*"));
 
 		var ctx = agent.context().setSqlName("example/select_product")
 				.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("1"))).param("startRowIndex", 0)
@@ -154,13 +149,8 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var manager = config.getSqlFilterManager();
-		manager.addSqlFilter(new AbstractSqlFilter() {
-			@Override
-			public String doTransformSql(final ExecutionContext ExecutionContext, final String sql) {
-				return String.format("select * from (%s)", sql);
-			}
-		});
+		config.getEventListenerHolder()
+				.addBeforeTransformSqlListener(evt -> evt.setSql(String.format("select * from (%s)", evt.getSql())));
 
 		var query = agent.queryWith("select product_id from product");
 		var results = query.collect();

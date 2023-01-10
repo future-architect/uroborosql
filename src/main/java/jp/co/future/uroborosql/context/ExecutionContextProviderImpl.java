@@ -97,7 +97,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 		// ExecutionContext初期化後イベント発行
 		if (getSqlConfig().getEventListenerHolder().hasAfterInitializeExecutionContextListener()) {
 			var eventObj = new AfterInitializeExecutionContextEvent(executionContext);
-			getSqlConfig().getEventListenerHolder().getAfterInitializeExecutionContextListener()
+			getSqlConfig().getEventListenerHolder().getAfterInitializeExecutionContextListeners()
 					.forEach(listener -> listener.accept(eventObj));
 		}
 		return executionContext;

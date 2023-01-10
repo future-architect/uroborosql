@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,37 +25,32 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.event.subscriber.AbstractSecretColumnEventSubscriber;
-import jp.co.future.uroborosql.event.subscriber.SecretColumnEventSubscriber;
-import jp.co.future.uroborosql.event.subscriber.SqlFilterManager;
-import jp.co.future.uroborosql.event.subscriber.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 public class SecretResultSetTest {
 
 	private static SqlConfig config;
-	private static SqlFilterManager sqlFilterManager;
-	private static AbstractSecretColumnEventSubscriber filter;
+	private static SecretColumnEventSubscriber eventSubscriber;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
-		sqlFilterManager = new SqlFilterManagerImpl();
-		filter = new SecretColumnEventSubscriber();
+		eventSubscriber = new SecretColumnEventSubscriber();
 
-		filter.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
+		eventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
 		// -storepass password -keypass password -keyalg AES -keysize 128
-		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
-		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-		filter.setAlias("testexample");
-		filter.setCharset("UTF-8");
-		filter.setTransformationType("AES/ECB/PKCS5Padding");
+		eventSubscriber
+				.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
+		eventSubscriber.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+		eventSubscriber.setAlias("testexample");
+		eventSubscriber.setCharset("UTF-8");
+		eventSubscriber.setTransformationType("AES/ECB/PKCS5Padding");
 
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
-				.setSqlFilterManager(sqlFilterManager.addSqlFilter(filter)).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest")).build();
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),

@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.expr.ognl;
 import java.util.Map;
 
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 import ognl.ObjectPropertyAccessor;
 import ognl.OgnlException;
 
@@ -20,15 +20,15 @@ import ognl.OgnlException;
  */
 public class TransformContextPropertyAccessor extends ObjectPropertyAccessor {
 
-	private final StringFunction expressionFunction;
+	private final SqlFunction sqlFunction;
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param expressionFunction expressionFunction
+	 * @param sqlFunction sqlFunction
 	 */
-	public TransformContextPropertyAccessor(final StringFunction expressionFunction) {
-		this.expressionFunction = expressionFunction;
+	public TransformContextPropertyAccessor(final SqlFunction sqlFunction) {
+		this.sqlFunction = sqlFunction;
 	}
 
 	/**
@@ -39,8 +39,8 @@ public class TransformContextPropertyAccessor extends ObjectPropertyAccessor {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getProperty(final Map cx, final Object target, final Object name) throws OgnlException {
-		if (StringFunction.SHORT_NAME.equals(name)) {
-			return expressionFunction;
+		if (SqlFunction.SHORT_NAME.equals(name)) {
+			return sqlFunction;
 		} else {
 			var context = (TransformContext) target;
 			var param = context.getParam((String) name);

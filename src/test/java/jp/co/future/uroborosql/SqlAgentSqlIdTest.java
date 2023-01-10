@@ -7,8 +7,6 @@ import static org.hamcrest.Matchers.is;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,9 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
-
-import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.event.subscriber.AbstractSqlFilter;
 
 /**
  * エラーハンドリングのテスト
@@ -36,16 +31,8 @@ public class SqlAgentSqlIdTest {
 	void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
-		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
-
-			@Override
-			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
-					final ResultSet resultSet)
-					throws SQLException {
-				querys.add(toLines(ExecutionContext.getExecutableSql()));
-				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
-			}
-
+		config.getEventListenerHolder().addSqlQueryListener(evt -> {
+			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
@@ -66,16 +53,8 @@ public class SqlAgentSqlIdTest {
 	void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
-		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
-
-			@Override
-			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
-					final ResultSet resultSet)
-					throws SQLException {
-				querys.add(toLines(ExecutionContext.getExecutableSql()));
-				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
-			}
-
+		config.getEventListenerHolder().addSqlQueryListener(evt -> {
+			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
@@ -96,16 +75,8 @@ public class SqlAgentSqlIdTest {
 		List<List<String>> querys = new ArrayList<>();
 		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
 		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");
-		config.getSqlFilterManager().addSqlFilter(new AbstractSqlFilter() {
-
-			@Override
-			public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
-					final ResultSet resultSet)
-					throws SQLException {
-				querys.add(toLines(ExecutionContext.getExecutableSql()));
-				return super.doQuery(ExecutionContext, preparedStatement, resultSet);
-			}
-
+		config.getEventListenerHolder().addSqlQueryListener(evt -> {
+			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();

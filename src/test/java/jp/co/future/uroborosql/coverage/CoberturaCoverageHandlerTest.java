@@ -58,10 +58,9 @@ public class CoberturaCoverageHandlerTest {
 			agent.query("covertest/test02").collect();
 		}
 
-		var filter = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
+		var eventSubscriber = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
-		filter.initialize();
-		config.getSqlFilterManager().addSqlFilter(filter);
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 		try (var agent = config.agent()) {
 			agent.query("covertest/test01").param("id", 1).collect();
 

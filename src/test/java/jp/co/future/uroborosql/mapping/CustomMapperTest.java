@@ -89,8 +89,7 @@ public class CustomMapperTest {
 		config.getExecutionContextProvider().addBindParamMapper(customMapper);
 		config.getEntityHandler().addPropertyMapper(customMapper);
 
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogEventSubscriber());
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach

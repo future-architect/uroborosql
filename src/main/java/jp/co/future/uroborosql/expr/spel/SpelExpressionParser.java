@@ -20,7 +20,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 /**
  * SpringExpressionを利用した評価式パーサー
@@ -50,7 +50,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		super.initialize();
 		parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 		transformContextPropertyAccessor = new TransformContextPropertyAccessor(
-				getSqlConfig().getDialect().getExpressionFunction());
+				getSqlConfig().getDialect().getSqlFunction());
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 				var state = new ExpressionState(ctx);
 				for (var prop : props) {
 					var propName = prop.getName();
-					if (!StringFunction.SHORT_NAME.equals(propName)) {
+					if (!SqlFunction.SHORT_NAME.equals(propName)) {
 						try {
 							var value = prop.getValue(state);
 							builder.append(propName)
@@ -157,7 +157,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			traverseNode(root, props);
 			for (var prop : props) {
 				var propName = prop.getName();
-				if (!StringFunction.SHORT_NAME.equals(propName)) {
+				if (!SqlFunction.SHORT_NAME.equals(propName)) {
 					params.add(prop.getName());
 				}
 			}

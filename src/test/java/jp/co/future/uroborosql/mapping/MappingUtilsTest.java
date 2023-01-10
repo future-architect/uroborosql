@@ -14,7 +14,6 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
-import jp.co.future.uroborosql.event.subscriber.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.Table;
@@ -50,8 +49,8 @@ public class MappingUtilsTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogEventSubscriber()))
 				.build();
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach

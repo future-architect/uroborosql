@@ -83,6 +83,7 @@ public class SqlREPL {
 	 */
 	public static void main(final String... args) {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.log")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.log.event")).setLevel(Level.INFO);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.INFO);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.dx")).setLevel(Level.TRACE);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);

@@ -29,7 +29,7 @@ import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.SqlNode;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 public class SqlParserTest {
 	private SqlConfig sqlConfig;
@@ -815,7 +815,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
+		ctx.param(SqlFunction.SHORT_NAME, new SqlFunction(new DefaultDialect()));
 		ctx.param("enames", "SCOTT,MARY");
 		var transformer = parser.parse();
 		transformer.transform(ctx);
@@ -911,7 +911,7 @@ public class SqlParserTest {
 		ctx.param("val3", "ab");
 
 		var sql2 = "1=1 ";
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
+		ctx.param(SqlFunction.SHORT_NAME, new SqlFunction(new DefaultDialect()));
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());

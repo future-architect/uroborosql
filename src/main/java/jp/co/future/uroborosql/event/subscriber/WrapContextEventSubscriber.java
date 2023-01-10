@@ -8,8 +8,6 @@ package jp.co.future.uroborosql.event.subscriber;
 
 import java.util.regex.Pattern;
 
-import jp.co.future.uroborosql.event.EventListenerHolder;
-import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -17,7 +15,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * @author H.Sugimoto
  */
-public class WrapContextEventSubscriber implements EventSubscriber {
+public class WrapContextEventSubscriber extends EventSubscriber {
 
 	/** Wrap用SQL（前部分） */
 	private String wrappedSqlBeginParts;
@@ -37,16 +35,33 @@ public class WrapContextEventSubscriber implements EventSubscriber {
 	public WrapContextEventSubscriber() {
 	}
 
+	/**
+	 * コンストラクタ
+	 *
+	 * @param wrappedSqlBeginParts Wrap用SQL（前部分）
+	 * @param wrappedSqlEndParts Wrap用SQL（後部分）
+	 * @param wrapIgnorePattern Wrapを無視するSQLのパターン
+	 */
+	public WrapContextEventSubscriber(final String wrappedSqlBeginParts, final String wrappedSqlEndParts,
+			final String wrapIgnorePattern) {
+		this.wrappedSqlBeginParts = wrappedSqlBeginParts;
+		this.wrappedSqlEndParts = wrappedSqlEndParts;
+		this.wrapIgnorePattern = wrapIgnorePattern;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.event.subscriber.EventSubscriber#initialize()
+	 */
 	@Override
 	public void initialize() {
 		if (getWrapIgnorePattern() != null && !"".equals(getWrapIgnorePattern())) {
 			ignorePattern = Pattern.compile(getWrapIgnorePattern(), Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		}
-	}
 
-	@Override
-	public void subscribe(EventListenerHolder eventListenerHolder) {
-		eventListenerHolder.addBeforeTransformSqlListeners(evt -> {
+		beforeTransformSqlListener(evt -> {
 			// SQLの前後を別のSQLでWrapする加工を行う。
 			// ただし、以下の場合は加工対象外とする。
 			// - wrapIgnorePatternに当てはまるSQLの場合

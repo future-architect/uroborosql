@@ -1,9 +1,17 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.event;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import jp.co.future.uroborosql.event.subscriber.EventSubscriber;
 
 /**
  * イベントリスナ格納オブジェクト
@@ -86,11 +94,22 @@ public class EventListenerHolder {
 	}
 
 	/**
+	 * EventSubscriberを追加し、EventSubscriberによるイベント削除を行う.
+	 * @param eventSubscriber EventSubscriber
+	 * @return
+	 */
+	public EventListenerHolder removeEventSubscriber(EventSubscriber eventSubscriber) {
+		eventSubscriber.unsubscribe(this);
+		this.eventSubscribers.remove(eventSubscriber);
+		return this;
+	}
+
+	/**
 	 * ExecutionContext初期化後イベントリスナの追加
 	 * @param listener ExecutionContext初期化後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterInitializeExecutionContextListeners(
+	public EventListenerHolder addAfterInitializeExecutionContextListener(
 			final Consumer<AfterInitializeExecutionContextEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterInitializeExecutionContextListeners.add(listener);
@@ -102,7 +121,7 @@ public class EventListenerHolder {
 	 * @param listener パラメータ設定前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeSetParameterListeners(final Consumer<BeforeSetParameterEvent> listener) {
+	public EventListenerHolder addBeforeSetParameterListener(final Consumer<BeforeSetParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.beforeSetParameterListeners.add(listener);
 		return this;
@@ -113,7 +132,7 @@ public class EventListenerHolder {
 	 * @param listener SQL変換前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeTransformSqlListeners(final Consumer<BeforeTransformSqlEvent> listener) {
+	public EventListenerHolder addBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.beforeTransformSqlListeners.add(listener);
 		return this;
@@ -124,7 +143,7 @@ public class EventListenerHolder {
 	 * @param listener DAO Query時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetDaoQueryParameterListeners(
+	public EventListenerHolder addAfterSetDaoQueryParameterListener(
 			final Consumer<AfterSetDaoQueryParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetDaoQueryParameterListeners.add(listener);
@@ -136,7 +155,7 @@ public class EventListenerHolder {
 	 * @param listener DAO Update時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetDaoUpdateParameterListeners(
+	public EventListenerHolder addAfterSetDaoUpdateParameterListener(
 			final Consumer<AfterSetDaoUpdateParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetDaoUpdateParameterListeners.add(listener);
@@ -148,7 +167,7 @@ public class EventListenerHolder {
 	 * @param listener 出力パラメータ取得後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterGetOutParameterListeners(final Consumer<AfterGetOutParameterEvent> listener) {
+	public EventListenerHolder addAfterGetOutParameterListener(final Consumer<AfterGetOutParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterGetOutParameterListeners.add(listener);
 		return this;
@@ -159,7 +178,7 @@ public class EventListenerHolder {
 	 * @param listener Entity Insert時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetEntityInsertParameterListeners(
+	public EventListenerHolder addAfterSetEntityInsertParameterListener(
 			final Consumer<AfterSetEntityInsertParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetEntityInsertParameterListeners.add(listener);
@@ -171,7 +190,7 @@ public class EventListenerHolder {
 	 * @param listener Entity Update時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetEntityUpdateParameterListeners(
+	public EventListenerHolder addAfterSetEntityUpdateParameterListener(
 			final Consumer<AfterSetEntityUpdateParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetEntityUpdateParameterListeners.add(listener);
@@ -183,7 +202,7 @@ public class EventListenerHolder {
 	 * @param listener Entity Delete時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetEntityDeleteParameterListeners(
+	public EventListenerHolder addAfterSetEntityDeleteParameterListener(
 			final Consumer<AfterSetEntityDeleteParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetEntityDeleteParameterListeners.add(listener);
@@ -195,7 +214,7 @@ public class EventListenerHolder {
 	 * @param listener Entity BulkInsert時パラメータ設定後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetEntityBulkInsertParameterListeners(
+	public EventListenerHolder addAfterSetEntityBulkInsertParameterListener(
 			final Consumer<AfterSetEntityBulkInsertParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterSetEntityBulkInsertParameterListeners.add(listener);
@@ -207,7 +226,7 @@ public class EventListenerHolder {
 	 * @param listener PreparedStatement生成後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterCreatePreparedStatementListeners(
+	public EventListenerHolder addAfterCreatePreparedStatementListener(
 			final ExecutionConsumer<AfterCreatePreparedStatementEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterCreatePreparedStatementListeners.add(listener);
@@ -219,7 +238,7 @@ public class EventListenerHolder {
 	 * @param listener CallableStatement生成後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterCreateCallableStatementListeners(
+	public EventListenerHolder addAfterCreateCallableStatementListener(
 			final ExecutionConsumer<AfterCreateCallableStatementEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterCreateCallableStatementListeners.add(listener);
@@ -231,7 +250,7 @@ public class EventListenerHolder {
 	 * @param listener SQLQuery実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlQueryListeners(final ExecutionConsumer<SqlQueryEvent> listener) {
+	public EventListenerHolder addSqlQueryListener(final ExecutionConsumer<SqlQueryEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.sqlQueryListeners.add(listener);
 		return this;
@@ -242,7 +261,7 @@ public class EventListenerHolder {
 	 * @param listener SQLUpdate実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlUpdateListeners(final ExecutionConsumer<SqlUpdateEvent> listener) {
+	public EventListenerHolder addSqlUpdateListener(final ExecutionConsumer<SqlUpdateEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.sqlUpdateListeners.add(listener);
 		return this;
@@ -253,7 +272,7 @@ public class EventListenerHolder {
 	 * @param listener SQLBatch実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlBatchListeners(final ExecutionConsumer<SqlBatchEvent> listener) {
+	public EventListenerHolder addSqlBatchListener(final ExecutionConsumer<SqlBatchEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.sqlBatchListeners.add(listener);
 		return this;
@@ -264,7 +283,7 @@ public class EventListenerHolder {
 	 * @param listener Procedure実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addProcedureListeners(final ExecutionConsumer<ProcedureEvent> listener) {
+	public EventListenerHolder addProcedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.procedureListeners.add(listener);
 		return this;
@@ -275,7 +294,7 @@ public class EventListenerHolder {
 	 * @param listener トランザクション開始後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterBeginTransactionListeners(final Consumer<AfterBeginTransactionEvent> listener) {
+	public EventListenerHolder addAfterBeginTransactionListener(final Consumer<AfterBeginTransactionEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterBeginTransactionListeners.add(listener);
 		return this;
@@ -286,7 +305,7 @@ public class EventListenerHolder {
 	 * @param listener トランザクション終了前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeEndTransactionListeners(final Consumer<BeforeEndTransactionEvent> listener) {
+	public EventListenerHolder addBeforeEndTransactionListener(final Consumer<BeforeEndTransactionEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.beforeEndTransactionListeners.add(listener);
 		return this;
@@ -297,7 +316,7 @@ public class EventListenerHolder {
 	 * @param listener コミット前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeCommitListeners(final Consumer<BeforeCommitEvent> listener) {
+	public EventListenerHolder addBeforeCommitListener(final Consumer<BeforeCommitEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.beforeCommitListeners.add(listener);
 		return this;
@@ -308,7 +327,7 @@ public class EventListenerHolder {
 	 * @param listener コミット後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterCommitListeners(final Consumer<AfterCommitEvent> listener) {
+	public EventListenerHolder addAfterCommitListener(final Consumer<AfterCommitEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterCommitListeners.add(listener);
 		return this;
@@ -319,7 +338,7 @@ public class EventListenerHolder {
 	 * @param listener ロールバック前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeRollbackListeners(final Consumer<BeforeRollbackEvent> listener) {
+	public EventListenerHolder addBeforeRollbackListener(final Consumer<BeforeRollbackEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.beforeRollbackListeners.add(listener);
 		return this;
@@ -330,9 +349,261 @@ public class EventListenerHolder {
 	 * @param listener ロールバック後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterRollbackListeners(final Consumer<AfterRollbackEvent> listener) {
+	public EventListenerHolder addAfterRollbackListener(final Consumer<AfterRollbackEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterRollbackListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * ExecutionContext初期化後イベントリスナの削除
+	 * @param listener ExecutionContext初期化後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterInitializeExecutionContextListener(
+			final Consumer<AfterInitializeExecutionContextEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterInitializeExecutionContextListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * パラメータ設定前イベントリスナの削除
+	 * @param listener パラメータ設定前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeSetParameterListener(final Consumer<BeforeSetParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeSetParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * SQL変換前イベントリスナの削除
+	 * @param listener SQL変換前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeTransformSqlListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * DAO Query時パラメータ設定後イベントリスナの削除
+	 * @param listener DAO Query時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetDaoQueryParameterListener(
+			final Consumer<AfterSetDaoQueryParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetDaoQueryParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * DAO Update時パラメータ設定後イベントリスナの削除
+	 * @param listener DAO Update時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetDaoUpdateParameterListener(
+			final Consumer<AfterSetDaoUpdateParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetDaoUpdateParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * 出力パラメータ取得後イベントリスナの削除
+	 * @param listener 出力パラメータ取得後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterGetOutParameterListener(final Consumer<AfterGetOutParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterGetOutParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * Entity Insert時パラメータ設定後イベントリスナの削除
+	 * @param listener Entity Insert時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetEntityInsertParameterListener(
+			final Consumer<AfterSetEntityInsertParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetEntityInsertParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * Entity Update時パラメータ設定後イベントリスナの削除
+	 * @param listener Entity Update時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetEntityUpdateParameterListener(
+			final Consumer<AfterSetEntityUpdateParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetEntityUpdateParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * Entity Delete時パラメータ設定後イベントリスナの削除
+	 * @param listener Entity Delete時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetEntityDeleteParameterListener(
+			final Consumer<AfterSetEntityDeleteParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetEntityDeleteParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * Entity BulkInsert時パラメータ設定後イベントリスナの削除
+	 * @param listener Entity BulkInsert時パラメータ設定後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterSetEntityBulkInsertParameterListener(
+			final Consumer<AfterSetEntityBulkInsertParameterEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterSetEntityBulkInsertParameterListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * PreparedStatement生成後イベントリスナの削除
+	 * @param listener PreparedStatement生成後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterCreatePreparedStatementListener(
+			final ExecutionConsumer<AfterCreatePreparedStatementEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterCreatePreparedStatementListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * CallableStatement生成後イベントリスナの削除
+	 * @param listener CallableStatement生成後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterCreateCallableStatementListener(
+			final ExecutionConsumer<AfterCreateCallableStatementEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterCreateCallableStatementListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * SQLQuery実行後イベントリスナの削除
+	 * @param listener SQLQuery実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeSqlQueryListener(final ExecutionConsumer<SqlQueryEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.sqlQueryListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * SQLUpdate実行後イベントリスナの削除
+	 * @param listener SQLUpdate実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeSqlUpdateListener(final ExecutionConsumer<SqlUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.sqlUpdateListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * SQLBatch実行後イベントリスナの削除
+	 * @param listener SQLBatch実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeSqlBatchListener(final ExecutionConsumer<SqlBatchEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.sqlBatchListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * Procedure実行後イベントリスナの削除
+	 * @param listener Procedure実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeProcedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.procedureListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * トランザクション開始後イベントリスナの削除
+	 * @param listener トランザクション開始後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterBeginTransactionListener(
+			final Consumer<AfterBeginTransactionEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterBeginTransactionListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * トランザクション終了前イベントリスナの削除
+	 * @param listener トランザクション終了前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEndTransactionListener(final Consumer<BeforeEndTransactionEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEndTransactionListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * コミット前イベントリスナの削除
+	 * @param listener コミット前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeCommitListener(final Consumer<BeforeCommitEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeCommitListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * コミット後イベントリスナの削除
+	 * @param listener コミット後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterCommitListener(final Consumer<AfterCommitEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterCommitListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * ロールバック前イベントリスナの削除
+	 * @param listener ロールバック前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeRollbackListener(final Consumer<BeforeRollbackEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeRollbackListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * ロールバック後イベントリスナの削除
+	 * @param listener ロールバック後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterRollbackListener(final Consumer<AfterRollbackEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterRollbackListeners.remove(listener);
 		return this;
 	}
 
@@ -340,7 +611,7 @@ public class EventListenerHolder {
 	 * ExecutionContext初期化後イベントリスナリストの取得.
 	 * @return ExecutionContext初期化後イベントリスナリスト
 	 */
-	public List<Consumer<AfterInitializeExecutionContextEvent>> getAfterInitializeExecutionContextListener() {
+	public List<Consumer<AfterInitializeExecutionContextEvent>> getAfterInitializeExecutionContextListeners() {
 		return afterInitializeExecutionContextListeners;
 	}
 

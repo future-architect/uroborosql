@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,40 +29,34 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.event.subscriber.SecretColumnEventSubscriber;
-import jp.co.future.uroborosql.event.subscriber.SecretResultSet;
-import jp.co.future.uroborosql.event.subscriber.SqlFilterManager;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.StringUtils;
 
-public class SecretColumnSqlFilterTest {
+public class SecretColumnEventSubscriberTest {
 
 	private SqlConfig config;
 
-	private SqlFilterManager sqlFilterManager;
-
-	private SecretColumnEventSubscriber filter;
+	private SecretColumnEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest")).build();
-		sqlFilterManager = config.getSqlFilterManager();
-		filter = new SecretColumnEventSubscriber();
-		sqlFilterManager.addSqlFilter(filter);
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest")).build();
+		eventSubscriber = new SecretColumnEventSubscriber();
 
-		filter.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
+		eventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
 		// -storepass password -keypass password -keyalg AES -keysize 128
-		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
-		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-		filter.setAlias("testexample");
-		filter.setCharset("UTF-8");
-		filter.setTransformationType("AES/ECB/PKCS5Padding");
-		sqlFilterManager.initialize();
+		eventSubscriber
+				.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
+		eventSubscriber.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+		eventSubscriber.setAlias("testexample");
+		eventSubscriber.setCharset("UTF-8");
+		eventSubscriber.setTransformationType("AES/ECB/PKCS5Padding");
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -137,9 +131,9 @@ public class SecretColumnSqlFilterTest {
 
 	@Test
 	void testFilterSettings() {
-		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
-		assertThat(filter.getTransformationType(), is("AES/ECB/PKCS5Padding"));
-		assertThat(filter.isSkip(), is(false));
+		assertThat(eventSubscriber.getCharset(), is(StandardCharsets.UTF_8));
+		assertThat(eventSubscriber.getTransformationType(), is("AES/ECB/PKCS5Padding"));
+		assertThat(eventSubscriber.isSkip(), is(false));
 	}
 
 	@Test
@@ -147,17 +141,17 @@ public class SecretColumnSqlFilterTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
-		var skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnSqlFilterTest"))
+		var skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest"))
 				.build();
-		var skipSqlFilterManager = skipConfig.getSqlFilterManager();
-		var skipFilter = new SecretColumnEventSubscriber();
-		skipSqlFilterManager.addSqlFilter(skipFilter);
+		var skipEventSubscriber = new SecretColumnEventSubscriber();
 
-		skipFilter.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
-		skipFilter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
-		skipFilter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
-		skipFilter.setAlias("testexample");
-		skipFilter.setSkip(true);
+		skipEventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
+		skipEventSubscriber
+				.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
+		skipEventSubscriber.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
+		skipEventSubscriber.setAlias("testexample");
+		skipEventSubscriber.setSkip(true);
+		skipConfig.getEventListenerHolder().addEventSubscriber(skipEventSubscriber);
 
 		// 復号化しないで取得した場合 (skipFilter = true)
 		try (var skipAgent = skipConfig.agent()) {

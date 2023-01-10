@@ -18,7 +18,7 @@
 		</encoder>
 	</appender>
 
-	<appender name="FilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="EventTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
@@ -56,8 +56,8 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter" level="DEBUG" additivity="false">
-		<appender-ref ref="FilterTest" />
+	<logger name="jp.co.future.uroborosql.log.event" level="DEBUG" additivity="false">
+		<appender-ref ref="EventTest" />
 	</logger>
 
 	<!-- ログ出力に関する設定 -->

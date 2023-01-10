@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.AfterSetDaoQueryParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -79,8 +81,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleQueryAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
-		config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
+		var listener = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("upd_datetime",
+				insDate);
+		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -101,14 +104,15 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
-			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
+			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener);
 
-			binder = ctx -> ctx.param("upd_datetime", updDate);
-			config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
+			listener = evt -> evt.getExecutionContext().param("upd_datetime", updDate);
+
+			config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener);
 
 			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
 
-			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
+			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener);
 		}
 
 	}
@@ -117,8 +121,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleUpdateAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
-		config.getExecutionContextProvider().addUpdateAutoParameterBinder(binder);
+		var listener = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext().param(
+				"upd_datetime", updDate);
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -147,7 +152,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					is(2));
 		}
 
-		config.getExecutionContextProvider().removeUpdateAutoParameterBinder(binder);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener);
 	}
 
 	@Test
@@ -156,14 +161,15 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var colNumeric = new BigDecimal("10.00");
 		var colTimestamp = LocalDateTime.now();
 
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
-		factory.addQueryAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
-		factory.addQueryAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
-		factory.addQueryAutoParameterBinder(binder3);
+		var listener1 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("col_varchar",
+				colVarchar);
+		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener1);
+		var listener2 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("col_numeric",
+				colNumeric);
+		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener2);
+		var listener3 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext()
+				.param("col_timestamp", colTimestamp);
+		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener3);
 
 		try (var agent = config.agent()) {
 			// insert match
@@ -224,9 +230,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("col_timestamp"), is(Timestamp.valueOf(colTimestamp)));
 		}
 
-		factory.removeQueryAutoParameterBinder(binder1);
-		factory.removeQueryAutoParameterBinder(binder2);
-		factory.removeQueryAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener1);
+		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener2);
+		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener3);
 	}
 
 	@Test
@@ -234,16 +240,16 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
-		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
-		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("upd_datetime",
-				((LocalDateTime) ctx.getParam("upd_datetime")
-						.getValue()).plusDays(1));
-		factory.addUpdateAutoParameterBinder(binder3);
+		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.param("ins_datetime", insDate);
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
+		var listener2 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.param("upd_datetime", updDate);
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener2);
+		var listener3 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext().param(
+				"upd_datetime",
+				((LocalDateTime) evt.getExecutionContext().getParam("upd_datetime").getValue()).plusDays(1));
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -263,9 +269,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
-		factory.removeUpdateAutoParameterBinder(binder2);
-		factory.removeUpdateAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener2);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener3);
 	}
 
 	@Test
@@ -273,14 +279,15 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
-		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
-		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
-		factory.addUpdateAutoParameterBinder(binder3);
+		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.param("ins_datetime", insDate);
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
+		var listener2 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.param("upd_datetime", updDate);
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener2);
+		var listener3 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.paramIfAbsent("upd_datetime", updDate.plusDays(1));
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -302,18 +309,18 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
-		factory.removeUpdateAutoParameterBinder(binder2);
-		factory.removeUpdateAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener2);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener3);
 	}
 
 	@Test
 	void testQueryAutoBindIfCase() {
-		var factory = config.getExecutionContextProvider();
 
 		var productId = 2;
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
-		factory.addQueryAutoParameterBinder(binder1);
+		var listener1 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext()
+				.paramIfAbsent("product_id", productId);
+		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener1);
 
 		try (var agent = config.agent()) {
 			// insert
@@ -331,7 +338,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			// query
 			assertThat(agent.query("example/select_product").collect().size(), is(1));
 
-			factory.removeQueryAutoParameterBinder(binder1);
+			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener1);
 			// query
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 		}
@@ -339,10 +346,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testBatchUpdateAutoBind() {
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
-		factory.addUpdateAutoParameterBinder(binder1);
+		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+				.param("ins_datetime", LocalDateTime.now());
+		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
 
 		var count = 1000;
 		try (var agent = config.agent()) {
@@ -371,7 +377,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertNotEquals(1, dateCount);
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
+		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
 	}
 
 }

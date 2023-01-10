@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,21 +30,21 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.testlog.TestAppender;
 import jp.co.future.uroborosql.utils.StringUtils;
 
-public class AuditLogSqlFilterTest {
+public class AuditLogEventSubscriberTest {
 	private SqlConfig config;
 
 	private SqlAgent agent;
 
+	private AuditLogEventSubscriber eventSubscriber;
+
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:AuditLogSqlFilterTest")).build();
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogEventSubscriber());
-		sqlFilterManager.initialize();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:AuditLogEventSubscriberTest")).build();
+		eventSubscriber = new AuditLogEventSubscriber();
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 
 		agent = config.agent();
 
@@ -133,7 +133,7 @@ public class AuditLogSqlFilterTest {
 		});
 
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteQueryFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteQueryEvent.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
@@ -141,8 +141,7 @@ public class AuditLogSqlFilterTest {
 	void testSetAuditLogKey() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		var filter = (AuditLogEventSubscriber) config.getSqlFilterManager().getFilters().get(0);
-		filter.setFuncIdKey("_customFuncId").setUserNameKey("_customUserName");
+		eventSubscriber.setFuncIdKey("_customFuncId").setUserNameKey("_customUserName");
 
 		var log = TestAppender.getLogbackLogs(() -> {
 			var ctx = agent.context().setSqlName("example/select_product").setSqlId("111")
@@ -158,7 +157,7 @@ public class AuditLogSqlFilterTest {
 
 		assertThat(log, is(Files.readAllLines(
 				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber",
-						"testExecuteQueryFilterCustomParam.txt"),
+						"testExecuteQueryEventCustomParam.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
@@ -175,7 +174,7 @@ public class AuditLogSqlFilterTest {
 			agent.update(ctx);
 		});
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteUpdateFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteUpdateEvent.txt"),
 				StandardCharsets.UTF_8)));
 	}
 
@@ -210,7 +209,7 @@ public class AuditLogSqlFilterTest {
 			agent.batch(ctx);
 		});
 		assertThat(log, is(Files.readAllLines(
-				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteBatchFilter.txt"),
+				Paths.get("src/test/resources/data/expected/AuditLogEventSubscriber", "testExecuteBatchEvent.txt"),
 				StandardCharsets.UTF_8)));
 	}
 

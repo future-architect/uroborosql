@@ -12,13 +12,14 @@ import java.util.Optional;
 import jp.co.future.uroborosql.dialect.Dialect;
 
 /**
- * 評価式内で{@link StringUtils} の提供するメソッドを利用するためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供するクラス.<br>
+ * 評価式内で利用するメソッドを提供するクラス.<br>
+ * 評価式内で{@link StringUtils} の提供するメソッドを利用できるようにするためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供する.<br>
  *
  * 利用する際はstatic final なフィールドに格納するなどして複数のインスタンスを生成しないようにすること
  *
  * @author H.Sugimoto
  */
-public final class StringFunction {
+public final class SqlFunction {
 	/** 評価式から呼び出す際の略称名 {@value} */
 	public static final String SHORT_NAME = "SF";
 
@@ -28,7 +29,7 @@ public final class StringFunction {
 	/**
 	 * コンストラクタ
 	 */
-	public StringFunction() {
+	public SqlFunction() {
 		this(null);
 	}
 
@@ -37,7 +38,7 @@ public final class StringFunction {
 	 *
 	 * @param dialect Dialect
 	 */
-	public StringFunction(final Dialect dialect) {
+	public SqlFunction(final Dialect dialect) {
 		this.dialect = dialect;
 	}
 

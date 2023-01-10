@@ -22,8 +22,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.event.EventListenerHolder;
-import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -36,16 +34,22 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  *
  */
-public class DumpResultEventSubscriber implements EventSubscriber {
+public class DumpResultEventSubscriber extends EventSubscriber {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
 
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.event.subscriber.EventSubscriber#initialize()
+	 */
 	@Override
-	public void subscribe(EventListenerHolder eventListenerHolder) {
-		eventListenerHolder.addSqlQueryListeners(evt -> {
+	public void initialize() {
+		sqlQueryListener(evt -> {
 			try {
 				if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
 					LOG.warn(

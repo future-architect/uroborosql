@@ -42,9 +42,7 @@ public class TransientTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password).build();
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogEventSubscriber());
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach

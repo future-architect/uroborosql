@@ -29,8 +29,6 @@ import javax.crypto.spec.IvParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.event.EventListenerHolder;
-import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -43,7 +41,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  *
  */
-public abstract class AbstractSecretColumnEventSubscriber<T> implements EventSubscriber {
+public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscriber {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
 
@@ -89,7 +87,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> implements EventSub
 	 *
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.event.EventSubscriber#initialize()
+	 * @see jp.co.future.uroborosql.event.subscriber.EventSubscriber#initialize()
 	 */
 	@Override
 	public void initialize() {
@@ -156,65 +154,55 @@ public abstract class AbstractSecretColumnEventSubscriber<T> implements EventSub
 			LOG.error("Failed to acquire secret key.", ex);
 			setSkip(true);
 		}
-	}
 
-	/**
-	 *
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.event.EventSubscriber#subscribe(jp.co.future.uroborosql.event.EventListenerHolder)
-	 */
-	@Override
-	public void subscribe(EventListenerHolder eventListenerHolder) {
-		eventListenerHolder
-				.addBeforeSetParameterListeners(evt -> {
-					// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
-					var parameter = evt.getParameter();
-					if (skip || parameter == null) {
-						return;
-					}
+		beforeSetParameterListener(evt -> {
+			// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
+			var parameter = evt.getParameter();
+			if (skip || parameter == null) {
+				return;
+			}
 
-					if (Parameter.class.equals(parameter.getClass())) {
-						// 通常のパラメータの場合
-						var key = parameter.getParameterName();
-						if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
-							var obj = parameter.getValue();
-							if (obj != null) {
-								String objStr = null;
-								if (obj instanceof Optional) {
-									objStr = ((Optional<?>) obj)
-											.map(Object::toString)
-											.orElse(null);
-								} else {
-									objStr = obj.toString();
+			if (Parameter.class.equals(parameter.getClass())) {
+				// 通常のパラメータの場合
+				var key = parameter.getParameterName();
+				if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
+					var obj = parameter.getValue();
+					if (obj != null) {
+						String objStr = null;
+						if (obj instanceof Optional) {
+							objStr = ((Optional<?>) obj)
+									.map(Object::toString)
+									.orElse(null);
+						} else {
+							objStr = obj.toString();
+						}
+						if (StringUtils.isNotEmpty(objStr)) {
+							try {
+								synchronized (encryptCipher) {
+									evt.setParameter(
+											new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
 								}
-								if (StringUtils.isNotEmpty(objStr)) {
-									try {
-										synchronized (encryptCipher) {
-											evt.setParameter(
-													new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
-										}
-									} catch (Exception ex) {
-										LOG.warn("Encrypt Exception key:{}", key);
-									}
-								}
+							} catch (Exception ex) {
+								LOG.warn("Encrypt Exception key:{}", key);
 							}
 						}
 					}
-				})
-				.addSqlQueryListeners(evt -> {
-					// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
-					if (skip) {
-						return;
-					}
+				}
+			}
+		});
+		sqlQueryListener(evt -> {
+			// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
+			if (skip) {
+				return;
+			}
 
-					try {
-						evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
-								getCryptColumnNames(), getCharset()));
-					} catch (Exception ex) {
-						LOG.error("Failed to create SecretResultSet.", ex);
-					}
-				});
+			try {
+				evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
+						getCryptColumnNames(), getCharset()));
+			} catch (Exception ex) {
+				LOG.error("Failed to create SecretResultSet.", ex);
+			}
+		});
 	}
 
 	/**

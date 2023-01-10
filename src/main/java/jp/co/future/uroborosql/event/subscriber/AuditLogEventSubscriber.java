@@ -13,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.event.EventListenerHolder;
-import jp.co.future.uroborosql.event.EventSubscriber;
 
 /**
  * 監査用ログを出力するSqlFilter
@@ -22,7 +20,7 @@ import jp.co.future.uroborosql.event.EventSubscriber;
  * @author K.Miyazaki, J.Choi
  *
  */
-public class AuditLogEventSubscriber implements EventSubscriber {
+public class AuditLogEventSubscriber extends EventSubscriber {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
 
@@ -44,96 +42,101 @@ public class AuditLogEventSubscriber implements EventSubscriber {
 	public AuditLogEventSubscriber() {
 	}
 
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.event.subscriber.EventSubscriber#initialize()
+	 */
 	@Override
-	public void subscribe(EventListenerHolder eventListenerHolder) {
-		eventListenerHolder
-				.addSqlQueryListeners(evt -> {
-					var resultSet = evt.getResultSet();
-					// カウント初期値
-					var rowCount = -1;
-					try {
-						// resultSetのカーソル種別を取得
-						// 種別「TYPE_FORWARD_ONLY」の場合、beforeFirstメソッドが効かないため除外
-						if (resultSet.getType() != ResultSet.TYPE_FORWARD_ONLY) {
-							// 件数結果取得
-							resultSet.last();
-							rowCount = resultSet.getRow();
-							resultSet.beforeFirst();
-						}
-					} catch (SQLException e) {
-						// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
-					}
+	public void initialize() {
+		sqlQueryListener(evt -> {
+			var resultSet = evt.getResultSet();
+			// カウント初期値
+			var rowCount = -1;
+			try {
+				// resultSetのカーソル種別を取得
+				// 種別「TYPE_FORWARD_ONLY」の場合、beforeFirstメソッドが効かないため除外
+				if (resultSet.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+					// 件数結果取得
+					resultSet.last();
+					rowCount = resultSet.getRow();
+					resultSet.beforeFirst();
+				}
+			} catch (SQLException e) {
+				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
+			}
 
-					var userName = getParam(evt.getExecutionContext(), userNameKey);
-					if (userName == null) {
-						// ユーザ名が設定されていない時
-						userName = DEFAULT_USER_NAME;
-					}
+			var userName = getParam(evt.getExecutionContext(), userNameKey);
+			if (userName == null) {
+				// ユーザ名が設定されていない時
+				userName = DEFAULT_USER_NAME;
+			}
 
-					var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-					if (funcId == null) {
-						// 機能IDが設定されていない時
-						funcId = DEFAULT_FUNC_ID;
-					}
+			var funcId = getParam(evt.getExecutionContext(), funcIdKey);
+			if (funcId == null) {
+				// 機能IDが設定されていない時
+				funcId = DEFAULT_FUNC_ID;
+			}
 
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("{}", new AuditData(userName,
-								funcId,
-								evt.getExecutionContext().getSqlId(),
-								evt.getExecutionContext().getSqlName(),
-								evt.getExecutionContext().getExecutableSql(),
-								rowCount));
-					}
-				})
-				.addSqlUpdateListeners(evt -> {
-					var userName = getParam(evt.getExecutionContext(), userNameKey);
-					if (userName == null) {
-						// ユーザ名が設定されていない時
-						userName = DEFAULT_USER_NAME;
-					}
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("{}", new AuditData(userName,
+						funcId,
+						evt.getExecutionContext().getSqlId(),
+						evt.getExecutionContext().getSqlName(),
+						evt.getExecutionContext().getExecutableSql(),
+						rowCount));
+			}
+		});
+		sqlUpdateListener(evt -> {
+			var userName = getParam(evt.getExecutionContext(), userNameKey);
+			if (userName == null) {
+				// ユーザ名が設定されていない時
+				userName = DEFAULT_USER_NAME;
+			}
 
-					var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-					if (funcId == null) {
-						// 機能IDが設定されていない時
-						funcId = DEFAULT_FUNC_ID;
-					}
+			var funcId = getParam(evt.getExecutionContext(), funcIdKey);
+			if (funcId == null) {
+				// 機能IDが設定されていない時
+				funcId = DEFAULT_FUNC_ID;
+			}
 
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("{}", new AuditData(userName,
-								funcId,
-								evt.getExecutionContext().getSqlId(),
-								evt.getExecutionContext().getSqlName(),
-								evt.getExecutionContext().getExecutableSql(),
-								evt.getCount()));
-					}
-				})
-				.addSqlBatchListeners(evt -> {
-					var userName = getParam(evt.getExecutionContext(), userNameKey);
-					if (userName == null) {
-						// ユーザ名が設定されていない時
-						userName = DEFAULT_USER_NAME;
-					}
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("{}", new AuditData(userName,
+						funcId,
+						evt.getExecutionContext().getSqlId(),
+						evt.getExecutionContext().getSqlName(),
+						evt.getExecutionContext().getExecutableSql(),
+						evt.getCount()));
+			}
+		});
+		sqlBatchListener(evt -> {
+			var userName = getParam(evt.getExecutionContext(), userNameKey);
+			if (userName == null) {
+				// ユーザ名が設定されていない時
+				userName = DEFAULT_USER_NAME;
+			}
 
-					var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-					if (funcId == null) {
-						// 機能IDが設定されていない時
-						funcId = DEFAULT_FUNC_ID;
-					}
-					var rowCount = -1;
-					if (LOG.isDebugEnabled()) {
-						try {
-							rowCount = evt.getPreparedStatement().getUpdateCount();
-						} catch (SQLException ex) {
-							// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
-						}
-						LOG.debug("{}", new AuditData(userName,
-								funcId,
-								evt.getExecutionContext().getSqlId(),
-								evt.getExecutionContext().getSqlName(),
-								evt.getExecutionContext().getExecutableSql(),
-								rowCount));
-					}
-				});
+			var funcId = getParam(evt.getExecutionContext(), funcIdKey);
+			if (funcId == null) {
+				// 機能IDが設定されていない時
+				funcId = DEFAULT_FUNC_ID;
+			}
+			var rowCount = -1;
+			if (LOG.isDebugEnabled()) {
+				try {
+					rowCount = evt.getPreparedStatement().getUpdateCount();
+				} catch (SQLException ex) {
+					// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
+				}
+				LOG.debug("{}", new AuditData(userName,
+						funcId,
+						evt.getExecutionContext().getSqlId(),
+						evt.getExecutionContext().getSqlName(),
+						evt.getExecutionContext().getExecutableSql(),
+						rowCount));
+			}
+		});
 	}
 
 	/**

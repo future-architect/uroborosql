@@ -1,3 +1,0 @@
-Parameter:Parameter name[product_id], Value[0], Class[BigDecimal], SQL type[DECIMAL]
-Parameter:Parameter name[jan_code], Value[1234567890123], Class[String], SQL type[CHAR]
-SQL:example/selectinsert_product executed. Count:1 items.
