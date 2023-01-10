@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.subscriber.DebugEventSubscriber;
 import jp.co.future.uroborosql.testlog.TestAppender;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -44,7 +45,7 @@ public class DebugSqlFilterTest {
 	public void setUp() throws SQLException, IOException {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DebugSqlFilterTest")).build();
 		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new DebugSqlFilter());
+		sqlFilterManager.addSqlFilter(new DebugEventSubscriber());
 		sqlFilterManager.initialize();
 
 		agent = config.agent();
@@ -132,7 +133,7 @@ public class DebugSqlFilterTest {
 
 		assertThat(log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DebugSqlFilter", "testExecuteQueryFilter.txt"),
+						Paths.get("src/test/resources/data/expected/DebugEventSubscriber", "testExecuteQueryFilter.txt"),
 						StandardCharsets.UTF_8)));
 	}
 
@@ -149,7 +150,7 @@ public class DebugSqlFilterTest {
 
 		assertThat(log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DebugSqlFilter", "testExecuteUpdateFilter.txt"),
+						Paths.get("src/test/resources/data/expected/DebugEventSubscriber", "testExecuteUpdateFilter.txt"),
 						StandardCharsets.UTF_8)));
 	}
 
@@ -173,7 +174,7 @@ public class DebugSqlFilterTest {
 
 		assertThat(log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DebugSqlFilter", "testExecuteBatchFilter.txt"),
+						Paths.get("src/test/resources/data/expected/DebugEventSubscriber", "testExecuteBatchFilter.txt"),
 						StandardCharsets.UTF_8)));
 	}
 

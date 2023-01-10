@@ -51,12 +51,18 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.AfterSetDaoQueryParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
+import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
+import jp.co.future.uroborosql.event.ProcedureEvent;
+import jp.co.future.uroborosql.event.SqlBatchEvent;
+import jp.co.future.uroborosql.event.SqlQueryEvent;
+import jp.co.future.uroborosql.event.SqlUpdateEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
@@ -1169,7 +1175,7 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// コンテキスト変換
-		transformContext(executionContext, true);
+		transformContext(executionContext);
 
 		var stmt = getPreparedStatement(executionContext);
 
@@ -1205,11 +1211,17 @@ public class SqlAgentImpl implements SqlAgent {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
-						rs = new InnerResultSet(
-								getSqlFilterManager().doQuery(executionContext, stmt, stmt.executeQuery()),
-								stmt);
+						rs = stmt.executeQuery();
+						// Query実行後イベント発行
+						if (getSqlConfig().getEventListenerHolder().hasSqlQueryListener()) {
+							var eventObj = new SqlQueryEvent(executionContext, rs, stmt);
+							for (var listener : getSqlConfig().getEventListenerHolder().getSqlQueryListeners()) {
+								listener.accept(eventObj);
+							}
+							rs = eventObj.getResultSet();
+						}
 						stmt.closeOnCompletion();
-						return rs;
+						return new InnerResultSet(rs, stmt);
 					} catch (SQLException ex) {
 						if (maxRetryCount > 0 && dialect.isRollbackToSavepointBeforeRetry()) {
 							rollback(RETRY_SAVEPOINT_NAME);
@@ -1316,7 +1328,7 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// コンテキスト変換
-		transformContext(executionContext, false);
+		transformContext(executionContext);
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
@@ -1356,7 +1368,15 @@ public class SqlAgentImpl implements SqlAgent {
 					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var count = getSqlFilterManager().doUpdate(executionContext, stmt, stmt.executeUpdate());
+					var count = stmt.executeUpdate();
+					// Update実行後イベント発行
+					if (getSqlConfig().getEventListenerHolder().hasSqlUpdateListener()) {
+						var eventObj = new SqlUpdateEvent(executionContext, count, stmt);
+						for (var listener : getSqlConfig().getEventListenerHolder().getSqlUpdateListeners()) {
+							listener.accept(eventObj);
+						}
+						count = eventObj.getCount();
+					}
 					if ((SqlKind.INSERT.equals(executionContext.getSqlKind()) ||
 							SqlKind.BULK_INSERT.equals(executionContext.getSqlKind()))
 							&& executionContext.hasGeneratedKeyColumns()) {
@@ -1433,7 +1453,7 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// コンテキスト変換
-		transformContext(executionContext, false);
+		transformContext(executionContext);
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
@@ -1473,7 +1493,15 @@ public class SqlAgentImpl implements SqlAgent {
 					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					var counts = getSqlFilterManager().doBatch(executionContext, stmt, stmt.executeBatch());
+					var counts = stmt.executeBatch();
+					// Batch実行後イベント発行
+					if (getSqlConfig().getEventListenerHolder().hasSqlBatchListener()) {
+						var eventObj = new SqlBatchEvent(executionContext, counts, stmt);
+						for (var listener : getSqlConfig().getEventListenerHolder().getSqlBatchListeners()) {
+							listener.accept(eventObj);
+						}
+						counts = eventObj.getCounts();
+					}
 					if (SqlKind.BATCH_INSERT.equals(executionContext.getSqlKind())
 							&& executionContext.hasGeneratedKeyColumns()) {
 						try (var rs = stmt.getGeneratedKeys()) {
@@ -1556,7 +1584,7 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// コンテキスト変換
-		transformContext(executionContext, false);
+		transformContext(executionContext);
 
 		Instant startTime = null;
 
@@ -1589,7 +1617,15 @@ public class SqlAgentImpl implements SqlAgent {
 					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
-					getSqlFilterManager().doProcedure(executionContext, callableStatement, callableStatement.execute());
+					var result = callableStatement.execute();
+					// Procedure実行後イベント発行
+					if (getSqlConfig().getEventListenerHolder().hasProcedureListener()) {
+						var eventObj = new ProcedureEvent(executionContext, result, callableStatement);
+						for (var listener : getSqlConfig().getEventListenerHolder().getProcedureListeners()) {
+							listener.accept(eventObj);
+						}
+						result = eventObj.isResult();
+					}
 					break;
 				} catch (SQLException ex) {
 					if (maxRetryCount > 0 && getDialect().isRollbackToSavepointBeforeRetry()) {
@@ -1644,9 +1680,8 @@ public class SqlAgentImpl implements SqlAgent {
 	 * ExecutionContextの設定内容を元にSQLを構築する
 	 *
 	 * @param executionContext ExecutionContext
-	 * @param isQuery queryかどうか。queryの場合<code>true</code>
 	 */
-	private void transformContext(final ExecutionContext executionContext, final boolean isQuery) {
+	private void transformContext(final ExecutionContext executionContext) {
 		var originalSql = executionContext.getSql();
 		var sqlName = executionContext.getSqlName();
 		if (StringUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
@@ -1655,8 +1690,6 @@ public class SqlAgentImpl implements SqlAgent {
 				throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
 			}
 		}
-		originalSql = getSqlFilterManager().doTransformSql(executionContext, originalSql);
-		executionContext.setSql(originalSql);
 
 		// SQL-IDの付与
 		if (originalSql.contains(keySqlId)) {
@@ -1671,19 +1704,39 @@ public class SqlAgentImpl implements SqlAgent {
 			originalSql = originalSql.replace(keySqlId, sqlId);
 		}
 
+		// SQL変換前イベント発行
+		if (getSqlConfig().getEventListenerHolder().hasBeforeTransformSqlListener()) {
+			var eventObj = new BeforeTransformSqlEvent(executionContext, originalSql);
+			getSqlConfig().getEventListenerHolder().getBeforeTransformSqlListeners()
+					.forEach(listener -> listener.accept(eventObj));
+			originalSql = eventObj.getSql();
+		}
+		executionContext.setSql(originalSql);
+
 		// Dialectに合わせたエスケープキャラクタの設定
 		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getDialect().getEscapeChar());
 
 		// 自動パラメータバインド関数の呼出
 		if (executionContext.batchCount() == 0) {
-			if (isQuery) {
-				executionContext.acceptQueryAutoParameterBinder();
+			if (SqlKind.SELECT == executionContext.getSqlKind()) {
+				// DAO Query時パラメータ設定後イベント発行
+				if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoQueryParameterListener()) {
+					var eventObj = new AfterSetDaoQueryParameterEvent(executionContext);
+					getSqlConfig().getEventListenerHolder().getAfterSetDaoQueryParameterListeners()
+							.forEach(listener -> listener.accept(eventObj));
+				}
 			} else {
-				executionContext.acceptUpdateAutoParameterBinder();
+				// DAO Update時パラメータ設定後イベント発行
+				if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoUpdateParameterListener()) {
+					var eventObj = new AfterSetDaoUpdateParameterEvent(executionContext);
+					getSqlConfig().getEventListenerHolder().getAfterSetDaoUpdateParameterListeners()
+							.forEach(listener -> listener.accept(eventObj));
+				}
 			}
 		}
 
 		if (StringUtils.isEmpty(executionContext.getExecutableSql())) {
+			// SQLパーサーによるパース処理
 			var outputBindComment = (boolean) executionContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);
 			var sqlParser = new SqlParserImpl(originalSql, sqlConfig.getExpressionParser(),
@@ -1753,7 +1806,7 @@ public class SqlAgentImpl implements SqlAgent {
 			if (executionContext instanceof ExecutionContextImpl) {
 				var bindParameters = ((ExecutionContextImpl) executionContext).getBindParameters();
 				for (var i = 0; i < bindParameters.length; i++) {
-					var parameter = getSqlFilterManager().doParameter(bindParameters[i]);
+					var parameter = bindParameters[i];
 					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
 							.append("]").append(System.lineSeparator());
 				}
@@ -2475,15 +2528,6 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	private SqlResourceManager getSqlResourceManager() {
 		return sqlConfig.getSqlResourceManager();
-	}
-
-	/**
-	 * SqlFilter管理クラスを取得します。
-	 *
-	 * @return SqlFilter管理クラス
-	 */
-	private SqlFilterManager getSqlFilterManager() {
-		return sqlConfig.getSqlFilterManager();
 	}
 
 	/**

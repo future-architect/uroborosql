@@ -19,7 +19,10 @@ import java.util.function.Supplier;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
+import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 
 /**
  * ローカルトランザクションマネージャ
@@ -278,7 +281,29 @@ public class LocalTransactionManager implements TransactionManager {
 		try (var txCtx = new LocalTransactionContext(this.sqlConfig, true, this.connectionContext)) {
 			this.txCtxStack.push(txCtx);
 			try {
-				return supplier.get();
+				// トランザクション開始後イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasAfterBeginTransactionListener()) {
+					var eventObj = new AfterBeginTransactionEvent(txCtx.getConnection(), this.sqlConfig,
+							this.connectionContext);
+					this.sqlConfig.getEventListenerHolder().getAfterBeginTransactionListeners()
+							.forEach(listener -> listener.accept(eventObj));
+				}
+				R result = null;
+				try {
+					result = supplier.get();
+					return result;
+				} finally {
+					// トランザクション終了前イベント発行
+					if (this.sqlConfig.getEventListenerHolder().hasBeforeEndTransactionListener()) {
+						var eventObj = new BeforeEndTransactionEvent(txCtx.getConnection(), this.sqlConfig,
+								this.connectionContext, result);
+						this.sqlConfig.getEventListenerHolder().getBeforeEndTransactionListeners()
+								.forEach(listener -> listener.accept(eventObj));
+					}
+				}
+			} catch (SQLException ex) {
+				txCtx.setRollbackOnly();
+				throw new UroborosqlTransactionException(ex);
 			} catch (Throwable th) {
 				txCtx.setRollbackOnly();
 				throw th;

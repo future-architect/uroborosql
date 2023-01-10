@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import javax.crypto.spec.IvParameterSpec;
  * @author H.Sugimoto
  *
  */
-public class SecretColumnSqlFilter extends AbstractSecretColumnSqlFilter {
+public class SecretColumnEventSubscriber extends AbstractSecretColumnEventSubscriber<SecretColumnEventSubscriber> {
 
 	/**
 	 * {@inheritDoc}

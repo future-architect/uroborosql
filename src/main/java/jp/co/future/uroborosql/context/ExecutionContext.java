@@ -164,16 +164,6 @@ public interface ExecutionContext
 	int batchCount();
 
 	/**
-	 * 自動パラメータバインド関数(query用)の受け入れ
-	 */
-	void acceptQueryAutoParameterBinder();
-
-	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の受け入れ
-	 */
-	void acceptUpdateAutoParameterBinder();
-
-	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号

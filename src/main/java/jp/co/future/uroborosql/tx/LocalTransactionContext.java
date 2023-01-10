@@ -22,6 +22,12 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.AfterCommitEvent;
+import jp.co.future.uroborosql.event.AfterCreateCallableStatementEvent;
+import jp.co.future.uroborosql.event.AfterCreatePreparedStatementEvent;
+import jp.co.future.uroborosql.event.AfterRollbackEvent;
+import jp.co.future.uroborosql.event.BeforeCommitEvent;
+import jp.co.future.uroborosql.event.BeforeRollbackEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 
@@ -126,7 +132,16 @@ class LocalTransactionContext implements AutoCloseable {
 			}
 			break;
 		}
-		return this.sqlConfig.getSqlFilterManager().doPreparedStatement(executionContext, stmt);
+
+		// PreparedStatement作成後イベント発行
+		if (this.sqlConfig.getEventListenerHolder().hasAfterCreatePreparedStatementListener()) {
+			var eventObj = new AfterCreatePreparedStatementEvent(executionContext, stmt);
+			for (var listener : this.sqlConfig.getEventListenerHolder().getAfterCreatePreparedStatementListeners()) {
+				listener.accept(eventObj);
+			}
+			stmt = eventObj.getPreparedStatement();
+		}
+		return stmt;
 	}
 
 	/**
@@ -140,9 +155,21 @@ class LocalTransactionContext implements AutoCloseable {
 		var conn = getConnection();
 
 		if (this.updatable) {
-			return this.sqlConfig.getSqlFilterManager().doCallableStatement(executionContext,
-					conn.prepareCall(executionContext.getExecutableSql(), executionContext.getResultSetType(),
-							executionContext.getResultSetConcurrency()));
+			var cstmt = conn.prepareCall(executionContext.getExecutableSql(),
+					executionContext.getResultSetType(),
+					executionContext.getResultSetConcurrency());
+
+			// CallableStatement作成後イベント発行
+			if (this.sqlConfig.getEventListenerHolder().hasAfterCreateCallableStatementListener()) {
+				var eventObj = new AfterCreateCallableStatementEvent(executionContext, cstmt);
+				for (var listener : this.sqlConfig.getEventListenerHolder()
+						.getAfterCreateCallableStatementListeners()) {
+					listener.accept(eventObj);
+				}
+				cstmt = eventObj.getCallableStatement();
+
+			}
+			return cstmt;
 		} else {
 			throw new UroborosqlTransactionException("Transaction not started.");
 		}
@@ -156,7 +183,19 @@ class LocalTransactionContext implements AutoCloseable {
 	void commit() {
 		try {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
+				// コミット前イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasBeforeCommitListener()) {
+					var beforeEventObj = new BeforeCommitEvent(connection, sqlConfig);
+					this.sqlConfig.getEventListenerHolder().getBeforeCommitListeners()
+							.forEach(listener -> listener.accept(beforeEventObj));
+				}
 				connection.commit();
+				// コミット後イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasAfterCommitListener()) {
+					var afterEventObj = new AfterCommitEvent(connection, sqlConfig);
+					this.sqlConfig.getEventListenerHolder().getAfterCommitListeners()
+							.forEach(listener -> listener.accept(afterEventObj));
+				}
 			}
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);
@@ -172,7 +211,19 @@ class LocalTransactionContext implements AutoCloseable {
 	void rollback() {
 		try {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
+				// ロールバック前イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasBeforeRollbackListener()) {
+					var beforeEventObj = new BeforeRollbackEvent(connection, sqlConfig);
+					this.sqlConfig.getEventListenerHolder().getBeforeRollbackListeners()
+							.forEach(listener -> listener.accept(beforeEventObj));
+				}
 				connection.rollback();
+				// ロールバック後イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasAfterRollbackListener()) {
+					var afterEventObj = new AfterRollbackEvent(connection, sqlConfig);
+					this.sqlConfig.getEventListenerHolder().getAfterRollbackListeners()
+							.forEach(listener -> listener.accept(afterEventObj));
+				}
 			}
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);

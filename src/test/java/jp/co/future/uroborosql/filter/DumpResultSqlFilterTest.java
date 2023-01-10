@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
 import jp.co.future.uroborosql.testlog.TestAppender;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -41,7 +42,7 @@ public class DumpResultSqlFilterTest {
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:DumpResultSqlFilterTest")).build();
 		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new DumpResultSqlFilter());
+		sqlFilterManager.addSqlFilter(new DumpResultEventSubscriber());
 		sqlFilterManager.initialize();
 
 		agent = config.agent();
@@ -144,7 +145,7 @@ public class DumpResultSqlFilterTest {
 		assertThat(
 				log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter", "testExecuteQueryFilter.txt"),
+						Paths.get("src/test/resources/data/expected/DumpResultEventSubscriber", "testExecuteQueryFilter.txt"),
 						StandardCharsets.UTF_8)));
 	}
 
@@ -165,7 +166,7 @@ public class DumpResultSqlFilterTest {
 		assertThat(
 				log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+						Paths.get("src/test/resources/data/expected/DumpResultEventSubscriber",
 								"testExecuteQueryFilterManyColumn.txt"),
 						StandardCharsets.UTF_8)));
 	}
@@ -187,7 +188,7 @@ public class DumpResultSqlFilterTest {
 		assertThat(
 				log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+						Paths.get("src/test/resources/data/expected/DumpResultEventSubscriber",
 								"testExecuteQueryFilterOneColumn.txt"),
 						StandardCharsets.UTF_8)));
 	}
@@ -231,7 +232,7 @@ public class DumpResultSqlFilterTest {
 		assertThat(
 				log,
 				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DumpResultSqlFilter",
+						Paths.get("src/test/resources/data/expected/DumpResultEventSubscriber",
 								"testExecuteQueryFilterManyColumnWithData.txt"),
 						StandardCharsets.UTF_8)));
 	}

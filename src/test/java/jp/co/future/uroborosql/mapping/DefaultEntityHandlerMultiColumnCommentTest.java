@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
+import jp.co.future.uroborosql.event.subscriber.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
 
 /**
@@ -59,7 +59,7 @@ public class DefaultEntityHandlerMultiColumnCommentTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
+				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogEventSubscriber()))
 				.build();
 		DefaultEntityHandler.clearCache();
 		MappingUtils.clearCache();

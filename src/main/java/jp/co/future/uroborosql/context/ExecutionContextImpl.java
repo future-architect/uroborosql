@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -32,10 +31,13 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
+import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.parameter.InOutParameter;
 import jp.co.future.uroborosql.parameter.OutParameter;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -51,7 +53,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * @author H.Sugimoto
  */
-public class ExecutionContextImpl implements ExecutionContext {
+public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	/**
 	 * @see #getParameterNames()
 	 */
@@ -88,6 +90,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
+	/** SqlConfig. */
+	private SqlConfig sqlConfig;
+
 	/** SQL名 */
 	private String sqlName;
 
@@ -117,9 +122,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 
 	/** 定数パラメータ保持用マップ */
 	private Map<String, Parameter> constParameterMap = null;
-
-	/** SqlFilter管理クラス */
-	private SqlFilterManager sqlFilterManager = new SqlFilterManagerImpl();
 
 	/** バインド対象パラメータ名リスト */
 	private final List<String> bindNames = new ArrayList<>();
@@ -154,12 +156,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 	/** コンテキスト属性情報 */
 	private final Map<String, Object> contextAttributes = new HashMap<>();
 
-	/** 自動パラメータバインド関数(query用) */
-	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
-
-	/** 自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
-
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
 
@@ -188,15 +184,12 @@ public class ExecutionContextImpl implements ExecutionContext {
 		retryWaitTime = parent.retryWaitTime;
 		parameterMap = parent.parameterMap;
 		constParameterMap = parent.constParameterMap;
-		sqlFilterManager = parent.sqlFilterManager;
 		batchParameters.addAll(parent.batchParameters);
 		defineColumnTypeMap.putAll(parent.defineColumnTypeMap);
 		resultSetType = parent.resultSetType;
 		resultSetConcurrency = parent.resultSetConcurrency;
 		sqlKind = parent.sqlKind;
 		contextAttributes.putAll(parent.contextAttributes);
-		queryAutoParameterBinder = parent.queryAutoParameterBinder;
-		parameterMapperManager = parent.parameterMapperManager;
 	}
 
 	/**
@@ -207,6 +200,28 @@ public class ExecutionContextImpl implements ExecutionContext {
 	@Override
 	public TransformContext copyTransformContext() {
 		return new ExecutionContextImpl(this);
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#getSqlConfig()
+	 */
+	@Override
+	public SqlConfig getSqlConfig() {
+		return this.sqlConfig;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
+	 */
+	@Override
+	public void setSqlConfig(SqlConfig sqlConfig) {
+		this.sqlConfig = sqlConfig;
 	}
 
 	/**
@@ -868,7 +883,14 @@ public class ExecutionContextImpl implements ExecutionContext {
 		var matchParams = new HashSet<String>();
 		var parameterIndex = 1;
 		for (var bindParameter : bindParameters) {
-			var parameter = getSqlFilterManager().doParameter(bindParameter);
+			var parameter = bindParameter;
+			// パラメータ設定前イベント発行
+			if (getSqlConfig().getEventListenerHolder().hasBeforeSetParameterListener()) {
+				var eventObj = new BeforeSetParameterEvent(this, bindParameter);
+				getSqlConfig().getEventListenerHolder().getBeforeSetParameterListeners()
+						.forEach(listener -> listener.accept(eventObj));
+				parameter = eventObj.getParameter();
+			}
 			parameterIndex = parameter.setParameter(preparedStatement, parameterIndex, parameterMapperManager);
 			matchParams.add(parameter.getParameterName());
 		}
@@ -910,7 +932,16 @@ public class ExecutionContextImpl implements ExecutionContext {
 		for (var parameter : bindParameters) {
 			if (parameter instanceof OutParameter) {
 				var key = parameter.getParameterName();
-				out.put(key, getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));
+				var value = callableStatement.getObject(parameterIndex);
+				// OUTパラメータ取得後イベント発行
+				if (getSqlConfig().getEventListenerHolder().hasAfterGetOutParameterListener()) {
+					var eventObj = new AfterGetOutParameterEvent(this, key, value, callableStatement, parameterIndex);
+					getSqlConfig().getEventListenerHolder().getAfterGetOutParameterListeners()
+							.forEach(listener -> listener.accept(eventObj));
+					value = eventObj.getValue();
+				}
+				out.put(key, value);
+
 			}
 			parameterIndex++;
 		}
@@ -928,7 +959,12 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public ExecutionContext addBatch() {
-		acceptUpdateAutoParameterBinder();
+		// DAO Update時パラメータ設定後イベント発行
+		if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoUpdateParameterListener()) {
+			var eventObj = new AfterSetDaoUpdateParameterEvent(this);
+			getSqlConfig().getEventListenerHolder().getAfterSetDaoUpdateParameterListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 		batchParameters.add(parameterMap);
 		// バッチ処理では毎回同じ数のパラメータが追加されることが多いのでMap生成時のinitialCapacityを指定してマップのリサイズ処理を極力発生させないようにする
 		parameterMap = new HashMap<>(calcInitialCapacity(parameterMap.size()));
@@ -964,30 +1000,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 	@Override
 	public int batchCount() {
 		return batchParameters.size();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContext#acceptQueryAutoParameterBinder()
-	 */
-	@Override
-	public void acceptQueryAutoParameterBinder() {
-		if (queryAutoParameterBinder != null) {
-			queryAutoParameterBinder.accept(this);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContext#acceptUpdateAutoParameterBinder()
-	 */
-	@Override
-	public void acceptUpdateAutoParameterBinder() {
-		if (updateAutoParameterBinder != null) {
-			updateAutoParameterBinder.accept(this);
-		}
 	}
 
 	/**
@@ -1089,24 +1101,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 	}
 
 	/**
-	 * SqlFilter管理クラスを取得します。
-	 *
-	 * @return SqlFilter管理クラス
-	 */
-	public SqlFilterManager getSqlFilterManager() {
-		return sqlFilterManager;
-	}
-
-	/**
-	 * SqlFilter管理クラスを設定します。
-	 *
-	 * @param sqlFilterManager SQLフィルタ管理クラス SqlFilter管理クラス
-	 */
-	public void setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-		this.sqlFilterManager = sqlFilterManager;
-	}
-
-	/**
 	 * パラメータ変換マネージャを取得します
 	 *
 	 * @return パラメータ変換マネージャ
@@ -1122,22 +1116,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	public void setParameterMapperManager(final BindParameterMapperManager parameterMapperManager) {
 		this.parameterMapperManager = parameterMapperManager;
-	}
-
-	/**
-	 * 自動パラメータバインド関数(query用)を設定します
-	 * @param binder 自動パラメータバインド関数
-	 */
-	public void setQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		this.queryAutoParameterBinder = binder;
-	}
-
-	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)を設定します
-	 * @param binder 自動パラメータバインド関数
-	 */
-	public void setUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		this.updateAutoParameterBinder = binder;
 	}
 
 	/**

@@ -25,6 +25,10 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.subscriber.AbstractSecretColumnEventSubscriber;
+import jp.co.future.uroborosql.event.subscriber.SecretColumnEventSubscriber;
+import jp.co.future.uroborosql.event.subscriber.SqlFilterManager;
+import jp.co.future.uroborosql.event.subscriber.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -32,19 +36,19 @@ public class SecretResultSetTest {
 
 	private static SqlConfig config;
 	private static SqlFilterManager sqlFilterManager;
-	private static AbstractSecretColumnSqlFilter filter;
+	private static AbstractSecretColumnEventSubscriber filter;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
 		sqlFilterManager = new SqlFilterManagerImpl();
-		filter = new SecretColumnSqlFilter();
+		filter = new SecretColumnEventSubscriber();
 
 		filter.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
 		// -storepass password -keypass password -keyalg AES -keysize 128
-		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnSqlFilter/keystore.jceks");
+		filter.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
 		filter.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
 		filter.setAlias("testexample");
 		filter.setCharset("UTF-8");

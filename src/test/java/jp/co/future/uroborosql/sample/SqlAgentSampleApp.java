@@ -8,8 +8,8 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
+import jp.co.future.uroborosql.event.subscriber.SqlFilterManagerImpl;
 
 /**
  * SqlAgent（SQL実行エンジン）実装サンプル
@@ -37,7 +37,7 @@ public class SqlAgentSampleApp {
 		// SQL設定オブジェクトを生成する(JDBCを利用する場合）
 		// SQL実行時に行う各種フィルタ処理を管理するクラスを設定
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter())).build();
+				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogEventSubscriber())).build();
 
 		// JNDIなどのDataSourceを利用する場合は、DataSource用のConnectionSupplierを指定してください
 		// Connectionの管理をDataSource側に委譲します

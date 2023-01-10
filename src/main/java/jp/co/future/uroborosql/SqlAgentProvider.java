@@ -20,9 +20,6 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @author H.Sugimoto
  */
 public interface SqlAgentProvider extends SqlConfigAware {
-	/** プロバイダBean名 */
-	String FACTORY_BEAN_NAME = "sqlAgentProvider";
-
 	/**
 	 * プロパティ:SQL実行でエラーが発生した場合にリトライ対象とするSQLエラーコード<br>
 	 * デフォルトは指定なし

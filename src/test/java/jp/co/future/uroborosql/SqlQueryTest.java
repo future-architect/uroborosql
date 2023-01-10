@@ -52,11 +52,11 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
+import jp.co.future.uroborosql.event.subscriber.AbstractSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -126,7 +126,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var manager = config.getSqlFilterManager();
-		var filter = new WrapContextSqlFilter("",
+		var filter = new WrapContextEventSubscriber("",
 				"LIMIT /*$maxRowCount*/10 OFFSET /*$startRowIndex*/0", ".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		filter.initialize();
 		manager.addSqlFilter(filter);

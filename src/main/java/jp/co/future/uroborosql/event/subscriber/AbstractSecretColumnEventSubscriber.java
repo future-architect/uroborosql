@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import java.io.BufferedInputStream;
 import java.nio.charset.Charset;
@@ -16,8 +16,6 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStore.SecretKeyEntry;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -31,7 +29,8 @@ import javax.crypto.spec.IvParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.EventListenerHolder;
+import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -44,9 +43,9 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  *
  */
-public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
+public abstract class AbstractSecretColumnEventSubscriber<T> implements EventSubscriber {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -75,7 +74,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/** IVを利用するかどうか */
 	private boolean useIV = false;
 
-	private boolean skipFilter = false;
+	private boolean skip = false;
 
 	/**
 	 * 変換の名前 (たとえば、DES/CBC/PKCS5Padding)。標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。
@@ -83,18 +82,19 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	private String transformationType = "AES/ECB/PKCS5Padding";
 
-	public AbstractSecretColumnSqlFilter() {
+	protected AbstractSecretColumnEventSubscriber() {
 	}
 
 	/**
+	 *
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#initialize()
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#initialize()
 	 */
 	@Override
 	public void initialize() {
 		if (getCryptColumnNames() == null || getCryptColumnNames().isEmpty()) {
-			setSkipFilter(true);
+			setSkip(true);
 			return;
 		} else {
 			cryptParamKeys = new ArrayList<>();
@@ -111,28 +111,28 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 		try {
 			if (StringUtils.isBlank(getKeyStoreFilePath())) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
 				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
 				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getStorePassword())) {
 				LOG.error("Invalid password for access KeyStore.");
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getAlias())) {
 				LOG.error("No alias for access KeyStore.");
-				setSkipFilter(true);
+				setSkip(true);
 				return;
 			}
 
@@ -154,51 +154,67 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
 			LOG.error("Failed to acquire secret key.", ex);
-			setSkipFilter(true);
+			setSkip(true);
 		}
 	}
 
 	/**
+	 *
 	 * {@inheritDoc}
 	 *
-	 * パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doParameter(jp.co.future.uroborosql.parameter.Parameter)
+	 * @see jp.co.future.uroborosql.event.EventSubscriber#subscribe(jp.co.future.uroborosql.event.EventListenerHolder)
 	 */
 	@Override
-	public Parameter doParameter(final Parameter parameter) {
-		if (skipFilter || parameter == null) {
-			return parameter;
-		}
-
-		if (Parameter.class.equals(parameter.getClass())) {
-			// 通常のパラメータの場合
-			var key = parameter.getParameterName();
-			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
-				var obj = parameter.getValue();
-				if (obj != null) {
-					String objStr = null;
-					if (obj instanceof Optional) {
-						objStr = ((Optional<?>) obj)
-								.map(Object::toString)
-								.orElse(null);
-					} else {
-						objStr = obj.toString();
+	public void subscribe(EventListenerHolder eventListenerHolder) {
+		eventListenerHolder
+				.addBeforeSetParameterListeners(evt -> {
+					// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
+					var parameter = evt.getParameter();
+					if (skip || parameter == null) {
+						return;
 					}
-					if (StringUtils.isNotEmpty(objStr)) {
-						try {
-							synchronized (encryptCipher) {
-								return new Parameter(key, encrypt(encryptCipher, secretKey, objStr));
+
+					if (Parameter.class.equals(parameter.getClass())) {
+						// 通常のパラメータの場合
+						var key = parameter.getParameterName();
+						if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
+							var obj = parameter.getValue();
+							if (obj != null) {
+								String objStr = null;
+								if (obj instanceof Optional) {
+									objStr = ((Optional<?>) obj)
+											.map(Object::toString)
+											.orElse(null);
+								} else {
+									objStr = obj.toString();
+								}
+								if (StringUtils.isNotEmpty(objStr)) {
+									try {
+										synchronized (encryptCipher) {
+											evt.setParameter(
+													new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
+										}
+									} catch (Exception ex) {
+										LOG.warn("Encrypt Exception key:{}", key);
+									}
+								}
 							}
-						} catch (Exception ex) {
-							return parameter;
 						}
 					}
-				}
-			}
-		}
+				})
+				.addSqlQueryListeners(evt -> {
+					// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
+					if (skip) {
+						return;
+					}
 
-		return parameter;
+					try {
+						evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
+								getCryptColumnNames(), getCharset()));
+					} catch (Exception ex) {
+						LOG.error("Failed to create SecretResultSet.", ex);
+					}
+				});
 	}
 
 	/**
@@ -212,29 +228,6 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	 */
 	protected abstract String encrypt(final Cipher cipher, final SecretKey secretKey, final String input)
 			throws GeneralSecurityException;
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを{@link SecretResultSet}でラップして返す
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext,
-	 *      java.sql.PreparedStatement, java.sql.ResultSet)
-	 */
-	@Override
-	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
-		if (skipFilter) {
-			return resultSet;
-		}
-
-		try {
-			return new SecretResultSet(resultSet, this.createDecryptor(), getCryptColumnNames(), getCharset());
-		} catch (Exception ex) {
-			LOG.error("Failed to create SecretResultSet.", ex);
-		}
-		return resultSet;
-	}
 
 	/**
 	 * パラメータの復号化内部処理。
@@ -305,10 +298,14 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。を設定します。
 	 *
+	 * @param T 具象型
 	 * @param keyStoreFilePath 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
+	 * @return T
 	 */
-	public void setKeyStoreFilePath(final String keyStoreFilePath) {
+	@SuppressWarnings("unchecked")
+	public T setKeyStoreFilePath(final String keyStoreFilePath) {
 		this.keyStoreFilePath = keyStoreFilePath;
+		return (T) this;
 	}
 
 	/**
@@ -323,10 +320,14 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定するを設定します。
 	 *
+	 * @param T 具象型
 	 * @param storePassword KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定する
+	 * @return T
 	 */
-	public void setStorePassword(final String storePassword) {
+	@SuppressWarnings("unchecked")
+	public T setStorePassword(final String storePassword) {
 		this.storePassword = storePassword;
+		return (T) this;
 	}
 
 	/**
@@ -341,10 +342,14 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * KeyStore内で秘密鍵が格納されている場所を示すエイリアス名を設定します。
 	 *
+	 * @param T 具象型
 	 * @param alias KeyStore内で秘密鍵が格納されている場所を示すエイリアス名
+	 * @return T
 	 */
-	public void setAlias(final String alias) {
+	@SuppressWarnings("unchecked")
+	public T setAlias(final String alias) {
 		this.alias = alias;
+		return (T) this;
 	}
 
 	/**
@@ -359,9 +364,12 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * キャラクタセット（デフォルトUTF-8）を設定します。
 	 *
+	 * @param T 具象型
 	 * @param charset キャラクタセット（デフォルトUTF-8）
+	 * @return T
 	 */
-	public void setCharset(final String charset) {
+	@SuppressWarnings("unchecked")
+	public T setCharset(final String charset) {
 		try {
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
@@ -369,6 +377,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			LOG.error("The specified character set could not be converted to {}. Set the default character set({}).",
 					charset, this.charset);
 		}
+		return (T) this;
 	}
 
 	/**
@@ -383,10 +392,14 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定するを設定します。
 	 *
+	 * @param T 具象型
 	 * @param cryptColumnNames 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定する
+	 * @return T
 	 */
-	public void setCryptColumnNames(final List<String> cryptColumnNames) {
+	@SuppressWarnings("unchecked")
+	public T setCryptColumnNames(final List<String> cryptColumnNames) {
 		this.cryptColumnNames = cryptColumnNames;
+		return (T) this;
 	}
 
 	/**
@@ -408,21 +421,25 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	}
 
 	/**
-	 * skipFilterを取得します。
+	 * skipを取得します。
 	 *
-	 * @return skipFilter
+	 * @return skip
 	 */
-	public boolean isSkipFilter() {
-		return skipFilter;
+	public boolean isSkip() {
+		return skip;
 	}
 
 	/**
-	 * skipFilterを設定します。
+	 * skipを設定します。
 	 *
-	 * @param skipFilter skipFilter
+	 * @param T 具象型
+	 * @param skip skip
+	 * @return T
 	 */
-	public void setSkipFilter(final boolean skipFilter) {
-		this.skipFilter = skipFilter;
+	@SuppressWarnings("unchecked")
+	public T setSkip(final boolean skip) {
+		this.skip = skip;
+		return (T) this;
 	}
 
 	/**
@@ -455,10 +472,14 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 	/**
 	 * 変換の名前を設定する 標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。 初期値は<code>AES/ECB/PKCS5Padding</code>
 	 *
+	 * @param T 具象型
 	 * @param transformationType 変換の名前
+	 * @return T
 	 */
-	public void setTransformationType(final String transformationType) {
+	@SuppressWarnings("unchecked")
+	public T setTransformationType(final String transformationType) {
 		this.transformationType = transformationType;
+		return (T) this;
 	}
 
 }

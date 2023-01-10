@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -37,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.AfterInitializeExecutionContextEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -69,18 +69,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/** SQL設定クラス */
 	private SqlConfig sqlConfig = null;
 
-	/** 自動パラメータバインド関数List(query用) */
-	private final List<Consumer<ExecutionContext>> queryAutoParameterBinders = new ArrayList<>();
-
-	/** 自動パラメータバインド関数List(update/batch/proc用) */
-	private final List<Consumer<ExecutionContext>> updateAutoParameterBinders = new ArrayList<>();
-
-	/** 合成自動パラメータバインド関数(query用) */
-	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
-
-	/** 合成自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
-
 	/** ResultSetTypeの初期値 */
 	private int defaultResultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
@@ -99,17 +87,19 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContext createExecutionContext() {
 		var executionContext = new ExecutionContextImpl();
-		var paramMap = new ConcurrentHashMap<>(getConstParameterMap());
-
-		executionContext.setConstParameterMap(paramMap);
-		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
+		executionContext.setSqlConfig(getSqlConfig());
+		executionContext.setConstParameterMap(new ConcurrentHashMap<>(getConstParameterMap()));
 		executionContext.setParameterMapperManager(
 				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
-		executionContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
-		executionContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 		executionContext.setResultSetType(defaultResultSetType);
 		executionContext.setResultSetConcurrency(defaultResultSetConcurrency);
 
+		// ExecutionContext初期化後イベント発行
+		if (getSqlConfig().getEventListenerHolder().hasAfterInitializeExecutionContextListener()) {
+			var eventObj = new AfterInitializeExecutionContextEvent(executionContext);
+			getSqlConfig().getEventListenerHolder().getAfterInitializeExecutionContextListener()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 		return executionContext;
 	}
 
@@ -317,62 +307,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContextProvider removeBindParamMapper(final BindParameterMapper<?> parameterMapper) {
 		parameterMapperManager.removeMapper(parameterMapper);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.add(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.remove(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
 		return this;
 	}
 

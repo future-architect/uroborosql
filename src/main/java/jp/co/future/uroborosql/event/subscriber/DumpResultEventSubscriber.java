@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.filter;
+package jp.co.future.uroborosql.event.subscriber;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -13,7 +13,6 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,7 +22,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.EventListenerHolder;
+import jp.co.future.uroborosql.event.EventSubscriber;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -36,34 +36,29 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  *
  */
-public class DumpResultSqlFilter extends AbstractSqlFilter {
+public class DumpResultEventSubscriber implements EventSubscriber {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doQuery(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, java.sql.ResultSet)
-	 */
 	@Override
-	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
-			final ResultSet resultSet) {
-		try {
-			if (resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				LOG.warn(
-						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+	public void subscribe(EventListenerHolder eventListenerHolder) {
+		eventListenerHolder.addSqlQueryListeners(evt -> {
+			try {
+				if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
+					LOG.warn(
+							"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+				}
+				if (LOG.isInfoEnabled()) {
+					var builder = displayResult(evt.getResultSet());
+					LOG.debug("{}", builder);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			if (LOG.isInfoEnabled()) {
-				var builder = displayResult(resultSet);
-				LOG.debug("{}", builder);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return resultSet;
+		});
 	}
 
 	/**
@@ -72,7 +67,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 * @param rs 検索結果のResultSet
 	 * @return 表示文字列
 	 */
-	public StringBuilder displayResult(final ResultSet rs) {
+	private StringBuilder displayResult(final ResultSet rs) {
 		try {
 			var keys = new ArrayList<String>();
 			var maxLengthList = new HashMap<String, Integer>();

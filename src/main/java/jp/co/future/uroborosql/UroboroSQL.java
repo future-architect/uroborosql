@@ -28,10 +28,9 @@ import jp.co.future.uroborosql.context.ExecutionContextProvider;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.event.EventListenerHolder;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.expr.ExpressionParserFactory;
-import jp.co.future.uroborosql.filter.SqlFilterManager;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManager;
@@ -110,7 +109,7 @@ public final class UroboroSQL {
 	public static final class UroboroSQLBuilder {
 		private ConnectionSupplier connectionSupplier;
 		private SqlResourceManager sqlResourceManager;
-		private SqlFilterManager sqlFilterManager;
+		private EventListenerHolder eventListenerHolder;
 		private ExecutionContextProvider executionContextProvider;
 		private SqlAgentProvider sqlAgentProvider;
 		private EntityHandler<?> entityHandler;
@@ -121,7 +120,7 @@ public final class UroboroSQL {
 		UroboroSQLBuilder() {
 			this.connectionSupplier = null;
 			this.sqlResourceManager = new SqlResourceManagerImpl();
-			this.sqlFilterManager = new SqlFilterManagerImpl();
+			this.eventListenerHolder = new EventListenerHolder();
 			this.executionContextProvider = new ExecutionContextProviderImpl();
 			this.sqlAgentProvider = new SqlAgentProviderImpl();
 			this.entityHandler = new DefaultEntityHandler();
@@ -142,13 +141,13 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * SqlFilterManagerの設定.
+		 * EventListenerHolderの設定.
 		 *
-		 * @param sqlFilterManager sqlFilterManager
+		 * @param eventListenerHolder eventListenerHolder
 		 * @return UroboroSQLBuilder
 		 */
-		public UroboroSQLBuilder setSqlFilterManager(final SqlFilterManager sqlFilterManager) {
-			this.sqlFilterManager = sqlFilterManager;
+		public UroboroSQLBuilder setEventListenerHolder(final EventListenerHolder eventListenerHolder) {
+			this.eventListenerHolder = eventListenerHolder;
 			return this;
 		}
 
@@ -244,7 +243,7 @@ public final class UroboroSQL {
 					this.sqlResourceManager,
 					this.executionContextProvider,
 					this.sqlAgentProvider,
-					this.sqlFilterManager,
+					this.eventListenerHolder,
 					this.entityHandler,
 					this.clock,
 					this.dialect,
@@ -275,9 +274,9 @@ public final class UroboroSQL {
 		private final SqlAgentProvider sqlAgentProvider;
 
 		/**
-		 * SqlFilter管理クラス.
+		 * EventListenerHolderクラス.
 		 */
-		private final SqlFilterManager sqlFilterManager;
+		private final EventListenerHolder eventListenerHolder;
 
 		/**
 		 * Entityハンドラ.
@@ -303,7 +302,7 @@ public final class UroboroSQL {
 				final SqlResourceManager sqlResourceManager,
 				final ExecutionContextProvider executionContextProvider,
 				final SqlAgentProvider sqlAgentProvider,
-				final SqlFilterManager sqlFilterManager,
+				final EventListenerHolder eventListenerHolder,
 				final EntityHandler<?> entityHandler,
 				final Clock clock,
 				final Dialect dialect,
@@ -312,7 +311,7 @@ public final class UroboroSQL {
 			this.sqlResourceManager = sqlResourceManager;
 			this.executionContextProvider = executionContextProvider;
 			this.sqlAgentProvider = sqlAgentProvider;
-			this.sqlFilterManager = sqlFilterManager;
+			this.eventListenerHolder = eventListenerHolder;
 			this.entityHandler = entityHandler;
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
@@ -359,9 +358,8 @@ public final class UroboroSQL {
 			this.sqlAgentProvider.setSqlConfig(this);
 			this.expressionParser.setSqlConfig(this);
 			this.entityHandler.setSqlConfig(this);
-
+			this.eventListenerHolder.initialize();
 			this.sqlResourceManager.initialize();
-			this.sqlFilterManager.initialize();
 			this.executionContextProvider.initialize();
 			this.expressionParser.initialize();
 			this.entityHandler.initialize();
@@ -408,13 +406,14 @@ public final class UroboroSQL {
 		}
 
 		/**
+		 *
 		 * {@inheritDoc}
 		 *
-		 * @see jp.co.future.uroborosql.config.SqlConfig#getSqlFilterManager()
+		 * @see jp.co.future.uroborosql.config.SqlConfig#getEventListenerHolder()
 		 */
 		@Override
-		public SqlFilterManager getSqlFilterManager() {
-			return sqlFilterManager;
+		public EventListenerHolder getEventListenerHolder() {
+			return eventListenerHolder;
 		}
 
 		/**

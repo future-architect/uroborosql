@@ -23,6 +23,10 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.AfterSetEntityBulkInsertParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetEntityDeleteParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetEntityInsertParameterEvent;
+import jp.co.future.uroborosql.event.AfterSetEntityUpdateParameterEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
@@ -206,6 +210,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public void setInsertParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.INSERT, MappingColumn::getCamelName);
+		//Entity Insert時パラメータ設定後イベント発行
+		if (this.sqlConfig.getEventListenerHolder().hasAfterSetEntityInsertParameterListener()) {
+			var eventObj = new AfterSetEntityInsertParameterEvent(context, entity);
+			this.sqlConfig.getEventListenerHolder().getAfterSetEntityInsertParameterListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 	}
 
 	/**
@@ -216,6 +226,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public void setUpdateParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.UPDATE, MappingColumn::getCamelName);
+		//Entity Update時パラメータ設定後イベント発行
+		if (this.sqlConfig.getEventListenerHolder().hasAfterSetEntityUpdateParameterListener()) {
+			var eventObj = new AfterSetEntityUpdateParameterEvent(context, entity);
+			this.sqlConfig.getEventListenerHolder().getAfterSetEntityUpdateParameterListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 	}
 
 	/**
@@ -226,6 +242,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public void setDeleteParams(final ExecutionContext context, final Object entity) {
 		setFields(context, entity, SqlKind.DELETE, MappingColumn::getCamelName);
+		//Entity Delete時パラメータ設定後イベント発行
+		if (this.sqlConfig.getEventListenerHolder().hasAfterSetEntityDeleteParameterListener()) {
+			var eventObj = new AfterSetEntityDeleteParameterEvent(context, entity);
+			this.sqlConfig.getEventListenerHolder().getAfterSetEntityDeleteParameterListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 	}
 
 	/**
@@ -236,6 +258,12 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public void setBulkInsertParams(final ExecutionContext context, final Object entity, final int entityIndex) {
 		setFields(context, entity, SqlKind.INSERT, col -> buildBulkParamName(col.getCamelName(), entityIndex));
+		//Entity BulkInsert時パラメータ設定後イベント発行
+		if (this.sqlConfig.getEventListenerHolder().hasAfterSetEntityBulkInsertParameterListener()) {
+			var eventObj = new AfterSetEntityBulkInsertParameterEvent(context, entity, entityIndex);
+			this.sqlConfig.getEventListenerHolder().getAfterSetEntityBulkInsertParameterListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 	}
 
 	/**
