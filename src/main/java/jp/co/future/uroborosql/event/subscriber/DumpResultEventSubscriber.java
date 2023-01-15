@@ -22,6 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -49,20 +50,22 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 	 */
 	@Override
 	public void initialize() {
-		sqlQueryListener(evt -> {
-			try {
-				if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
-					LOG.warn(
-							"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
-				}
-				if (LOG.isInfoEnabled()) {
-					var builder = displayResult(evt.getResultSet());
-					LOG.debug("{}", builder);
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+		sqlQueryListener(this::sqlQuery);
+	}
+
+	void sqlQuery(SqlQueryEvent evt) {
+		try {
+			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
+				LOG.warn(
+						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-		});
+			if (LOG.isInfoEnabled()) {
+				var builder = displayResult(evt.getResultSet());
+				LOG.debug("{}", builder);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

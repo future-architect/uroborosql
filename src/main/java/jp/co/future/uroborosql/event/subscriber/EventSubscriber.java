@@ -16,23 +16,18 @@ import jp.co.future.uroborosql.event.AfterCreatePreparedStatementEvent;
 import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
 import jp.co.future.uroborosql.event.AfterInitializeExecutionContextEvent;
 import jp.co.future.uroborosql.event.AfterRollbackEvent;
-import jp.co.future.uroborosql.event.AfterSetDaoQueryParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetEntityBulkInsertParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetEntityDeleteParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetEntityInsertParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetEntityUpdateParameterEvent;
 import jp.co.future.uroborosql.event.BeforeCommitEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
+import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.BeforeRollbackEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
-import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
 import jp.co.future.uroborosql.event.EventListenerHolder;
 import jp.co.future.uroborosql.event.ExecutionConsumer;
 import jp.co.future.uroborosql.event.ProcedureEvent;
 import jp.co.future.uroborosql.event.SqlBatchEvent;
 import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.event.SqlUpdateEvent;
+import jp.co.future.uroborosql.event.TransformSqlEvent;
 
 public abstract class EventSubscriber {
 	/** ExecutionContext初期化後イベントリスナ. */
@@ -40,26 +35,12 @@ public abstract class EventSubscriber {
 			.empty();
 	/** パラメータ設定前イベントリスナ. */
 	private Optional<Consumer<BeforeSetParameterEvent>> beforeSetParameterListener = Optional.empty();
-	/** SQL変換前イベントリスナ. */
-	private Optional<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListener = Optional.empty();
-	/** DAO Query時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetDaoQueryParameterEvent>> afterSetDaoQueryParameterListener = Optional.empty();
-	/** DAO Update時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetDaoUpdateParameterEvent>> afterSetDaoUpdateParameterListener = Optional.empty();
+	/** SQL変換イベントリスナ. */
+	private Optional<Consumer<TransformSqlEvent>> transformSqlListener = Optional.empty();
+	/** SQLパース前イベントリスナ. */
+	private Optional<Consumer<BeforeParseSqlEvent>> beforeParseSqlListener = Optional.empty();
 	/** 出力パラメータ取得後イベントリスナ. */
 	private Optional<Consumer<AfterGetOutParameterEvent>> afterGetOutParameterListener = Optional.empty();
-	/** Entity Insert時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetEntityInsertParameterEvent>> afterSetEntityInsertParameterListener = Optional
-			.empty();
-	/** Entity Update時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetEntityUpdateParameterEvent>> afterSetEntityUpdateParameterListener = Optional
-			.empty();
-	/** Entity Delete時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetEntityDeleteParameterEvent>> afterSetEntityDeleteParameterListener = Optional
-			.empty();
-	/** Entity BulkInsert時パラメータ設定後イベントリスナ. */
-	private Optional<Consumer<AfterSetEntityBulkInsertParameterEvent>> afterSetEntityBulkInsertParameterListener = Optional
-			.empty();
 	/** PreparedStatement生成後イベントリスナ. */
 	private Optional<ExecutionConsumer<AfterCreatePreparedStatementEvent>> afterCreatePreparedStatementListener = Optional
 			.empty();
@@ -101,21 +82,11 @@ public abstract class EventSubscriber {
 		afterInitializeExecutionContextListener()
 				.ifPresent(listener -> eventListenerHolder.addAfterInitializeExecutionContextListener(listener));
 		beforeSetParameterListener().ifPresent(listener -> eventListenerHolder.addBeforeSetParameterListener(listener));
-		beforeTransformSqlListener().ifPresent(listener -> eventListenerHolder.addBeforeTransformSqlListener(listener));
-		afterSetDaoQueryParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetDaoQueryParameterListener(listener));
-		afterSetDaoUpdateParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetDaoUpdateParameterListener(listener));
+		transformSqlListener().ifPresent(listener -> eventListenerHolder.addTransformSqlListener(listener));
+		beforeParseSqlListener()
+				.ifPresent(listener -> eventListenerHolder.addBeforeParseSqlListener(listener));
 		afterGetOutParameterListener()
 				.ifPresent(listener -> eventListenerHolder.addAfterGetOutParameterListener(listener));
-		afterSetEntityInsertParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetEntityInsertParameterListener(listener));
-		afterSetEntityUpdateParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetEntityUpdateParameterListener(listener));
-		afterSetEntityDeleteParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetEntityDeleteParameterListener(listener));
-		afterSetEntityBulkInsertParameterListener()
-				.ifPresent(listener -> eventListenerHolder.addAfterSetEntityBulkInsertParameterListener(listener));
 		afterCreatePreparedStatementListener()
 				.ifPresent(listener -> eventListenerHolder.addAfterCreatePreparedStatementListener(listener));
 		afterCreateCallableStatementListener()
@@ -144,22 +115,12 @@ public abstract class EventSubscriber {
 				.ifPresent(listener -> eventListenerHolder.removeAfterInitializeExecutionContextListener(listener));
 		beforeSetParameterListener()
 				.ifPresent(listener -> eventListenerHolder.removeBeforeSetParameterListener(listener));
-		beforeTransformSqlListener()
-				.ifPresent(listener -> eventListenerHolder.removeBeforeTransformSqlListener(listener));
-		afterSetDaoQueryParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetDaoQueryParameterListener(listener));
-		afterSetDaoUpdateParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetDaoUpdateParameterListener(listener));
+		transformSqlListener()
+				.ifPresent(listener -> eventListenerHolder.removeTransformSqlListener(listener));
+		beforeParseSqlListener()
+				.ifPresent(listener -> eventListenerHolder.removeBeforeParseSqlListener(listener));
 		afterGetOutParameterListener()
 				.ifPresent(listener -> eventListenerHolder.removeAfterGetOutParameterListener(listener));
-		afterSetEntityInsertParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetEntityInsertParameterListener(listener));
-		afterSetEntityUpdateParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetEntityUpdateParameterListener(listener));
-		afterSetEntityDeleteParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetEntityDeleteParameterListener(listener));
-		afterSetEntityBulkInsertParameterListener()
-				.ifPresent(listener -> eventListenerHolder.removeAfterSetEntityBulkInsertParameterListener(listener));
 		afterCreatePreparedStatementListener()
 				.ifPresent(listener -> eventListenerHolder.removeAfterCreatePreparedStatementListener(listener));
 		afterCreateCallableStatementListener()
@@ -186,36 +147,16 @@ public abstract class EventSubscriber {
 		return beforeSetParameterListener;
 	}
 
-	protected final Optional<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListener() {
-		return beforeTransformSqlListener;
+	protected final Optional<Consumer<TransformSqlEvent>> transformSqlListener() {
+		return transformSqlListener;
 	}
 
-	protected final Optional<Consumer<AfterSetDaoQueryParameterEvent>> afterSetDaoQueryParameterListener() {
-		return afterSetDaoQueryParameterListener;
-	}
-
-	protected final Optional<Consumer<AfterSetDaoUpdateParameterEvent>> afterSetDaoUpdateParameterListener() {
-		return afterSetDaoUpdateParameterListener;
+	protected final Optional<Consumer<BeforeParseSqlEvent>> beforeParseSqlListener() {
+		return beforeParseSqlListener;
 	}
 
 	protected final Optional<Consumer<AfterGetOutParameterEvent>> afterGetOutParameterListener() {
 		return afterGetOutParameterListener;
-	}
-
-	protected final Optional<Consumer<AfterSetEntityInsertParameterEvent>> afterSetEntityInsertParameterListener() {
-		return afterSetEntityInsertParameterListener;
-	}
-
-	protected final Optional<Consumer<AfterSetEntityUpdateParameterEvent>> afterSetEntityUpdateParameterListener() {
-		return afterSetEntityUpdateParameterListener;
-	}
-
-	protected final Optional<Consumer<AfterSetEntityDeleteParameterEvent>> afterSetEntityDeleteParameterListener() {
-		return afterSetEntityDeleteParameterListener;
-	}
-
-	protected final Optional<Consumer<AfterSetEntityBulkInsertParameterEvent>> afterSetEntityBulkInsertParameterListener() {
-		return afterSetEntityBulkInsertParameterListener;
 	}
 
 	protected final Optional<ExecutionConsumer<AfterCreatePreparedStatementEvent>> afterCreatePreparedStatementListener() {
@@ -275,42 +216,16 @@ public abstract class EventSubscriber {
 		this.beforeSetParameterListener = Optional.ofNullable(listener);
 	}
 
-	protected final void beforeTransformSqlListener(Consumer<BeforeTransformSqlEvent> listener) {
-		this.beforeTransformSqlListener = Optional.ofNullable(listener);
+	protected final void transformSqlListener(Consumer<TransformSqlEvent> listener) {
+		this.transformSqlListener = Optional.ofNullable(listener);
 	}
 
-	protected final void afterSetDaoQueryParameterListener(
-			Consumer<AfterSetDaoQueryParameterEvent> listener) {
-		this.afterSetDaoQueryParameterListener = Optional.ofNullable(listener);
-	}
-
-	protected final void afterSetDaoUpdateParameterListener(
-			Consumer<AfterSetDaoUpdateParameterEvent> listener) {
-		this.afterSetDaoUpdateParameterListener = Optional.ofNullable(listener);
+	protected final void beforeParseSqlListener(Consumer<BeforeParseSqlEvent> listener) {
+		this.beforeParseSqlListener = Optional.ofNullable(listener);
 	}
 
 	protected final void afterGetOutParameterListener(Consumer<AfterGetOutParameterEvent> listener) {
 		this.afterGetOutParameterListener = Optional.ofNullable(listener);
-	}
-
-	protected final void afterSetEntityInsertParameterListener(
-			Consumer<AfterSetEntityInsertParameterEvent> listener) {
-		this.afterSetEntityInsertParameterListener = Optional.ofNullable(listener);
-	}
-
-	protected final void afterSetEntityUpdateParameterListener(
-			Consumer<AfterSetEntityUpdateParameterEvent> listener) {
-		this.afterSetEntityUpdateParameterListener = Optional.ofNullable(listener);
-	}
-
-	protected final void afterSetEntityDeleteParameterListener(
-			Consumer<AfterSetEntityDeleteParameterEvent> listener) {
-		this.afterSetEntityDeleteParameterListener = Optional.ofNullable(listener);
-	}
-
-	protected final void afterSetEntityBulkInsertParameterListener(
-			Consumer<AfterSetEntityBulkInsertParameterEvent> listener) {
-		this.afterSetEntityBulkInsertParameterListener = Optional.ofNullable(listener);
 	}
 
 	protected final void afterCreatePreparedStatementListener(

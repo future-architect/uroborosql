@@ -25,7 +25,7 @@ public class UpdateDelegateTest {
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(
+		config.getEventListenerHolder().addBeforeParseSqlListener(
 				evt -> evt.getExecutionContext().setUpdateDelegate(context -> 2));
 	}
 

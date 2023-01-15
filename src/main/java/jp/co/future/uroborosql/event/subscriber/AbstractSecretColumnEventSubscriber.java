@@ -29,6 +29,8 @@ import javax.crypto.spec.IvParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
+import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -155,54 +157,58 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			setSkip(true);
 		}
 
-		beforeSetParameterListener(evt -> {
-			// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
-			var parameter = evt.getParameter();
-			if (skip || parameter == null) {
-				return;
-			}
+		beforeSetParameterListener(this::beforeSetParameter);
+		sqlQueryListener(this::sqlQuery);
+	}
 
-			if (Parameter.class.equals(parameter.getClass())) {
-				// 通常のパラメータの場合
-				var key = parameter.getParameterName();
-				if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
-					var obj = parameter.getValue();
-					if (obj != null) {
-						String objStr = null;
-						if (obj instanceof Optional) {
-							objStr = ((Optional<?>) obj)
-									.map(Object::toString)
-									.orElse(null);
-						} else {
-							objStr = obj.toString();
-						}
-						if (StringUtils.isNotEmpty(objStr)) {
-							try {
-								synchronized (encryptCipher) {
-									evt.setParameter(
-											new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
-								}
-							} catch (Exception ex) {
-								LOG.warn("Encrypt Exception key:{}", key);
+	void beforeSetParameter(BeforeSetParameterEvent evt) {
+		// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
+		var parameter = evt.getParameter();
+		if (skip || parameter == null) {
+			return;
+		}
+
+		if (Parameter.class.equals(parameter.getClass())) {
+			// 通常のパラメータの場合
+			var key = parameter.getParameterName();
+			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
+				var obj = parameter.getValue();
+				if (obj != null) {
+					String objStr = null;
+					if (obj instanceof Optional) {
+						objStr = ((Optional<?>) obj)
+								.map(Object::toString)
+								.orElse(null);
+					} else {
+						objStr = obj.toString();
+					}
+					if (StringUtils.isNotEmpty(objStr)) {
+						try {
+							synchronized (encryptCipher) {
+								evt.setParameter(
+										new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
 							}
+						} catch (Exception ex) {
+							LOG.warn("Encrypt Exception key:{}", key);
 						}
 					}
 				}
 			}
-		});
-		sqlQueryListener(evt -> {
-			// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
-			if (skip) {
-				return;
-			}
+		}
+	}
 
-			try {
-				evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
-						getCryptColumnNames(), getCharset()));
-			} catch (Exception ex) {
-				LOG.error("Failed to create SecretResultSet.", ex);
-			}
-		});
+	void sqlQuery(SqlQueryEvent evt) {
+		// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
+		if (skip) {
+			return;
+		}
+
+		try {
+			evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
+					getCryptColumnNames(), getCharset()));
+		} catch (Exception ex) {
+			LOG.error("Failed to create SecretResultSet.", ex);
+		}
 	}
 
 	/**

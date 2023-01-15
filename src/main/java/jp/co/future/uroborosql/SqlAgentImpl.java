@@ -51,13 +51,12 @@ import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.enums.SqlKind;
-import jp.co.future.uroborosql.event.AfterSetDaoQueryParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
-import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
+import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.ProcedureEvent;
 import jp.co.future.uroborosql.event.SqlBatchEvent;
 import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.event.SqlUpdateEvent;
+import jp.co.future.uroborosql.event.TransformSqlEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
@@ -1705,9 +1704,9 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// SQL変換前イベント発行
-		if (getSqlConfig().getEventListenerHolder().hasBeforeTransformSqlListener()) {
-			var eventObj = new BeforeTransformSqlEvent(executionContext, originalSql);
-			getSqlConfig().getEventListenerHolder().getBeforeTransformSqlListeners()
+		if (getSqlConfig().getEventListenerHolder().hasTransformSqlListener()) {
+			var eventObj = new TransformSqlEvent(executionContext, originalSql);
+			getSqlConfig().getEventListenerHolder().getTransformSqlListeners()
 					.forEach(listener -> listener.accept(eventObj));
 			originalSql = eventObj.getSql();
 		}
@@ -1716,22 +1715,12 @@ public class SqlAgentImpl implements SqlAgent {
 		// Dialectに合わせたエスケープキャラクタの設定
 		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getDialect().getEscapeChar());
 
-		// 自動パラメータバインド関数の呼出
+		// SQLパース前イベントの呼出
 		if (executionContext.batchCount() == 0) {
-			if (SqlKind.SELECT == executionContext.getSqlKind()) {
-				// DAO Query時パラメータ設定後イベント発行
-				if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoQueryParameterListener()) {
-					var eventObj = new AfterSetDaoQueryParameterEvent(executionContext);
-					getSqlConfig().getEventListenerHolder().getAfterSetDaoQueryParameterListeners()
-							.forEach(listener -> listener.accept(eventObj));
-				}
-			} else {
-				// DAO Update時パラメータ設定後イベント発行
-				if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoUpdateParameterListener()) {
-					var eventObj = new AfterSetDaoUpdateParameterEvent(executionContext);
-					getSqlConfig().getEventListenerHolder().getAfterSetDaoUpdateParameterListeners()
-							.forEach(listener -> listener.accept(eventObj));
-				}
+			if (getSqlConfig().getEventListenerHolder().hasBeforeParseSqlListener()) {
+				var eventObj = new BeforeParseSqlEvent(executionContext);
+				getSqlConfig().getEventListenerHolder().getBeforeParseSqlListeners()
+						.forEach(listener -> listener.accept(eventObj));
 			}
 		}
 

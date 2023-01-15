@@ -35,7 +35,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
+import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.parameter.InOutParameter;
@@ -959,10 +959,10 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 */
 	@Override
 	public ExecutionContext addBatch() {
-		// DAO Update時パラメータ設定後イベント発行
-		if (getSqlConfig().getEventListenerHolder().hasAfterSetDaoUpdateParameterListener()) {
-			var eventObj = new AfterSetDaoUpdateParameterEvent(this);
-			getSqlConfig().getEventListenerHolder().getAfterSetDaoUpdateParameterListeners()
+		// SQLパース前イベントの呼出
+		if (getSqlConfig().getEventListenerHolder().hasBeforeParseSqlListener()) {
+			var eventObj = new BeforeParseSqlEvent(this);
+			getSqlConfig().getEventListenerHolder().getBeforeParseSqlListeners()
 					.forEach(listener -> listener.accept(eventObj));
 		}
 		batchParameters.add(parameterMap);

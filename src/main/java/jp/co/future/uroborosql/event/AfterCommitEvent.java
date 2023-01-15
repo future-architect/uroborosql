@@ -6,9 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
-import java.sql.Connection;
-
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.tx.TransactionContext;
 
 /**
  * コネクションコミット後イベントオブジェクト
@@ -21,11 +19,9 @@ public class AfterCommitEvent extends TransactionEvent {
 	/**
 	 * コンストラクタ.
 	 *
-	 * @param connection Connection
-	 * @param sqlConfig SqlConfig
+	 * @param transactionContext TransactionContext
 	 */
-	public AfterCommitEvent(final Connection connection, final SqlConfig sqlConfig) {
-		super(connection, sqlConfig);
+	public AfterCommitEvent(TransactionContext transactionContext) {
+		super(transactionContext);
 	}
-
 }

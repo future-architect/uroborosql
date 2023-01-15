@@ -6,9 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
-import java.sql.Connection;
-
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.tx.TransactionContext;
 
 /**
  * Transactionイベントオブジェクト
@@ -17,34 +15,20 @@ import jp.co.future.uroborosql.config.SqlConfig;
  * @since v1.0.0
  */
 public abstract class TransactionEvent extends AbstractEvent {
-	/** SqlConfig. */
-	private final SqlConfig sqlConfig;
-
 	/**
 	 * コンストラクタ.
 	 *
-	 * @param connection Connection
-	 * @param sqlConfig SqlConfig
+	 * @param transactionContext TransactionContext
 	 */
-	protected TransactionEvent(final Connection connection, final SqlConfig sqlConfig) {
-		super(connection);
-		this.sqlConfig = sqlConfig;
+	protected TransactionEvent(TransactionContext transactionContext) {
+		super(transactionContext);
 	}
 
 	/**
-	 * Connectionの取得.
-	 * @return Connection
+	 * TransactionContextの取得.
+	 * @return TransactionContext
 	 */
-	public Connection getConnection() {
-		return (Connection) getSource();
+	public TransactionContext getTransactionContext() {
+		return (TransactionContext) getSource();
 	}
-
-	/**
-	 * SqlConfigの取得.
-	 * @return SqlConfig
-	 */
-	public SqlConfig getSqlConfig() {
-		return sqlConfig;
-	}
-
 }

@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.event.AfterSetDaoQueryParameterEvent;
-import jp.co.future.uroborosql.event.AfterSetDaoUpdateParameterEvent;
+import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -81,9 +81,12 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleQueryAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		var listener = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("upd_datetime",
-				insDate);
-		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener);
+		var listener = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("upd_datetime", insDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -104,15 +107,15 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
-			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener);
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 
 			listener = evt -> evt.getExecutionContext().param("upd_datetime", updDate);
 
-			config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener);
+			config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
 			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
 
-			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener);
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 		}
 
 	}
@@ -121,9 +124,13 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleUpdateAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		var listener = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext().param(
-				"upd_datetime", updDate);
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener);
+		var listener = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("upd_datetime", updDate);
+			}
+		};
+
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -152,7 +159,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					is(2));
 		}
 
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 	}
 
 	@Test
@@ -161,15 +168,25 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var colNumeric = new BigDecimal("10.00");
 		var colTimestamp = LocalDateTime.now();
 
-		var listener1 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("col_varchar",
-				colVarchar);
-		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener1);
-		var listener2 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext().param("col_numeric",
-				colNumeric);
-		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener2);
-		var listener3 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext()
-				.param("col_timestamp", colTimestamp);
-		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener3);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("col_varchar", colVarchar);
+			}
+		};
+
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("col_numeric", colNumeric);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("col_timestamp", colTimestamp);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			// insert match
@@ -230,9 +247,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("col_timestamp"), is(Timestamp.valueOf(colTimestamp)));
 		}
 
-		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener1);
-		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener2);
-		config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
@@ -240,16 +257,16 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
 				.param("ins_datetime", insDate);
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
-		var listener2 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
 				.param("upd_datetime", updDate);
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener2);
-		var listener3 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext().param(
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext().param(
 				"upd_datetime",
 				((LocalDateTime) evt.getExecutionContext().getParam("upd_datetime").getValue()).plusDays(1));
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener3);
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -269,9 +286,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
 		}
 
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener2);
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
@@ -279,15 +296,24 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
-				.param("ins_datetime", insDate);
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
-		var listener2 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
-				.param("upd_datetime", updDate);
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener2);
-		var listener3 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
-				.paramIfAbsent("upd_datetime", updDate.plusDays(1));
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener3);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("ins_datetime", insDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().param("upd_datetime", updDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().paramIfAbsent("upd_datetime", updDate.plusDays(1));
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -309,18 +335,22 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 		}
 
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener2);
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
 	void testQueryAutoBindIfCase() {
 
 		var productId = 2;
-		var listener1 = (Consumer<AfterSetDaoQueryParameterEvent>) evt -> evt.getExecutionContext()
-				.paramIfAbsent("product_id", productId);
-		config.getEventListenerHolder().addAfterSetDaoQueryParameterListener(listener1);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().paramIfAbsent("product_id", productId);
+			}
+		};
+
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
 
 		try (var agent = config.agent()) {
 			// insert
@@ -338,7 +368,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			// query
 			assertThat(agent.query("example/select_product").collect().size(), is(1));
 
-			config.getEventListenerHolder().removeAfterSetDaoQueryParameterListener(listener1);
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
 			// query
 			assertThat(agent.query("example/select_product").collect().size(), is(2));
 		}
@@ -346,9 +376,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 
 	@Test
 	void testBatchUpdateAutoBind() {
-		var listener1 = (Consumer<AfterSetDaoUpdateParameterEvent>) evt -> evt.getExecutionContext()
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
 				.param("ins_datetime", LocalDateTime.now());
-		config.getEventListenerHolder().addAfterSetDaoUpdateParameterListener(listener1);
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
 
 		var count = 1000;
 		try (var agent = config.agent()) {
@@ -377,7 +407,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertNotEquals(1, dateCount);
 		}
 
-		config.getEventListenerHolder().removeAfterSetDaoUpdateParameterListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
 	}
 
 }

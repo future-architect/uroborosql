@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,7 +37,7 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  *
  * @author ota
  */
-class LocalTransactionContext implements AutoCloseable {
+class LocalTransactionContext implements TransactionContext {
 	/** ロガー */
 	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
@@ -76,12 +77,22 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * コネクションの取得
+	 * {@inheritDoc}
 	 *
-	 * @return コネクション
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getSqlConfig()
 	 */
-	Connection getConnection() throws SQLException {
+	@Override
+	public SqlConfig getSqlConfig() {
+		return this.sqlConfig;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getConnection()
+	 */
+	@Override
+	public Connection getConnection() throws SQLException {
 		if (connection == null) {
 			if (connectionContext == null) {
 				connection = this.sqlConfig.getConnectionSupplier().getConnection();
@@ -94,13 +105,22 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * ステートメント取得
+	 * {@inheritDoc}
 	 *
-	 * @param executionContext ExecutionContext
-	 * @return PreparedStatement
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getConnectionContext()
 	 */
-	PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
+	@Override
+	public ConnectionContext getConnectionContext() {
+		return this.connectionContext;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getPreparedStatement(jp.co.future.uroborosql.context.ExecutionContext)
+	 */
+	@Override
+	public PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
 		var conn = getConnection();
 
 		PreparedStatement stmt = null;
@@ -145,13 +165,12 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * Callableステートメント初期化
+	 * {@inheritDoc}
 	 *
-	 * @param executionContext ExecutionContext
-	 * @return CallableStatement
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getCallableStatement(jp.co.future.uroborosql.context.ExecutionContext)
 	 */
-	CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
+	@Override
+	public CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
 		var conn = getConnection();
 
 		if (this.updatable) {
@@ -176,23 +195,24 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * トランザクションのコミット
+	 * {@inheritDoc}
 	 *
-	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#commit()
 	 */
-	void commit() {
+	@Override
+	public void commit() {
 		try {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				// コミット前イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasBeforeCommitListener()) {
-					var beforeEventObj = new BeforeCommitEvent(connection, sqlConfig);
+					var beforeEventObj = new BeforeCommitEvent(this);
 					this.sqlConfig.getEventListenerHolder().getBeforeCommitListeners()
 							.forEach(listener -> listener.accept(beforeEventObj));
 				}
 				connection.commit();
 				// コミット後イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasAfterCommitListener()) {
-					var afterEventObj = new AfterCommitEvent(connection, sqlConfig);
+					var afterEventObj = new AfterCommitEvent(this);
 					this.sqlConfig.getEventListenerHolder().getAfterCommitListeners()
 							.forEach(listener -> listener.accept(afterEventObj));
 				}
@@ -204,23 +224,24 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * トランザクションのロールバック
+	 * {@inheritDoc}
 	 *
-	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#rollback()
 	 */
-	void rollback() {
+	@Override
+	public void rollback() {
 		try {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				// ロールバック前イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasBeforeRollbackListener()) {
-					var beforeEventObj = new BeforeRollbackEvent(connection, sqlConfig);
+					var beforeEventObj = new BeforeRollbackEvent(this);
 					this.sqlConfig.getEventListenerHolder().getBeforeRollbackListeners()
 							.forEach(listener -> listener.accept(beforeEventObj));
 				}
 				connection.rollback();
 				// ロールバック後イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasAfterRollbackListener()) {
-					var afterEventObj = new AfterRollbackEvent(connection, sqlConfig);
+					var afterEventObj = new AfterRollbackEvent(this);
 					this.sqlConfig.getEventListenerHolder().getAfterRollbackListeners()
 							.forEach(listener -> listener.accept(afterEventObj));
 				}
@@ -232,30 +253,32 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * 現在のトランザクションがロールバック指定になっているかを取得します。
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#isRollbackOnly()
 	 */
-	boolean isRollbackOnly() {
+	@Override
+	public boolean isRollbackOnly() {
 		return rollbackOnly;
 	}
 
 	/**
-	 * 現在のトランザクションをロールバックすることを予約します。
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#setRollbackOnly()
 	 */
-	void setRollbackOnly() {
+	@Override
+	public void setRollbackOnly() {
 		this.rollbackOnly = true;
 	}
 
 	/**
-	 * 指定されたセーブポイントが設定されたあとに行われたすべての変更をロールバックします。
+	 * {@inheritDoc}
 	 *
-	 * <pre>
-	 *  この処理は{@link Connection#rollback(java.sql.Savepoint)}の処理に依存します。
-	 * </pre>
-	 *
-	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#rollback(java.lang.String)
 	 */
-	void rollback(final String savepointName) {
+	@Override
+	public void rollback(final String savepointName) {
 		if (connection != null) {
 			try {
 				connection.rollback(savepointMap.get(savepointName));
@@ -266,16 +289,12 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * トランザクションのセーブポイントを作成します。
+	 * {@inheritDoc}
 	 *
-	 * <pre>
-	 *  この処理は{@link Connection#setSavepoint(String)}の処理に依存します。
-	 * </pre>
-	 *
-	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#setSavepoint(java.lang.String)
 	 */
-	void setSavepoint(final String savepointName) {
+	@Override
+	public void setSavepoint(final String savepointName) {
 		if (savepointNames.contains(savepointName)) {
 			throw new IllegalStateException();
 		}
@@ -291,16 +310,12 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 * トランザクションから指定されたセーブポイントと以降のセーブポイントを削除します。
+	 * {@inheritDoc}
 	 *
-	 * <pre>
-	 *  この処理は{@link Connection#releaseSavepoint(java.sql.Savepoint)}の処理に依存します。
-	 * </pre>
-	 *
-	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#releaseSavepoint(java.lang.String)
 	 */
-	void releaseSavepoint(final String savepointName) {
+	@Override
+	public void releaseSavepoint(final String savepointName) {
 		var savepoint = savepointMap.get(savepointName);
 
 		var pos = savepointNames.lastIndexOf(savepointName);
@@ -322,10 +337,19 @@ class LocalTransactionContext implements AutoCloseable {
 	}
 
 	/**
-	 *
 	 * {@inheritDoc}
 	 *
-	 * @see java.lang.AutoCloseable#close()
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#getSavepointNames()
+	 */
+	@Override
+	public List<String> getSavepointNames() {
+		return Collections.unmodifiableList(this.savepointNames);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.tx.TransactionContext#close()
 	 */
 	@Override
 	public void close() {
@@ -370,5 +394,4 @@ class LocalTransactionContext implements AutoCloseable {
 			}
 		}
 	}
-
 }

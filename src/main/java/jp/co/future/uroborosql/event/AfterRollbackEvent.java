@@ -6,9 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
-import java.sql.Connection;
-
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.tx.TransactionContext;
 
 /**
  * コネクションロールバック後イベントオブジェクト
@@ -20,11 +18,9 @@ public class AfterRollbackEvent extends TransactionEvent {
 	/**
 	 * コンストラクタ.
 	 *
-	 * @param connection Connection
-	 * @param sqlConfig SqlConfig
+	 * @param transactionContext TransactionContext
 	 */
-	public AfterRollbackEvent(final Connection connection, final SqlConfig sqlConfig) {
-		super(connection, sqlConfig);
+	public AfterRollbackEvent(TransactionContext transactionContext) {
+		super(transactionContext);
 	}
-
 }

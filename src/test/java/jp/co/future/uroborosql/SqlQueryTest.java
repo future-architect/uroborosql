@@ -150,7 +150,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		config.getEventListenerHolder()
-				.addBeforeTransformSqlListener(evt -> evt.setSql(String.format("select * from (%s)", evt.getSql())));
+				.addTransformSqlListener(evt -> evt.setSql(String.format("select * from (%s)", evt.getSql())));
 
 		var query = agent.queryWith("select product_id from product");
 		var results = query.collect();

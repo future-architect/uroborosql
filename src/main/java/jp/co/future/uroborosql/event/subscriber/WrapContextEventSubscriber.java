@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.event.subscriber;
 
 import java.util.regex.Pattern;
 
+import jp.co.future.uroborosql.event.TransformSqlEvent;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 /**
@@ -61,31 +62,33 @@ public class WrapContextEventSubscriber extends EventSubscriber {
 			ignorePattern = Pattern.compile(getWrapIgnorePattern(), Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		}
 
-		beforeTransformSqlListener(evt -> {
-			// SQLの前後を別のSQLでWrapする加工を行う。
-			// ただし、以下の場合は加工対象外とする。
-			// - wrapIgnorePatternに当てはまるSQLの場合
-			// - wrapIgnorePatternの指定がない場合
+		transformSqlListener(this::transformSql);
+	}
 
-			var wrapIgnore = true;
-			if (ignorePattern != null) {
-				var matcher = ignorePattern.matcher(evt.getSql());
-				wrapIgnore = matcher.matches();
-			}
+	void transformSql(TransformSqlEvent evt) {
+		// SQLの前後を別のSQLでWrapする加工を行う。
+		// ただし、以下の場合は加工対象外とする。
+		// - wrapIgnorePatternに当てはまるSQLの場合
+		// - wrapIgnorePatternの指定がない場合
 
-			var newSql = evt.getSql();
-			// sqlを別のSQLで囲む場合のSQLを追加
-			if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlBeginParts())) {
-				newSql = getWrappedSqlBeginParts() + newSql;
-			}
-			if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlEndParts())) {
-				newSql = newSql + getWrappedSqlEndParts();
-			}
+		var wrapIgnore = true;
+		if (ignorePattern != null) {
+			var matcher = ignorePattern.matcher(evt.getSql());
+			wrapIgnore = matcher.matches();
+		}
 
-			if (!newSql.equals(evt.getSql())) {
-				evt.setSql(newSql);
-			}
-		});
+		var newSql = evt.getSql();
+		// sqlを別のSQLで囲む場合のSQLを追加
+		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlBeginParts())) {
+			newSql = getWrappedSqlBeginParts() + newSql;
+		}
+		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlEndParts())) {
+			newSql = newSql + getWrappedSqlEndParts();
+		}
+
+		if (!newSql.equals(evt.getSql())) {
+			evt.setSql(newSql);
+		}
 	}
 
 	/**

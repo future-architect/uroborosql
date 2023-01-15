@@ -24,22 +24,12 @@ public class EventListenerHolder {
 	private final List<Consumer<AfterInitializeExecutionContextEvent>> afterInitializeExecutionContextListeners = new ArrayList<>();
 	/** パラメータ設定前イベントリスナ. */
 	private final List<Consumer<BeforeSetParameterEvent>> beforeSetParameterListeners = new ArrayList<>();
-	/** SQL変換前イベントリスナ. */
-	private final List<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListeners = new ArrayList<>();
-	/** DAO Query時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetDaoQueryParameterEvent>> afterSetDaoQueryParameterListeners = new ArrayList<>();
-	/** DAO Update時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetDaoUpdateParameterEvent>> afterSetDaoUpdateParameterListeners = new ArrayList<>();
+	/** SQL変換イベントリスナ. */
+	private final List<Consumer<TransformSqlEvent>> transformSqlListeners = new ArrayList<>();
+	/** SQLパース前イベントリスナ. */
+	private final List<Consumer<BeforeParseSqlEvent>> beforeParseSqlListeners = new ArrayList<>();
 	/** 出力パラメータ取得後イベントリスナ. */
 	private final List<Consumer<AfterGetOutParameterEvent>> afterGetOutParameterListeners = new ArrayList<>();
-	/** Entity Insert時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetEntityInsertParameterEvent>> afterSetEntityInsertParameterListeners = new ArrayList<>();
-	/** Entity Update時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetEntityUpdateParameterEvent>> afterSetEntityUpdateParameterListeners = new ArrayList<>();
-	/** Entity Delete時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetEntityDeleteParameterEvent>> afterSetEntityDeleteParameterListeners = new ArrayList<>();
-	/** Entity BulkInsert時パラメータ設定後イベントリスナ. */
-	private final List<Consumer<AfterSetEntityBulkInsertParameterEvent>> afterSetEntityBulkInsertParameterListeners = new ArrayList<>();
 	/** PreparedStatement生成後イベントリスナ. */
 	private final List<ExecutionConsumer<AfterCreatePreparedStatementEvent>> afterCreatePreparedStatementListeners = new ArrayList<>();
 	/** CallableStatement生成後イベントリスナ. */
@@ -128,37 +118,24 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換前イベントリスナの追加
-	 * @param listener SQL変換前イベントリスナ
+	 * SQL変換イベントリスナの追加
+	 * @param listener SQL変換イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
+	public EventListenerHolder addTransformSqlListener(final Consumer<TransformSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.beforeTransformSqlListeners.add(listener);
+		this.transformSqlListeners.add(listener);
 		return this;
 	}
 
 	/**
-	 * DAO Query時パラメータ設定後イベントリスナの追加
-	 * @param listener DAO Query時パラメータ設定後イベントリスナ
+	 * SQLパース前イベントリスナの追加
+	 * @param listener SQLパース前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addAfterSetDaoQueryParameterListener(
-			final Consumer<AfterSetDaoQueryParameterEvent> listener) {
+	public EventListenerHolder addBeforeParseSqlListener(final Consumer<BeforeParseSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetDaoQueryParameterListeners.add(listener);
-		return this;
-	}
-
-	/**
-	 * DAO Update時パラメータ設定後イベントリスナの追加
-	 * @param listener DAO Update時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder addAfterSetDaoUpdateParameterListener(
-			final Consumer<AfterSetDaoUpdateParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetDaoUpdateParameterListeners.add(listener);
+		this.beforeParseSqlListeners.add(listener);
 		return this;
 	}
 
@@ -170,54 +147,6 @@ public class EventListenerHolder {
 	public EventListenerHolder addAfterGetOutParameterListener(final Consumer<AfterGetOutParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterGetOutParameterListeners.add(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Insert時パラメータ設定後イベントリスナの追加
-	 * @param listener Entity Insert時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder addAfterSetEntityInsertParameterListener(
-			final Consumer<AfterSetEntityInsertParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityInsertParameterListeners.add(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Update時パラメータ設定後イベントリスナの追加
-	 * @param listener Entity Update時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder addAfterSetEntityUpdateParameterListener(
-			final Consumer<AfterSetEntityUpdateParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityUpdateParameterListeners.add(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Delete時パラメータ設定後イベントリスナの追加
-	 * @param listener Entity Delete時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder addAfterSetEntityDeleteParameterListener(
-			final Consumer<AfterSetEntityDeleteParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityDeleteParameterListeners.add(listener);
-		return this;
-	}
-
-	/**
-	 * Entity BulkInsert時パラメータ設定後イベントリスナの追加
-	 * @param listener Entity BulkInsert時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder addAfterSetEntityBulkInsertParameterListener(
-			final Consumer<AfterSetEntityBulkInsertParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityBulkInsertParameterListeners.add(listener);
 		return this;
 	}
 
@@ -379,37 +308,24 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換前イベントリスナの削除
-	 * @param listener SQL変換前イベントリスナ
+	 * SQL変換イベントリスナの削除
+	 * @param listener SQL変換イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
+	public EventListenerHolder removeTransformSqlListener(final Consumer<TransformSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.beforeTransformSqlListeners.remove(listener);
+		this.transformSqlListeners.remove(listener);
 		return this;
 	}
 
 	/**
-	 * DAO Query時パラメータ設定後イベントリスナの削除
-	 * @param listener DAO Query時パラメータ設定後イベントリスナ
+	 * SQLパース前イベントリスナの削除
+	 * @param listener SQLパース前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeAfterSetDaoQueryParameterListener(
-			final Consumer<AfterSetDaoQueryParameterEvent> listener) {
+	public EventListenerHolder removeBeforeParseSqlListener(final Consumer<BeforeParseSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetDaoQueryParameterListeners.remove(listener);
-		return this;
-	}
-
-	/**
-	 * DAO Update時パラメータ設定後イベントリスナの削除
-	 * @param listener DAO Update時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder removeAfterSetDaoUpdateParameterListener(
-			final Consumer<AfterSetDaoUpdateParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetDaoUpdateParameterListeners.remove(listener);
+		this.beforeParseSqlListeners.remove(listener);
 		return this;
 	}
 
@@ -421,54 +337,6 @@ public class EventListenerHolder {
 	public EventListenerHolder removeAfterGetOutParameterListener(final Consumer<AfterGetOutParameterEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.afterGetOutParameterListeners.remove(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Insert時パラメータ設定後イベントリスナの削除
-	 * @param listener Entity Insert時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder removeAfterSetEntityInsertParameterListener(
-			final Consumer<AfterSetEntityInsertParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityInsertParameterListeners.remove(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Update時パラメータ設定後イベントリスナの削除
-	 * @param listener Entity Update時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder removeAfterSetEntityUpdateParameterListener(
-			final Consumer<AfterSetEntityUpdateParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityUpdateParameterListeners.remove(listener);
-		return this;
-	}
-
-	/**
-	 * Entity Delete時パラメータ設定後イベントリスナの削除
-	 * @param listener Entity Delete時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder removeAfterSetEntityDeleteParameterListener(
-			final Consumer<AfterSetEntityDeleteParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityDeleteParameterListeners.remove(listener);
-		return this;
-	}
-
-	/**
-	 * Entity BulkInsert時パラメータ設定後イベントリスナの削除
-	 * @param listener Entity BulkInsert時パラメータ設定後イベントリスナ
-	 * @return EventListenerHolder
-	 */
-	public EventListenerHolder removeAfterSetEntityBulkInsertParameterListener(
-			final Consumer<AfterSetEntityBulkInsertParameterEvent> listener) {
-		Objects.requireNonNull(listener, "listener must not be null.");
-		this.afterSetEntityBulkInsertParameterListeners.remove(listener);
 		return this;
 	}
 
@@ -624,27 +492,19 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換前イベントリスナリストの取得.
-	 * @return SQL変換前イベントリスナリスト
+	 * SQL変換イベントリスナリストの取得.
+	 * @return SQL変換イベントリスナリスト
 	 */
-	public List<Consumer<BeforeTransformSqlEvent>> getBeforeTransformSqlListeners() {
-		return beforeTransformSqlListeners;
+	public List<Consumer<TransformSqlEvent>> getTransformSqlListeners() {
+		return transformSqlListeners;
 	}
 
 	/**
-	 * DAO Query時パラメータ設定後イベントリスナリストの取得.
-	 * @return DAO Query時パラメータ設定後イベントリスナリスト
+	 * SQLパース前イベントリスナリストの取得.
+	 * @return SQLパース前イベントリスナリスト
 	 */
-	public List<Consumer<AfterSetDaoQueryParameterEvent>> getAfterSetDaoQueryParameterListeners() {
-		return afterSetDaoQueryParameterListeners;
-	}
-
-	/**
-	 * DAO Update時パラメータ設定後イベントリスナリストの取得.
-	 * @return DAO Update時パラメータ設定後イベントリスナリスト
-	 */
-	public List<Consumer<AfterSetDaoUpdateParameterEvent>> getAfterSetDaoUpdateParameterListeners() {
-		return afterSetDaoUpdateParameterListeners;
+	public List<Consumer<BeforeParseSqlEvent>> getBeforeParseSqlListeners() {
+		return beforeParseSqlListeners;
 	}
 
 	/**
@@ -653,38 +513,6 @@ public class EventListenerHolder {
 	 */
 	public List<Consumer<AfterGetOutParameterEvent>> getAfterGetOutParameterListeners() {
 		return afterGetOutParameterListeners;
-	}
-
-	/**
-	 * Entity Insert時パラメータ設定後イベントリスナリストの取得.
-	 * @return Entity Insert時パラメータ設定後イベントリスナリスト
-	 */
-	public List<Consumer<AfterSetEntityInsertParameterEvent>> getAfterSetEntityInsertParameterListeners() {
-		return afterSetEntityInsertParameterListeners;
-	}
-
-	/**
-	 * Entity Update時パラメータ設定後イベントリスナリストの取得.
-	 * @return Entity Update時パラメータ設定後イベントリスナリスト
-	 */
-	public List<Consumer<AfterSetEntityUpdateParameterEvent>> getAfterSetEntityUpdateParameterListeners() {
-		return afterSetEntityUpdateParameterListeners;
-	}
-
-	/**
-	 * Entity Delete時パラメータ設定後イベントリスナリストの取得.
-	 * @return Entity Delete時パラメータ設定後イベントリスナリスト
-	 */
-	public List<Consumer<AfterSetEntityDeleteParameterEvent>> getAfterSetEntityDeleteParameterListeners() {
-		return afterSetEntityDeleteParameterListeners;
-	}
-
-	/**
-	 * Entity BulkInsert時パラメータ設定後イベントリスナリストの取得.
-	 * @return Entity BulkInsert時パラメータ設定後イベントリスナリスト
-	 */
-	public List<Consumer<AfterSetEntityBulkInsertParameterEvent>> getAfterSetEntityBulkInsertParameterListeners() {
-		return afterSetEntityBulkInsertParameterListeners;
 	}
 
 	/**
@@ -800,27 +628,19 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換前イベントリスナがあるかどうか.
-	 * @return SQL変換前イベントリスナがある場合は<code>true</code>
+	 * SQL変換イベントリスナがあるかどうか.
+	 * @return SQL変換イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasBeforeTransformSqlListener() {
-		return !beforeTransformSqlListeners.isEmpty();
+	public boolean hasTransformSqlListener() {
+		return !transformSqlListeners.isEmpty();
 	}
 
 	/**
-	 * DAO Query時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return DAO Query時パラメータ設定後イベントリスナがある場合は<code>true</code>
+	 * SQLパース前イベントリスナがあるかどうか.
+	 * @return SQLパース前イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasAfterSetDaoQueryParameterListener() {
-		return !afterSetDaoQueryParameterListeners.isEmpty();
-	}
-
-	/**
-	 * DAO Update時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return DAO Update時パラメータ設定後イベントリスナがある場合は<code>true</code>
-	 */
-	public boolean hasAfterSetDaoUpdateParameterListener() {
-		return !afterSetDaoUpdateParameterListeners.isEmpty();
+	public boolean hasBeforeParseSqlListener() {
+		return !beforeParseSqlListeners.isEmpty();
 	}
 
 	/**
@@ -829,38 +649,6 @@ public class EventListenerHolder {
 	 */
 	public boolean hasAfterGetOutParameterListener() {
 		return !afterGetOutParameterListeners.isEmpty();
-	}
-
-	/**
-	 * Entity Insert時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return Entity Insert時パラメータ設定後イベントリスナがある場合は<code>true</code>
-	 */
-	public boolean hasAfterSetEntityInsertParameterListener() {
-		return !afterSetEntityInsertParameterListeners.isEmpty();
-	}
-
-	/**
-	 * Entity Update時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return Entity Update時パラメータ設定後イベントリスナがある場合は<code>true</code>
-	 */
-	public boolean hasAfterSetEntityUpdateParameterListener() {
-		return !afterSetEntityUpdateParameterListeners.isEmpty();
-	}
-
-	/**
-	 * Entity Delete時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return Entity Delete時パラメータ設定後イベントリスナがある場合は<code>true</code>
-	 */
-	public boolean hasAfterSetEntityDeleteParameterListener() {
-		return !afterSetEntityDeleteParameterListeners.isEmpty();
-	}
-
-	/**
-	 * Entity BulkInsert時パラメータ設定後イベントリスナがあるかどうか.
-	 * @return Entity BulkInsert時パラメータ設定後イベントリスナがある場合は<code>true</code>
-	 */
-	public boolean hasAfterSetEntityBulkInsertParameterListener() {
-		return !afterSetEntityBulkInsertParameterListeners.isEmpty();
 	}
 
 	/**

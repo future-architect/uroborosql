@@ -6,18 +6,15 @@
  */
 package jp.co.future.uroborosql.event;
 
-import java.sql.Connection;
-
-import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.tx.TransactionContext;
 
 public class BeforeCommitEvent extends TransactionEvent {
 	/**
 	 * コンストラクタ.
 	 *
-	 * @param connection Connection
-	 * @param sqlConfig SqlConfig
+	 * @param transactionContext TransactionContext
 	 */
-	public BeforeCommitEvent(final Connection connection, final SqlConfig sqlConfig) {
-		super(connection, sqlConfig);
+	public BeforeCommitEvent(TransactionContext transactionContext) {
+		super(transactionContext);
 	}
 }

@@ -6,34 +6,49 @@
  */
 package jp.co.future.uroborosql.event;
 
-import java.sql.Connection;
+import jp.co.future.uroborosql.tx.TransactionContext;
 
-import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.connection.ConnectionContext;
-
+/**
+ * トランザクション開始後イベントオブジェクト
+ *
+ * @author H.Sugimoto
+ * @since v1.0.0
+ */
 public class AfterBeginTransactionEvent extends TransactionEvent {
-	/** ConnectionContext. */
-	private final ConnectionContext connectionContext;
+	/** 新規トランザクションかどうか */
+	private final boolean isRequiredNew;
+	/** トランザクション階層 */
+	private final int transactionLevel;
 
 	/**
 	 * コンストラクタ.
 	 *
-	 * @param connection Connection
-	 * @param sqlConfig SqlConfig
-	 * @param connectionContext ConnectionContext
+	 * @param transactionContext TransactionContext
+	 * @param isRequiredNew 新規トランザクションかどうか
+	 * @param transactionLevel トランザクション階層
 	 */
-	public AfterBeginTransactionEvent(final Connection connection, final SqlConfig sqlConfig,
-			final ConnectionContext connectionContext) {
-		super(connection, sqlConfig);
-		this.connectionContext = connectionContext;
+	public AfterBeginTransactionEvent(TransactionContext transactionContext,
+			final boolean isRequiredNew,
+			final int transactionLevel) {
+		super(transactionContext);
+		this.isRequiredNew = isRequiredNew;
+		this.transactionLevel = transactionLevel;
 	}
 
 	/**
-	 * ConnectionContextの取得.
-	 * @return ConnectionContext
+	 * 新規トランザクションかどうかの取得.
+	 * @return 新規トランザクションかどうか
 	 */
-	public ConnectionContext getConnectionContext() {
-		return connectionContext;
+	public boolean isRequiredNew() {
+		return isRequiredNew;
+	}
+
+	/**
+	 * トランザクション階層の取得.
+	 * @return トランザクション階層
+	 */
+	public int getTransactionLevel() {
+		return transactionLevel;
 	}
 
 }

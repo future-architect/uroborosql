@@ -22,7 +22,6 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
-import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
 
 /**
  * ローカルトランザクションマネージャ
@@ -34,10 +33,10 @@ public class LocalTransactionManager implements TransactionManager {
 	private final SqlConfig sqlConfig;
 
 	/** トランザクションコンテキストのスタック */
-	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
+	private final Deque<TransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
 
 	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
-	private Optional<LocalTransactionContext> unmanagedTransaction = Optional.empty();
+	private Optional<TransactionContext> unmanagedTransaction = Optional.empty();
 
 	/** トランザクション内での更新を強制するかどうか */
 	private final boolean updatable;
@@ -123,7 +122,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param unmanagedCreate unmanagedTransactionが利用される場合に、unmanagedTransactionが未作成ならunmanagedTransactionを作成するかどうか。<code>true</code>なら作成する.
 	 * @return unmanagedTransactionも含め、現在有効なTransactionContext
 	 */
-	private Optional<LocalTransactionContext> currentTxContext(final boolean unmanagedCreate) {
+	private Optional<TransactionContext> currentTxContext(final boolean unmanagedCreate) {
 		return Optional.ofNullable(this.txCtxStack.peek()).or(() -> {
 			if (unmanagedCreate && this.unmanagedTransaction.isEmpty()) {
 				this.unmanagedTransaction = Optional
@@ -140,7 +139,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setRollbackOnly() {
-		currentTxContext(false).ifPresent(LocalTransactionContext::setRollbackOnly);
+		currentTxContext(false).ifPresent(TransactionContext::setRollbackOnly);
 	}
 
 	/**
@@ -234,7 +233,7 @@ public class LocalTransactionManager implements TransactionManager {
 		if (!this.txCtxStack.isEmpty()) {
 			return supplier.get();
 		} else {
-			return runInNewTx(supplier);
+			return runInNewTx(supplier, false);
 		}
 	}
 
@@ -246,7 +245,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	private <R> R requiresNewInternal(final Supplier<R> supplier) {
-		return runInNewTx(supplier);
+		return runInNewTx(supplier, true);
 	}
 
 	/**
@@ -274,17 +273,17 @@ public class LocalTransactionManager implements TransactionManager {
 	 * 新しいトランザクションを開始して処理を実行
 	 *
 	 * @param supplier トランザクション内で実行する処理
+	 * @param isRequiredNew 新規トランザクションかどうか
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	private <R> R runInNewTx(final Supplier<R> supplier) {
+	private <R> R runInNewTx(final Supplier<R> supplier, boolean isRequiredNew) {
 		try (var txCtx = new LocalTransactionContext(this.sqlConfig, true, this.connectionContext)) {
 			this.txCtxStack.push(txCtx);
 			try {
 				// トランザクション開始後イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasAfterBeginTransactionListener()) {
-					var eventObj = new AfterBeginTransactionEvent(txCtx.getConnection(), this.sqlConfig,
-							this.connectionContext);
+					var eventObj = new AfterBeginTransactionEvent(txCtx, isRequiredNew, txCtxStack.size());
 					this.sqlConfig.getEventListenerHolder().getAfterBeginTransactionListeners()
 							.forEach(listener -> listener.accept(eventObj));
 				}
@@ -295,15 +294,11 @@ public class LocalTransactionManager implements TransactionManager {
 				} finally {
 					// トランザクション終了前イベント発行
 					if (this.sqlConfig.getEventListenerHolder().hasBeforeEndTransactionListener()) {
-						var eventObj = new BeforeEndTransactionEvent(txCtx.getConnection(), this.sqlConfig,
-								this.connectionContext, result);
+						var eventObj = new BeforeEndTransactionEvent(txCtx, isRequiredNew, txCtxStack.size(), result);
 						this.sqlConfig.getEventListenerHolder().getBeforeEndTransactionListeners()
 								.forEach(listener -> listener.accept(eventObj));
 					}
 				}
-			} catch (SQLException ex) {
-				txCtx.setRollbackOnly();
-				throw new UroborosqlTransactionException(ex);
 			} catch (Throwable th) {
 				txCtx.setRollbackOnly();
 				throw th;
@@ -321,10 +316,10 @@ public class LocalTransactionManager implements TransactionManager {
 	@Override
 	public void close() {
 		if (!this.txCtxStack.isEmpty()) {
-			this.txCtxStack.forEach(LocalTransactionContext::close);
+			this.txCtxStack.forEach(TransactionContext::close);
 			this.txCtxStack.clear();
 		}
-		this.unmanagedTransaction.ifPresent(LocalTransactionContext::close);
+		this.unmanagedTransaction.ifPresent(TransactionContext::close);
 	}
 
 	/**
@@ -334,7 +329,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void commit() {
-		currentTxContext(false).ifPresent(LocalTransactionContext::commit);
+		currentTxContext(false).ifPresent(TransactionContext::commit);
 	}
 
 	/**
@@ -344,7 +339,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback() {
-		currentTxContext(false).ifPresent(LocalTransactionContext::rollback);
+		currentTxContext(false).ifPresent(TransactionContext::rollback);
 	}
 
 	/**
