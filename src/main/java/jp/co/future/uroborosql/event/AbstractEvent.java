@@ -28,7 +28,11 @@ public abstract class AbstractEvent extends EventObject {
 		super(source);
 	}
 
-	/** イベント開始日時の取得. */
+	/**
+	 * イベント開始日時の取得.
+	 *
+	 * @return イベント開始日時
+	 */
 	public LocalDateTime occurredOn() {
 		return this.occurredOn;
 	}

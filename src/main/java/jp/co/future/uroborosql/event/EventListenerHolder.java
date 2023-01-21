@@ -74,7 +74,7 @@ public class EventListenerHolder {
 	/**
 	 * EventSubscriberを追加し、EventSubscriberによるイベント登録を行う.
 	 * @param eventSubscriber EventSubscriber
-	 * @return
+	 * @return EventListenerHolder
 	 */
 	public EventListenerHolder addEventSubscriber(EventSubscriber eventSubscriber) {
 		this.eventSubscribers.add(eventSubscriber);
@@ -86,7 +86,7 @@ public class EventListenerHolder {
 	/**
 	 * EventSubscriberを追加し、EventSubscriberによるイベント削除を行う.
 	 * @param eventSubscriber EventSubscriber
-	 * @return
+	 * @return EventListenerHolder
 	 */
 	public EventListenerHolder removeEventSubscriber(EventSubscriber eventSubscriber) {
 		eventSubscriber.unsubscribe(this);

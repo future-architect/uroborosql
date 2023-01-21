@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017-present, Future Corporation
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 package jp.co.future.uroborosql.tx;
 
 import java.sql.CallableStatement;
@@ -52,20 +58,18 @@ public interface TransactionContext extends AutoCloseable {
 
 	/**
 	 * トランザクションのコミット.
-	 *
-	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
 	 */
 	void commit();
 
 	/**
 	 * トランザクションのロールバック.
-	 *
-	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
 	 */
 	void rollback();
 
 	/**
 	 * 現在のトランザクションがロールバック指定になっているかを取得.
+	 *
+	 * @return 現在のトランザクションがロールバック指定になっているか
 	 */
 	boolean isRollbackOnly();
 
@@ -82,7 +86,6 @@ public interface TransactionContext extends AutoCloseable {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
 	void rollback(String savepointName);
 
@@ -94,7 +97,6 @@ public interface TransactionContext extends AutoCloseable {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
 	void setSavepoint(String savepointName);
 
@@ -106,7 +108,6 @@ public interface TransactionContext extends AutoCloseable {
 	 * </pre>
 	 *
 	 * @param savepointName セーブポイントの名前
-	 * @throws SQLException SQL例外
 	 */
 	void releaseSavepoint(String savepointName);
 

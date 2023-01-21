@@ -68,8 +68,17 @@ public class CoverageData {
 	 * @return JSON
 	 */
 	public String toJSON() {
-		return "{\"sqlName\":" + sqlName.replaceAll("/", "\\/") + ",\"md5\":" + md5 + ",\"passRoute\":"
-				+ passRoute + "}";
+		var builder = new StringBuilder();
+		builder.append("{\"sqlName\":");
+		if (sqlName != null) {
+			builder.append(sqlName.replaceAll("/", "\\/"));
+		} else {
+			builder.append("");
+		}
+		builder.append(",\"md5\":").append(md5)
+				.append(",\"passRoute\":").append(passRoute)
+				.append("}");
+		return builder.toString();
 	}
 
 	/**

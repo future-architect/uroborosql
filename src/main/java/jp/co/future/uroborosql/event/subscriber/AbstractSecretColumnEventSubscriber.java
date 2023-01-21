@@ -40,6 +40,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
  *
+ * @param <T> SecretColumnEventSubscriberの具象型
  * @author H.Sugimoto
  *
  */
@@ -292,9 +293,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。を設定します。
 	 *
-	 * @param T 具象型
 	 * @param keyStoreFilePath 秘密鍵を格納したKeyStoreファイルのパス. KeyStoreはJCEKSタイプであること。
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setKeyStoreFilePath(final String keyStoreFilePath) {
@@ -314,9 +314,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定するを設定します。
 	 *
-	 * @param T 具象型
 	 * @param storePassword KeyStoreにアクセスするためのストアパスワード. Base64エンコードした値を指定する
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setStorePassword(final String storePassword) {
@@ -336,9 +335,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * KeyStore内で秘密鍵が格納されている場所を示すエイリアス名を設定します。
 	 *
-	 * @param T 具象型
 	 * @param alias KeyStore内で秘密鍵が格納されている場所を示すエイリアス名
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setAlias(final String alias) {
@@ -358,9 +356,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * キャラクタセット（デフォルトUTF-8）を設定します。
 	 *
-	 * @param T 具象型
 	 * @param charset キャラクタセット（デフォルトUTF-8）
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setCharset(final String charset) {
@@ -386,9 +383,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定するを設定します。
 	 *
-	 * @param T 具象型
 	 * @param cryptColumnNames 暗号化、復号化を行うカラム名のリスト. カラム名はスネークケース（大文字）で指定する
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setCryptColumnNames(final List<String> cryptColumnNames) {
@@ -426,9 +422,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * skipを設定します。
 	 *
-	 * @param T 具象型
 	 * @param skip skip
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setSkip(final boolean skip) {
@@ -466,9 +461,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 	/**
 	 * 変換の名前を設定する 標準の変換名については、Java 暗号化アーキテクチャー標準アルゴリズム名のドキュメントの Cipher のセクションを参照。 初期値は<code>AES/ECB/PKCS5Padding</code>
 	 *
-	 * @param T 具象型
 	 * @param transformationType 変換の名前
-	 * @return T
+	 * @return 具象型のインスタンス
 	 */
 	@SuppressWarnings("unchecked")
 	public T setTransformationType(final String transformationType) {
