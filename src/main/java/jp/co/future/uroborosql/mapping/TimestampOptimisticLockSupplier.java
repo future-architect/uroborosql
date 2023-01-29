@@ -6,6 +6,8 @@
  */
 package jp.co.future.uroborosql.mapping;
 
+import java.sql.Types;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 
 /**
@@ -22,7 +24,13 @@ public class TimestampOptimisticLockSupplier extends OptimisticLockSupplier {
 	 */
 	@Override
 	public String getPart(final TableMetadata.Column versionColumn, final SqlConfig sqlConfig) {
-		return versionColumn.getColumnIdentifier() + " = " + System.currentTimeMillis();
+		if (Types.TIMESTAMP == versionColumn.getDataType()) {
+			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestamp(_zoneId)*/";
+		} else if (Types.TIMESTAMP_WITH_TIMEZONE == versionColumn.getDataType()) {
+			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestampWithZone(_zoneId)*/";
+		} else {
+			return versionColumn.getColumnIdentifier() + " = " + System.currentTimeMillis();
+		}
 	}
 
 }

@@ -926,8 +926,12 @@ public class SqlContextImpl implements SqlContext {
 	 */
 	@Override
 	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
+		// parameterMap に設定されている共通のパラメータ（ESCAPE_CHARなど）を引き継ぐため、退避しておく
+		Map<String, Parameter> tempParamMap = new HashMap<>(parameterMap);
 		for (Map<String, Parameter> paramMap : batchParameters) {
-			parameterMap = paramMap;
+			Map<String, Parameter> batchParamMap = new HashMap<>(tempParamMap);
+			batchParamMap.putAll(paramMap);
+			parameterMap = batchParamMap;
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
