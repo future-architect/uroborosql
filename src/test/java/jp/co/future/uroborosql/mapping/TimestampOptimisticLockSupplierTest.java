@@ -164,6 +164,12 @@ public class TimestampOptimisticLockSupplierTest {
 				test.setUpdDatetime(Timestamp.valueOf(now));
 				agent.insert(test);
 
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
 				test.setName("updatename");
 				test.setUpdDatetime(Timestamp.valueOf(LocalDateTime.now()));
 				agent.update(test);
@@ -372,6 +378,12 @@ public class TimestampOptimisticLockSupplierTest {
 				TestEntityZonedDateTime test = new TestEntityZonedDateTime(1L, "name1");
 				test.setUpdDatetime(now);
 				agent.insert(test);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
 				test.setName("updatename");
 				test.setUpdDatetime(ZonedDateTime.now());
@@ -582,6 +594,12 @@ public class TimestampOptimisticLockSupplierTest {
 				test.setUpdDatetime(now);
 				agent.insert(test);
 
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
 				test.setName("updatename");
 				test.setUpdDatetime(LocalDateTime.now());
 				agent.update(test);
@@ -790,6 +808,12 @@ public class TimestampOptimisticLockSupplierTest {
 				TestEntityOffsetDateTime test = new TestEntityOffsetDateTime(1L, "name1");
 				test.setUpdDatetime(now);
 				agent.insert(test);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
 				test.setName("updatename");
 				test.setUpdDatetime(OffsetDateTime.now());
