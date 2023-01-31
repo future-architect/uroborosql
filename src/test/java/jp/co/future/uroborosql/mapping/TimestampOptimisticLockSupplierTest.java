@@ -135,7 +135,7 @@ public class TimestampOptimisticLockSupplierTest {
 	@Test
 	public void testUpdateTimestampWithTimezone() throws Exception {
 		ZoneId zoneId = ZoneId.of("Asia/Singapore");
-		Consumer<SqlContext> autoBinder = ctx -> ctx.param("_zoneId", zoneId);
+		Consumer<SqlContext> autoBinder = ctx -> ctx.param(TimestampOptimisticLockSupplier.PARAM_KEY_ZONE_ID, zoneId);
 		try (SqlAgent agent = config.agent()) {
 			config.getSqlContextFactory().addUpdateAutoParameterBinder(autoBinder);
 			agent.required(() -> {
@@ -350,7 +350,7 @@ public class TimestampOptimisticLockSupplierTest {
 	@Test
 	public void testUpdateZonedDateTimeWithTimezone() throws Exception {
 		ZoneId zoneId = ZoneId.of("Asia/Singapore");
-		Consumer<SqlContext> autoBinder = ctx -> ctx.param("_zoneId", zoneId);
+		Consumer<SqlContext> autoBinder = ctx -> ctx.param(TimestampOptimisticLockSupplier.PARAM_KEY_ZONE_ID, zoneId);
 		try (SqlAgent agent = config.agent()) {
 			config.getSqlContextFactory().addUpdateAutoParameterBinder(autoBinder);
 			agent.required(() -> {
@@ -565,7 +565,7 @@ public class TimestampOptimisticLockSupplierTest {
 	@Test
 	public void testUpdateLocalDateTimeWithTimezone() throws Exception {
 		ZoneId zoneId = ZoneId.of("Asia/Singapore");
-		Consumer<SqlContext> autoBinder = ctx -> ctx.param("_zoneId", zoneId);
+		Consumer<SqlContext> autoBinder = ctx -> ctx.param(TimestampOptimisticLockSupplier.PARAM_KEY_ZONE_ID, zoneId);
 		try (SqlAgent agent = config.agent()) {
 			config.getSqlContextFactory().addUpdateAutoParameterBinder(autoBinder);
 			agent.required(() -> {
@@ -780,7 +780,7 @@ public class TimestampOptimisticLockSupplierTest {
 	@Test
 	public void testUpdateOffsetDateTimeWithTimezone() throws Exception {
 		ZoneId zoneId = ZoneId.of("Asia/Singapore");
-		Consumer<SqlContext> autoBinder = ctx -> ctx.param("_zoneId", zoneId);
+		Consumer<SqlContext> autoBinder = ctx -> ctx.param(TimestampOptimisticLockSupplier.PARAM_KEY_ZONE_ID, zoneId);
 		try (SqlAgent agent = config.agent()) {
 			config.getSqlContextFactory().addUpdateAutoParameterBinder(autoBinder);
 			agent.required(() -> {

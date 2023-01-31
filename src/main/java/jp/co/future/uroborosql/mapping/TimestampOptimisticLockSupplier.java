@@ -16,6 +16,10 @@ import jp.co.future.uroborosql.config.SqlConfig;
  * @author H.Sugimoto
  */
 public class TimestampOptimisticLockSupplier extends OptimisticLockSupplier {
+	/**
+	 * バージョンカラムの値生成時にZoneIdを渡す場合に設定するパラメータキー名 : {@value}
+	 */
+	public static final String PARAM_KEY_ZONE_ID = "_zoneId";
 
 	/**
 	 * {@inheritDoc}
@@ -25,9 +29,9 @@ public class TimestampOptimisticLockSupplier extends OptimisticLockSupplier {
 	@Override
 	public String getPart(final TableMetadata.Column versionColumn, final SqlConfig sqlConfig) {
 		if (Types.TIMESTAMP == versionColumn.getDataType()) {
-			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestamp(_zoneId)*/";
+			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestamp(" + PARAM_KEY_ZONE_ID + ")*/";
 		} else if (Types.TIMESTAMP_WITH_TIMEZONE == versionColumn.getDataType()) {
-			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestampWithZone(_zoneId)*/";
+			return versionColumn.getColumnIdentifier() + " = /*SF.nowTimestampWithZone(" + PARAM_KEY_ZONE_ID + ")*/";
 		} else {
 			return versionColumn.getColumnIdentifier() + " = " + System.currentTimeMillis();
 		}
