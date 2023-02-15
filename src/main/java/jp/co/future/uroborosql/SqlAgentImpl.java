@@ -131,7 +131,7 @@ public class SqlAgentImpl extends AbstractAgent {
 		try {
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
+			if (sqlContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = sqlContext.getMaxRetryCount();
 			}
 
@@ -308,7 +308,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
+			if (sqlContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = sqlContext.getMaxRetryCount();
 			}
 
@@ -441,7 +441,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
+			if (sqlContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = sqlContext.getMaxRetryCount();
 			}
 
@@ -572,7 +572,7 @@ public class SqlAgentImpl extends AbstractAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（SqlContextの値）があれば上書き
 			int maxRetryCount = getMaxRetryCount();
-			if (sqlContext.getMaxRetryCount() > 0) {
+			if (sqlContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = sqlContext.getMaxRetryCount();
 			}
 

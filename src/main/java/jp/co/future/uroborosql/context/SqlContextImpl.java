@@ -108,7 +108,7 @@ public class SqlContextImpl implements SqlContext {
 	private String schema;
 
 	/** SQL実行の最大リトライ数 */
-	private int maxRetryCount = 0;
+	private int maxRetryCount = -1;
 
 	/** リトライを行う場合の待機時間（ms） */
 	private int retryWaitTime = 0;
