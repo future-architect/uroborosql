@@ -18,6 +18,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.converter.EntityResultSetConverter;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.converter.ResultSetConverter;
+import jp.co.future.uroborosql.converter.ScalarResultSetConverter;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
@@ -100,7 +101,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Optional<T> findFirst(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
+		try (var stream = stream(type)) {
 			return stream.findFirst();
 		}
 	}
@@ -148,7 +149,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	@Override
 	public Optional<Map<String, Object>> findOne(final CaseFormat caseFormat) {
 		try (var stream = stream(caseFormat)) {
-			List<Map<String, Object>> resultList = stream.limit(2).collect(Collectors.toList());
+			var resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -158,8 +159,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 
 	@Override
 	public <T> Optional<T> findOne(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
-			List<T> resultList = stream.limit(2).collect(Collectors.toList());
+		try (var stream = stream(type)) {
+			var resultList = stream.limit(2).collect(Collectors.toList());
 			if (resultList.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -212,7 +213,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> List<T> collect(final Class<T> type) {
-		try (Stream<T> stream = stream(type)) {
+		try (var stream = stream(type)) {
 			return stream.collect(Collectors.toList());
 		}
 	}
@@ -258,8 +259,42 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public <T> Stream<T> stream(final Class<T> type) {
-		return stream(
-				new EntityResultSetConverter<>(type, new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
+		if (type == null) {
+			throw new IllegalArgumentException("Argument 'type' is required.");
+		}
+		var manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
+		if (ScalarResultSetConverter.accept(type)) {
+			return stream(new ScalarResultSetConverter<>(null, type, manager));
+		} else {
+			return stream(new EntityResultSetConverter<>(context().getSchema(), type, manager));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.Class)
+	 */
+	@Override
+	public <T> Stream<T> select(final Class<T> type) {
+		return select(null, type);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlQuery#select(java.lang.String, java.lang.Class)
+	 */
+	@Override
+	public <T> Stream<T> select(final String col, final Class<T> type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Argument 'type' is required.");
+		}
+		if (!ScalarResultSetConverter.accept(type)) {
+			throw new IllegalArgumentException(type.getName() + " is not supported.");
+		}
+		return stream(new ScalarResultSetConverter<>(col, type,
+				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
 	}
 
 }

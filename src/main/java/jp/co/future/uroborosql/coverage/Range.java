@@ -113,18 +113,16 @@ public class Range implements Comparable<Range> {
 		} else if (!(obj instanceof Range)) {
 			return false;
 		} else {
-			final var range = (Range) obj;
+			var range = (Range) obj;
 			return start == range.start && end == range.end;
 		}
 	}
 
 	@Override
 	public int hashCode() {
-		var result = 0;
-		result = 17;
+		var result = 17;
 		result = 37 * result + Integer.hashCode(start);
-		result = 37 * result + Integer.hashCode(end);
-		return result;
+		return 37 * result + Integer.hashCode(end);
 	}
 
 	@Override

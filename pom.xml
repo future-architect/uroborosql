@@ -17,29 +17,27 @@
 		</license>
 	</licenses>
 	<url>https://future-architect.github.io/uroborosql-doc/</url>
-
 	<scm>
 		<connection>scm:git:https://github.com/future-architect/uroborosql.git</connection>
 		<developerConnection>scm:git:https://github.com/future-architect/uroborosql.git</developerConnection>
 		<url>https://github.com/future-architect/uroborosql</url>
 		<tag>HEAD</tag>
 	</scm>
-
 	<developers>
 		<developer>
 			<name>Hideki Sugimoto</name>
 			<id>sugimoto</id>
-			<organization>Future Architect, Inc.</organization>
+			<organization>Future Corporation</organization>
 		</developer>
 		<developer>
 			<name>Yosuke Ohta</name>
 			<id>Ota</id>
-			<organization>Future Architect, Inc.</organization>
+			<organization>Future Corporation</organization>
 		</developer>
 		<developer>
 			<name>Kenichi Hoshi</name>
 			<id>hoshi</id>
-			<organization>Future Architect, Inc.</organization>
+			<organization>Future Corporation</organization>
 		</developer>
 		<developer>
 			<name>Jinha Choi</name>
@@ -52,7 +50,6 @@
 			<organization>Future Architect, Inc.</organization>
 		</developer>
 	</developers>
-
 	<build>
 		<resources>
 			<resource>
@@ -60,7 +57,6 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -136,9 +132,13 @@
 					<artifactId>license-maven-plugin</artifactId>
 					<version>3.0</version>
 				</plugin>
+				<plugin>
+					<groupId>org.openrewrite.maven</groupId>
+					<artifactId>rewrite-maven-plugin</artifactId>
+					<version>4.38.0</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
-
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -146,6 +146,7 @@
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
+					<release>${java.version}</release>
 					<encoding>${src.encoding}</encoding>
 				</configuration>
 			</plugin>
@@ -202,7 +203,7 @@
 							<target>
 								<mkdir dir="${basedir}/.settings" />
 								<echo file="${basedir}/.settings/org.eclipse.core.resources.prefs" append="false">
-<![CDATA[eclipse.preferences.version=1
+									<![CDATA[eclipse.preferences.version=1
 encoding/<project>=UTF-8
 ]]>
 								</echo>
@@ -265,12 +266,14 @@ encoding/<project>=UTF-8
 					<includes>
 						<include>src/main/**/*.java</include>
 					</includes>
-					<inlineHeader><![CDATA[
+					<inlineHeader>
+						<![CDATA[
 Copyright (c) ${project.inceptionYear}-present, ${copyrightHolder}
 
 This source code is licensed under the MIT license found in the
 LICENSE file in the root directory of this source tree.
-					]]></inlineHeader>
+					]]>
+					</inlineHeader>
 				</configuration>
 				<executions>
 					<execution>
@@ -282,9 +285,24 @@ LICENSE file in the root directory of this source tree.
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.openrewrite.maven</groupId>
+				<artifactId>rewrite-maven-plugin</artifactId>
+				<configuration>
+					<activeRecipes>
+						<recipe>org.openrewrite.java.testing.junit5.JUnit4to5Migration</recipe>
+					</activeRecipes>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.openrewrite.recipe</groupId>
+			            <artifactId>rewrite-testing-frameworks</artifactId>
+						<version>1.32.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
-
 	<profiles>
 		<profile>
 			<id>release-sign-artifacts</id>
@@ -301,6 +319,12 @@ LICENSE file in the root directory of this source tree.
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -314,7 +338,6 @@ LICENSE file in the root directory of this source tree.
 				</plugins>
 			</build>
 		</profile>
-
 		<profile>
 			<id>REPL</id>
 			<activation>
@@ -359,14 +382,12 @@ LICENSE file in the root directory of this source tree.
 			</build>
 		</profile>
 	</profiles>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
-
 		<!-- optional -->
 		<dependency>
 			<groupId>ognl</groupId>
@@ -392,7 +413,6 @@ LICENSE file in the root directory of this source tree.
 			<version>${jansi.version}</version>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -405,9 +425,7 @@ LICENSE file in the root directory of this source tree.
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<!-- test scope -->
-
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
@@ -427,7 +445,6 @@ LICENSE file in the root directory of this source tree.
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<distributionManagement>
 		<repository>
 			<id>ossrh-release</id>
@@ -438,23 +455,19 @@ LICENSE file in the root directory of this source tree.
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-
 	<properties>
 		<java.version>11</java.version>
-
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<src.encoding>${project.build.sourceEncoding}</src.encoding>
 		<doc.encoding>${project.build.sourceEncoding}</doc.encoding>
-
-		<ognl.version>3.2.19</ognl.version>
-		<spring.version>5.3.5</spring.version>
-		<jline.version>3.19.0</jline.version>
-		<jansi.version>2.3.2</jansi.version>
-		<slf4j.version>1.7.30</slf4j.version>
-		<logback.version>1.2.3</logback.version>
-		<junit.version>5.7.1</junit.version>
+		<ognl.version>3.3.4</ognl.version>
+		<spring.version>5.3.24</spring.version>
+		<jline.version>3.21.0</jline.version>
+		<jansi.version>2.4.0</jansi.version>
+		<slf4j.version>2.0.6</slf4j.version>
+		<logback.version>1.4.5</logback.version>
+		<junit.version>5.9.1</junit.version>
 		<hamcrest.version>2.2</hamcrest.version>
 		<h2.version>1.4.199</h2.version>
 	</properties>
-
 </project>

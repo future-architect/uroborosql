@@ -43,8 +43,8 @@ public class DateToStringParameterMapper implements BindParameterMapperWithClock
 	 */
 	@Override
 	public boolean canAccept(final Object object) {
-		return Date.class.isInstance(object) && !Time.class.isInstance(object)
-				&& !Timestamp.class.isInstance(object);
+		return object instanceof Date && !(object instanceof Time)
+				&& !(object instanceof Timestamp);
 	}
 
 	/**

@@ -23,11 +23,13 @@ import jp.co.future.uroborosql.parameter.Parameter;
  */
 public class DebugSqlFilter extends AbstractSqlFilter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(DebugSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	@Override
 	public Parameter doParameter(final Parameter parameter) {
-		LOG.debug("Parameter:{}", parameter);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Parameter:{}", parameter);
+		}
 		return parameter;
 	}
 
@@ -38,7 +40,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 */
 	@Override
 	public Object doOutParameter(final String key, final Object val) {
-		LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Out parameter - Key:{}, value:{}", key, val);
+		}
 		return val;
 	}
 
@@ -50,7 +54,9 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	@Override
 	public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
 			final ResultSet resultSet) {
-		LOG.debug("SQL:{} executed.", executionContext.getSqlName());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed.", executionContext.getSqlName());
+		}
 		return resultSet;
 	}
 
@@ -60,8 +66,11 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result) {
-		LOG.debug("SQL:{} executed. Count:{} items.", executionContext.getSqlName(), result);
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int result) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("SQL:{} executed. Count:{} items.", executionContext.getSqlName(), result);
+		}
 		return result;
 	}
 
@@ -71,7 +80,8 @@ public class DebugSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result) {
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int[] result) {
 		if (LOG.isDebugEnabled()) {
 			var counts = result;
 			try {

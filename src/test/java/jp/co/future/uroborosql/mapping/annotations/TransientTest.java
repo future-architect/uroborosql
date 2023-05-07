@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.time.LocalDate;
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 
 public class TransientTest {
 
@@ -125,23 +129,12 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (finalInt != other.finalInt) {
-				return false;
-			}
-			if (id != other.id) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || finalInt != other.finalInt
+					|| id != other.id) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -190,23 +183,12 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (finalInt != other.finalInt) {
-				return false;
-			}
-			if (id != other.id) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || finalInt != other.finalInt
+					|| id != other.id) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -251,23 +233,12 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoInsTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+					|| !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -309,23 +280,12 @@ public class TransientTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TransientAnnoUpdTestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+					|| !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -339,7 +299,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testAll() throws Exception {
+	void testAll() throws Exception {
 
 		try (var agent = config.agent()) {
 			var test1 = new TransientAnnoTestEntity(1, "name1", 20, LocalDate.of(1990,
@@ -352,7 +312,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -374,7 +334,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -396,7 +356,7 @@ public class TransientTest {
 	}
 
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 
 		try (var agent = config.agent()) {
 			var date = LocalDate.of(1990, Month.APRIL, 1);
@@ -416,6 +376,16 @@ public class TransientTest {
 			assertThat(data3, notNullValue());
 			assertThat(data3.name, is("name1"));
 			assertThat(data3.birthday, is(date));
+		}
+	}
+
+	@Test
+	void testMapping() throws Exception {
+		try (var agent = config.agent()) {
+			var idColumn = MappingUtils.getMappingColumn(TransientAnnoTestEntity.class, "id");
+			assertThat(idColumn.getTransient(), nullValue());
+			var nameColumn = MappingUtils.getMappingColumn(TransientAnnoTestEntity.class, "name");
+			assertThat(nameColumn.getTransient(), instanceOf(Transient.class));
 		}
 	}
 }

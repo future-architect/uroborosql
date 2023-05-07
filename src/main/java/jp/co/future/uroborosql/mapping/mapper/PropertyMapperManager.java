@@ -41,7 +41,7 @@ public final class PropertyMapperManager {
 	private static final List<PropertyMapper<?>> LOADED_MAPPERS = load();
 
 	private static List<PropertyMapper<?>> load() {
-		List<PropertyMapper<?>> list = new ArrayList<>();
+		var list = new ArrayList<PropertyMapper<?>>();
 		ServiceLoader.load(PropertyMapper.class).forEach(list::add);
 		return list;
 	}
@@ -103,7 +103,7 @@ public final class PropertyMapperManager {
 	 */
 	public Object getValue(final JavaType type, final ResultSet rs, final int columnIndex) throws SQLException {
 		Class<?> rawType = type.getRawType();
-		for (PropertyMapper<?> propertyMapper : this.mappers) {
+		for (var propertyMapper : this.mappers) {
 			if (propertyMapper.canAccept(rawType) && propertyMapper.canAcceptTest(type, rs, columnIndex, this)) {
 				return propertyMapper.getValue(type, rs, columnIndex, this);
 			}
@@ -224,7 +224,7 @@ public final class PropertyMapperManager {
 			return dateTimeApiPropertyMapper.getValue(type, rs, columnIndex, this);
 		}
 
-		for (PropertyMapper<?> propertyMapper : DEFAULT_MAPPERS) {
+		for (var propertyMapper : DEFAULT_MAPPERS) {
 			if (propertyMapper.canAccept(rawType) && propertyMapper.canAcceptTest(type, rs, columnIndex, this)) {
 				return propertyMapper.getValue(type, rs, columnIndex, this);
 			}

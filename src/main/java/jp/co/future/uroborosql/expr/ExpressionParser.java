@@ -39,7 +39,7 @@ public interface ExpressionParser extends SqlConfigAware {
 			return true;
 		} else {
 			// 中かっこ（）がある場合はメソッドとして扱う（paramName.methodName(args...))
-			return !(expression.contains("(") && expression.contains(")"));
+			return !expression.contains("(") || !expression.contains(")");
 		}
 	}
 }

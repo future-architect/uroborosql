@@ -28,7 +28,10 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class Parameter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(Parameter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
+	/** SQLロガー */
+	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
 
 	/** 未設定のSQLType */
 	protected static final SQLType SQL_TYPE_NOT_SET = null;
@@ -155,7 +158,7 @@ public class Parameter {
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		var parameterIndex = index;
 		if (value instanceof Iterable) {
-			for (Object e : (Iterable<?>) value) {
+			for (var e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
 
 				parameterLog(parameterIndex);
@@ -177,8 +180,8 @@ public class Parameter {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (LOG.isDebugEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			LOG.debug("Set the parameter.[INDEX[{}], {}]", index, this);
+		if (SQL_LOG.isTraceEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
+			SQL_LOG.trace("Set the parameter.[INDEX[{}], {}]", index, this);
 		}
 	}
 
@@ -218,7 +221,7 @@ public class Parameter {
 	 * @return {@link java.sql.SQLType} の値
 	 */
 	private SQLType toSqlType(final int sqlType) {
-		for (JDBCType type : JDBCType.values()) {
+		for (var type : JDBCType.values()) {
 			if (type.getVendorTypeNumber().intValue() == sqlType) {
 				return type;
 			}
@@ -258,10 +261,12 @@ public class Parameter {
 		if (Objects.equals(sqlType, SQL_TYPE_NOT_SET)) {
 			if (jdbcParam instanceof java.sql.Array) {
 				preparedStatement.setArray(parameterIndex, (java.sql.Array) jdbcParam);
-			} else if (jdbcParam != null) {
-				preparedStatement.setObject(parameterIndex, jdbcParam);
 			} else {
-				preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
+				if (jdbcParam != null) {
+					preparedStatement.setObject(parameterIndex, jdbcParam);
+				} else {
+					preparedStatement.setNull(parameterIndex, JDBCType.NULL.getVendorTypeNumber());
+				}
 			}
 		} else {
 			int targetSqlType = sqlType.getVendorTypeNumber();//各JDBCの対応状況が怪しいのでintで扱う

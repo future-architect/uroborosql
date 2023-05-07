@@ -11,16 +11,13 @@ import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.SqlAgent;
-
 /**
  * カバレッジログ出力用データクラス
  *
  * @author ota
  */
 public class CoverageData {
-	protected static final Logger COVERAGE_LOG = LoggerFactory.getLogger(SqlAgent.class.getPackage().getName()
-			+ ".sql.coverage");
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 	private final String sqlName;
 	private final String sql;
 	private final String md5;
@@ -47,12 +44,11 @@ public class CoverageData {
 	 * @return MD5文字列
 	 */
 	private String makeMd5(final String original) {
-		MessageDigest digest = null;
 		try {
-			digest = MessageDigest.getInstance("MD5");
+			var digest = MessageDigest.getInstance("MD5");
 			var hash = digest.digest(original.getBytes("UTF-8"));
 			var builder = new StringBuilder();
-			for (byte element : hash) {
+			for (var element : hash) {
 				if ((0xff & element) < 0x10) {
 					builder.append("0" + Integer.toHexString(0xff & element));
 				} else {
@@ -61,7 +57,7 @@ public class CoverageData {
 			}
 			return builder.toString();
 		} catch (Exception ex) {
-			COVERAGE_LOG.error(ex.getMessage(), ex);
+			LOG.error(ex.getMessage(), ex);
 		}
 		return "";
 	}

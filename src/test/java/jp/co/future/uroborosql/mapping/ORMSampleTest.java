@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.time.LocalDate;
@@ -118,23 +120,12 @@ public class ORMSampleTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (age != other.age) {
-				return false;
-			}
-			if (!Objects.equals(birthday, other.birthday)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(memo, other.memo)) {
+			if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+					|| !Objects.equals(memo, other.memo)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
@@ -152,7 +143,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testFind() throws Exception {
+	void testFind() throws Exception {
 
 		try (var agent = config.agent()) {
 
@@ -164,7 +155,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 
 		try (var agent = config.agent()) {
 
@@ -181,7 +172,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -202,7 +193,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -221,7 +212,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testDelete() throws Exception {
+	void testDelete() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -261,10 +252,7 @@ public class ORMSampleTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (NameDomain) obj;
@@ -300,17 +288,11 @@ public class ORMSampleTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -324,7 +306,7 @@ public class ORMSampleTest {
 	}
 
 	@Test
-	public void testDomain() throws Exception {
+	void testDomain() throws Exception {
 		// Domainを定義したクラスを扱う
 		try (var agent = config.agent()) {
 			agent.required(() -> {

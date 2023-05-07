@@ -88,10 +88,14 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 			synchronized (ds) {
 				connection = ds.getConnection();
 			}
-			connection.setAutoCommit(ctx.autoCommit());
-			connection.setReadOnly(ctx.readOnly());
+			if (ctx.autoCommit() != connection.getAutoCommit()) {
+				connection.setAutoCommit(ctx.autoCommit());
+			}
+			if (ctx.readOnly() != connection.isReadOnly()) {
+				connection.setReadOnly(ctx.readOnly());
+			}
 			var transactionIsolation = ctx.transactionIsolation();
-			if (transactionIsolation > 0) {
+			if (transactionIsolation > 0 && transactionIsolation != connection.getTransactionIsolation()) {
 				connection.setTransactionIsolation(transactionIsolation);
 			}
 			return connection;

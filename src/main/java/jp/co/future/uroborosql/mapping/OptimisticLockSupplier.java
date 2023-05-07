@@ -22,7 +22,7 @@ public abstract class OptimisticLockSupplier {
 	private static final Map<Class<? extends OptimisticLockSupplier>, OptimisticLockSupplier> suppliers = new ConcurrentHashMap<>();
 
 	static {
-		for (OptimisticLockSupplier supplier : ServiceLoader.load(OptimisticLockSupplier.class)) {
+		for (var supplier : ServiceLoader.load(OptimisticLockSupplier.class)) {
 			suppliers.put(supplier.getClass(), supplier);
 		}
 	}

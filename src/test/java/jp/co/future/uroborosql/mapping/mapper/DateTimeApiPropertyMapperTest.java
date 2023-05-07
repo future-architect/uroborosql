@@ -1,8 +1,9 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.newResultSet;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.SQLException;
 import java.time.Clock;
@@ -41,9 +42,9 @@ public class DateTimeApiPropertyMapperTest {
 	}
 
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException, SQLException {
+	void test() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
-		var localDateTime = LocalDateTime.now(this.clock).truncatedTo(ChronoUnit.MILLIS);
+		var localDateTime = LocalDateTime.now(this.clock);
 		var offsetDateTime = OffsetDateTime.of(localDateTime, OffsetDateTime.now(this.clock).getOffset());
 		var zonedDateTime = ZonedDateTime.of(localDateTime, this.clock.getZone());
 
@@ -61,6 +62,13 @@ public class DateTimeApiPropertyMapperTest {
 				is(localDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(localDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
+				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").format(localDateTime)),
+				1), is(localDateTime.truncatedTo(ChronoUnit.MICROS)));
+		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(localDateTime));
 		assertThat(mapper.getValue(JavaType.of(LocalDateTime.class),
 				newResultSet("getTimestamp",
@@ -80,6 +88,13 @@ public class DateTimeApiPropertyMapperTest {
 				is(offsetDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(offsetDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
+				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").format(localDateTime)),
+				1), is(offsetDateTime.truncatedTo(ChronoUnit.MICROS)));
+		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(offsetDateTime));
 		assertThat(mapper.getValue(JavaType.of(OffsetDateTime.class),
 				newResultSet("getTimestamp",
@@ -99,6 +114,10 @@ public class DateTimeApiPropertyMapperTest {
 				is(zonedDateTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
 				newResultSet("getTimestamp", DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").format(localDateTime)),
+				1), is(zonedDateTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
+				newResultSet("getTimestamp",
+						DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSSSSS").format(localDateTime)),
 				1), is(zonedDateTime));
 		assertThat(mapper.getValue(JavaType.of(ZonedDateTime.class),
 				newResultSet("getTimestamp",
@@ -117,7 +136,8 @@ public class DateTimeApiPropertyMapperTest {
 		assertThat(mapper.getValue(JavaType.of(LocalDate.class),
 				newResultSet("getDate", DateTimeFormatter.ISO_LOCAL_DATE.format(localDate)), 1), is(localDate));
 
-		assertThat(mapper.getValue(JavaType.of(LocalTime.class), newResultSet("getTime", time), 1), is(localTime));
+		assertThat(mapper.getValue(JavaType.of(LocalTime.class), newResultSet("getTime", time), 1),
+				is(localTime.truncatedTo(ChronoUnit.MILLIS)));
 		assertThat(mapper.getValue(JavaType.of(LocalTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmm").format(localTime)), 1),
 				is(localTime.withSecond(0).with(ChronoField.MILLI_OF_SECOND, 0L)));
@@ -126,12 +146,16 @@ public class DateTimeApiPropertyMapperTest {
 				is(localTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(LocalTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmmssSSS").format(localTime)), 1),
+				is(localTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(LocalTime.class),
+				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmmssSSSSSSSSS").format(localTime)), 1),
 				is(localTime));
 		assertThat(mapper.getValue(JavaType.of(LocalTime.class),
-				newResultSet("getTime", DateTimeFormatter.ISO_LOCAL_TIME.format(localTime)), 1),
-				is(localTime));
+				newResultSet("getTime", DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(localTime)), 1),
+				is(localTime.truncatedTo(ChronoUnit.MICROS)));
 
-		assertThat(mapper.getValue(JavaType.of(OffsetTime.class), newResultSet("getTime", time), 1), is(offsetTime));
+		assertThat(mapper.getValue(JavaType.of(OffsetTime.class), newResultSet("getTime", time), 1),
+				is(offsetTime.truncatedTo(ChronoUnit.MILLIS)));
 		assertThat(mapper.getValue(JavaType.of(OffsetTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmm").format(localTime)), 1),
 				is(offsetTime.withSecond(0).with(ChronoField.MILLI_OF_SECOND, 0L)));
@@ -140,6 +164,9 @@ public class DateTimeApiPropertyMapperTest {
 				is(offsetTime.with(ChronoField.MILLI_OF_SECOND, 0L)));
 		assertThat(mapper.getValue(JavaType.of(OffsetTime.class),
 				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmmssSSS").format(localTime)), 1),
+				is(offsetTime.truncatedTo(ChronoUnit.MILLIS)));
+		assertThat(mapper.getValue(JavaType.of(OffsetTime.class),
+				newResultSet("getTime", DateTimeFormatter.ofPattern("HHmmssSSSSSSSSS").format(localTime)), 1),
 				is(offsetTime));
 		assertThat(mapper.getValue(JavaType.of(OffsetTime.class),
 				newResultSet("getTime", DateTimeFormatter.ISO_LOCAL_TIME.format(localTime)), 1),
@@ -166,7 +193,7 @@ public class DateTimeApiPropertyMapperTest {
 	}
 
 	@Test
-	public void test2() throws NoSuchMethodException, SecurityException, SQLException {
+	void test2() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(Year.class), newResultSet("getInt", 2000), 1), is(Year.of(2000)));
 		assertThat(mapper.getValue(JavaType.of(Year.class), newResultSet("getInt", "2000"), 1), is(Year.of(2000)));
@@ -206,7 +233,7 @@ public class DateTimeApiPropertyMapperTest {
 	}
 
 	@Test
-	public void test3() throws NoSuchMethodException, SecurityException, SQLException {
+	void test3() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 
 		var localDate = LocalDate.now(this.clock);

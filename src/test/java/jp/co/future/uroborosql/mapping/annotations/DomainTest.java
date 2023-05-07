@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping.annotations;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Objects;
@@ -71,10 +71,7 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (NameDomain) obj;
@@ -113,17 +110,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -136,7 +127,7 @@ public class DomainTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	void test() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -224,17 +215,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity2) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -247,7 +232,7 @@ public class DomainTest {
 	}
 
 	@Test
-	public void test2() throws Exception {
+	void test2() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -341,17 +326,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity3) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -364,7 +343,7 @@ public class DomainTest {
 	}
 
 	@Test
-	public void test3() throws Exception {
+	void test3() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -413,17 +392,11 @@ public class DomainTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DomainTestEntity4) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (name != other.name) {
+			if (id != other.id || name != other.name) {
 				return false;
 			}
 			return true;
@@ -436,7 +409,7 @@ public class DomainTest {
 	}
 
 	@Test
-	public void test4() throws Exception {
+	void test4() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {

@@ -6,8 +6,6 @@
  */
 package jp.co.future.uroborosql;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,9 +167,9 @@ public class SqlAgentProviderImpl implements SqlAgentProvider {
 	public List<String> getSqlRetryCodeList() {
 		var codes = settings.get(PROPS_KEY_SQL_RETRY_CODES);
 		if (codes == null) {
-			return Collections.emptyList();
+			return List.of();
 		} else {
-			return Arrays.asList(codes.split(","));
+			return List.of(codes.split(","));
 		}
 	}
 

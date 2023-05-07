@@ -1,7 +1,12 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,12 +21,13 @@ import org.junit.jupiter.api.Test;
 public class JdbcConnectionSupplierImplTest {
 
 	@Test
-	public void testJdbcConnection() throws Exception {
+	void testJdbcConnection() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
 
-		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
+		var supplier = new JdbcConnectionSupplierImpl(
+				new JdbcConnectionContext(url, user, password));
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is("PUBLIC"));
@@ -32,17 +38,18 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testJdbcConnectionWithProps() throws Exception {
+	void testJdbcConnectionWithProps() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
 
 		var checkSql = "select current timestamp from SYSIBM.SYSDUMMY1";
 
-		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
+		var supplier = new JdbcConnectionSupplierImpl(
+				new JdbcConnectionContext(url, user, password));
 		try (var conn = supplier.getConnection()) {
 			conn.prepareStatement(checkSql);
-			assertThat("Fail here.", false);
+			fail();
 		} catch (SQLException ex) {
 			// OK
 		}
@@ -59,13 +66,35 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testJdbcConnectionWithSchema() throws Exception {
+	void testJdbcConnectionNull() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new JdbcConnectionSupplierImpl(new JdbcConnectionContext(null, null, null));
+		});
+	}
+
+	@Test
+	void testNotInstanceOfJdbcConnectionContext() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+			var user = "";
+			var password = "";
+
+			ConnectionContext ctx = ConnectionContextBuilder.dataSource();
+			var supplier = new JdbcConnectionSupplierImpl(
+					new JdbcConnectionContext(url, user, password));
+			supplier.getConnection(ctx);
+		});
+	}
+
+	@Test
+	void testJdbcConnectionWithSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
 		var schema = "PUBLIC";
 
-		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password, schema));
+		var supplier = new JdbcConnectionSupplierImpl(
+				new JdbcConnectionContext(url, user, password, schema));
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
@@ -74,7 +103,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 
-		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
+		var ctx = (JdbcConnectionContext) ConnectionContextBuilder.jdbc(url + "_2", "sa", "sa", "PUBLIC")
 				.transactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
 		try (var conn = supplier.getConnection(ctx)) {
@@ -87,7 +116,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testJdbcConnectionWithOption() throws Exception {
+	void testJdbcConnectionWithOption() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -96,9 +125,9 @@ public class JdbcConnectionSupplierImplTest {
 		var readonly = true;
 
 		var supplier = new JdbcConnectionSupplierImpl(
-				ConnectionContextBuilder.jdbc(url, user, password, schema)
-						.autoCommit(autoCommit)
-						.readOnly(readonly));
+				new JdbcConnectionContext(url, user, password, schema));
+		supplier.setDefaultAutoCommit(autoCommit);
+		supplier.setDefaultReadOnly(readonly);
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
 			assertThat(conn.getSchema(), is(schema));
@@ -109,7 +138,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testGetConnectionWithContext() throws Exception {
+	void testGetConnectionWithContext() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -128,7 +157,26 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultSchema() throws Exception {
+	void testSetSchema() throws Exception {
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+
+		var supplier = new JdbcConnectionSupplierImpl(
+				new JdbcConnectionContext(url, user, password));
+		supplier.setDefaultSchema(schema);
+		try (var conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(url));
+			assertThat(conn.getSchema(), is(schema));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	void testSetDefaultSchema() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -147,7 +195,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultAutoCommit() throws Exception {
+	void testSetDefaultAutoCommit() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -168,7 +216,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultReadOnly() throws Exception {
+	void testSetDefaultReadOnly() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -190,7 +238,7 @@ public class JdbcConnectionSupplierImplTest {
 	}
 
 	@Test
-	public void testSetDefaultTransactionIsolation() throws Exception {
+	void testSetDefaultTransactionIsolation() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";
@@ -217,14 +265,14 @@ public class JdbcConnectionSupplierImplTest {
 		}
 		try {
 			supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
-			assertThat("Fail here.", false);
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), containsString("Unsupported level"));
 		}
 	}
 
 	@Test
-	public void testGetDatabaseName() throws Exception {
+	void testGetDatabaseName() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
 		var user = "";
 		var password = "";

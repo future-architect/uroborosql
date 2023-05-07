@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -41,7 +41,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -57,7 +57,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteSelect() throws Exception {
+	void testExecuteSelect() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		assertThat(command.execute(reader, "generate select PRODUCT".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
@@ -65,7 +65,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteInsert() throws Exception {
+	void testExecuteInsert() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		assertThat(command.execute(reader, "generate insert PRODUCT".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
@@ -73,7 +73,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteInsertWithAutoIncrement() throws Exception {
+	void testExecuteInsertWithAutoIncrement() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		assertThat(command.execute(reader, "generate insert GEN_TEST".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
@@ -86,7 +86,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteUpdate() throws Exception {
+	void testExecuteUpdate() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		assertThat(command.execute(reader, "generate update PRODUCT".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
@@ -94,7 +94,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteDelete() throws Exception {
+	void testExecuteDelete() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		assertThat(command.execute(reader, "generate delete PRODUCT".split("\\s+"), sqlConfig, new Properties()),
 				is(true));
@@ -102,7 +102,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteWithVersionColumn() throws Exception {
+	void testExecuteWithVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var props = new Properties();
 		props.put("sql.versionColumnName", "lock_no");
@@ -114,7 +114,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteWithoutVersionColumn() throws Exception {
+	void testExecuteWithoutVersionColumn() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var props = new Properties();
 		command.execute(reader, "generate update GEN_TEST".split("\\s+"), sqlConfig, props);
@@ -123,7 +123,7 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testShowHelp() throws Exception {
+	void testShowHelp() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		command.showHelp(reader.getTerminal());
 		reader.flush();
@@ -131,14 +131,14 @@ public class GenerateCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testGetStartArgNo() throws Exception {
+	void testGetStartArgNo() throws Exception {
 		assertThat(command.getStartArgNo(ReplCommandCompleter.class), is(-1));
 		assertThat(command.getStartArgNo(SqlKeywordCompleter.class), is(1));
 		assertThat(command.getStartArgNo(TableNameCompleter.class), is(2));
 	}
 
 	@Test
-	public void testUtilityMethods() throws Exception {
+	void testUtilityMethods() throws Exception {
 		assertThat(command.isHidden(), is(false));
 		assertThat(command.match("Generate"), is(true));
 		assertThat(command.match("NoMatchCommand"), is(false));

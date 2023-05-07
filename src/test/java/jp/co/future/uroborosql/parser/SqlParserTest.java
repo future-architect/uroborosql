@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parser;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,12 +50,12 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		var transformed = ctx.getExecutableSql().trim().replaceAll("\\s+", " ");
-		assertThat(transformed, is(expected));
+		assertEquals(expected, transformed, "結果が一致しません。");
 	}
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testElif() throws Exception {
+	void testElif() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
@@ -63,7 +63,7 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELIF FALSE ELSE
 	@Test
-	public void testElif2() throws Exception {
+	void testElif2() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -71,7 +71,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testElif3() throws Exception {
+	void testElif3() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 --ELSE 3=3/*END*/";
 		var sql2 = "4=4";
 		sqlAssertion(sql, sql2);
@@ -79,7 +79,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF FALSE ELSE
 	@Test
-	public void testElif4() throws Exception {
+	void testElif4() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "3=3";
 		sqlAssertion(sql, sql2);
@@ -87,7 +87,7 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
 	@Test
-	public void testElif4_1() throws Exception {
+	void testElif4_1() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -95,7 +95,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF (TRUE)
 	@Test
-	public void testElif5() throws Exception {
+	void testElif5() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF true*/2=2/*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
@@ -103,14 +103,14 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELSE (TRUE)
 	@Test
-	public void testElif6() throws Exception {
+	void testElif6() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
 	}
 
 	@Test
-	public void testElif7() throws Exception {
+	void testElif7() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4/*END*/";
 		var sql2 = "4=4";
 		sqlAssertion(sql, sql2);
@@ -118,7 +118,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF FALSE
 	@Test
-	public void testElif8() throws Exception {
+	void testElif8() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2/*END*/";
 		var sql2 = "";
 		sqlAssertion(sql, sql2);
@@ -130,7 +130,7 @@ public class SqlParserTest {
 	//  ELIF FALSE
 	// ELSE
 	@Test
-	public void testElif_nest1() throws Exception {
+	void testElif_nest1() throws Exception {
 		var sql = "/*IF true*/1=1 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "1=1 and 11=11";
 		sqlAssertion(sql, sql2);
@@ -142,7 +142,7 @@ public class SqlParserTest {
 	// ELIF FALSE
 	// ELSE
 	@Test
-	public void testElif_nest2() throws Exception {
+	void testElif_nest2() throws Exception {
 		var sql = "/*IF true*/1=1 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ /*ELIF true*/2=2 --ELSE 3=3/*END*/";
 		var sql2 = "1=1 and 22=22";
 		sqlAssertion(sql, sql2);
@@ -154,7 +154,7 @@ public class SqlParserTest {
 	// ELIF FALSE
 	// ELSE
 	@Test
-	public void testElif_nest3() throws Exception {
+	void testElif_nest3() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*/ --ELSE 3=3/*END*/";
 		var sql2 = "2=2 and 11=11";
 		sqlAssertion(sql, sql2);
@@ -166,7 +166,7 @@ public class SqlParserTest {
 	// ELIF (TRUE)
 	// ELSE
 	@Test
-	public void testElif_nest4() throws Exception {
+	void testElif_nest4() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*/ --ELSE 3=3/*END*/";
 		var sql2 = "2=2 and 22=22";
 		sqlAssertion(sql, sql2);
@@ -178,7 +178,7 @@ public class SqlParserTest {
 	// IF (TRUE)
 	// ELIF FALSE
 	@Test
-	public void testElif_nest5() throws Exception {
+	void testElif_nest5() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3 /*IF true*/and 11=11 /*ELIF false*/and 22=22/*END*//*END*/";
 		var sql2 = "3=3 and 11=11";
 		sqlAssertion(sql, sql2);
@@ -190,7 +190,7 @@ public class SqlParserTest {
 	// IF FALSE
 	// ELIF (TRUE)
 	@Test
-	public void testElif_nest6() throws Exception {
+	void testElif_nest6() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2  --ELSE 3=3 /*IF false*/and 11=11 /*ELIF true*/and 22=22/*END*//*END*/";
 		var sql2 = "3=3 and 22=22";
 		sqlAssertion(sql, sql2);
@@ -198,7 +198,7 @@ public class SqlParserTest {
 
 	// BEGIN IF FALSE ELIF FALSE END
 	@Test
-	public void testBeginElif() throws Exception {
+	void testBeginElif() throws Exception {
 		var sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 /*END*//*END*/";
 		var sql2 = "";
 		sqlAssertion(sql, sql2);
@@ -206,7 +206,7 @@ public class SqlParserTest {
 
 	// BEGIN IF (TRUE) ELIF FALSE END
 	@Test
-	public void testBeginElif2() throws Exception {
+	void testBeginElif2() throws Exception {
 		var sql = "/*BEGIN*//*IF true*/1=1 /*ELIF false*/2=2 /*END*//*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -214,7 +214,7 @@ public class SqlParserTest {
 
 	// BEGIN IF FALSE ELIF (TRUE) END
 	@Test
-	public void testBeginElif3() throws Exception {
+	void testBeginElif3() throws Exception {
 		var sql = "/*BEGIN*//*IF false*/1=1 /*ELIF true*/2=2 /*END*//*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
@@ -222,7 +222,7 @@ public class SqlParserTest {
 
 	// BEGIN IF FALSE ELIF FALSE ELSE END
 	@Test
-	public void testBeginElif4() throws Exception {
+	void testBeginElif4() throws Exception {
 		var sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 --ELSE 3=3/*END*//*END*/";
 		var sql2 = "3=3";
 		sqlAssertion(sql, sql2);
@@ -230,7 +230,7 @@ public class SqlParserTest {
 
 	// BEGIN IF FALSE ELIF FALSE ELSE END
 	@Test
-	public void testBeginElif5() throws Exception {
+	void testBeginElif5() throws Exception {
 		var sql = "/*BEGIN*//*IF false*/1=1 /*ELIF false*/2=2 /*ELSE*/ 3=3/*END*//*END*/";
 		var sql2 = "3=3";
 		sqlAssertion(sql, sql2);
@@ -238,7 +238,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testElifWithNewElse() throws Exception {
+	void testElifWithNewElse() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
@@ -246,7 +246,7 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELIF FALSE ELSE
 	@Test
-	public void testElifWithNewElse2() throws Exception {
+	void testElifWithNewElse2() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -254,7 +254,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testElifWithNewElse3() throws Exception {
+	void testElifWithNewElse3() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELIF true*/4=4 /*ELSE*/ 3=3/*END*/";
 		var sql2 = "4=4";
 		sqlAssertion(sql, sql2);
@@ -262,7 +262,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF FALSE ELSE
 	@Test
-	public void testElifWithNewElse4() throws Exception {
+	void testElifWithNewElse4() throws Exception {
 		var sql = "/*IF false*/1=1 /*ELIF false*/2=2 /*ELSE*/ 3=3/*END*/";
 		var sql2 = "3=3";
 		sqlAssertion(sql, sql2);
@@ -270,7 +270,7 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
 	@Test
-	public void testElifWithNewElse4_1() throws Exception {
+	void testElifWithNewElse4_1() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/ 3=3/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -278,7 +278,7 @@ public class SqlParserTest {
 
 	// IF (TRUE) ELIF (TRUE) ELSE (ALL TRUE)
 	@Test
-	public void testElifWithNewElse4_2() throws Exception {
+	void testElifWithNewElse4_2() throws Exception {
 		var sql = "/*IF true*/1=1 /*ELIF true*/2=2 /*ELSE*/3=3/*END*/";
 		var sql2 = "1=1";
 		sqlAssertion(sql, sql2);
@@ -286,36 +286,36 @@ public class SqlParserTest {
 
 	// IF -- COMMENT ELSE 2
 	@Test
-	public void testIFELSECOMMENT_2() throws Exception {
+	void testIFELSECOMMENT_2() throws Exception {
 		var sql = "/*IF false*/1=1 -- comment /*ELIF true*/2=2 /*ELSE*/3=3/*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
 	}
 
 	@Test
-	public void testParse() throws Exception {
+	void testParse() throws Exception {
 		var sql = "SELECT * FROM emp";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is(sql));
+		assertEquals(sql, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testParseNormalComment() throws Exception {
+	void testParseNormalComment() throws Exception {
 		var sql = "SELECT /* empの全件検索 */ * FROM emp";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is(sql));
+		assertEquals(sql, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testParseLineComment() throws Exception {
+	void testParseLineComment() throws Exception {
 		var sql = "SELECT -- empの全件検索  * FROM emp WHERE job = /*job*/'CLERK'";
 		var sql2 = "SELECT -- empの全件検索  * FROM emp WHERE job = ?/*job*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -324,22 +324,22 @@ public class SqlParserTest {
 		ctx.param("job", "CLERK");
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testParseHintComment() throws Exception {
+	void testParseHintComment() throws Exception {
 		var sql = "SELECT /*+ FIRST_ROWS */ * FROM emp";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is(sql));
+		assertEquals(sql, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testParseEndSemicolon() throws Exception {
+	void testParseEndSemicolon() throws Exception {
 		testParseEndSemicolon(";");
 		testParseEndSemicolon(";\t");
 		testParseEndSemicolon("; ");
@@ -352,24 +352,24 @@ public class SqlParserTest {
 		var ctx = sqlConfig.context();
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is(sql));
+		assertEquals(sql, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testCommentEndNotFound() throws Exception {
+	void testCommentEndNotFound() throws Exception {
 		var sql = "SELECT * FROM emp/*hoge";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		try {
 			parser.parse();
-			assertThat("1", false);
+			fail("1");
 		} catch (TokenNotClosedRuntimeException ex) {
 			System.out.println(ex);
 		}
 	}
 
 	@Test
-	public void testParseBindVariable() throws Exception {
+	void testParseBindVariable() throws Exception {
 		var sql = "SELECT * FROM emp WHERE job = /*job*/'CLERK' AND deptno = /*deptno*/20";
 		var sql2 = "SELECT * FROM emp WHERE job = ?/*job*/ AND deptno = ?/*deptno*/";
 		var sql3 = "SELECT * FROM emp WHERE job = ";
@@ -378,32 +378,32 @@ public class SqlParserTest {
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		var job = "CLERK";
-		var deptno = Integer.valueOf(20);
+		var deptno = 20;
 		ctx.param("job", job);
 		ctx.param("deptno", deptno);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is(job));
-		assertThat(vars[1], is(deptno));
-		assertThat(root.getChildSize(), is(4));
+		assertEquals(2, vars.length, "2");
+		assertEquals(job, vars[0], "3");
+		assertEquals(deptno, vars[1], "4");
+		assertEquals(4, root.getChildSize(), "5");
 		var sqlNode = (SqlNode) root.getChild(0);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "6");
 		var varNode = (BindVariableNode) root.getChild(1);
-		assertThat(varNode.getExpression(), is("job"));
+		assertEquals("job", varNode.getExpression(), "7");
 		var sqlNode2 = (SqlNode) root.getChild(2);
-		assertThat(sqlNode2.getSql(), is(sql4));
+		assertEquals(sql4, sqlNode2.getSql(), "8");
 		var varNode2 = (BindVariableNode) root.getChild(3);
-		assertThat(varNode2.getExpression(), is("deptno"));
+		assertEquals("deptno", varNode2.getExpression(), "9");
 	}
 
 	@Test
-	public void testParseBindVariable2() throws Exception {
+	void testParseBindVariable2() throws Exception {
 		var sql = "SELECT * FROM emp WHERE job = /* job*/'CLERK'"; // コメントの先頭が空白ならコメントとして扱う
 		var sql2 = "SELECT * FROM emp WHERE job = /* job*/'CLERK'";
 		var sql3 = "SELECT * FROM emp WHERE job = ";
@@ -416,37 +416,37 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
-		assertThat(root.getChildSize(), is(3));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
+		assertEquals(3, root.getChildSize(), "2");
 		var sqlNode = (SqlNode) root.getChild(0);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "3");
 		var sqlNode2 = (SqlNode) root.getChild(1);
-		assertThat(sqlNode2.getSql(), is(sql4));
+		assertEquals(sql4, sqlNode2.getSql(), "4");
 		var sqlNode3 = (SqlNode) root.getChild(2);
-		assertThat(sqlNode3.getSql(), is(sql5));
+		assertEquals(sql5, sqlNode3.getSql(), "5");
 	}
 
 	@Test
-	public void testParseWhiteSpace() throws Exception {
+	void testParseWhiteSpace() throws Exception {
 		var sql = "SELECT * FROM emp WHERE empno = /*empno*/1 AND 1 = 1";
 		var sql2 = "SELECT * FROM emp WHERE empno = ?/*empno*/ AND 1 = 1";
 		var sql3 = " AND 1 = 1";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		var empno = Integer.valueOf(7788);
+		var empno = 7788;
 		ctx.param("empno", empno);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var sqlNode = (SqlNode) root.getChild(2);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "2");
 	}
 
 	@Test
-	public void testParseIf() throws Exception {
+	void testParseIf() throws Exception {
 		var sql = "SELECT * FROM emp/*IF job != null*/ WHERE job = /*job*/'CLERK'/*END*/";
 		var sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		var sql3 = "SELECT * FROM emp";
@@ -459,28 +459,28 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(1));
-		assertThat(vars[0], is(job));
-		assertThat(root.getChildSize(), is(2));
+		assertEquals(1, vars.length, "2");
+		assertEquals(job, vars[0], "3");
+		assertEquals(2, root.getChildSize(), "4");
 		var sqlNode = (SqlNode) root.getChild(0);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "5");
 		var ifNode = (IfNode) root.getChild(1);
-		assertThat(ifNode.getExpression(), is("job != null"));
-		assertThat(ifNode.getChildSize(), is(2));
+		assertEquals("job != null", ifNode.getExpression(), "6");
+		assertEquals(2, ifNode.getChildSize(), "7");
 		var sqlNode2 = (SqlNode) ifNode.getChild(0);
-		assertThat(sqlNode2.getSql(), is(" WHERE job = "));
+		assertEquals(" WHERE job = ", sqlNode2.getSql(), "8");
 		var varNode = (BindVariableNode) ifNode.getChild(1);
-		assertThat(varNode.getExpression(), is("job"));
+		assertEquals("job", varNode.getExpression(), "9");
 		var ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertThat(ctx2.getExecutableSql(), is(sql3));
+		assertEquals(sql3, ctx2.getExecutableSql(), "10");
 	}
 
 	@Test
-	public void testParseIf2() throws Exception {
+	void testParseIf2() throws Exception {
 		var sql = "/*IF aaa != null*/aaa/*IF bbb != null*/bbb/*END*//*END*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
@@ -489,26 +489,26 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is(""));
+		assertEquals("", ctx.getExecutableSql(), "1");
 		ctx.param("aaa", null);
 		ctx.param("bbb", "hoge");
 		root.accept(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is(""));
+		assertEquals("", ctx.getExecutableSql(), "2");
 		ctx.param("aaa", "hoge");
 		root.accept(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is("aaabbb"));
+		assertEquals("aaabbb", ctx.getExecutableSql(), "3");
 		var ctx2 = sqlConfig.context();
 		ctx2.param("aaa", "hoge");
 		ctx2.param("bbb", null);
 		root.accept(ctx2);
 		System.out.println("[" + ctx2.getExecutableSql() + "]");
-		assertThat(ctx2.getExecutableSql(), is("aaa"));
+		assertEquals("aaa", ctx2.getExecutableSql(), "4");
 	}
 
 	@Test
-	public void testParseIf3() throws Exception {
+	void testParseIf3() throws Exception {
 		var sql = "SELECT * FROM emp/*IF emp != null && emp.job != null*/ WHERE job = /*emp.job*/'CLERK'/*END*/";
 		var sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/";
 		var sql3 = "SELECT * FROM emp";
@@ -522,28 +522,28 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(1));
-		assertThat(vars[0], is(emp.getJob()));
-		assertThat(root.getChildSize(), is(2));
+		assertEquals(1, vars.length, "2");
+		assertEquals(emp.getJob(), vars[0], "3");
+		assertEquals(2, root.getChildSize(), "4");
 		var sqlNode = (SqlNode) root.getChild(0);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "5");
 		var ifNode = (IfNode) root.getChild(1);
-		assertThat(ifNode.getExpression(), is("emp != null && emp.job != null"));
-		assertThat(ifNode.getChildSize(), is(2));
+		assertEquals("emp != null && emp.job != null", ifNode.getExpression(), "6");
+		assertEquals(2, ifNode.getChildSize(), "7");
 		var sqlNode2 = (SqlNode) ifNode.getChild(0);
-		assertThat(sqlNode2.getSql(), is(" WHERE job = "));
+		assertEquals(" WHERE job = ", sqlNode2.getSql(), "8");
 		var varNode = (BindVariableNode) ifNode.getChild(1);
-		assertThat(varNode.getExpression(), is("emp.job"));
+		assertEquals("emp.job", varNode.getExpression(), "9");
 		var ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertThat(ctx2.getExecutableSql(), is(sql3));
+		assertEquals(sql3, ctx2.getExecutableSql(), "10");
 	}
 
 	@Test
-	public void testParseElse() throws Exception {
+	void testParseElse() throws Exception {
 		var sql = "SELECT * FROM emp WHERE /*IF job != null*/job = /*job*/'CLERK'-- ELSE job is null/*END*/";
 		var sql2 = "SELECT * FROM emp WHERE job = ?/*job*/";
 		var sql3 = "SELECT * FROM emp WHERE job is null";
@@ -556,36 +556,36 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(1));
-		assertThat(vars[0], is(job));
+		assertEquals(1, vars.length, "2");
+		assertEquals(job, vars[0], "3");
 		var ctx2 = sqlConfig.context();
 		root.accept(ctx2);
 		System.out.println("[" + ctx2.getExecutableSql() + "]");
-		assertThat(ctx2.getExecutableSql(), is(sql3));
+		assertEquals(sql3, ctx2.getExecutableSql(), "4");
 	}
 
 	@Test
-	public void testParseElse2() throws Exception {
+	void testParseElse2() throws Exception {
 		var sql = "/*IF false*/aaa--ELSE bbb = /*bbb*/123/*END*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		var bbb = Integer.valueOf(123);
+		var bbb = 123;
 		ctx.param("bbb", bbb);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is("bbb = ?/*bbb*/"));
+		assertEquals("bbb = ?/*bbb*/", ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(1));
-		assertThat(vars[0], is(bbb));
+		assertEquals(1, vars.length, "2");
+		assertEquals(bbb, vars[0], "3");
 	}
 
 	@Test
-	public void testParseElse3() throws Exception {
+	void testParseElse3() throws Exception {
 		var sql = "/*IF false*/aaa--ELSE bbb/*IF false*/ccc--ELSE ddd/*END*//*END*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
@@ -593,11 +593,11 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is("bbbddd"));
+		assertEquals("bbbddd", ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testElse4() throws Exception {
+	void testElse4() throws Exception {
 		var sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF false*/aaa-- ELSE AND deptno = 10/*END*//*END*/";
 		var sql2 = "SELECT * FROM emp WHERE deptno = 10";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -606,11 +606,11 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testBegin() throws Exception {
+	void testBegin() throws Exception {
 		var sql = "SELECT * FROM emp/*BEGIN*/ WHERE /*IF job != null*/job = /*job*/'CLERK'/*END*//*IF deptno != null*/ AND deptno = /*deptno*/20/*END*//*END*/";
 		var sql2 = "SELECT * FROM emp";
 		var sql3 = "SELECT * FROM emp WHERE job = ?/*job*/";
@@ -624,40 +624,40 @@ public class SqlParserTest {
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var bNames = ctx.getBindNames();
-		assertThat(bNames.size(), is(0));
+		assertEquals(0, bNames.size());
 
 		var ctx2 = sqlConfig.context();
 		ctx2.param("job", "CLERK");
 		ctx2.param("deptno", null);
 		root.accept(ctx2);
 		System.out.println(ctx2.getExecutableSql());
-		assertThat(ctx2.getExecutableSql(), is(sql3));
+		assertEquals(sql3, ctx2.getExecutableSql(), "2");
 		var bNames2 = ctx2.getBindNames();
-		assertThat(bNames2.size(), is(1));
+		assertEquals(1, bNames2.size());
 
 		var ctx3 = sqlConfig.context();
 		ctx3.param("job", "CLERK");
-		ctx3.param("deptno", Integer.valueOf(20));
+		ctx3.param("deptno", 20);
 		root.accept(ctx3);
 		System.out.println(ctx3.getExecutableSql());
-		assertThat(ctx3.getExecutableSql(), is(sql4));
+		assertEquals(sql4, ctx3.getExecutableSql(), "3");
 		var bNames3 = ctx3.getBindNames();
-		assertThat(bNames3.size(), is(2));
+		assertEquals(2, bNames3.size());
 
 		var ctx4 = sqlConfig.context();
-		ctx4.param("deptno", Integer.valueOf(20));
+		ctx4.param("deptno", 20);
 		ctx4.param("job", null);
 		root.accept(ctx4);
 		System.out.println(ctx4.getExecutableSql());
-		assertThat(ctx4.getExecutableSql(), is(sql5));
+		assertEquals(sql5, ctx4.getExecutableSql(), "4");
 		var bNames4 = ctx4.getBindNames();
-		assertThat(bNames4.size(), is(1));
+		assertEquals(1, bNames4.size());
 	}
 
 	@Test
-	public void testBeginAnd() throws Exception {
+	void testBeginAnd() throws Exception {
 		var sql = "/*BEGIN*/WHERE /*IF true*/aaa BETWEEN /*bbb*/111 AND /*ccc*/123/*END*//*END*/";
 		var sql2 = "WHERE aaa BETWEEN ?/*bbb*/ AND ?/*ccc*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -668,36 +668,36 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println("[" + ctx.getExecutableSql() + "]");
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var bNames = ctx.getBindNames();
-		assertThat(bNames.size(), is(2));
-		assertThat(bNames.get(0), is("bbb"));
-		assertThat(bNames.get(1), is("ccc"));
+		assertEquals(2, bNames.size());
+		assertEquals("bbb", bNames.get(0));
+		assertEquals("ccc", bNames.get(1));
 	}
 
 	@Test
-	public void testIn() throws Exception {
+	void testIn() throws Exception {
 		var sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
 		var sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		List<Integer> deptnoList = new ArrayList<>();
-		deptnoList.add(Integer.valueOf(10));
-		deptnoList.add(Integer.valueOf(20));
+		deptnoList.add(10);
+		deptnoList.add(20);
 		ctx.param("deptnoList", deptnoList);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is(Integer.valueOf(10)));
-		assertThat(vars[1], is(Integer.valueOf(20)));
+		assertEquals(2, vars.length, "2");
+		assertEquals(Integer.valueOf(10), vars[0], "3");
+		assertEquals(Integer.valueOf(20), vars[1], "4");
 	}
 
 	@Test
-	public void testIn2() throws Exception {
+	void testIn2() throws Exception {
 		var sql = "SELECT * FROM emp WHERE deptno IN /*deptnoList*/(10, 20) ORDER BY ename";
 		var sql2 = "SELECT * FROM emp WHERE deptno IN (?, ?)/*deptnoList*/ ORDER BY ename";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -708,15 +708,15 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is(Integer.valueOf(10)));
-		assertThat(vars[1], is(Integer.valueOf(20)));
+		assertEquals(2, vars.length, "2");
+		assertEquals(Integer.valueOf(10), vars[0], "3");
+		assertEquals(Integer.valueOf(20), vars[1], "4");
 	}
 
 	@Test
-	public void testIn3() throws Exception {
+	void testIn3() throws Exception {
 		var sql = "SELECT * FROM emp WHERE ename IN /*enames*/('SCOTT','MARY') AND job IN /*jobs*/('ANALYST', 'FREE')";
 		var sql2 = "SELECT * FROM emp WHERE ename IN (?, ?)/*enames*/ AND job IN (?, ?)/*jobs*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -729,36 +729,36 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(4));
-		assertThat(vars[0], is("SCOTT"));
-		assertThat(vars[1], is("MARY"));
-		assertThat(vars[2], is("ANALYST"));
-		assertThat(vars[3], is("FREE"));
+		assertEquals(4, vars.length, "2");
+		assertEquals("SCOTT", vars[0], "3");
+		assertEquals("MARY", vars[1], "4");
+		assertEquals("ANALYST", vars[2], "5");
+		assertEquals("FREE", vars[3], "6");
 	}
 
 	@Test
-	public void testParseBindVariable3() throws Exception {
+	void testParseBindVariable3() throws Exception {
 		var sql = "BETWEEN sal ? AND ?";
 		var sql2 = "BETWEEN sal ?/*$1*/ AND ?/*$2*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		ctx.param("$1", Integer.valueOf(0));
-		ctx.param("$2", Integer.valueOf(1000));
+		ctx.param("$1", 0);
+		ctx.param("$2", 1000);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is(Integer.valueOf(0)));
-		assertThat(vars[1], is(Integer.valueOf(1000)));
+		assertEquals(2, vars.length, "2");
+		assertEquals(Integer.valueOf(0), vars[0], "3");
+		assertEquals(Integer.valueOf(1000), vars[1], "4");
 	}
 
 	@Test
-	public void testParseBindVariable4() throws Exception {
+	void testParseBindVariable4() throws Exception {
 		var sql = "SELECT * FROM emp WHERE job = /*emp.job*/'CLERK' AND deptno = /*emp.deptno*/20";
 		var sql2 = "SELECT * FROM emp WHERE job = ?/*emp.job*/ AND deptno = ?/*emp.deptno*/";
 		var sql3 = "SELECT * FROM emp WHERE job = ";
@@ -768,31 +768,31 @@ public class SqlParserTest {
 		var ctx = sqlConfig.context();
 		var emp = new Emp();
 		emp.setJob("CLERK");
-		emp.setDeptno(Integer.valueOf(20));
+		emp.setDeptno(20);
 		ctx.param("emp", emp);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		var root = transformer.getRoot();
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is(emp.getJob()));
-		assertThat(vars[1], is(emp.getDeptno()));
-		assertThat(root.getChildSize(), is(4));
+		assertEquals(2, vars.length, "2");
+		assertEquals(emp.getJob(), vars[0], "3");
+		assertEquals(emp.getDeptno(), vars[1], "4");
+		assertEquals(4, root.getChildSize(), "5");
 		var sqlNode = (SqlNode) root.getChild(0);
-		assertThat(sqlNode.getSql(), is(sql3));
+		assertEquals(sql3, sqlNode.getSql(), "6");
 		var varNode = (BindVariableNode) root.getChild(1);
-		assertThat(varNode.getExpression(), is("emp.job"));
+		assertEquals("emp.job", varNode.getExpression(), "7");
 		var sqlNode2 = (SqlNode) root.getChild(2);
-		assertThat(sqlNode2.getSql(), is(sql4));
+		assertEquals(sql4, sqlNode2.getSql(), "8");
 		var varNode2 = (BindVariableNode) root.getChild(3);
-		assertThat(varNode2.getExpression(), is("emp.deptno"));
+		assertEquals("emp.deptno", varNode2.getExpression(), "9");
 	}
 
 	@Test
-	public void testParseBindVariable5() throws Exception {
+	void testParseBindVariable5() throws Exception {
 		var sql = "/*(count + 1)*/";
 		var sql2 = "?/*(count + 1)*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -802,14 +802,14 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(1));
-		assertThat(vars[0], is(4));
+		assertEquals(1, vars.length, "2");
+		assertEquals(4, vars[0], "3");
 	}
 
 	@Test
-	public void testParseBindVariable6() throws Exception {
+	void testParseBindVariable6() throws Exception {
 		var sql = "SELECT * FROM EMP WHERE ENAME IN /*SF.split(enames, ',')*/()";
 		var sql2 = "SELECT * FROM EMP WHERE ENAME IN (?, ?)/*SF.split(enames, ',')*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -820,66 +820,66 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 		var vars = ctx.getBindVariables();
-		assertThat(vars.length, is(2));
-		assertThat(vars[0], is("SCOTT"));
-		assertThat(vars[1], is("MARY"));
+		assertEquals(2, vars.length, "2");
+		assertEquals("SCOTT", vars[0], "3");
+		assertEquals("MARY", vars[1], "4");
 	}
 
 	@Test
-	public void testEndNotFound() throws Exception {
+	void testEndNotFound() throws Exception {
 		var sql = "/*BEGIN*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		try {
 			parser.parse();
-			assertThat("1", false);
+			fail("1");
 		} catch (EndCommentNotFoundRuntimeException ex) {
 			System.out.println(ex);
 		}
 	}
 
 	@Test
-	public void testEndParent() throws Exception {
+	void testEndParent() throws Exception {
 		var sql = "INSERT INTO ITEM (ID, NUM) VALUES (/*id*/1, /*num*/20)";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		ctx.param("id", Integer.valueOf(0));
-		ctx.param("num", Integer.valueOf(1));
+		ctx.param("id", 0);
+		ctx.param("num", 1);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql().endsWith(")"), is(true));
+		assertEquals(true, ctx.getExecutableSql().endsWith(")"), "1");
 	}
 
 	@Test
-	public void testEmbeddedValue() throws Exception {
+	void testEmbeddedValue() throws Exception {
 		var sql = "xx /*#aaa*/ xx";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		ctx.param("aaa", Integer.valueOf(0));
+		ctx.param("aaa", 0);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is("xx '0'/*#aaa*/ xx"));
+		assertEquals("xx '0'/*#aaa*/ xx", ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testEmbeddedValue2() throws Exception {
+	void testEmbeddedValue2() throws Exception {
 		var sql = "/*$emp.deptno*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
 		var emp = new Emp();
-		emp.setDeptno(Integer.valueOf(0));
+		emp.setDeptno(0);
 		ctx.param("emp", emp);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is("0/*$emp.deptno*/"));
+		assertEquals("0/*$emp.deptno*/", ctx.getExecutableSql(), "1");
 	}
 
 	/**
@@ -888,7 +888,7 @@ public class SqlParserTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testEmbeddedValue3() throws Exception {
+	void testEmbeddedValue3() throws Exception {
 		var sql = "xx /*#aaa*/ xx";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
@@ -897,11 +897,11 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is("xx 'bb''bb'/*#aaa*/ xx"));
+		assertEquals("xx 'bb''bb'/*#aaa*/ xx", ctx.getExecutableSql(), "1");
 	}
 
 	@Test
-	public void testStringFunction1() throws Exception {
+	void testStringFunction1() throws Exception {
 		var sql = "/*IF SF.isEmpty(val1)*/1=1 /*ELIF SF.containsAny(val2, val3)*/2=2 --ELSE 3=3/*END*/";
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
@@ -915,7 +915,7 @@ public class SqlParserTest {
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());
-		assertThat(ctx.getExecutableSql(), is(sql2));
+		assertEquals(sql2, ctx.getExecutableSql(), "1");
 	}
 
 	@SuppressWarnings("deprecation")
@@ -948,7 +948,7 @@ public class SqlParserTest {
 	}
 
 	@Test
-	public void testParamMissMatch1() throws Exception {
+	void testParamMissMatch1() throws Exception {
 		PreparedStatement st = null;
 
 		try (var conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch1")) {
@@ -966,17 +966,17 @@ public class SqlParserTest {
 
 			st = conn.prepareStatement(ctx.getExecutableSql());
 			ctx.bindParams(st);
-			assertThat("テスト失敗", false);
+			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			var msg = ex.getMessage();
-			assertThat(msg, is("Parameter [val2] is not found."));
+			assertEquals("Parameter [val2] is not found.", msg, "1");
 		} catch (Exception ex) {
-			assertThat("期待しない例外. ex=" + ex.getMessage(), false);
+			fail("期待しない例外. ex=" + ex.getMessage());
 		}
 	}
 
 	@Test
-	public void testParamMissMatch2() throws Exception {
+	void testParamMissMatch2() throws Exception {
 		PreparedStatement st = null;
 
 		try (var conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch2")) {
@@ -993,17 +993,17 @@ public class SqlParserTest {
 
 			st = conn.prepareStatement(ctx.getExecutableSql());
 			ctx.bindParams(st);
-			assertThat("テスト失敗", false);
+			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			var msg = ex.getMessage();
-			assertThat(msg, is("Parameter [val2, val3] is not found."));
+			assertEquals("Parameter [val2, val3] is not found.", msg, "1");
 		} catch (Exception ex) {
-			assertThat("期待しない例外. ex=" + ex.getMessage(), false);
+			fail("期待しない例外. ex=" + ex.getMessage());
 		}
 	}
 
 	@Test
-	public void testParamMissMatch3() throws Exception {
+	void testParamMissMatch3() throws Exception {
 		PreparedStatement st = null;
 
 		try (var conn = DriverManager.getConnection("jdbc:h2:mem:testParamMissMatch3")) {
@@ -1023,12 +1023,12 @@ public class SqlParserTest {
 			st = conn.prepareStatement(ctx.getExecutableSql());
 			ctx.bindParams(st);
 		} catch (Exception ex) {
-			assertThat("期待しない例外. ex=" + ex.getMessage(), false);
+			fail("期待しない例外. ex=" + ex.getMessage());
 		}
 	}
 
 	@Test
-	public void testELSECOMMENT1() throws Exception {
+	void testELSECOMMENT1() throws Exception {
 		var sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT1.sql")),
 				StandardCharsets.UTF_8);
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1043,11 +1043,11 @@ public class SqlParserTest {
 				StandardCharsets.UTF_8);
 		var sql3 = ctx.getExecutableSql();
 		System.out.println(sql3);
-		assertThat(sql3, is(sql2));
+		assertEquals(sql2, sql3);
 	}
 
 	@Test
-	public void testELSECOMMENT2() throws Exception {
+	void testELSECOMMENT2() throws Exception {
 		var sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test/ELSE_COMMENT2.sql")),
 				StandardCharsets.UTF_8);
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1062,11 +1062,11 @@ public class SqlParserTest {
 				StandardCharsets.UTF_8);
 		var sql3 = ctx.getExecutableSql();
 		System.out.println(sql3);
-		assertThat(sql3, is(sql2));
+		assertEquals(sql2, sql3);
 	}
 
 	@Test
-	public void testParseNodeDecrare() throws Exception {
+	void testParseNodeDecrare() throws Exception {
 		var sql = "DECLARE /* _SQL_IDENTIFIER_ */	/*IF projectStage != \"dev\"*/	PRAGMA AUTONOMOUS_TRANSACTION;	/*END*/BEGIN	SELECT 'aaa' as AAA FROM DUAL;END;";
 
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1081,7 +1081,7 @@ public class SqlParserTest {
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testParseNode() throws Exception {
+	void testParseNode() throws Exception {
 		var sql = "aaa /*IF purCd != null*/1=1/*END*/ bbb";
 
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1090,12 +1090,12 @@ public class SqlParserTest {
 
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa  bbb"));
+		assertEquals("aaa  bbb", ctx.getExecutableSql());
 	}
 
 	// IF ENUM EQ
 	@Test
-	public void testParseEnumEq1() throws Exception {
+	void testParseEnumEq1() throws Exception {
 		var sql = "aaa /*IF CLS_TEST_ENUM1_A eq bindEnum*/1=1/*END*/ bbb";
 
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1105,12 +1105,12 @@ public class SqlParserTest {
 
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa 1=1 bbb"));
+		assertEquals("aaa 1=1 bbb", ctx.getExecutableSql());
 	}
 
 	// IF ENUM ==
 	@Test
-	public void testParseEnumEq2() throws Exception {
+	void testParseEnumEq2() throws Exception {
 		var sql = "aaa /*IF CLS_TEST_ENUM1_A == bindEnum*/1=1/*END*/ bbb";
 
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
@@ -1120,12 +1120,12 @@ public class SqlParserTest {
 
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa 1=1 bbb"));
+		assertEquals("aaa 1=1 bbb", ctx.getExecutableSql());
 	}
 
 	// Delete AND / OR immediately after WHERE clause
 	@Test
-	public void testDeleteImmediatelyAfterWhereClause() throws Exception {
+	void testDeleteImmediatelyAfterWhereClause() throws Exception {
 		// OK Case
 		var sql = "aaa Where /*IF true*/And col1 = 1/*END*/ bbb";
 
@@ -1135,7 +1135,7 @@ public class SqlParserTest {
 
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa Where col1 = 1 bbb"));
+		assertEquals("aaa Where col1 = 1 bbb", ctx.getExecutableSql());
 
 		// OK Case in \r\n
 		sql = "aaa Where\r\n/*IF true*/or\r\ncol1 = 1/*END*/ bbb";
@@ -1146,7 +1146,7 @@ public class SqlParserTest {
 
 		transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa Where\r\ncol1 = 1 bbb"));
+		assertEquals("aaa Where\r\ncol1 = 1 bbb", ctx.getExecutableSql());
 
 		// NG Case
 		sql = "aaa WHERE /*IF true*/ORDER = 1/*END*/ bbb";
@@ -1157,7 +1157,39 @@ public class SqlParserTest {
 
 		transformer = parser.parse();
 		transformer.transform(ctx);
-		assertThat(ctx.getExecutableSql(), is("aaa WHERE ORDER = 1 bbb"));
+		assertEquals("aaa WHERE ORDER = 1 bbb", ctx.getExecutableSql());
+	}
+
+	@Test
+	void testParseDontRemoveComma1() throws Exception {
+		var sql = "SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)";
+
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		var ctx = sqlConfig.context();
+		ctx.param("sequenceName", "test_seq");
+		ctx.param("initialValue", "1");
+
+		var transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals("SELECT /* _SQL_ID_ */ setval(?/*sequenceName*/, ?/*initialValue*/, false)",
+				ctx.getExecutableSql());
+	}
+
+	@Test
+	void testParseDontRemoveComma2() throws Exception {
+		var sql = "SELECT /* _SQL_ID_ */ TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test";
+
+		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+				sqlConfig.getDialect().isRemoveTerminator(), true);
+		var ctx = sqlConfig.context();
+		ctx.param("BIND_0", "M");
+
+		var transformer = parser.parse();
+		transformer.transform(ctx);
+		assertEquals(
+				"SELECT /* _SQL_ID_ */ TO_CHAR(FNC_ADD_MONTHS(TO_DATE(?/*BIND_0*/, 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test",
+				ctx.getExecutableSql());
 	}
 
 }

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.time.LocalDate;
@@ -45,7 +45,7 @@ public class DateTimeTest {
 						"create table if not exists test( "
 								+ "id NUMERIC(4)"
 								+ ",date_value DATE"
-								+ ",datetime_value DATETIME"
+								+ ",datetime_value TIMESTAMP(9)"
 								+ ",time_value TIME"
 								+ ", primary key(id))");
 			}
@@ -92,23 +92,12 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (LocalTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
+					|| id != other.id || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -148,23 +137,12 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (DateTestEntity) obj;
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(dateValue, other.dateValue) || !Objects.equals(datetimeValue, other.datetimeValue)
+					|| id != other.id || !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -202,20 +180,12 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (OffsetTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(timeValue, other.timeValue)) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || id != other.id
+					|| !Objects.equals(timeValue, other.timeValue)) {
 				return false;
 			}
 			return true;
@@ -250,17 +220,11 @@ public class DateTimeTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (ZonedTestEntity) obj;
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (id != other.id) {
+			if (!Objects.equals(datetimeValue, other.datetimeValue) || id != other.id) {
 				return false;
 			}
 			return true;
@@ -273,7 +237,7 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testZoned() throws Exception {
+	void testZoned() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -288,16 +252,15 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testOffset() throws Exception {
+	void testOffset() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new OffsetTestEntity(1);
 				agent.insert(test1);
-				test1.datetimeValue = test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				var offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
 				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(offset.datetimeValue, is(test1.datetimeValue));
+				assertThat(offset.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
 			});
@@ -305,7 +268,7 @@ public class DateTimeTest {
 	}
 
 	@Test
-	public void testDate() throws Exception {
+	void testDate() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -317,7 +280,7 @@ public class DateTimeTest {
 				assertThat(date.dateValue.getTime(), is(test1.dateValue.getTime()));
 				System.out.println(date.timeValue);
 
-				final var c = Calendar.getInstance();
+				var c = Calendar.getInstance();
 				c.setLenient(false);
 				c.setTime(date.timeValue);
 				c.set(Calendar.YEAR, 1970);
@@ -335,5 +298,4 @@ public class DateTimeTest {
 			});
 		}
 	}
-
 }

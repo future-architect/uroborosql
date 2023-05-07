@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -73,18 +74,19 @@ public class ExecutionContextImpl implements ExecutionContext {
 	}
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
-	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*.*\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
+	private static final Pattern WHERE_CLAUSE_PATTERN = Pattern
+			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
+	private static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
 			.compile(
-					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*.*\\*/\\s*)*\\s*)(,)");
+					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*)(,)");
+
 	/** 不要な空白、改行を除去するための正規表現 */
-	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
+	private static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	/** SQL名 */
 	private String sqlName;
@@ -100,6 +102,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 
 	/** SQL文の識別子 */
 	private String sqlId;
+
+	/** SQLを実行するスキーマ */
+	private String schema;
 
 	/** SQL実行の最大リトライ数 */
 	private int maxRetryCount = 0;
@@ -158,7 +163,11 @@ public class ExecutionContextImpl implements ExecutionContext {
 	/** パラメータ変換マネージャ */
 	private BindParameterMapperManager parameterMapperManager;
 
+	/** パラメータ名Set */
 	private ParameterNames parameterNames;
+
+	/** 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理. */
+	private Function<ExecutionContext, Integer> updateDelegate;
 
 	/**
 	 * コンストラクタ。
@@ -207,33 +216,31 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public String getExecutableSql() {
-		if (StringUtils.isEmpty(executableSqlCache)) {
-			if (executableSql.length() > 0) {
-				executableSqlCache = executableSql.toString();
-				if (executableSqlCache.toUpperCase().contains("WHERE")) {
-					// where句の直後に来るANDやORの除去
-					var buff = new StringBuffer();
-					var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
-					while (matcher.find()) {
-						var whereClause = matcher.group("clause");
-						matcher.appendReplacement(buff, whereClause);
-					}
-					matcher.appendTail(buff);
-					executableSqlCache = buff.toString();
-				}
-				// 各句の直後に現れる不要なカンマの除去
+		if (StringUtils.isEmpty(executableSqlCache) && (executableSql.length() > 0)) {
+			executableSqlCache = executableSql.toString();
+			if (executableSqlCache.toUpperCase().contains("WHERE")) {
+				// where句の直後に来るANDやORの除去
 				var buff = new StringBuffer();
-				var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
-				while (removeCommaMatcher.find()) {
-					var clauseWords = removeCommaMatcher.group("keyword");
-					removeCommaMatcher.appendReplacement(buff, clauseWords);
+				var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
+				while (matcher.find()) {
+					var whereClause = matcher.group("clause");
+					matcher.appendReplacement(buff, whereClause);
 				}
-				removeCommaMatcher.appendTail(buff);
+				matcher.appendTail(buff);
 				executableSqlCache = buff.toString();
-
-				// 空行の除去
-				executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");
 			}
+			// 各句の直後に現れる不要なカンマの除去
+			var buff = new StringBuffer();
+			var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
+			while (removeCommaMatcher.find()) {
+				var clauseWords = removeCommaMatcher.group("keyword");
+				removeCommaMatcher.appendReplacement(buff, clauseWords);
+			}
+			removeCommaMatcher.appendTail(buff);
+			executableSqlCache = buff.toString();
+
+			// 空行の除去
+			executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");
 		}
 		return executableSqlCache;
 	}
@@ -304,6 +311,27 @@ public class ExecutionContextImpl implements ExecutionContext {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getSchema()
+	 */
+	@Override
+	public String getSchema() {
+		return this.schema;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSchema(java.lang.String)
+	 */
+	@Override
+	public ExecutionContext setSchema(final String schema) {
+		this.schema = schema;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#getMaxRetryCount()
 	 */
 	@Override
@@ -367,11 +395,13 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @return パラメータ
 	 */
 	private Parameter getBindParameter(final String paramName) {
-		// メソッド呼び出しかどうかで処理を振り分け
-		if (paramName.contains(".") && paramName.contains("(") && paramName.contains(")")) {
+		if (!paramName.contains(".")) {
+			return parameterMap.get(paramName);
+		} else if (paramName.contains("(") && paramName.contains(")")) {
 			// メソッド呼び出しの場合は、SqlParserで値を評価するタイミングでparameterをaddしているので、そのまま返却する
 			return parameterMap.get(paramName);
 		} else {
+			// サブパラメータの作成
 			var keys = paramName.split("\\.");
 			var baseName = keys[0];
 
@@ -384,7 +414,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 				var propertyName = keys[1];
 				return parameter.createSubParameter(propertyName);
 			}
-
 			return parameter;
 		}
 	}
@@ -821,7 +850,10 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 * @return バインドパラメータ配列
 	 */
 	public Parameter[] getBindParameters() {
-		return bindNames.stream().map(this::getParam).filter(Objects::nonNull).toArray(Parameter[]::new);
+		return bindNames.stream()
+				.map(this::getParam)
+				.filter(Objects::nonNull)
+				.toArray(Parameter[]::new);
 	}
 
 	/**
@@ -833,16 +865,16 @@ public class ExecutionContextImpl implements ExecutionContext {
 	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
 		var bindParameters = getBindParameters();
 
-		Set<String> matchParams = new HashSet<>();
+		var matchParams = new HashSet<String>();
 		var parameterIndex = 1;
-		for (Parameter bindParameter : bindParameters) {
+		for (var bindParameter : bindParameters) {
 			var parameter = getSqlFilterManager().doParameter(bindParameter);
 			parameterIndex = parameter.setParameter(preparedStatement, parameterIndex, parameterMapperManager);
 			matchParams.add(parameter.getParameterName());
 		}
 		// SQL上のバインドパラメータ群（bindNames）に対応する値がすべて設定されているかどうかをチェックする
 		if (!matchParams.containsAll(bindNames)) {
-			Set<String> missMatchParams = new LinkedHashSet<>(bindNames);
+			var missMatchParams = new LinkedHashSet<>(bindNames);
 			missMatchParams.removeAll(matchParams);
 			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not found.");
 		}
@@ -855,12 +887,14 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
-		for (Map<String, Parameter> paramMap : batchParameters) {
+		for (var paramMap : batchParameters) {
 			parameterMap = paramMap;
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
-		LOG.debug("{} items Added for batch process.", batchParameters.size());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("{} items Added for batch process.", batchParameters.size());
+		}
 	}
 
 	/**
@@ -870,10 +904,10 @@ public class ExecutionContextImpl implements ExecutionContext {
 	 */
 	@Override
 	public Map<String, Object> getOutParams(final CallableStatement callableStatement) throws SQLException {
-		Map<String, Object> out = new HashMap<>();
+		var out = new HashMap<String, Object>();
 		var bindParameters = getBindParameters();
 		var parameterIndex = 1;
-		for (Parameter parameter : bindParameters) {
+		for (var parameter : bindParameters) {
 			if (parameter instanceof OutParameter) {
 				var key = parameter.getParameterName();
 				out.put(key, getSqlFilterManager().doOutParameter(key, callableStatement.getObject(parameterIndex)));
@@ -881,7 +915,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 			parameterIndex++;
 		}
 
-		LOG.debug("Stored procedure out parameter[{}]", out);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Stored procedure out parameter[{}]", out);
+		}
 		return out;
 	}
 
@@ -894,8 +930,19 @@ public class ExecutionContextImpl implements ExecutionContext {
 	public ExecutionContext addBatch() {
 		acceptUpdateAutoParameterBinder();
 		batchParameters.add(parameterMap);
-		parameterMap = new HashMap<>();
+		// バッチ処理では毎回同じ数のパラメータが追加されることが多いのでMap生成時のinitialCapacityを指定してマップのリサイズ処理を極力発生させないようにする
+		parameterMap = new HashMap<>(calcInitialCapacity(parameterMap.size()));
 		return this;
+	}
+
+	/**
+	 * HashMapで指定されたbaseSize内で収まっていればresizeが発生しない初期容量を計算する.
+	 * @param baseSize 基底となるMapのサイズ
+	 * @return 初期容量
+	 */
+	private int calcInitialCapacity(final int baseSize) {
+		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けてcapacityを計算する。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
+		return baseSize * 4 / 3 + 1;
 	}
 
 	/**
@@ -1165,6 +1212,27 @@ public class ExecutionContextImpl implements ExecutionContext {
 	@Override
 	public boolean hasGeneratedKeyColumns() {
 		return getGeneratedKeyColumns() != null && getGeneratedKeyColumns().length > 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getUpdateDelegate()
+	 */
+	@Override
+	public Function<ExecutionContext, Integer> getUpdateDelegate() {
+		return this.updateDelegate;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setUpdateDelegate(java.util.function.Function)
+	 */
+	@Override
+	public ExecutionContext setUpdateDelegate(final Function<ExecutionContext, Integer> updateDelegate) {
+		this.updateDelegate = updateDelegate;
+		return this;
 	}
 
 }

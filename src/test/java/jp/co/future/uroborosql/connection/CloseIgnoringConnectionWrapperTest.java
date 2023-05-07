@@ -1,8 +1,11 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -45,7 +48,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testCreateStatement() throws Exception {
+	void testCreateStatement() throws Exception {
 		assertThat(target.createStatement(), is(instanceOf(Statement.class)));
 		assertThat(target.createStatement(
 				ResultSet.TYPE_FORWARD_ONLY,
@@ -59,7 +62,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testPrepareStatement() throws Exception {
+	void testPrepareStatement() throws Exception {
 		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareStatement(sql),
 				is(instanceOf(PreparedStatement.class)));
@@ -81,7 +84,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testPrepareCall() throws Exception {
+	void testPrepareCall() throws Exception {
 		var sql = "select * from information_schema.columns";
 		assertThat(target.prepareCall(sql),
 				is(instanceOf(CallableStatement.class)));
@@ -97,13 +100,13 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testNativeSQL() throws Exception {
+	void testNativeSQL() throws Exception {
 		var sql = "select * from information_schema.columns";
 		assertThat(target.nativeSQL(sql), is(sql));
 	}
 
 	@Test
-	public void testAutoCommit() throws Exception {
+	void testAutoCommit() throws Exception {
 		target.setAutoCommit(true);
 		assertThat(target.getAutoCommit(), is(true));
 		target.setAutoCommit(false);
@@ -111,7 +114,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testIsClosed() throws Exception {
+	void testIsClosed() throws Exception {
 		target.commit();
 		target.rollback();
 		target.close();
@@ -119,50 +122,50 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testGetMetaData() throws Exception {
+	void testGetMetaData() throws Exception {
 		assertThat(target.getMetaData(), is(instanceOf(DatabaseMetaData.class)));
 	}
 
 	@Test
-	public void testReadOnly() throws Exception {
+	void testReadOnly() throws Exception {
 		target.setReadOnly(false);
 		assertThat(target.isReadOnly(), is(false));
 	}
 
 	@Test
-	public void testCatalog() throws Exception {
+	void testCatalog() throws Exception {
 		var catalog = target.getCatalog();
 		target.setCatalog(catalog);
 		assertThat(target.getCatalog(), is(catalog));
 	}
 
 	@Test
-	public void testTransactionIsolation() throws Exception {
+	void testTransactionIsolation() throws Exception {
 		target.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 		assertThat(target.getTransactionIsolation(), is(Connection.TRANSACTION_SERIALIZABLE));
 	}
 
 	@Test
-	public void testGetWarnings() throws Exception {
+	void testGetWarnings() throws Exception {
 		target.clearWarnings();
 		assertThat(target.getWarnings(), is(nullValue()));
 	}
 
 	@Test
-	public void testTypeMap() throws Exception {
+	void testTypeMap() throws Exception {
 		var typeMap = target.getTypeMap();
 		target.setTypeMap(typeMap);
 		assertThat(target.getTypeMap(), is(nullValue()));
 	}
 
 	@Test
-	public void testHoldability() throws Exception {
+	void testHoldability() throws Exception {
 		target.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		assertThat(target.getHoldability(), is(ResultSet.CLOSE_CURSORS_AT_COMMIT));
 	}
 
 	@Test
-	public void testSavepoint() throws Exception {
+	void testSavepoint() throws Exception {
 		var savepoint = target.setSavepoint();
 		assertThat(savepoint, not(nullValue()));
 		target.releaseSavepoint(savepoint);
@@ -173,37 +176,39 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testCreateClob() throws Exception {
+	void testCreateClob() throws Exception {
 		assertThat(target.createClob(), is(instanceOf(Clob.class)));
 	}
 
 	@Test
-	public void testCreateBlob() throws Exception {
+	void testCreateBlob() throws Exception {
 		assertThat(target.createBlob(), is(instanceOf(Blob.class)));
 	}
 
 	@Test
-	public void testCreateNClob() throws Exception {
+	void testCreateNClob() throws Exception {
 		assertThat(target.createNClob(), is(instanceOf(NClob.class)));
 	}
 
 	@Test
-	public void testCreateSQLXML() throws Exception {
+	void testCreateSQLXML() throws Exception {
 		assertThat(target.createSQLXML(), is(instanceOf(SQLXML.class)));
 	}
 
 	@Test
-	public void testCreateStruct() throws Exception {
-		assertThrows(SQLFeatureNotSupportedException.class, () -> target.createStruct("char", new Object[] {}));
+	void testCreateStruct() throws Exception {
+		assertThrows(SQLFeatureNotSupportedException.class, () -> {
+			target.createStruct("char", new Object[] {});
+		});
 	}
 
 	@Test
-	public void testIsValid() throws Exception {
+	void testIsValid() throws Exception {
 		assertThat(target.isValid(1), is(true));
 	}
 
 	@Test
-	public void testClientInfo() throws Exception {
+	void testClientInfo() throws Exception {
 		target.setClientInfo("ApplicationName", "app");
 		assertThat(target.getClientInfo("ApplicationName"), is("app"));
 
@@ -215,18 +220,18 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testCreateArrayOf() throws Exception {
+	void testCreateArrayOf() throws Exception {
 		assertThat(target.createArrayOf("char", new Object[] {}), is(instanceOf(Array.class)));
 	}
 
 	@Test
-	public void testSchema() throws Exception {
+	void testSchema() throws Exception {
 		target.setSchema("PUBLIC");
 		assertThat(target.getSchema(), is("PUBLIC"));
 	}
 
 	@Test
-	public void testNetworkTimeout() throws Exception {
+	void testNetworkTimeout() throws Exception {
 		var service = Executors.newSingleThreadExecutor();
 		target.setNetworkTimeout(service, 10);
 		assertThat(target.getNetworkTimeout(), is(0)); // H2 not supported. return fixed value 0.
@@ -234,7 +239,7 @@ public class CloseIgnoringConnectionWrapperTest {
 	}
 
 	@Test
-	public void testUnwrap() throws Exception {
+	void testUnwrap() throws Exception {
 		assertThat(target.isWrapperFor(Connection.class), is(true));
 		assertThat(target.unwrap(Connection.class), is(instanceOf(Connection.class)));
 	}

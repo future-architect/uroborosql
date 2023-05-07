@@ -36,7 +36,7 @@ public interface CoverageHandler {
 	 * @return 各行のRange
 	 */
 	static List<LineRange> getLineRanges(final String sql) {
-		List<LineRange> ret = new ArrayList<>();
+		var ret = new ArrayList<LineRange>();
 		var start = 0;
 		var searchStart = 0;
 		try (var scanner = new Scanner(sql)) {
@@ -66,14 +66,14 @@ public interface CoverageHandler {
 			var lineRange = iterator.next();
 			var line = sql.substring(lineRange.getStart(), lineRange.getEnd() + 1);
 			var trimLine = line.trim();
-			if (trimLine.isEmpty()) {
+			if (trimLine.isEmpty() || "/*END*/".equals(trimLine) || "/*ELSE*/".equals(trimLine)) {
 				iterator.remove();
-			} else if (trimLine.equals("/*END*/") || trimLine.equals("/*ELSE*/")) {
-				iterator.remove();
-			} else if (trimLine.startsWith("--")) {
-				var comments = trimLine.substring(2);
-				if (comments.trim().equals("ELSE")) {
-					iterator.remove();
+			} else {
+				if (trimLine.startsWith("--")) {
+					var comments = trimLine.substring(2);
+					if ("ELSE".equals(comments.trim())) {
+						iterator.remove();
+					}
 				}
 			}
 

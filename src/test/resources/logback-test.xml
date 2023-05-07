@@ -6,65 +6,58 @@
 		<Target>System.out</Target>
 		<!-- パターンレイアウト -->
 		<encoder>
-			<pattern>%m%n</pattern>
+			<pattern>%-40.40logger - [%.-1level] - %m%n</pattern>
 		</encoder>
 	</appender>
-
-	<appender name="AuditLogTest" class="jp.co.future.uroborosql.testlog.TestAppender">
-		<encoder>
-			<pattern>%m%n</pattern>
-		</encoder>
-	</appender>
-
-	<appender name="SecretColumnSqlInitializeTest" class="jp.co.future.uroborosql.testlog.TestAppender">
-		<encoder>
-			<pattern>%m%n</pattern>
-		</encoder>
-	</appender>
-
-	<appender name="DebugSqlFilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
-		<encoder>
-			<pattern>%m%n</pattern>
-		</encoder>
-	</appender>
-
-	<appender name="DumpResultSqlFilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
-		<encoder>
-			<pattern>%m%n</pattern>
-		</encoder>
-	</appender>
-
-	<logger name="jp.co.future.uroborosql.filter.AuditLogSqlFilter"
-		level="DEBUG" additivity="false">
-		<appender-ref ref="AuditLogTest" />
-	</logger>
-
-	<logger name="jp.co.future.uroborosql.filter.AbstractSecretColumnSqlFilter"
-		level="DEBUG" additivity="false">
-		<appender-ref ref="SecretColumnSqlInitializeTest" />
-	</logger>
-
-	<logger name="jp.co.future.uroborosql.filter.DebugSqlFilter"
-		level="DEBUG" additivity="false">
-		<appender-ref ref="DebugSqlFilterTest" />
-	</logger>
-
-	<logger name="jp.co.future.uroborosql.filter.DumpResultSqlFilter"
-		level="DEBUG" additivity="false">
-		<appender-ref ref="DumpResultSqlFilterTest" />
-	</logger>
 
 	<appender name="CoverageLog" class="ch.qos.logback.core.FileAppender">
 		<file>target/coverage.log</file>
 		<append>true</append>
 		<encoder>
+			<pattern>%-40.40logger - [%.-1level] - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
-	<logger name="jp.co.future.uroborosql.coverage" level="TRACE"
-		additivity="false">
+	<logger name="jp.co.future.uroborosql.log" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.sql" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.sql.dx" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.sql.parser" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.sql.repl" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.sql.coverage" level="INFO" additivity="false">
 		<appender-ref ref="CoverageLog" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.performance" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.setting" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.filter" level="DEBUG" additivity="false">
+		<appender-ref ref="FilterTest" />
 	</logger>
 
 	<!-- ログ出力に関する設定 -->

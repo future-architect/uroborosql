@@ -17,14 +17,14 @@ public class SqlKeywordCompleterTest extends ReaderTestSupport {
 	@BeforeAll
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
-		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+		for (var command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
 
 	}
 
 	@Test
-	public void testComplete() throws Exception {
+	void testComplete() throws Exception {
 		var completer = new SqlKeywordCompleter(commands);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);

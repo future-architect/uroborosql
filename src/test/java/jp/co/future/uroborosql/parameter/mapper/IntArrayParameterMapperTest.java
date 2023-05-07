@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -25,13 +25,13 @@ public class IntArrayParameterMapperTest {
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var jdbcArray = newProxy(Array.class);
 		int[] array = { 111 };
 
 		var conn = newProxy(Connection.class, (proxy, method, args) -> {
-			if (method.getName().equals("createArrayOf")) {
+			if ("createArrayOf".equals(method.getName())) {
 				assertThat(args[0], is("INTEGER"));
 				assertThat(args[1], is(array));
 				return jdbcArray;
@@ -73,18 +73,17 @@ public class IntArrayParameterMapperTest {
 			throw new AssertionError(e);
 		}
 
-		var proxyInstance = newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
+		return newProxy(interfaceType, new Class<?>[] { ProxyContainer.class }, (proxy, method, args) -> {
 			if (getOriginal.equals(method)) {
 				return o;
 			}
 
-			for (int i = 0; i < args.length; i++) {
+			for (var i = 0; i < args.length; i++) {
 				if (args[i] instanceof ProxyContainer) {
 					args[i] = ((ProxyContainer) args[i]).getOriginal();
 				}
 			}
 			return method.invoke(o, args);
 		});
-		return proxyInstance;
 	}
 }

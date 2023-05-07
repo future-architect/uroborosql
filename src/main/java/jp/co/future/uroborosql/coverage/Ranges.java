@@ -9,8 +9,7 @@ package jp.co.future.uroborosql.coverage;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -60,7 +59,7 @@ public class Ranges extends AbstractSet<Range> {
 
 	@Override
 	public ListIterator<Range> iterator() {
-		ranges.sort(Comparator.naturalOrder());
+		Collections.sort(ranges);
 		return ranges.listIterator();
 	}
 
@@ -69,9 +68,7 @@ public class Ranges extends AbstractSet<Range> {
 		var target = range;
 		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
 			var r = iterator.next();
-			if (r.equals(target)) {
-				return false;
-			} else if (r.include(target)) {
+			if (r.equals(target) || r.include(target)) {
 				return false;
 			} else if (target.getEnd() + 1 == r.getStart()) {
 				//吸収して元を削除
@@ -93,7 +90,7 @@ public class Ranges extends AbstractSet<Range> {
 
 	@Override
 	public String toString() {
-		ranges.sort(Comparator.naturalOrder());
+		Collections.sort(ranges);
 		return ranges.toString();
 	}
 
@@ -112,13 +109,11 @@ public class Ranges extends AbstractSet<Range> {
 	 * @param range Range
 	 */
 	public void minus(final Range range) {
-		List<Range> newList = new ArrayList<>();
+		var newList = new ArrayList<Range>();
 		var target = range;
 		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
 			var r = iterator.next();
-			if (r.equals(target)) {
-				iterator.remove();
-			} else if (target.include(r)) {
+			if (r.equals(target) || target.include(r)) {
 				iterator.remove();
 			} else if (r.include(target)) {
 				if (r.getStart() < target.getStart()) {
@@ -146,16 +141,11 @@ public class Ranges extends AbstractSet<Range> {
 	 * @param ranges Rangeコレクション
 	 */
 	public void intersect(final Collection<? extends Range> ranges) {
-		Ranges targetRanges;
-		if (ranges instanceof Ranges) {
-			targetRanges = (Ranges) ranges;
-		} else {
-			targetRanges = new Ranges(ranges);
-		}
+		var targetRanges = ranges instanceof Ranges ? (Ranges) ranges : new Ranges(ranges);
 
-		List<Range> newList = new ArrayList<>();
-		for (Iterator<? extends Range> iterator = this.ranges.iterator(); iterator.hasNext();) {
-			Range r = iterator.next();
+		var newList = new ArrayList<Range>();
+		for (var iterator = this.ranges.iterator(); iterator.hasNext();) {
+			var r = iterator.next();
 			var hasIntersections = getHasIntersections(targetRanges, r);
 			if (hasIntersections.isEmpty()) {
 				iterator.remove();
@@ -167,7 +157,7 @@ public class Ranges extends AbstractSet<Range> {
 					}
 				}
 				iterator.remove();
-				for (Range rangeHasIntersection : hasIntersections) {
+				for (var rangeHasIntersection : hasIntersections) {
 					newList.add(rangeHasIntersection.intersection(r));
 				}
 			}
@@ -181,8 +171,8 @@ public class Ranges extends AbstractSet<Range> {
 	}
 
 	private List<Range> getHasIntersections(final Collection<Range> targetRanges, final Range r) {
-		List<Range> ret = new ArrayList<>();
-		for (Range range : targetRanges) {
+		var ret = new ArrayList<Range>();
+		for (var range : targetRanges) {
 			if (range.hasIntersection(r)) {
 				ret.add(range);
 			} else if (r.getEnd() < range.getStart()) {

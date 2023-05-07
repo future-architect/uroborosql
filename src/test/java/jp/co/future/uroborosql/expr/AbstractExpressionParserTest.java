@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.expr;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.time.Duration;
@@ -35,7 +36,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
  */
 public abstract class AbstractExpressionParserTest {
 	/** ロガー */
-	protected static final Logger log = LoggerFactory.getLogger(AbstractExpressionParserTest.class);
+	protected static final Logger PERFORMANCE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.performance");
 
 	protected SqlConfig sqlConfig;
 	protected ExecutionContext ctx;
@@ -78,7 +79,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testElif() throws Exception {
+	void testElif() throws Exception {
 		var sql = "/*IF false*/1=1/*ELIF true*/2=2/*ELSE*/3=3/*END*/";
 		var sql2 = "2=2";
 		sqlAssertion(sql, sql2);
@@ -86,7 +87,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF TRUE ELSE FALSE
 	@Test
-	public void testFunction() throws Exception {
+	void testFunction() throws Exception {
 		ctx.param("param1", 1);
 		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
 		var sql2 = "?/*param1*/";
@@ -95,7 +96,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF TRUE ELSE FALSE
 	@Test
-	public void testFunctionWithOptional() throws Exception {
+	void testFunctionWithOptional() throws Exception {
 		ctx.param("param1", Optional.of("text"));
 		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
 		var sql2 = "?/*param1*/";
@@ -104,7 +105,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF FALSE ELSE TRUE
 	@Test
-	public void testFunctionWithOptionalNull() throws Exception {
+	void testFunctionWithOptionalNull() throws Exception {
 		ctx.param("param1", Optional.ofNullable(null));
 		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
 		var sql2 = "false";
@@ -113,7 +114,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF FALSE ELSE TRUE
 	@Test
-	public void testFunctionWithOptionalEmpty() throws Exception {
+	void testFunctionWithOptionalEmpty() throws Exception {
 		ctx.param("param1", Optional.of(""));
 		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
 		var sql2 = "false";
@@ -122,7 +123,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF TRUE ELSE FALSE
 	@Test
-	public void testFunctionWithOptionalBlank() throws Exception {
+	void testFunctionWithOptionalBlank() throws Exception {
 		ctx.param("param1", Optional.of(" "));
 		var sql = "/*IF SF.isNotEmpty(param1)*//*param1*//*ELSE*/false/*END*/";
 		var sql2 = "?/*param1*/";
@@ -131,7 +132,7 @@ public abstract class AbstractExpressionParserTest {
 
 	// IF FALSE ELIF (TRUE) ELSE
 	@Test
-	public void testEscChar() throws Exception {
+	void testEscChar() throws Exception {
 		ctx.param(Dialect.PARAM_KEY_ESCAPE_CHAR, sqlConfig.getDialect().getEscapeChar());
 		var sql = "select * from test like 'a%' escape /*#ESC_CHAR*/";
 		var sql2 = "select * from test like 'a%' escape '$'/*#ESC_CHAR*/";
@@ -139,7 +140,7 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testIsPropertyAccess() {
+	void testIsPropertyAccess() {
 		var parser = sqlConfig.getExpressionParser();
 		assertThat(parser.isPropertyAccess(null), is(true));
 		assertThat(parser.isPropertyAccess(""), is(true));
@@ -149,7 +150,7 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testGetValue() {
+	void testGetValue() {
 		ctx.param("param1", 1);
 		var parser = sqlConfig.getExpressionParser();
 		assertThat(parser.parse("param1").getValue(ctx), is(1));
@@ -157,7 +158,7 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testGetValueWithOptional() {
+	void testGetValueWithOptional() {
 		ctx.param("paramNull", Optional.ofNullable(null));
 		ctx.param("param1", Optional.of(1));
 		ctx.param("paramEmpty", Optional.of(""));
@@ -171,7 +172,7 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testDumpNode() {
+	void testDumpNode() {
 		ctx.param("param1", 1);
 		var parser = sqlConfig.getExpressionParser();
 
@@ -182,7 +183,7 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testCollectParams() {
+	void testCollectParams() {
 		ctx.param("param1", 1);
 		var parser = sqlConfig.getExpressionParser();
 
@@ -196,9 +197,9 @@ public abstract class AbstractExpressionParserTest {
 	}
 
 	@Test
-	public void testPerformance() {
-		if (log.isTraceEnabled()) {
-			log.trace("\r\n{}", getPerformanceHeader());
+	void testPerformance() {
+		if (PERFORMANCE_LOG.isDebugEnabled()) {
+			PERFORMANCE_LOG.debug("\r\n{}", getPerformanceHeader());
 			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
 			parser.initialize();
@@ -209,8 +210,8 @@ public abstract class AbstractExpressionParserTest {
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
-				log.trace("No" + i + ":"
-						+ formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))));
+				PERFORMANCE_LOG.debug("No{}:{}", i,
+						formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))));
 			}
 		}
 	}

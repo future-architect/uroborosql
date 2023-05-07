@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +28,6 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
-import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -41,7 +39,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
 	/** ロガー */
-	private static final Logger log = LoggerFactory.getLogger(SqlEntityQueryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
@@ -52,6 +50,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private long offset;
 	private ForUpdateType forUpdateType;
 	private int waitSeconds;
+
+	private final List<String> includeColumns;
+	private final List<String> excludeColumns;
 
 	/**
 	 * Constructor
@@ -69,11 +70,13 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		this.entityType = entityType;
 		this.sortOrders = new ArrayList<>();
 		this.optimizerHints = new ArrayList<>();
+		this.dialect = agent.getSqlConfig().getDialect();
 		this.limit = -1;
 		this.offset = -1;
 		this.forUpdateType = null;
 		this.waitSeconds = -1;
-		this.dialect = agent.getSqlConfig().getDialect();
+		this.includeColumns = new ArrayList<>();
+		this.excludeColumns = new ArrayList<>();
 	}
 
 	/**
@@ -108,7 +111,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Optional<E> one() {
 		try (var stream = stream()) {
-			List<E> entities = stream.limit(2).collect(Collectors.toList());
+			var entities = stream.limit(2).collect(Collectors.toList());
 			if (entities.size() > 1) {
 				throw new DataNonUniqueException("two or more query results.");
 			}
@@ -124,7 +127,33 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public Stream<E> stream() {
 		try {
-			var sql = new StringBuilder(context().getSql()).append(getWhereClause())
+			var selectClause = context().getSql();
+			if (!includeColumns.isEmpty() || !excludeColumns.isEmpty()) {
+				// 除外対象カラムを取得する
+				List<? extends TableMetadata.Column> excludeCols = List.of();
+				if (!includeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+					if (excludeCols.size() == tableMetadata.getColumns().size()) {
+						// includeColumnsに含まれるカラムが1つもselect句に含まれない場合は実行時例外とする
+						throw new UroborosqlRuntimeException("None of the includeColumns matches the column name.");
+					}
+				} else if (!excludeColumns.isEmpty()) {
+					excludeCols = tableMetadata.getColumns().stream()
+							.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
+							.collect(Collectors.toList());
+				}
+				if (!excludeCols.isEmpty()) {
+					// 除外対象カラムをselect句から除外する置換処理を行う
+					selectClause = selectClause.replaceAll(excludeCols.stream()
+							.map(TableMetadata.Column::getColumnIdentifier)
+							.collect(Collectors.joining("|", "\\s*,*\\s+(", ").+")), "");
+					// SELECT句の直後にカンマがくる場合はそのカンマを除外する
+					selectClause = selectClause.replaceFirst("(SELECT.+\\s*)(,)", "$1 ");
+				}
+			}
+			var sql = new StringBuilder(selectClause).append(getWhereClause())
 					.append(getOrderByClause());
 			if (dialect.supportsLimitClause()) {
 				sql.append(dialect.getLimitClause(this.limit, this.offset));
@@ -155,6 +184,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException(
 						"field:" + fieldName + " not found in " + entityType.getSimpleName() + "."));
+		includeColumns(fieldName);
 
 		return stream().map(e -> type.cast(BeanAccessor.value(field, e)));
 	}
@@ -193,7 +223,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public long count(final String col) {
-		final var expr = col != null
+		var expr = col != null
 				? tableMetadata.getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
 				: "*";
 		var sql = new StringBuilder("select count(").append(expr).append(") from (")
@@ -219,7 +249,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T sum(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		Class<?> rawType = mappingColumn.getJavaType().getRawType();
 		if (!(short.class.equals(rawType) ||
 				int.class.equals(rawType) ||
@@ -254,7 +284,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T min(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		var column = tableMetadata.getColumn(camelColumnName);
 		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
@@ -280,7 +310,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T max(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
 		var column = tableMetadata.getColumn(camelColumnName);
 		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
@@ -350,19 +380,19 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	private String getOrderByClause() {
 		var firstFlag = true;
 		List<TableMetadata.Column> keys;
-		Map<TableMetadata.Column, SortOrder> existsSortOrders = new HashMap<>();
+		var existsSortOrders = new HashMap<TableMetadata.Column, SortOrder>();
 
 		if (this.sortOrders.isEmpty()) {
 			// ソート条件の指定がない場合は主キーでソートする
 			keys = (List<TableMetadata.Column>) this.tableMetadata.getKeyColumns();
-			for (Column key : keys) {
+			for (var key : keys) {
 				existsSortOrders.put(key, new SortOrder(key.getCamelColumnName(), Order.ASCENDING));
 			}
 		} else {
 			// ソート条件の指定がある場合は指定されたカラムでソートする
 			keys = new ArrayList<>();
-			for (SortOrder sortOrder : sortOrders) {
-				for (TableMetadata.Column metaCol : this.tableMetadata.getColumns()) {
+			for (var sortOrder : sortOrders) {
+				for (var metaCol : this.tableMetadata.getColumns()) {
 					if (sortOrder.getCol().equals(metaCol.getCamelColumnName())) {
 						keys.add(metaCol);
 						existsSortOrders.put(metaCol, sortOrder);
@@ -404,7 +434,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> asc(final String... cols) {
-		for (String col : cols) {
+		for (var col : cols) {
 			this.sortOrders.add(new SortOrder(col, Order.ASCENDING));
 		}
 		return this;
@@ -428,7 +458,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 */
 	@Override
 	public SqlEntityQuery<E> desc(final String... cols) {
-		for (String col : cols) {
+		for (var col : cols) {
 			this.sortOrders.add(new SortOrder(col, Order.DESCENDING));
 		}
 		return this;
@@ -500,7 +530,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -519,7 +549,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -540,7 +570,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			log.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -558,7 +588,37 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsOptimizerHints()) {
 			this.optimizerHints.add(hint);
 		} else {
-			log.warn("Optimizer Hints is not supported.");
+			LOG.warn("Optimizer Hints is not supported.");
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#includeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> includeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (var col : cols) {
+				includeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#excludeColumns(java.lang.String[])
+	 */
+	@Override
+	public SqlEntityQuery<E> excludeColumns(final String... cols) {
+		if (cols != null && cols.length != 0) {
+			for (var col : cols) {
+				excludeColumns.add(CaseFormat.CAMEL_CASE.convert(col));
+			}
 		}
 		return this;
 	}

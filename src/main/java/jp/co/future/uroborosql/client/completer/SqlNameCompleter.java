@@ -64,14 +64,14 @@ public class SqlNameCompleter extends AbstractCompleter {
 		var isBlank = buffer.endsWith(" ");
 		SortedSet<String> sqlNames = new TreeSet<>(sqlResourceManager.getSqlPathList());
 
-		if (len == startArgNo && isBlank || len == startArgNo + 1 && !isBlank) {
+		if (isBlank ? len == startArgNo : len == startArgNo + 1) {
 			// コマンドが引数ありの場合
 			var args = len == startArgNo + 1 ? parts[startArgNo] : "";
 			if (StringUtils.isEmpty(args)) {
 				candidates.addAll(sqlNames.stream().map(n -> new Candidate(n, n, null, null, null, null, complete))
 						.collect(Collectors.toList()));
 			} else {
-				for (String match : sqlNames.tailSet(args)) {
+				for (var match : sqlNames.tailSet(args)) {
 					if (!match.startsWith(args)) {
 						break;
 					}

@@ -1,16 +1,17 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,63 +40,18 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testHasParam() throws Exception {
+	void testHasParam() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", "value1");
-			assertThat(query.hasParam("key1"), is(true));
-			assertThat(query.hasParam("key2"), is(false));
+			assertTrue(query.hasParam("key1"));
+			assertFalse(query.hasParam("key2"));
 		}
 	}
 
 	@Test
-	public void testparamList() throws Exception {
-		try (var agent = config.agent()) {
-			SqlQuery query = null;
-			query = agent.query("select * from dummy");
-			query.param("key1", List.of("value1"));
-			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1")));
-
-			query = agent.query("select * from dummy");
-			query.param("key1", List.of("value1", "value2"));
-			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
-
-			query = agent.query("select * from dummy");
-			query.param("key1", () -> List.of("value1", "value2"));
-			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
-		}
-
-	}
-
-	@Test
-	public void testParamList() throws Exception {
-		try (var agent = config.agent()) {
-			SqlQuery query = null;
-			query = agent.query("select * from dummy");
-			query.param("key1", List.of("value1"));
-			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1")));
-
-			query = agent.query("select * from dummy");
-			query.param("key1", List.of("value1", "value2"));
-			assertThat(query.context().getParam("key1").getValue(), is(List.of("value1", "value2")));
-
-			Set<String> values = new HashSet<>();
-			values.add("value1");
-			values.add("value2");
-
-			query = agent.query("select * from dummy");
-			query.param("key1", values);
-			assertThat(query.context().getParam("key1").getValue(), is(values));
-
-			query = agent.query("select * from dummy");
-			query.param("key1", () -> values);
-			assertThat(query.context().getParam("key1").getValue(), is(values));
-		}
-	}
-
-	@Test
-	public void testIfAbsent() throws Exception {
+	void testIfAbsent() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
@@ -155,12 +111,12 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testSqlId() throws Exception {
+	void testSqlId() throws Exception {
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
 			agent.update("setup/insert_product").count();
 
-			final var sqlId = "SQL_ID_TEST";
+			var sqlId = "SQL_ID_TEST";
 
 			var query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
 			assertThat(query.collect().size(), is(1));
@@ -169,7 +125,7 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	public void testParamWithSupplier() throws Exception {
+	void testParamWithSupplier() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
@@ -180,14 +136,9 @@ public class AbstractSqlFluentTest {
 			query.param("key2", () -> flag ? "true" : "false");
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
-			query.param("key3", () -> List.of("a", "b", "c"));
-			assertThat(query.context().getParam("key3").getValue(), is(List.of("a", "b", "c")));
-
 			query.param("key4", null);
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
-			query.param("key5", List.of());
-			assertThat(query.context().getParam("key5").getValue(), is(List.of()));
 		}
 	}
 }

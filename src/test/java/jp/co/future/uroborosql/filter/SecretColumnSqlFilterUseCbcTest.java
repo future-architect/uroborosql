@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -67,7 +70,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
@@ -75,7 +78,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -85,7 +88,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
 				var parts = line.split("\t");
-				for (String part : parts) {
+				for (var part : parts) {
 					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
@@ -104,12 +107,12 @@ public class SecretColumnSqlFilterUseCbcTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -125,18 +128,18 @@ public class SecretColumnSqlFilterUseCbcTest {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
 	@Test
-	public void testFilterSettings() {
+	void testFilterSettings() {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/CBC/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
@@ -145,7 +148,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
@@ -191,7 +194,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet01() throws Exception {
+	void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -211,7 +214,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet02() throws Exception {
+	void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -228,7 +231,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 	}
 
 	@Test
-	public void testSecretResultSet03() throws Exception {
+	void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -266,7 +269,7 @@ public class SecretColumnSqlFilterUseCbcTest {
 
 	@Test
 	@Disabled
-	public void testSecretResultSetPerformance01() throws Exception {
+	void testSecretResultSetPerformance01() throws Exception {
 		for (var i = 0; i < 30; i++) {
 			truncateTable("PRODUCT");
 			try (var agent = config.agent()) {

@@ -5,25 +5,27 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class TestEntity {
-	private long id;
+	private Long id;
 	private String name;
-	private int age;
+	private Integer age;
 	private LocalDate birthday;
 	private Optional<String> memo;
+	private Integer lockVersion;
 
 	public TestEntity() {
 	}
 
-	public TestEntity(final long id, final String name, final int age, final LocalDate birthday,
+	public TestEntity(final Long id, final String name, final Integer age, final LocalDate birthday,
 			final Optional<String> memo) {
 		this.id = id;
 		this.name = name;
 		this.age = age;
 		this.birthday = birthday;
 		this.memo = memo;
+		this.lockVersion = 0;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return this.id;
 	}
 
@@ -31,7 +33,7 @@ public class TestEntity {
 		return this.name;
 	}
 
-	public int getAge() {
+	public Integer getAge() {
 		return this.age;
 	}
 
@@ -43,7 +45,11 @@ public class TestEntity {
 		return this.memo;
 	}
 
-	public void setId(final long id) {
+	public Integer getLockVersion() {
+		return this.lockVersion;
+	}
+
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
@@ -51,7 +57,7 @@ public class TestEntity {
 		this.name = name;
 	}
 
-	public void setAge(final int age) {
+	public void setAge(final Integer age) {
 		this.age = age;
 	}
 
@@ -63,9 +69,13 @@ public class TestEntity {
 		this.memo = memo;
 	}
 
+	public void setLockVersion(final Integer lockVersion) {
+		this.lockVersion = lockVersion;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(age, birthday, id, memo, name);
+		return Objects.hash(age, birthday, id, lockVersion, memo, name);
 	}
 
 	@Override
@@ -73,26 +83,15 @@ public class TestEntity {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntity) obj;
-		if (age != other.age) {
+		if (!Objects.equals(age, other.age) || !Objects.equals(birthday, other.birthday)
+				|| !Objects.equals(id, other.id) || !Objects.equals(lockVersion, other.lockVersion)) {
 			return false;
 		}
-		if (!Objects.equals(birthday, other.birthday)) {
-			return false;
-		}
-		if (id != other.id) {
-			return false;
-		}
-		if (!Objects.equals(memo, other.memo)) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(memo, other.memo) || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;
@@ -101,6 +100,7 @@ public class TestEntity {
 	@Override
 	public String toString() {
 		return "TestEntity [id=" + id + ", name=" + name + ", age=" + age + ", birthday=" + birthday + ", memo=" + memo
-				+ "]";
+				+ ", lockVersion=" + lockVersion + "]";
 	}
+
 }

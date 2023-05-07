@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Objects;
@@ -61,17 +62,11 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (id != other.id || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -103,6 +98,8 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 		config = UroboroSQL.builder(url, user, password)
 				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 	}
 
 	@BeforeEach
@@ -114,15 +111,15 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
+				var test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				var test2 = new TestEntity(2, "name2");
+				var test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				var test3 = new TestEntity(3, "name3");
+				var test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 				var data = agent.find(TestEntity.class, 1).orElse(null);
 				assertThat(data, is(test1));
@@ -136,15 +133,15 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testQuery1() throws Exception {
+	void testQuery1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
+				var test1 = new TestEntity(1L, "name1");
 				agent.insert(test1);
-				var test2 = new TestEntity(2, "name2");
+				var test2 = new TestEntity(2L, "name2");
 				agent.insert(test2);
-				var test3 = new TestEntity(3, "name3");
+				var test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 
 				var list = agent.query(TestEntity.class).collect();
@@ -161,11 +158,11 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testUpdate1() throws Exception {
+	void testUpdate1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test = new TestEntity(1, "name1");
+				var test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
 				test.setName("updatename");
@@ -179,11 +176,11 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testDelete1() throws Exception {
+	void testDelete1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test = new TestEntity(1, "name1");
+				var test = new TestEntity(1L, "name1");
 				agent.insert(test);
 
 				var data = agent.find(TestEntity.class, 1).orElse(null);
@@ -198,13 +195,13 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
-				var test2 = new TestEntity(2, "name2");
-				var test3 = new TestEntity(3, "name3");
+				var test1 = new TestEntity(1L, "name1");
+				var test2 = new TestEntity(2L, "name2");
+				var test3 = new TestEntity(3L, "name3");
 
 				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BATCH);
 				assertThat(count, is(3));
@@ -221,13 +218,13 @@ public class DefaultEntityHandlerIdentifierMultiByteTest {
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var test1 = new TestEntity(1, "name1");
-				var test2 = new TestEntity(2, "name2");
-				var test3 = new TestEntity(3, "name3");
+				var test1 = new TestEntity(1L, "name1");
+				var test2 = new TestEntity(2L, "name2");
+				var test3 = new TestEntity(3L, "name3");
 
 				var count = agent.inserts(Stream.of(test1, test2, test3));
 				assertThat(count, is(3));

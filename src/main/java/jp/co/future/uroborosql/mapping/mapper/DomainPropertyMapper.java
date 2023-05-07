@@ -35,10 +35,8 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 		var domain = rawType.getAnnotation(Domain.class);
 		var value = mapperManager.getValue(JavaType.of(domain.valueType()), rs, columnIndex);
 
-		if (value == null) {
-			if (!domain.nullable()) {
-				return null;
-			}
+		if (value == null && !domain.nullable()) {
+			return null;
 		}
 		return toDomain(rawType, domain, value);
 

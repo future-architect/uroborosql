@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.DriverManager;
 import java.util.Objects;
@@ -69,7 +69,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -98,7 +98,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertAndUpdate() throws Exception {
+	void testInsertAndUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -122,7 +122,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testInsertMultikey() throws Exception {
+	void testInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -158,17 +158,19 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testEntityNotSequenceGenerator() throws Exception {
-		try (var agent = config.agent()) {
-			agent.required(() -> {
-				var test1 = new TestEntityWithSeqError("name1");
-				assertThrows(UroborosqlRuntimeException.class, () -> agent.insert(test1));
-			});
-		}
+	void testEntityNotSequenceGenerator() throws Exception {
+		assertThrows(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.required(() -> {
+					var test1 = new TestEntityWithSeqError("name1");
+					agent.insert(test1);
+				});
+			}
+		});
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -200,7 +202,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBulkInserMultikey() throws Exception {
+	void testBulkInserMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -240,7 +242,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
@@ -272,7 +274,7 @@ public class SequenceGeneratedKeysTest {
 	}
 
 	@Test
-	public void testBatchInsertMultikey() throws Exception {
+	void testBatchInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
@@ -352,17 +354,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeq) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -428,20 +424,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeqMultikey) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(id2, other.id2)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(id2, other.id2) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;
@@ -494,17 +481,11 @@ public class SequenceGeneratedKeysTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntityWithSeqError) obj;
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(name, other.name)) {
+			if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)) {
 				return false;
 			}
 			return true;

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ public class DescCommandTest extends ReaderTestSupport {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -56,16 +57,16 @@ public class DescCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecute() throws Exception {
+	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains(
 				"|TABLE_NAME|COLUMN_NAME        |TYPE_NAME|COLUMN_SIZE|DECIMAL_DIGITS|IS_NULLABLE|COLUMN_DEF|REMARKS|");
 	}
 
 	@Test
-	public void testShowHelp() throws Exception {
+	void testShowHelp() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		command.showHelp(reader.getTerminal());
 		reader.flush();
@@ -73,13 +74,13 @@ public class DescCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testGetStartArgNo() throws Exception {
+	void testGetStartArgNo() throws Exception {
 		assertThat(command.getStartArgNo(ReplCommandCompleter.class), is(-1));
 		assertThat(command.getStartArgNo(TableNameCompleter.class), is(1));
 	}
 
 	@Test
-	public void testUtilityMethods() throws Exception {
+	void testUtilityMethods() throws Exception {
 		assertThat(command.isHidden(), is(false));
 		assertThat(command.match("Desc"), is(true));
 		assertThat(command.match("NoMatchCommand"), is(false));

@@ -1,9 +1,12 @@
 package jp.co.future.uroborosql.store;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -19,13 +22,13 @@ import jp.co.future.uroborosql.dialect.Oracle10Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
-public class NioSqlResourceManagerTest {
+public class SqlResourceManagerTest {
 	private static final int WAIT_TIME = 100;
 	private static final String TARGET_TEST_CLASSES_SQL1 = "target/test-classes/sql/";
 	private static final String TARGET_TEST_CLASSES_SQL2 = "target/test-classes/parent/child/sql/";
 
 	@Test
-	public void testConstructor() throws Exception {
+	void testConstructor() throws Exception {
 		var manager = new SqlResourceManagerImpl("sql", ".sql", Charset.defaultCharset());
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
@@ -37,7 +40,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testConstructorMultiSqlPaths() throws Exception {
+	void testConstructorMultiSqlPaths() throws Exception {
 		var manager = new SqlResourceManagerImpl(Arrays.asList("sql", "secondary_sql"));
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
@@ -49,13 +52,14 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testConstructorMultiSqlPathsNull() throws Exception {
-		assertThrows(IllegalArgumentException.class,
-				() -> new SqlResourceManagerImpl(Arrays.asList(null, "secondary_sql")));
+	void testConstructorMultiSqlPathsNull() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new SqlResourceManagerImpl(Arrays.asList(null, "secondary_sql"));
+		});
 	}
 
 	@Test
-	public void testGetSqlPathList() throws Exception {
+	void testGetSqlPathList() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl();
@@ -69,7 +73,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSql() throws Exception {
+	void testGetSql() throws Exception {
 		var manager = new SqlResourceManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -77,20 +81,20 @@ public class NioSqlResourceManagerTest {
 		try {
 			manager.getSql("example/select_test");
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 	}
 
 	@Test
-	public void testGetSqlWithMultiSqlPaths() throws Exception {
+	void testGetSqlWithMultiSqlPaths() throws Exception {
 		var manager = new SqlResourceManagerImpl(Arrays.asList("sql", "secondary_sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -103,20 +107,20 @@ public class NioSqlResourceManagerTest {
 			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
 					is(containsString("secondary_sql/other file")));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 	}
 
 	@Test
-	public void testGetSqlWithMultiSqlPathsReverse() throws Exception {
+	void testGetSqlWithMultiSqlPathsReverse() throws Exception {
 		var manager = new SqlResourceManagerImpl(Arrays.asList("secondary_sql", "sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -129,20 +133,20 @@ public class NioSqlResourceManagerTest {
 			assertThat(manager.getSql("other/select_in_secondary_sql_other_folder"),
 					is(containsString("secondary_sql/other file")));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 	}
 
 	@Test
-	public void testGetSqlH2() throws Exception {
+	void testGetSqlH2() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl();
@@ -168,7 +172,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlPostgresql() throws Exception {
+	void testGetSqlPostgresql() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl();
@@ -194,7 +198,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlWithWatcher() throws Exception {
+	void testGetSqlWithWatcher() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "test/ADD_WATCH";
@@ -230,7 +234,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlWithNoWatcher() throws Exception {
+	void testGetSqlWithNoWatcher() throws Exception {
 
 		var sqlName = "test/ADD_WATCH";
 		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
@@ -260,7 +264,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDialectSqlFolder() throws Exception {
+	void testAddDialectSqlFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "example/select_test";
@@ -308,7 +312,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDefaultFolderAndDialectFolder() throws Exception {
+	void testAddDefaultFolderAndDialectFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "unit_test/select_test";
@@ -378,7 +382,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDialectFolderAndDefaultFolder() throws Exception {
+	void testAddDialectFolderAndDefaultFolder() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "unit_test/select_test";
@@ -450,8 +454,9 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testConstructorLoadPathHasChildDir() throws Exception {
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", Charset.defaultCharset());
+	void testConstructorLoadPathHasChildDir() throws Exception {
+		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql",
+				Charset.defaultCharset());
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
 		Dialect dialect = new H2Dialect();
@@ -463,7 +468,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlPathListLoadPathHasChildDir() throws Exception {
+	void testGetSqlPathListLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl("parent/child/sql");
@@ -477,7 +482,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlLoadPathHasChildDir() throws Exception {
+	void testGetSqlLoadPathHasChildDir() throws Exception {
 		var manager = new SqlResourceManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
@@ -485,20 +490,20 @@ public class NioSqlResourceManagerTest {
 		try {
 			manager.getSql("example/select_test");
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 		try {
 			manager.getSql("example/select_test_no_file");
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("sql file not found. sqlName : example/select_test_no_file"));
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 	}
 
 	@Test
-	public void testGetSqlH2LoadPathHasChildDir() throws Exception {
+	void testGetSqlH2LoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl("parent/child/sql");
@@ -524,7 +529,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlPostgresqlLoadPathHasChildDir() throws Exception {
+	void testGetSqlPostgresqlLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var manager = new SqlResourceManagerImpl("parent/child/sql");
@@ -550,14 +555,15 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlWithWatcherLoadPathHasChildDir() throws Exception {
+	void testGetSqlWithWatcherLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "test/ADD_WATCH";
 		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
+				true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -586,7 +592,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testGetSqlWithNoWatcherLoadPathHasChildDir() throws Exception {
+	void testGetSqlWithNoWatcherLoadPathHasChildDir() throws Exception {
 
 		var sqlName = "test/ADD_WATCH";
 		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
@@ -616,7 +622,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDialectSqlFolderLoadPathHasChildDir() throws Exception {
+	void testAddDialectSqlFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "example/select_test";
@@ -625,7 +631,8 @@ public class NioSqlResourceManagerTest {
 		Files.deleteIfExists(newFilePath);
 		Files.deleteIfExists(dir);
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
+				true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -664,7 +671,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDefaultFolderAndDialectFolderLoadPathHasChildDir() throws Exception {
+	void testAddDefaultFolderAndDialectFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "unit_test/select_test";
@@ -677,7 +684,8 @@ public class NioSqlResourceManagerTest {
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
+				true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -734,7 +742,7 @@ public class NioSqlResourceManagerTest {
 	}
 
 	@Test
-	public void testAddDialectFolderAndDefaultFolderLoadPathHasChildDir() throws Exception {
+	void testAddDialectFolderAndDefaultFolderLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
 		var sqlName = "unit_test/select_test";
@@ -747,7 +755,8 @@ public class NioSqlResourceManagerTest {
 		Files.deleteIfExists(dialectFilePath);
 		Files.deleteIfExists(dialectDir);
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8, true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
+				true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 

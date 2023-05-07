@@ -1,7 +1,12 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Driver;
 import java.util.ServiceLoader;
@@ -20,48 +25,48 @@ public class DriverShimTest {
 	}
 
 	@Test
-	public void testConnect() throws Exception {
+	void testConnect() throws Exception {
 		var conn = driver.connect("jdbc:h2:mem:" + this.getClass().getSimpleName(), null);
 		assertThat(conn, is(notNullValue()));
 	}
 
 	@Test
-	public void testAcceptsURL() throws Exception {
+	void testAcceptsURL() throws Exception {
 		assertThat(driver.acceptsURL("jdbc:h2:memtest1"), is(true));
 		assertThat(driver.acceptsURL("jdbc:dummy:memtest1"), is(false));
 	}
 
 	@Test
-	public void testGetPropertyInfo() throws Exception {
+	void testGetPropertyInfo() throws Exception {
 		try {
 			driver.getPropertyInfo("", null);
 		} catch (Exception ex) {
-			assertThat("Fail here.", false);
+			fail();
 		}
 	}
 
 	@Test
-	public void testGetMajorVersion() throws Exception {
+	void testGetMajorVersion() throws Exception {
 		assertThat(driver.getMajorVersion(), greaterThanOrEqualTo(1));
 	}
 
 	@Test
-	public void testGetMinorVersion() throws Exception {
+	void testGetMinorVersion() throws Exception {
 		assertThat(driver.getMinorVersion(), greaterThan(1));
 	}
 
 	@Test
-	public void testJdbcCompliant() throws Exception {
+	void testJdbcCompliant() throws Exception {
 		assertThat(driver.jdbcCompliant(), is(true));
 	}
 
 	@Test
-	public void testGetParentLogger() throws Exception {
+	void testGetParentLogger() throws Exception {
 		assertThat(driver.getParentLogger(), is(nullValue()));
 	}
 
 	@Test
-	public void testToString() throws Exception {
+	void testToString() throws Exception {
 		assertThat(driver.toString(), is(notNullValue()));
 	}
 

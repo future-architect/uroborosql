@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 public class YearToStringParameterMapperTest {
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var mapper = new YearToStringParameterMapper();
 		var year = Year.of(2020);
 
@@ -22,7 +22,7 @@ public class YearToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testManagerToJdbc() throws Exception {
+	void testManagerToJdbc() throws Exception {
 		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new YearToStringParameterMapper());
 

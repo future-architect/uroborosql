@@ -18,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DumpResultSqlFilter extends AbstractSqlFilter {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger(DumpResultSqlFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
@@ -57,8 +56,10 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				LOG.warn(
 						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultSqlFilter use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			var builder = displayResult(resultSet);
-			LOG.info(builder.toString());
+			if (LOG.isInfoEnabled()) {
+				var builder = displayResult(resultSet);
+				LOG.debug("{}", builder);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -73,8 +74,8 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 */
 	public StringBuilder displayResult(final ResultSet rs) {
 		try {
-			List<String> keys = new ArrayList<>();
-			Map<String, Integer> maxLengthList = new HashMap<>();
+			var keys = new ArrayList<String>();
+			var maxLengthList = new HashMap<String, Integer>();
 			var rsmd = rs.getMetaData();
 			var columnCount = rsmd.getColumnCount();
 			for (var i = 1; i <= columnCount; i++) {
@@ -83,12 +84,12 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 				maxLengthList.put(columnLabel, getByteLength(columnLabel));
 			}
 
-			List<Map<String, Object>> rows = new ArrayList<>();
+			var rows = new ArrayList<Map<String, Object>>();
 
 			while (rs.next()) {
-				Map<String, Object> data = new HashMap<>();
+				var data = new HashMap<String, Object>();
 
-				for (String key : keys) {
+				for (var key : keys) {
 					var val = rs.getObject(key);
 					data.put(key, val);
 
@@ -101,15 +102,15 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			var builder = new StringBuilder(System.lineSeparator());
 			// ヘッダ部出力
 			builder.append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 			builder.append(System.lineSeparator()).append("|");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(fillHeader(key, maxLengthList.get(key))).append("|");
 			}
 			builder.append(System.lineSeparator()).append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
@@ -118,7 +119,7 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 			if (rows.isEmpty()) {
 				builder.append(System.lineSeparator()).append("|");
 				var len = 1;
-				for (String key : keys) {
+				for (var key : keys) {
 					len = len + maxLengthList.get(key) + 1;
 				}
 
@@ -128,16 +129,16 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 					builder.append("-").append(StringUtils.repeat(' ', len - 3)).append("|");
 				}
 			} else {
-				for (Map<String, Object> row : rows) {
+				for (var row : rows) {
 					builder.append(System.lineSeparator()).append("|");
-					for (String key : keys) {
+					for (var key : keys) {
 						builder.append(fillData(row.get(key), maxLengthList.get(key))).append("|");
 					}
 				}
 
 			}
 			builder.append(System.lineSeparator()).append("+");
-			for (String key : keys) {
+			for (var key : keys) {
 				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
@@ -209,7 +210,6 @@ public class DumpResultSqlFilter extends AbstractSqlFilter {
 	 */
 	private String getSubstringByte(final Object obj, final int capacity) throws CharacterCodingException,
 			UnsupportedEncodingException {
-
 		var str = obj == null ? "null" : obj.toString();
 		if (capacity < 1) {
 			return str;

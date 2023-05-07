@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -15,9 +17,11 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.mapping.annotations.Table;
+import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 public class SecretColumnSqlFilterTest {
@@ -58,7 +64,7 @@ public class SecretColumnSqlFilterTest {
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
@@ -66,7 +72,7 @@ public class SecretColumnSqlFilterTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -76,7 +82,7 @@ public class SecretColumnSqlFilterTest {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
 				var parts = line.split("\t");
-				for (String part : parts) {
+				for (var part : parts) {
 					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
@@ -95,12 +101,12 @@ public class SecretColumnSqlFilterTest {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 				}
 			});
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -116,25 +122,25 @@ public class SecretColumnSqlFilterTest {
 					agent.update(map.get("sql").toString()).paramMap(map).count();
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					assertThat("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage(), false);
+					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
 				}
 			});
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
 	@Test
-	public void testFilterSettings() {
+	void testFilterSettings() {
 		assertThat(filter.getCharset(), is(StandardCharsets.UTF_8));
 		assertThat(filter.getTransformationType(), is("AES/ECB/PKCS5Padding"));
 		assertThat(filter.isSkipFilter(), is(false));
 	}
 
 	@Test
-	public void testExecuteQueryFilter() throws Exception {
+	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
@@ -156,7 +162,7 @@ public class SecretColumnSqlFilterTest {
 					.resultSet();
 
 			while (result.next()) {
-				assertThat(result.getString("PRODUCT_NAME"), is("3EniRr6_Jb2c-kVG0I0CgA"));
+				assertEquals(result.getString("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
 			}
 			result.close();
 		}
@@ -180,7 +186,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet01() throws Exception {
+	void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -200,7 +206,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet02() throws Exception {
+	void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -217,7 +223,7 @@ public class SecretColumnSqlFilterTest {
 	}
 
 	@Test
-	public void testSecretResultSet03() throws Exception {
+	void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
@@ -252,4 +258,171 @@ public class SecretColumnSqlFilterTest {
 			result.close();
 		}
 	}
+
+	@Test
+	void testWithModel() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (var agent = config.agent()) {
+			var product = new Product();
+			product.setProductId(10);
+			product.setProductName(Optional.of("商品名１０"));
+			product.setVersionNo(1);
+
+			agent.insert(product);
+
+			var result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(true));
+			assertThat(result.getProductName().orElse(null), is("商品名１０"));
+		}
+	}
+
+	@Test
+	void testSqlInsertOptional() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (var agent = config.agent()) {
+			agent.update("example/insert_product_for_optional")
+					.param("product_id", 10)
+					.param("product_name", Optional.of("商品名１０"))
+					.param("product_kana_name", Optional.of("ショウヒンメイ１０"))
+					.param("jan_code", "1234567890123")
+					.param("product_description", "１０番目の商品")
+					.param("ins_datetime", new Date())
+					.param("upd_datetime", new Date())
+					.param("version_no", 1)
+					.count();
+
+			var result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(true));
+			assertThat(result.getProductName().orElse(null), is("商品名１０"));
+		}
+	}
+
+	@Test
+	void testSqlInsertOptionalEmpty() throws Exception {
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		try (var agent = config.agent()) {
+			agent.update("example/insert_product_for_optional")
+					.param("product_id", 10)
+					.param("product_name", Optional.empty())
+					.param("product_kana_name", Optional.empty())
+					.param("jan_code", "1234567890123")
+					.param("product_description", "１０番目の商品")
+					.param("ins_datetime", new Date())
+					.param("upd_datetime", new Date())
+					.param("version_no", 1)
+					.count();
+
+			var result = agent.query(Product.class)
+					.equal("productId", new BigDecimal(10))
+					.first().orElseThrow(Exception::new);
+			assertThat(result.getProductName().isPresent(), is(false));
+			assertThat(result.getProductKanaName().isPresent(), is(false));
+		}
+	}
+
+	@Table(name = "PRODUCT")
+	public static class Product {
+		private int productId;
+		private Optional<String> productName;
+		private Optional<String> productKanaName;
+		private Optional<String> janCode;
+		private Optional<String> productDescription;
+		private Date insDatetime;
+		private Date updDatetime;
+		@Version
+		private int versionNo;
+
+		public Product() {
+		}
+
+		public Product(final int productId,
+				final Optional<String> productName,
+				final Optional<String> productKanaName,
+				final Optional<String> janCode,
+				final Optional<String> productDescription,
+				final Date insDatetime,
+				final Date updDatetime,
+				final int versionNo) {
+			this.productId = productId;
+			this.productName = productName;
+			this.productKanaName = productKanaName;
+			this.janCode = janCode;
+			this.productDescription = productDescription;
+			this.insDatetime = insDatetime;
+			this.updDatetime = updDatetime;
+			this.versionNo = versionNo;
+		}
+
+		public int getProductId() {
+			return productId;
+		}
+
+		public void setProductId(final int productId) {
+			this.productId = productId;
+		}
+
+		public Optional<String> getProductName() {
+			return productName;
+		}
+
+		public void setProductName(final Optional<String> productName) {
+			this.productName = productName;
+		}
+
+		public Optional<String> getProductKanaName() {
+			return productKanaName;
+		}
+
+		public void setProductKanaName(final Optional<String> productKanaName) {
+			this.productKanaName = productKanaName;
+		}
+
+		public Optional<String> getJanCode() {
+			return janCode;
+		}
+
+		public void setJanCode(final Optional<String> janCode) {
+			this.janCode = janCode;
+		}
+
+		public Optional<String> getProductDescription() {
+			return productDescription;
+		}
+
+		public void setProductDescription(final Optional<String> productDescription) {
+			this.productDescription = productDescription;
+		}
+
+		public Date getInsDatetime() {
+			return insDatetime;
+		}
+
+		public void setInsDatetime(final Date insDatetime) {
+			this.insDatetime = insDatetime;
+		}
+
+		public Date getUpdDatetime() {
+			return updDatetime;
+		}
+
+		public void setUpdDatetime(final Date updDatetime) {
+			this.updDatetime = updDatetime;
+		}
+
+		public int getVersionNo() {
+			return versionNo;
+		}
+
+		public void setVersionNo(final int versionNo) {
+			this.versionNo = versionNo;
+		}
+	}
+
 }

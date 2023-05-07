@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -18,7 +19,7 @@ import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 public class DateToStringParameterMapperTest {
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var mapper = new DateToStringParameterMapper();
 		var clock = Clock.systemDefaultZone();
 		mapper.setClock(clock);
@@ -30,7 +31,7 @@ public class DateToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testSqlDate() throws ParseException {
+	void testSqlDate() throws ParseException {
 		var mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
 		var date = Date.from(LocalDate.parse("2000-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -39,7 +40,7 @@ public class DateToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testCanAccept() throws Exception {
+	void testCanAccept() throws Exception {
 		var mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
 
@@ -51,7 +52,7 @@ public class DateToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testTargetType() throws Exception {
+	void testTargetType() throws Exception {
 		var mapper = new DateToStringParameterMapper();
 		mapper.setClock(Clock.systemDefaultZone());
 
@@ -59,7 +60,7 @@ public class DateToStringParameterMapperTest {
 	}
 
 	@Test
-	public void testManagerToJdbc() throws Exception {
+	void testManagerToJdbc() throws Exception {
 		var manager = new BindParameterMapperManager(Clock.systemDefaultZone());
 		manager.addMapper(new DateToStringParameterMapper());
 

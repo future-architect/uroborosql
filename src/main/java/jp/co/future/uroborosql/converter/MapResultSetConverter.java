@@ -7,12 +7,12 @@
 package jp.co.future.uroborosql.converter;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -26,6 +26,9 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	private final PropertyMapperManager mapperManager;
 	private final SqlConfig sqlConfig;
 	private final CaseFormat caseFormat;
+	private String[] columnLabels;
+	private JavaType[] javaTypes;
+	private int columnCount;
 
 	/**
 	 * コンストラクタ
@@ -69,29 +72,25 @@ public class MapResultSetConverter implements ResultSetConverter<Map<String, Obj
 	 */
 	@Override
 	public Map<String, Object> createRecord(final ResultSet rs) throws SQLException {
-		var rsmd = rs.getMetaData();
-		var columnCount = rsmd.getColumnCount();
-		Map<String, Object> record = new LinkedHashMap<>(columnCount);
+		if (this.javaTypes == null) {
+			var rsmd = rs.getMetaData();
+			this.columnCount = rsmd.getColumnCount();
+			this.columnLabels = new String[columnCount + 1];
+			this.javaTypes = new JavaType[columnCount + 1];
+			for (var i = 1; i <= columnCount; i++) {
+				this.columnLabels[i] = caseFormat.convert(rsmd.getColumnLabel(i));
+				this.javaTypes[i] = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(i),
+						rsmd.getColumnTypeName(i));
+			}
+		}
+
+		// resizeが発生しないよう、初期loadFactorで溢れないサイズを指定する。
+		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けている。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
+		var record = new LinkedHashMap<String, Object>(columnCount * 4 / 3 + 1);
+
 		for (var i = 1; i <= columnCount; i++) {
-			record.put(caseFormat.convert(rsmd.getColumnLabel(i)), getValue(rs, rsmd, i));
+			record.put(this.columnLabels[i], this.mapperManager.getValue(this.javaTypes[i], rs, i));
 		}
 		return record;
 	}
-
-	/**
-	 * ResultSetからMapperManager経由で値を取得する
-	 *
-	 * @param rs ResultSet
-	 * @param rsmd ResultSetMetadata
-	 * @param columnIndex カラムインデックス
-	 * @return 指定したカラムインデックスの値
-	 * @throws SQLException
-	 */
-	private Object getValue(final ResultSet rs, final ResultSetMetaData rsmd, final int columnIndex)
-			throws SQLException {
-		var javaType = this.sqlConfig.getDialect().getJavaType(rsmd.getColumnType(columnIndex),
-				rsmd.getColumnTypeName(columnIndex));
-		return this.mapperManager.getValue(javaType, rs, columnIndex);
-	}
-
 }

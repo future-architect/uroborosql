@@ -1,8 +1,10 @@
 package jp.co.future.uroborosql.utils;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	void test() throws Exception {
 		Map<Object, Object> root = new HashMap<>();
 		var context = (OgnlContext) Ognl.createDefaultContext(root);
 		root.put("val1", null);
@@ -38,11 +40,11 @@ public class StringFunctionTest {
 
 		Ognl.parseExpression("SF.isEmpty(val1)");
 
-		assertThat((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null), is(true));
+		assertTrue((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null));
 	}
 
 	@Test
-	public void testStartsWith() throws Exception {
+	void testStartsWith() throws Exception {
 		assertThat(expressionFunction.startsWith("abc"), is("abc%"));
 		assertThat(expressionFunction.startsWith("a_bc"), is("a$_bc%"));
 		assertThat(expressionFunction.startsWith("a%bc"), is("a$%bc%"));
@@ -63,12 +65,14 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testStartsWithNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().startsWith("abc"));
+	void testStartsWithNoDialect() throws Exception {
+		assertThrows(IllegalStateException.class, () -> {
+			new StringFunction().startsWith("abc");
+		});
 	}
 
 	@Test
-	public void testContains() throws Exception {
+	void testContains() throws Exception {
 		assertThat(expressionFunction.contains("abc"), is("%abc%"));
 		assertThat(expressionFunction.contains("a_bc"), is("%a$_bc%"));
 		assertThat(expressionFunction.contains("a%bc"), is("%a$%bc%"));
@@ -89,12 +93,14 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testContainsNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().contains("abc"));
+	void testContainsNoDialect() throws Exception {
+		assertThrows(IllegalStateException.class, () -> {
+			new StringFunction().contains("abc");
+		});
 	}
 
 	@Test
-	public void testEndsWith() throws Exception {
+	void testEndsWith() throws Exception {
 		assertThat(expressionFunction.endsWith("abc"), is("%abc"));
 		assertThat(expressionFunction.endsWith("a_bc"), is("%a$_bc"));
 		assertThat(expressionFunction.endsWith("a%bc"), is("%a$%bc"));
@@ -115,12 +121,14 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testEndsWithNoDialect() throws Exception {
-		assertThrows(IllegalStateException.class, () -> new StringFunction().endsWith("abc"));
+	void testEndsWithNoDialect() throws Exception {
+		assertThrows(IllegalStateException.class, () -> {
+			new StringFunction().endsWith("abc");
+		});
 	}
 
 	@Test
-	public void testIsBlank() throws Exception {
+	void testIsBlank() throws Exception {
 		assertThat(expressionFunction.isBlank(null), is(true));
 		assertThat(expressionFunction.isBlank(""), is(true));
 		assertThat(expressionFunction.isBlank(" "), is(true));
@@ -135,7 +143,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testIsEmpty() throws Exception {
+	void testIsEmpty() throws Exception {
 		assertThat(expressionFunction.isEmpty(null), is(true));
 		assertThat(expressionFunction.isEmpty(""), is(true));
 		assertThat(expressionFunction.isEmpty(" "), is(false));
@@ -150,7 +158,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testIsNotBlank() throws Exception {
+	void testIsNotBlank() throws Exception {
 		assertThat(expressionFunction.isNotBlank(null), is(false));
 		assertThat(expressionFunction.isNotBlank(""), is(false));
 		assertThat(expressionFunction.isNotBlank(" "), is(false));
@@ -165,7 +173,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testIsNotEmpty() throws Exception {
+	void testIsNotEmpty() throws Exception {
 		assertThat(expressionFunction.isNotEmpty(null), is(false));
 		assertThat(expressionFunction.isNotEmpty(""), is(false));
 		assertThat(expressionFunction.isNotEmpty(" "), is(true));
@@ -180,7 +188,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testTrim() throws Exception {
+	void testTrim() throws Exception {
 		assertThat(expressionFunction.trim(null), nullValue());
 		assertThat(expressionFunction.trim(""), is(""));
 		assertThat(expressionFunction.trim("     "), is(""));
@@ -195,7 +203,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testTrimToEmpty() throws Exception {
+	void testTrimToEmpty() throws Exception {
 		assertThat(expressionFunction.trimToEmpty(null), is(""));
 		assertThat(expressionFunction.trimToEmpty(""), is(""));
 		assertThat(expressionFunction.trimToEmpty("     "), is(""));
@@ -210,7 +218,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testLeft() throws Exception {
+	void testLeft() throws Exception {
 		assertThat(expressionFunction.left(null, 1), nullValue());
 		assertThat(expressionFunction.left("abc", -1), is(""));
 		assertThat(expressionFunction.left("", 2), is(""));
@@ -227,7 +235,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testRight() throws Exception {
+	void testRight() throws Exception {
 		assertThat(expressionFunction.right(null, 1), nullValue());
 		assertThat(expressionFunction.right("abc", -1), is(""));
 		assertThat(expressionFunction.right("", 2), is(""));
@@ -244,7 +252,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testMid() throws Exception {
+	void testMid() throws Exception {
 		assertThat(expressionFunction.mid(null, 1, 2), nullValue());
 		assertThat(expressionFunction.mid("abc", 1, -1), is(""));
 		assertThat(expressionFunction.mid("", 0, 2), is(""));
@@ -261,7 +269,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testRightPad() throws Exception {
+	void testRightPad() throws Exception {
 		assertThat(expressionFunction.rightPad(null, 3), nullValue());
 		assertThat(expressionFunction.rightPad("", 3), is("   "));
 		assertThat(expressionFunction.rightPad("bat", 3), is("bat"));
@@ -276,7 +284,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testRightPadWithChar() throws Exception {
+	void testRightPadWithChar() throws Exception {
 		assertThat(expressionFunction.rightPad(null, 3, ' '), nullValue());
 		assertThat(expressionFunction.rightPad("", 3, 'z'), is("zzz"));
 		assertThat(expressionFunction.rightPad("bat", 3, 'z'), is("bat"));
@@ -291,7 +299,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testLeftPad() throws Exception {
+	void testLeftPad() throws Exception {
 		assertThat(expressionFunction.leftPad(null, 3), nullValue());
 		assertThat(expressionFunction.leftPad("", 3), is("   "));
 		assertThat(expressionFunction.leftPad("bat", 3), is("bat"));
@@ -306,7 +314,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testLeftPadWithChar() throws Exception {
+	void testLeftPadWithChar() throws Exception {
 		assertThat(expressionFunction.leftPad(null, 3, ' '), nullValue());
 		assertThat(expressionFunction.leftPad("", 3, 'z'), is("zzz"));
 		assertThat(expressionFunction.leftPad("bat", 3, 'z'), is("bat"));
@@ -321,7 +329,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testSplit() throws Exception {
+	void testSplit() throws Exception {
 		assertThat(expressionFunction.split(null), nullValue());
 		assertThat(expressionFunction.split(""), is(Matchers.emptyArray()));
 		assertThat(expressionFunction.split("abc def"), is(Matchers.arrayContaining("abc", "def")));
@@ -337,7 +345,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testSplitWithChar() throws Exception {
+	void testSplitWithChar() throws Exception {
 		assertThat(expressionFunction.split(null, '.'), nullValue());
 		assertThat(expressionFunction.split("", '.'), is(Matchers.emptyArray()));
 		assertThat(expressionFunction.split("a.b.c", '.'), is(Matchers.arrayContaining("a", "b", "c")));
@@ -353,7 +361,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testSplitWithMax() throws Exception {
+	void testSplitWithMax() throws Exception {
 		assertThat(expressionFunction.split(null, ".", 2), nullValue());
 		assertThat(expressionFunction.split("", ".", 2), is(Matchers.emptyArray()));
 		assertThat(expressionFunction.split("ab cd ef", null, 0), is(Matchers.arrayContaining("ab", "cd", "ef")));
@@ -373,7 +381,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testCapitalize() throws Exception {
+	void testCapitalize() throws Exception {
 		assertThat(expressionFunction.capitalize(null), nullValue());
 		assertThat(expressionFunction.capitalize(""), is(""));
 		assertThat(expressionFunction.capitalize("cat"), is("Cat"));
@@ -387,7 +395,7 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testUncapitalize() throws Exception {
+	void testUncapitalize() throws Exception {
 		assertThat(expressionFunction.uncapitalize(null), nullValue());
 		assertThat(expressionFunction.uncapitalize(""), is(""));
 		assertThat(expressionFunction.uncapitalize("Cat"), is("cat"));
@@ -401,25 +409,25 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testIncrementShort() throws Exception {
+	void testIncrementShort() throws Exception {
 		assertThat(expressionFunction.incrementShort((short) 1), is((short) 2));
 		assertThat(expressionFunction.incrementShort(Short.MAX_VALUE), is(Short.MIN_VALUE));
 	}
 
 	@Test
-	public void testIncrementInt() throws Exception {
+	void testIncrementInt() throws Exception {
 		assertThat(expressionFunction.incrementInt(1), is(2));
 		assertThat(expressionFunction.incrementInt(Integer.MAX_VALUE), is(Integer.MIN_VALUE));
 	}
 
 	@Test
-	public void testIncrementLong() throws Exception {
+	void testIncrementLong() throws Exception {
 		assertThat(expressionFunction.incrementLong(1L), is(2L));
 		assertThat(expressionFunction.incrementLong(Long.MAX_VALUE), is(Long.MIN_VALUE));
 	}
 
 	@Test
-	public void testIncrement() throws Exception {
+	void testIncrement() throws Exception {
 		assertThat(expressionFunction.increment((short) 1), is((short) 2));
 		assertThat(expressionFunction.increment(Short.MAX_VALUE), is(Short.MIN_VALUE));
 		assertThat(expressionFunction.increment(1), is(2));
@@ -429,8 +437,10 @@ public class StringFunctionTest {
 	}
 
 	@Test
-	public void testIncrementWithException() throws Exception {
-		assertThrows(IllegalArgumentException.class, () -> expressionFunction.increment(1f));
+	void testIncrementWithException() throws Exception {
+		assertThrows(IllegalArgumentException.class, () -> {
+			expressionFunction.increment(1f);
+		});
 	}
 
 }

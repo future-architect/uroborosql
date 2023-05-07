@@ -1,13 +1,12 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigInteger;
 import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -46,7 +45,7 @@ public class PropertyMapperTest {
 								+ ",long_value NUMERIC(5)"
 								+ ",double_value NUMERIC(5,3)"
 								+ ",date_value DATE"
-								+ ",datetime_value DATETIME"
+								+ ",datetime_value TIMESTAMP(9)"
 								+ ",enum_value VARCHAR(20)"
 								+ ",big_int_value NUMERIC(10)"
 								+ ",memo VARCHAR(500)"
@@ -111,23 +110,13 @@ public class PropertyMapperTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (PropertyMapperTestEntity) obj;
-			if (!Objects.equals(bigIntValue, other.bigIntValue)) {
-				return false;
-			}
-			if (!Objects.equals(dateValue, other.dateValue)) {
-				return false;
-			}
-			if (!Objects.equals(datetimeValue, other.datetimeValue)) {
-				return false;
-			}
-			if (!Objects.equals(doubleValue, other.doubleValue)) {
+			if (!Objects.equals(bigIntValue, other.bigIntValue) || !Objects.equals(dateValue, other.dateValue)
+					|| !Objects.equals(datetimeValue, other.datetimeValue)
+					|| !Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
 			if (enumValue != other.enumValue) {
@@ -157,22 +146,20 @@ public class PropertyMapperTest {
 	}
 
 	@Test
-	public void test01() throws Exception {
+	void test01() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				var test1 = new PropertyMapperTestEntity(1);
 				agent.insert(test1);
-				test1.datetimeValue = test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				var data = agent.find(PropertyMapperTestEntity.class, 1).orElse(null);
-				data.datetimeValue = data.datetimeValue.truncatedTo(ChronoUnit.MILLIS);
 				assertThat(data, is(test1));
 			});
 		}
 	}
 
 	@Test
-	public void test02() throws Exception {
+	void test02() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {

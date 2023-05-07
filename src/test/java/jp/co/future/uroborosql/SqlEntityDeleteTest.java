@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Paths;
 import java.util.stream.Stream;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 public class SqlEntityDeleteTest extends AbstractDbTest {
 
 	@Test
-	public void testCountByInstance() {
+	void testCountByInstance() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -24,7 +24,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testCountByClass() {
+	void testCountByClass() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -34,7 +34,7 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testDeleteAndReturn() {
+	void testDeleteAndReturn() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -46,14 +46,16 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 	}
 
 	@Test
-	public void testDeleteThrowException() {
-		// 事前条件
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+	void testDeleteThrowException() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			// 事前条件
+			cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		agent.required(() -> {
-			var product = new Product();
-			product.setProductId(1);
-			assertThrows(IllegalArgumentException.class, () -> agent.delete(Stream.of(product)));
+			agent.required(() -> {
+				var product = new Product();
+				product.setProductId(1);
+				agent.delete(Stream.of(product));
+			});
 		});
 	}
 

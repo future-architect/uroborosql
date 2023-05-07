@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Optional;
@@ -123,7 +123,7 @@ public class EntityResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecord() {
+	void testCreateRecord() {
 		var clob = StringUtils.repeat('1', 10000);
 		var nclob = StringUtils.repeat('あ', 10000);
 		var blob = StringUtils.repeat('x', 20000).getBytes();

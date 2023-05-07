@@ -8,17 +8,17 @@ import jp.co.future.uroborosql.mapping.annotations.Version;
 
 @Table(name = "TEST")
 public class TestEntity3 {
-	private long id;
+	private Long id;
 	private String name;
-	private int age;
+	private Integer age;
 	private LocalDate birthday;
 	@Version
-	private int lockVersion = 0;
+	private Integer lockVersion = 0;
 
 	public TestEntity3() {
 	}
 
-	public TestEntity3(final long id, final String name, final int age, final LocalDate birthday) {
+	public TestEntity3(final Long id, final String name, final Integer age, final LocalDate birthday) {
 		this.id = id;
 		this.name = name;
 		this.age = age;
@@ -39,7 +39,7 @@ public class TestEntity3 {
 		String Birthday = "birthday";
 	}
 
-	public long getId() {
+	public Long getId() {
 		return this.id;
 	}
 
@@ -47,7 +47,7 @@ public class TestEntity3 {
 		return this.name;
 	}
 
-	public int getAge() {
+	public Integer getAge() {
 		return this.age;
 	}
 
@@ -55,7 +55,7 @@ public class TestEntity3 {
 		return this.birthday;
 	}
 
-	public void setId(final long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
@@ -63,7 +63,7 @@ public class TestEntity3 {
 		this.name = name;
 	}
 
-	public void setAge(final int age) {
+	public void setAge(final Integer age) {
 		this.age = age;
 	}
 
@@ -71,11 +71,11 @@ public class TestEntity3 {
 		this.birthday = birthday;
 	}
 
-	public int getLockVersion() {
+	public Integer getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final int lockVersion) {
+	public void setLockVersion(final Integer lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
@@ -89,23 +89,12 @@ public class TestEntity3 {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntity3) obj;
-		if (age != other.age) {
-			return false;
-		}
-		if (!Objects.equals(birthday, other.birthday)) {
-			return false;
-		}
-		if (id != other.id) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
+		if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+				|| lockVersion != other.lockVersion) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

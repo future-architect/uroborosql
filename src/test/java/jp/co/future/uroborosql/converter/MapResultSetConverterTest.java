@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.converter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
@@ -83,7 +83,7 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecord() throws Exception {
+	void testCreateRecord() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.build();
 		try (var agent = config.agent()) {
@@ -105,7 +105,7 @@ public class MapResultSetConverterTest {
 					.param("boolean", true)
 					.param("tinyint", 2)
 					.param("smallint", 3)
-					.param("bigint", 4l)
+					.param("bigint", 4L)
 					.param("decimal", new BigDecimal(5))
 					.param("double", 6d)
 					.param("real", 7f)
@@ -135,7 +135,7 @@ public class MapResultSetConverterTest {
 			assertThat(row.get("COL_BOOLEAN"), is(true));
 			assertThat(row.get("COL_TINYINT"), is((byte) 2));
 			assertThat(row.get("COL_SMALLINT"), is((short) 3));
-			assertThat(row.get("COL_BIGINT"), is(4l));
+			assertThat(row.get("COL_BIGINT"), is(4L));
 			assertThat(row.get("COL_DECIMAL"), is(new BigDecimal(5)));
 			assertThat(row.get("COL_DOUBLE"), is(6d));
 			assertThat(row.get("COL_REAL"), is(7f));
@@ -156,7 +156,7 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecordWithDialect() throws Exception {
+	void testCreateRecordWithDialect() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new Oracle12Dialect())
 				.build();
@@ -179,7 +179,7 @@ public class MapResultSetConverterTest {
 					.param("boolean", true)
 					.param("tinyint", 2)
 					.param("smallint", 3)
-					.param("bigint", 4l)
+					.param("bigint", 4L)
 					.param("decimal", new BigDecimal(5))
 					.param("double", 6d)
 					.param("real", 7f)
@@ -212,7 +212,7 @@ public class MapResultSetConverterTest {
 			assertThat(row.get("COL_BOOLEAN"), is(true));
 			assertThat(row.get("COL_TINYINT"), is((byte) 2));
 			assertThat(row.get("COL_SMALLINT"), is((short) 3));
-			assertThat(row.get("COL_BIGINT"), is(4l));
+			assertThat(row.get("COL_BIGINT"), is(4L));
 			assertThat(row.get("COL_DECIMAL"), is(new BigDecimal(5)));
 			assertThat(row.get("COL_DOUBLE"), is(6d));
 			assertThat(row.get("COL_REAL"), is(7f));
@@ -233,7 +233,7 @@ public class MapResultSetConverterTest {
 	}
 
 	@Test
-	public void testCreateRecordWithSnakeCase() throws Exception {
+	void testCreateRecordWithSnakeCase() throws Exception {
 		var config = UroboroSQL.builder(DriverManager.getConnection(url))
 				.setDialect(new PostgresqlDialect())
 				.build();
@@ -256,7 +256,7 @@ public class MapResultSetConverterTest {
 					.param("boolean", true)
 					.param("tinyint", 2)
 					.param("smallint", 3)
-					.param("bigint", 4l)
+					.param("bigint", 4L)
 					.param("decimal", new BigDecimal(5))
 					.param("double", 6d)
 					.param("real", 7f)
@@ -292,7 +292,7 @@ public class MapResultSetConverterTest {
 			assertThat(row.get("COL_BOOLEAN"), is(true));
 			assertThat(row.get("COL_TINYINT"), is((byte) 2));
 			assertThat(row.get("COL_SMALLINT"), is((short) 3));
-			assertThat(row.get("COL_BIGINT"), is(4l));
+			assertThat(row.get("COL_BIGINT"), is(4L));
 			assertThat(row.get("COL_DECIMAL"), is(new BigDecimal(5)));
 			assertThat(row.get("COL_DOUBLE"), is(6d));
 			assertThat(row.get("COL_REAL"), is(7f));
@@ -324,8 +324,8 @@ public class MapResultSetConverterTest {
 				"	COL_REAL			REAL," +
 				"	COL_TIME			TIME," +
 				"	COL_DATE			DATE," +
-				"	COL_TIMESTAMP		TIMESTAMP," +
-				"	COL_TIMESTAMPWTZ	TIMESTAMP WITH TIME ZONE," +
+				"	COL_TIMESTAMP		TIMESTAMP(9)," +
+				"	COL_TIMESTAMPWTZ	TIMESTAMP(9) WITH TIME ZONE," +
 				"	COL_BINARY			BINARY," +
 				"	COL_CHAR			CHAR," +
 				"	COL_NCHAR			NCHAR," +

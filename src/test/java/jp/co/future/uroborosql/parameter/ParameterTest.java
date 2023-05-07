@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.parameter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -13,7 +13,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForDate() throws ParseException, SQLException {
+	void testSetInParameter_mapperForDate() throws ParseException, SQLException {
 
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
@@ -50,7 +49,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
+	void testSetInParameter_mapperForLocalDate() throws ParseException, SQLException {
 
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -68,7 +67,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
+	void testSetInParameter_mapperForOptional() throws ParseException, SQLException {
 
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -85,7 +84,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetInParameter_mapperForArray() throws SQLException {
+	void testSetInParameter_mapperForArray() throws SQLException {
 
 		String[] param = { "1", "2", "3" };
 
@@ -121,7 +120,7 @@ public class ParameterTest {
 	 * @throws SQLException SQL例外
 	 */
 	@Test
-	public void testSetInParameter_array() throws SQLException {
+	void testSetInParameter_array() throws SQLException {
 
 		try (var agent = config.agent()) {
 			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
@@ -145,7 +144,7 @@ public class ParameterTest {
 	 * @throws SQLException SQL例外
 	 */
 	@Test
-	public void testSetInParameter_bytearray() throws SQLException {
+	void testSetInParameter_bytearray() throws SQLException {
 
 		try (var agent = config.agent()) {
 			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
@@ -158,7 +157,7 @@ public class ParameterTest {
 	}
 
 	@Test
-	public void testSetParameter_subParameter() throws ParseException, SQLException {
+	void testSetParameter_subParameter() throws ParseException, SQLException {
 
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
@@ -168,10 +167,8 @@ public class ParameterTest {
 			agent.insert(bean);
 
 			var sql = "select * from COLUMN_TYPE_TEST WHERE 1 = 1 /*IF bean.colVarchar != null*/ AND COL_VARCHAR = /*bean.colVarchar*//*END*//*IF bean.colBoolean != null*/ AND COL_BOOLEAN = /*bean.colBoolean*//*END*/";
-			List<Map<String, Object>> list = null;
-
 			var child1 = new ColumnTypeChild("test", 'X', 0, null, null, null, null);
-			list = agent.queryWith(sql).param("bean", child1).collect();
+			var list = agent.queryWith(sql).param("bean", child1).collect();
 			assertThat(list.size(), is(1));
 			assertThat(list.get(0).get("COL_VARCHAR"), is("test"));
 			assertThat(list.get(0).get("COL_BOOLEAN"), is(true));

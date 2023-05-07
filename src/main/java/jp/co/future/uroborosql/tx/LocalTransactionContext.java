@@ -11,11 +11,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
@@ -29,6 +31,8 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  * @author ota
  */
 class LocalTransactionContext implements AutoCloseable {
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 
 	/** セーブポイント名リスト */
 	private final List<String> savepointNames = new ArrayList<>();
@@ -100,9 +104,10 @@ class LocalTransactionContext implements AutoCloseable {
 		case BATCH_INSERT:
 			if (updatable) {
 				if (executionContext.hasGeneratedKeyColumns()) {
-					stmt = conn.prepareStatement(executionContext.getExecutableSql(), executionContext.getGeneratedKeyColumns());
+					stmt = conn.prepareStatement(executionContext.getExecutableSql(),
+							executionContext.getGeneratedKeyColumns());
 				} else {
-					stmt = conn.prepareStatement(executionContext.getExecutableSql(), Statement.RETURN_GENERATED_KEYS);
+					stmt = conn.prepareStatement(executionContext.getExecutableSql());
 				}
 			} else {
 				throw new UroborosqlTransactionException("Transaction not started.");
@@ -184,7 +189,7 @@ class LocalTransactionContext implements AutoCloseable {
 		var pos = savepointNames.lastIndexOf(savepointName);
 		if (pos > -1) {
 			var subList = savepointNames.subList(pos, savepointNames.size());
-			for (String name : subList) {
+			for (var name : subList) {
 				savepointMap.remove(name);
 			}
 			subList.clear();
@@ -239,12 +244,12 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外. トランザクションのコミットに失敗した場合
 	 */
 	void commit() {
-		if (connection != null) {
-			try {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				connection.commit();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
 			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
 		clearState();
 	}
@@ -255,12 +260,12 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外. トランザクションのロールバックに失敗した場合
 	 */
 	void rollback() {
-		if (connection != null) {
-			try {
+		try {
+			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				connection.rollback();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
 			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
 		clearState();
 	}
@@ -272,19 +277,21 @@ class LocalTransactionContext implements AutoCloseable {
 	 */
 	@Override
 	public void close() {
-		if (connection != null) {
-			try {
-				if (!isRollbackOnly()) {
-					commit();
-				} else {
-					rollback();
-				}
-				connection.close();
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+		try {
+			if (!isRollbackOnly()) {
+				commit();
+			} else {
+				rollback();
 			}
-			connection = null;
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			} else {
+				LOG.debug("Connection close was skipped because the connection was already closed.");
+			}
+		} catch (SQLException e) {
+			throw new UroborosqlSQLException(e);
 		}
+		connection = null;
 	}
 
 	/**
@@ -303,7 +310,7 @@ class LocalTransactionContext implements AutoCloseable {
 	 * @throws SQLException SQL例外
 	 */
 	private void initSavepoints(final Connection connection) {
-		for (String savepointName : savepointNames) {
+		for (var savepointName : savepointNames) {
 			try {
 				savepointMap.put(savepointName, connection.setSavepoint(savepointName));
 			} catch (SQLException e) {

@@ -1,8 +1,9 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.newResultSet;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -23,7 +24,7 @@ public class ArrayPropertyMapperTest {
 	}
 
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException, SQLException {
+	void test() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 		mapper.addMapper(new ArrayPropertyMapper());
 		var array = newDummyArray("a,b,c".split(","));

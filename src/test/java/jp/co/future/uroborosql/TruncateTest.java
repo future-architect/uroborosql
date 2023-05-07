@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Paths;
 
@@ -39,7 +39,7 @@ public class TruncateTest extends AbstractDbTest {
 	 * TRUNCATEのテストケース。
 	 */
 	@Test
-	public void testTruncate() throws Exception {
+	void testTruncate() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
@@ -54,11 +54,13 @@ public class TruncateTest extends AbstractDbTest {
 	 * Entityクラスが不正な場合のテストケース。
 	 */
 	@Test
-	public void testTruncateError() throws Exception {
-		// 事前条件
-		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
+	void testTruncateError() throws Exception {
+		assertThrows(EntitySqlRuntimeException.class, () -> {
+			// 事前条件
+			cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		assertThrows(EntitySqlRuntimeException.class, () -> agent.truncate(Dummy.class));
+			agent.truncate(Dummy.class);
+		});
 	}
 
 }

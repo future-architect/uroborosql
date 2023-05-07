@@ -1,8 +1,24 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.jline.reader.LineReader.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.jline.reader.LineReader.ACCEPT_LINE;
+import static org.jline.reader.LineReader.BACKWARD_CHAR;
+import static org.jline.reader.LineReader.BACKWARD_DELETE_CHAR;
+import static org.jline.reader.LineReader.BACKWARD_KILL_WORD;
+import static org.jline.reader.LineReader.BACKWARD_WORD;
+import static org.jline.reader.LineReader.BEGINNING_OF_LINE;
+import static org.jline.reader.LineReader.COMPLETE_WORD;
+import static org.jline.reader.LineReader.DOWN_HISTORY;
+import static org.jline.reader.LineReader.END_OF_LINE;
+import static org.jline.reader.LineReader.FORWARD_WORD;
+import static org.jline.reader.LineReader.KILL_WHOLE_LINE;
+import static org.jline.reader.LineReader.KILL_WORD;
+import static org.jline.reader.LineReader.UP_HISTORY;
+import static org.jline.reader.LineReader.YANK;
+import static org.jline.reader.LineReader.YANK_POP;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -17,6 +33,7 @@ import java.util.function.BiFunction;
 import org.jline.keymap.KeyMap;
 import org.jline.reader.Candidate;
 import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
@@ -37,7 +54,7 @@ public abstract class ReaderTestSupport {
 		terminal = new DumbTerminal("terminal", "ansi", in, out, StandardCharsets.UTF_8);
 		terminal.setSize(new Size(160, 80));
 		reader = new TestLineReader(terminal, "JLine", null);
-		reader.setKeyMap(LineReaderImpl.EMACS);
+		reader.setKeyMap(LineReader.EMACS);
 		mask = null;
 	}
 

@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage.reports.html;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,7 +20,7 @@ import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
 public class HtmlReportCoverageHandlerTest {
 	/**
-	 * SQLリソース管理クラス
+	 * SQL管理クラス
 	 */
 	SqlConfig config;
 
@@ -39,7 +39,7 @@ public class HtmlReportCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReport() throws Exception {
+	void testReport() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReport");
 
 		Files.deleteIfExists(path.resolve("example/select_test.html"));
@@ -86,7 +86,7 @@ public class HtmlReportCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReportNoBranch() throws Exception {
+	void testReportNoBranch() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReportNoBranch");
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"));
@@ -112,7 +112,7 @@ public class HtmlReportCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReportLastNoBranch() throws Exception {
+	void testReportLastNoBranch() throws Exception {
 		var path = Paths.get("target", "coverage", "HtmlReportCoverageHandlerTest", "testReportLastNoBranch");
 
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"));

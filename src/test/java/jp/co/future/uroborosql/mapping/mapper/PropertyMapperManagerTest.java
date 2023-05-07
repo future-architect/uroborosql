@@ -1,8 +1,10 @@
 package jp.co.future.uroborosql.mapping.mapper;
 
-import static jp.co.future.uroborosql.mapping.mapper.Helper.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.newProxy;
+import static jp.co.future.uroborosql.mapping.mapper.Helper.newResultSet;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +33,7 @@ public class PropertyMapperManagerTest {
 	}
 
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException, SQLException {
+	void test() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", "value"), 1), is("value"));
 		assertThat(mapper.getValue(JavaType.of(String.class), newResultSet("getString", null), 1), nullValue());
@@ -177,7 +179,7 @@ public class PropertyMapperManagerTest {
 	}
 
 	@Test
-	public void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
+	void testCustom() throws NoSuchMethodException, SecurityException, SQLException {
 		var mapper = new PropertyMapperManager(this.clock);
 
 		mapper.addMapper(new PropertyMapper<String>() {

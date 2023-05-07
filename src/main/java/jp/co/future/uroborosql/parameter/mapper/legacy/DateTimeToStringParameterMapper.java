@@ -48,9 +48,9 @@ public class DateTimeToStringParameterMapper implements BindParameterMapper<Temp
 	 */
 	@Override
 	public boolean canAccept(final Object object) {
-		return LocalDateTime.class.isInstance(object) ||
-				OffsetDateTime.class.isInstance(object) ||
-				ZonedDateTime.class.isInstance(object);
+		return object instanceof LocalDateTime ||
+				object instanceof OffsetDateTime ||
+				object instanceof ZonedDateTime;
 	}
 
 	/**

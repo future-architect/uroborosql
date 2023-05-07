@@ -76,9 +76,8 @@ public class BindParamCompleter extends AbstractCompleter {
 			}
 			if (isBlank) {
 				// 候補の表示位置を計算
-				candidates.addAll(
-						params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
-								.collect(Collectors.toList()));
+				candidates.addAll(params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
+						.collect(Collectors.toList()));
 			} else {
 				// 候補の表示位置を計算
 				pos = pos - parts[len - 1].length();
@@ -89,18 +88,16 @@ public class BindParamCompleter extends AbstractCompleter {
 					pos = -1;
 				} else {
 					var key = keyValue[0];
-					for (String match : params) {
+					for (var match : params) {
 						if (match.startsWith(key)) {
-							candidates
-									.add(new Candidate(match + "=", match, null, null, null, null, false));
+							candidates.add(new Candidate(match + "=", match, null, null, null, null, false));
 						}
 					}
 				}
 			}
 		} else {
-			candidates.addAll(
-					params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
-							.collect(Collectors.toList()));
+			candidates.addAll(params.stream().map(p -> new Candidate(p + "=", p, null, null, null, null, false))
+					.collect(Collectors.toList()));
 		}
 	}
 }

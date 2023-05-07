@@ -47,7 +47,7 @@ public final class BindParameterMapperManager {
 	private static final List<BindParameterMapper<?>> LOADED_MAPPERS = load();
 
 	private static List<BindParameterMapper<?>> load() {
-		List<BindParameterMapper<?>> list = new ArrayList<>();
+		var list = new ArrayList<BindParameterMapper<?>>();
 		ServiceLoader.load(BindParameterMapper.class).forEach(list::add);
 		return list;
 	}
@@ -175,7 +175,7 @@ public final class BindParameterMapperManager {
 				|| object instanceof java.sql.Struct) {
 			return true;
 		}
-		for (BindParameterMapper<?> parameterMapper : mappers) {
+		for (var parameterMapper : mappers) {
 			if (parameterMapper.canAccept(object)) {
 				return true;
 			}
@@ -185,7 +185,7 @@ public final class BindParameterMapperManager {
 			return true;
 		}
 
-		for (BindParameterMapper<?> parameterMapper : DEFAULT_MAPPERS) {
+		for (var parameterMapper : DEFAULT_MAPPERS) {
 			if (parameterMapper.canAccept(object)) {
 				return true;
 			}

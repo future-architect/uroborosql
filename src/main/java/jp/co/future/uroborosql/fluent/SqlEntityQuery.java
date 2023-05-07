@@ -232,4 +232,22 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	 */
 	SqlEntityQuery<E> hint(String hint);
 
+	/**
+	 * 検索時に取得するカラムを指定.<br>
+	 * 指定しない場合は全カラムが取得対象となる.
+	 *
+	 * @param cols 取得するカラム名（複数指定可）
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> includeColumns(String... cols);
+
+	/**
+	 * 検索時に除外するカラムを指定.<br>
+	 * 指定しない場合は全カラムが取得対象となる.
+	 *
+	 * @param cols 除外するカラム名（複数指定可）
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> excludeColumns(String... cols);
+
 }

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +37,7 @@ public class SqlAgentQueryWithIteratorTest {
 		agent = config.agent();
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -55,7 +56,7 @@ public class SqlAgentQueryWithIteratorTest {
 			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
 				Map<String, Object> row = new LinkedHashMap<>();
 				var parts = line.split("\t");
-				for (String part : parts) {
+				for (var part : parts) {
 					var keyValue = part.split(":", 2);
 					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
@@ -73,7 +74,7 @@ public class SqlAgentQueryWithIteratorTest {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				assertThat("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage(), false);
+				fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
 			}
 		});
 	}
@@ -89,13 +90,13 @@ public class SqlAgentQueryWithIteratorTest {
 				agent.update(map.get("sql").toString()).paramMap(map).count();
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				assertThat("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage(), false);
+				fail("TABLE:" + map.get("TABLE") + " insert is miss. ex:" + ex.getMessage());
 			}
 		});
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
@@ -113,7 +114,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	@Test
-	public void testIssue() {
+	void testIssue() {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 

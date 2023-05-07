@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLType;
 import java.util.Map;
+import java.util.function.Function;
 
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.fluent.ProcedureFluent;
@@ -24,7 +25,8 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  *
  */
-public interface ExecutionContext extends TransformContext, SqlFluent<ExecutionContext>, ProcedureFluent<ExecutionContext> {
+public interface ExecutionContext
+		extends TransformContext, SqlFluent<ExecutionContext>, ProcedureFluent<ExecutionContext> {
 
 	/**
 	 * 変換前SQL取得
@@ -70,6 +72,21 @@ public interface ExecutionContext extends TransformContext, SqlFluent<ExecutionC
 	 * @return 自身のExecutionContext
 	 */
 	ExecutionContext setSqlId(String sqlId);
+
+	/**
+	 * SQLを実行するスキーマを取得
+	 *
+	 * @return スキーマ
+	 */
+	String getSchema();
+
+	/**
+	 * SQLを実行するスキーマを設定
+	 *
+	 * @param schema スキーマ
+	 * @return 自身のExecutionContext
+	 */
+	ExecutionContext setSchema(String schema);
 
 	/**
 	 * 最大リトライ回数 を取得する
@@ -272,4 +289,23 @@ public interface ExecutionContext extends TransformContext, SqlFluent<ExecutionC
 	 * @param generatedKeyValues 自動採番するキーカラム値の配列
 	 */
 	void setGeneratedKeyValues(Object[] generatedKeyValues);
+
+	/**
+	 * 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理を取得する.<br>
+	 * デフォルト実装は<code>null</code> を返却する. 必要に応じて子クラスでオーバーライドすること.
+	 *
+	 * @return 通常の更新SQL発行の代わりに行う疑似動作. <code>null</code> が返る場合は通常の更新処理を行う.
+	 */
+	default Function<ExecutionContext, Integer> getUpdateDelegate() {
+		return null;
+	}
+
+	/**
+	 * 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理を設定する.
+	 *
+	 * @param updateDelegate 通常の更新SQL発行の代わりに移譲する処理. <code>null</code> を設定した場合は通常の更新処理を行う.
+	 * @return 自身のExecutionContext
+	 */
+	ExecutionContext setUpdateDelegate(Function<ExecutionContext, Integer> updateDelegate);
+
 }

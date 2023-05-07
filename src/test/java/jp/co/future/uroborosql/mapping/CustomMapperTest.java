@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -117,7 +117,7 @@ public class CustomMapperTest {
 	}
 
 	@Test
-	public void testFind() throws Exception {
+	void testFind() throws Exception {
 
 		try (var agent = config.agent()) {
 			var data = agent.find(TestEntity.class, 2).orElse(null);

@@ -1,7 +1,11 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.Connection;
 import java.sql.JDBCType;
@@ -31,7 +35,7 @@ public class PostgresqlDialectTest {
 	private final Dialect dialect = new PostgresqlDialect();
 
 	@Test
-	public void testAccept12() {
+	void testAccept12() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -57,7 +61,7 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testEscapeLikePattern() {
+	void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
@@ -73,12 +77,12 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testGetEscapeChar() {
+	void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('$'));
 	}
 
 	@Test
-	public void testSupports() {
+	void testSupports() {
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
@@ -87,10 +91,11 @@ public class PostgresqlDialectTest {
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test
-	public void testGetLimitClause() {
+	void testGetLimitClause() {
 		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
@@ -98,22 +103,22 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testGetJavaType() {
-		assertThat(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), is(JavaType.of(String.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), is(JavaType.of(String.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), is(JavaType.of(Object.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
-				is(JavaType.of(ZonedDateTime.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
-				is(JavaType.of(Timestamp.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
-				is(JavaType.of(OffsetTime.class).getClass()));
-		assertThat(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
-				is(JavaType.of(Time.class).getClass()));
+	void testGetJavaType() {
+		assertEquals(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), JavaType.of(String.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), JavaType.of(Object.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
+				JavaType.of(ZonedDateTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
+				JavaType.of(Timestamp.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
+				JavaType.of(OffsetTime.class).getClass());
+		assertEquals(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
+				JavaType.of(Time.class).getClass());
 	}
 
 	@Test
-	public void testAddForUpdateClause() {
+	void testAddForUpdateClause() {
 		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
@@ -124,7 +129,7 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints1() {
+	void testAddOptimizerHints1() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
@@ -149,7 +154,7 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints2() {
+	void testAddOptimizerHints2() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
@@ -168,7 +173,7 @@ public class PostgresqlDialectTest {
 	}
 
 	@Test
-	public void testGetPessimisticLockingErrorCodes() {
+	void testGetPessimisticLockingErrorCodes() {
 		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("55P03")));
 	}
 

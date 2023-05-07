@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -23,7 +26,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	 * DB更新処理のテストケース。
 	 */
 	@Test
-	public void testExecuteUpdate() throws Exception {
+	void testExecuteUpdate() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
@@ -32,7 +35,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("jan_code", "1234567890123", Types.CHAR);
 
 		var updateCount = agent.update(ctx);
-		assertThat(updateCount, is(1));
+		assertEquals(1, updateCount, "データの登録に失敗しました。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -42,21 +45,21 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
 
 	/**
 	 * DB更新処理のテストケース。(Fluent API)
 	 */
 	@Test
-	public void testUpdateFluent() throws Exception {
+	void testUpdateFluent() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
 		var updateCount = agent.update("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR).count();
-		assertThat(updateCount, is(1));
+		assertEquals(1, updateCount, "データの登録に失敗しました。");
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -66,14 +69,14 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
 	}
 
 	/**
 	 * DB更新処理のテストケース(NULLに設定)。
 	 */
 	@Test
-	public void testExecuteUpdateToNull() throws Exception {
+	void testExecuteUpdateToNull() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
@@ -82,28 +85,43 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_id", 1, JDBCType.INTEGER)
 				.param("jan_code", null, Types.CHAR)
 				.count();
-		assertThat(updateCount, is(1));
+		assertEquals(1, updateCount, "データの登録に失敗しました。");
 
-		assertThat(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
+		assertNull(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
 				.param("product_id", 1, JDBCType.INTEGER)
 				.one()
-				.get("JAN_CODE"), is(nullValue()));
+				.get("JAN_CODE"));
 	}
 
 	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test
-	public void testNotFoundFile() throws Exception {
+	void testNotFoundFile() throws Exception {
 		try {
 			var ctx = agent.contextFrom("file");
 			agent.update(ctx);
 			// 例外が発生しなかった場合
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			// OK
 		} catch (Exception e) {
-			assertThat(e.getMessage(), false);
+			fail(e.getMessage());
 		}
 	}
+
+	/**
+	 * updateDelegateが指定された場合のテストケース。
+	 */
+	@Test
+	void testUpdateDelegate() throws Exception {
+		var update = agent.update("example/selectinsert_product")
+				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
+				.param("jan_code", "1234567890123", Types.CHAR);
+		var ctx = update.context();
+		ctx.setUpdateDelegate(context -> 2);
+
+		assertThat(update.count(), is(2));
+	}
+
 }

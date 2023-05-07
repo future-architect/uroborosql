@@ -22,7 +22,8 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  *
  */
 public class AuditLogSqlFilter extends AbstractSqlFilter {
-	private static final Logger LOG = LoggerFactory.getLogger(AuditLogSqlFilter.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
@@ -99,8 +100,14 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("{}", new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					rowCount));
+		}
 		return resultSet;
 	}
 
@@ -110,7 +117,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result) {
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int result) {
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -123,8 +131,14 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), result).toString());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("{}", new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					result));
+		}
 		return result;
 
 	}
@@ -135,7 +149,8 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 	 * @see jp.co.future.uroborosql.filter.AbstractSqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result) {
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int[] result) {
 		var userName = getParam(executionContext, userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -154,9 +169,13 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
+			LOG.debug("{}", new AuditData(userName,
+					funcId,
+					executionContext.getSqlId(),
+					executionContext.getSqlName(),
+					executionContext.getExecutableSql(),
+					rowCount));
 		}
-		LOG.debug(new AuditData(userName, funcId, executionContext.getSqlId(), executionContext.getSqlName(), executionContext
-				.getExecutableSql(), rowCount).toString());
 		return result;
 	}
 
@@ -230,7 +249,7 @@ public class AuditLogSqlFilter extends AbstractSqlFilter {
 				return null;
 			}
 			var buff = str;
-			for (String escChar : ESC_CHARS) {
+			for (var escChar : ESC_CHARS) {
 				var parts = escChar.split(":");
 				buff = buff.replaceAll(parts[0], parts[1]);
 			}

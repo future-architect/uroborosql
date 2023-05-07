@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +56,7 @@ public class SecretResultSetTest {
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
@@ -62,7 +64,7 @@ public class SecretResultSetTest {
 			agent.commit();
 		} catch (UroborosqlSQLException ex) {
 			ex.printStackTrace();
-			assertThat(ex.getMessage(), false);
+			fail(ex.getMessage());
 		}
 	}
 
@@ -91,7 +93,7 @@ public class SecretResultSetTest {
 
 	@SuppressWarnings("deprecation")
 	@Test
-	public void testQuery() throws Exception {
+	void testQuery() throws Exception {
 		try (var agent = config.agent()) {
 			try (var rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
 				assertThat(rs.next(), is(true));
@@ -164,13 +166,13 @@ public class SecretResultSetTest {
 				assertThat(rs.getConcurrency(), is(1007));
 				assertThat(rs.getMetaData().getColumnCount(), is(8));
 				rs.clearWarnings();
-				assertThat(rs.getWarnings(), is(nullValue()));
+				assertNull(rs.getWarnings());
 			}
 		}
 	}
 
 	@Test
-	public void testUpdate() throws Exception {
+	void testUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			var query = agent.query("example/select_product").param("product_id", 1);
 			query.context().setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
@@ -179,8 +181,8 @@ public class SecretResultSetTest {
 				rs.updateNull("PRODUCT_KANA_NAME");
 				rs.updateNull(2);
 				rs.updateRow();
-				assertThat(rs.getString("PRODUCT_KANA_NAME"), is(nullValue()));
-				assertThat(rs.getString(2), is(nullValue()));
+				assertNull(rs.getString("PRODUCT_KANA_NAME"));
+				assertNull(rs.getString(2));
 
 				rs.updateBoolean("PRODUCT_KANA_NAME", true);
 				rs.updateBoolean(2, false);
@@ -264,7 +266,7 @@ public class SecretResultSetTest {
 	}
 
 	@Test
-	public void testIsClose() throws Exception {
+	void testIsClose() throws Exception {
 		try (var agent = config.agent()) {
 			ResultSet rs = null;
 			try {

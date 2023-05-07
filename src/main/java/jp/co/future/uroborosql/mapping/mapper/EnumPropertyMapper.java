@@ -33,7 +33,7 @@ public class EnumPropertyMapper implements PropertyMapper<Enum<?>> {
 		}
 		Class<?> rawType = type.getRawType();
 		Object[] enums = rawType.getEnumConstants();
-		for (Object object : enums) {
+		for (var object : enums) {
 			if (object.toString().equals(name)) {
 				return (Enum<?>) object;
 			}

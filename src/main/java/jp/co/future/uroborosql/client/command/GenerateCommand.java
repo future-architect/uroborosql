@@ -53,9 +53,9 @@ public class GenerateCommand extends ReplCommand {
 
 		try (var agent = sqlConfig.agent()) {
 			var sqlKeyword = SqlKeyword.of(parts[1]);
-			final var tableName = parts[2];
-			final var versionColumnName = props.getProperty("sql.versionColumnName");
-			final var optimisticLockSupplier = props
+			var tableName = parts[2];
+			var versionColumnName = props.getProperty("sql.versionColumnName");
+			var optimisticLockSupplier = props
 					.getProperty("sql.optimisticLockSupplier",
 							"jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier");
 

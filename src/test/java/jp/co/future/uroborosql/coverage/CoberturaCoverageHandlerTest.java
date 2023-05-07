@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,7 +19,7 @@ import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
 
 public class CoberturaCoverageHandlerTest {
 	/**
-	 * SQLリソース管理クラス
+	 * SQL管理クラス
 	 */
 	SqlConfig config;
 
@@ -38,7 +38,7 @@ public class CoberturaCoverageHandlerTest {
 	}
 
 	@Test
-	public void testReport() throws Exception {
+	void testReport() throws Exception {
 		var path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア

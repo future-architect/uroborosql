@@ -123,23 +123,12 @@ public class TestDataNoKeyEntity {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestDataNoKeyEntity) obj;
-		if (age != other.age) {
-			return false;
-		}
-		if (!Objects.equals(birthday, other.birthday)) {
-			return false;
-		}
-		if (id != other.id) {
-			return false;
-		}
-		if (!Objects.equals(memo, other.memo)) {
+		if (age != other.age || !Objects.equals(birthday, other.birthday) || id != other.id
+				|| !Objects.equals(memo, other.memo)) {
 			return false;
 		}
 		if (!Objects.equals(name, other.name)) {

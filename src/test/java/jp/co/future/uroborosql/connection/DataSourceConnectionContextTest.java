@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.Connection;
 
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class DataSourceConnectionContextTest {
 
 	@Test
-	public void testDataSourceConnectionContext() {
+	void testDataSourceConnectionContext() {
 		var ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.autoCommit(), is(false));
@@ -20,7 +20,7 @@ public class DataSourceConnectionContextTest {
 	}
 
 	@Test
-	public void testDataSourceConnectionContextWithDataSourceName() {
+	void testDataSourceConnectionContextWithDataSourceName() {
 		var ctx = ConnectionContextBuilder.dataSource("dataSourceName");
 		assertThat(ctx.dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(), is(false));
@@ -29,12 +29,14 @@ public class DataSourceConnectionContextTest {
 	}
 
 	@Test
-	public void testDataSourceConnectionContextWithDataSourceNameNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource(null));
+	void testDataSourceConnectionContextWithDataSourceNameNull() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			ConnectionContextBuilder.dataSource(null);
+		});
 	}
 
 	@Test
-	public void testSetter() {
+	void testSetter() {
 		var ctx = ConnectionContextBuilder.dataSource();
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.dataSourceName("dataSourceName").dataSourceName(), is("dataSourceName"));
@@ -45,7 +47,9 @@ public class DataSourceConnectionContextTest {
 	}
 
 	@Test
-	public void testSetDataSourceNameNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.dataSource().dataSourceName(null));
+	void testSetDataSourceNameNull() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			ConnectionContextBuilder.dataSource().dataSourceName(null);
+		});
 	}
 }

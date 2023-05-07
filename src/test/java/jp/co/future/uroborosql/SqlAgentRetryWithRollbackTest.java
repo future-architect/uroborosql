@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,6 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.filter.AbstractSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilter;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
@@ -50,7 +49,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -65,7 +64,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 	private void setRetryFilter(final int retryCount, final int errorCode) {
 		var filters = config.getSqlFilterManager().getFilters();
-		for (SqlFilter filter : filters) {
+		for (var filter : filters) {
 			if (filter instanceof RetrySqlFilter) {
 				((RetrySqlFilter) filter).initialize(retryCount, errorCode);
 				break;
@@ -77,11 +76,11 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryRetryNoWait() throws Exception {
+	void testQueryRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		var query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -90,11 +89,11 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（待機あり）
 	 */
 	@Test
-	public void testQueryRetryWait() throws Exception {
+	void testQueryRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
-		var query = agent.query("example/select_product").param("product_id", List.of(0, 1))
+		var query = agent.query("example/select_product").param("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -104,16 +103,16 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testQueryRetryOver() throws Exception {
+	void testQueryRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -124,16 +123,16 @@ public class SqlAgentRetryWithRollbackTest {
 	 * クエリ実行のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testQueryNoRetry() throws Exception {
+	void testQueryNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -144,7 +143,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryNoWait() throws Exception {
+	void testUpdateRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -159,7 +158,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ
 	 */
 	@Test
-	public void testUpdateRetryWait() throws Exception {
+	void testUpdateRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -174,7 +173,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testUpdateRetryOver() throws Exception {
+	void testUpdateRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
@@ -185,7 +184,7 @@ public class SqlAgentRetryWithRollbackTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -196,7 +195,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * 更新のリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testUpdateNotRetry() throws Exception {
+	void testUpdateNotRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
@@ -207,7 +206,7 @@ public class SqlAgentRetryWithRollbackTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (UroborosqlSQLException ex) {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -218,7 +217,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryNoWait() throws Exception {
+	void testProcedureRetryNoWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -233,7 +232,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ
 	 */
 	@Test
-	public void testProcedureRetryWait() throws Exception {
+	void testProcedureRetryWait() throws Exception {
 		var retryCount = 3;
 		setRetryFilter(retryCount, 60);
 
@@ -248,7 +247,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ（リトライ回数上限）
 	 */
 	@Test
-	public void testProcedureRetryOver() throws Exception {
+	void testProcedureRetryOver() throws Exception {
 		var retryCount = 3;
 		var errorCode = 60;
 		setRetryFilter(retryCount, errorCode);
@@ -259,7 +258,7 @@ public class SqlAgentRetryWithRollbackTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -270,7 +269,7 @@ public class SqlAgentRetryWithRollbackTest {
 	 * プロシージャのリトライ（リトライ対象外のエラー発生）
 	 */
 	@Test
-	public void testProcedureNoRetry() throws Exception {
+	void testProcedureNoRetry() throws Exception {
 		var retryCount = 3;
 		var errorCode = 1;
 		setRetryFilter(retryCount, errorCode);
@@ -281,7 +280,7 @@ public class SqlAgentRetryWithRollbackTest {
 					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
 					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
-			assertThat("Fail here.", false);
+			fail();
 		} catch (SQLException ex) {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(0));
 			assertThat(errorCode, is(ex.getErrorCode()));
@@ -314,14 +313,14 @@ public class SqlAgentRetryWithRollbackTest {
 		 * @see AbstractSqlFilter#doQuery(ExecutionContext, PreparedStatement, ResultSet)
 		 */
 		@Override
-		public ResultSet doQuery(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+		public ResultSet doQuery(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 				final ResultSet resultSet) throws SQLException {
 			if (retryCount > currentCount++) {
 				//				preparedStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doQuery(executionContext, preparedStatement, resultSet);
+			return super.doQuery(ExecutionContext, preparedStatement, resultSet);
 		}
 
 		/**
@@ -330,7 +329,7 @@ public class SqlAgentRetryWithRollbackTest {
 		 * @see AbstractSqlFilter#doUpdate(ExecutionContext, PreparedStatement, int)
 		 */
 		@Override
-		public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+		public int doUpdate(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 				final int result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
@@ -338,7 +337,7 @@ public class SqlAgentRetryWithRollbackTest {
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doUpdate(executionContext, preparedStatement, result);
+			return super.doUpdate(ExecutionContext, preparedStatement, result);
 		}
 
 		/**
@@ -347,7 +346,7 @@ public class SqlAgentRetryWithRollbackTest {
 		 * @see AbstractSqlFilter#doBatch(ExecutionContext, PreparedStatement, int[])
 		 */
 		@Override
-		public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+		public int[] doBatch(final ExecutionContext ExecutionContext, final PreparedStatement preparedStatement,
 				final int[] result)
 				throws SQLException {
 			if (retryCount > currentCount++) {
@@ -355,7 +354,7 @@ public class SqlAgentRetryWithRollbackTest {
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doBatch(executionContext, preparedStatement, result);
+			return super.doBatch(ExecutionContext, preparedStatement, result);
 		}
 
 		/**
@@ -364,14 +363,14 @@ public class SqlAgentRetryWithRollbackTest {
 		 * @see AbstractSqlFilter#doProcedure(ExecutionContext, CallableStatement, boolean)
 		 */
 		@Override
-		public boolean doProcedure(final ExecutionContext executionContext, final CallableStatement callableStatement,
+		public boolean doProcedure(final ExecutionContext ExecutionContext, final CallableStatement callableStatement,
 				final boolean result) throws SQLException {
 			if (retryCount > currentCount++) {
 				//				callableStatement.getConnection().rollback();
 				throw new SQLException("Test Retry Exception", "23000", errorCode);
 			}
 
-			return super.doProcedure(executionContext, callableStatement, result);
+			return super.doProcedure(ExecutionContext, callableStatement, result);
 		}
 	}
 }

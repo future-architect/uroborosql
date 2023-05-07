@@ -64,20 +64,11 @@ public class TestEntityFieldIncrementLockVersion {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntityFieldIncrementLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || lockVersion != other.lockVersion || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

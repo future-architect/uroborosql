@@ -108,7 +108,7 @@ public abstract class JavaType {
 		}
 
 		private void walkInterfaces(final Class<?> subclass, final Class<?>[] interfaces) {
-			for (Class<?> interfaceType : interfaces) {
+			for (var interfaceType : interfaces) {
 				if (this.subclasses.putIfAbsent(interfaceType, subclass) != null) {
 					// 追加済
 					continue;

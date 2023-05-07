@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -18,7 +19,7 @@ public class OptionalParameterMapperTest {
 	}
 
 	@Test
-	public void test() {
+	void test() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var value = "ABC";
 
@@ -31,7 +32,7 @@ public class OptionalParameterMapperTest {
 	}
 
 	@Test
-	public void testEmpty() {
+	void testEmpty() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 		var mapper = new OptionalParameterMapper();
 		Optional<String> optional = Optional.empty();

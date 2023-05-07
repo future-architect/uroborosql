@@ -1,7 +1,13 @@
 package jp.co.future.uroborosql.client;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.math.BigDecimal;
 import java.sql.DriverManager;
@@ -27,7 +33,7 @@ public class SqlParamUtilsTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSetSqlParams() {
+	void testSetSqlParams() {
 		var sql = "/*key1*/, /*key2*/, /*key3*/(), /*CLS_AGE_DEFAULT*/, /*$CLS_FLAG_OFF*/";
 		var ctx = sqlConfig.context();
 		ctx.setSql(sql);
@@ -201,7 +207,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testSetSqlParamsIfNode() {
+	void testSetSqlParamsIfNode() {
 		var sql = "/*IF check1 != null*/ /*key1*/ /*ELSE*/ /*key2*/ /*END*/";
 		var ctx = sqlConfig.context();
 		ctx.setSql(sql);
@@ -210,7 +216,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testGetSqlParams() {
+	void testGetSqlParams() {
 		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test where id = /*id*/1 and name = /*name*/'name1 age = /*CLS_AGE_DEFAULT*/0",
@@ -220,7 +226,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testGetSqlParamsIfNode() {
+	void testGetSqlParamsIfNode() {
 		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test where /*IF id != null*/id = /*id*/1 and id2 = /*id2*/'' /*ELIF name != null*/and name = /*name*/'name1' and name2 = /*name2*/'name2' /*ELIF age != null*/and age = /*age*/0 and age2 = /*age2*/1 */ /*ELSE*/and height = /*height*/0 and height2 = /*height2*/1 /*END*/",
@@ -230,7 +236,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testGetSqlParamsParenExpression() {
+	void testGetSqlParamsParenExpression() {
 		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from test /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
@@ -239,7 +245,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testGetSqlParamsEmbeddedExpression() {
+	void testGetSqlParamsEmbeddedExpression() {
 		var params = SqlParamUtils
 				.getSqlParams(
 						"select * from /*$tableName*/ /*BEGIN*/ where /*IF ids != null*/ id in /*ids*/() /*END*/ /*END*/",
@@ -254,7 +260,7 @@ public class SqlParamUtilsTest {
 	}
 
 	@Test
-	public void testParseLine() {
+	void testParseLine() {
 		var parts = SqlParamUtils.parseLine("update /sss/bbb param1=[1, 2, 3] param2=3 param3=[1, 2]");
 		assertThat(parts, arrayContaining("update", "/sss/bbb", "param1=[1,2,3]", "param2=3", "param3=[1,2]"));
 

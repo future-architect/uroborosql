@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.filter;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize01() throws Exception {
+	void testInitialize01() throws Exception {
 		filter.setCryptColumnNames(null);
 		sqlFilterManager.initialize();
 		assertThat(filter.isSkipFilter(), is(true));
@@ -45,7 +45,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize02() throws Exception {
+	void testInitialize02() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(null);
@@ -56,7 +56,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize03() throws Exception {
+	void testInitialize03() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
@@ -69,7 +69,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize04() throws Exception {
+	void testInitialize04() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			filter.setKeyStoreFilePath(
@@ -82,7 +82,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize05() throws Exception {
+	void testInitialize05() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成
@@ -99,7 +99,7 @@ public class SecretColumnSqlFilterInitializeTest {
 	}
 
 	@Test
-	public void testInitialize06() throws Exception {
+	void testInitialize06() throws Exception {
 		filter.setCryptColumnNames(Arrays.asList("product_id", "product_name"));
 		var log = TestAppender.getLogbackLogs(() -> {
 			// 下記コマンドでkeystoreファイル生成

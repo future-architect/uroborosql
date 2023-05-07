@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.coverage;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 public class RangesTest {
 
 	@Test
-	public void testNew() {
+	void testNew() {
 		var ranges = new Ranges(Arrays.asList(
 				new Range(2, 3),
 				new Range(4, 5)));
@@ -18,7 +18,7 @@ public class RangesTest {
 	}
 
 	@Test
-	public void testToString() {
+	void testToString() {
 		var ranges = new Ranges(Arrays.asList(
 				new Range(2, 3),
 				new Range(5, 6)));
@@ -26,7 +26,7 @@ public class RangesTest {
 	}
 
 	@Test
-	public void testMinus() {
+	void testMinus() {
 		var ranges = new Ranges(0, 10);
 		ranges.minus(Arrays.asList(
 				new Range(2, 3),
@@ -64,7 +64,7 @@ public class RangesTest {
 	}
 
 	@Test
-	public void testIntersect() {
+	void testIntersect() {
 		var ranges = new Ranges(Arrays.asList(
 				new Range(0, 1),
 				new Range(3, 5),

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,14 +31,14 @@ public class SqlAgentPessimisticLockTest {
 		try (var agent = config.agent()) {
 			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String ddl : ddls) {
+			for (var ddl : ddls) {
 				if (StringUtils.isNotBlank(ddl)) {
 					agent.updateWith(ddl.trim()).count();
 				}
 			}
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
-			for (String sql : sqls) {
+			for (var sql : sqls) {
 				if (StringUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
@@ -49,7 +50,7 @@ public class SqlAgentPessimisticLockTest {
 	 * クエリ実行のリトライ
 	 */
 	@Test
-	public void testQueryNoRetry() throws Exception {
+	void testQueryNoRetry() throws Exception {
 		var sql = "select * from product where product_id = 1 for update";
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -59,11 +60,11 @@ public class SqlAgentPessimisticLockTest {
 				agent.requiresNew(() -> {
 					try {
 						agent.queryWith(sql).collect();
-						assertThat("Fail here.", false);
+						fail();
 					} catch (PessimisticLockException ex) {
 						// OK
 					} catch (Exception ex) {
-						assertThat("Fail here.", false);
+						fail();
 					}
 				});
 				agent.setRollbackOnly();

@@ -67,7 +67,8 @@ public abstract class AbstractSqlFilter implements SqlFilter {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doPreparedStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement)
 	 */
 	@Override
-	public PreparedStatement doPreparedStatement(final ExecutionContext executionContext, final PreparedStatement preparedStatement)
+	public PreparedStatement doPreparedStatement(final ExecutionContext executionContext,
+			final PreparedStatement preparedStatement)
 			throws SQLException {
 		return preparedStatement;
 	}
@@ -78,7 +79,8 @@ public abstract class AbstractSqlFilter implements SqlFilter {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doCallableStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.CallableStatement)
 	 */
 	@Override
-	public CallableStatement doCallableStatement(final ExecutionContext executionContext, final CallableStatement callableStatement)
+	public CallableStatement doCallableStatement(final ExecutionContext executionContext,
+			final CallableStatement callableStatement)
 			throws SQLException {
 		return callableStatement;
 	}
@@ -100,7 +102,8 @@ public abstract class AbstractSqlFilter implements SqlFilter {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result)
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int result)
 			throws SQLException {
 		return result;
 	}
@@ -111,7 +114,8 @@ public abstract class AbstractSqlFilter implements SqlFilter {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result)
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int[] result)
 			throws SQLException {
 		return result;
 	}

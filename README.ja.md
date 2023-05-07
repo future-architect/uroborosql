@@ -15,16 +15,15 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 
 [![asciicast](https://asciinema.org/a/122312.png)](https://asciinema.org/a/122312)
 
-Installation
-------------
+## Installation
 
-#### for Maven
+### for Maven
 
 ```xml
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.21.0</version>
+    <version>0.26.3</version>
 </dependency>
 <dependency>
     <groupId>ognl</groupId>
@@ -39,42 +38,38 @@ Installation
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.21.0</version>
+    <version>0.26.3</version>
 </dependency>
 <dependency>
     <groupId>org.springframework</groupId>
     <artifactId>spring-expression</artifactId>
-    <version>5.2.2.RELEASE</version>
+    <version>5.3.20</version>
 </dependency>
 ```
 
-
-#### for Gradle
+### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.21.0'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.26.3'
 compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
 または
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.21.0'
-compile group: 'org.springframework', name: 'spring-expression', version: '5.2.2.RELEASE'
+compile group: 'jp.co.future', name: 'uroborosql', version: '0.26.3'
+compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
 ```
 
-Documentation
--------------
+## Documentation
 
 [https://future-architect.github.io/uroborosql-doc/](https://future-architect.github.io/uroborosql-doc/)
 
-Requirement
------------
+## Requirement
 
--	Java 1.8 or later.
+- Java 1.8 or later.
 
-Quick start
------------
+## Quick start
 
 ### 2Way-SQL
 
@@ -82,17 +77,17 @@ Quick start
 /* department/select_department.sql */
 
 SELECT /* _SQL_ID_ */
-	DEPT.DEPT_NO	AS	DEPT_NO
-,	DEPT.DEPT_NAME	AS	DEPT_NAME
+ DEPT.DEPT_NO AS DEPT_NO
+, DEPT.DEPT_NAME AS DEPT_NAME
 FROM
-	DEPARTMENT	DEPT
+ DEPARTMENT DEPT
 WHERE
-	1				=	1
+ 1    = 1
 /*IF SF.isNotEmpty(dept_no)*/
-AND	DEPT.DEPT_NO	=	/*dept_no*/1
+AND DEPT.DEPT_NO = /*dept_no*/1
 /*END*/
 /*IF SF.isNotEmpty(dept_name)*/
-AND	DEPT.DEPT_NAME	=	/*dept_name*/'sample'
+AND DEPT.DEPT_NAME = /*dept_name*/'sample'
 /*END*/
 
 ```
@@ -103,13 +98,13 @@ AND	DEPT.DEPT_NAME	=	/*dept_name*/'sample'
 INSERT
 /* _SQL_ID_ */
 INTO
-	DEPARTMENT
+ DEPARTMENT
 (
-	DEPT_NO
-,	DEPT_NAME
+ DEPT_NO
+, DEPT_NAME
 ) VALUES (
-	/*dept_no*/1
-,	/*dept_name*/'sample'
+ /*dept_no*/1
+, /*dept_name*/'sample'
 )
 ```
 
@@ -126,7 +121,6 @@ try (SqlAgent agent = config.agent()) {
     .param("dept_name", "sales")
     .count();
 }
-
 ```
 
 ### DAO Interface
@@ -154,37 +148,33 @@ try (SqlAgent agent = config.agent()) {
 }
 ```
 
-Sample application
-------------------
+## Sample application
 
 - CLI
-    - https://github.com/future-architect/uroborosql-sample
+  - <https://github.com/future-architect/uroborosql-sample>
 - Web application(with Spring Boot)
-    - https://github.com/shout-star/uroborosql-springboot-demo
+  - <https://github.com/shout-star/uroborosql-springboot-demo>
 
-Automated code generation
--------------------------
+## Automated code generation
 
 - uroboroSQL source generator
-    - https://github.com/shout-star/uroborosql-generator
+  - <https://github.com/shout-star/uroborosql-generator>
 
-SQL Formatter
--------------
+## SQL Formatter
 
 <img src="https://github.com/future-architect/uroboroSQL-formatter/raw/master/image/uroboroSQLformatter_logo.png" style="max-width: 500px;" alt="uroboroSQL" />
 
 開発で便利なSQL formatterも用意しています。
 
--	CLI
-	-	https://github.com/future-architect/uroboroSQL-formatter
--	Sublime Text 3 Plugin
-	-	https://github.com/future-architect/Sublime-uroboroSQL-formatter
--	IntelliJ IDEA Platform Plugin
-	-	https://github.com/future-architect/idea-uroborosql-formatter
--	Eclipse Plugin
-	-	https://github.com/future-architect/eclipse-uroborosql-formatter
+- CLI
+  - <https://github.com/future-architect/uroboroSQL-formatter>
+- Sublime Text 3 Plugin
+  - <https://github.com/future-architect/Sublime-uroboroSQL-formatter>
+- IntelliJ IDEA Platform Plugin
+  - <https://github.com/future-architect/idea-uroborosql-formatter>
+- Eclipse Plugin
+  - <https://github.com/future-architect/eclipse-uroborosql-formatter>
 
-License
--------
+## License
 
 Released under the [MIT License](https://github.com/future-architect/uroborosql/blob/master/LICENSE).

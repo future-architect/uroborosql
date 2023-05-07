@@ -32,7 +32,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 		super.setUp();
 
 		// ReplCommandの読み込み
-		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+		for (var command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
 
@@ -42,7 +42,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -57,7 +57,7 @@ public class TableNameCompleterTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testComplete() throws Exception {
+	void testComplete() throws Exception {
 		var completer = new TableNameCompleter(commands, config.getConnectionSupplier());
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);

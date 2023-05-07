@@ -10,7 +10,7 @@ public class TestEntityTimestampLockVersion {
 	private Long id;
 	private String name;
 	@Version(supplier = TimestampOptimisticLockSupplier.class)
-	private long lockVersion = 0;
+	private Long lockVersion = 0L;
 
 	public TestEntityTimestampLockVersion() {
 	}
@@ -46,11 +46,11 @@ public class TestEntityTimestampLockVersion {
 		this.name = name;
 	}
 
-	public long getLockVersion() {
+	public Long getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final long lockVersion) {
+	public void setLockVersion(final Long lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
@@ -64,20 +64,12 @@ public class TestEntityTimestampLockVersion {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntityTimestampLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || !lockVersion.equals(other.lockVersion)
+				|| !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

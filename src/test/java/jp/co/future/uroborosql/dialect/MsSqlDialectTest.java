@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.instanceOf;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -25,7 +28,7 @@ public class MsSqlDialectTest {
 	private final Dialect dialect = new MsSqlDialect();
 
 	@Test
-	public void testAccept12() {
+	void testAccept12() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -51,12 +54,12 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testGetSequenceNextValSql() {
+	void testGetSequenceNextValSql() {
 		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("next value for test_sequence"));
 	}
 
 	@Test
-	public void testEscapeLikePattern() {
+	void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
@@ -72,12 +75,12 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testGetEscapeChar() {
+	void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('$'));
 	}
 
 	@Test
-	public void testSupports() {
+	void testSupports() {
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(false));
 		assertThat(dialect.supportsNullValuesOrdering(), is(false));
@@ -89,10 +92,11 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test
-	public void testGetLimitClause() {
+	void testGetLimitClause() {
 		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
@@ -100,7 +104,7 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testAddForUpdateClause() {
+	void testAddForUpdateClause() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
@@ -124,7 +128,7 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints1() {
+	void testAddOptimizerHints1() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test")
@@ -153,7 +157,7 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints2() {
+	void testAddOptimizerHints2() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
@@ -175,7 +179,7 @@ public class MsSqlDialectTest {
 	}
 
 	@Test
-	public void testGetPessimisticLockingErrorCodes() {
+	void testGetPessimisticLockingErrorCodes() {
 		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("1222")));
 	}
 

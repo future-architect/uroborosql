@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.filter;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
@@ -22,6 +21,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.crypto.Cipher;
@@ -45,8 +45,8 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  */
 public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractSecretColumnSqlFilter.class);
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.filter");
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -98,8 +98,8 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			return;
 		} else {
 			cryptParamKeys = new ArrayList<>();
-			List<String> newColumnNames = new ArrayList<>();
-			for (String columnName : getCryptColumnNames()) {
+			var newColumnNames = new ArrayList<String>();
+			for (var columnName : getCryptColumnNames()) {
 				cryptParamKeys.add(CaseFormat.CAMEL_CASE.convert(columnName));
 				newColumnNames.add(CaseFormat.UPPER_SNAKE_CASE.convert(columnName));
 			}
@@ -139,7 +139,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			store = KeyStore.getInstance("JCEKS");
 
 			char[] pass;
-			try (InputStream is = new BufferedInputStream(Files.newInputStream(storeFile))) {
+			try (var is = new BufferedInputStream(Files.newInputStream(storeFile))) {
 				pass = new String(Base64.getUrlDecoder().decode(getStorePassword())).toCharArray();
 
 				store.load(is, pass);
@@ -176,8 +176,15 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			var key = parameter.getParameterName();
 			if (getCryptParamKeys().contains(CaseFormat.CAMEL_CASE.convert(key))) {
 				var obj = parameter.getValue();
-				if (obj instanceof String) {
-					var objStr = obj.toString();
+				if (obj != null) {
+					String objStr = null;
+					if (obj instanceof Optional) {
+						objStr = ((Optional<?>) obj)
+								.map(Object::toString)
+								.orElse(null);
+					} else {
+						objStr = obj.toString();
+					}
 					if (StringUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
@@ -262,7 +269,7 @@ public abstract class AbstractSecretColumnSqlFilter extends AbstractSqlFilter {
 			}
 
 			var secretStr = secret.toString();
-			if (!secretStr.isEmpty()) {
+			if (StringUtils.isNotEmpty(secretStr)) {
 				synchronized (cipher) {
 					try {
 						return decrypt(cipher, secretKey, secretStr);

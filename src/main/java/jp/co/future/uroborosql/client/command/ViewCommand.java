@@ -43,7 +43,7 @@ public class ViewCommand extends ReplCommand {
 			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
 				var sql = sqlConfig.getSqlResourceManager().getSql(sqlName);
 				var sqlLines = sql.split("\\r\\n|\\r|\\n");
-				for (String sqlLine : sqlLines) {
+				for (var sqlLine : sqlLines) {
 					writer.println(sqlLine);
 				}
 			} else {

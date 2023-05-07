@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
-		for (String sql : sqls) {
+		for (var sql : sqls) {
 			if (StringUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
@@ -55,11 +56,11 @@ public class ViewCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecute() throws Exception {
+	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var flag = command.execute(reader, "view example/select_product".split("\\s+"), sqlConfig,
 				new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("SELECT /* _SQL_ID_ */");
 		assertConsoleOutputContains("AND	PRODUCT_ID	IN	/*product_id*/(0, 2)");
 
@@ -68,7 +69,7 @@ public class ViewCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testShowHelp() throws Exception {
+	void testShowHelp() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		command.showHelp(reader.getTerminal());
 		reader.flush();
@@ -76,13 +77,13 @@ public class ViewCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testGetStartArgNo() throws Exception {
+	void testGetStartArgNo() throws Exception {
 		assertThat(command.getStartArgNo(ReplCommandCompleter.class), is(-1));
 		assertThat(command.getStartArgNo(SqlNameCompleter.class), is(1));
 	}
 
 	@Test
-	public void testUtilityMethods() throws Exception {
+	void testUtilityMethods() throws Exception {
 		assertThat(command.isHidden(), is(false));
 		assertThat(command.match("View"), is(true));
 		assertThat(command.match("NoMatchCommand"), is(false));

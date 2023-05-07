@@ -1,8 +1,9 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.Connection;
 
@@ -15,7 +16,7 @@ public class JdbcConnectionContextTest {
 	private static final String SCHEMA = "PUBLIC";
 
 	@Test
-	public void testJdbcConnectionContext() {
+	void testJdbcConnectionContext() {
 		var ctx = ConnectionContextBuilder.jdbc(URL);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(nullValue()));
@@ -27,7 +28,7 @@ public class JdbcConnectionContextTest {
 	}
 
 	@Test
-	public void testJdbcConnectionContextWithUserPass() {
+	void testJdbcConnectionContextWithUserPass() {
 		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
@@ -39,7 +40,7 @@ public class JdbcConnectionContextTest {
 	}
 
 	@Test
-	public void testJdbcConnectionContextWithUserPassSchema() {
+	void testJdbcConnectionContextWithUserPassSchema() {
 		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
 		assertThat(ctx.user(), is(USER));
@@ -51,12 +52,14 @@ public class JdbcConnectionContextTest {
 	}
 
 	@Test
-	public void testJdbcConnectionContextWithUrlNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(null));
+	void testJdbcConnectionContextWithUrlNull() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			ConnectionContextBuilder.jdbc(null);
+		});
 	}
 
 	@Test
-	public void testSetter() {
+	void testSetter() {
 		var url2 = URL + "_2";
 		var ctx = ConnectionContextBuilder.jdbc(URL, USER, PASSWORD, SCHEMA);
 		assertThat(ctx.url(), is(URL));
@@ -78,12 +81,14 @@ public class JdbcConnectionContextTest {
 	}
 
 	@Test
-	public void testSetUrlNull() {
-		assertThrows(IllegalArgumentException.class, () -> ConnectionContextBuilder.jdbc(URL).url(null));
+	void testSetUrlNull() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			ConnectionContextBuilder.jdbc(URL).url(null);
+		});
 	}
 
 	@Test
-	public void testToProperties() {
+	void testToProperties() {
 		var ctx = ConnectionContextBuilder.jdbc(URL);
 		var props = ctx.toProperties();
 		assertThat(props.isEmpty(), is(true));

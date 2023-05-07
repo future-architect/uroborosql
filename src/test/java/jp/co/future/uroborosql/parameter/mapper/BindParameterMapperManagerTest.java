@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.parameter.mapper;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -29,7 +31,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void test() throws ParseException {
+	void test() throws ParseException {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		assertThat(parameterMapperManager.toJdbc(null, null), is(nullValue()));
@@ -72,7 +74,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testWithCustom() throws ParseException {
+	void testWithCustom() throws ParseException {
 		var original = new BindParameterMapperManager(this.clock);
 		original.addMapper(new EmptyStringToNullParameterMapper());
 		var mapper = new DateToStringParameterMapper();
@@ -89,7 +91,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testCustom() {
+	void testCustom() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		parameterMapperManager.addMapper(new BindParameterMapper<String>() {
@@ -112,7 +114,7 @@ public class BindParameterMapperManagerTest {
 	}
 
 	@Test
-	public void testCustomWithClock() {
+	void testCustomWithClock() {
 		var parameterMapperManager = new BindParameterMapperManager(this.clock);
 
 		parameterMapperManager.addMapper(new BindParameterMapperWithClock<String>() {
@@ -160,19 +162,18 @@ public class BindParameterMapperManagerTest {
 			throw new AssertionError(e);
 		}
 
-		var proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
+		return (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {
 				interfaceType, ProxyContainer.class }, (proxy, method, args) -> {
 					if (getOriginal.equals(method)) {
 						return o;
 					}
 
-					for (int i = 0; i < args.length; i++) {
+					for (var i = 0; i < args.length; i++) {
 						if (args[i] instanceof ProxyContainer) {
 							args[i] = ((ProxyContainer) args[i]).getOriginal();
 						}
 					}
 					return method.invoke(o, args);
 				});
-		return proxyInstance;
 	}
 }

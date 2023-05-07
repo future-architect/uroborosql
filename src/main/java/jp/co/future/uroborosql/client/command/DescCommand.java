@@ -7,10 +7,10 @@
 package jp.co.future.uroborosql.client.command;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -56,19 +56,18 @@ public class DescCommand extends ReplCommand {
 			var conn = sqlConfig.getConnectionSupplier().getConnection();
 			var md = conn.getMetaData();
 
-			List<Map<String, String>> columns = new ArrayList<>();
-			Map<String, Integer> labelLength = new HashMap<>();
-			for (String label : DESC_COLUMN_LABELS) {
+			var columns = new ArrayList<Map<String, String>>();
+			var labelLength = new HashMap<String, Integer>();
+			for (var label : DESC_COLUMN_LABELS) {
 				labelLength.put(label, label.length());
 			}
 			try (var rs = md.getColumns(conn.getCatalog(), conn.getSchema(), tableNamePattern, null)) {
 				while (rs.next()) {
-					Map<String, String> column = new HashMap<>();
-					for (String label : DESC_COLUMN_LABELS) {
-						final var value = Objects.toString(rs.getString(label), "");
+					var column = new HashMap<String, String>();
+					for (var label : DESC_COLUMN_LABELS) {
+						var value = Objects.toString(rs.getString(label), "");
 						column.put(label, value);
-						labelLength.compute(
-								label,
+						labelLength.compute(label,
 								(k, v) -> v == null ? getByteLength(value)
 										: v.compareTo(getByteLength(value)) >= 0 ? v : getByteLength(value));
 					}
@@ -78,13 +77,13 @@ public class DescCommand extends ReplCommand {
 
 			// ラベル
 			writer.print("-");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();
 			writer.print("|");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad(label, labelLength.get(label)));
 				writer.print("|");
 			}
@@ -92,14 +91,14 @@ public class DescCommand extends ReplCommand {
 			// カラムデータ
 			String tableName = null;
 			var breakFlag = false;
-			for (Map<String, String> column : columns) {
+			for (var column : columns) {
 				if (tableName == null || !tableName.equalsIgnoreCase(column.get("TABLE_NAME"))) {
 					tableName = column.get("TABLE_NAME");
 					breakFlag = true;
 				}
 				if (breakFlag) {
 					writer.print("-");
-					for (String label : DESC_COLUMN_LABELS) {
+					for (var label : DESC_COLUMN_LABELS) {
 						writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 						writer.print("-");
 					}
@@ -108,7 +107,7 @@ public class DescCommand extends ReplCommand {
 				}
 
 				writer.print("|");
-				for (String label : DESC_COLUMN_LABELS) {
+				for (var label : DESC_COLUMN_LABELS) {
 					var val = column.get(label);
 					if (StringUtils.isNumeric(val)) {
 						writer.print(StringUtils.leftPad(val, labelLength.get(label)));
@@ -120,7 +119,7 @@ public class DescCommand extends ReplCommand {
 				writer.println();
 			}
 			writer.print("-");
-			for (String label : DESC_COLUMN_LABELS) {
+			for (var label : DESC_COLUMN_LABELS) {
 				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
@@ -145,7 +144,7 @@ public class DescCommand extends ReplCommand {
 		}
 		var str = val.toString();
 		try {
-			return str.getBytes(System.getProperty("file.encoding")).length;
+			return str.getBytes(Charset.defaultCharset().displayName()).length;
 		} catch (UnsupportedEncodingException ex) {
 			return 1;
 		}

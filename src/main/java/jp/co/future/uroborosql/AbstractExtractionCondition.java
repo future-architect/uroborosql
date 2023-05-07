@@ -46,9 +46,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 * @param tableMetadata TableMetadata
 	 * @param context ExecutionContext
 	 */
-	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata, final ExecutionContext context) {
+	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata,
+			final ExecutionContext context) {
 		super(agent, context);
 		this.tableMetadata = tableMetadata;
+		context.setSchema(tableMetadata.getSchema());
 		this.rawStrings = new ArrayList<>();
 		this.useOperator = false;
 	}
@@ -60,17 +62,18 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	protected String getWhereClause() {
 		var where = new StringBuilder();
-		for (final TableMetadata.Column col : this.tableMetadata.getColumns()) {
-			final var camelColName = col.getCamelColumnName();
+		for (var col : this.tableMetadata.getColumns()) {
+			var camelColName = col.getCamelColumnName();
 
 			if (this.useOperator) {
 				var param = context().getParam(PREFIX + camelColName);
-				if (param != null) {
-					if (param.getValue() instanceof Operator) {
-						var ope = (Operator) param.getValue();
-						where.append("\t").append("AND ").append(col.getColumnIdentifier())
-								.append(ope.toConditionString()).append(System.lineSeparator());
+				if (param != null && param.getValue() instanceof Operator) {
+					var ope = (Operator) param.getValue();
+					where.append("\t").append("AND ");
+					if (ope.useColumnIdentifier()) {
+						where.append(col.getColumnIdentifier());
 					}
+					where.append(ope.toConditionString()).append(System.lineSeparator());
 				}
 			} else {
 				var param = context().getParam(camelColName);
@@ -82,7 +85,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 			}
 		}
 		if (!this.rawStrings.isEmpty()) {
-			for (CharSequence raw : rawStrings) {
+			for (var raw : rawStrings) {
 				if (where.length() > 0) {
 					where.append("\t").append("AND ( ").append(raw).append(" )").append(System.lineSeparator());
 				} else {
@@ -237,7 +240,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T like(final String col, final CharSequence searchValue) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, searchValue));
+		var dialect = agent().getSqlConfig().getDialect();
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, searchValue, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -252,7 +257,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T startsWith(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -267,7 +273,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T endsWith(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, true, escaped, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -282,7 +289,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T contains(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Like(col, true, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new Like(col, true, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -295,7 +303,9 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@SuppressWarnings("unchecked")
 	@Override
 	public T notLike(final String col, final CharSequence searchValue) {
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, searchValue));
+		var dialect = agent().getSqlConfig().getDialect();
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, searchValue, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -310,7 +320,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notStartsWith(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -325,7 +336,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notEndsWith(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, true, escaped, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -340,7 +352,8 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public T notContains(final String col, final CharSequence searchValue) {
 		var dialect = agent().getSqlConfig().getDialect();
 		var escaped = dialect.escapeLikePattern(searchValue);
-		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotLike(col, true, escaped, true));
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col),
+				new NotLike(col, true, escaped, true, dialect.getEscapeChar()));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -354,6 +367,50 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	@Override
 	public <V> T between(final String col, final V fromValue, final V toValue) {
 		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new Between<>(col, fromValue, toValue));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notBetween(java.lang.String, java.lang.Object, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T notBetween(final String col, final V fromValue, final V toValue) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotBetween<>(col, fromValue, toValue));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#betweenColumns(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T betweenColumns(final V value, final String fromCol, final String toCol) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(fromCol),
+				new BetweenColumns<>(value, fromCol, toCol, tableMetadata));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notBetweenColumns(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T notBetweenColumns(final V value, final String fromCol, final String toCol) {
+		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(fromCol),
+				new NotBetweenColumns<>(value, fromCol, toCol, tableMetadata));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -441,6 +498,15 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		public String getCol() {
 			return col;
+		}
+
+		/**
+		 * 条件生成時にカラム識別子を使用するかどうか
+		 *
+		 * @return カラム識別子を使用する場合<code>true</code>
+		 */
+		public boolean useColumnIdentifier() {
+			return true;
 		}
 
 		/**
@@ -782,15 +848,17 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	public static class Like extends SingleOperator<CharSequence> {
 		protected boolean prefix;
 		protected boolean suffix;
+		protected char escapeChar;
 
 		/**
 		 * Constructor
 		 *
 		 * @param col bind column name
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final CharSequence value) {
-			this(col, true, value, true);
+		public Like(final String col, final CharSequence value, final char escapeChar) {
+			this(col, true, value, true, escapeChar);
 		}
 
 		/**
@@ -799,9 +867,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final boolean prefix, final CharSequence value) {
-			this(col, prefix, value, false);
+		public Like(final String col, final boolean prefix, final CharSequence value, final char escapeChar) {
+			this(col, prefix, value, false, escapeChar);
 		}
 
 		/**
@@ -810,9 +879,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final CharSequence value, final boolean suffix) {
-			this(col, false, value, suffix);
+		public Like(final String col, final CharSequence value, final boolean suffix, final char escapeChar) {
+			this(col, false, value, suffix, escapeChar);
 		}
 
 		/**
@@ -822,11 +892,14 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public Like(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
+		public Like(final String col, final boolean prefix, final CharSequence value, final boolean suffix,
+				final char escapeChar) {
 			super(col, value);
 			this.prefix = prefix;
 			this.suffix = suffix;
+			this.escapeChar = escapeChar;
 		}
 
 		/**
@@ -836,7 +909,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 */
 		@Override
 		public CharSequence getValue() {
-			CharSequence searchValue = Objects.toString(super.getValue(), "");
+			var searchValue = Objects.toString(super.getValue(), "");
 			if (prefix) {
 				searchValue = "%" + searchValue;
 			}
@@ -844,6 +917,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 				searchValue = searchValue + "%";
 			}
 			return searchValue;
+		}
+
+		@Override
+		public String toConditionString() {
+			return super.toConditionString() + " ESCAPE '" + escapeChar + "'";
 		}
 
 		/**
@@ -866,9 +944,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 *
 		 * @param col bind column name
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final CharSequence value) {
-			super(col, value);
+		public NotLike(final String col, final CharSequence value, final char escapeChar) {
+			super(col, value, escapeChar);
 		}
 
 		/**
@@ -877,9 +956,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final boolean prefix, final CharSequence value) {
-			super(col, prefix, value);
+		public NotLike(final String col, final boolean prefix, final CharSequence value, final char escapeChar) {
+			super(col, prefix, value, escapeChar);
 		}
 
 		/**
@@ -888,9 +968,10 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param col bind column name
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final CharSequence value, final boolean suffix) {
-			super(col, value, suffix);
+		public NotLike(final String col, final CharSequence value, final boolean suffix, final char escapeChar) {
+			super(col, value, suffix, escapeChar);
 		}
 
 		/**
@@ -900,9 +981,11 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		 * @param prefix 前にワイルドカードを挿入するかどうか。trueの場合%を追加
 		 * @param value 値
 		 * @param suffix 後ろにワイルドカードを挿入するかどうか。trueの場合%を追加
+		 * @param escapeChar エスケープ文字
 		 */
-		public NotLike(final String col, final boolean prefix, final CharSequence value, final boolean suffix) {
-			super(col, prefix, value, suffix);
+		public NotLike(final String col, final boolean prefix, final CharSequence value, final boolean suffix,
+				final char escapeChar) {
+			super(col, prefix, value, suffix, escapeChar);
 		}
 
 		/**
@@ -972,6 +1055,148 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		@Override
 		public String getOperator() {
 			return "BETWEEN";
+		}
+	}
+
+	/**
+	 * NotBetween Operator
+	 */
+	public static class NotBetween<V> extends Between<V> {
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public NotBetween(final String col, final V from, final V to) {
+			super(col, from, to);
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Between#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "NOT BETWEEN";
+		}
+	}
+
+	/**
+	 * BetweenColumns Operator
+	 */
+	public static class BetweenColumns<V> extends Operator {
+		protected final String toCol;
+		protected final V value;
+		protected final TableMetadata metadata;
+
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public BetweenColumns(final V value, final String fromCol, final String toCol, final TableMetadata metadata) {
+			super(fromCol);
+			this.toCol = CaseFormat.CAMEL_CASE.convert(toCol);
+			this.value = value;
+			this.metadata = metadata;
+		}
+
+		/**
+		 * 値の取得
+		 *
+		 * @return To値
+		 */
+		public V getValue() {
+			return value;
+		}
+
+		/**
+		 * FromColの取得
+		 *
+		 * @return FromCol
+		 */
+		public String getFromCol() {
+			return super.getCol();
+		}
+
+		/**
+		 * toColの取得
+		 *
+		 * @return toCol
+		 */
+		public String getToCol() {
+			return this.toCol;
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#useColumnIdentifier()
+		 */
+		@Override
+		public boolean useColumnIdentifier() {
+			return false;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#toConditionString()
+		 */
+		@Override
+		public String toConditionString() {
+			var fromColumn = this.metadata.getColumn(getFromCol());
+			var toColumn = this.metadata.getColumn(getToCol());
+
+			return wrap(getCol(), "value") + " " + getOperator() + " "
+					+ fromColumn.getColumnIdentifier() + " AND "
+					+ toColumn.getColumnIdentifier();
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "BETWEEN";
+		}
+	}
+
+	/**
+	 * NotBetweenColumns Operator
+	 */
+	public static class NotBetweenColumns<V> extends BetweenColumns<V> {
+
+		/**
+		 * Constructor
+		 *
+		 * @param col bind column name
+		 * @param from from value
+		 * @param to to value
+		 */
+		public NotBetweenColumns(final V value, final String fromCol, final String toCol,
+				final TableMetadata metadata) {
+			super(value, fromCol, toCol, metadata);
+		}
+
+		/**
+		 *
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.BetweenColumns#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "NOT BETWEEN";
 		}
 	}
 

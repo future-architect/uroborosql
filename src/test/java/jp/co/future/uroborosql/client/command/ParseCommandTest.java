@@ -1,7 +1,6 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.DriverManager;
 import java.util.Arrays;
@@ -43,18 +42,18 @@ public class ParseCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecute() throws Exception {
+	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		var sqlName = "test/PARSE_TEST";
 		var commandLine = "parse" + " " + sqlName;
 		var flag = command.execute(reader, commandLine.split("\\s+"), sqlConfig, new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("SQL :");
 
 		var sqlLine = sqlConfig.getSqlResourceManager().getSql(sqlName).split("\\r\\n|\\r|\\n");
-		for (String line : sqlLine) {
+		for (var line : sqlLine) {
 			assertConsoleOutputContains(line);
 		}
 
@@ -84,27 +83,27 @@ public class ParseCommandTest extends ReaderTestSupport {
 	}
 
 	@Test
-	public void testExecuteNotFound() throws Exception {
+	void testExecuteNotFound() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		var flag = command.execute(reader, "parse test/NOTFOUND".split("\\s+"), sqlConfig, new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName : test/NOTFOUND not found.");
 	}
 
 	@Test
-	public void testExecuteNotArgument() throws Exception {
+	void testExecuteNotArgument() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		var flag = command.execute(reader, "parse".split("\\s+"), sqlConfig, new Properties());
-		assertThat(flag, is(true));
+		assertTrue(flag);
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName must be specified.");
 	}
 
 	@Test
-	public void testShowHelp() throws Exception {
+	void testShowHelp() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		command.showHelp(reader.getTerminal());
 		reader.flush();

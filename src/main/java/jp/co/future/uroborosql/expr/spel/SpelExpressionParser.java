@@ -68,7 +68,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private class SpringElExpression implements Expression {
+	private static class SpringElExpression implements Expression {
 		/** 評価式 */
 		private final org.springframework.expression.Expression expr;
 
@@ -125,7 +125,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 
 				var ctx = getEvaluationContext(context);
 				var state = new ExpressionState(ctx);
-				for (PropertyOrFieldReference prop : props) {
+				for (var prop : props) {
 					var propName = prop.getName();
 					if (!StringFunction.SHORT_NAME.equals(propName)) {
 						try {
@@ -155,7 +155,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			var root = spel.getAST();
 			Set<PropertyOrFieldReference> props = new LinkedHashSet<>();
 			traverseNode(root, props);
-			for (PropertyOrFieldReference prop : props) {
+			for (var prop : props) {
 				var propName = prop.getName();
 				if (!StringFunction.SHORT_NAME.equals(propName)) {
 					params.add(prop.getName());
@@ -171,14 +171,16 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 		 */
 		private void traverseNode(final SpelNode node, final Set<PropertyOrFieldReference> props) {
 			if (node == null) {
-			} else if (node instanceof PropertyOrFieldReference) {
-				var prop = (PropertyOrFieldReference) node;
-				props.add(prop);
 			} else {
-				var childCount = node.getChildCount();
-				for (var i = 0; i < childCount; i++) {
-					var child = node.getChild(i);
-					traverseNode(child, props);
+				if (node instanceof PropertyOrFieldReference) {
+					var prop = (PropertyOrFieldReference) node;
+					props.add(prop);
+				} else {
+					var childCount = node.getChildCount();
+					for (var i = 0; i < childCount; i++) {
+						var child = node.getChild(i);
+						traverseNode(child, props);
+					}
 				}
 			}
 		}

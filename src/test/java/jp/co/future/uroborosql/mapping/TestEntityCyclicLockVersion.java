@@ -10,7 +10,7 @@ public class TestEntityCyclicLockVersion {
 	private Long id;
 	private String name;
 	@Version(supplier = CyclicLockVersionOptimisticLockSupplier.class)
-	private int lockVersion = 0;
+	private Integer lockVersion = 0;
 
 	public TestEntityCyclicLockVersion() {
 	}
@@ -46,11 +46,11 @@ public class TestEntityCyclicLockVersion {
 		this.name = name;
 	}
 
-	public int getLockVersion() {
+	public Integer getLockVersion() {
 		return lockVersion;
 	}
 
-	public void setLockVersion(final int lockVersion) {
+	public void setLockVersion(final Integer lockVersion) {
 		this.lockVersion = lockVersion;
 	}
 
@@ -64,20 +64,11 @@ public class TestEntityCyclicLockVersion {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestEntityCyclicLockVersion) obj;
-		if (!Objects.equals(id, other.id)) {
-			return false;
-		}
-		if (lockVersion != other.lockVersion) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (!Objects.equals(id, other.id) || lockVersion != other.lockVersion || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

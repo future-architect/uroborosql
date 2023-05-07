@@ -26,20 +26,11 @@ public class TestDataMultiKeyEntity {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
 		var other = (TestDataMultiKeyEntity) obj;
-		if (id != other.id) {
-			return false;
-		}
-		if (!Objects.equals(key, other.key)) {
-			return false;
-		}
-		if (!Objects.equals(name, other.name)) {
+		if (id != other.id || !Objects.equals(key, other.key) || !Objects.equals(name, other.name)) {
 			return false;
 		}
 		return true;

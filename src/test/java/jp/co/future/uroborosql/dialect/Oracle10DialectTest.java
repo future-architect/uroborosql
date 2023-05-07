@@ -1,7 +1,11 @@
 package jp.co.future.uroborosql.dialect;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ public class Oracle10DialectTest {
 	private final Dialect dialect = new Oracle10Dialect();
 
 	@Test
-	public void testAccept10() {
+	void testAccept10() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -51,7 +55,7 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testAcceptUnder10() {
+	void testAcceptUnder10() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -77,7 +81,7 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testAcceptOver10() {
+	void testAcceptOver10() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -103,12 +107,12 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testGetSequenceNextValSql() {
+	void testGetSequenceNextValSql() {
 		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("test_sequence.nextval"));
 	}
 
 	@Test
-	public void testEscapeLikePattern() {
+	void testEscapeLikePattern() {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
@@ -124,12 +128,12 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testGetEscapeChar() {
+	void testGetEscapeChar() {
 		assertThat(dialect.getEscapeChar(), is('\\'));
 	}
 
 	@Test
-	public void testSupports() {
+	void testSupports() {
 		assertThat(dialect.supportsBulkInsert(), is(false));
 		assertThat(dialect.supportsLimitClause(), is(false));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
@@ -141,10 +145,11 @@ public class Oracle10DialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(true));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
+		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(false));
 	}
 
 	@Test
-	public void testAddForUpdateClause() {
+	void testAddForUpdateClause() {
 		var sql = new StringBuilder("SELECT * FROM test WHERE 1 = 1 ORDER id").append(System.lineSeparator());
 		assertThat(dialect.addForUpdateClause(sql, ForUpdateType.NORMAL, -1).toString(),
 				is("SELECT * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator() + "FOR UPDATE"));
@@ -155,7 +160,7 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints1() {
+	void testAddOptimizerHints1() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
 				.append(" * FROM test WHERE 1 = 1 ORDER id")
@@ -170,7 +175,7 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testAddOptimizerHints2() {
+	void testAddOptimizerHints2() {
 		var sql = new StringBuilder("SELECT /* SQL_ID */")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
@@ -184,7 +189,7 @@ public class Oracle10DialectTest {
 	}
 
 	@Test
-	public void testGetPessimisticLockingErrorCodes() {
+	void testGetPessimisticLockingErrorCodes() {
 		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("54", "30006")));
 	}
 

@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.parameter.mapper.legacy;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.sql.Time;
@@ -99,7 +100,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testInsert() throws Exception {
+	void testInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -122,7 +123,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testQuery1() throws Exception {
+	void testQuery1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -232,7 +233,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testUpdate1() throws Exception {
+	void testUpdate1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -273,7 +274,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testDelete1() throws Exception {
+	void testDelete1() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -311,7 +312,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testBatchInsert() throws Exception {
+	void testBatchInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -345,7 +346,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 	}
 
 	@Test
-	public void testBulkInsert() throws Exception {
+	void testBulkInsert() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -518,10 +519,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 			var other = (TestEntity) obj;
@@ -532,16 +530,7 @@ public class LegacyToStringParameterMapperWithSpELTest {
 			} else if (date.compareTo(other.date) != 0) {
 				return false;
 			}
-			if (!Objects.equals(dateTime, other.dateTime)) {
-				return false;
-			}
-			if (dayOfWeek != other.dayOfWeek) {
-				return false;
-			}
-			if (!Objects.equals(id, other.id)) {
-				return false;
-			}
-			if (!Objects.equals(localDate, other.localDate)) {
+			if (!Objects.equals(dateTime, other.dateTime) || (dayOfWeek != other.dayOfWeek) || !Objects.equals(id, other.id) || !Objects.equals(localDate, other.localDate)) {
 				return false;
 			}
 			if (month != other.month) {

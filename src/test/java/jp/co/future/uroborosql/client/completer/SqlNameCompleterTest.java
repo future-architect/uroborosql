@@ -11,28 +11,28 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.dialect.DefaultDialect;
-import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 
 public class SqlNameCompleterTest extends ReaderTestSupport {
 	private static List<ReplCommand> commands = new ArrayList<>();
-	private static SqlResourceManager sqlResourceManager;
+	private static SqlResourceManager sqlManager;
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
 		// ReplCommandの読み込み
-		for (ReplCommand command : ServiceLoader.load(ReplCommand.class)) {
+		for (var command : ServiceLoader.load(ReplCommand.class)) {
 			commands.add(command);
 		}
 
-		sqlResourceManager = new SqlResourceManagerImpl(false);
-		sqlResourceManager.setDialect(new DefaultDialect());
-		sqlResourceManager.initialize();
+		sqlManager = new SqlResourceManagerImpl(false);
+		sqlManager.setDialect(new DefaultDialect());
+		sqlManager.initialize();
 	}
 
 	@Test
-	public void testComplete() throws Exception {
-		var completer = new SqlNameCompleter(commands, sqlResourceManager);
+	void testComplete() throws Exception {
+		var completer = new SqlNameCompleter(commands, sqlManager);
 		reader.setCompleter(completer);
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 

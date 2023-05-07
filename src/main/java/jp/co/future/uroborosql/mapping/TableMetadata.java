@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -30,6 +29,10 @@ public interface TableMetadata {
 
 	/** remark中の改行文字を除外するためのパターン */
 	Pattern NEWLINE_CHARS_PATTERN = Pattern.compile("\r\n|\r|\n");
+
+	/** SQL文構築時、スキーマ名で修飾されたテーブル名を使用するかどうか. */
+	boolean USE_QUALIFIED_TABLE_NAME = Boolean
+			.parseBoolean(System.getProperty("uroborosql.use.qualified.table.name", "true"));
 
 	/**
 	 * カラム情報
@@ -94,6 +97,13 @@ public interface TableMetadata {
 		 * @return コメント文字列
 		 */
 		String getRemarks();
+
+		/**
+		 * カラムのデフォルト値（文字列）取得
+		 *
+		 * @return カラムのデフォルト値（文字列）
+		 */
+		String getColumnDefault();
 
 		/**
 		 * NULLが許可されるかどうかを取得
@@ -187,7 +197,7 @@ public interface TableMetadata {
 		if (StringUtils.isEmpty(identifierQuoteString)) {
 			identifierQuoteString = "";
 		}
-		if (StringUtils.isEmpty(getSchema())) {
+		if (!USE_QUALIFIED_TABLE_NAME || StringUtils.isEmpty(getSchema())) {
 			return identifierQuoteString + getTableName() + identifierQuoteString;
 		} else {
 			return identifierQuoteString + getSchema() + identifierQuoteString + "." + identifierQuoteString
@@ -243,10 +253,11 @@ public interface TableMetadata {
 
 		var entityMetadata = new TableMetadataImpl();
 
-		Map<String, TableMetadataImpl.Column> columns = new HashMap<>();
+		var columns = new HashMap<String, TableMetadataImpl.Column>();
+		var actualSchema = schema;
 
-		var tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索
-		while (tryCount < 2 && columns.isEmpty()) {
+		var tryCount = 0;//1回目：case変換なしで検索, 2回目：case変換後で検索, 3回目:schema指定なしで検索
+		while (tryCount < 3 && columns.isEmpty()) {
 			tryCount++;
 			if (tryCount == 2) {
 				// case 変換
@@ -262,6 +273,9 @@ public interface TableMetadata {
 						schema = schema.toUpperCase();
 					}
 				}
+			} else if (tryCount == 3) {
+				// スキーマ指定なし
+				schema = null;
 			}
 			String versionColumnName = null;
 			Class<? extends OptimisticLockSupplier> optimisticLockType = null;
@@ -274,6 +288,7 @@ public interface TableMetadata {
 			try (var rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
 				while (rs.next()) {
 					var columnName = rs.getString("COLUMN_NAME");
+					actualSchema = rs.getString("TABLE_SCHEM");
 					var sqlType = rs.getInt("DATA_TYPE");
 					// If Types.DISTINCT like SQL DOMAIN, then get Source Date Type of SQL-DOMAIN
 					if (sqlType == java.sql.Types.DISTINCT) {
@@ -283,6 +298,7 @@ public interface TableMetadata {
 					if (remarks != null) {
 						remarks = NEWLINE_CHARS_PATTERN.matcher(remarks).replaceAll(" ");
 					}
+					var columnDefault = rs.getString("COLUMN_DEF");
 					var isNullable = rs.getString("IS_NULLABLE");
 					var isAutoincrement = rs.getString("IS_AUTOINCREMENT");
 					var isVersion = columnName.equalsIgnoreCase(versionColumnName);
@@ -294,6 +310,7 @@ public interface TableMetadata {
 							sqlType,
 							columnSize,
 							remarks,
+							columnDefault,
 							isNullable,
 							isAutoincrement,
 							isVersion,
@@ -305,17 +322,17 @@ public interface TableMetadata {
 				}
 			}
 		}
-		entityMetadata.setSchema(schema);
+		entityMetadata.setSchema(StringUtils.isNotEmpty(actualSchema) ? actualSchema : schema);
 		entityMetadata.setTableName(tableName);
 		if (TABLE_NAME_PATTERN.matcher(tableName).matches()) {
 			entityMetadata.setIdentifierQuoteString(identifierQuoteString);
 		} else {
 			entityMetadata.setIdentifierQuoteString("");
 		}
-		try (var rs = metaData.getPrimaryKeys(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName)) {
+		try (var rs = metaData.getPrimaryKeys(null, entityMetadata.getSchema(), entityMetadata.getTableName())) {
 			while (rs.next()) {
-				var columnName = rs.getString(4);
-				var keySeq = rs.getShort(5);
+				var columnName = rs.getString("COLUMN_NAME");
+				var keySeq = rs.getShort("KEY_SEQ");
 				columns.get(columnName).setKeySeq(keySeq);
 			}
 		}

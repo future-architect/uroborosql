@@ -55,7 +55,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 			return parameter;
 		}
 		var param = parameter;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			param = filter.doParameter(param);
 		}
 		return param;
@@ -72,7 +72,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 			return val;
 		}
 		var obj = val;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			obj = filter.doOutParameter(key, obj);
 		}
 		return obj;
@@ -89,7 +89,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 			return sql;
 		}
 		var newSql = sql;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			newSql = filter.doTransformSql(executionContext, newSql);
 		}
 		return newSql;
@@ -101,13 +101,14 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doPreparedStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement)
 	 */
 	@Override
-	public PreparedStatement doPreparedStatement(final ExecutionContext executionContext, final PreparedStatement preparedStatement)
+	public PreparedStatement doPreparedStatement(final ExecutionContext executionContext,
+			final PreparedStatement preparedStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return preparedStatement;
 		}
 		var ps = preparedStatement;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			ps = filter.doPreparedStatement(executionContext, ps);
 		}
 		return ps;
@@ -119,13 +120,14 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doCallableStatement(jp.co.future.uroborosql.context.ExecutionContext, java.sql.CallableStatement)
 	 */
 	@Override
-	public CallableStatement doCallableStatement(final ExecutionContext executionContext, final CallableStatement callableStatement)
+	public CallableStatement doCallableStatement(final ExecutionContext executionContext,
+			final CallableStatement callableStatement)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return callableStatement;
 		}
 		var cs = callableStatement;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			cs = filter.doCallableStatement(executionContext, cs);
 		}
 		return cs;
@@ -143,7 +145,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 			return resultSet;
 		}
 		var rs = resultSet;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			rs = filter.doQuery(executionContext, preparedStatement, rs);
 		}
 		return rs;
@@ -155,13 +157,14 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doUpdate(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int)
 	 */
 	@Override
-	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int result)
+	public int doUpdate(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int result)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
 		var rs = result;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			rs = filter.doUpdate(executionContext, preparedStatement, rs);
 		}
 		return rs;
@@ -173,13 +176,14 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 	 * @see jp.co.future.uroborosql.filter.SqlFilter#doBatch(jp.co.future.uroborosql.context.ExecutionContext, java.sql.PreparedStatement, int[])
 	 */
 	@Override
-	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement, final int[] result)
+	public int[] doBatch(final ExecutionContext executionContext, final PreparedStatement preparedStatement,
+			final int[] result)
 			throws SQLException {
 		if (getFilters().isEmpty()) {
 			return result;
 		}
 		var rs = result;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			rs = filter.doBatch(executionContext, preparedStatement, rs);
 		}
 		return rs;
@@ -197,7 +201,7 @@ public class SqlFilterManagerImpl implements SqlFilterManager {
 			return result;
 		}
 		var rs = result;
-		for (final SqlFilter filter : getFilters()) {
+		for (var filter : getFilters()) {
 			rs = filter.doProcedure(executionContext, callableStatement, rs);
 		}
 		return rs;
