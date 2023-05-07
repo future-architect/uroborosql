@@ -20,7 +20,7 @@ public class BeforeRollbackEvent extends TransactionEvent {
 	 *
 	 * @param transactionContext TransactionContext
 	 */
-	public BeforeRollbackEvent(TransactionContext transactionContext) {
+	public BeforeRollbackEvent(final TransactionContext transactionContext) {
 		super(transactionContext);
 	}
 

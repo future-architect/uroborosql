@@ -277,7 +277,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	private <R> R runInNewTx(final Supplier<R> supplier, boolean isRequiredNew) {
+	private <R> R runInNewTx(final Supplier<R> supplier, final boolean isRequiredNew) {
 		try (var txCtx = new LocalTransactionContext(this.sqlConfig, true, this.connectionContext)) {
 			this.txCtxStack.push(txCtx);
 			try {

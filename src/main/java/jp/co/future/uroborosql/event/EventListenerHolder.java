@@ -76,7 +76,7 @@ public class EventListenerHolder {
 	 * @param eventSubscriber EventSubscriber
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addEventSubscriber(EventSubscriber eventSubscriber) {
+	public EventListenerHolder addEventSubscriber(final EventSubscriber eventSubscriber) {
 		this.eventSubscribers.add(eventSubscriber);
 		eventSubscriber.initialize();
 		eventSubscriber.subscribe(this);
@@ -88,7 +88,7 @@ public class EventListenerHolder {
 	 * @param eventSubscriber EventSubscriber
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeEventSubscriber(EventSubscriber eventSubscriber) {
+	public EventListenerHolder removeEventSubscriber(final EventSubscriber eventSubscriber) {
 		eventSubscriber.unsubscribe(this);
 		this.eventSubscribers.remove(eventSubscriber);
 		return this;

@@ -21,7 +21,7 @@ public class AfterCommitEvent extends TransactionEvent {
 	 *
 	 * @param transactionContext TransactionContext
 	 */
-	public AfterCommitEvent(TransactionContext transactionContext) {
+	public AfterCommitEvent(final TransactionContext transactionContext) {
 		super(transactionContext);
 	}
 }

@@ -20,7 +20,7 @@ public abstract class TransactionEvent extends AbstractEvent {
 	 *
 	 * @param transactionContext TransactionContext
 	 */
-	protected TransactionEvent(TransactionContext transactionContext) {
+	protected TransactionEvent(final TransactionContext transactionContext) {
 		super(transactionContext);
 	}
 

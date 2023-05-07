@@ -58,7 +58,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		sqlBatchListener(this::sqlBatch);
 	}
 
-	void sqlQuery(SqlQueryEvent evt) {
+	void sqlQuery(final SqlQueryEvent evt) {
 		var resultSet = evt.getResultSet();
 		// カウント初期値
 		var rowCount = -1;
@@ -97,7 +97,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void sqlUpdate(SqlUpdateEvent evt) {
+	void sqlUpdate(final SqlUpdateEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -120,7 +120,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void sqlBatch(SqlBatchEvent evt) {
+	void sqlBatch(final SqlBatchEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時

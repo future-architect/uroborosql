@@ -220,7 +220,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.config.SqlConfigAware#setSqlConfig(jp.co.future.uroborosql.config.SqlConfig)
 	 */
 	@Override
-	public void setSqlConfig(SqlConfig sqlConfig) {
+	public void setSqlConfig(final SqlConfig sqlConfig) {
 		this.sqlConfig = sqlConfig;
 	}
 
@@ -231,7 +231,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 */
 	@Override
 	public String getExecutableSql() {
-		if (StringUtils.isEmpty(executableSqlCache) && (executableSql.length() > 0)) {
+		if (StringUtils.isEmpty(executableSqlCache) && executableSql.length() > 0) {
 			executableSqlCache = executableSql.toString();
 			if (executableSqlCache.toUpperCase().contains("WHERE")) {
 				// where句の直後に来るANDやORの除去

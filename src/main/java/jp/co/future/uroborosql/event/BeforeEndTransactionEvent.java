@@ -30,7 +30,7 @@ public class BeforeEndTransactionEvent extends TransactionEvent {
 	 * @param transactionLevel トランザクション階層
 	 * @param result 実行結果
 	 */
-	public BeforeEndTransactionEvent(TransactionContext transactionContext,
+	public BeforeEndTransactionEvent(final TransactionContext transactionContext,
 			final boolean isRequiredNew,
 			final int transactionLevel,
 			final Object result) {

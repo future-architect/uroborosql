@@ -65,7 +65,7 @@ public class WrapContextEventSubscriber extends EventSubscriber {
 		transformSqlListener(this::transformSql);
 	}
 
-	void transformSql(TransformSqlEvent evt) {
+	void transformSql(final TransformSqlEvent evt) {
 		// SQLの前後を別のSQLでWrapする加工を行う。
 		// ただし、以下の場合は加工対象外とする。
 		// - wrapIgnorePatternに当てはまるSQLの場合

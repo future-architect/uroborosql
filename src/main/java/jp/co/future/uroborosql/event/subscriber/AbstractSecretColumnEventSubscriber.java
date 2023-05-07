@@ -162,7 +162,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		sqlQueryListener(this::sqlQuery);
 	}
 
-	void beforeSetParameter(BeforeSetParameterEvent evt) {
+	void beforeSetParameter(final BeforeSetParameterEvent evt) {
 		// パラメータが暗号化対象のパラメータ名と一致する場合、パラメータの値を暗号化する
 		var parameter = evt.getParameter();
 		if (skip || parameter == null) {
@@ -198,7 +198,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		}
 	}
 
-	void sqlQuery(SqlQueryEvent evt) {
+	void sqlQuery(final SqlQueryEvent evt) {
 		// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
 		if (skip) {
 			return;

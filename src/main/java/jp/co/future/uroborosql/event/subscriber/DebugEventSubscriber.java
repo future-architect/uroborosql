@@ -39,7 +39,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 		sqlBatchListener(this::sqlBatch);
 	}
 
-	void afterBeginTransaction(AfterBeginTransactionEvent evt) {
+	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			try {
 				LOG.debug("Begin Transaction - connection:{}",
@@ -50,7 +50,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void beforeEndTransaction(BeforeEndTransactionEvent evt) {
+	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			try {
 				LOG.debug("End Transaction - connection:{}, result:{}", evt.getTransactionContext().getConnection(),
@@ -61,34 +61,34 @@ public class DebugEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void beforeSetParameter(BeforeSetParameterEvent evt) {
+	void beforeSetParameter(final BeforeSetParameterEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Before Set Parameter - Parameter:{}", evt.getParameter());
 		}
 	}
 
-	void afterGetOutParameter(AfterGetOutParameterEvent evt) {
+	void afterGetOutParameter(final AfterGetOutParameterEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("After Get OutParameter - key:{}, value:{}. parameterIndex:{}",
 					evt.getKey(), evt.getValue(), evt.getParameterIndex());
 		}
 	}
 
-	void sqlQuery(SqlQueryEvent evt) {
+	void sqlQuery(final SqlQueryEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Execute Query - sqlName:{} executed.", evt.getExecutionContext().getSqlName());
 			LOG.trace("Execute Query sql:{}", evt.getPreparedStatement());
 		}
 	}
 
-	void sqlUpdate(SqlUpdateEvent evt) {
+	void sqlUpdate(final SqlUpdateEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Execute Update - sqlName:{} executed. Count:{} items.",
 					evt.getExecutionContext().getSqlName(), evt.getCount());
 		}
 	}
 
-	void sqlBatch(SqlBatchEvent evt) {
+	void sqlBatch(final SqlBatchEvent evt) {
 		if (LOG.isDebugEnabled()) {
 			var counts = evt.getCounts();
 			try {

@@ -573,7 +573,7 @@ public final class SqlFunction {
 	 * @param zoneId ZoneId. <code>null</code> の場合はシステムクロックが利用される.
 	 * @return 現在時刻のTimestamp
 	 */
-	public Timestamp nowTimestamp(String zoneId) {
+	public Timestamp nowTimestamp(final String zoneId) {
 		if (zoneId == null) {
 			return Timestamp.valueOf(LocalDateTime.now());
 		} else {
@@ -587,7 +587,7 @@ public final class SqlFunction {
 	 * @param zoneId ZoneId. <code>null</code> の場合はシステムクロックが利用される.
 	 * @return 現在時刻のTimestamp
 	 */
-	public Timestamp nowTimestampWithZone(String zoneId) {
+	public Timestamp nowTimestampWithZone(final String zoneId) {
 		if (zoneId == null) {
 			return new Timestamp(ZonedDateTime.now().toInstant().toEpochMilli());
 		} else {

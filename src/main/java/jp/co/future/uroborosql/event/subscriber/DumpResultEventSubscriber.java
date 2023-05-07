@@ -53,7 +53,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 		sqlQueryListener(this::sqlQuery);
 	}
 
-	void sqlQuery(SqlQueryEvent evt) {
+	void sqlQuery(final SqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
 				LOG.warn(

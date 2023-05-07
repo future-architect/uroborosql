@@ -1716,12 +1716,11 @@ public class SqlAgentImpl implements SqlAgent {
 		executionContext.param(Dialect.PARAM_KEY_ESCAPE_CHAR, getDialect().getEscapeChar());
 
 		// SQLパース前イベントの呼出
-		if (executionContext.batchCount() == 0) {
-			if (getSqlConfig().getEventListenerHolder().hasBeforeParseSqlListener()) {
-				var eventObj = new BeforeParseSqlEvent(executionContext);
-				getSqlConfig().getEventListenerHolder().getBeforeParseSqlListeners()
-						.forEach(listener -> listener.accept(eventObj));
-			}
+		if (executionContext.batchCount() == 0
+				&& getSqlConfig().getEventListenerHolder().hasBeforeParseSqlListener()) {
+			var eventObj = new BeforeParseSqlEvent(executionContext);
+			getSqlConfig().getEventListenerHolder().getBeforeParseSqlListeners()
+					.forEach(listener -> listener.accept(eventObj));
 		}
 
 		if (StringUtils.isEmpty(executionContext.getExecutableSql())) {

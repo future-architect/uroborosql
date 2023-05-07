@@ -27,7 +27,7 @@ public class AfterBeginTransactionEvent extends TransactionEvent {
 	 * @param isRequiredNew 新規トランザクションかどうか
 	 * @param transactionLevel トランザクション階層
 	 */
-	public AfterBeginTransactionEvent(TransactionContext transactionContext,
+	public AfterBeginTransactionEvent(final TransactionContext transactionContext,
 			final boolean isRequiredNew,
 			final int transactionLevel) {
 		super(transactionContext);

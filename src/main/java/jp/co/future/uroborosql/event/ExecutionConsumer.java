@@ -26,9 +26,9 @@ public interface ExecutionConsumer<T> {
 	 * @return このオペレーションを実行した後、続けてafterオペレーションを実行する合成BiConsumer
 	 * @throws NullPointerException afterがnullの場合
 	 */
-	default ExecutionConsumer<T> andThen(ExecutionConsumer<? super T> after) {
+	default ExecutionConsumer<T> andThen(final ExecutionConsumer<? super T> after) {
 		Objects.requireNonNull(after);
-		return (T t) -> {
+		return t -> {
 			accept(t);
 			after.accept(t);
 		};

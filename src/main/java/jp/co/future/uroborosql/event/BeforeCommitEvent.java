@@ -14,7 +14,7 @@ public class BeforeCommitEvent extends TransactionEvent {
 	 *
 	 * @param transactionContext TransactionContext
 	 */
-	public BeforeCommitEvent(TransactionContext transactionContext) {
+	public BeforeCommitEvent(final TransactionContext transactionContext) {
 		super(transactionContext);
 	}
 }
