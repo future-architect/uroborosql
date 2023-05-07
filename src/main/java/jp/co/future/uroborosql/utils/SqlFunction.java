@@ -6,6 +6,10 @@
  */
 package jp.co.future.uroborosql.utils;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -561,6 +565,34 @@ public final class SqlFunction {
 	 */
 	public Long incrementLong(final Long num) {
 		return num + 1L;
+	}
+
+	/**
+	 * 現在時刻のTimestampを取得する.
+	 *
+	 * @param zoneId ZoneId. <code>null</code> の場合はシステムクロックが利用される.
+	 * @return 現在時刻のTimestamp
+	 */
+	public Timestamp nowTimestamp(String zoneId) {
+		if (zoneId == null) {
+			return Timestamp.valueOf(LocalDateTime.now());
+		} else {
+			return Timestamp.valueOf(LocalDateTime.now(ZoneId.of(zoneId)));
+		}
+	}
+
+	/**
+	 * 現在時刻のTimestampを取得する（ゾーン計算あり）.
+	 *
+	 * @param zoneId ZoneId. <code>null</code> の場合はシステムクロックが利用される.
+	 * @return 現在時刻のTimestamp
+	 */
+	public Timestamp nowTimestampWithZone(String zoneId) {
+		if (zoneId == null) {
+			return new Timestamp(ZonedDateTime.now().toInstant().toEpochMilli());
+		} else {
+			return new Timestamp(ZonedDateTime.now(ZoneId.of(zoneId)).toInstant().toEpochMilli());
+		}
 	}
 
 	/**

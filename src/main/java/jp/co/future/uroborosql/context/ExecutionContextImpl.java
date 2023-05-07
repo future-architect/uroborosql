@@ -112,7 +112,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	private String schema;
 
 	/** SQL実行の最大リトライ数 */
-	private int maxRetryCount = 0;
+	private int maxRetryCount = -1;
 
 	/** リトライを行う場合の待機時間（ms） */
 	private int retryWaitTime = 0;
@@ -909,8 +909,12 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 */
 	@Override
 	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
+		// parameterMap に設定されている共通のパラメータ（ESCAPE_CHARなど）を引き継ぐため、退避しておく
+		var tempParamMap = new HashMap<>(parameterMap);
 		for (var paramMap : batchParameters) {
-			parameterMap = paramMap;
+			var batchParamMap = new HashMap<>(tempParamMap);
+			batchParamMap.putAll(paramMap);
+			parameterMap = batchParamMap;
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}

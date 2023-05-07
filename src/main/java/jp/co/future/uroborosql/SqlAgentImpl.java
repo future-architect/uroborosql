@@ -1192,7 +1192,7 @@ public class SqlAgentImpl implements SqlAgent {
 		try {
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() > 0) {
+			if (executionContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
@@ -1352,7 +1352,7 @@ public class SqlAgentImpl implements SqlAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() > 0) {
+			if (executionContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
@@ -1477,7 +1477,7 @@ public class SqlAgentImpl implements SqlAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() > 0) {
+			if (executionContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 
@@ -1601,7 +1601,7 @@ public class SqlAgentImpl implements SqlAgent {
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() > 0) {
+			if (executionContext.getMaxRetryCount() >= 0) {
 				maxRetryCount = executionContext.getMaxRetryCount();
 			}
 

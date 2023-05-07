@@ -69,7 +69,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -82,7 +82,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 0, "60"));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -95,7 +95,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product").param("product_id", List.of(0, 1))
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -109,7 +109,7 @@ public class SqlAgentRetryTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 0, "60"));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product").param("product_id", List.of(0, 1))
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -126,7 +126,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -147,13 +147,34 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
 			assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
 			assertThat(ex.getSQLState(), is(sqlState));
+		}
+	}
+
+	/**
+	 * クエリ実行のリトライ（デフォルトリトライ回数指定時の個別リトライのOFF）
+	 */
+	@Test
+	void testQueryRetryOff() throws Exception {
+		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(3, 60));
+		config.getSqlAgentProvider().setDefaultMaxRetryCount(3);
+
+		SqlQuery query = null;
+		try {
+			query = agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
+					.retry(0);
+			query.collect();
+			fail();
+		} catch (UroborosqlSQLException ex) {
+			assertThat(query.context().contextAttrs().get("__retryCount"), is(0));
+		} finally {
+			config.getSqlAgentProvider().setDefaultMaxRetryCount(0);
 		}
 	}
 
@@ -168,7 +189,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -189,7 +210,7 @@ public class SqlAgentRetryTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product").param("product_id", List.of(0, 1)).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -326,6 +347,28 @@ public class SqlAgentRetryTest {
 			assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
 			assertThat(ex.getSQLState(), is(sqlState));
+		}
+	}
+
+	/**
+	 * 更新のリトライ（デフォルトリトライ回数指定時の個別リトライのOFF）
+	 */
+	@Test
+	void testUpdateRetryOff() throws Exception {
+		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(3, 60));
+		config.getSqlAgentProvider().setDefaultMaxRetryCount(3);
+
+		SqlUpdate update = null;
+		try {
+			update = agent.update("example/insert_product_regist_work").param("product_name", "test")
+					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
+					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(0);
+			update.count();
+			fail();
+		} catch (UroborosqlSQLException ex) {
+			assertThat(update.context().contextAttrs().get("__retryCount"), is(0));
+		} finally {
+			config.getSqlAgentProvider().setDefaultMaxRetryCount(0);
 		}
 	}
 
@@ -510,6 +553,28 @@ public class SqlAgentRetryTest {
 			assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount - 1));
 			assertThat(ex.getErrorCode(), is(errorCode));
 			assertThat(ex.getSQLState(), is(sqlState));
+		}
+	}
+
+	/**
+	 * プロシージャのリトライ（デフォルトリトライ回数指定時の個別リトライのOFF）
+	 */
+	@Test
+	void testProcedureRetryOff() throws Exception {
+		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(3, 60));
+		config.getSqlAgentProvider().setDefaultMaxRetryCount(3);
+
+		Procedure proc = null;
+		try {
+			proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
+					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
+					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(0);
+			proc.call();
+			fail();
+		} catch (SQLException ex) {
+			assertThat(proc.context().contextAttrs().get("__retryCount"), is(0));
+		} finally {
+			config.getSqlAgentProvider().setDefaultMaxRetryCount(0);
 		}
 	}
 
