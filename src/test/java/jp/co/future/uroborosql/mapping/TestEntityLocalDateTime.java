@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.mapping;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
@@ -56,38 +57,21 @@ public class TestEntityLocalDateTime {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((updDatetime == null) ? 0 : updDatetime.hashCode());
-		return result;
+		return Objects.hash(id, name, updDatetime);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(final Object obj) {
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		var other = (TestEntityLocalDateTime) obj;
+		if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name) || !Objects.equals(updDatetime, other.updDatetime)) {
 			return false;
-		TestEntityLocalDateTime other = (TestEntityLocalDateTime) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (updDatetime == null) {
-			if (other.updDatetime != null)
-				return false;
-		} else if (!updDatetime.equals(other.updDatetime))
-			return false;
+		}
 		return true;
 	}
 

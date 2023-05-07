@@ -117,16 +117,8 @@ public class PropertyMapperTest {
 					|| !Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
-			if (enumValue != other.enumValue) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(intValue, other.intValue)) {
-				return false;
-			}
-			if (!Objects.equals(longValue, other.longValue)) {
+			if (enumValue != other.enumValue || id != other.id || !Objects.equals(intValue, other.intValue)
+					|| !Objects.equals(longValue, other.longValue)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {
