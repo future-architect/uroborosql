@@ -29,10 +29,10 @@ import jp.co.future.uroborosql.utils.StringFunction;
  */
 public class SpelExpressionParser extends AbstractExpressionParser {
 	/** 評価式のパーサー */
-	private static org.springframework.expression.ExpressionParser parser;
+	private org.springframework.expression.ExpressionParser parser;
 
 	/** TransformContextに対するプロパティアクセサ */
-	private static TransformContextPropertyAccessor transformContextPropertyAccessor;
+	private TransformContextPropertyAccessor transformContextPropertyAccessor;
 
 	/**
 	 * コンストラクタ
