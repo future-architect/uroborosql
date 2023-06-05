@@ -29,7 +29,7 @@ import jp.co.future.uroborosql.utils.StringFunction;
  */
 public class SpelExpressionParser extends AbstractExpressionParser {
 	/** 評価式のパーサー */
-	private org.springframework.expression.ExpressionParser parser;
+	private static final org.springframework.expression.ExpressionParser parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 
 	/** TransformContextに対するプロパティアクセサ */
 	private TransformContextPropertyAccessor transformContextPropertyAccessor;
@@ -49,7 +49,6 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	@Override
 	public void initialize() {
 		super.initialize();
-		parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 		transformContextPropertyAccessor = new TransformContextPropertyAccessor(
 				getSqlConfig().getDialect().getExpressionFunction());
 	}
