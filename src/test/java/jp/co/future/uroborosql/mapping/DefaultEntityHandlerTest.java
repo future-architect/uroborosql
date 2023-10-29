@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -331,6 +332,112 @@ public class DefaultEntityHandlerTest {
 		}
 	}
 
+	@Test
+	public void testQuery5() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity4 test1 = new TestEntity4(1L, "name1", new BigDecimal("20"),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity4 test2 = new TestEntity4(2L, "name2", new BigDecimal("21"),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity4 test3 = new TestEntity4(3L, "name3", new BigDecimal("22"),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity4 test4 = new TestEntity4(4L, "name4", new BigDecimal("23"), null);
+				agent.insert(test4);
+
+				long count1 = agent.query(TestEntity4.class).count();
+				assertThat(count1, is(4L));
+				long count2 = agent.query(TestEntity4.class).count(TestEntity4.Names.Birthday);
+				assertThat(count2, is(3L));
+
+				BigDecimal sum = agent.query(TestEntity4.class).sum(TestEntity4.Names.Age);
+				assertThat(sum, is(new BigDecimal("86")));
+
+				BigDecimal min = agent.query(TestEntity4.class).min(TestEntity4.Names.Age);
+				assertThat(min, is(new BigDecimal("20")));
+
+				String minName = agent.query(TestEntity4.class).min(TestEntity4.Names.Name);
+				assertThat(minName, is("name1"));
+
+				long max = agent.query(TestEntity4.class).max(TestEntity4.Names.Id);
+				assertThat(max, is(4L));
+
+				LocalDate maxDate = agent.query(TestEntity4.class).max(TestEntity4.Names.Birthday);
+				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+			});
+		}
+	}
+
+	@Test
+	public void testQuery6() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity5 test1 = new TestEntity5(1L, "name1", Optional.ofNullable(new BigDecimal("20")),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity5 test2 = new TestEntity5(2L, "name2", Optional.ofNullable(new BigDecimal("21")),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				TestEntity5 test3 = new TestEntity5(3L, "name3", Optional.ofNullable(new BigDecimal("22")),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				TestEntity5 test4 = new TestEntity5(4L, "name4", Optional.empty(), null);
+				agent.insert(test4);
+
+				long count1 = agent.query(TestEntity5.class).count();
+				assertThat(count1, is(4L));
+				long count2 = agent.query(TestEntity5.class).count(TestEntity5.Names.Birthday);
+				assertThat(count2, is(3L));
+
+				Optional<BigDecimal> sum = agent.query(TestEntity5.class).sum(TestEntity5.Names.Age);
+				assertThat(sum.orElseThrow(IllegalStateException::new), is(new BigDecimal("63")));
+
+				Optional<BigDecimal> min = agent.query(TestEntity5.class).min(TestEntity5.Names.Age);
+				assertThat(min.orElseThrow(IllegalStateException::new), is(new BigDecimal("20")));
+
+				String minName = agent.query(TestEntity5.class).min(TestEntity5.Names.Name);
+				assertThat(minName, is("name1"));
+
+				long max = agent.query(TestEntity5.class).max(TestEntity5.Names.Id);
+				assertThat(max, is(4L));
+
+				LocalDate maxDate = agent.query(TestEntity5.class).max(TestEntity5.Names.Birthday);
+				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testQuery7() throws Exception {
+
+		try (SqlAgent agent = config.agent()) {
+			agent.required(() -> {
+				TestEntity5 test1 = new TestEntity5(1L, "name1", Optional.empty(),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				TestEntity5 test2 = new TestEntity5(2L, "name2", Optional.empty(),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+
+				Optional<BigDecimal> sum = agent.query(TestEntity5.class).sum(TestEntity5.Names.Age);
+				assertThat(sum.isPresent(), is(false));
+
+				Optional<BigDecimal> min = agent.query(TestEntity5.class).min(TestEntity5.Names.Age);
+				assertThat(min.isPresent(), is(false));
+
+				Optional<BigDecimal> max = agent.query(TestEntity5.class).max(TestEntity5.Names.Age);
+				assertThat(max.isPresent(), is(false));
+
+			});
+		}
+	}
+
 	@Test(expected = UroborosqlRuntimeException.class)
 	public void testQueryCountUnmatchColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
@@ -399,9 +506,7 @@ public class DefaultEntityHandlerTest {
 				TestEntity test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
-				// Equal
-				List<TestEntity> list = null;
-				list = agent.query(TestEntity.class).equal("id", 2).collect();
+				List<TestEntity> list = agent.query(TestEntity.class).equal("id", 2).collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 
@@ -700,9 +805,8 @@ public class DefaultEntityHandlerTest {
 						"name3");
 				agent.insert(test3);
 
-				List<TestHistoryEntity> list = null;
 				// Between
-				list = agent.query(TestHistoryEntity.class)
+				List<TestHistoryEntity> list = agent.query(TestHistoryEntity.class)
 						.betweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
 						.asc("id")
 						.collect();
@@ -738,9 +842,8 @@ public class DefaultEntityHandlerTest {
 						"name3");
 				agent.insert(test3);
 
-				List<TestHistoryEntity> list = null;
 				// Between
-				list = agent.query(TestHistoryEntity.class)
+				List<TestHistoryEntity> list = agent.query(TestHistoryEntity.class)
 						.notBetweenColumns(LocalDate.of(1990, Month.APRIL, 15), "start_at", "finish_at")
 						.asc("id")
 						.collect(); // 4/15 < start_at or 4/15 > finish_at

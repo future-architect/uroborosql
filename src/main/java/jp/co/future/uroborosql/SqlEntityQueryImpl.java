@@ -247,6 +247,26 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	}
 
 	/**
+	 * 数値型のカラムかどうかの判定.<br>
+	 * Optional型の場合、OptionalのGenerics型で指定された型が数値型かどうかを判定する.
+	 *
+	 * @param mappingColumn MappingColumn
+	 * @return 数値型のカラムの場合<code>true</code>.
+	 */
+	private static boolean isNumberTypeColumn(final MappingColumn mappingColumn) {
+		Class<?> rawType = mappingColumn.getJavaType().getRawType();
+		if (Optional.class.equals(rawType)) {
+			rawType = mappingColumn.getJavaType().getParam(0).getRawType();
+		}
+		return short.class.equals(rawType) ||
+				int.class.equals(rawType) ||
+				long.class.equals(rawType) ||
+				float.class.equals(rawType) ||
+				double.class.equals(rawType) ||
+				Number.class.isAssignableFrom(rawType);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#sum(java.lang.String)
@@ -256,13 +276,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public <T> T sum(final String col) {
 		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
 		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		Class<?> rawType = mappingColumn.getJavaType().getRawType();
-		if (!(short.class.equals(rawType) ||
-				int.class.equals(rawType) ||
-				long.class.equals(rawType) ||
-				float.class.equals(rawType) ||
-				double.class.equals(rawType) ||
-				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
+		if (!isNumberTypeColumn(mappingColumn)) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
 		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);
