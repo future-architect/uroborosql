@@ -256,13 +256,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public <T> T sum(final String col) {
 		String camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
 		MappingColumn mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		Class<?> rawType = mappingColumn.getJavaType().getRawType();
-		if (!(short.class.equals(rawType) ||
-				int.class.equals(rawType) ||
-				long.class.equals(rawType) ||
-				float.class.equals(rawType) ||
-				double.class.equals(rawType) ||
-				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
+		if (!mappingColumn.isNumber()) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
 		TableMetadata.Column column = tableMetadata.getColumn(camelColumnName);

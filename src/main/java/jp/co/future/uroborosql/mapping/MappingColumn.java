@@ -6,6 +6,9 @@
  */
 package jp.co.future.uroborosql.mapping;
 
+import java.time.temporal.Temporal;
+import java.util.Optional;
+
 import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
@@ -20,7 +23,7 @@ import jp.co.future.uroborosql.mapping.annotations.Version;
 public interface MappingColumn {
 
 	/**
-	 * エンティティから値を取得
+	 * エンティティから値を取得.
 	 *
 	 * @param entity エンティティ
 	 * @return 取得した値
@@ -28,7 +31,7 @@ public interface MappingColumn {
 	Object getValue(Object entity);
 
 	/**
-	 * エンティティに値をセット
+	 * エンティティに値をセット.
 	 *
 	 * @param entity エンティティ
 	 * @param value 値
@@ -36,49 +39,49 @@ public interface MappingColumn {
 	void setValue(Object entity, Object value);
 
 	/**
-	 * カラム名取得
+	 * カラム名取得.
 	 *
 	 * @return カラム名
 	 */
 	String getName();
 
 	/**
-	 * キャメルケースカラム名取得
+	 * キャメルケースカラム名取得.
 	 *
 	 * @return キャメルケースカラム名
 	 */
 	String getCamelName();
 
 	/**
-	 * {@link JavaType}取得
+	 * {@link JavaType}取得.
 	 *
 	 * @return {@link JavaType}
 	 */
 	JavaType getJavaType();
 
 	/**
-	 * IDアノテーションが付与されているかどうか
+	 * IDアノテーションが付与されているかどうか.
 	 *
 	 * @return IDアノテーションが付与されている場合<code>true</code>
 	 */
 	boolean isId();
 
 	/**
-	 * {@link GeneratedValue}の取得
+	 * {@link GeneratedValue}の取得.
 	 *
 	 * @return {@link GeneratedValue}
 	 */
 	GeneratedValue getGeneratedValue();
 
 	/**
-	 * {@link SequenceGenerator}の取得
+	 * {@link SequenceGenerator}の取得.
 	 *
 	 * @return {@link SequenceGenerator}
 	 */
 	SequenceGenerator getSequenceGenerator();
 
 	/**
-	 * 修飾済みのシーケンス名の取得
+	 * 修飾済みのシーケンス名の取得.
 	 *
 	 * @return {@link SequenceGenerator} をもとに修飾したシーケンス名
 	 */
@@ -99,14 +102,14 @@ public interface MappingColumn {
 	}
 
 	/**
-	 * {@link Transient}の取得
+	 * {@link Transient}の取得.
 	 *
 	 * @return {@link Transient}
 	 */
 	Transient getTransient();
 
 	/**
-	 * 指定したSQL種別でtransientかどうかを判断する
+	 * 指定したSQL種別でtransientかどうか.
 	 *
 	 * @param sqlKind SQL種別
 	 * @return 指定したSQL種別でtransientの場合<code>true</code>
@@ -114,14 +117,69 @@ public interface MappingColumn {
 	boolean isTransient(SqlKind sqlKind);
 
 	/**
-	 * バージョン情報カラムかどうか
+	 * バージョン情報カラムかどうか.
 	 *
 	 * @return バージョンカラムの場合は<code>true</code>
 	 */
 	boolean isVersion();
 
 	/**
-	 * {@link Version} の取得
+	 * Optional型のカラムかどうか.
+	 *
+	 * @return Optional型のカラムの場合は<code>true</code>
+	 */
+	default boolean isOptional() {
+		return Optional.class.equals(getJavaType().getRawType());
+	}
+
+	/**
+	 * 文字、または文字列型のカラムかどうか.
+	 *
+	 * @return 文字、または文字列型のカラムの場合は<code>true</code>
+	 */
+	default boolean isString() {
+		Class<?> rawType = isOptional() ? getJavaType().getParam(0).getRawType() : getJavaType().getRawType();
+		return String.class.equals(rawType) ||
+				char.class.equals(rawType) ||
+				Character.class.equals(rawType);
+	}
+
+	/**
+	 * 数値型のカラムかどうか.
+	 *
+	 * @return 数値型のカラムの場合は<code>true</code>
+	 */
+	default boolean isNumber() {
+		Class<?> rawType = isOptional() ? getJavaType().getParam(0).getRawType() : getJavaType().getRawType();
+		return short.class.equals(rawType) ||
+				int.class.equals(rawType) ||
+				long.class.equals(rawType) ||
+				float.class.equals(rawType) ||
+				double.class.equals(rawType) ||
+				Number.class.isAssignableFrom(rawType);
+	}
+
+	/**
+	 * 配列型のカラムかどうか.
+	 *
+	 * @return 配列型のカラムの場合は<code>true</code>
+	 */
+	default boolean isArray() {
+		return getJavaType().getRawType().isArray();
+	}
+
+	/**
+	 * 時間的オブジェクト型のカラムかどうか.
+	 *
+	 * @return 時間的オブジェクト型のカラムの場合は<code>true</code>
+	 */
+	default boolean isTemporal() {
+		Class<?> rawType = isOptional() ? getJavaType().getParam(0).getRawType() : getJavaType().getRawType();
+		return Temporal.class.isAssignableFrom(rawType);
+	}
+
+	/**
+	 * {@link Version} の取得.
 	 *
 	 * @return {@link Version}
 	 */
