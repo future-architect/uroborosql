@@ -1,13 +1,23 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +27,8 @@ import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -27,6 +39,9 @@ import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
 public class SqlContextImplTest {
+	/** ロガー */
+	protected static final Logger log = LoggerFactory.getLogger(SqlContextImplTest.class);
+
 	private static SqlConfig config = null;
 
 	@BeforeClass
@@ -42,7 +57,7 @@ public class SqlContextImplTest {
 	}
 
 	private String replaceLineSep(final String sql) {
-		return sql.replaceAll("\\[LF\\]", System.lineSeparator());
+		return sql.replace("[LF]", System.lineSeparator());
 	}
 
 	@Test
@@ -88,6 +103,17 @@ public class SqlContextImplTest {
 		SqlContext ctx62 = getSqlContext("select * from test[LF]where /* comment */ --comment [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
 				ctx62.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstAndKeyWordWhenWhereClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -126,6 +152,18 @@ public class SqlContextImplTest {
 		assertEquals(replaceLineSep(
 				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
 				ctx8.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSelectClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -165,6 +203,17 @@ public class SqlContextImplTest {
 		SqlContext ctx62 = getSqlContext("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenOrderByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -204,6 +253,18 @@ public class SqlContextImplTest {
 		SqlContext ctx62 = getSqlContext("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenGroupByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
+
 	}
 
 	@Test
@@ -255,6 +316,18 @@ public class SqlContextImplTest {
 				replaceLineSep(
 						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
 				ctx52.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep(
+				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenStartBracket elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -307,6 +380,17 @@ public class SqlContextImplTest {
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
 		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
 				ctx63.getExecutableSql());
+
+		Instant startTime = Instant.now(Clock.systemDefaultZone());
+		String sql = replaceLineSep("select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
+		for (int i = 0; i < 1000000; i++) {
+			SqlContext timeCtx = config.contextWith(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSetClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -333,9 +417,8 @@ public class SqlContextImplTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testParamList() throws Exception {
-		SqlContext ctx = null;
+		SqlContext ctx = getSqlContext("select * from dummy");
 
-		ctx = getSqlContext("select * from dummy");
 		ctx.paramList("key1", "value1");
 		assertThat(ctx.getParam("key1").getValue(), is(Arrays.asList("value1")));
 
@@ -352,18 +435,15 @@ public class SqlContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 
 		ctx = getSqlContext("select * from dummy");
-		ctx.paramList("key1", () -> {
-			return values;
-		});
+		ctx.paramList("key1", () -> values);
 		assertThat(ctx.getParam("key1").getValue(), is(values));
 	}
 
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testIfAbsent() throws Exception {
-		SqlContext ctx = null;
+		SqlContext ctx = getSqlContext("select * from dummy");
 
-		ctx = getSqlContext("select * from dummy");
 		ctx.paramIfAbsent("key1", "value1");
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
 		ctx.paramIfAbsent("key1", "value2");
@@ -687,7 +767,6 @@ public class SqlContextImplTest {
 		private Optional<String> memo = Optional.empty();
 
 		public TestEntity(final int id, final String name, final int age, final Optional<String> memo) {
-			super();
 			this.id = id;
 			this.name = name;
 			this.age = age;

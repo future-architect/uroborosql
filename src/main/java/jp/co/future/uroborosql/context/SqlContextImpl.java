@@ -75,13 +75,12 @@ public class SqlContextImpl implements SqlContext {
 	}
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
-	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
+	protected static final Pattern WHERE_CLAUSE_PATTERN = Pattern.compile(
+			"(?i)(?<clause>(\\bWHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))((AND|OR)\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
-			.compile(
-					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*)(,)");
+	protected static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile(
+			"(?i)(?<keyword>(\\b(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*),");
 
 	/** 不要な空白、改行を除去するための正規表現 */
 	protected static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
@@ -327,7 +326,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.context.SqlContext#setSchema(java.lang.String)
 	 */
 	@Override
-	public SqlContext setSchema(String schema) {
+	public SqlContext setSchema(final String schema) {
 		this.schema = schema;
 		return this;
 	}
@@ -531,7 +530,7 @@ public class SqlContextImpl implements SqlContext {
 	@Override
 	public SqlContext paramMap(final Map<String, Object> paramMap) {
 		if (paramMap != null) {
-			paramMap.forEach((k, v) -> param(k, v));
+			paramMap.forEach(this::param);
 		}
 		return this;
 	}
@@ -979,7 +978,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @param baseSize 基底となるMapのサイズ
 	 * @return 初期容量
 	 */
-	private int calcInitialCapacity(int baseSize) {
+	private int calcInitialCapacity(final int baseSize) {
 		// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けてcapacityを計算する。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
 		return baseSize * 4 / 3 + 1;
 	}
@@ -1269,7 +1268,7 @@ public class SqlContextImpl implements SqlContext {
 	 * @see jp.co.future.uroborosql.context.SqlContext#setUpdateDelegate(java.util.function.Function)
 	 */
 	@Override
-	public SqlContext setUpdateDelegate(Function<SqlContext, Integer> updateDelegate) {
+	public SqlContext setUpdateDelegate(final Function<SqlContext, Integer> updateDelegate) {
 		this.updateDelegate = updateDelegate;
 		return this;
 	}
