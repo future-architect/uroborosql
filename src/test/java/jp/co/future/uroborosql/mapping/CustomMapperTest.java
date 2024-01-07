@@ -33,7 +33,6 @@ public class CustomMapperTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	public static class TestEntity {
 		private long id;
 		private Name name;
@@ -44,6 +43,22 @@ public class CustomMapperTest {
 		public TestEntity(final long id, final String name) {
 			this.id = id;
 			this.name = new Name(name);
+		}
+
+		public long getId() {
+			return id;
+		}
+
+		public void setId(final long id) {
+			this.id = id;
+		}
+
+		public Name getName() {
+			return name;
+		}
+
+		public void setName(final Name name) {
+			this.name = name;
 		}
 	}
 
@@ -111,7 +126,6 @@ public class CustomMapperTest {
 	@SuppressWarnings("unused")
 	@Table(name = "TEST")
 	public static class Test2Entity {
-		private long id;
 		private String name;
 	}
 

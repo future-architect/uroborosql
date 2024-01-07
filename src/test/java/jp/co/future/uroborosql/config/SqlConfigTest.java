@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.util.Arrays;
+import java.util.List;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -96,7 +96,8 @@ public class SqlConfigTest {
 
 	private void validate(final SqlConfig config) throws Exception {
 		try (var agent = config.agent()) {
-			assertThat(agent.query("example/select_product").collect().size(), is(2));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(2));
 		}
 	}
 
@@ -104,12 +105,13 @@ public class SqlConfigTest {
 	void testWithExecutionContextProviderConstantSettings() throws Exception {
 		var config = UroboroSQL.builder(ds)
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.setConstantClassNames(Arrays.asList(TestConsts.class.getName()))
-						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+						.setConstantClassNames(List.of(TestConsts.class.getName()))
+						.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName())))
 				.build();
 		try (var agent = config.agent()) {
 			var ans = agent
-					.queryWith("select /*#CLS_INNER_CLASS_ISTRING*/'' as VAL, /*#CLS_TEST_ENUM1_A*/ as ENUM").one();
+					.queryWith("select /*#CLS_INNER_CLASS_ISTRING*/'' as VAL, /*#CLS_TEST_ENUM1_A*/ as ENUM")
+					.one();
 
 			assertThat(ans.get("VAL"), is(TestConsts.InnerClass.ISTRING));
 			assertThat(ans.get("ENUM"), is(TestEnum1.A.toString()));

@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ public class SqlAgentRetryWithRollbackTest {
 		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentRetryWithRollbackTest;DB_CLOSE_DELAY=-1", "sa", "sa")
 				.setDialect(new PostgresqlDialect())
 				.build();
-		config.getSqlAgentProvider().setSqlRetryCodeList(Arrays.asList("54", "60", "30006"));
+		config.getSqlAgentProvider().setSqlRetryCodeList(List.of("54", "60", "30006"));
 		agent = config.agent();
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -65,7 +65,8 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount + 1);
+		var query = agent.query("example/select_product")
+				.param("product_id", 0, 1).retry(retryCount + 1);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -78,7 +79,8 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var query = agent.query("example/select_product").param("product_id", 0, 1)
+		var query = agent.query("example/select_product")
+				.param("product_id", 0, 1)
 				.retry(retryCount + 1, 10);
 		query.collect();
 		assertThat(query.context().contextAttrs().get("__retryCount"), is(retryCount));
@@ -95,7 +97,8 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product")
+					.param("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -115,7 +118,8 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlQuery query = null;
 		try {
-			query = agent.query("example/select_product").param("product_id", 0, 1).retry(retryCount - 1);
+			query = agent.query("example/select_product")
+					.param("product_id", 0, 1).retry(retryCount - 1);
 			query.collect();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -132,9 +136,12 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
-				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
+		var update = agent.update("example/insert_product_regist_work")
+				.param("product_name", "test")
+				.param("product_kana_name", "test_kana")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "")
+				.param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		update.count();
 		assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -147,9 +154,12 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var update = agent.update("example/insert_product_regist_work").param("product_name", "test")
-				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
+		var update = agent.update("example/insert_product_regist_work")
+				.param("product_name", "test")
+				.param("product_kana_name", "test_kana")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "")
+				.param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		update.count();
 		assertThat(update.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -165,9 +175,12 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlUpdate update = null;
 		try {
-			update = agent.update("example/insert_product_regist_work").param("product_name", "test")
-					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
+			update = agent.update("example/insert_product_regist_work")
+					.param("product_name", "test")
+					.param("product_kana_name", "test_kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "")
+					.param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -187,9 +200,12 @@ public class SqlAgentRetryWithRollbackTest {
 
 		SqlUpdate update = null;
 		try {
-			update = agent.update("example/insert_product_regist_work").param("product_name", "test")
-					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
+			update = agent.update("example/insert_product_regist_work")
+					.param("product_name", "test")
+					.param("product_kana_name", "test_kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "")
+					.param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			update.count();
 			fail();
 		} catch (UroborosqlSQLException ex) {
@@ -206,9 +222,12 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
-				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
+		var proc = agent.proc("example/insert_product_regist_work")
+				.param("product_name", "test")
+				.param("product_kana_name", "test_kana")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "")
+				.param("ins_datetime", LocalDate.now()).retry(retryCount + 1);
 		proc.call();
 		assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -221,9 +240,12 @@ public class SqlAgentRetryWithRollbackTest {
 		var retryCount = 3;
 		config.getEventListenerHolder().addEventSubscriber(new RetryEventSubscriber(retryCount, 60));
 
-		var proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
-				.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-				.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
+		var proc = agent.proc("example/insert_product_regist_work")
+				.param("product_name", "test")
+				.param("product_kana_name", "test_kana")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "")
+				.param("ins_datetime", LocalDate.now()).retry(retryCount + 1, 10);
 		proc.call();
 		assertThat(proc.context().contextAttrs().get("__retryCount"), is(retryCount));
 	}
@@ -239,9 +261,12 @@ public class SqlAgentRetryWithRollbackTest {
 
 		Procedure proc = null;
 		try {
-			proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
-					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
+			proc = agent.proc("example/insert_product_regist_work")
+					.param("product_name", "test")
+					.param("product_kana_name", "test_kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "")
+					.param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
 			fail();
 		} catch (SQLException ex) {
@@ -261,9 +286,12 @@ public class SqlAgentRetryWithRollbackTest {
 
 		Procedure proc = null;
 		try {
-			proc = agent.proc("example/insert_product_regist_work").param("product_name", "test")
-					.param("product_kana_name", "test_kana").param("jan_code", "1234567890123")
-					.param("product_description", "").param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
+			proc = agent.proc("example/insert_product_regist_work")
+					.param("product_name", "test")
+					.param("product_kana_name", "test_kana")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "")
+					.param("ins_datetime", LocalDate.now()).retry(retryCount - 1);
 			proc.call();
 			fail();
 		} catch (SQLException ex) {

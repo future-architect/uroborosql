@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +32,22 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
-		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
-				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
-				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
-				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
-				.param("version_no", new BigDecimal(0)).addBatch().param("product_id", new BigDecimal(2))
-				.param("product_name", "商品名2").param("product_kana_name", "ショウヒンメイニ")
-				.param("jan_code", "1234567890124").param("product_description", "2番目の商品")
-				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+		var ctx = agent.context().setSqlName("example/insert_product")
+				.param("product_id", new BigDecimal(1))
+				.param("product_name", "商品名1")
+				.param("product_kana_name", "ショウヒンメイイチ")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "1番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch()
+				.param("product_id", new BigDecimal(2))
+				.param("product_name", "商品名2")
+				.param("product_kana_name", "ショウヒンメイニ")
+				.param("jan_code", "1234567890124")
+				.param("product_description", "2番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
@@ -52,7 +59,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(1, 2))
+				.param("product_id", List.of(1, 2))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -70,20 +77,28 @@ public class SqlBatchTest extends AbstractDbTest {
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 
-		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
-				.param("product_name", "商品名1").param("product_kana_name", "ショウヒンメイイチ")
-				.param("jan_code", "1234567890123").param("product_description", "1番目の商品")
-				.param("ins_datetime", currentDatetime).param("upd_datetime", currentDatetime)
+		var ctx = agent.context().setSqlName("example/insert_product")
+				.param("product_id", new BigDecimal(1))
+				.param("product_name", "商品名1")
+				.param("product_kana_name", "ショウヒンメイイチ")
+				.param("jan_code", "1234567890123")
+				.param("product_description", "1番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
 				.param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
 		assertEquals(1, count.length, "データの登録件数が不正です。");
 		assertEquals(1, count[0], "1行目のデータの登録に失敗しました。");
 
-		ctx.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-				.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
+		ctx.param("product_id", new BigDecimal(2))
+				.param("product_name", "商品名2")
+				.param("product_kana_name", "ショウヒンメイニ")
+				.param("jan_code", "1234567890124")
+				.param("product_description", "2番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch();
 
 		count = agent.batch(ctx);
 		assertEquals(1, count.length, "データの登録件数が不正です。");
@@ -93,7 +108,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatch.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(1, 2))
+				.param("product_id", List.of(1, 2))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -110,14 +125,23 @@ public class SqlBatchTest extends AbstractDbTest {
 
 		// 処理実行
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
-		var ctx = agent.context().setSqlName("example/insert_product").param("product_id", new BigDecimal(1))
-				.param("product_name", null).param("product_kana_name", null).param("jan_code", "1234567890123")
-				.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
-				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
-				.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-				.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-				.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-				.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch();
+		var ctx = agent.context().setSqlName("example/insert_product")
+				.param("product_id", new BigDecimal(1))
+				.param("product_name", null)
+				.param("product_kana_name", null)
+				.param("jan_code", "1234567890123")
+				.param("product_description", "1番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch()
+				.param("product_id", new BigDecimal(2))
+				.param("product_name", "商品名2")
+				.param("product_kana_name", "ショウヒンメイニ")
+				.param("jan_code", "1234567890124")
+				.param("product_description", "2番目の商品")
+				.param("ins_datetime", currentDatetime)
+				.param("upd_datetime", currentDatetime)
+				.param("version_no", new BigDecimal(0)).addBatch();
 
 		var count = agent.batch(ctx);
 		assertEquals(2, count.length, "データの登録件数が不正です。");
@@ -127,7 +151,7 @@ public class SqlBatchTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchNull.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(1, 2))
+				.param("product_id", List.of(1, 2))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -172,7 +196,8 @@ public class SqlBatchTest extends AbstractDbTest {
 				"testExecuteBatchStream.ltsv"));
 		agent.batch("example/insert_product").paramStream(data.stream()).count();
 		// 取得
-		var input = agent.query(Product.class).collect();
+		var input = agent.query(Product.class)
+				.collect();
 		// 再度削除
 		truncateTable("PRODUCT");
 

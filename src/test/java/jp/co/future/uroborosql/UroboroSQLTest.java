@@ -16,7 +16,6 @@ import java.sql.DriverManager;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,11 +152,13 @@ public class UroboroSQLTest {
 			}
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-			assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+			assertThat(agent.queryWith(checkSql)
+					.collect().size(), is(1));
 		}
 
 		try (var agent = config.agent()) {
-			assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+			assertThat(agent.queryWith(checkSql)
+					.collect().size(), is(0));
 		}
 	}
 
@@ -229,7 +230,8 @@ public class UroboroSQLTest {
 		var checkSql = "select table_name from information_schema.tables where table_name = 'PRODUCT'";
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+				assertThat(agent.queryWith(checkSql)
+						.collect().size(), is(0));
 				try {
 					var sqls = new String(
 							Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -243,8 +245,10 @@ public class UroboroSQLTest {
 					fail(e.getMessage());
 				}
 				insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-				assertThat(agent.query("example/select_product").collect().size(), is(2));
-				assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+				assertThat(agent.query("example/select_product")
+						.collect().size(), is(2));
+				assertThat(agent.queryWith(checkSql)
+						.collect().size(), is(1));
 			});
 		}
 
@@ -253,7 +257,8 @@ public class UroboroSQLTest {
 				.autoCommit(true)
 				.readOnly(true)
 				.transactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED))) {
-			assertThat(agent.queryWith(checkSql).collect().size(), is(0));
+			assertThat(agent.queryWith(checkSql)
+					.collect().size(), is(0));
 			try {
 				var sqls = new String(
 						Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -267,8 +272,10 @@ public class UroboroSQLTest {
 				fail(e.getMessage());
 			}
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-			assertThat(agent.query("example/select_product").collect().size(), is(2));
-			assertThat(agent.queryWith(checkSql).collect().size(), is(1));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(2));
+			assertThat(agent.queryWith(checkSql)
+					.collect().size(), is(1));
 		}
 	}
 
@@ -288,7 +295,8 @@ public class UroboroSQLTest {
 
 			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-			agent.query("example/select_product").param("product_id", Arrays.asList(0, 1))
+			agent.query("example/select_product")
+					.param("product_id", List.of(0, 1))
 					.stream().forEach(m -> {
 						assertTrue(m.containsKey("productId"));
 						assertTrue(m.containsKey("productName"));

@@ -158,7 +158,8 @@ public class ORMSampleTest {
 		try (var agent = config.agent()) {
 
 			// 条件なし
-			var list = agent.query(TestEntity.class).collect();
+			var list = agent.query(TestEntity.class)
+					.collect();
 			assertThat(list.size(), is(24));
 
 			// 条件あり

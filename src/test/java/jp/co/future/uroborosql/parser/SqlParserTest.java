@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,7 @@ public class SqlParserTest {
 	public void setUp() throws Exception {
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+						.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName())))
 				.build();
 	}
 

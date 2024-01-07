@@ -152,7 +152,8 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 						Year.of(2021));
 				agent.insertAndReturn(test2);
 
-				var list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));

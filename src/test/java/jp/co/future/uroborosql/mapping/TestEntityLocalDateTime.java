@@ -69,7 +69,8 @@ public class TestEntityLocalDateTime {
 			return false;
 		}
 		var other = (TestEntityLocalDateTime) obj;
-		if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name) || !Objects.equals(updDatetime, other.updDatetime)) {
+		if (!Objects.equals(id, other.id) || !Objects.equals(name, other.name)
+				|| !Objects.equals(updDatetime, other.updDatetime)) {
 			return false;
 		}
 		return true;

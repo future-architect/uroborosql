@@ -17,7 +17,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,7 +50,7 @@ public class SecretColumnEventSubscriberUseCbcTest {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest")).build();
 		eventSubscriber = new SecretColumnEventSubscriber();
 
-		eventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
+		eventSubscriber.setCryptColumnNames(List.of("PRODUCT_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
@@ -99,7 +98,7 @@ public class SecretColumnEventSubscriberUseCbcTest {
 
 	private void truncateTable(final Object... tables) {
 		try {
-			Arrays.asList(tables).stream().forEach(tbl -> {
+			List.of(tables).stream().forEach(tbl -> {
 				try (var agent = config.agent()) {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
@@ -153,7 +152,7 @@ public class SecretColumnEventSubscriberUseCbcTest {
 				.build();
 		var skipEventSubscriber = new SecretColumnEventSubscriber();
 
-		skipEventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_NAME"));
+		skipEventSubscriber.setCryptColumnNames(List.of("PRODUCT_NAME"));
 		skipEventSubscriber
 				.setKeyStoreFilePath("src/test/resources/data/expected/SecretColumnEventSubscriber/keystore.jceks");
 		skipEventSubscriber.setStorePassword("cGFzc3dvcmQ="); // 文字列「password」をBase64で暗号化
@@ -163,7 +162,8 @@ public class SecretColumnEventSubscriberUseCbcTest {
 
 		// 復号化しないで取得した場合 (skipFilter = true)
 		try (var skipAgent = skipConfig.agent()) {
-			var result = skipAgent.query("example/select_product").param("product_id", new BigDecimal(0))
+			var result = skipAgent.query("example/select_product")
+					.param("product_id", new BigDecimal(0))
 					.resultSet();
 
 			while (result.next()) {
@@ -174,7 +174,9 @@ public class SecretColumnEventSubscriberUseCbcTest {
 
 		// 復号化して取得した場合 (skipFilter = false)
 		try (var agent = config.agent()) {
-			var result = agent.query("example/select_product").param("product_id", new BigDecimal(0)).resultSet();
+			var result = agent.query("example/select_product")
+					.param("product_id", new BigDecimal(0))
+					.resultSet();
 
 			while (result.next()) {
 				assertThat(result.getBigDecimal("PRODUCT_ID"), is(BigDecimal.ZERO));
@@ -196,7 +198,8 @@ public class SecretColumnEventSubscriberUseCbcTest {
 
 		try (var agent = config.agent()) {
 			var result = agent.query("example/select_product")
-					.param("product_id", new BigDecimal(0)).resultSet();
+					.param("product_id", new BigDecimal(0))
+					.resultSet();
 
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_ID"), is("0"));
@@ -215,7 +218,8 @@ public class SecretColumnEventSubscriberUseCbcTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
-			var ctx = agent.context().setSqlName("example/select_product").param("product_id", new BigDecimal(0));
+			var ctx = agent.context().setSqlName("example/select_product")
+					.param("product_id", new BigDecimal(0));
 
 			var result = agent.query(ctx);
 			while (result.next()) {
@@ -232,7 +236,8 @@ public class SecretColumnEventSubscriberUseCbcTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try (var agent = config.agent()) {
-			var ctx = agent.context().setSqlName("example/select_product").param("product_id", new BigDecimal(0));
+			var ctx = agent.context().setSqlName("example/select_product")
+					.param("product_id", new BigDecimal(0));
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 			var result = agent.query(ctx);
@@ -258,7 +263,7 @@ public class SecretColumnEventSubscriberUseCbcTest {
 				assertThat(result.isWrapperFor(SecretResultSet.class), is(true));
 				assertThat(result.unwrap(SecretResultSet.class).getCharset(), is(Charset.forName("UTF-8")));
 				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
-						is(Arrays.asList("PRODUCT_NAME")));
+						is(List.of("PRODUCT_NAME")));
 			}
 			result.close();
 		}

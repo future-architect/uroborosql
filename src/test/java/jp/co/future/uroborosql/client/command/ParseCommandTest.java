@@ -3,7 +3,7 @@ package jp.co.future.uroborosql.client.command;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.DriverManager;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
@@ -29,8 +29,8 @@ public class ParseCommandTest extends ReaderTestSupport {
 
 		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.setConstantClassNames(Arrays.asList("jp.co.future.uroborosql.context.test.TestConsts"))
-						.setEnumConstantPackageNames(Arrays.asList("jp.co.future.uroborosql.context.test")))
+						.setConstantClassNames(List.of("jp.co.future.uroborosql.context.test.TestConsts"))
+						.setEnumConstantPackageNames(List.of("jp.co.future.uroborosql.context.test")))
 				.setSqlResourceManager(new SqlResourceManagerImpl())
 				.build();
 

@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.JDBCType;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,7 +40,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(0, 1))
+				.param("product_id", List.of(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -65,7 +64,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(0, 1))
+				.param("product_id", List.of(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -93,7 +92,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(0, 1))
+				.param("product_id", List.of(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 

@@ -54,12 +54,14 @@ public class SqlAgentPessimisticLockTest {
 		var sql = "select * from product where product_id = 1 for update";
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var products1 = agent.queryWith(sql).collect();
+				var products1 = agent.queryWith(sql)
+						.collect();
 				assertThat(products1.size(), is(1));
 
 				agent.requiresNew(() -> {
 					try {
-						agent.queryWith(sql).collect();
+						agent.queryWith(sql)
+								.collect();
 						fail();
 					} catch (PessimisticLockException ex) {
 						// OK

@@ -144,7 +144,8 @@ public class DefaultEntityHandlerIdentifierQuoteTest {
 				var test3 = new TestEntity(3L, "name3");
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));

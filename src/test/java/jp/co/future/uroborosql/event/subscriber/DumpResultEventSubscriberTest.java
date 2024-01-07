@@ -14,7 +14,6 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -91,7 +90,7 @@ public class DumpResultEventSubscriberTest {
 
 	private void truncateTable(final Object... tables) {
 		try {
-			Arrays.asList(tables).stream().forEach(tbl -> {
+			List.of(tables).stream().forEach(tbl -> {
 				try {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
@@ -132,8 +131,10 @@ public class DumpResultEventSubscriberTest {
 
 		var log = TestAppender.getLogbackLogs(() -> {
 			var ctx = agent.context().setSqlName("example/select_product")
-					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
-					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
+					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction")
+.setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 			agent.query(ctx);

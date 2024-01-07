@@ -328,7 +328,8 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 				var test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity1.class).collect();
+				var list = agent.query(TestEntity1.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));

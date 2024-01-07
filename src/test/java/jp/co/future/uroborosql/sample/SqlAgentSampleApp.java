@@ -69,7 +69,8 @@ public class SqlAgentSampleApp {
 		// SqlAgent（SQL実行エンジン）を設定オブジェクトから取得
 		try (var agent = config.agent()) {
 			// SQLの実行
-			try (var rs = agent.query(sqlName).paramMap(params).resultSet()) {
+			try (var rs = agent.query(sqlName).paramMap(params)
+					.resultSet()) {
 				// 実行結果はResultSetで返ってくるので、値を取得
 				List<String> headers = new ArrayList<>();
 				var rsmd = rs.getMetaData();

@@ -5,8 +5,8 @@ import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class TestConsts {
 	public static final int INT = 1;
@@ -39,7 +39,7 @@ public class TestConsts {
 	public static final Object IGNORE = new Object();
 	public static final Object OBJECT_STR = "CCC";
 
-	public static final Object CUSTOMMAPPER_TARGET = Arrays.asList(1, 2, 3);
+	public static final Object CUSTOMMAPPER_TARGET = List.of(1, 2, 3);
 
 	@SuppressWarnings("unused")
 	private static final String PRIVATE = "private";

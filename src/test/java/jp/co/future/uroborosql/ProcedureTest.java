@@ -41,7 +41,8 @@ public class ProcedureTest {
 			agent.required(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();
@@ -51,7 +52,8 @@ public class ProcedureTest {
 			agent.required(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.outParam("ret", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1").call();
+							.outParam("ret", JDBCType.VARCHAR.getVendorTypeNumber())
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();
@@ -63,7 +65,8 @@ public class ProcedureTest {
 			agent.required(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.inOutParam("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
+							.inOutParam("ret", "test2", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();
@@ -73,7 +76,8 @@ public class ProcedureTest {
 			agent.required(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.inOutParam("ret", "test2", JDBCType.VARCHAR.getVendorTypeNumber()).param("param1", "test1")
+							.inOutParam("ret", "test2", JDBCType.VARCHAR.getVendorTypeNumber())
+							.param("param1", "test1")
 							.call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
@@ -84,7 +88,8 @@ public class ProcedureTest {
 			agent.required(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR).param("param1", "test1").call();
+							.inOutParamIfAbsent("ret", "test2", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();

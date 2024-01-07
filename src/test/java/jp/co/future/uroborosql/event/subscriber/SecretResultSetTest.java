@@ -15,8 +15,8 @@ import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,7 +37,7 @@ public class SecretResultSetTest {
 	public static void setUpClass() throws Exception {
 		eventSubscriber = new SecretColumnEventSubscriber();
 
-		eventSubscriber.setCryptColumnNames(Arrays.asList("PRODUCT_KANA_NAME"));
+		eventSubscriber.setCryptColumnNames(List.of("PRODUCT_KANA_NAME"));
 		// 下記コマンドでkeystoreファイル生成
 		// keytool -genseckey -keystore C:\keystore.jceks -storetype JCEKS
 		// -alias testexample
@@ -94,7 +94,9 @@ public class SecretResultSetTest {
 	@Test
 	void testQuery() throws Exception {
 		try (var agent = config.agent()) {
-			try (var rs = agent.query("example/select_product").param("product_id", 1).resultSet()) {
+			try (var rs = agent.query("example/select_product")
+					.param("product_id", 1)
+					.resultSet()) {
 				assertThat(rs.next(), is(true));
 				assertThat(rs.getString("PRODUCT_ID"), is("1"));
 				assertThat(rs.getString(1), is("1"));
@@ -173,7 +175,8 @@ public class SecretResultSetTest {
 	@Test
 	void testUpdate() throws Exception {
 		try (var agent = config.agent()) {
-			var query = agent.query("example/select_product").param("product_id", 1);
+			var query = agent.query("example/select_product")
+					.param("product_id", 1);
 			query.context().setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
 			try (var rs = query.resultSet()) {
 				assertThat(rs.next(), is(true));
@@ -269,7 +272,9 @@ public class SecretResultSetTest {
 		try (var agent = config.agent()) {
 			ResultSet rs = null;
 			try {
-				rs = agent.query("example/select_product").param("product_id", 1).resultSet();
+				rs = agent.query("example/select_product")
+						.param("product_id", 1)
+						.resultSet();
 				assertThat(rs.isClosed(), is(false));
 			} finally {
 				if (rs != null) {

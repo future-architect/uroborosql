@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +80,7 @@ public class DebugEventSubscriberTest {
 
 	private void truncateTable(final Object... tables) {
 		try {
-			Arrays.asList(tables).stream().forEach(tbl -> {
+			List.of(tables).stream().forEach(tbl -> {
 				try {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
@@ -121,8 +120,11 @@ public class DebugEventSubscriberTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/select_product").param("product_id", new BigDecimal("0"))
-					.param("_userName", "testUserName").param("_funcId", "testFunction").setSqlId("111");
+			var ctx = agent.context().setSqlName("example/select_product")
+					.param("product_id", new BigDecimal("0"))
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction")
+.setSqlId("111");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
 
 			agent.query(ctx);
@@ -139,8 +141,10 @@ public class DebugEventSubscriberTest {
 	void testExecuteUpdateEvent() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/selectinsert_product").setSqlId("222")
-					.param("_userName", "testUserName").param("_funcId", "testFunction")
+			var ctx = agent.context().setSqlName("example/selectinsert_product")
+.setSqlId("222")
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 					.param("jan_code", "1234567890123", Types.CHAR);
 			agent.update(ctx);
@@ -158,16 +162,26 @@ public class DebugEventSubscriberTest {
 		truncateTable("product");
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/insert_product").setSqlId("333")
-					.param("product_id", new BigDecimal(1)).param("product_name", "商品名1")
-					.param("product_kana_name", "ショウヒンメイイチ").param("jan_code", "1234567890123")
-					.param("product_description", "1番目の商品").param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0)).addBatch()
-					.param("product_id", new BigDecimal(2)).param("product_name", "商品名2")
-					.param("product_kana_name", "ショウヒンメイニ").param("jan_code", "1234567890124")
-					.param("product_description", "2番目の商品").param("ins_datetime", currentDatetime)
-					.param("upd_datetime", currentDatetime).param("version_no", new BigDecimal(0))
-					.param("_userName", "testUserName").param("_funcId", "testFunction").addBatch();
+			var ctx = agent.context().setSqlName("example/insert_product")
+.setSqlId("333")
+					.param("product_id", new BigDecimal(1))
+					.param("product_name", "商品名1")
+					.param("product_kana_name", "ショウヒンメイイチ")
+					.param("jan_code", "1234567890123")
+					.param("product_description", "1番目の商品")
+					.param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0)).addBatch()
+					.param("product_id", new BigDecimal(2))
+					.param("product_name", "商品名2")
+					.param("product_kana_name", "ショウヒンメイニ")
+					.param("jan_code", "1234567890124")
+					.param("product_description", "2番目の商品")
+					.param("ins_datetime", currentDatetime)
+					.param("upd_datetime", currentDatetime)
+					.param("version_no", new BigDecimal(0))
+					.param("_userName", "testUserName")
+					.param("_funcId", "testFunction").addBatch();
 			agent.batch(ctx);
 		});
 

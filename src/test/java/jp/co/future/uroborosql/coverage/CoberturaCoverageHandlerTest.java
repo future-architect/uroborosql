@@ -52,17 +52,24 @@ public class CoberturaCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new CoberturaCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("example/select_test").param("id", "A001").collect();
+			agent.query("example/select_test")
+					.param("id", "A001")
+					.collect();
 
-			agent.query("covertest/test01").param("id", 1).collect();
-			agent.query("covertest/test02").collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
+			agent.query("covertest/test02")
+					.collect();
 		}
 
 		var eventSubscriber = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 		try (var agent = config.agent()) {
-			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
 
 		}
 

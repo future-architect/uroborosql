@@ -104,7 +104,8 @@ public class TimestampOptimisticLockSupplierTest {
 				test3.setUpdDatetime(Timestamp.valueOf(now));
 				agent.insert(test3);
 
-				var list = agent.query(TestEntityTimestamp.class).collect();
+				var list = agent.query(TestEntityTimestamp.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -322,7 +323,8 @@ public class TimestampOptimisticLockSupplierTest {
 				test3.setUpdDatetime(now);
 				agent.insert(test3);
 
-				var list = agent.query(TestEntityZonedDateTime.class).collect();
+				var list = agent.query(TestEntityZonedDateTime.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -540,7 +542,8 @@ public class TimestampOptimisticLockSupplierTest {
 				test3.setUpdDatetime(now);
 				agent.insert(test3);
 
-				var list = agent.query(TestEntityLocalDateTime.class).collect();
+				var list = agent.query(TestEntityLocalDateTime.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -758,7 +761,8 @@ public class TimestampOptimisticLockSupplierTest {
 				test3.setUpdDatetime(now);
 				agent.insert(test3);
 
-				var list = agent.query(TestEntityOffsetDateTime.class).collect();
+				var list = agent.query(TestEntityOffsetDateTime.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));

@@ -43,10 +43,12 @@ public class TruncateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var products = agent.query(Product.class).collect();
+		var products = agent.query(Product.class)
+				.collect();
 		assertThat(products.isEmpty(), is(false));
 
-		products = agent.truncate(Product.class).query(Product.class).collect();
+		products = agent.truncate(Product.class).query(Product.class)
+				.collect();
 		assertThat(products.isEmpty(), is(true));
 	}
 

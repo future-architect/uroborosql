@@ -57,18 +57,27 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("example/select_test").param("id", "A001").collect();
+			agent.query("example/select_test")
+					.param("id", "A001")
+					.collect();
 
-			agent.query("covertest/test01").param("id", 1).collect();
-			agent.query("covertest/test01").collect();
-			agent.query("covertest/test02").collect();
-			agent.query("covertest/test03").collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
+			agent.query("covertest/test01")
+					.collect();
+			agent.query("covertest/test02")
+					.collect();
+			agent.query("covertest/test03")
+					.collect();
 		}
 		var eventSubscriber = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 		try (var agent = config.agent()) {
-			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
 
 		}
 
@@ -100,7 +109,8 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch").collect();
+			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch")
+					.collect();
 		}
 
 		assertThat(Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"))
@@ -126,7 +136,8 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch").collect();
+			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch")
+					.collect();
 		}
 
 		assertThat(

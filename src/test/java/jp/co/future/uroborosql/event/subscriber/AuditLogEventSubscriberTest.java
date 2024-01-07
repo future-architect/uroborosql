@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +82,7 @@ public class AuditLogEventSubscriberTest {
 
 	private void truncateTable(final Object... tables) {
 		try {
-			Arrays.asList(tables).stream().forEach(tbl -> {
+			List.of(tables).stream().forEach(tbl -> {
 				try {
 					agent.updateWith("truncate table " + tbl.toString()).count();
 				} catch (Exception ex) {
@@ -123,8 +122,9 @@ public class AuditLogEventSubscriberTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/select_product").setSqlId("111")
-					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
+			var ctx = agent.context().setSqlName("example/select_product")
+.setSqlId("111")
+					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName")
 					.param("_funcId", "testFunction");
 			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
@@ -144,8 +144,9 @@ public class AuditLogEventSubscriberTest {
 		eventSubscriber.setFuncIdKey("_customFuncId").setUserNameKey("_customUserName");
 
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/select_product").setSqlId("111")
-					.param("product_id", Arrays.asList(new BigDecimal("0"), new BigDecimal("2")))
+			var ctx = agent.context().setSqlName("example/select_product")
+.setSqlId("111")
+					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 					.param("_userName", "testUserName1")
 					.param("_funcId", "testFunction1")
 					.param("_customUserName", "testUserName2")
@@ -165,7 +166,8 @@ public class AuditLogEventSubscriberTest {
 	void testExecuteUpdateFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/selectinsert_product").setSqlId("222")
+			var ctx = agent.context().setSqlName("example/selectinsert_product")
+.setSqlId("222")
 					.param("_userName", "testUserName")
 					.param("_funcId", "testFunction")
 					.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
@@ -183,7 +185,8 @@ public class AuditLogEventSubscriberTest {
 		truncateTable("product");
 		var currentDatetime = Timestamp.valueOf("2005-12-12 10:10:10.000000000");
 		var log = TestAppender.getLogbackLogs(() -> {
-			var ctx = agent.context().setSqlName("example/insert_product").setSqlId("333")
+			var ctx = agent.context().setSqlName("example/insert_product")
+.setSqlId("333")
 					// 1件目
 					.param("product_id", new BigDecimal(1))
 					.param("product_name", "商品名1")

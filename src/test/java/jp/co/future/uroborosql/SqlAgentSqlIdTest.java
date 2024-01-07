@@ -9,7 +9,6 @@ import java.io.StringReader;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,10 +35,11 @@ public class SqlAgentSqlIdTest {
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
-			agent.query("sqlid_test/select_product").collect();
+			agent.query("sqlid_test/select_product")
+					.collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* sqlid_test/select_product */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
+				List.of("SELECT /* sqlid_test/select_product */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
 						"ORDER BY PRODUCT_ID"))));
 
 	}
@@ -58,10 +58,11 @@ public class SqlAgentSqlIdTest {
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
-			agent.query("sqlid_test/select_product_custom").collect();
+			agent.query("sqlid_test/select_product_custom")
+					.collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* _TESTSQL_ID_ */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
+				List.of("SELECT /* _TESTSQL_ID_ */", "\t*", "FROM", "\tPRODUCT", "WHERE 1 = 1",
 						"ORDER BY PRODUCT_ID"))));
 	}
 
@@ -80,10 +81,11 @@ public class SqlAgentSqlIdTest {
 		});
 		try (var agent = config.agent()) {
 			agent.update("ddl/create_tables").count();
-			agent.query("sqlid_test/select_product_custom").collect();
+			agent.query("sqlid_test/select_product_custom")
+					.collect();
 		}
 		assertThat(querys, is(contains(
-				Arrays.asList("SELECT /* sqlid_test/select_product_custom */", "\t*", "FROM", "\tPRODUCT",
+				List.of("SELECT /* sqlid_test/select_product_custom */", "\t*", "FROM", "\tPRODUCT",
 						"WHERE 1 = 1", "ORDER BY PRODUCT_ID"))));
 
 	}

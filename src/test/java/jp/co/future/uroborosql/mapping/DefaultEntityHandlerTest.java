@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,7 +191,8 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1), Optional.empty());
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -218,7 +218,8 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity2(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity2.class).collect();
+				var list = agent.query(TestEntity2.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -244,7 +245,8 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity3(3L, "name3", 22, LocalDate.of(1990, Month.MAY, 1));
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity3.class).collect();
+				var list = agent.query(TestEntity3.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
@@ -403,155 +405,183 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity.class).equal("id", 2).collect();
+				var list = agent.query(TestEntity.class).equal("id", 2)
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 
 				// Not Equal
-				list = agent.query(TestEntity.class).notEqual("id", 2).collect();
+				list = agent.query(TestEntity.class).notEqual("id", 2)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test3));
 
 				// Greater Than
-				list = agent.query(TestEntity.class).greaterThan("age", 21).collect();
+				list = agent.query(TestEntity.class).greaterThan("age", 21)
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test1));
 
 				// Greater Equal
-				list = agent.query(TestEntity.class).greaterEqual("age", 21).collect();
+				list = agent.query(TestEntity.class).greaterEqual("age", 21)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
 				// Less Than
-				list = agent.query(TestEntity.class).lessThan("age", 21).collect();
+				list = agent.query(TestEntity.class).lessThan("age", 21)
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// Greater Equal
-				list = agent.query(TestEntity.class).lessEqual("age", 21).collect();
+				list = agent.query(TestEntity.class).lessEqual("age", 21)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
 
 				// In (array)
-				list = agent.query(TestEntity.class).in("id", 1, 2).collect();
+				list = agent.query(TestEntity.class).in("id", 1, 2)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
 				// In (list)
-				list = agent.query(TestEntity.class).in("id", Arrays.asList(2, 3)).collect();
+				list = agent.query(TestEntity.class).in("id", List.of(2, 3))
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
 
 				// Not In (array)
-				list = agent.query(TestEntity.class).notIn("id", 1, 2).collect();
+				list = agent.query(TestEntity.class).notIn("id", 1, 2)
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// Not In (list)
-				list = agent.query(TestEntity.class).notIn("id", Arrays.asList(2, 3)).collect();
+				list = agent.query(TestEntity.class).notIn("id", List.of(2, 3))
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test1));
 
 				// Like
-				list = agent.query(TestEntity.class).like("name", "name3").collect();
+				list = agent.query(TestEntity.class).like("name", "name3")
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// Like with wildcards (_)
-				list = agent.query(TestEntity.class).like("name", "n_me_").collect();
+				list = agent.query(TestEntity.class).like("name", "n_me_")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
 				// Like with wildcards (%)
-				list = agent.query(TestEntity.class).like("name", "name%").collect();
+				list = agent.query(TestEntity.class).like("name", "name%")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
 				// startsWith
-				list = agent.query(TestEntity.class).startsWith("name", "name").collect();
+				list = agent.query(TestEntity.class).startsWith("name", "name")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
 				// startsWith wildcards
-				list = agent.query(TestEntity.class).startsWith("name", "%ame").collect();
+				list = agent.query(TestEntity.class).startsWith("name", "%ame")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// endsWith
-				list = agent.query(TestEntity.class).endsWith("name", "3").collect();
+				list = agent.query(TestEntity.class).endsWith("name", "3")
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// endsWith wildcards
-				list = agent.query(TestEntity.class).endsWith("name", "%3").collect();
+				list = agent.query(TestEntity.class).endsWith("name", "%3")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// contains
-				list = agent.query(TestEntity.class).contains("name", "me").collect();
+				list = agent.query(TestEntity.class).contains("name", "me")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
-				list = agent.query(TestEntity.class).contains("name", "%me_").collect();
+				list = agent.query(TestEntity.class).contains("name", "%me_")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// Not Like
-				list = agent.query(TestEntity.class).notLike("name", "name3").collect();
+				list = agent.query(TestEntity.class).notLike("name", "name3")
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
 				// Not Like with wildcards (_)
-				list = agent.query(TestEntity.class).notLike("name", "name_").collect();
+				list = agent.query(TestEntity.class).notLike("name", "name_")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// Not Like with wildcards (%)
-				list = agent.query(TestEntity.class).notLike("name", "name%").collect();
+				list = agent.query(TestEntity.class).notLike("name", "name%")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// notStartsWith
-				list = agent.query(TestEntity.class).notStartsWith("name", "name").collect();
+				list = agent.query(TestEntity.class).notStartsWith("name", "name")
+						.collect();
 				assertThat(list.size(), is(0));
 
 				// notStartsWith wildcards
-				list = agent.query(TestEntity.class).notStartsWith("name", "%name").collect();
+				list = agent.query(TestEntity.class).notStartsWith("name", "%name")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
 				// notEndsWith
-				list = agent.query(TestEntity.class).notEndsWith("name", "3").collect();
+				list = agent.query(TestEntity.class).notEndsWith("name", "3")
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
 				// notEndsWith wildcards
-				list = agent.query(TestEntity.class).notEndsWith("name", "%3").collect();
+				list = agent.query(TestEntity.class).notEndsWith("name", "%3")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
 				// notContains
-				list = agent.query(TestEntity.class).notContains("name", "2").collect();
+				list = agent.query(TestEntity.class).notContains("name", "2")
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test3));
 
 				// notContains wildcards
-				list = agent.query(TestEntity.class).notContains("name", "_2").collect();
+				list = agent.query(TestEntity.class).notContains("name", "_2")
+						.collect();
 				assertThat(list.size(), is(3));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
@@ -586,12 +616,14 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test3));
 
 				// is null
-				list = agent.query(TestEntity.class).isNull("memo").collect();
+				list = agent.query(TestEntity.class).isNull("memo")
+						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// is not null
-				list = agent.query(TestEntity.class).isNotNull("memo").collect();
+				list = agent.query(TestEntity.class).isNotNull("memo")
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
@@ -777,13 +809,15 @@ public class DefaultEntityHandlerTest {
 				assertThat(config.getSqlAgentProvider().isStrictForUpdateType(), is(true));
 
 				agent.required(() -> {
-					var list = agent.query(TestEntity3.class).forUpdate().collect();
+					var list = agent.query(TestEntity3.class).forUpdate()
+							.collect();
 					assertThat(list.size(), is(4));
 				});
 
 				try {
 					agent.required(() -> {
-						agent.query(TestEntity3.class).forUpdateNoWait().first();
+						agent.query(TestEntity3.class).forUpdateNoWait()
+								.first();
 					});
 					fail();
 				} catch (UroborosqlRuntimeException ex) {
@@ -816,19 +850,22 @@ public class DefaultEntityHandlerTest {
 
 				config.getSqlAgentProvider().setStrictForUpdateType(false);
 				try {
-					assertThat(agent.query(TestEntity3.class).forUpdateNoWait().first().isPresent(), is(true));
+					assertThat(agent.query(TestEntity3.class).forUpdateNoWait()
+							.first().isPresent(), is(true));
 				} catch (Throwable th) {
 					fail();
 				}
 
 				try {
-					assertThat(agent.query(TestEntity3.class).forUpdateWait().first().isPresent(), is(true));
+					assertThat(agent.query(TestEntity3.class).forUpdateWait()
+							.first().isPresent(), is(true));
 				} catch (Throwable th) {
 					fail();
 				}
 
 				try {
-					assertThat(agent.query(TestEntity3.class).forUpdateWait(10).first().isPresent(), is(true));
+					assertThat(agent.query(TestEntity3.class).forUpdateWait(10)
+							.first().isPresent(), is(true));
 				} catch (Throwable th) {
 					fail();
 				}
@@ -1207,9 +1244,12 @@ public class DefaultEntityHandlerTest {
 
 				assertThat(agent.delete(TestDataNoKeyEntity.class, 1, 3), is(2));
 
-				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
-				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 2).first().orElse(null), is(test2));
-				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 3).first().orElse(null), is(nullValue()));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 1)
+						.first().orElse(null), is(nullValue()));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 2)
+						.first().orElse(null), is(test2));
+				assertThat(agent.query(TestDataNoKeyEntity.class).equal("id", 3)
+						.first().orElse(null), is(nullValue()));
 			});
 		}
 	}
@@ -1303,7 +1343,7 @@ public class DefaultEntityHandlerTest {
 				agent.rollback("sp-in-array");
 
 				agent.setSavepoint("sp-in-list");
-				assertThat(agent.delete(TestEntity.class).in("id", Arrays.asList(1, 3)).count(), is(2));
+				assertThat(agent.delete(TestEntity.class).in("id", List.of(1, 3)).count(), is(2));
 				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(nullValue()));
 				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(test2));
 				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(nullValue()));
@@ -1317,7 +1357,7 @@ public class DefaultEntityHandlerTest {
 				agent.rollback("sp-notIn-array");
 
 				agent.setSavepoint("sp-notIn-list");
-				assertThat(agent.delete(TestEntity.class).notIn("id", Arrays.asList(1, 3)).count(), is(1));
+				assertThat(agent.delete(TestEntity.class).notIn("id", List.of(1, 3)).count(), is(1));
 				assertThat(agent.find(TestEntity.class, 1).orElse(null), is(test1));
 				assertThat(agent.find(TestEntity.class, 2).orElse(null), is(nullValue()));
 				assertThat(agent.find(TestEntity.class, 3).orElse(null), is(test3));
@@ -1580,7 +1620,8 @@ public class DefaultEntityHandlerTest {
 				var count = agent.inserts(Stream.empty(), InsertsType.BATCH);
 				assertThat(count, is(0));
 
-				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
+				assertThat(agent.query(TestEntityForInserts.class)
+						.collect().size(), is(0));
 			});
 		}
 	}
@@ -1775,7 +1816,8 @@ public class DefaultEntityHandlerTest {
 				var count = agent.inserts(Stream.empty());
 				assertThat(count, is(0));
 
-				assertThat(agent.query(TestEntityForInserts.class).collect().size(), is(0));
+				assertThat(agent.query(TestEntityForInserts.class)
+						.collect().size(), is(0));
 			});
 		}
 	}
@@ -1827,7 +1869,8 @@ public class DefaultEntityHandlerTest {
 						Optional.of("memo3"));
 				agent.insert(test3);
 
-				var list = agent.query(TestDataNoKeyEntity.class).collect();
+				var list = agent.query(TestDataNoKeyEntity.class)
+						.collect();
 				assertThat(list.size(), is(3));
 			});
 		}
@@ -1845,7 +1888,8 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestDataMultiKeyEntity(2, "key1", "name3");
 				agent.insert(test3);
 
-				var list = agent.query(TestDataMultiKeyEntity.class).collect();
+				var list = agent.query(TestDataMultiKeyEntity.class)
+						.collect();
 				assertThat(list.size(), is(3));
 			});
 		}
@@ -1961,9 +2005,11 @@ public class DefaultEntityHandlerTest {
 			var sql = ctx.getSql();
 			assertThat(sql, containsString("IF memo != null"));
 
-			ctx.param("id", 1).param("name", "updatename");
+			ctx.param("id", 1)
+					.param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null).getName(), is("updatename"));
+			assertThat(agent.query(TestEntity.class).equal("id", 1)
+					.first().orElse(null).getName(), is("updatename"));
 		}
 	}
 
@@ -1985,9 +2031,11 @@ public class DefaultEntityHandlerTest {
 			var sql = ctx.getSql();
 			assertThat(sql, not(containsString("SF.isNotEmpty")));
 
-			ctx.param("id", 1).param("name", "updatename");
+			ctx.param("id", 1)
+					.param("name", "updatename");
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null).getName(), is("updatename"));
+			assertThat(agent.query(TestEntity.class).equal("id", 1)
+					.first().orElse(null).getName(), is("updatename"));
 
 			handler.setEmptyStringEqualsNull(true);
 		}
@@ -2008,7 +2056,8 @@ public class DefaultEntityHandlerTest {
 			var ctx = handler.createDeleteContext(agent, metadata, null, true);
 			ctx.param("id", 1);
 			assertThat(agent.update(ctx), is(1));
-			assertThat(agent.query(TestEntity.class).equal("id", 1).first().orElse(null), is(nullValue()));
+			assertThat(agent.query(TestEntity.class).equal("id", 1)
+					.first().orElse(null), is(nullValue()));
 		}
 	}
 

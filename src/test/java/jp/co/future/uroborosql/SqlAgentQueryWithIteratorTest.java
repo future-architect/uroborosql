@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,7 +68,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	private void truncateTable(final Object... tables) {
-		Arrays.asList(tables).stream().forEach(tbl -> {
+		List.of(tables).stream().forEach(tbl -> {
 			try {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {
