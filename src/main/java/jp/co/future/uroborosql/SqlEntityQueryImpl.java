@@ -132,15 +132,15 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				// 除外対象カラムを取得する
 				List<? extends TableMetadata.Column> excludeCols = List.of();
 				if (!includeColumns.isEmpty()) {
-					excludeCols = tableMetadata.getColumns().stream()
+					excludeCols = tableMetadata().getColumns().stream()
 							.filter(col -> !includeColumns.contains(col.getCamelColumnName()))
 							.collect(Collectors.toList());
-					if (excludeCols.size() == tableMetadata.getColumns().size()) {
+					if (excludeCols.size() == tableMetadata().getColumns().size()) {
 						// includeColumnsに含まれるカラムが1つもselect句に含まれない場合は実行時例外とする
 						throw new UroborosqlRuntimeException("None of the includeColumns matches the column name.");
 					}
 				} else if (!excludeColumns.isEmpty()) {
-					excludeCols = tableMetadata.getColumns().stream()
+					excludeCols = tableMetadata().getColumns().stream()
 							.filter(col -> excludeColumns.contains(col.getCamelColumnName()))
 							.collect(Collectors.toList());
 				}
@@ -224,7 +224,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public long count(final String col) {
 		var expr = col != null
-				? tableMetadata.getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
+				? tableMetadata().getColumn(CaseFormat.CAMEL_CASE.convert(col)).getColumnIdentifier()
 				: "*";
 		var sql = new StringBuilder("select count(").append(expr).append(") from (")
 				.append(System.lineSeparator())
@@ -259,7 +259,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
-		var column = tableMetadata.getColumn(camelColumnName);
+		var column = tableMetadata().getColumn(camelColumnName);
 		var sql = new StringBuilder("select sum(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
@@ -285,7 +285,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public <T> T min(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
 		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		var column = tableMetadata.getColumn(camelColumnName);
+		var column = tableMetadata().getColumn(camelColumnName);
 		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
@@ -311,7 +311,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public <T> T max(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
 		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		var column = tableMetadata.getColumn(camelColumnName);
+		var column = tableMetadata().getColumn(camelColumnName);
 		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
 				.append(System.lineSeparator())
@@ -384,7 +384,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 
 		if (this.sortOrders.isEmpty()) {
 			// ソート条件の指定がない場合は主キーでソートする
-			keys = (List<TableMetadata.Column>) this.tableMetadata.getKeyColumns();
+			keys = (List<TableMetadata.Column>) tableMetadata().getKeyColumns();
 			for (var key : keys) {
 				existsSortOrders.put(key, new SortOrder(key.getCamelColumnName(), Order.ASCENDING));
 			}
@@ -392,7 +392,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			// ソート条件の指定がある場合は指定されたカラムでソートする
 			keys = new ArrayList<>();
 			for (var sortOrder : sortOrders) {
-				for (var metaCol : this.tableMetadata.getColumns()) {
+				for (var metaCol : tableMetadata().getColumns()) {
 					if (sortOrder.getCol().equals(metaCol.getCamelColumnName())) {
 						keys.add(metaCol);
 						existsSortOrders.put(metaCol, sortOrder);

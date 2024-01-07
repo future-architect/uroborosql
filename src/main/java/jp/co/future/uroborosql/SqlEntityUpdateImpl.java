@@ -8,7 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.sql.SQLException;
 import java.sql.SQLType;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -65,18 +65,18 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value);
 		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.util.function.Function)
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.util.function.Supplier)
 	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String col, final Function<ExecutionContext, V> function) {
-		param(CaseFormat.CAMEL_CASE.convert(col), function);
+	public <V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier) {
+		context().param(CaseFormat.CAMEL_CASE.convert(col), supplier);
 		return this;
 	}
 
@@ -87,7 +87,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value, final int sqlType) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
 		return this;
 	}
 
@@ -98,7 +98,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value, final SQLType sqlType) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
 		return this;
 	}
 }

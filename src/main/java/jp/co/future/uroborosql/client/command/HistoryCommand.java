@@ -8,6 +8,7 @@ package jp.co.future.uroborosql.client.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.jline.reader.LineReader;
@@ -44,7 +45,7 @@ public class HistoryCommand extends ReplCommand {
 
 		var keywords = new ArrayList<String>();
 		if (parts.length > 1) {
-			keywords.addAll(Arrays.asList(Arrays.copyOfRange(parts, 1, parts.length)));
+			keywords.addAll(List.of(Arrays.copyOfRange(parts, 1, parts.length)));
 		}
 
 		var sizeLen = String.valueOf(reader.getHistory().size()).length();

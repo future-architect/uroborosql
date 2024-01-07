@@ -127,21 +127,21 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	void testParamWithFunction() throws Exception {
+	void testParamWithSupplier() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.param("key1", ctx -> "value1");
+			query.param("key1", () -> "value1");
 			assertThat(query.context().hasParam("key1"), is(true));
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 
 			var flag = false;
-			query.param("key2", ctx -> flag ? "true" : "false");
+			query.param("key2", () -> flag ? "true" : "false");
 			assertThat(query.context().hasParam("key2"), is(true));
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
 			// キーにnullを設定したい場合はOptional.empty()を返す
-			query.param("key3", ctx -> Optional.empty());
+			query.param("key3", Optional::empty);
 			assertThat(query.context().hasParam("key3"), is(true));
 			assertThat(query.context().getParam("key3").getValue(), is(Optional.empty()));
 
@@ -151,7 +151,7 @@ public class AbstractSqlFluentTest {
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
 			// functionがnullを返す場合はキーも値も設定されない
-			query.param("key5", ctx -> null);
+			query.param("key5", () -> null);
 			assertThat(query.context().hasParam("key5"), is(false));
 		}
 	}

@@ -44,7 +44,7 @@ public class UpdateCommand extends ReplCommand {
 			final Properties props) {
 		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
-			var sqlName = parts[1].replaceAll("\\.", "/");
+			var sqlName = parts[1].replace('.', '/');
 			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
 
 				try (var agent = sqlConfig.agent()) {

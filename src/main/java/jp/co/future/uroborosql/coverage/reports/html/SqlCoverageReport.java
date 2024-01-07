@@ -424,10 +424,10 @@ class SqlCoverageReport {
 		if (StringUtils.isEmpty(str)) {
 			return "";
 		} else {
-			return str.replaceAll("\"", "&quot;")
-					.replaceAll("&", "&amp;")
-					.replaceAll("<", "&lt;")
-					.replaceAll(">", "&gt;");
+			return str.replace("\"", "&quot;")
+					.replace("&", "&amp;")
+					.replace("<", "&lt;")
+					.replace(">", "&gt;");
 		}
 	}
 

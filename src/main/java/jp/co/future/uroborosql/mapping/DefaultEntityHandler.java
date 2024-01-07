@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.mapping;
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -549,7 +549,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		if (addCondition) {
 			sql.append("WHERE").append(System.lineSeparator());
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays.asList(metadata.getColumns().get(0));
+					: List.of(metadata.getColumns().get(0));
 			firstFlag = true;
 			for (final TableMetadata.Column col : cols) {
 				var parts = new StringBuilder().append("\t");
@@ -608,7 +608,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("WHERE").append(System.lineSeparator());
 
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays.asList(metadata.getColumns().get(0));
+					: List.of(metadata.getColumns().get(0));
 			for (var col : cols) {
 				var parts = new StringBuilder().append("\t");
 				if (firstFlag) {

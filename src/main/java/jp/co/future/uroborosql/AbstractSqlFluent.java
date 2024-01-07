@@ -10,15 +10,18 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
-	protected final SqlAgent agent;
-	protected final ExecutionContext context;
+	/** SqlAgent. */
+	private final SqlAgent agent;
+
+	/** ExecutionContext. */
+	private final ExecutionContext context;
 
 	protected AbstractSqlFluent(final SqlAgent agent, final ExecutionContext context) {
 		this.agent = agent;
@@ -146,12 +149,12 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Function)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Supplier)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> T param(final String paramName, final Function<ExecutionContext, V> function) {
-		context().param(paramName, function);
+	public <V> T param(final String paramName, final Supplier<V> supplier) {
+		context().param(paramName, supplier);
 		return (T) this;
 	}
 

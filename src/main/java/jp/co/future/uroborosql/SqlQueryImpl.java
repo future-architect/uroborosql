@@ -249,7 +249,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(this.agent.getSqlConfig(), caseFormat));
+		return stream(new MapResultSetConverter(agent().getSqlConfig(), caseFormat));
 	}
 
 	/**
@@ -262,7 +262,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		if (type == null) {
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}
-		var manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
+		var manager = new PropertyMapperManager(agent().getSqlConfig().getClock());
 		if (ScalarResultSetConverter.accept(type)) {
 			return stream(new ScalarResultSetConverter<>(null, type, manager));
 		} else {
@@ -294,7 +294,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 			throw new IllegalArgumentException(type.getName() + " is not supported.");
 		}
 		return stream(new ScalarResultSetConverter<>(col, type,
-				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
+				new PropertyMapperManager(agent().getSqlConfig().getClock())));
 	}
 
 }

@@ -204,7 +204,7 @@ public class SqlAgentImpl implements SqlAgent {
 			this.queryTimeout = Integer.parseInt(settings.get(SqlAgentProvider.PROPS_KEY_QUERY_TIMEOUT));
 		}
 		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_SQL_RETRY_CODES)) {
-			this.sqlRetryCodes = Collections.unmodifiableList(Arrays.asList(settings.get(
+			this.sqlRetryCodes = Collections.unmodifiableList(List.of(settings.get(
 					SqlAgentProvider.PROPS_KEY_SQL_RETRY_CODES).split(",")));
 		}
 		if (settings.containsKey(SqlAgentProvider.PROPS_KEY_DEFAULT_MAX_RETRY_COUNT)) {

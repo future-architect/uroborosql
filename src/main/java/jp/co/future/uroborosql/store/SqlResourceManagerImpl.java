@@ -158,7 +158,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
-		this(Arrays.asList(loadPath), fileExtension, charset, detectChanges);
+		this(List.of(loadPath), fileExtension, charset, detectChanges);
 	}
 
 	/**
@@ -397,7 +397,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	private void generateSqlInfos() {
 		try {
 			for (var loadPath : this.loadPaths) {
-				var loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
+				var loadPathSlash = loadPath.toString().replace('\\', '/');
 				var root = Thread.currentThread().getContextClassLoader().getResources(loadPathSlash);
 
 				while (root.hasMoreElements()) {

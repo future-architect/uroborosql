@@ -13,8 +13,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -155,7 +155,7 @@ public final class SqlParamUtils {
 			for (var i = 0; i < parts.length; i++) {
 				vals[i] = convertSingleValue(parts[i]);
 			}
-			ctx.param(key, Arrays.asList(vals));
+			ctx.param(key, List.of(vals));
 		} else {
 			ctx.param(key, convertSingleValue(val));
 		}

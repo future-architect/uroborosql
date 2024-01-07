@@ -7,14 +7,12 @@
 package jp.co.future.uroborosql;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.ExtractionCondition;
-import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
@@ -24,20 +22,24 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @param <T> SqlFluent型を継承するSqlEntity実装型
  * @author H.Sugimoto
  */
-abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends AbstractSqlFluent<T>
-		implements ExtractionCondition<T> {
-
+abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> implements ExtractionCondition<T> {
 	/** 抽出条件のパラメータ名に付与するプレフィックス */
 	protected static final String PREFIX = "_";
 
+	/** SqlAgent. */
+	private final SqlAgent agent;
+
+	/** ExecutionContext. */
+	private final ExecutionContext context;
+
 	/** テーブルメタデータ */
-	protected final TableMetadata tableMetadata;
+	private final TableMetadata tableMetadata;
 
 	/** where句文字列 */
-	protected final List<CharSequence> rawStrings;
+	private final List<CharSequence> rawStrings;
 
 	/** オペレータを使用したかどうか */
-	protected boolean useOperator = false;
+	private boolean useOperator = false;
 
 	/**
 	 * Constructor
@@ -48,11 +50,37 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	AbstractExtractionCondition(final SqlAgent agent, final TableMetadata tableMetadata,
 			final ExecutionContext context) {
-		super(agent, context);
+		this.agent = agent;
+		this.context = context;
 		this.tableMetadata = tableMetadata;
 		context.setSchema(tableMetadata.getSchema());
 		this.rawStrings = new ArrayList<>();
 		this.useOperator = false;
+	}
+
+	/**
+	 * SqlAgentの取得.
+	 *
+	 * @return SqlAgent
+	 */
+	protected SqlAgent agent() {
+		return agent;
+	}
+
+	/**
+	 * ExecutionContextの取得.
+	 * @return ExecutionContext
+	 */
+	protected ExecutionContext context() {
+		return context;
+	}
+
+	/**
+	 * TableMetadataの取得.
+	 * @return TableMetadata
+	 */
+	protected TableMetadata tableMetadata() {
+		return tableMetadata;
 	}
 
 	/**
@@ -461,7 +489,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@Override
 	public <V> T where(final CharSequence rawString, final String paramName, final V value) {
-		this.param(paramName, value);
+		context().param(paramName, value);
 		return this.where(rawString);
 	}
 
@@ -472,7 +500,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 	 */
 	@Override
 	public T where(final CharSequence rawString, final Map<String, Object> paramMap) {
-		this.paramMap(paramMap);
+		context().paramMap(paramMap);
 		return this.where(rawString);
 	}
 
@@ -597,7 +625,7 @@ abstract class AbstractExtractionCondition<T extends SqlFluent<T>> extends Abstr
 		@SafeVarargs
 		public ListOperator(final String col, final V... values) {
 			super(col);
-			valueList = Arrays.asList(values);
+			valueList = List.of(values);
 		}
 
 		/**

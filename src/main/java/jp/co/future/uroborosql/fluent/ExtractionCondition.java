@@ -6,13 +6,7 @@
  */
 package jp.co.future.uroborosql.fluent;
 
-import java.io.InputStream;
-import java.io.Reader;
-import java.sql.SQLType;
 import java.util.Map;
-import java.util.function.Function;
-
-import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * 抽出条件インタフェース
@@ -20,7 +14,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  *
  * @param <T> Entity型を指定したSqlFluent型
  */
-public interface ExtractionCondition<T> extends SqlFluent<T> {
+public interface ExtractionCondition<T> {
 
 	/**
 	 * Where句に equal 条件を追加する.
@@ -281,178 +275,5 @@ public interface ExtractionCondition<T> extends SqlFluent<T> {
 	 * @return T
 	 */
 	T where(CharSequence rawString, Map<String, Object> paramMap);
-
-	// deprecated methods
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	@Deprecated
-	<V> T param(final String paramName, final V value);
-
-	/**
-	 *
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Function)
-	 */
-	@Override
-	@Deprecated
-	<V> T param(final String paramName, final Function<ExecutionContext, V> function);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	@Deprecated
-	<V> T paramIfAbsent(final String paramName, final V value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
-	 */
-	@Override
-	@Deprecated
-	T paramMap(final Map<String, Object> paramMap);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramBean(java.lang.Object)
-	 */
-	@Override
-	@Deprecated
-	<V> T paramBean(final V bean);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
-	 */
-	@Override
-	@Deprecated
-	<V> T param(final String paramName, final V value, final SQLType sqlType);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
-	 */
-	@Override
-	@Deprecated
-	<V> T paramIfAbsent(final String paramName, final V value, final SQLType sqlType);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
-	 */
-	@Override
-	@Deprecated
-	<V> T param(final String paramName, final V value, final int sqlType);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
-	 */
-	@Override
-	@Deprecated
-	<V> T paramIfAbsent(final String paramName, final V value, final int sqlType);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream)
-	 */
-	@Override
-	@Deprecated
-	T blobParam(final String paramName, final InputStream value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream)
-	 */
-	@Override
-	@Deprecated
-	T blobParamIfAbsent(final String paramName, final InputStream value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream, int)
-	 */
-	@Override
-	@Deprecated
-	T blobParam(final String paramName, final InputStream value, final int len);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream, int)
-	 */
-	@Override
-	@Deprecated
-	T blobParamIfAbsent(final String paramName, final InputStream value, final int len);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader)
-	 */
-	@Override
-	@Deprecated
-	T clobParam(final String paramName, final Reader value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader)
-	 */
-	@Override
-	@Deprecated
-	T clobParamIfAbsent(final String paramName, final Reader value);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader, int)
-	 */
-	@Override
-	@Deprecated
-	T clobParam(final String paramName, final Reader value, final int len);
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @deprecated 代わりはありません.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader, int)
-	 */
-	@Override
-	@Deprecated
-	T clobParamIfAbsent(final String paramName, final Reader value, final int len);
 
 }
