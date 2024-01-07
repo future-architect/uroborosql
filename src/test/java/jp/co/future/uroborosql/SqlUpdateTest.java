@@ -73,6 +73,34 @@ public class SqlUpdateTest extends AbstractDbTest {
 	}
 
 	/**
+	 * DB更新処理のテストケース。(SupplierでSQLNameを決定)
+	 */
+	@Test
+	void testUpdateSupplier() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
+
+		String productName = null;
+		var updateCount = agent
+				.update(() -> productName == null ? "example/selectinsert_product" : "example/selectinsert_product2")
+				.param("product_id", new BigDecimal("0"))
+				.param("product_name", productName)
+				.param("jan_code", "1234567890123")
+				.count();
+		assertEquals(1, updateCount, "データの登録に失敗しました。");
+
+		// 検証処理
+		var expectedDataList = getDataFromFile(Paths.get(
+				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
+		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
+				.param("product_id", Arrays.asList(0, 1))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
+
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
+	}
+
+	/**
 	 * DB更新処理のテストケース(NULLに設定)。
 	 */
 	@Test

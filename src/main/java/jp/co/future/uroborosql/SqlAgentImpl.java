@@ -447,6 +447,19 @@ public class SqlAgentImpl implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#query(java.util.function.Supplier)
+	 */
+	@Override
+	public SqlQuery query(final Supplier<String> supplier) {
+		if (supplier == null) {
+			throw new IllegalArgumentException("supplier is required.");
+		}
+		return new SqlQueryImpl(this, context().setSqlName(supplier.get()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.SqlAgent#queryWith(java.lang.String)
 	 */
 	@Override
@@ -462,6 +475,19 @@ public class SqlAgentImpl implements SqlAgent {
 	@Override
 	public SqlUpdate update(final String sqlName) {
 		return new SqlUpdateImpl(this, context().setSqlName(sqlName));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#update(java.util.function.Supplier)
+	 */
+	@Override
+	public SqlUpdate update(final Supplier<String> supplier) {
+		if (supplier == null) {
+			throw new IllegalArgumentException("supplier is required.");
+		}
+		return new SqlUpdateImpl(this, context().setSqlName(supplier.get()));
 	}
 
 	/**
@@ -487,6 +513,19 @@ public class SqlAgentImpl implements SqlAgent {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#batch(java.util.function.Supplier)
+	 */
+	@Override
+	public SqlBatch batch(final Supplier<String> supplier) {
+		if (supplier == null) {
+			throw new IllegalArgumentException("supplier is required.");
+		}
+		return new SqlBatchImpl(this, context().setSqlName(supplier.get()));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.SqlAgent#batchWith(java.lang.String)
 	 */
 	@Override
@@ -502,6 +541,19 @@ public class SqlAgentImpl implements SqlAgent {
 	@Override
 	public Procedure proc(final String sqlName) {
 		return new ProcedureImpl(this, context().setSqlName(sqlName));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#proc(java.util.function.Supplier)
+	 */
+	@Override
+	public Procedure proc(final Supplier<String> supplier) {
+		if (supplier == null) {
+			throw new IllegalArgumentException("supplier is required.");
+		}
+		return new ProcedureImpl(this, context().setSqlName(supplier.get()));
 	}
 
 	/**

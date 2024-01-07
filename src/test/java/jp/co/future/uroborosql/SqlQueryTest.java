@@ -1337,6 +1337,26 @@ public class SqlQueryTest extends AbstractDbTest {
 		}
 	}
 
+	/**
+	 * クエリ実行処理のテストケース(SupplierによるSQLファイル決定)。
+	 */
+	@Test
+	void testQuerySupplier() throws Exception {
+		// 事前条件
+		truncateTable("product_regist_work");
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		var productId = List.of(0, 1);
+		var updDatetime = LocalDateTime.of(2005, 12, 12, 10, 10, 10);
+		var result = agent
+				.query(() -> updDatetime != null ? "example/select_product_where_upd_datetime"
+						: "example/select_product")
+				.param("product_id", productId)
+				.param("upd_datetime", updDatetime)
+				.collect();
+		assertThat(result.size(), is(2));
+	}
+
 	//Enumを定義
 	public enum NameEnum {
 		NAME1, NAME2, NAME3;

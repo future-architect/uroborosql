@@ -10,7 +10,7 @@ insert into product (
 )
 select 
     /*product_id*/0
-,   product_name
+,   /*product_name*/''
 ,   product_kana_name
 ,   jan_code
 ,   product_description

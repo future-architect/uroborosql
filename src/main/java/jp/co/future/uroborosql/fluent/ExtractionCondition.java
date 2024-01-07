@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
+
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * 抽出条件インタフェース
@@ -293,14 +295,15 @@ public interface ExtractionCondition<T> extends SqlFluent<T> {
 	<V> T param(final String paramName, final V value);
 
 	/**
+	 *
 	 * {@inheritDoc}
 	 *
 	 * @deprecated 代わりに {@link ExtractionCondition#equal(String, Object)} を使用してください.
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Function)
 	 */
 	@Override
 	@Deprecated
-	<V> T param(final String paramName, final Supplier<V> supplier);
+	<V> T param(final String paramName, final Function<ExecutionContext, V> function);
 
 	/**
 	 * {@inheritDoc}

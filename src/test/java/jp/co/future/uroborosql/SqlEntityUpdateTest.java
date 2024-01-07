@@ -80,7 +80,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 		agent.required(() -> {
 			assertThat(
-					agent.update(Product.class).set("productName", () -> "商品名_new").greaterEqual("productId", 0)
+					agent.update(Product.class).set("productName", ctx -> "商品名_new").greaterEqual("productId", 0)
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("productId", 0).one().get().getProductName(), is("商品名_new"));
@@ -95,7 +95,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 		agent.required(() -> {
 			assertThat(
-					agent.update(Product.class).set("product_name", () -> "商品名_new").greaterEqual("product_id", 0)
+					agent.update(Product.class).set("product_name", ctx -> "商品名_new").greaterEqual("product_id", 0)
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("product_id", 0).one().get().getProductName(), is("商品名_new"));

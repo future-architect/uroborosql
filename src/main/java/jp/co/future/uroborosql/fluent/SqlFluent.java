@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 
@@ -54,10 +54,10 @@ public interface SqlFluent<T> {
 	 *
 	 * @param <V> 値の型
 	 * @param paramName パラメータ名
-	 * @param supplier パラメータ値を提供するSupplier
+	 * @param function パラメータ値を取得するFunction. functionの戻り値が<code>null</code>の場合はパラメータを設定しない.
 	 * @return T
 	 */
-	<V> T param(String paramName, Supplier<V> supplier);
+	<V> T param(String paramName, Function<ExecutionContext, V> function);
 
 	/**
 	 * パラメータの追加<br>

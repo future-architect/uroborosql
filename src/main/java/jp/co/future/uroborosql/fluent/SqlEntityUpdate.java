@@ -7,7 +7,9 @@
 package jp.co.future.uroborosql.fluent;
 
 import java.sql.SQLType;
-import java.util.function.Supplier;
+import java.util.function.Function;
+
+import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
  * Entity Update 実行インタフェース
@@ -38,10 +40,10 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	 *
 	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
-	 * @param supplier 更新する値を提供するサプライヤ
+	 * @param function 更新する値を取得するfunction
 	 * @return SqlEntityUpdate
 	 */
-	<V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier);
+	<V> SqlEntityUpdate<E> set(final String col, final Function<ExecutionContext, V> function);
 
 	/**
 	 * 更新する値の設定.

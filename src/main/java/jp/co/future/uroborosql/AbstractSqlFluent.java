@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLType;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.SqlFluent;
@@ -146,12 +146,12 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Function)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> T param(final String paramName, final Supplier<V> supplier) {
-		context().param(paramName, supplier);
+	public <V> T param(final String paramName, final Function<ExecutionContext, V> function) {
+		context().param(paramName, function);
 		return (T) this;
 	}
 

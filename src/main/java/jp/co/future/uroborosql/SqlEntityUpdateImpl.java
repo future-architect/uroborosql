@@ -8,7 +8,7 @@ package jp.co.future.uroborosql;
 
 import java.sql.SQLException;
 import java.sql.SQLType;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -72,11 +72,11 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.util.function.Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityUpdate#set(java.lang.String, java.util.function.Function)
 	 */
 	@Override
-	public <V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier) {
-		param(CaseFormat.CAMEL_CASE.convert(col), supplier);
+	public <V> SqlEntityUpdate<E> set(final String col, final Function<ExecutionContext, V> function) {
+		param(CaseFormat.CAMEL_CASE.convert(col), function);
 		return this;
 	}
 

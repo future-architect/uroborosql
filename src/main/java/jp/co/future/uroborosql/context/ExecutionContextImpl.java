@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -478,11 +477,20 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Function)
 	 */
 	@Override
-	public <V> ExecutionContext param(final String paramName, final Supplier<V> supplier) {
-		return this.param(paramName, supplier != null ? supplier.get() : null);
+	public <V> ExecutionContext param(final String paramName, final Function<ExecutionContext, V> function) {
+		if (function != null) {
+			var value = function.apply(this);
+			if (value != null) {
+				return this.param(paramName, value);
+			} else {
+				return this;
+			}
+		} else {
+			return param(new Parameter(paramName, null));
+		}
 	}
 
 	/**

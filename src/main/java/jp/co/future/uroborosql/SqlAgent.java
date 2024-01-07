@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -256,6 +257,14 @@ public interface SqlAgent extends TransactionManager {
 	/**
 	 * Query処理の実行（Fluent API）
 	 *
+	 * @param supplier 実行するSQLファイル名を提供するサプライヤ
+	 * @return SqlQuery
+	 */
+	SqlQuery query(final Supplier<String> supplier);
+
+	/**
+	 * Query処理の実行（Fluent API）
+	 *
 	 * @param sql 実行するSQL文
 	 * @return SqlQuery
 	 */
@@ -268,6 +277,14 @@ public interface SqlAgent extends TransactionManager {
 	 * @return SqlUpdate
 	 */
 	SqlUpdate update(String sqlName);
+
+	/**
+	 * 更新処理の実行（Fluent API）
+	 *
+	 * @param supplier 実行するSQLファイル名を提供するサプライヤ
+	 * @return SqlUpdate
+	 */
+	SqlUpdate update(Supplier<String> supplier);
 
 	/**
 	 * 更新処理の実行（Fluent API）
@@ -288,6 +305,14 @@ public interface SqlAgent extends TransactionManager {
 	/**
 	 * バッチ処理の実行（Fluent API）
 	 *
+	 * @param supplier 実行するSQLファイル名を提供するサプライヤ
+	 * @return SqlBatch
+	 */
+	SqlBatch batch(Supplier<String> supplier);
+
+	/**
+	 * バッチ処理の実行（Fluent API）
+	 *
 	 * @param sql 実行するSQL文
 	 * @return SqlBatch
 	 */
@@ -300,6 +325,14 @@ public interface SqlAgent extends TransactionManager {
 	 * @return Procedure
 	 */
 	Procedure proc(String sqlName);
+
+	/**
+	 * Procedureの実行（Fluent API）
+	 *
+	 * @param supplier 実行するSQLファイル名を提供するサプライヤ
+	 * @return Procedure
+	 */
+	Procedure proc(Supplier<String> supplier);
 
 	/**
 	 * Procedureの実行（Fluent API）

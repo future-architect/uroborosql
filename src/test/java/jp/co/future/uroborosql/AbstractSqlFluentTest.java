@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -125,20 +126,32 @@ public class AbstractSqlFluentTest {
 	}
 
 	@Test
-	void testParamWithSupplier() throws Exception {
+	void testParamWithFunction() throws Exception {
 		try (var agent = config.agent()) {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
-			query.param("key1", () -> "value1");
+			query.param("key1", ctx -> "value1");
+			assertThat(query.context().hasParam("key1"), is(true));
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 
 			var flag = false;
-			query.param("key2", () -> flag ? "true" : "false");
+			query.param("key2", ctx -> flag ? "true" : "false");
+			assertThat(query.context().hasParam("key2"), is(true));
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
+			// キーにnullを設定したい場合はOptional.empty()を返す
+			query.param("key3", ctx -> Optional.empty());
+			assertThat(query.context().hasParam("key3"), is(true));
+			assertThat(query.context().getParam("key3").getValue(), is(Optional.empty()));
+
+			// functionがnullの場合は値にnullが設定される
 			query.param("key4", null);
+			assertThat(query.context().hasParam("key4"), is(true));
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
+			// functionがnullを返す場合はキーも値も設定されない
+			query.param("key5", ctx -> null);
+			assertThat(query.context().hasParam("key5"), is(false));
 		}
 	}
 }

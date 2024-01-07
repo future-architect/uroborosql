@@ -741,7 +741,7 @@ public class SqlParserTest {
 	@Test
 	void testParseBindVariable3() throws Exception {
 		var sql = "BETWEEN sal ? AND ?";
-		var sql2 = "BETWEEN sal ?/*$1*/ AND ?/*$2*/";
+		var sql2 = "BETWEEN sal ? AND ?"; // ? のパースは v1.0　で行わなくなった
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
@@ -749,12 +749,7 @@ public class SqlParserTest {
 		ctx.param("$2", 1000);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		System.out.println(ctx.getExecutableSql());
 		assertEquals(sql2, ctx.getExecutableSql(), "1");
-		var vars = ctx.getBindVariables();
-		assertEquals(2, vars.length, "2");
-		assertEquals(Integer.valueOf(0), vars[0], "3");
-		assertEquals(Integer.valueOf(1000), vars[1], "4");
 	}
 
 	@Test
