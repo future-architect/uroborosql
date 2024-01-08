@@ -362,7 +362,9 @@ class LocalTransactionContext implements TransactionContext {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			} else {
-				LOG.debug("Connection close was skipped because the connection was already closed.");
+				if (LOG.isWarnEnabled()) {
+					LOG.warn("Connection close was skipped because the connection was already closed.");
+				}
 			}
 		} catch (SQLException e) {
 			throw new UroborosqlSQLException(e);

@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.event.SqlUpdateEvent;
  */
 public class DebugEventSubscriber extends EventSubscriber {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
 
 	@Override
 	public void initialize() {
@@ -40,56 +40,57 @@ public class DebugEventSubscriber extends EventSubscriber {
 	}
 
 	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
-		if (LOG.isDebugEnabled()) {
+		if (EVENT_LOG.isDebugEnabled()) {
 			try {
-				LOG.debug("Begin Transaction - connection:{}",
+				EVENT_LOG.debug("Begin Transaction - connection:{}",
 						evt.getTransactionContext().getConnection(), evt.occurredOn());
 			} catch (SQLException e) {
-				LOG.error(e.getMessage(), e);
+				EVENT_LOG.error(e.getMessage(), e);
 			}
 		}
 	}
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
-		if (LOG.isDebugEnabled()) {
+		if (EVENT_LOG.isDebugEnabled()) {
 			try {
-				LOG.debug("End Transaction - connection:{}, result:{}", evt.getTransactionContext().getConnection(),
+				EVENT_LOG.debug("End Transaction - connection:{}, result:{}",
+						evt.getTransactionContext().getConnection(),
 						evt.getResult());
 			} catch (SQLException e) {
-				LOG.error(e.getMessage(), e);
+				EVENT_LOG.error(e.getMessage(), e);
 			}
 		}
 	}
 
 	void beforeSetParameter(final BeforeSetParameterEvent evt) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Before Set Parameter - Parameter:{}", evt.getParameter());
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("Before Set Parameter - Parameter:{}", evt.getParameter());
 		}
 	}
 
 	void afterGetOutParameter(final AfterGetOutParameterEvent evt) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("After Get OutParameter - key:{}, value:{}. parameterIndex:{}",
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("After Get OutParameter - key:{}, value:{}. parameterIndex:{}",
 					evt.getKey(), evt.getValue(), evt.getParameterIndex());
 		}
 	}
 
 	void sqlQuery(final SqlQueryEvent evt) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute Query - sqlName:{} executed.", evt.getExecutionContext().getSqlName());
-			LOG.trace("Execute Query sql:{}", evt.getPreparedStatement());
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("Execute Query - sqlName:{} executed.", evt.getExecutionContext().getSqlName());
+			EVENT_LOG.trace("Execute Query sql:{}", evt.getPreparedStatement());
 		}
 	}
 
 	void sqlUpdate(final SqlUpdateEvent evt) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute Update - sqlName:{} executed. Count:{} items.",
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("Execute Update - sqlName:{} executed. Count:{} items.",
 					evt.getExecutionContext().getSqlName(), evt.getCount());
 		}
 	}
 
 	void sqlBatch(final SqlBatchEvent evt) {
-		if (LOG.isDebugEnabled()) {
+		if (EVENT_LOG.isDebugEnabled()) {
 			var counts = evt.getCounts();
 			try {
 				counts = new int[] { evt.getPreparedStatement().getUpdateCount() };
@@ -101,7 +102,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 			for (int val : counts) {
 				builder.append(val).append(", ");
 			}
-			LOG.debug("Execute Update - sqlName:{} executed. Results:{}",
+			EVENT_LOG.debug("Execute Update - sqlName:{} executed. Results:{}",
 					evt.getExecutionContext().getSqlName(), counts);
 		}
 	}

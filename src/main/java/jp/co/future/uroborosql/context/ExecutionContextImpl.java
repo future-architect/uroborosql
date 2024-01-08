@@ -76,19 +76,18 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	}
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
-	private static final Pattern WHERE_CLAUSE_PATTERN = Pattern
-			.compile("(?i)(?<clause>(^|\\s+)(WHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))(AND\\s+|OR\\s+)");
+	private static final Pattern WHERE_CLAUSE_PATTERN = Pattern.compile(
+			"(?i)(?<clause>(\\bWHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))((AND|OR)\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
-	private static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern
-			.compile(
-					"(?i)(?<keyword>((^|\\s+)(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*)(,)");
+	private static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile(
+			"(?i)(?<keyword>(\\b(SELECT|ORDER\\s+BY|GROUP\\s+BY|SET)\\s+|\\(\\s*)(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*),");
 
 	/** 不要な空白、改行を除去するための正規表現 */
 	private static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
 
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** SQLロガー */
+	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
 
 	/** SqlConfig. */
 	private SqlConfig sqlConfig;
@@ -235,7 +234,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			executableSqlCache = executableSql.toString();
 			if (executableSqlCache.toUpperCase().contains("WHERE")) {
 				// where句の直後に来るANDやORの除去
-				var buff = new StringBuffer();
+				var buff = new StringBuilder();
 				var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
 				while (matcher.find()) {
 					var whereClause = matcher.group("clause");
@@ -245,7 +244,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 				executableSqlCache = buff.toString();
 			}
 			// 各句の直後に現れる不要なカンマの除去
-			var buff = new StringBuffer();
+			var buff = new StringBuilder();
 			var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
 			while (removeCommaMatcher.find()) {
 				var clauseWords = removeCommaMatcher.group("keyword");
@@ -927,8 +926,8 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("{} items Added for batch process.", batchParameters.size());
+		if (SQL_LOG.isDebugEnabled()) {
+			SQL_LOG.debug("{} items Added for batch process.", batchParameters.size());
 		}
 	}
 
@@ -959,8 +958,8 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			parameterIndex++;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Stored procedure out parameter[{}]", out);
+		if (SQL_LOG.isDebugEnabled()) {
+			SQL_LOG.debug("Stored procedure out parameter[{}]", out);
 		}
 		return out;
 	}

@@ -24,8 +24,8 @@ import jp.co.future.uroborosql.event.SqlUpdateEvent;
  *
  */
 public class AuditLogEventSubscriber extends EventSubscriber {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
+	/** イベントロガー */
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
@@ -87,8 +87,8 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("{}", new AuditData(userName,
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
 					funcId,
 					evt.getExecutionContext().getSqlId(),
 					evt.getExecutionContext().getSqlName(),
@@ -110,8 +110,8 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 			funcId = DEFAULT_FUNC_ID;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("{}", new AuditData(userName,
+		if (EVENT_LOG.isDebugEnabled()) {
+			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
 					funcId,
 					evt.getExecutionContext().getSqlId(),
 					evt.getExecutionContext().getSqlName(),
@@ -133,13 +133,13 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 			funcId = DEFAULT_FUNC_ID;
 		}
 		var rowCount = -1;
-		if (LOG.isDebugEnabled()) {
+		if (EVENT_LOG.isDebugEnabled()) {
 			try {
 				rowCount = evt.getPreparedStatement().getUpdateCount();
 			} catch (SQLException ex) {
 				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 			}
-			LOG.debug("{}", new AuditData(userName,
+			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
 					funcId,
 					evt.getExecutionContext().getSqlId(),
 					evt.getExecutionContext().getSqlName(),

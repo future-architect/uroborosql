@@ -34,8 +34,8 @@ import jp.co.future.uroborosql.coverage.Ranges;
 import jp.co.future.uroborosql.utils.StringUtils;
 
 class SqlCoverageReport {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** カバレッジロガー. */
+	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
 
 	private final String name;
 	private final String sql;
@@ -129,7 +129,7 @@ class SqlCoverageReport {
 				writeSuffix(writer);
 			}
 		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+			COVERAGE_LOG.error(e.getMessage(), e);
 		}
 		updated = false;
 	}

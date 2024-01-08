@@ -277,7 +277,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			try {
 				key = watcher.take();
 			} catch (InterruptedException ex) {
-				LOG.debug("WatchService catched InterruptedException.");
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("WatchService caught InterruptedException.");
+				}
 				break;
 			} catch (Throwable ex) {
 				LOG.error("Unexpected exception occurred.", ex);
@@ -297,7 +299,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var dir = watchDirs.get(key);
 				var path = dir.resolve(evt.context());
 
-				LOG.debug("file changed.({}). path={}", kind.name(), path);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("file changed.({}). path={}", kind.name(), path);
+				}
 				var isSqlFile = path.toString().endsWith(fileExtension);
 				if (Files.isDirectory(path) || !isSqlFile) {
 					// ENTRY_DELETEの時はFiles.isDirectory()がfalseになるので拡張子での判定も行う
@@ -408,7 +412,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
 						traverseJar(url, loadPathSlash);
 					} else {
-						LOG.warn("Unsupported scheme. scheme : {}, url : {}", scheme, url);
+						if (LOG.isWarnEnabled()) {
+							LOG.warn("Unsupported scheme. scheme : {}, url : {}", scheme, url);
+						}
 					}
 				}
 			}
@@ -526,7 +532,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
 	 */
 	private void traverseFile(final Path path, final boolean watch, final boolean remove) {
-		LOG.trace("traverseFile start. path : {}, watch : {}, remove : {}.", path, watch, remove);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("traverseFile start. path : {}, watch : {}, remove : {}.", path, watch, remove);
+		}
 		if (Files.notExists(path)) {
 			return;
 		}
@@ -559,8 +567,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	@SuppressWarnings("resource")
 	private void traverseJar(final URL url, final String loadPath) {
-		LOG.trace("traverseJar start. url : {}, loadPath : {}.", url, loadPath);
-
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("traverseJar start. url : {}, loadPath : {}.", url, loadPath);
+		}
 		FileSystem fs = null;
 		try {
 			var uri = url.toURI();
@@ -629,8 +638,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				final List<Path> loadPaths,
 				final Dialect dialect,
 				final Charset charset) {
-			LOG.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
-					sqlName, path, dialect, charset);
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
+						sqlName, path, dialect, charset);
+			}
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
@@ -650,7 +661,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				try {
 					return Files.getLastModifiedTime(path);
 				} catch (IOException e) {
-					LOG.warn("Can't get lastModifiedTime. path:{}", path, e);
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Can't get lastModifiedTime. path:{}", path, e);
+					}
 				}
 			}
 			return FileTime.fromMillis(0L);
@@ -709,7 +722,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						try {
 							var body = new String(Files.readAllBytes(path), charset);
 							sqlBody = formatSqlBody(body);
-							LOG.debug("Loaded SQL template.[{}]", path);
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("Loaded SQL template.[{}]", path);
+							}
 						} catch (IOException e) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
 									+ path.toAbsolutePath().toString() + "].", e);
@@ -730,7 +745,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 								var body = reader.lines()
 										.collect(Collectors.joining(System.lineSeparator()));
 								sqlBody = formatSqlBody(body);
-								LOG.debug("Loaded SQL template.[{}]", path);
+								if (LOG.isDebugEnabled()) {
+									LOG.debug("Loaded SQL template.[{}]", path);
+								}
 							}
 						} catch (IOException e) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
@@ -861,13 +878,17 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
-					LOG.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
-							oldPath, currentPath, currentTimeStamp.toString());
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
+								oldPath, currentPath, currentTimeStamp.toString());
+					}
 				} else {
 					if (!this.lastModified.equals(currentTimeStamp)) {
 						replaceFlag = true;
-						LOG.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
-								currentTimeStamp.toString());
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+									currentTimeStamp.toString());
+						}
 					}
 				}
 

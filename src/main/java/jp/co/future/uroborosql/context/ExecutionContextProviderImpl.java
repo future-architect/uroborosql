@@ -160,13 +160,17 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 						var newValue = new Parameter(fieldName, field.get(null));
 						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							SETTING_LOG.warn("Duplicate constant name. Constant name:{}, old value:{} destroy.",
-									fieldName,
-									prevValue.getValue());
+							if (SETTING_LOG.isWarnEnabled()) {
+								SETTING_LOG.warn("Duplicate constant name. Constant name:{}, old value:{} destroy.",
+										fieldName,
+										prevValue.getValue());
+							}
 						}
-						SETTING_LOG.info("Constant [name:{}, value:{}] added to parameter.",
-								fieldName,
-								newValue.getValue());
+						if (SETTING_LOG.isInfoEnabled()) {
+							SETTING_LOG.info("Constant [name:{}, value:{}] added to parameter.",
+									fieldName,
+									newValue.getValue());
+						}
 					}
 				}
 			}
@@ -205,13 +209,17 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			var newValue = new Parameter(fieldName, value);
 			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				SETTING_LOG.warn("Duplicate Enum name. Enum name:{}, old value:{} destroy.",
-						fieldName,
-						prevValue.getValue());
+				if (SETTING_LOG.isWarnEnabled()) {
+					SETTING_LOG.warn("Duplicate Enum name. Enum name:{}, old value:{} destroy.",
+							fieldName,
+							prevValue.getValue());
+				}
 			}
-			SETTING_LOG.info("Enum [name:{}, value:{}] added to parameter.",
-					fieldName,
-					newValue.getValue());
+			if (SETTING_LOG.isInfoEnabled()) {
+				SETTING_LOG.info("Enum [name:{}, value:{}] added to parameter.",
+						fieldName,
+						newValue.getValue());
+			}
 		}
 	}
 
@@ -339,7 +347,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 		var paramMap = new HashMap<String, Parameter>();
 		for (var packageName : enumConstantPackageNames) {
 			if (StringUtils.isNotBlank(packageName)) {
-				for (var targetClass : listupEnumClasses(packageName)) {
+				for (var targetClass : listUpEnumClasses(packageName)) {
 					makeEnumConstParamMap(paramMap, packageName, targetClass);
 				}
 			}
@@ -354,7 +362,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @return クラスリスト
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Set<Class<? extends Enum<?>>> listupEnumClasses(final String packageName) {
+	private static Set<Class<? extends Enum<?>>> listUpEnumClasses(final String packageName) {
 		var resourceName = packageName.replace('.', '/');
 		var classLoader = Thread.currentThread().getContextClassLoader();
 		List<URL> roots;

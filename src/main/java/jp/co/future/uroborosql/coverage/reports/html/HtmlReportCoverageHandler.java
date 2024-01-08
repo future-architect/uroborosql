@@ -42,10 +42,13 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class HtmlReportCoverageHandler implements CoverageHandler {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** カバレッジロガー. */
+	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
 
+	/** カバレッジ情報. */
 	private final Map<String, Map<String, SqlCoverageReport>> coverages = new ConcurrentHashMap<>();
+
+	/** レポートディレクトリパス. */
 	private final Path reportDirPath;
 
 	/**
@@ -112,7 +115,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
 						} catch (IOException e) {
-							LOG.error(e.getMessage(), e);
+							COVERAGE_LOG.error(e.getMessage(), e);
 						}
 					});
 			// write report
@@ -129,7 +132,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				writeSuffix(writer);
 			}
 		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+			COVERAGE_LOG.error(e.getMessage(), e);
 		}
 	}
 

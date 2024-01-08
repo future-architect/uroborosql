@@ -250,13 +250,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	public <T> T sum(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
 		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
-		Class<?> rawType = mappingColumn.getJavaType().getRawType();
-		if (!(short.class.equals(rawType) ||
-				int.class.equals(rawType) ||
-				long.class.equals(rawType) ||
-				float.class.equals(rawType) ||
-				double.class.equals(rawType) ||
-				Number.class.isAssignableFrom(mappingColumn.getJavaType().getRawType()))) {
+		if (!mappingColumn.isNumber()) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
 		var column = tableMetadata().getColumn(camelColumnName);
@@ -530,7 +524,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
+			}
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -549,7 +545,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			}
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -570,7 +568,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
+			}
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -588,7 +588,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsOptimizerHints()) {
 			this.optimizerHints.add(hint);
 		} else {
-			LOG.warn("Optimizer Hints is not supported.");
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("Optimizer Hints is not supported.");
+			}
 		}
 		return this;
 	}

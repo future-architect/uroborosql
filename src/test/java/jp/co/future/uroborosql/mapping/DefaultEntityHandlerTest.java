@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -327,6 +328,112 @@ public class DefaultEntityHandlerTest {
 				} catch (UroborosqlRuntimeException ex) {
 					fail();
 				}
+			});
+		}
+	}
+
+	@Test
+	public void testQuery5() throws Exception {
+
+		try (var agent = config.agent()) {
+			agent.required(() -> {
+				var test1 = new TestEntity4(1L, "name1", new BigDecimal("20"),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				var test2 = new TestEntity4(2L, "name2", new BigDecimal("21"),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				var test3 = new TestEntity4(3L, "name3", new BigDecimal("22"),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				var test4 = new TestEntity4(4L, "name4", new BigDecimal("23"), null);
+				agent.insert(test4);
+
+				var count1 = agent.query(TestEntity4.class).count();
+				assertThat(count1, is(4L));
+				var count2 = agent.query(TestEntity4.class).count(TestEntity4.Names.Birthday);
+				assertThat(count2, is(3L));
+
+				var sum = agent.query(TestEntity4.class).sum(TestEntity4.Names.Age);
+				assertThat(sum, is(new BigDecimal("86")));
+
+				var min = agent.query(TestEntity4.class).min(TestEntity4.Names.Age);
+				assertThat(min, is(new BigDecimal("20")));
+
+				var minName = agent.query(TestEntity4.class).min(TestEntity4.Names.Name);
+				assertThat(minName, is("name1"));
+
+				long max = agent.query(TestEntity4.class).max(TestEntity4.Names.Id);
+				assertThat(max, is(4L));
+
+				var maxDate = agent.query(TestEntity4.class).max(TestEntity4.Names.Birthday);
+				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+			});
+		}
+	}
+
+	@Test
+	public void testQuery6() throws Exception {
+
+		try (var agent = config.agent()) {
+			agent.required(() -> {
+				var test1 = new TestEntity5(1L, "name1", Optional.ofNullable(new BigDecimal("20")),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				var test2 = new TestEntity5(2L, "name2", Optional.ofNullable(new BigDecimal("21")),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+				var test3 = new TestEntity5(3L, "name3", Optional.ofNullable(new BigDecimal("22")),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test3);
+				var test4 = new TestEntity5(4L, "name4", Optional.empty(), null);
+				agent.insert(test4);
+
+				var count1 = agent.query(TestEntity5.class).count();
+				assertThat(count1, is(4L));
+				var count2 = agent.query(TestEntity5.class).count(TestEntity5.Names.Birthday);
+				assertThat(count2, is(3L));
+
+				Optional<BigDecimal> sum = agent.query(TestEntity5.class).sum(TestEntity5.Names.Age);
+				assertThat(sum.orElseThrow(IllegalStateException::new), is(new BigDecimal("63")));
+
+				Optional<BigDecimal> min = agent.query(TestEntity5.class).min(TestEntity5.Names.Age);
+				assertThat(min.orElseThrow(IllegalStateException::new), is(new BigDecimal("20")));
+
+				var minName = agent.query(TestEntity5.class).min(TestEntity5.Names.Name);
+				assertThat(minName, is("name1"));
+
+				long max = agent.query(TestEntity5.class).max(TestEntity5.Names.Id);
+				assertThat(max, is(4L));
+
+				var maxDate = agent.query(TestEntity5.class).max(TestEntity5.Names.Birthday);
+				assertThat(maxDate, is(LocalDate.of(1990, Month.MAY, 1)));
+
+			});
+		}
+	}
+
+	@Test
+	public void testQuery7() throws Exception {
+
+		try (var agent = config.agent()) {
+			agent.required(() -> {
+				var test1 = new TestEntity5(1L, "name1", Optional.empty(),
+						LocalDate.of(1990, Month.APRIL, 1));
+				agent.insert(test1);
+				var test2 = new TestEntity5(2L, "name2", Optional.empty(),
+						LocalDate.of(1990, Month.MAY, 1));
+				agent.insert(test2);
+
+				Optional<BigDecimal> sum = agent.query(TestEntity5.class).sum(TestEntity5.Names.Age);
+				assertThat(sum.isPresent(), is(false));
+
+				Optional<BigDecimal> min = agent.query(TestEntity5.class).min(TestEntity5.Names.Age);
+				assertThat(min.isPresent(), is(false));
+
+				Optional<BigDecimal> max = agent.query(TestEntity5.class).max(TestEntity5.Names.Age);
+				assertThat(max.isPresent(), is(false));
+
 			});
 		}
 	}

@@ -45,8 +45,11 @@ import jp.co.future.uroborosql.utils.StringUtils;
  *
  */
 public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscriber {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
+	/** イベントロガー */
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
+
+	/** 設定ロガー */
+	private static final Logger SETTING_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.setting");
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -111,28 +114,28 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		KeyStore store;
 		try {
 			if (StringUtils.isBlank(getKeyStoreFilePath())) {
-				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
+				SETTING_LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkip(true);
 				return;
 			}
 			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
-				LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
+				SETTING_LOG.error("Not found KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkip(true);
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
-				LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
+				SETTING_LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getStorePassword())) {
-				LOG.error("Invalid password for access KeyStore.");
+				SETTING_LOG.error("Invalid password for access KeyStore.");
 				setSkip(true);
 				return;
 			}
 			if (StringUtils.isBlank(getAlias())) {
-				LOG.error("No alias for access KeyStore.");
+				SETTING_LOG.error("No alias for access KeyStore.");
 				setSkip(true);
 				return;
 			}
@@ -154,7 +157,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
-			LOG.error("Failed to acquire secret key.", ex);
+			SETTING_LOG.error("Failed to acquire secret key.", ex);
 			setSkip(true);
 		}
 
@@ -190,7 +193,9 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 										new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
 							}
 						} catch (Exception ex) {
-							LOG.warn("Encrypt Exception key:{}", key);
+							if (EVENT_LOG.isWarnEnabled()) {
+								EVENT_LOG.warn("Encrypt Exception key:{}", key);
+							}
 						}
 					}
 				}
@@ -208,7 +213,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
 					getCryptColumnNames(), getCharset()));
 		} catch (Exception ex) {
-			LOG.error("Failed to create SecretResultSet.", ex);
+			EVENT_LOG.error("Failed to create SecretResultSet.", ex);
 		}
 	}
 
@@ -365,7 +370,8 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
 			this.charset = StandardCharsets.UTF_8;
-			LOG.error("The specified character set could not be converted to {}. Set the default character set({}).",
+			SETTING_LOG.error(
+					"The specified character set could not be converted to {}. Set the default character set({}).",
 					charset, this.charset);
 		}
 		return (T) this;

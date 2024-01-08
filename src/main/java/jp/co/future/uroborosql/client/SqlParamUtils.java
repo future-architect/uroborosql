@@ -57,7 +57,7 @@ public final class SqlParamUtils {
 	 * @return 入力内容をパラメータに分割した配列
 	 */
 	public static String[] parseLine(final String line) {
-		var sb = new StringBuffer();
+		var sb = new StringBuilder();
 		var matcher = PARAM_PAT.matcher(line);
 		while (matcher.find()) {
 			var arrayPart = matcher.group();

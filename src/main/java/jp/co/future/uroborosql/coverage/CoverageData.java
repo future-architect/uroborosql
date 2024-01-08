@@ -17,10 +17,19 @@ import org.slf4j.LoggerFactory;
  * @author ota
  */
 public class CoverageData {
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** カバレッジロガー. */
+	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
+
+	/** SQL名. */
 	private final String sqlName;
+
+	/** 変換前SQL. */
 	private final String sql;
+
+	/** MD5文字列. */
 	private final String md5;
+
+	/** 分岐情報. */
 	private final PassedRoute passRoute;
 
 	/**
@@ -57,7 +66,7 @@ public class CoverageData {
 			}
 			return builder.toString();
 		} catch (Exception ex) {
-			LOG.error(ex.getMessage(), ex);
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 		return "";
 	}
@@ -71,7 +80,7 @@ public class CoverageData {
 		var builder = new StringBuilder();
 		builder.append("{\"sqlName\":");
 		if (sqlName != null) {
-			builder.append(sqlName.replaceAll("/", "\\/"));
+			builder.append(sqlName.replace('/', '/'));
 		} else {
 			builder.append("");
 		}
@@ -82,7 +91,7 @@ public class CoverageData {
 	}
 
 	/**
-	 * SQL名取得
+	 * SQL名取得.
 	 *
 	 * @return SQLファイルのルートからの相対パス（ファイル拡張子なし）
 	 */
@@ -91,7 +100,7 @@ public class CoverageData {
 	}
 
 	/**
-	 * 変換前SQL取得
+	 * 変換前SQL取得.
 	 *
 	 * @return 変換前SQL
 	 */
@@ -100,7 +109,7 @@ public class CoverageData {
 	}
 
 	/**
-	 * SQLのMD5取得
+	 * SQLのMD5取得.
 	 *
 	 * @return MD5
 	 */
@@ -109,7 +118,7 @@ public class CoverageData {
 	}
 
 	/**
-	 * 分岐情報取得
+	 * 分岐情報取得.
 	 *
 	 * @return 分岐情報
 	 */

@@ -174,8 +174,10 @@ public class SqlAgentImpl implements SqlAgent {
 						Thread.currentThread().getContextClassLoader()).getConstructor().newInstance();
 				COVERAGE_LOG.info("CoverageHandler : {}", sqlCoverageClassName);
 			} catch (Exception ex) {
-				COVERAGE_LOG.warn("Failed to generate CoverageHandler class. Class:{}, Cause:{}", sqlCoverageClassName,
+				COVERAGE_LOG.warn("Failed to instantiate CoverageHandler class. Class:{}, Cause:{}",
+						sqlCoverageClassName,
 						ex.getMessage());
+				COVERAGE_LOG.info("Turn off sql coverage due to failure to instantiate CoverageHandler class.");
 			}
 		}
 
@@ -1235,7 +1237,7 @@ public class SqlAgentImpl implements SqlAgent {
 
 		Instant startTime = null;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute search SQL.");
+			LOG.debug("Execute query sql. sqlName: {}", executionContext.getSqlName());
 		}
 		if (PERFORMANCE_LOG.isInfoEnabled()) {
 			startTime = Instant.now(getSqlConfig().getClock());
@@ -1384,7 +1386,9 @@ public class SqlAgentImpl implements SqlAgent {
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
-			LOG.debug("Performs update delegate of update process");
+			if (LOG.isInfoEnabled()) {
+				LOG.info("Performs update delegate of update process.");
+			}
 			return executionContext.getUpdateDelegate().apply(executionContext);
 		}
 
@@ -1396,7 +1400,7 @@ public class SqlAgentImpl implements SqlAgent {
 			executionContext.bindParams(stmt);
 
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute update SQL.");
+				LOG.debug("Execute update sql. sqlName: {}", executionContext.getSqlName());
 			}
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
@@ -1509,7 +1513,9 @@ public class SqlAgentImpl implements SqlAgent {
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
 			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
-			LOG.debug("Performs update delegate of batch process");
+			if (LOG.isInfoEnabled()) {
+				LOG.info("Performs update delegate of batch process.");
+			}
 			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
 		}
 
@@ -1521,7 +1527,7 @@ public class SqlAgentImpl implements SqlAgent {
 			executionContext.bindBatchParams(stmt);
 
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute batch process.");
+				LOG.debug("Execute batch sql. sqlName: {}", executionContext.getSqlName());
 			}
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
@@ -1645,7 +1651,7 @@ public class SqlAgentImpl implements SqlAgent {
 			executionContext.bindParams(callableStatement);
 
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute stored procedure.");
+				LOG.debug("Execute stored procedure. sqlName: {}", executionContext.getSqlName());
 			}
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
@@ -1788,7 +1794,9 @@ public class SqlAgentImpl implements SqlAgent {
 				// SQLカバレッジ用のログを出力する
 				var coverageData = new CoverageData(sqlName, originalSql,
 						contextTransformer.getPassedRoute());
-				COVERAGE_LOG.info("{}", coverageData);
+				if (COVERAGE_LOG.isDebugEnabled()) {
+					COVERAGE_LOG.debug("coverage data: {}", coverageData);
+				}
 
 				coverageHandlerRef.get().accept(coverageData);
 			}
@@ -1837,7 +1845,7 @@ public class SqlAgentImpl implements SqlAgent {
 			cause = cause.getNextException();
 		}
 
-		if (LOG.isErrorEnabled() && outputExceptionLog) {
+		if (outputExceptionLog && LOG.isErrorEnabled()) {
 			var builder = new StringBuilder();
 			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
 					.append(System.lineSeparator());

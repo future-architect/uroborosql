@@ -101,8 +101,10 @@ public class Parameter {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-							subParameterName);
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+								subParameterName);
+					}
 				}
 			} else {
 				try {
@@ -118,12 +120,16 @@ public class Parameter {
 								.getMethod(prefix + StringUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception e2) {
-						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-								subParameterName, e2);
+						if (LOG.isWarnEnabled()) {
+							LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+									subParameterName, e2);
+						}
 					}
 				} catch (Exception e) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-							subParameterName, e);
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+								subParameterName, e);
+					}
 				}
 			}
 		}
@@ -180,8 +186,8 @@ public class Parameter {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (SQL_LOG.isTraceEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			SQL_LOG.trace("Set the parameter.[INDEX[{}], {}]", index, this);
+		if (SQL_LOG.isInfoEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
+			SQL_LOG.info("Set the parameter.[INDEX[{}], {}]", index, this);
 		}
 	}
 

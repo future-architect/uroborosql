@@ -37,7 +37,7 @@ import jp.co.future.uroborosql.utils.StringUtils;
  */
 public class DumpResultEventSubscriber extends EventSubscriber {
 	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.event");
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
@@ -56,12 +56,13 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 	void sqlQuery(final SqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				LOG.warn(
-						"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+				if (EVENT_LOG.isWarnEnabled()) {
+					EVENT_LOG.warn(
+							"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
+				}
 			}
-			if (LOG.isInfoEnabled()) {
-				var builder = displayResult(evt.getResultSet());
-				LOG.debug("{}", builder);
+			if (EVENT_LOG.isDebugEnabled()) {
+				EVENT_LOG.debug("{}", displayResult(evt.getResultSet()));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

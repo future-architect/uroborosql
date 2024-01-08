@@ -13,12 +13,19 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -28,6 +35,9 @@ import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
 public class ExecutionContextImplTest {
+	/** ロガー */
+	protected static final Logger log = LoggerFactory.getLogger(ExecutionContextImplTest.class);
+
 	private static SqlConfig config = null;
 
 	@BeforeAll
@@ -43,7 +53,7 @@ public class ExecutionContextImplTest {
 	}
 
 	private String replaceLineSep(final String sql) {
-		return sql.replaceAll("\\[LF\\]", System.lineSeparator());
+		return sql.replace("[LF]", System.lineSeparator());
 	}
 
 	@Test
@@ -90,6 +100,17 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]where /* comment */ --comment [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
 				ctx62.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstAndKeyWordWhenWhereClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -128,6 +149,18 @@ public class ExecutionContextImplTest {
 		assertEquals(replaceLineSep(
 				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
 				ctx8.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSelectClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -168,6 +201,17 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenOrderByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -210,6 +254,17 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenGroupByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -261,6 +316,18 @@ public class ExecutionContextImplTest {
 				replaceLineSep(
 						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
 				ctx52.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep(
+				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenStartBracket elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -317,6 +384,17 @@ public class ExecutionContextImplTest {
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
 		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
 				ctx63.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSetClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
