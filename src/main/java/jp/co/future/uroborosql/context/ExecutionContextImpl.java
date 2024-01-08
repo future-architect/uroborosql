@@ -885,7 +885,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#bindParams(java.sql.PreparedStatement)
 	 */
 	@Override
-	public void bindParams(final PreparedStatement preparedStatement) throws SQLException {
+	public ExecutionContext bindParams(final PreparedStatement preparedStatement) throws SQLException {
 		var bindParameters = getBindParameters();
 
 		var matchParams = new HashSet<String>();
@@ -908,6 +908,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			missMatchParams.removeAll(matchParams);
 			throw new ParameterNotFoundRuntimeException("Parameter " + missMatchParams.toString() + " is not found.");
 		}
+		return this;
 	}
 
 	/**
@@ -916,7 +917,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#bindBatchParams(java.sql.PreparedStatement)
 	 */
 	@Override
-	public void bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
+	public ExecutionContext bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
 		// parameterMap に設定されている共通のパラメータ（ESCAPE_CHARなど）を引き継ぐため、退避しておく
 		var tempParamMap = new HashMap<>(parameterMap);
 		for (var paramMap : batchParameters) {
@@ -929,6 +930,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 		if (SQL_LOG.isDebugEnabled()) {
 			SQL_LOG.debug("{} items Added for batch process.", batchParameters.size());
 		}
+		return this;
 	}
 
 	/**
@@ -1020,8 +1022,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#addDefineColumnType(int, int)
 	 */
 	@Override
-	public void addDefineColumnType(final int column, final int type) {
+	public ExecutionContext addDefineColumnType(final int column, final int type) {
 		defineColumnTypeMap.put(column, type);
+		return this;
 	}
 
 	/**
@@ -1040,8 +1043,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setResultSetType(int)
 	 */
 	@Override
-	public void setResultSetType(final int resultSetType) {
+	public ExecutionContext setResultSetType(final int resultSetType) {
 		this.resultSetType = resultSetType;
+		return this;
 	}
 
 	/**
@@ -1060,8 +1064,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setResultSetConcurrency(int)
 	 */
 	@Override
-	public void setResultSetConcurrency(final int resultSetConcurrency) {
+	public ExecutionContext setResultSetConcurrency(final int resultSetConcurrency) {
 		this.resultSetConcurrency = resultSetConcurrency;
+		return this;
 	}
 
 	/**
@@ -1090,8 +1095,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setSqlKind(jp.co.future.uroborosql.enums.SqlKind)
 	 */
 	@Override
-	public void setSqlKind(final SqlKind sqlKind) {
+	public ExecutionContext setSqlKind(final SqlKind sqlKind) {
 		this.sqlKind = sqlKind;
+		return this;
 	}
 
 	/**
@@ -1170,8 +1176,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setGeneratedKeyColumns(java.lang.String[])
 	 */
 	@Override
-	public void setGeneratedKeyColumns(final String[] generatedKeyColumns) {
+	public ExecutionContext setGeneratedKeyColumns(final String[] generatedKeyColumns) {
 		this.generatedKeyColumns = generatedKeyColumns;
+		return this;
 	}
 
 	/**
@@ -1190,8 +1197,9 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 * @see jp.co.future.uroborosql.context.ExecutionContext#setGeneratedKeyValues(java.lang.Object[])
 	 */
 	@Override
-	public void setGeneratedKeyValues(final Object[] generatedKeyValues) {
+	public ExecutionContext setGeneratedKeyValues(final Object[] generatedKeyValues) {
 		this.generatedKeyValues = generatedKeyValues;
+		return this;
 	}
 
 	/**

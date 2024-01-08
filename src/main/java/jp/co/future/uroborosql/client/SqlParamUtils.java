@@ -10,13 +10,22 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -26,6 +35,7 @@ import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
+import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -124,6 +134,85 @@ public final class SqlParamUtils {
 
 		// 指定がなかったキーについてはnullを設定する
 		bindParams.forEach(s -> ctx.param(s, null));
+	}
+
+	/**
+	 * パラメータリストをREPLコマンド用の引数文字列に変換する.
+	 *
+	 * @param params 変換するパラメータのリスト
+	 * @return REPLコマンド用の引数文字列
+	 */
+	public static String formatPrams(final List<Parameter> params) {
+		return params.stream()
+				.map(SqlParamUtils::formatParam)
+				.collect(Collectors.joining(" "));
+	}
+
+	/**
+	 * パラメータをREPLコマンド用引数文字列に変換する.
+	 * @param param 変換対象パラメータ
+	 * @return REPLコマンド引数文字列
+	 */
+	public static String formatParam(final Parameter param) {
+		return param.getParameterName() + "=" + formatParamValue(param.getValue());
+	}
+
+	/**
+	 * パラメータの値をREPLコマンド用の値文字列に変換する.
+	 * @param val 変換対象の値
+	 * @return REPLコマンド用の値文字列
+	 */
+	private static String formatParamValue(final Object val) {
+		if (Objects.isNull(val)) {
+			return "[NULL]";
+		} else if (val instanceof Integer) {
+			return val.toString();
+		} else if (val instanceof Long) {
+			return val.toString() + "L";
+		} else if (val instanceof Float) {
+			return val.toString() + "F";
+		} else if (val instanceof Double) {
+			return val.toString() + "D";
+		} else if (val instanceof BigDecimal) {
+			return ((BigDecimal) val).toPlainString();
+		} else if (val instanceof Date) {
+			var date = ((Date) val).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			return "'" + DateTimeFormatter.ISO_DATE.format(date) + "'";
+		} else if (val instanceof LocalDate) {
+			return "'" + DateTimeFormatter.ISO_DATE.format((LocalDate) val) + "'";
+		} else if (val instanceof LocalDateTime) {
+			return "'" + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format((LocalDateTime) val) + "'";
+		} else if (val instanceof OffsetDateTime) {
+			return "'" + DateTimeFormatter.ISO_OFFSET_DATE_TIME.format((OffsetDateTime) val) + "'";
+		} else if (val instanceof ZonedDateTime) {
+			return "'" + DateTimeFormatter.ISO_ZONED_DATE_TIME.format((ZonedDateTime) val) + "'";
+		} else if (val instanceof LocalTime) {
+			return "'" + DateTimeFormatter.ISO_LOCAL_TIME.format((LocalTime) val) + "'";
+		} else if (val instanceof OffsetTime) {
+			return "'" + DateTimeFormatter.ISO_OFFSET_TIME.format((OffsetTime) val) + "'";
+		} else if (val instanceof Optional) {
+			return formatParamValue(((Optional<?>) val).orElse(null));
+		} else if (val instanceof List) {
+			var list = (List<?>) val;
+			return list.stream()
+					.map(SqlParamUtils::formatParamValue)
+					.collect(Collectors.joining(",", "[", "]"));
+		} else if (val.getClass().isArray()) {
+			var arr = (Object[]) val;
+			return Arrays.stream(arr)
+					.map(SqlParamUtils::formatParamValue)
+					.collect(Collectors.joining(",", "[", "]"));
+		} else if ("".equals(val)) {
+			return "[EMPTY]";
+		} else {
+			var str = val.toString();
+			if (str.contains(" ")) {
+				return "'" + str + "'";
+			} else {
+				return str;
+			}
+		}
+
 	}
 
 	/**
@@ -233,9 +322,9 @@ public final class SqlParamUtils {
 	 * <li>1000.01F -> (Float)1000.01F</li>
 	 * <li>+1000.01F -> (Float)1000.01F</li>
 	 * <li>-1000.01F -> (Float)-1000.01F</li>
-	 * <li>1000.01D -> (Float)1000.01D</li>
-	 * <li>+1000.01D -> (Float)1000.01D</li>
-	 * <li>-1000.01D -> (Float)-1000.01D</li>
+	 * <li>1000.01D -> (Double)1000.01D</li>
+	 * <li>+1000.01D -> (Double)1000.01D</li>
+	 * <li>-1000.01D -> (Double)-1000.01D</li>
 	 * </ul>
 	 * （※）各Number型で桁あふれした場合はBigDecimal型が返却される
 	 *

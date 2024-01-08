@@ -109,26 +109,6 @@ public interface SqlAgent extends TransactionManager {
 	ExecutionContext context();
 
 	/**
-	 * ファイル指定のExecutionContextの生成
-	 *
-	 * @deprecated 代わりに context().setSqlName(sqlName) を利用してください
-	 * @param sqlName SQLファイルのルートからの相対パス（ファイル拡張子なし）を指定
-	 * @return 生成したExecutionContext
-	 */
-	@Deprecated(since = "1.0.0", forRemoval = true)
-	ExecutionContext contextFrom(String sqlName);
-
-	/**
-	 * SQL文を指定したExecutionContextの生成
-	 *
-	 * @deprecated 代わりに context().setSql(sql) を利用してください
-	 * @param sql SQL文の文字列
-	 * @return 生成したExecutionContext
-	 */
-	@Deprecated(since = "1.0.0", forRemoval = true)
-	ExecutionContext contextWith(String sql);
-
-	/**
 	 * フェッチサイズ取得。
 	 *
 	 * @return フェッチサイズ
@@ -139,8 +119,9 @@ public interface SqlAgent extends TransactionManager {
 	 * フェッチサイズ設定。
 	 *
 	 * @param fetchSize フェッチサイズ
+	 * @return SqlAgent
 	 */
-	void setFetchSize(int fetchSize);
+	SqlAgent setFetchSize(int fetchSize);
 
 	/**
 	 * クエリータイムアウト制限値取得。
@@ -153,8 +134,9 @@ public interface SqlAgent extends TransactionManager {
 	 * クエリータイムアウト制限値設定。
 	 *
 	 * @param queryTimeout クエリータイムアウト制限値
+	 * @return SqlAgent
 	 */
-	void setQueryTimeout(int queryTimeout);
+	SqlAgent setQueryTimeout(int queryTimeout);
 
 	/**
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを取得する
@@ -167,8 +149,9 @@ public interface SqlAgent extends TransactionManager {
 	 * Queryの結果を格納するMapのキーを生成する際に使用するCaseFormatを設定する。
 	 *
 	 * @param mapKeyCaseFormat Queryの結果を格納するMapのキーを生成する際に使用するCaseFormat
+	 * @return SqlAgent
 	 */
-	void setMapKeyCaseFormat(final CaseFormat mapKeyCaseFormat);
+	SqlAgent setMapKeyCaseFormat(final CaseFormat mapKeyCaseFormat);
 
 	/**
 	 * {@link InsertsType}を取得する
@@ -182,9 +165,10 @@ public interface SqlAgent extends TransactionManager {
 	 * {@link InsertsType}を設定する
 	 *
 	 * @param insertsType {@link InsertsType}
+	 * @return SqlAgent
 	 * @see jp.co.future.uroborosql.enums.InsertsType
 	 */
-	void setInsertsType(InsertsType insertsType);
+	SqlAgent setInsertsType(InsertsType insertsType);
 
 	/**
 	 * クエリ実行処理。

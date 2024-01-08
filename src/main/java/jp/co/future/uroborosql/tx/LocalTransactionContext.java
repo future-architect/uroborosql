@@ -126,8 +126,11 @@ class LocalTransactionContext implements TransactionContext {
 		PreparedStatement stmt = null;
 		switch (executionContext.getSqlKind()) {
 		case INSERT:
+		case ENTITY_INSERT:
 		case BULK_INSERT:
 		case BATCH_INSERT:
+		case ENTITY_BULK_INSERT:
+		case ENTITY_BATCH_INSERT:
 			if (updatable) {
 				if (executionContext.hasGeneratedKeyColumns()) {
 					stmt = conn.prepareStatement(executionContext.getExecutableSql(),
@@ -140,6 +143,7 @@ class LocalTransactionContext implements TransactionContext {
 			}
 			break;
 		case SELECT:
+		case ENTITY_SELECT:
 			stmt = conn.prepareStatement(executionContext.getExecutableSql(),
 					executionContext.getResultSetType(),
 					executionContext.getResultSetConcurrency());

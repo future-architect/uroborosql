@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -167,7 +166,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -236,7 +235,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			rs.next();
 			return rs.getLong(1);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -265,7 +264,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -291,7 +290,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -317,7 +316,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
 		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -339,7 +338,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				runnable.run();
 			}
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
@@ -361,7 +360,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				runnable.run();
 			}
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.SELECT, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 

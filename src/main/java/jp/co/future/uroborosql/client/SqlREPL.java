@@ -86,7 +86,7 @@ public class SqlREPL {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.setting")).setLevel(Level.ERROR);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.INFO);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.event")).setLevel(Level.DEBUG);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.repl")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.repl")).setLevel(Level.WARN);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.DEBUG);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage")).setLevel(Level.ERROR);

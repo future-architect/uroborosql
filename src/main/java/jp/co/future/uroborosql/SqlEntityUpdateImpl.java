@@ -11,7 +11,6 @@ import java.sql.SQLType;
 import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -54,7 +53,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
 			return this.entityHandler.doUpdate(agent(), context(), null);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 
