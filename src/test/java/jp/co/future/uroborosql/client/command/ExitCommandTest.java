@@ -34,7 +34,7 @@ public class ExitCommandTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.build();
 		agent = sqlConfig.agent();
 

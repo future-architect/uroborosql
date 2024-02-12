@@ -31,7 +31,7 @@ public class SqlAgentQueryWithIteratorTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),

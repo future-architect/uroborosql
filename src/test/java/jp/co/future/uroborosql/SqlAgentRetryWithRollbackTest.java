@@ -36,7 +36,7 @@ public class SqlAgentRetryWithRollbackTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentRetryWithRollbackTest;DB_CLOSE_DELAY=-1", "sa", "sa")
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa")
 				.setDialect(new PostgresqlDialect())
 				.build();
 		config.getSqlAgentProvider().setSqlRetryCodeList(List.of("54", "60", "30006"));

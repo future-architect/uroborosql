@@ -26,7 +26,7 @@ public class DriverShimTest {
 
 	@Test
 	void testConnect() throws Exception {
-		var conn = driver.connect("jdbc:h2:mem:" + this.getClass().getSimpleName(), null);
+		var conn = driver.connect("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", null);
 		assertThat(conn, is(notNullValue()));
 	}
 

@@ -15,7 +15,6 @@ import java.sql.JDBCType;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,15 +24,11 @@ import jp.co.future.uroborosql.parameter.ReaderParameter;
 import jp.co.future.uroborosql.parameter.StreamParameter;
 
 public class AbstractSqlFluentTest {
-	private static SqlConfig config = null;
-
-	@BeforeAll
-	public static void setUpClass() {
-		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextImplTest", "sa", "").build();
-	}
+	private SqlConfig config = null;
 
 	@BeforeEach
 	public void setUp() throws Exception {
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "sa", "").build();
 	}
 
 	@AfterEach

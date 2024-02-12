@@ -40,7 +40,7 @@ public class SqlAgentRetryTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentRetryTest")).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getSqlAgentProvider().setSqlRetryCodeList(List.of("54", "60", "30006"));
 
 		agent = config.agent();

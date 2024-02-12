@@ -20,7 +20,7 @@ public class ProcedureTest {
 
 	@BeforeEach
 	public void setUp() {
-		config = UroboroSQL.builder("jdbc:h2:mem:LocalTxManagerTest;DB_CLOSE_DELAY=-1", "sa", null).build();
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();

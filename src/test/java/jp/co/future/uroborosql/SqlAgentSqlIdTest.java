@@ -29,7 +29,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	void testDefault() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getEventListenerHolder().addSqlQueryListener(evt -> {
 			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
 		});
@@ -52,7 +52,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	void testDefault2() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getEventListenerHolder().addSqlQueryListener(evt -> {
 			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
 		});
@@ -74,7 +74,7 @@ public class SqlAgentSqlIdTest {
 	@Test
 	void testCustom() throws SQLException {
 		List<List<String>> querys = new ArrayList<>();
-		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentSqlIdTest")).build();
+		var config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getSqlAgentProvider().setSqlIdKeyName("_TESTSQL_ID_");
 		config.getEventListenerHolder().addSqlQueryListener(evt -> {
 			querys.add(toLines(evt.getExecutionContext().getExecutableSql()));
