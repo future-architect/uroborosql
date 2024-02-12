@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 public class ProcedureTest {
 	/**
@@ -20,7 +21,8 @@ public class ProcedureTest {
 
 	@BeforeEach
 	public void setUp() {
-		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa").build();
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa")
+				.build();
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				agent.updateWith("DROP ALIAS IF EXISTS MYFUNCTION").count();
@@ -109,4 +111,54 @@ public class ProcedureTest {
 			});
 		}
 	}
+
+	/**
+	 * SQLファイルが存在しない場合のテストケース。
+	 */
+	@Test
+	void testNotFoundFile() throws Exception {
+		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
+			try (var agent = config.agent()) {
+				var ctx = agent.context().setSqlName("file");
+				agent.procedure(ctx);
+			}
+		});
+	}
+
+	/**
+	 * SQLファイルが空文字の場合のテストケース。
+	 */
+	@Test
+	void testSqlNameEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.proc("");
+			}
+		});
+	}
+
+	/**
+	 * プロシージャ実行処理のテストケース（SQLがNULLの場合）。
+	 */
+	@Test
+	void testProcWithSqlNull() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.procWith(null);
+			}
+		});
+	}
+
+	/**
+	 * プロシージャ実行処理のテストケース（SQLがEmptyの場合）。
+	 */
+	@Test
+	void testProcWithSqlEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			try (var agent = config.agent()) {
+				agent.procWith("");
+			}
+		});
+	}
+
 }

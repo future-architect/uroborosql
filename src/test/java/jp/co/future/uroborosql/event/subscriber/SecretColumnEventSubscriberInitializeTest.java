@@ -3,25 +3,18 @@ package jp.co.future.uroborosql.event.subscriber;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.sql.DriverManager;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-public class SecretColumnEventSubscriberInitializeTest {
-	private SqlConfig config;
+public class SecretColumnEventSubscriberInitializeTest extends AbstractEventSubscriberTest {
 	private SecretColumnEventSubscriber eventSubscriber;
 
 	@BeforeEach
-	public void setUp() throws Exception {
-		config = UroboroSQL
-				.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberInitializeTest"))
-				.build();
+	public void setUpLocal() throws Exception {
 		eventSubscriber = new SecretColumnEventSubscriber();
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 	}

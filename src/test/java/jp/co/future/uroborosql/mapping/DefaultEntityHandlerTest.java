@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -1780,7 +1781,7 @@ public class DefaultEntityHandlerTest {
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				var count = agent.inserts(Stream.of(test1, test2, test3));
+				var count = agent.inserts(Stream.of(test1, test2, test3), InsertsType.BULK);
 				assertThat(count, is(3));
 
 				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -1809,7 +1810,7 @@ public class DefaultEntityHandlerTest {
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				var count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3));
+				var count = agent.inserts(TestEntityForInserts.class, Stream.of(test1, test2, test3), InsertsType.BULK);
 				assertThat(count, is(3));
 
 				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -1838,7 +1839,7 @@ public class DefaultEntityHandlerTest {
 						LocalDate.of(1990, Month.APRIL, 3),
 						"memo3");
 
-				var count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0);
+				var count = agent.inserts(Stream.of(test1, test2, test3), (ctx, cnt, r) -> cnt > 0, InsertsType.BULK);
 				assertThat(count, is(3));
 
 				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -1870,7 +1871,8 @@ public class DefaultEntityHandlerTest {
 						LocalDate.of(1990, Month.APRIL, 4),
 						"memo4");
 
-				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3);
+				var count = agent.inserts(Stream.of(test1, test2, test3, test4), (ctx, cnt, r) -> cnt == 3,
+						InsertsType.BULK);
 				assertThat(count, is(4));
 
 				var data = agent.find(TestEntityForInserts.class, 1).orElse(null);
@@ -1881,6 +1883,28 @@ public class DefaultEntityHandlerTest {
 				assertThat(data, is(test3));
 				data = agent.find(TestEntityForInserts.class, 4).orElse(null);
 				assertThat(data, is(test4));
+
+			});
+		}
+	}
+
+	@Test
+	void testBulkInsert5() throws Exception {
+
+		try (var agent = config.agent()) {
+			agent.required(() -> {
+				var count = agent.inserts(IntStream.range(1, 20)
+						.mapToObj(i -> new TestEntityForInserts(Long.valueOf(String.valueOf(i)), "name" + i, 20 + i,
+								LocalDate.of(1990, Month.APRIL, i), "memo" + i)),
+						InsertsType.BULK);
+				assertThat(count, is(19));
+
+				var data = agent.find(TestEntityForInserts.class, 1).orElseThrow();
+				assertThat(data.getName(), is("name1"));
+				data = agent.find(TestEntityForInserts.class, 2).orElseThrow();
+				assertThat(data.getName(), is("name2"));
+				data = agent.find(TestEntityForInserts.class, 3).orElseThrow();
+				assertThat(data.getName(), is("name3"));
 
 			});
 		}

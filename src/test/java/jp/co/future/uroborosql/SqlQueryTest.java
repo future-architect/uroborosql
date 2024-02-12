@@ -3,6 +3,7 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,9 +48,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
@@ -173,6 +176,26 @@ public class SqlQueryTest extends AbstractDbTest {
 				.collect();
 
 		assertThat(result.size(), is(2));
+	}
+
+	/**
+	 * クエリ実行処理のテストケース（SQLがNULLの場合）。
+	 */
+	@Test
+	void testQueryWithSqlNull() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.queryWith(null);
+		});
+	}
+
+	/**
+	 * クエリ実行処理のテストケース（SQLがEmptyの場合）。
+	 */
+	@Test
+	void testQueryWithSqlEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.queryWith("");
+		});
 	}
 
 	/**
@@ -1356,20 +1379,63 @@ public class SqlQueryTest extends AbstractDbTest {
 	}
 
 	/**
+	 * SqlAgentのsetter/getterのテスト.
+	 */
+	@Test
+	void testSetterGetter() throws Exception {
+		agent.setFetchSize(100);
+		assertThat(agent.getFetchSize(), is(100));
+		agent.setFetchSize(200);
+		assertThat(agent.getFetchSize(), is(200));
+
+		agent.setInsertsType(InsertsType.BULK);
+		assertThat(agent.getInsertsType(), is(InsertsType.BULK));
+		agent.setInsertsType(InsertsType.BATCH);
+		assertThat(agent.getInsertsType(), is(InsertsType.BATCH));
+
+		agent.setMapKeyCaseFormat(CaseFormat.PASCAL_CASE);
+		assertThat(agent.getMapKeyCaseFormat(), is(CaseFormat.PASCAL_CASE));
+		agent.setMapKeyCaseFormat(CaseFormat.CAMEL_CASE);
+		assertThat(agent.getMapKeyCaseFormat(), is(CaseFormat.CAMEL_CASE));
+
+		agent.setQueryTimeout(100);
+		assertThat(agent.getQueryTimeout(), is(100));
+		agent.setQueryTimeout(0);
+		assertThat(agent.getQueryTimeout(), is(0));
+
+		((SqlAgentImpl) agent).setMaxRetryCount(10);
+		assertThat(((SqlAgentImpl) agent).getMaxRetryCount(), is(10));
+		((SqlAgentImpl) agent).setMaxRetryCount(0);
+		assertThat(((SqlAgentImpl) agent).getMaxRetryCount(), is(0));
+
+		((SqlAgentImpl) agent).setRetryWaitTime(10);
+		assertThat(((SqlAgentImpl) agent).getRetryWaitTime(), is(10));
+		((SqlAgentImpl) agent).setRetryWaitTime(0);
+		assertThat(((SqlAgentImpl) agent).getRetryWaitTime(), is(0));
+
+		((SqlAgentImpl) agent).setSqlRetryCodes(List.of("60"));
+		assertThat(((SqlAgentImpl) agent).getSqlRetryCodes(), containsInAnyOrder("60"));
+	}
+
+	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */
 	@Test
 	void testNotFoundFile() throws Exception {
-		try {
+		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
 			var ctx = agent.context().setSqlName("file");
 			agent.query(ctx);
-			// 例外が発生しなかった場合
-			fail();
-		} catch (UroborosqlRuntimeException ex) {
-			// OK
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
+		});
+	}
+
+	/**
+	 * SQLファイルが空文字の場合のテストケース。
+	 */
+	@Test
+	void testSqlNameEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.query("");
+		});
 	}
 
 	/**

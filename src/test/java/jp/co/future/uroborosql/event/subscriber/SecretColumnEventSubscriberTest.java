@@ -3,45 +3,30 @@ package jp.co.future.uroborosql.event.subscriber;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
-import jp.co.future.uroborosql.utils.StringUtils;
 
-public class SecretColumnEventSubscriberTest {
-
-	private SqlConfig config;
-
+public class SecretColumnEventSubscriberTest extends AbstractEventSubscriberTest {
 	private SecretColumnEventSubscriber eventSubscriber;
 
 	@BeforeEach
-	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest")).build();
+	public void setUpLocal() throws Exception {
 		eventSubscriber = new SecretColumnEventSubscriber();
 
 		eventSubscriber.setCryptColumnNames(List.of("PRODUCT_NAME"));
@@ -56,76 +41,6 @@ public class SecretColumnEventSubscriberTest {
 		eventSubscriber.setCharset("UTF-8");
 		eventSubscriber.setTransformationType("AES/ECB/PKCS5Padding");
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
-
-		try (var agent = config.agent()) {
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
-					StandardCharsets.UTF_8).split(";");
-			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
-					agent.updateWith(sql.trim()).count();
-				}
-			}
-			agent.commit();
-		} catch (UroborosqlSQLException ex) {
-			ex.printStackTrace();
-			fail(ex.getMessage());
-		}
-	}
-
-	private List<Map<String, Object>> getDataFromFile(final Path path) {
-		List<Map<String, Object>> ans = new ArrayList<>();
-		try {
-			Files.readAllLines(path, StandardCharsets.UTF_8).forEach(line -> {
-				Map<String, Object> row = new LinkedHashMap<>();
-				var parts = line.split("\t");
-				for (var part : parts) {
-					var keyValue = part.split(":", 2);
-					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
-				}
-				ans.add(row);
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return ans;
-	}
-
-	private void truncateTable(final Object... tables) {
-		try {
-			List.of(tables).stream().forEach(tbl -> {
-				try (var agent = config.agent()) {
-					agent.updateWith("truncate table " + tbl.toString()).count();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					fail("TABLE:" + tbl + " truncate is miss. ex:" + ex.getMessage());
-				}
-			});
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			fail(ex.getMessage());
-		}
-	}
-
-	private void cleanInsert(final Path path) {
-		var dataList = getDataFromFile(path);
-
-		try {
-			dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-					.forEach(this::truncateTable);
-
-			dataList.stream().forEach(map -> {
-				try (var agent = config.agent()) {
-					agent.update(map.get("sql").toString()).paramMap(map).count();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					fail("TABLE:" + map.get("table") + " insert is miss. ex:" + ex.getMessage());
-				}
-			});
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			fail(ex.getMessage());
-		}
 	}
 
 	@Test
@@ -140,7 +55,8 @@ public class SecretColumnEventSubscriberTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		// skipFilter = falseの別のフィルター設定
-		var skipConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SecretColumnEventSubscriberTest"))
+		var skipConfig = UroboroSQL
+				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
 		var skipEventSubscriber = new SecretColumnEventSubscriber();
 
@@ -188,10 +104,9 @@ public class SecretColumnEventSubscriberTest {
 	void testSecretResultSet01() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var result = agent.query("example/select_product")
-					.param("product_id", new BigDecimal(0))
-					.resultSet();
+		try (var result = agent.query("example/select_product")
+				.param("product_id", new BigDecimal(0))
+				.resultSet()) {
 
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_ID"), is("0"));
@@ -201,7 +116,6 @@ public class SecretColumnEventSubscriberTest {
 				assertThat(result.getObject("PRODUCT_ID"), is(BigDecimal.ZERO));
 				assertThat(result.getObject("PRODUCT_ID", Integer.class), is(0));
 			}
-			result.close();
 		}
 	}
 
@@ -209,17 +123,13 @@ public class SecretColumnEventSubscriberTest {
 	void testSecretResultSet02() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var ctx = agent.context().setSqlName("example/select_product")
-					.param("product_id", new BigDecimal(0));
-
-			var result = agent.query(ctx);
+		try (var result = agent.query(agent.context().setSqlName("example/select_product")
+				.param("product_id", new BigDecimal(0)))) {
 			while (result.next()) {
 				assertThat(result.getString("PRODUCT_NAME"), is("商品名0"));
 				assertThat(result.getObject("PRODUCT_NAME"), is("商品名0"));
 				assertThat(result.getObject("PRODUCT_NAME", String.class), is("商品名0"));
 			}
-			result.close();
 		}
 	}
 
@@ -227,12 +137,10 @@ public class SecretColumnEventSubscriberTest {
 	void testSecretResultSet03() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var ctx = agent.context().setSqlName("example/select_product")
-					.param("product_id", new BigDecimal(0));
-			ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-
-			var result = agent.query(ctx);
+		var ctx = agent.context().setSqlName("example/select_product")
+				.param("product_id", new BigDecimal(0));
+		ctx.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+		try (var result = agent.query(ctx)) {
 			while (result.next()) {
 				result.first();
 				assertThat(result.isFirst(), is(true));
@@ -257,7 +165,6 @@ public class SecretColumnEventSubscriberTest {
 				assertThat(result.unwrap(SecretResultSet.class).getCryptColumnNames(),
 						is(List.of("PRODUCT_NAME")));
 			}
-			result.close();
 		}
 	}
 
@@ -265,68 +172,62 @@ public class SecretColumnEventSubscriberTest {
 	void testWithModel() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			var product = new Product();
-			product.setProductId(10);
-			product.setProductName(Optional.of("商品名１０"));
-			product.setVersionNo(1);
+		var product = new Product();
+		product.setProductId(10);
+		product.setProductName(Optional.of("商品名１０"));
+		product.setVersionNo(1);
 
-			agent.insert(product);
+		agent.insert(product);
 
-			var result = agent.query(Product.class)
-					.equal("productId", new BigDecimal(10))
-					.first().orElseThrow(Exception::new);
-			assertThat(result.getProductName().isPresent(), is(true));
-			assertThat(result.getProductName().orElse(null), is("商品名１０"));
-		}
+		var result = agent.query(Product.class)
+				.equal("productId", new BigDecimal(10))
+				.first().orElseThrow(Exception::new);
+		assertThat(result.getProductName().isPresent(), is(true));
+		assertThat(result.getProductName().orElse(null), is("商品名１０"));
 	}
 
 	@Test
 	void testSqlInsertOptional() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			agent.update("example/insert_product_for_optional")
-					.param("product_id", 10)
-					.param("product_name", Optional.of("商品名１０"))
-					.param("product_kana_name", Optional.of("ショウヒンメイ１０"))
-					.param("jan_code", "1234567890123")
-					.param("product_description", "１０番目の商品")
-					.param("ins_datetime", new Date())
-					.param("upd_datetime", new Date())
-					.param("version_no", 1)
-					.count();
+		agent.update("example/insert_product_for_optional")
+				.param("product_id", 10)
+				.param("product_name", Optional.of("商品名１０"))
+				.param("product_kana_name", Optional.of("ショウヒンメイ１０"))
+				.param("jan_code", "1234567890123")
+				.param("product_description", "１０番目の商品")
+				.param("ins_datetime", new Date())
+				.param("upd_datetime", new Date())
+				.param("version_no", 1)
+				.count();
 
-			var result = agent.query(Product.class)
-					.equal("productId", new BigDecimal(10))
-					.first().orElseThrow(Exception::new);
-			assertThat(result.getProductName().isPresent(), is(true));
-			assertThat(result.getProductName().orElse(null), is("商品名１０"));
-		}
+		var result = agent.query(Product.class)
+				.equal("productId", new BigDecimal(10))
+				.first().orElseThrow(Exception::new);
+		assertThat(result.getProductName().isPresent(), is(true));
+		assertThat(result.getProductName().orElse(null), is("商品名１０"));
 	}
 
 	@Test
 	void testSqlInsertOptionalEmpty() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		try (var agent = config.agent()) {
-			agent.update("example/insert_product_for_optional")
-					.param("product_id", 10)
-					.param("product_name", Optional.empty())
-					.param("product_kana_name", Optional.empty())
-					.param("jan_code", "1234567890123")
-					.param("product_description", "１０番目の商品")
-					.param("ins_datetime", new Date())
-					.param("upd_datetime", new Date())
-					.param("version_no", 1)
-					.count();
+		agent.update("example/insert_product_for_optional")
+				.param("product_id", 10)
+				.param("product_name", Optional.empty())
+				.param("product_kana_name", Optional.empty())
+				.param("jan_code", "1234567890123")
+				.param("product_description", "１０番目の商品")
+				.param("ins_datetime", new Date())
+				.param("upd_datetime", new Date())
+				.param("version_no", 1)
+				.count();
 
-			var result = agent.query(Product.class)
-					.equal("productId", new BigDecimal(10))
-					.first().orElseThrow(Exception::new);
-			assertThat(result.getProductName().isPresent(), is(false));
-			assertThat(result.getProductKanaName().isPresent(), is(false));
-		}
+		var result = agent.query(Product.class)
+				.equal("productId", new BigDecimal(10))
+				.first().orElseThrow(Exception::new);
+		assertThat(result.getProductName().isPresent(), is(false));
+		assertThat(result.getProductKanaName().isPresent(), is(false));
 	}
 
 	@Table(name = "PRODUCT")

@@ -1,0 +1,4 @@
+Begin Transaction - connection:jp.co.future.uroborosql.connection.CloseIgnoringConnectionWrapper@XXXXXXXX
+Before Set Parameter - Parameter:Parameter name[product_id], Value[0], Class[BigDecimal]
+Execute Query - sqlName:example/select_product executed.
+End Transaction - connection:jp.co.future.uroborosql.connection.CloseIgnoringConnectionWrapper@XXXXXXXX, result:null

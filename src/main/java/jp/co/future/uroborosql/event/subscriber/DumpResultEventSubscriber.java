@@ -219,7 +219,9 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 		}
 
 		var ce = Charset.forName(ENCODING_SHIFT_JIS).newEncoder()
-				.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE).reset();
+				.onMalformedInput(CodingErrorAction.REPLACE)
+				.onUnmappableCharacter(CodingErrorAction.REPLACE)
+				.reset();
 		if (capacity >= ce.maxBytesPerChar() * str.length()) {
 			return str;
 		}

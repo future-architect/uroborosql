@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -125,16 +125,40 @@ public class SqlUpdateTest extends AbstractDbTest {
 	 */
 	@Test
 	void testNotFoundFile() throws Exception {
-		try {
+		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
 			var ctx = agent.context().setSqlName("file");
 			agent.update(ctx);
-			// 例外が発生しなかった場合
-			fail();
-		} catch (UroborosqlRuntimeException ex) {
-			// OK
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
+		});
+	}
+
+	/**
+	 * SQLファイルが空文字の場合のテストケース。
+	 */
+	@Test
+	void testSqlNameEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.update("");
+		});
+	}
+
+	/**
+	 * 更新実行処理のテストケース（SQLがNULLの場合）。
+	 */
+	@Test
+	void testUpdateWithSqlNull() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.updateWith(null);
+		});
+	}
+
+	/**
+	 * 更新実行処理のテストケース（SQLがEmptyの場合）。
+	 */
+	@Test
+	void testUpdateWithSqlEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.updateWith("");
+		});
 	}
 
 	/**

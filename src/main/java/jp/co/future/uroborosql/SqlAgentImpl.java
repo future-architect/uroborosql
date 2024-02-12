@@ -448,6 +448,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlQuery query(final String sqlName) {
+		if ("".equals(sqlName)) {
+			throw new IllegalArgumentException("sqlName is required.");
+		}
 		return new SqlQueryImpl(this, context().setSqlName(sqlName));
 	}
 
@@ -458,10 +461,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlQuery query(final Supplier<String> supplier) {
-		if (supplier == null) {
-			throw new IllegalArgumentException("supplier is required.");
-		}
-		return new SqlQueryImpl(this, context().setSqlName(supplier.get()));
+		return this.query(supplier.get());
 	}
 
 	/**
@@ -471,6 +471,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlQuery queryWith(final String sql) {
+		if (sql == null || "".equals(sql)) {
+			throw new IllegalArgumentException("sql is required.");
+		}
 		return new SqlQueryImpl(this, context().setSql(sql));
 	}
 
@@ -481,6 +484,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlUpdate update(final String sqlName) {
+		if ("".equals(sqlName)) {
+			throw new IllegalArgumentException("sqlName is required.");
+		}
 		return new SqlUpdateImpl(this, context().setSqlName(sqlName));
 	}
 
@@ -491,10 +497,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlUpdate update(final Supplier<String> supplier) {
-		if (supplier == null) {
-			throw new IllegalArgumentException("supplier is required.");
-		}
-		return new SqlUpdateImpl(this, context().setSqlName(supplier.get()));
+		return this.update(supplier.get());
 	}
 
 	/**
@@ -504,6 +507,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlUpdate updateWith(final String sql) {
+		if (sql == null || "".equals(sql)) {
+			throw new IllegalArgumentException("sql is required.");
+		}
 		return new SqlUpdateImpl(this, context().setSql(sql));
 	}
 
@@ -514,6 +520,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlBatch batch(final String sqlName) {
+		if ("".equals(sqlName)) {
+			throw new IllegalArgumentException("sqlName is required.");
+		}
 		return new SqlBatchImpl(this, context().setSqlName(sqlName));
 	}
 
@@ -524,10 +533,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlBatch batch(final Supplier<String> supplier) {
-		if (supplier == null) {
-			throw new IllegalArgumentException("supplier is required.");
-		}
-		return new SqlBatchImpl(this, context().setSqlName(supplier.get()));
+		return this.batch(supplier.get());
 	}
 
 	/**
@@ -537,6 +543,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public SqlBatch batchWith(final String sql) {
+		if (sql == null || "".equals(sql)) {
+			throw new IllegalArgumentException("sql is required.");
+		}
 		return new SqlBatchImpl(this, context().setSql(sql));
 	}
 
@@ -547,6 +556,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public Procedure proc(final String sqlName) {
+		if ("".equals(sqlName)) {
+			throw new IllegalArgumentException("sqlName is required.");
+		}
 		return new ProcedureImpl(this, context().setSqlName(sqlName));
 	}
 
@@ -557,10 +569,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public Procedure proc(final Supplier<String> supplier) {
-		if (supplier == null) {
-			throw new IllegalArgumentException("supplier is required.");
-		}
-		return new ProcedureImpl(this, context().setSqlName(supplier.get()));
+		return this.proc(supplier.get());
 	}
 
 	/**
@@ -570,6 +579,9 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public Procedure procWith(final String sql) {
+		if (sql == null || "".equals(sql)) {
+			throw new IllegalArgumentException("sql is required.");
+		}
 		return new ProcedureImpl(this, context().setSql(sql));
 	}
 

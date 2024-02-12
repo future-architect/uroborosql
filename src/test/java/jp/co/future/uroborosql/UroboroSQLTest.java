@@ -32,6 +32,7 @@ import jp.co.future.uroborosql.connection.DataSourceConnectionContext;
 import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
+import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.StringUtils;
@@ -308,6 +309,19 @@ public class UroboroSQLTest {
 						assertTrue(m.containsKey("versionNo"));
 					});
 
+			agent.rollback();
+		}
+
+		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+	}
+
+	@Test
+	void builderWithInsertsType() throws Exception {
+		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "")
+				.setSqlAgentProvider(new SqlAgentProviderImpl().setDefaultInsertsType(InsertsType.BULK))
+				.build();
+		try (var agent = config.agent()) {
+			assertThat(agent.getInsertsType(), is(InsertsType.BULK));
 			agent.rollback();
 		}
 
