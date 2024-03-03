@@ -1288,7 +1288,7 @@ public class SqlAgentImpl implements SqlAgent {
 						rs = stmt.executeQuery();
 						// Query実行後イベント発行
 						if (getSqlConfig().getEventListenerHolder().hasSqlQueryListener()) {
-							var eventObj = new SqlQueryEvent(executionContext, rs, stmt);
+							var eventObj = new SqlQueryEvent(executionContext, rs, stmt.getConnection(), stmt);
 							for (var listener : getSqlConfig().getEventListenerHolder().getSqlQueryListeners()) {
 								listener.accept(eventObj);
 							}
@@ -1451,7 +1451,7 @@ public class SqlAgentImpl implements SqlAgent {
 					var count = stmt.executeUpdate();
 					// Update実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasSqlUpdateListener()) {
-						var eventObj = new SqlUpdateEvent(executionContext, count, stmt);
+						var eventObj = new SqlUpdateEvent(executionContext, count, stmt.getConnection(), stmt);
 						for (var listener : getSqlConfig().getEventListenerHolder().getSqlUpdateListeners()) {
 							listener.accept(eventObj);
 						}
@@ -1580,7 +1580,7 @@ public class SqlAgentImpl implements SqlAgent {
 					var counts = stmt.executeBatch();
 					// Batch実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasSqlBatchListener()) {
-						var eventObj = new SqlBatchEvent(executionContext, counts, stmt);
+						var eventObj = new SqlBatchEvent(executionContext, counts, stmt.getConnection(), stmt);
 						for (var listener : getSqlConfig().getEventListenerHolder().getSqlBatchListeners()) {
 							listener.accept(eventObj);
 						}
@@ -1705,7 +1705,8 @@ public class SqlAgentImpl implements SqlAgent {
 					var result = callableStatement.execute();
 					// Procedure実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasProcedureListener()) {
-						var eventObj = new ProcedureEvent(executionContext, result, callableStatement);
+						var eventObj = new ProcedureEvent(executionContext, result, callableStatement.getConnection(),
+								callableStatement);
 						for (var listener : getSqlConfig().getEventListenerHolder().getProcedureListeners()) {
 							listener.accept(eventObj);
 						}

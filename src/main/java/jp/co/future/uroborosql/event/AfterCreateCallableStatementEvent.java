@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.event;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 
@@ -17,6 +18,9 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  * @since v1.0.0
  */
 public class AfterCreateCallableStatementEvent extends ExecutionEvent {
+	/** Connection. */
+	private final Connection connection;
+
 	/** CallableStatement. */
 	private CallableStatement callableStatement;
 
@@ -24,12 +28,23 @@ public class AfterCreateCallableStatementEvent extends ExecutionEvent {
 	 * コンストラクタ.
 	 *
 	 * @param executionContext ExecutionContext
+	 * @param connectino Connection
 	 * @param callableStatement CallableStatement
 	 */
 	public AfterCreateCallableStatementEvent(final ExecutionContext executionContext,
+			final Connection connection,
 			final CallableStatement callableStatement) {
 		super(executionContext);
+		this.connection = connection;
 		this.callableStatement = callableStatement;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**

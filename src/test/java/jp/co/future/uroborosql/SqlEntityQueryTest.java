@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.model.Product;
 
 public class SqlEntityQueryTest extends AbstractDbTest {
 

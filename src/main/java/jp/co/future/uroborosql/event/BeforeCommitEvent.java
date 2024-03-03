@@ -6,15 +6,37 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
+
 import jp.co.future.uroborosql.tx.TransactionContext;
 
+/**
+ * コネクションコミット前イベントオブジェクト
+ *
+ * @author H.Sugimoto
+ * @since v1.0.0
+ */
 public class BeforeCommitEvent extends TransactionEvent {
+	/** Connection. */
+	private final Connection connection;
+
 	/**
 	 * コンストラクタ.
 	 *
 	 * @param transactionContext TransactionContext
+	 * @param connection Connection
 	 */
-	public BeforeCommitEvent(final TransactionContext transactionContext) {
+	public BeforeCommitEvent(final TransactionContext transactionContext, final Connection connection) {
 		super(transactionContext);
+		this.connection = connection;
 	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
+	}
+
 }

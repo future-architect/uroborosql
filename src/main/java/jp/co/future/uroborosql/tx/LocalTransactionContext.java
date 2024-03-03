@@ -159,7 +159,7 @@ class LocalTransactionContext implements TransactionContext {
 
 		// PreparedStatement作成後イベント発行
 		if (this.sqlConfig.getEventListenerHolder().hasAfterCreatePreparedStatementListener()) {
-			var eventObj = new AfterCreatePreparedStatementEvent(executionContext, stmt);
+			var eventObj = new AfterCreatePreparedStatementEvent(executionContext, conn, stmt);
 			for (var listener : this.sqlConfig.getEventListenerHolder().getAfterCreatePreparedStatementListeners()) {
 				listener.accept(eventObj);
 			}
@@ -184,7 +184,7 @@ class LocalTransactionContext implements TransactionContext {
 
 			// CallableStatement作成後イベント発行
 			if (this.sqlConfig.getEventListenerHolder().hasAfterCreateCallableStatementListener()) {
-				var eventObj = new AfterCreateCallableStatementEvent(executionContext, cstmt);
+				var eventObj = new AfterCreateCallableStatementEvent(executionContext, conn, cstmt);
 				for (var listener : this.sqlConfig.getEventListenerHolder()
 						.getAfterCreateCallableStatementListeners()) {
 					listener.accept(eventObj);
@@ -209,14 +209,14 @@ class LocalTransactionContext implements TransactionContext {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				// コミット前イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasBeforeCommitListener()) {
-					var beforeEventObj = new BeforeCommitEvent(this);
+					var beforeEventObj = new BeforeCommitEvent(this, connection);
 					this.sqlConfig.getEventListenerHolder().getBeforeCommitListeners()
 							.forEach(listener -> listener.accept(beforeEventObj));
 				}
 				connection.commit();
 				// コミット後イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasAfterCommitListener()) {
-					var afterEventObj = new AfterCommitEvent(this);
+					var afterEventObj = new AfterCommitEvent(this, connection);
 					this.sqlConfig.getEventListenerHolder().getAfterCommitListeners()
 							.forEach(listener -> listener.accept(afterEventObj));
 				}
@@ -238,14 +238,14 @@ class LocalTransactionContext implements TransactionContext {
 			if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
 				// ロールバック前イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasBeforeRollbackListener()) {
-					var beforeEventObj = new BeforeRollbackEvent(this);
+					var beforeEventObj = new BeforeRollbackEvent(this, connection);
 					this.sqlConfig.getEventListenerHolder().getBeforeRollbackListeners()
 							.forEach(listener -> listener.accept(beforeEventObj));
 				}
 				connection.rollback();
 				// ロールバック後イベント発行
 				if (this.sqlConfig.getEventListenerHolder().hasAfterRollbackListener()) {
-					var afterEventObj = new AfterRollbackEvent(this);
+					var afterEventObj = new AfterRollbackEvent(this, connection);
 					this.sqlConfig.getEventListenerHolder().getAfterRollbackListeners()
 							.forEach(listener -> listener.accept(afterEventObj));
 				}

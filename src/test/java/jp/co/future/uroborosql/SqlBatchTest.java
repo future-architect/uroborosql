@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.model.Product;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 public class SqlBatchTest extends AbstractDbTest {

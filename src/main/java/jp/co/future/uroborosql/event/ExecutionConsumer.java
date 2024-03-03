@@ -7,8 +7,13 @@
 package jp.co.future.uroborosql.event;
 
 import java.sql.SQLException;
-import java.util.Objects;
 
+/**
+ * SQLやProcedureを実行する際に利用するConsumer.<br>
+ * SQLExceptionをスローするため、{@link java.util.function.Consumer} とは別に作成する.
+ *
+ * @param <T> the type of the input to the operation
+ */
 @FunctionalInterface
 public interface ExecutionConsumer<T> {
 	/**
@@ -18,20 +23,4 @@ public interface ExecutionConsumer<T> {
 	 * @throws SQLException SQL例外発生時
 	 */
 	void accept(T t) throws SQLException;
-
-	/**
-	 * このオペレーションを実行した後、続けてafterオペレーションを実行する合成TriConsumerを返します。
-	 *
-	 * @param after このオペレーションの後で実行するオペレーション
-	 * @return このオペレーションを実行した後、続けてafterオペレーションを実行する合成BiConsumer
-	 * @throws NullPointerException afterがnullの場合
-	 */
-	default ExecutionConsumer<T> andThen(final ExecutionConsumer<? super T> after) {
-		Objects.requireNonNull(after);
-		return t -> {
-			accept(t);
-			after.accept(t);
-		};
-	}
-
 }

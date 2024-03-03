@@ -77,7 +77,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 
 	/** where句の直後にくるANDやORを除外するための正規表現 */
 	private static final Pattern WHERE_CLAUSE_PATTERN = Pattern.compile(
-			"(?i)(?<clause>(\\bWHERE\\s+(--.*|/\\*[^(/\\*|\\*/)]+?\\*/\\s*)*\\s*))((AND|OR)\\s+)");
+			"(?i)(?<clause>(\\bWHERE\\s+(--.*|/\\*[\\s\\S]*\\*/\\s*)*\\s*))((AND|OR)\\s+)");
 
 	/** 各句の最初に現れるカンマを除去するための正規表現 */
 	private static final Pattern REMOVE_FIRST_COMMA_PATTERN = Pattern.compile(
@@ -234,24 +234,24 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			executableSqlCache = executableSql.toString();
 			if (executableSqlCache.toUpperCase().contains("WHERE")) {
 				// where句の直後に来るANDやORの除去
-				var buff = new StringBuilder();
+				var builder = new StringBuilder();
 				var matcher = WHERE_CLAUSE_PATTERN.matcher(executableSqlCache);
 				while (matcher.find()) {
 					var whereClause = matcher.group("clause");
-					matcher.appendReplacement(buff, whereClause);
+					matcher.appendReplacement(builder, whereClause);
 				}
-				matcher.appendTail(buff);
-				executableSqlCache = buff.toString();
+				matcher.appendTail(builder);
+				executableSqlCache = builder.toString();
 			}
 			// 各句の直後に現れる不要なカンマの除去
-			var buff = new StringBuilder();
+			var builder = new StringBuilder();
 			var removeCommaMatcher = REMOVE_FIRST_COMMA_PATTERN.matcher(executableSqlCache);
 			while (removeCommaMatcher.find()) {
 				var clauseWords = removeCommaMatcher.group("keyword");
-				removeCommaMatcher.appendReplacement(buff, clauseWords);
+				removeCommaMatcher.appendReplacement(builder, clauseWords);
 			}
-			removeCommaMatcher.appendTail(buff);
-			executableSqlCache = buff.toString();
+			removeCommaMatcher.appendTail(builder);
+			executableSqlCache = builder.toString();
 
 			// 空行の除去
 			executableSqlCache = CLEAR_BLANK_PATTERN.matcher(executableSqlCache).replaceAll("");

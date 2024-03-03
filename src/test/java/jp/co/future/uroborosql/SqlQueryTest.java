@@ -51,6 +51,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.bean.ProductSearchBean;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
@@ -58,6 +59,7 @@ import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.DataNotFoundException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
+import jp.co.future.uroborosql.model.Product;
 import jp.co.future.uroborosql.utils.CaseFormat;
 
 /**

@@ -6,6 +6,8 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
+
 import jp.co.future.uroborosql.tx.TransactionContext;
 
 /**
@@ -15,13 +17,25 @@ import jp.co.future.uroborosql.tx.TransactionContext;
  * @since v1.0.0
  */
 public class AfterCommitEvent extends TransactionEvent {
+	/** Connection. */
+	private final Connection connection;
 
 	/**
 	 * コンストラクタ.
 	 *
 	 * @param transactionContext TransactionContext
+	 * @param connection Connection
 	 */
-	public AfterCommitEvent(final TransactionContext transactionContext) {
+	public AfterCommitEvent(final TransactionContext transactionContext, final Connection connection) {
 		super(transactionContext);
+		this.connection = connection;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 }

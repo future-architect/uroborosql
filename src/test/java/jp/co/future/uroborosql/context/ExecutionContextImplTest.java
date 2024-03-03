@@ -100,6 +100,18 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]where /* comment */ --comment [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
 				ctx62.getExecutableSql());
+		var ctx63 = getExecutionContext(
+				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1"),
+				ctx63.getExecutableSql());
+		var ctx64 = getExecutionContext(
+				"select * from test[LF]where /* comment */ --comment [LF] and aaa = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] aaa = 1"),
+				ctx64.getExecutableSql());
+		var ctx65 = getExecutionContext(
+				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] and aaa = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] aaa = 1"),
+				ctx65.getExecutableSql());
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");

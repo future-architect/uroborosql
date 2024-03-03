@@ -16,7 +16,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SecretResultSetTest extends AbstractEventSubscriberTest {
+import jp.co.future.uroborosql.AbstractDbTest;
+
+public class SecretResultSetTest extends AbstractDbTest {
 
 	private SecretColumnEventSubscriber eventSubscriber;
 

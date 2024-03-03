@@ -16,16 +16,25 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.AbstractDbTest;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-public class DebugEventSubscriberTest extends AbstractEventSubscriberTest {
+public class DebugEventSubscriberTest extends AbstractDbTest {
+	private DebugEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUpLocal() throws SQLException, IOException {
-		config.getEventListenerHolder().addEventSubscriber(new DebugEventSubscriber());
+		eventSubscriber = new DebugEventSubscriber();
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
+	}
+
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
 	}
 
 	@Test
@@ -73,14 +82,15 @@ public class DebugEventSubscriberTest extends AbstractEventSubscriberTest {
 
 		// トランザクションイベントログではオブジェクトIDが出力されるため、固定値に置換する
 		log = log.stream()
-				.map(l -> l.replaceAll("@[\\w]{8}", "@XXXXXXXX"))
+				.map(l -> l.replaceAll("connection:conn\\d+:", "connection:conn:"))
+				.map(l -> l.replaceAll("occurredOn:.+", "occurredOn:99999"))
 				.collect(Collectors.toList());
 
-		assertThat(log,
-				is(Files.readAllLines(
-						Paths.get("src/test/resources/data/expected/DebugEventSubscriber",
-								"testExecuteQueryWithTxEvent.txt"),
-						StandardCharsets.UTF_8)));
+		var expected = Files.readAllLines(
+				Paths.get("src/test/resources/data/expected/DebugEventSubscriber",
+						"testExecuteQueryWithTxEvent.txt"),
+				StandardCharsets.UTF_8);
+		assertThat(log, is(expected));
 	}
 
 	@Test

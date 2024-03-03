@@ -16,7 +16,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
@@ -25,6 +24,7 @@ import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
+import jp.co.future.uroborosql.model.Emp;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.SqlNode;

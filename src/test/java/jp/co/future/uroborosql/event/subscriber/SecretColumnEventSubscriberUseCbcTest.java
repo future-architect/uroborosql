@@ -9,17 +9,18 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.AbstractDbTest;
 import jp.co.future.uroborosql.UroboroSQL;
 
 /**
@@ -28,7 +29,7 @@ import jp.co.future.uroborosql.UroboroSQL;
  * @author hoshi
  *
  */
-public class SecretColumnEventSubscriberUseCbcTest extends AbstractEventSubscriberTest {
+public class SecretColumnEventSubscriberUseCbcTest extends AbstractDbTest {
 
 	private SecretColumnEventSubscriber eventSubscriber;
 
@@ -50,6 +51,11 @@ public class SecretColumnEventSubscriberUseCbcTest extends AbstractEventSubscrib
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 	}
 
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
+	}
+
 	@Test
 	void testFilterSettings() {
 		assertThat(eventSubscriber.getCharset(), is(StandardCharsets.UTF_8));
@@ -65,7 +71,7 @@ public class SecretColumnEventSubscriberUseCbcTest extends AbstractEventSubscrib
 
 		// skipFilter = falseの別のフィルター設定
 		var skipConfig = UroboroSQL
-				.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "sa", "")
 				.build();
 		var skipEventSubscriber = new SecretColumnEventSubscriber();
 

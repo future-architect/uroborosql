@@ -25,6 +25,7 @@ import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
+import jp.co.future.uroborosql.model.Product;
 
 public class SqlEntityUpdateTest extends AbstractDbTest {
 

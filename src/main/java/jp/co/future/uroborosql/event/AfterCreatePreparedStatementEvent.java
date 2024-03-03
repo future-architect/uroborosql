@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -17,6 +18,9 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  * @since v1.0.0
  */
 public class AfterCreatePreparedStatementEvent extends ExecutionEvent {
+	/** Connection. */
+	private final Connection connection;
+
 	/** PreparedStatement. */
 	private PreparedStatement preparedStatement;
 
@@ -24,12 +28,23 @@ public class AfterCreatePreparedStatementEvent extends ExecutionEvent {
 	 * コンストラクタ.
 	 *
 	 * @param executionContext ExecutionContext
+	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
 	public AfterCreatePreparedStatementEvent(final ExecutionContext executionContext,
+			final Connection connection,
 			final PreparedStatement preparedStatement) {
 		super(executionContext);
+		this.connection = connection;
 		this.preparedStatement = preparedStatement;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**

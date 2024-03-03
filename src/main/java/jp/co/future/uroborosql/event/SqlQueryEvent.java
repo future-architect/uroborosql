@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -20,6 +21,10 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 public class SqlQueryEvent extends ExecutionEvent {
 	/** ResultSet. */
 	private ResultSet resultSet;
+
+	/** Connection. */
+	private final Connection connection;
+
 	/** PreparedStatement. */
 	private final PreparedStatement preparedStatement;
 
@@ -28,13 +33,16 @@ public class SqlQueryEvent extends ExecutionEvent {
 	 *
 	 * @param executionContext ExecutionContext
 	 * @param resultSet ResultSet
+	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
 	public SqlQueryEvent(final ExecutionContext executionContext,
 			final ResultSet resultSet,
+			final Connection connection,
 			final PreparedStatement preparedStatement) {
 		super(executionContext);
 		this.resultSet = resultSet;
+		this.connection = connection;
 		this.preparedStatement = preparedStatement;
 	}
 
@@ -52,6 +60,14 @@ public class SqlQueryEvent extends ExecutionEvent {
 	 */
 	public void setResultSet(final ResultSet resultSet) {
 		this.resultSet = resultSet;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**

@@ -8,17 +8,25 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class WrapContextEventSubscriberTest extends AbstractEventSubscriberTest {
-	private WrapContextEventSubscriber subscriber;
+import jp.co.future.uroborosql.AbstractDbTest;
+
+public class WrapContextEventSubscriberTest extends AbstractDbTest {
+	private WrapContextEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUpLocal() throws SQLException, IOException {
-		subscriber = new WrapContextEventSubscriber("select tmp_.* from (", ") tmp_ limit 10",
+		eventSubscriber = new WrapContextEventSubscriber("select tmp_.* from (", ") tmp_ limit 10",
 				".*(\\bcreate table|\\binsert|\\bupdate|\\btruncate|\\bfor update).*");
-		config.getEventListenerHolder().addEventSubscriber(subscriber);
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
+	}
+
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
 	}
 
 	@Test

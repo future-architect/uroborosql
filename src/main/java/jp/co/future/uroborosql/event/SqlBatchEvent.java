@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -19,6 +20,10 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 public class SqlBatchEvent extends ExecutionEvent {
 	/** 実行結果. */
 	private int[] counts;
+
+	/** Connection. */
+	private final Connection connection;
+
 	/** PreparedStatement. */
 	private final PreparedStatement preparedStatement;
 
@@ -27,13 +32,16 @@ public class SqlBatchEvent extends ExecutionEvent {
 	 *
 	 * @param executionContext ExecutionContext
 	 * @param counts 実行結果
+	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
 	public SqlBatchEvent(final ExecutionContext executionContext,
 			final int[] counts,
+			final Connection connection,
 			final PreparedStatement preparedStatement) {
 		super(executionContext);
 		this.counts = counts;
+		this.connection = connection;
 		this.preparedStatement = preparedStatement;
 	}
 
@@ -51,6 +59,14 @@ public class SqlBatchEvent extends ExecutionEvent {
 	 */
 	public void setCounts(final int[] counts) {
 		this.counts = counts;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**

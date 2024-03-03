@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.event;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -19,6 +20,10 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 public class SqlUpdateEvent extends ExecutionEvent {
 	/** 実行結果. */
 	private int count;
+
+	/** Connection. */
+	private final Connection connection;
+
 	/** PreparedStatement. */
 	private final PreparedStatement preparedStatement;
 
@@ -27,13 +32,16 @@ public class SqlUpdateEvent extends ExecutionEvent {
 	 *
 	 * @param executionContext ExecutionContext
 	 * @param count 実行結果
+	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
 	public SqlUpdateEvent(final ExecutionContext executionContext,
 			final int count,
+			final Connection connection,
 			final PreparedStatement preparedStatement) {
 		super(executionContext);
 		this.count = count;
+		this.connection = connection;
 		this.preparedStatement = preparedStatement;
 	}
 
@@ -51,6 +59,14 @@ public class SqlUpdateEvent extends ExecutionEvent {
 	 */
 	public void setCount(final int count) {
 		this.count = count;
+	}
+
+	/**
+	 * Connectionの取得.
+	 * @return Connection
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**

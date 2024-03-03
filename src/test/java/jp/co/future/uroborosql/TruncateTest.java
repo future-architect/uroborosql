@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
+import jp.co.future.uroborosql.model.Product;
 
 /**
  * truncateメソッドのテスト

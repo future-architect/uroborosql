@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.model.Product;
 
 public class SqlEntityInsertTest extends AbstractDbTest {
 

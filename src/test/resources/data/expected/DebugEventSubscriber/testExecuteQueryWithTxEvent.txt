@@ -1,4 +1,4 @@
-Begin Transaction - connection:jp.co.future.uroborosql.connection.CloseIgnoringConnectionWrapper@XXXXXXXX
+Begin Transaction - connection:conn: url=jdbc:h2:mem:DebugEventSubscriberTest user=SA, requiredNew:true, transactionLevel:1, occurredOn:99999
 Before Set Parameter - Parameter:Parameter name[product_id], Value[0], Class[BigDecimal]
 Execute Query - sqlName:example/select_product executed.
-End Transaction - connection:jp.co.future.uroborosql.connection.CloseIgnoringConnectionWrapper@XXXXXXXX, result:null
+End Transaction - connection:conn: url=jdbc:h2:mem:DebugEventSubscriberTest user=SA, requiredNew:true, transactionLevel:1, result:null, occurredOn:99999

@@ -13,18 +13,25 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.AbstractDbTest;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-public class AuditLogEventSubscriberTest extends AbstractEventSubscriberTest {
+public class AuditLogEventSubscriberTest extends AbstractDbTest {
 	private AuditLogEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUpLocal() throws Exception {
 		eventSubscriber = new AuditLogEventSubscriber();
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
+	}
+
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
 	}
 
 	@Test

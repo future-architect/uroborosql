@@ -5,18 +5,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.AbstractDbTest;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-public class SecretColumnEventSubscriberInitializeTest extends AbstractEventSubscriberTest {
+public class SecretColumnEventSubscriberInitializeTest extends AbstractDbTest {
 	private SecretColumnEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUpLocal() throws Exception {
 		eventSubscriber = new SecretColumnEventSubscriber();
 		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
+	}
+
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
 	}
 
 	@Test

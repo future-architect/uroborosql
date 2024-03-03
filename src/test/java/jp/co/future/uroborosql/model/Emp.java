@@ -1,4 +1,4 @@
-package jp.co.future.uroborosql;
+package jp.co.future.uroborosql.model;
 
 public class Emp {
 	private String job;

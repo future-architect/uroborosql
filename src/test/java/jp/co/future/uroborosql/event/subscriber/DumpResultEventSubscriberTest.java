@@ -13,16 +13,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.AbstractDbTest;
 import jp.co.future.uroborosql.testlog.TestAppender;
 
-public class DumpResultEventSubscriberTest extends AbstractEventSubscriberTest {
+public class DumpResultEventSubscriberTest extends AbstractDbTest {
+	private DumpResultEventSubscriber eventSubscriber;
 
 	@BeforeEach
 	public void setUpLocal() throws Exception {
-		config.getEventListenerHolder().addEventSubscriber(new DumpResultEventSubscriber());
+		eventSubscriber = new DumpResultEventSubscriber();
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 
 		var builder = new StringBuilder();
 		builder.append("create table if not exists many_column_table (").append(System.lineSeparator());
@@ -36,6 +40,11 @@ public class DumpResultEventSubscriberTest extends AbstractEventSubscriberTest {
 		builder.append(");");
 		agent.updateWith(builder.toString()).count();
 		agent.commit();
+	}
+
+	@AfterEach
+	public void tearDownLocal() throws Exception {
+		config.getEventListenerHolder().removeEventSubscriber(eventSubscriber);
 	}
 
 	@Test

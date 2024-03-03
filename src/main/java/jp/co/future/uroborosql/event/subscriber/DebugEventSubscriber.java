@@ -42,8 +42,11 @@ public class DebugEventSubscriber extends EventSubscriber {
 	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
 		if (EVENT_LOG.isDebugEnabled()) {
 			try {
-				EVENT_LOG.debug("Begin Transaction - connection:{}",
-						evt.getTransactionContext().getConnection(), evt.occurredOn());
+				EVENT_LOG.debug("Begin Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, occurredOn:{}",
+						evt.getTransactionContext().getConnection(),
+						evt.isRequiredNew(),
+						evt.getTransactionLevel(),
+						evt.occurredOn());
 			} catch (SQLException e) {
 				EVENT_LOG.error(e.getMessage(), e);
 			}
@@ -53,9 +56,13 @@ public class DebugEventSubscriber extends EventSubscriber {
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		if (EVENT_LOG.isDebugEnabled()) {
 			try {
-				EVENT_LOG.debug("End Transaction - connection:{}, result:{}",
+				EVENT_LOG.debug(
+						"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, result:{}, occurredOn:{}",
 						evt.getTransactionContext().getConnection(),
-						evt.getResult());
+						evt.isRequiredNew(),
+						evt.getTransactionLevel(),
+						evt.getResult(),
+						evt.occurredOn());
 			} catch (SQLException e) {
 				EVENT_LOG.error(e.getMessage(), e);
 			}
