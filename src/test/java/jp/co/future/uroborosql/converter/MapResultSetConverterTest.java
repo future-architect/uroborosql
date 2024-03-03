@@ -202,7 +202,7 @@ public class MapResultSetConverterTest {
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.context().setSql("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent.query(context, new MapResultSetConverter(config))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
@@ -279,7 +279,7 @@ public class MapResultSetConverterTest {
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.context().setSql("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent
 					.query(context,
 							new MapResultSetConverter(config, CaseFormat.UPPER_SNAKE_CASE,

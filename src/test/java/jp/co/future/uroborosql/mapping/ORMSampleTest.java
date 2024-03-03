@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
@@ -48,9 +48,7 @@ public class ORMSampleTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password).build();
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach
@@ -160,7 +158,8 @@ public class ORMSampleTest {
 		try (var agent = config.agent()) {
 
 			// 条件なし
-			var list = agent.query(TestEntity.class).collect();
+			var list = agent.query(TestEntity.class)
+					.collect();
 			assertThat(list.size(), is(24));
 
 			// 条件あり

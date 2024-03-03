@@ -17,9 +17,8 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class DefaultEntityHandlerWithMultiSchemaTest {
@@ -226,8 +225,9 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 		conn.setSchema("SCHEMA1");
 
 		config = UroboroSQL.builder(conn)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
+
 		DefaultEntityHandler.clearCache();
 		MappingUtils.clearCache();
 	}
@@ -328,7 +328,8 @@ public class DefaultEntityHandlerWithMultiSchemaTest {
 				var test3 = new TestEntity1(3L, "name3");
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity1.class).collect();
+				var list = agent.query(TestEntity1.class)
+						.collect();
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));

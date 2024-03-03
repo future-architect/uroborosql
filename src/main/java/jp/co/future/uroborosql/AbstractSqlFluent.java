@@ -17,8 +17,11 @@ import jp.co.future.uroborosql.fluent.SqlFluent;
 import jp.co.future.uroborosql.utils.BeanAccessor;
 
 abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T> {
-	protected final SqlAgent agent;
-	protected final ExecutionContext context;
+	/** SqlAgent. */
+	private final SqlAgent agent;
+
+	/** ExecutionContext. */
+	private final ExecutionContext context;
 
 	protected AbstractSqlFluent(final SqlAgent agent, final ExecutionContext context) {
 		this.agent = agent;
@@ -146,7 +149,7 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(String, Supplier)
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.util.function.Supplier)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override

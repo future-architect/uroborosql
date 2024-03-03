@@ -21,7 +21,7 @@ import jp.co.future.uroborosql.parser.TransformContext;
  */
 public class IfNode extends BranchNode {
 	/** パーサーロガー */
-	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.parser");
+	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
 
 	private final ExpressionParser expressionParser;
 	/** 評価式 */

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
+import jp.co.future.uroborosql.model.Product;
 
 public class SqlEntityQueryTest extends AbstractDbTest {
 
@@ -97,7 +98,8 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
 		try {
-			agent.query(Product.class).in("product_id", 0, 1).one();
+			agent.query(Product.class).in("product_id", 0, 1)
+					.one();
 			fail();
 		} catch (DataNonUniqueException ex) {
 			// OK

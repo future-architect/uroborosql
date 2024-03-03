@@ -122,17 +122,19 @@ public interface ExecutionContext
 	 * ステートメントにパラメータをバインドする
 	 *
 	 * @param preparedStatement バインドを行うステートメント
+	 * @return 自身のExecutionContext
 	 * @throws SQLException SQL例外
 	 */
-	void bindParams(PreparedStatement preparedStatement) throws SQLException;
+	ExecutionContext bindParams(PreparedStatement preparedStatement) throws SQLException;
 
 	/**
 	 * ステートメントにバッチ用のパラメータをバインドする
 	 *
 	 * @param preparedStatement バインドを行うステートメント
+	 * @return 自身のExecutionContext
 	 * @throws SQLException SQL例外
 	 */
-	void bindBatchParams(PreparedStatement preparedStatement) throws SQLException;
+	ExecutionContext bindBatchParams(PreparedStatement preparedStatement) throws SQLException;
 
 	/**
 	 * 出力パラメータの取得
@@ -164,31 +166,24 @@ public interface ExecutionContext
 	int batchCount();
 
 	/**
-	 * 自動パラメータバインド関数(query用)の受け入れ
-	 */
-	void acceptQueryAutoParameterBinder();
-
-	/**
-	 * 自動パラメータバインド関数(update/batch/proc用)の受け入れ
-	 */
-	void acceptUpdateAutoParameterBinder();
-
-	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号
 	 * @param type {@link java.sql.Types}で表されるSQLの型
+	 * @return 自身のExecutionContext
 	 */
-	void addDefineColumnType(int column, int type);
+	ExecutionContext addDefineColumnType(int column, int type);
 
 	/**
 	 * 列型の定義追加<br>
 	 *
 	 * @param column カラム番号
 	 * @param type {@link java.sql.SQLType}で表されるSQLの型
+	 * @return 自身のExecutionContext
 	 */
-	default void addDefineColumnType(final int column, final SQLType type) {
+	default ExecutionContext addDefineColumnType(final int column, final SQLType type) {
 		addDefineColumnType(column, type.getVendorTypeNumber());
+		return this;
 	}
 
 	/**
@@ -203,8 +198,9 @@ public interface ExecutionContext
 	 * {@link ResultSet#TYPE_SCROLL_SENSITIVE} のうちいづれか 1 つ
 	 *
 	 * @param resultSetType 結果セットの型
+	 * @return 自身のExecutionContext
 	 */
-	void setResultSetType(int resultSetType);
+	ExecutionContext setResultSetType(int resultSetType);
 
 	/**
 	 * 結果セットの型の取得
@@ -218,8 +214,9 @@ public interface ExecutionContext
 	 * {@link ResultSet#CONCUR_READ_ONLY} または {@link ResultSet#CONCUR_UPDATABLE}
 	 *
 	 * @param resultSetConcurrency 並行処理の種類
+	 * @return 自身のExecutionContext
 	 */
-	void setResultSetConcurrency(int resultSetConcurrency);
+	ExecutionContext setResultSetConcurrency(int resultSetConcurrency);
 
 	/**
 	 * 並行処理の種類の取得
@@ -239,8 +236,9 @@ public interface ExecutionContext
 	 * 実行するSQLの種別を設定する
 	 *
 	 * @param sqlKind SQL種別
+	 * @return 自身のExecutionContext
 	 */
-	void setSqlKind(SqlKind sqlKind);
+	ExecutionContext setSqlKind(SqlKind sqlKind);
 
 	/**
 	 * コンテキストが保持する属性を取得する
@@ -266,8 +264,9 @@ public interface ExecutionContext
 	 * 自動採番するキーカラム名の配列を設定する
 	 *
 	 * @param generatedKeyColumns 自動採番するキーカラム名の配列
+	 * @return 自身のExecutionContext
 	 */
-	void setGeneratedKeyColumns(String[] generatedKeyColumns);
+	ExecutionContext setGeneratedKeyColumns(String[] generatedKeyColumns);
 
 	/**
 	 * 自動採番するキーカラム値の配列を取得する
@@ -287,8 +286,9 @@ public interface ExecutionContext
 	 * 自動採番するキーカラム値の配列を設定する
 	 *
 	 * @param generatedKeyValues 自動採番するキーカラム値の配列
+	 * @return 自身のExecutionContext
 	 */
-	void setGeneratedKeyValues(Object[] generatedKeyValues);
+	ExecutionContext setGeneratedKeyValues(Object[] generatedKeyValues);
 
 	/**
 	 * 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理を取得する.<br>

@@ -11,7 +11,6 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class DateTimeTest {
@@ -52,9 +51,7 @@ public class DateTimeTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password).build();
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach
@@ -245,7 +242,7 @@ public class DateTimeTest {
 				agent.insert(test1);
 				var zoned = agent.find(ZonedTestEntity.class, 1).orElse(null);
 				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(zoned.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
+				assertThat(zoned.datetimeValue, is(test1.datetimeValue));
 				assertThat(zoned.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 			});
 		}
@@ -260,7 +257,7 @@ public class DateTimeTest {
 				agent.insert(test1);
 				var offset = agent.find(OffsetTestEntity.class, 1).orElse(null);
 				var local = agent.find(LocalTestEntity.class, 1).orElse(null);
-				assertThat(offset.datetimeValue, is(test1.datetimeValue.truncatedTo(ChronoUnit.MILLIS)));
+				assertThat(offset.datetimeValue, is(test1.datetimeValue));
 				assertThat(offset.datetimeValue.toLocalDateTime(), is(local.datetimeValue));
 				assertThat(offset.timeValue.toLocalTime(), is(local.timeValue));
 			});

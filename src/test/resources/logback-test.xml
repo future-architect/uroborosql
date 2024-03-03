@@ -6,7 +6,8 @@
 		<Target>System.out</Target>
 		<!-- パターンレイアウト -->
 		<encoder>
-			<pattern>%-40.40logger - [%.-1level] - %m%n</pattern>
+<!--			<pattern>%-40.40logger - [%.-1level] - %m%n</pattern> -->
+			<pattern>%m%n</pattern>
 		</encoder>
 	</appender>
 
@@ -18,7 +19,7 @@
 		</encoder>
 	</appender>
 
-	<appender name="FilterTest" class="jp.co.future.uroborosql.testlog.TestAppender">
+	<appender name="EventTest" class="jp.co.future.uroborosql.testlog.TestAppender">
 		<encoder>
 			<pattern>%m%n</pattern>
 		</encoder>
@@ -32,20 +33,16 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.sql.dx" level="INFO" additivity="false">
-		<appender-ref ref="STDOUT" />
-	</logger>
-
 	<logger name="jp.co.future.uroborosql.sql.parser" level="INFO" additivity="false">
-		<appender-ref ref="STDOUT" />
-	</logger>
-
-	<logger name="jp.co.future.uroborosql.sql.repl" level="INFO" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<logger name="jp.co.future.uroborosql.sql.coverage" level="INFO" additivity="false">
 		<appender-ref ref="CoverageLog" />
+	</logger>
+
+	<logger name="jp.co.future.uroborosql.repl" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<logger name="jp.co.future.uroborosql.performance" level="INFO" additivity="false">
@@ -54,10 +51,11 @@
 
 	<logger name="jp.co.future.uroborosql.setting" level="INFO" additivity="false">
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="EventTest" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.filter" level="DEBUG" additivity="false">
-		<appender-ref ref="FilterTest" />
+	<logger name="jp.co.future.uroborosql.event" level="DEBUG" additivity="false">
+		<appender-ref ref="EventTest" />
 	</logger>
 
 	<!-- ログ出力に関する設定 -->

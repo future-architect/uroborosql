@@ -85,7 +85,8 @@ public class SqlConfigConnectionPoolTest {
 	@Test
 	void testGetConfigDataSource() throws Exception {
 		try (var agent = config.agent()) {
-			assertThat(agent.query("example/select_product").collect().size(), is(2));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 		}
 		assertThat(pool.getActiveConnections(), is(0));
@@ -97,14 +98,17 @@ public class SqlConfigConnectionPoolTest {
 	@Test
 	void testGetConfigDataSourceRequired() throws Exception {
 		try (var agent = config.agent()) {
-			assertThat(agent.query("example/select_product").collect().size(), is(2));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(2));
 			assertThat(pool.getActiveConnections(), is(1));
 
 			agent.required(() -> {
-				assertThat(agent.query("example/select_product").collect().size(), is(2));
+				assertThat(agent.query("example/select_product")
+						.collect().size(), is(2));
 				assertThat(pool.getActiveConnections(), is(2));
 				agent.requiresNew(() -> {
-					assertThat(agent.query("example/select_product").collect().size(), is(2));
+					assertThat(agent.query("example/select_product")
+							.collect().size(), is(2));
 					assertThat(pool.getActiveConnections(), is(3));
 				});
 			});

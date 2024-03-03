@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
+import jp.co.future.uroborosql.model.Product;
 
 /**
  * truncateメソッドのテスト
@@ -43,10 +44,12 @@ public class TruncateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var products = agent.query(Product.class).collect();
+		var products = agent.query(Product.class)
+				.collect();
 		assertThat(products.isEmpty(), is(false));
 
-		products = agent.truncate(Product.class).query(Product.class).collect();
+		products = agent.truncate(Product.class).query(Product.class)
+				.collect();
 		assertThat(products.isEmpty(), is(true));
 	}
 

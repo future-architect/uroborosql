@@ -5,9 +5,9 @@ import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.ResultSet;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collector;
@@ -39,7 +39,7 @@ public class ExecutionContextProviderTest {
 	void testConst_class() {
 		ExecutionContextProvider.addBindParamMapper((original, connection, parameterMapperManager) -> null);
 
-		ExecutionContextProvider.setConstantClassNames(Arrays.asList(TestConsts.class.getName()));
+		ExecutionContextProvider.setConstantClassNames(List.of(TestConsts.class.getName()));
 
 		ExecutionContextProvider.initialize();
 
@@ -96,7 +96,7 @@ public class ExecutionContextProviderTest {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testConst_enum() {
-		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName()));
+		ExecutionContextProvider.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName()));
 
 		ExecutionContextProvider.initialize();
 
@@ -106,7 +106,7 @@ public class ExecutionContextProviderTest {
 
 		assertThat(
 				set,
-				is(new HashSet<>(Arrays.asList("CLS_TEST_ENUM1_A=A", "CLS_TEST_ENUM1_B=B", "CLS_TEST_ENUM1_C=C",
+				is(new HashSet<>(List.of("CLS_TEST_ENUM1_A=A", "CLS_TEST_ENUM1_B=B", "CLS_TEST_ENUM1_C=C",
 						"CLS_PACKTEST_TEST_ENUM2_D=D", "CLS_PACKTEST_TEST_ENUM2_E=E", "CLS_PACKTEST_TEST_ENUM2_F=F",
 						"CLS_PACKTEST_TEST_ENUM2_INNER_G=G", "CLS_PACKTEST_TEST_ENUM2_INNER_H=H",
 						"CLS_PACKTEST_TEST_ENUM2_INNER_I=I"))));
@@ -119,7 +119,7 @@ public class ExecutionContextProviderTest {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testConst_enumForJar() {
-		ExecutionContextProvider.setEnumConstantPackageNames(Arrays.asList(Level.class.getPackage().getName()));
+		ExecutionContextProvider.setEnumConstantPackageNames(List.of(Level.class.getPackage().getName()));
 
 		ExecutionContextProvider.initialize();
 
@@ -129,7 +129,7 @@ public class ExecutionContextProviderTest {
 
 		assertThat(
 				set,
-				is(new HashSet<>(Arrays.asList("CLS_LEVEL_ERROR=ERROR", "CLS_LEVEL_DEBUG=DEBUG", "CLS_LEVEL_WARN=WARN",
+				is(new HashSet<>(List.of("CLS_LEVEL_ERROR=ERROR", "CLS_LEVEL_DEBUG=DEBUG", "CLS_LEVEL_WARN=WARN",
 						"CLS_LEVEL_TRACE=TRACE", "CLS_LEVEL_INFO=INFO"))));
 		for (var parameter : constParameterMap.values()) {
 			assertThat(parameter.getValue(), isA((Class) Enum.class));

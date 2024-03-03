@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 
 public class PropertyMapperTest {
@@ -55,9 +55,7 @@ public class PropertyMapperTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password).build();
-
-		var sqlFilterManager = config.getSqlFilterManager();
-		sqlFilterManager.addSqlFilter(new AuditLogSqlFilter());
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach
@@ -119,16 +117,8 @@ public class PropertyMapperTest {
 					|| !Objects.equals(doubleValue, other.doubleValue)) {
 				return false;
 			}
-			if (enumValue != other.enumValue) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (!Objects.equals(intValue, other.intValue)) {
-				return false;
-			}
-			if (!Objects.equals(longValue, other.longValue)) {
+			if (enumValue != other.enumValue || id != other.id || !Objects.equals(intValue, other.intValue)
+					|| !Objects.equals(longValue, other.longValue)) {
 				return false;
 			}
 			if (!Objects.equals(name, other.name)) {

@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.dialect;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ public class H2Dialect extends AbstractDialect {
 	 * Timeout trying to lock table {0}; SQL statement: [50200-199]
 	 * </pre>
 	 */
-	private static final Set<String> pessimisticLockingErrorCodes = Collections.singleton("50200");
+	private static final Set<String> pessimisticLockingErrorCodes = Set.of("50200");
 
 	/**
 	 * コンストラクタ

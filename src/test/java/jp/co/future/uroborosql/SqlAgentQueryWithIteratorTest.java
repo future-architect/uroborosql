@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +31,7 @@ public class SqlAgentQueryWithIteratorTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
@@ -69,7 +68,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	private void truncateTable(final Object... tables) {
-		Arrays.asList(tables).stream().forEach(tbl -> {
+		List.of(tables).stream().forEach(tbl -> {
 			try {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {

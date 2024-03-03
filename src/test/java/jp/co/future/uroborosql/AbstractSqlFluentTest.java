@@ -12,9 +12,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,15 +24,11 @@ import jp.co.future.uroborosql.parameter.ReaderParameter;
 import jp.co.future.uroborosql.parameter.StreamParameter;
 
 public class AbstractSqlFluentTest {
-	private static SqlConfig config = null;
-
-	@BeforeAll
-	public static void setUpClass() {
-		config = UroboroSQL.builder("jdbc:h2:mem:ExecutionContextImplTest", "sa", "").build();
-	}
+	private SqlConfig config = null;
 
 	@BeforeEach
 	public void setUp() throws Exception {
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "sa", "").build();
 	}
 
 	@AfterEach
@@ -118,7 +114,8 @@ public class AbstractSqlFluentTest {
 
 			var sqlId = "SQL_ID_TEST";
 
-			var query = agent.query("example/select_product").param("product_id", 1).sqlId(sqlId);
+			var query = agent.query("example/select_product")
+					.param("product_id", 1).sqlId(sqlId);
 			assertThat(query.collect().size(), is(1));
 			assertThat(query.context().getExecutableSql(), containsString(sqlId));
 		}
@@ -130,15 +127,27 @@ public class AbstractSqlFluentTest {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", () -> "value1");
+			assertThat(query.context().hasParam("key1"), is(true));
 			assertThat(query.context().getParam("key1").getValue(), is("value1"));
 
 			var flag = false;
 			query.param("key2", () -> flag ? "true" : "false");
+			assertThat(query.context().hasParam("key2"), is(true));
 			assertThat(query.context().getParam("key2").getValue(), is("false"));
 
+			// キーにnullを設定したい場合はOptional.empty()を返す
+			query.param("key3", Optional::empty);
+			assertThat(query.context().hasParam("key3"), is(true));
+			assertThat(query.context().getParam("key3").getValue(), is(Optional.empty()));
+
+			// functionがnullの場合は値にnullが設定される
 			query.param("key4", null);
+			assertThat(query.context().hasParam("key4"), is(true));
 			assertThat(query.context().getParam("key4").getValue(), nullValue());
 
+			// functionがnullを返す場合はキーも値も設定されない
+			query.param("key5", () -> null);
+			assertThat(query.context().hasParam("key5"), is(false));
 		}
 	}
 }

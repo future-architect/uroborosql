@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.tx;
 
 import java.sql.Connection;
+import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.connection.ConnectionManager;
 
@@ -22,7 +23,7 @@ public interface TransactionManager extends ConnectionManager {
 	 *
 	 * @param runnable トランザクション内で実行する処理
 	 */
-	void required(SQLRunnable runnable);
+	void required(Runnable runnable);
 
 	/**
 	 * トランザクションを実行します。
@@ -31,14 +32,14 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	<R> R required(SQLSupplier<R> supplier);
+	<R> R required(Supplier<R> supplier);
 
 	/**
 	 * 新たなトランザクションを実行します。
 	 *
 	 * @param runnable トランザクション内で実行する処理
 	 */
-	void requiresNew(SQLRunnable runnable);
+	void requiresNew(Runnable runnable);
 
 	/**
 	 * 新たなトランザクションを実行します。
@@ -47,14 +48,14 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	<R> R requiresNew(SQLSupplier<R> supplier);
+	<R> R requiresNew(Supplier<R> supplier);
 
 	/**
 	 * トランザクションを開始せず処理を実行します。
 	 *
 	 * @param runnable 実行する処理
 	 */
-	void notSupported(SQLRunnable runnable);
+	void notSupported(Runnable runnable);
 
 	/**
 	 * トランザクションを開始せず処理を実行します。
@@ -63,7 +64,7 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	<R> R notSupported(SQLSupplier<R> supplier);
+	<R> R notSupported(Supplier<R> supplier);
 
 	/**
 	 * 現在のトランザクションをロールバックすることを予約します。
@@ -111,7 +112,7 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param <R> 結果の型
 	 * @return supplierの処理結果
 	 */
-	<R> R savepointScope(SQLSupplier<R> supplier);
+	<R> R savepointScope(Supplier<R> supplier);
 
 	/**
 	 * セーブポイントを設定した上でrunnableの内容を実行する.<br>
@@ -119,7 +120,7 @@ public interface TransactionManager extends ConnectionManager {
 	 *
 	 * @param runnable 実行する処理
 	 */
-	void savepointScope(SQLRunnable runnable);
+	void savepointScope(Runnable runnable);
 
 	/**
 	 * AutoCommit=trueに設定したコネクションを使用してsupplierの内容を実行する.
@@ -128,12 +129,12 @@ public interface TransactionManager extends ConnectionManager {
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	<R> R autoCommitScope(SQLSupplier<R> supplier);
+	<R> R autoCommitScope(Supplier<R> supplier);
 
 	/**
 	 * AutoCommit=trueに設定したコネクションを使用してrunnableの内容を実行する.
 	 *
 	 * @param runnable トランザクション内で実行する処理
 	 */
-	void autoCommitScope(SQLRunnable runnable);
+	void autoCommitScope(Runnable runnable);
 }

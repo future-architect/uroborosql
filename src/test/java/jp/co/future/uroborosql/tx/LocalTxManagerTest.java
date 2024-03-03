@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +98,7 @@ public class LocalTxManagerTest {
 
 				//トランザクション終了 commit
 			});
-			assertThat(select(agent), is(Arrays.asList("ABC")));
+			assertThat(select(agent), is(List.of("ABC")));
 
 			agent.required(() -> {
 				//トランザクション開始
@@ -108,7 +107,7 @@ public class LocalTxManagerTest {
 
 				//トランザクション終了 commit
 			});
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 		}
 	}
 
@@ -121,7 +120,7 @@ public class LocalTxManagerTest {
 
 				ins(agent, 1, "ABC");
 
-				assertThat(select(agent), is(Arrays.asList("ABC")));
+				assertThat(select(agent), is(List.of("ABC")));
 
 				agent.requiresNew(() -> {
 					//新しい トランザクション開始
@@ -129,7 +128,7 @@ public class LocalTxManagerTest {
 					ins(agent, 2, "DEF");
 
 					//上で登録した"ABC"は別Connectionのため入らない
-					assertThat(select(agent), is(Arrays.asList("DEF")));
+					assertThat(select(agent), is(List.of("DEF")));
 
 					//トランザクション終了 commit
 				});
@@ -137,7 +136,7 @@ public class LocalTxManagerTest {
 				//トランザクション終了 commit
 			});
 
-			assertThat(select(agent), is(Arrays.asList("ABC", "DEF")));
+			assertThat(select(agent), is(List.of("ABC", "DEF")));
 
 		}
 	}
@@ -153,12 +152,12 @@ public class LocalTxManagerTest {
 
 				agent.setRollbackOnly();//ロールバックを指示
 
-				assertThat(select(agent), is(Arrays.asList("ABC")));//まだロールバックは行われない
+				assertThat(select(agent), is(List.of("ABC")));//まだロールバックは行われない
 
 				//トランザクション終了 rollback
 			});
 
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 
 		}
 	}
@@ -179,7 +178,7 @@ public class LocalTxManagerTest {
 			} catch (IllegalArgumentException e) {
 			}
 
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 
 		}
 
@@ -195,11 +194,11 @@ public class LocalTxManagerTest {
 				agent.setSavepoint("sp");
 				ins(agent, 3, "C");
 
-				assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
+				assertThat(select(agent), is(List.of("A", "B", "C")));
 
 				agent.rollback("sp");//最後のinsertを取消
 
-				assertThat(select(agent), is(Arrays.asList("A", "B")));
+				assertThat(select(agent), is(List.of("A", "B")));
 
 			});
 		}
@@ -212,23 +211,23 @@ public class LocalTxManagerTest {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 
-				assertThat(select(agent), is(Arrays.asList("ABC")));
+				assertThat(select(agent), is(List.of("ABC")));
 
-				assertThat(agent.required(() -> select(agent)), is(Arrays.asList("ABC")));
+				assertThat(agent.required(() -> select(agent)), is(List.of("ABC")));
 
 				agent.requiresNew(() -> {
 					//別Connection
-					assertThat(select(agent), is(Arrays.asList()));
+					assertThat(select(agent), is(List.of()));
 				});
 
-				assertThat(agent.requiresNew(() -> select(agent)), is(Arrays.asList()));
+				assertThat(agent.requiresNew(() -> select(agent)), is(List.of()));
 
 				agent.notSupported(() -> {
 					//別Connection
-					assertThat(select(agent), is(Arrays.asList()));
+					assertThat(select(agent), is(List.of()));
 				});
 
-				assertThat(agent.notSupported(() -> select(agent)), is(Arrays.asList()));
+				assertThat(agent.notSupported(() -> select(agent)), is(List.of()));
 			});
 		}
 	}
@@ -240,14 +239,14 @@ public class LocalTxManagerTest {
 			agent.required(() -> {
 				ins(agent, 1, "ABC");
 			});//commit
-			assertThat(select(agent), is(Arrays.asList("ABC")));
+			assertThat(select(agent), is(List.of("ABC")));
 
 			agent.required(() -> {
 				agent.notSupported(() -> {
 					ins(agent, 2, "DEF");
 				});//commitされないはず
 
-				assertThat(select(agent), is(Arrays.asList("ABC")));
+				assertThat(select(agent), is(List.of("ABC")));
 			});
 		}
 	}
@@ -260,7 +259,7 @@ public class LocalTxManagerTest {
 				ins(agent, 1, "ABC");
 				agent.setRollbackOnly();//ロールバックを予約
 			});
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 
 			try {
 				agent.required(() -> {
@@ -269,7 +268,7 @@ public class LocalTxManagerTest {
 				});
 			} catch (UroborosqlRuntimeException e) {
 			}
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 		}
 	}
 
@@ -286,15 +285,15 @@ public class LocalTxManagerTest {
 				ins(agent, 3, "C");
 				agent.setSavepoint("C");
 
-				assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
+				assertThat(select(agent), is(List.of("A", "B", "C")));
 
 				agent.rollback("B");
 
-				assertThat(select(agent), is(Arrays.asList("A", "B")));
+				assertThat(select(agent), is(List.of("A", "B")));
 
 				agent.rollback("A");
 			});
-			assertThat(select(agent), is(Arrays.asList("A")));
+			assertThat(select(agent), is(List.of("A")));
 
 			agent.required(() -> {
 				agent.setSavepoint("X");
@@ -303,11 +302,11 @@ public class LocalTxManagerTest {
 				ins(agent, 3, "C");
 				agent.setSavepoint("C");
 
-				assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
+				assertThat(select(agent), is(List.of("A", "B", "C")));
 
 				agent.rollback("X");
 
-				assertThat(select(agent), is(Arrays.asList("A")));
+				assertThat(select(agent), is(List.of("A")));
 
 				agent.releaseSavepoint("B");
 
@@ -318,9 +317,9 @@ public class LocalTxManagerTest {
 
 				agent.rollback("B");
 
-				assertThat(select(agent), is(Arrays.asList("A", "B")));
+				assertThat(select(agent), is(List.of("A", "B")));
 			});
-			assertThat(select(agent), is(Arrays.asList("A", "B")));
+			assertThat(select(agent), is(List.of("A", "B")));
 		}
 	}
 
@@ -336,22 +335,22 @@ public class LocalTxManagerTest {
 							try {
 								agent.savepointScope(() -> {
 									ins(agent, 3, "C");
-									assertThat(select(agent), is(Arrays.asList("A", "B", "C")));
+									assertThat(select(agent), is(List.of("A", "B", "C")));
 									throw new IllegalStateException();
 								});
 							} catch (Exception ex) {
-								assertThat(select(agent), is(Arrays.asList("A", "B")));
+								assertThat(select(agent), is(List.of("A", "B")));
 								assertThat(ex, is(instanceOf(IllegalStateException.class)));
 								throw ex;
 							}
 							fail();
 						});
 					} catch (Exception ex) {
-						assertThat(select(agent), is(Arrays.asList("A")));
+						assertThat(select(agent), is(List.of("A")));
 						assertThat(ex, is(instanceOf(IllegalStateException.class)));
 					}
 				});
-				assertThat(select(agent), is(Arrays.asList("A")));
+				assertThat(select(agent), is(List.of("A")));
 			});
 		}
 	}
@@ -366,7 +365,7 @@ public class LocalTxManagerTest {
 						assertThat(agent.savepointScope(() -> {
 							ins(agent, 2, "B");
 							return select(agent);
-						}), is(Arrays.asList("A", "B")));
+						}), is(List.of("A", "B")));
 						throw new IllegalAccessError();
 					});
 				} catch (Throwable th) {
@@ -391,7 +390,7 @@ public class LocalTxManagerTest {
 					//notSupportedは常に同じConnectionが利用されている
 				});
 
-				assertThat(select(agent), is(Arrays.asList("ABC", "DEF")));
+				assertThat(select(agent), is(List.of("ABC", "DEF")));
 			});
 
 			agent.required(() -> {
@@ -400,7 +399,7 @@ public class LocalTxManagerTest {
 
 				agent.requiresNew(() -> {
 					//別ConnectionだけどCommitしたからデータが見れるはず
-					assertThat(select(agent), is(Arrays.asList("ABC", "DEF", "GHI")));
+					assertThat(select(agent), is(List.of("ABC", "DEF", "GHI")));
 				});
 
 			});
@@ -415,21 +414,21 @@ public class LocalTxManagerTest {
 				ins(agent, 1, "ABC");
 				ins(agent, 2, "DEF");
 
-				assertThat(select(agent), is(Arrays.asList("ABC", "DEF")));
+				assertThat(select(agent), is(List.of("ABC", "DEF")));
 
 				agent.rollback();//明示的にrollback
 
-				assertThat(select(agent), is(Arrays.asList()));
+				assertThat(select(agent), is(List.of()));
 			});
 
 			ins(agent, 1, "ABC");
 			ins(agent, 2, "DEF");
 
-			assertThat(select(agent), is(Arrays.asList("ABC", "DEF")));
+			assertThat(select(agent), is(List.of("ABC", "DEF")));
 
 			agent.rollback();//明示的にrollback
 
-			assertThat(select(agent), is(Arrays.asList()));
+			assertThat(select(agent), is(List.of()));
 		}
 	}
 
@@ -440,7 +439,8 @@ public class LocalTxManagerTest {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
 				select(agent);
-				assertThat(agent.query(Emp.class).collect().size(), is(0));
+				assertThat(agent.query(Emp.class)
+						.collect().size(), is(0));
 			});
 		}
 	}
@@ -452,7 +452,8 @@ public class LocalTxManagerTest {
 		try (var agent = config.agent()) {
 			agent.requiresNew(() -> {
 				select(agent);
-				assertThat(agent.query(Emp.class).collect().size(), is(0));
+				assertThat(agent.query(Emp.class)
+						.collect().size(), is(0));
 			});
 		}
 	}
@@ -464,7 +465,8 @@ public class LocalTxManagerTest {
 		try (var agent = config.agent()) {
 			agent.notSupported(() -> {
 				select(agent);
-				assertThat(agent.query(Emp.class).collect().size(), is(0));
+				assertThat(agent.query(Emp.class)
+						.collect().size(), is(0));
 			});
 		}
 	}
@@ -475,7 +477,8 @@ public class LocalTxManagerTest {
 
 		try (var agent = config.agent()) {
 			select(agent);
-			assertThat(agent.query(Emp.class).collect().size(), is(0));
+			assertThat(agent.query(Emp.class)
+					.collect().size(), is(0));
 		}
 	}
 
@@ -908,7 +911,8 @@ public class LocalTxManagerTest {
 
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();
@@ -934,7 +938,8 @@ public class LocalTxManagerTest {
 			agent.requiresNew(() -> {
 				try {
 					var ans = agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					assertThat(ans.get("ret"), is("TEST1"));
 				} catch (SQLException ex) {
 					Assertions.fail();
@@ -960,7 +965,8 @@ public class LocalTxManagerTest {
 			agent.notSupported(() -> {
 				try {
 					agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-							.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1").call();
 					Assertions.fail();
 				} catch (UroborosqlTransactionException ex) {
 					// OK
@@ -987,7 +993,8 @@ public class LocalTxManagerTest {
 
 			try {
 				agent.procWith("{/*ret*/ = call MYFUNCTION(/*param1*/)}")
-						.outParam("ret", JDBCType.VARCHAR).param("param1", "test1").call();
+						.outParam("ret", JDBCType.VARCHAR)
+						.param("param1", "test1").call();
 				Assertions.fail();
 			} catch (UroborosqlTransactionException ex) {
 				// OK

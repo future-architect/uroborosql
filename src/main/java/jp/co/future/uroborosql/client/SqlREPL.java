@@ -48,8 +48,7 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.DumpResultSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -84,13 +83,13 @@ public class SqlREPL {
 	 */
 	public static void main(final String... args) {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.log")).setLevel(Level.INFO);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.INFO);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.dx")).setLevel(Level.TRACE);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.repl")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.INFO);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.setting")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.event")).setLevel(Level.DEBUG);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.repl")).setLevel(Level.WARN);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.DEBUG);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage")).setLevel(Level.ERROR);
 
 		var propFile = "repl.properties";
 		if (args.length != 0) {
@@ -183,7 +182,7 @@ public class SqlREPL {
 		Arrays.stream(paths.split(";")).forEach(path -> {
 			try {
 				var m = SYSPROP_PAT.matcher(path);
-				var sb = new StringBuffer();
+				var sb = new StringBuilder();
 				while (m.find()) {
 					var key = m.group(1);
 					var val = System.getProperty(key, null);
@@ -227,7 +226,8 @@ public class SqlREPL {
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
 				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new DumpResultSqlFilter())).build();
+				.build();
+		sqlConfig.getEventListenerHolder().addEventSubscriber(new DumpResultEventSubscriber());
 
 		// executionContextProvider
 		var executionContextProvider = sqlConfig.getExecutionContextProvider();

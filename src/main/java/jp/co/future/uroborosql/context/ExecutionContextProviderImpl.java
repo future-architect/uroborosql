@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -37,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.event.AfterInitializeExecutionContextEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -69,18 +69,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	/** SQL設定クラス */
 	private SqlConfig sqlConfig = null;
 
-	/** 自動パラメータバインド関数List(query用) */
-	private final List<Consumer<ExecutionContext>> queryAutoParameterBinders = new ArrayList<>();
-
-	/** 自動パラメータバインド関数List(update/batch/proc用) */
-	private final List<Consumer<ExecutionContext>> updateAutoParameterBinders = new ArrayList<>();
-
-	/** 合成自動パラメータバインド関数(query用) */
-	private Consumer<ExecutionContext> queryAutoParameterBinder = null;
-
-	/** 合成自動パラメータバインド関数(update/batch/proc用) */
-	private Consumer<ExecutionContext> updateAutoParameterBinder = null;
-
 	/** ResultSetTypeの初期値 */
 	private int defaultResultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
@@ -99,17 +87,19 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	@Override
 	public ExecutionContext createExecutionContext() {
 		var executionContext = new ExecutionContextImpl();
-		var paramMap = new ConcurrentHashMap<>(getConstParameterMap());
-
-		executionContext.setConstParameterMap(paramMap);
-		executionContext.setSqlFilterManager(getSqlConfig().getSqlFilterManager());
+		executionContext.setSqlConfig(getSqlConfig());
+		executionContext.setConstParameterMap(new ConcurrentHashMap<>(getConstParameterMap()));
 		executionContext.setParameterMapperManager(
 				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
-		executionContext.setQueryAutoParameterBinder(queryAutoParameterBinder);
-		executionContext.setUpdateAutoParameterBinder(updateAutoParameterBinder);
 		executionContext.setResultSetType(defaultResultSetType);
 		executionContext.setResultSetConcurrency(defaultResultSetConcurrency);
 
+		// ExecutionContext初期化後イベント発行
+		if (getSqlConfig().getEventListenerHolder().hasAfterInitializeExecutionContextListener()) {
+			var eventObj = new AfterInitializeExecutionContextEvent(executionContext);
+			getSqlConfig().getEventListenerHolder().getAfterInitializeExecutionContextListeners()
+					.forEach(listener -> listener.accept(eventObj));
+		}
 		return executionContext;
 	}
 
@@ -153,7 +143,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param paramMap 定数パラメータを保持するMap
 	 * @param targetClass 定数パラメータを生成する定数クラス。クラス内に内部クラスを持つ場合は内部クラスの定数フィールドもパラメータに登録する
 	 */
-	protected void makeConstParamMap(final Map<String, Parameter> paramMap, final Class<?> targetClass) {
+	protected void makeConstParamMap(final Map<String, Parameter> paramMap,
+			final Class<?> targetClass) {
 		try {
 			var fieldPrefix = targetClass.isMemberClass() ? CaseFormat.UPPER_SNAKE_CASE
 					.convert(targetClass.getSimpleName()) + "_" : "";
@@ -169,13 +160,17 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 						var newValue = new Parameter(fieldName, field.get(null));
 						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							SETTING_LOG.warn("Duplicate constant name. Constant name:{}, old value:{} destroy.",
-									fieldName,
-									prevValue.getValue());
+							if (SETTING_LOG.isWarnEnabled()) {
+								SETTING_LOG.warn("Duplicate constant name. Constant name:{}, old value:{} destroy.",
+										fieldName,
+										prevValue.getValue());
+							}
 						}
-						SETTING_LOG.info("Constant [name:{}, value:{}] added to parameter.",
-								fieldName,
-								newValue.getValue());
+						if (SETTING_LOG.isInfoEnabled()) {
+							SETTING_LOG.info("Constant [name:{}, value:{}] added to parameter.",
+									fieldName,
+									newValue.getValue());
+						}
 					}
 				}
 			}
@@ -200,12 +195,12 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @param packageName パッケージ名
 	 * @param targetClass 対象Enumクラス
 	 */
-	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap, final String packageName,
+	protected void makeEnumConstParamMap(final Map<String, Parameter> paramMap,
+			final String packageName,
 			final Class<? extends Enum<?>> targetClass) {
 
 		var fieldPrefix = CaseFormat.UPPER_SNAKE_CASE.convert(targetClass.getName().substring(
-				packageName.length() + 1))
-				+ "_";
+				packageName.length() + 1)) + "_";
 
 		var enumValues = targetClass.getEnumConstants();
 
@@ -214,13 +209,17 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			var newValue = new Parameter(fieldName, value);
 			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				SETTING_LOG.warn("Duplicate Enum name. Enum name:{}, old value:{} destroy.",
-						fieldName,
-						prevValue.getValue());
+				if (SETTING_LOG.isWarnEnabled()) {
+					SETTING_LOG.warn("Duplicate Enum name. Enum name:{}, old value:{} destroy.",
+							fieldName,
+							prevValue.getValue());
+				}
 			}
-			SETTING_LOG.info("Enum [name:{}, value:{}] added to parameter.",
-					fieldName,
-					newValue.getValue());
+			if (SETTING_LOG.isInfoEnabled()) {
+				SETTING_LOG.info("Enum [name:{}, value:{}] added to parameter.",
+						fieldName,
+						newValue.getValue());
+			}
 		}
 	}
 
@@ -320,62 +319,6 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeQueryAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeQueryAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#addUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider addUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.add(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.context.ExecutionContextProvider#removeUpdateAutoParameterBinder(java.util.function.Consumer)
-	 */
-	@Override
-	public ExecutionContextProvider removeUpdateAutoParameterBinder(final Consumer<ExecutionContext> binder) {
-		updateAutoParameterBinders.remove(binder);
-		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce(Consumer::andThen)
-				.orElse(null);
-		return this;
-	}
-
-	/**
 	 * 定数クラスパラメータMap生成
 	 *
 	 * @return 定数クラスパラメータMap
@@ -404,7 +347,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 		var paramMap = new HashMap<String, Parameter>();
 		for (var packageName : enumConstantPackageNames) {
 			if (StringUtils.isNotBlank(packageName)) {
-				for (var targetClass : listupEnumClasses(packageName)) {
+				for (var targetClass : listUpEnumClasses(packageName)) {
 					makeEnumConstParamMap(paramMap, packageName, targetClass);
 				}
 			}
@@ -419,7 +362,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	 * @return クラスリスト
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Set<Class<? extends Enum<?>>> listupEnumClasses(final String packageName) {
+	private static Set<Class<? extends Enum<?>>> listUpEnumClasses(final String packageName) {
 		var resourceName = packageName.replace('.', '/');
 		var classLoader = Thread.currentThread().getContextClassLoader();
 		List<URL> roots;

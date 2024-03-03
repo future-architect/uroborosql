@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 import ognl.ASTProperty;
 import ognl.Node;
 import ognl.Ognl;
@@ -43,7 +43,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	public void initialize() {
 		super.initialize();
 		OgnlRuntime.setPropertyAccessor(TransformContext.class,
-				new TransformContextPropertyAccessor(getSqlConfig().getDialect().getExpressionFunction()));
+				new TransformContextPropertyAccessor(getSqlConfig().getDialect().getSqlFunction()));
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 				traverseNode((Node) expression, props);
 				for (var prop : props) {
 					var propName = prop.toString();
-					if (!StringFunction.SHORT_NAME.equals(propName)) {
+					if (!SqlFunction.SHORT_NAME.equals(propName)) {
 						try {
 							var value = Ognl.getValue(prop, context, null);
 							builder.append(propName)
@@ -132,7 +132,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 			traverseNode((Node) expression, props);
 			for (var prop : props) {
 				var propName = prop.toString();
-				if (!StringFunction.SHORT_NAME.equals(propName)) {
+				if (!SqlFunction.SHORT_NAME.equals(propName)) {
 					params.add(propName);
 				}
 			}

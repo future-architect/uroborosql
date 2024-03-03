@@ -140,7 +140,6 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	protected void parseSql() {
 		var commentStartPos = sql.indexOf("/*", position);
 		var lineCommentStartPos = sql.indexOf("--", position);
-		var bindVariableStartPos = sql.indexOf("?", position);
 		var elseCommentStartPos = -1;
 		if (lineCommentStartPos >= 0) {
 			var skipPos = skipWhitespace(lineCommentStartPos + 2);
@@ -148,7 +147,7 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 				elseCommentStartPos = lineCommentStartPos;
 			}
 		}
-		var nextStartPos = getNextStartPos(commentStartPos, elseCommentStartPos, bindVariableStartPos);
+		var nextStartPos = getNextStartPos(commentStartPos, elseCommentStartPos);
 		if (nextStartPos < 0) {
 			token = sql.substring(position);
 			nextTokenType = TokenType.EOF;
@@ -164,9 +163,6 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 			} else if (nextStartPos == elseCommentStartPos) {
 				nextTokenType = TokenType.ELSE;
 				position = elseCommentStartPos + 2;
-			} else if (nextStartPos == bindVariableStartPos) {
-				nextTokenType = TokenType.BIND_VARIABLE;
-				position = bindVariableStartPos;
 			}
 			if (needNext) {
 				next();
@@ -179,11 +175,9 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 	 *
 	 * @param commentStartPos コメント開始位置
 	 * @param elseCommentStartPos ELSEコメント開始位置
-	 * @param bindVariableStartPos バインド変数開始位置
 	 * @return 次の解析位置
 	 */
-	protected int getNextStartPos(final int commentStartPos, final int elseCommentStartPos,
-			final int bindVariableStartPos) {
+	protected int getNextStartPos(final int commentStartPos, final int elseCommentStartPos) {
 
 		var nextStartPos = -1;
 		if (commentStartPos >= 0) {
@@ -191,9 +185,6 @@ public class SqlTokenizerImpl implements SqlTokenizer {
 		}
 		if (elseCommentStartPos >= 0 && (nextStartPos < 0 || elseCommentStartPos < nextStartPos)) {
 			nextStartPos = elseCommentStartPos;
-		}
-		if (bindVariableStartPos >= 0 && (nextStartPos < 0 || bindVariableStartPos < nextStartPos)) {
-			nextStartPos = bindVariableStartPos;
 		}
 		return nextStartPos;
 	}

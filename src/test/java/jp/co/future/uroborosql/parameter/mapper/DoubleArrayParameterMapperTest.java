@@ -10,7 +10,6 @@ import java.sql.Array;
 import java.sql.Connection;
 import java.time.Clock;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +52,7 @@ public class DoubleArrayParameterMapperTest {
 	@SuppressWarnings("unchecked")
 	public static <I> I newProxy(final Class<I> interfaceType, final Class<?>[] interfaceTypes,
 			final InvocationHandler handler) {
-		List<Class<?>> types = new ArrayList<>(Arrays.asList(interfaceTypes));
+		List<Class<?>> types = new ArrayList<>(List.of(interfaceTypes));
 		types.add(interfaceType);
 		return (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
 				types.toArray(new Class<?>[types.size()]), handler);

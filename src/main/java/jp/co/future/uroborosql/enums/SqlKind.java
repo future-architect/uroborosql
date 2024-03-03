@@ -20,10 +20,22 @@ public enum SqlKind {
 	DELETE,
 	/** SELECT */
 	SELECT,
+	/** ENTITY_INSERT */
+	ENTITY_INSERT,
+	/** ENTITY_UPDATE */
+	ENTITY_UPDATE,
+	/** ENTITY_DELETE */
+	ENTITY_DELETE,
+	/** ENTITY_SELECT */
+	ENTITY_SELECT,
 	/** BATCH_INSERT */
 	BATCH_INSERT,
 	/** BULK_INSERT */
 	BULK_INSERT,
+	/** ENTITY_BATCH_INSERT */
+	ENTITY_BATCH_INSERT,
+	/** ENTITY_BULK_INSERT */
+	ENTITY_BULK_INSERT,
 	/** BATCH_UPDATE */
 	BATCH_UPDATE,
 	/** PROCEDURE */
@@ -31,5 +43,14 @@ public enum SqlKind {
 	/** TRUNCATE */
 	TRUNCATE,
 	/** NONE */
-	NONE,
+	NONE;
+
+	/**
+	 * Entity型に対するSQL種別かどうかを返す.
+	 *
+	 * @return Entity型に対するSQL種別の場合<code>true</code>
+	 */
+	public boolean isEntityType() {
+		return name().startsWith("ENTITY");
+	}
 }
