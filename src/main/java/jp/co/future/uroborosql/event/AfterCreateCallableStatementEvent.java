@@ -28,7 +28,7 @@ public class AfterCreateCallableStatementEvent extends ExecutionEvent {
 	 * コンストラクタ.
 	 *
 	 * @param executionContext ExecutionContext
-	 * @param connectino Connection
+	 * @param connection Connection
 	 * @param callableStatement CallableStatement
 	 */
 	public AfterCreateCallableStatementEvent(final ExecutionContext executionContext,
