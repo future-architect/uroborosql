@@ -1,0 +1,2 @@
+Before Set Parameter - Parameter:Parameter name[product_id], Value[0], Class[BigDecimal]
+Execute Query - sqlName:example/select_product executed.

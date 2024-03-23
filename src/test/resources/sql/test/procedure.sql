@@ -1,0 +1,1 @@
+{/*ret*/ = call MYFUNCTION(/*param1*/)}

@@ -111,10 +111,10 @@ public class DateTimeApiParameterMapper implements BindParameterMapperWithClock<
 			return Timestamp.valueOf((LocalDateTime) original);
 		}
 		if (original instanceof OffsetDateTime) {
-			return new Timestamp(((OffsetDateTime) original).toInstant().toEpochMilli());
+			return Timestamp.from(((OffsetDateTime) original).toInstant());
 		}
 		if (original instanceof ZonedDateTime) {
-			return new Timestamp(((ZonedDateTime) original).toInstant().toEpochMilli());
+			return Timestamp.from(((ZonedDateTime) original).toInstant());
 		}
 		if (original instanceof LocalDate) {
 			return Date.valueOf((LocalDate) original);

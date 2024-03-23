@@ -20,7 +20,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class ExitCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -34,14 +34,14 @@ public class ExitCommandTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.build();
 		agent = sqlConfig.agent();
 
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (var sql : sqls) {
-			if (StringUtils.isNotBlank(sql)) {
+			if (ObjectUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
 		}

@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * カバレッジレポート出力ハンドラ<br>
@@ -42,10 +42,13 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class HtmlReportCoverageHandler implements CoverageHandler {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** カバレッジロガー. */
+	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
 
+	/** カバレッジ情報. */
 	private final Map<String, Map<String, SqlCoverageReport>> coverages = new ConcurrentHashMap<>();
+
+	/** レポートディレクトリパス. */
 	private final Path reportDirPath;
 
 	/**
@@ -58,7 +61,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 	 */
 	public HtmlReportCoverageHandler() {
 		var s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".dir");
-		if (StringUtils.isNotEmpty(s)) {
+		if (ObjectUtils.isNotEmpty(s)) {
 			this.reportDirPath = Paths.get(s);
 		} else {
 			this.reportDirPath = Paths.get("target", "coverage", "sql");
@@ -76,7 +79,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 	@Override
 	public synchronized void accept(final CoverageData coverageData) {
-		if (StringUtils.isEmpty(coverageData.getSqlName())) {
+		if (ObjectUtils.isEmpty(coverageData.getSqlName())) {
 			// SQL名の設定されていないSQLは集約しない
 			return;
 		}
@@ -112,7 +115,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
 						} catch (IOException e) {
-							LOG.error(e.getMessage(), e);
+							COVERAGE_LOG.error(e.getMessage(), e);
 						}
 					});
 			// write report
@@ -129,7 +132,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				writeSuffix(writer);
 			}
 		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+			COVERAGE_LOG.error(e.getMessage(), e);
 		}
 	}
 

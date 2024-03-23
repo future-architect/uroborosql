@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql.dialect;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +26,7 @@ public abstract class OracleDialect extends AbstractDialect {
 	 * <pre>ORA-30006: リソース・ビジー; WAITタイムアウトの期限に達しました。</pre>
 	 */
 	private static final Set<String> pessimisticLockingErrorCodes = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList("54", "30006")));
+			.unmodifiableSet(new HashSet<>(List.of("54", "30006")));
 
 	/**
 	 * コンストラクタ

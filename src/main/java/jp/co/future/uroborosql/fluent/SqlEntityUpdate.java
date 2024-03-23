@@ -38,7 +38,7 @@ public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<
 	 *
 	 * @param <V> 値の型
 	 * @param col 更新するカラム名（キャメルケース）
-	 * @param supplier 更新する値を提供するサプライヤ
+	 * @param supplier 更新する値を提供するSupplier
 	 * @return SqlEntityUpdate
 	 */
 	<V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier);

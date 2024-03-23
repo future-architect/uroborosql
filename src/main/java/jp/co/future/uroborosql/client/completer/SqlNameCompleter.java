@@ -17,7 +17,7 @@ import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.store.SqlResourceManager;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQL Name の補完を行うCompleter
@@ -67,7 +67,7 @@ public class SqlNameCompleter extends AbstractCompleter {
 		if (isBlank ? len == startArgNo : len == startArgNo + 1) {
 			// コマンドが引数ありの場合
 			var args = len == startArgNo + 1 ? parts[startArgNo] : "";
-			if (StringUtils.isEmpty(args)) {
+			if (ObjectUtils.isEmpty(args)) {
 				candidates.addAll(sqlNames.stream().map(n -> new Candidate(n, n, null, null, null, null, complete))
 						.collect(Collectors.toList()));
 			} else {

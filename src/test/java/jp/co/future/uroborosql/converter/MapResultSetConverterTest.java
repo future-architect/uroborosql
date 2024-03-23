@@ -25,7 +25,7 @@ import jp.co.future.uroborosql.dialect.Oracle12Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class MapResultSetConverterTest {
 	private String url;
@@ -90,10 +90,10 @@ public class MapResultSetConverterTest {
 
 			createTable(agent);
 
-			var clob = StringUtils.repeat('1', 10000);
-			var nclob = StringUtils.repeat('あ', 10000);
-			var binary = StringUtils.repeat('y', 20000).getBytes();
-			var blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = ObjectUtils.repeat('1', 10000);
+			var nclob = ObjectUtils.repeat('あ', 10000);
+			var binary = ObjectUtils.repeat('y', 20000).getBytes();
+			var blob = ObjectUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
@@ -121,9 +121,9 @@ public class MapResultSetConverterTest {
 					.param("varchar", "abc")
 					.param("nvarchar", "文字列")
 					.param("longvarchar", "abcabc")
-					.clobParam("clob", new StringReader(clob))
-					.clobParam("nclob", new StringReader(nclob))
-					.blobParam("blob", new ByteArrayInputStream(blob))
+					.param("clob", new StringReader(clob))
+					.param("nclob", new StringReader(nclob))
+					.param("blob", new ByteArrayInputStream(blob))
 					.param("arr", arr)
 					.count();
 
@@ -164,10 +164,10 @@ public class MapResultSetConverterTest {
 
 			createTable(agent);
 
-			var clob = StringUtils.repeat('1', 10000);
-			var nclob = StringUtils.repeat('あ', 10000);
-			var binary = StringUtils.repeat('y', 20000).getBytes();
-			var blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = ObjectUtils.repeat('1', 10000);
+			var nclob = ObjectUtils.repeat('あ', 10000);
+			var binary = ObjectUtils.repeat('y', 20000).getBytes();
+			var blob = ObjectUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
@@ -195,14 +195,14 @@ public class MapResultSetConverterTest {
 					.param("varchar", "abc")
 					.param("nvarchar", "文字列")
 					.param("longvarchar", "abcabc")
-					.clobParam("clob", new StringReader(clob))
-					.clobParam("nclob", new StringReader(nclob))
-					.blobParam("blob", new ByteArrayInputStream(blob))
+					.param("clob", new StringReader(clob))
+					.param("nclob", new StringReader(nclob))
+					.param("blob", new ByteArrayInputStream(blob))
 					.param("arr", arr)
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.context().setSql("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent.query(context, new MapResultSetConverter(config))
 					.collect(Collectors.toList());
 			assertThat(result.size(), is(1));
@@ -241,10 +241,10 @@ public class MapResultSetConverterTest {
 
 			createTable(agent);
 
-			var clob = StringUtils.repeat('1', 10000);
-			var nclob = StringUtils.repeat('あ', 10000);
-			var binary = StringUtils.repeat('y', 20000).getBytes();
-			var blob = StringUtils.repeat('x', 20000).getBytes();
+			var clob = ObjectUtils.repeat('1', 10000);
+			var nclob = ObjectUtils.repeat('あ', 10000);
+			var binary = ObjectUtils.repeat('y', 20000).getBytes();
+			var blob = ObjectUtils.repeat('x', 20000).getBytes();
 			int[] arr = { 1, 2 };
 			var time = LocalTime.of(10, 0, 0);
 			var date = ZonedDateTime.of(LocalDateTime.of(2019, Month.MAY, 1, 0, 0, 0),
@@ -272,14 +272,14 @@ public class MapResultSetConverterTest {
 					.param("varchar", "abc")
 					.param("nvarchar", "文字列")
 					.param("longvarchar", "abcabc")
-					.clobParam("clob", new StringReader(clob))
-					.clobParam("nclob", new StringReader(nclob))
-					.blobParam("blob", new ByteArrayInputStream(blob))
+					.param("clob", new StringReader(clob))
+					.param("nclob", new StringReader(nclob))
+					.param("blob", new ByteArrayInputStream(blob))
 					.param("arr", arr)
 					.count();
 
 			// constractor MapResultSetConverter(final Dialect dialect)
-			var context = config.contextWith("select * from COLUMN_TYPE_TEST2");
+			var context = config.context().setSql("select * from COLUMN_TYPE_TEST2");
 			List<Map<String, Object>> result = agent
 					.query(context,
 							new MapResultSetConverter(config, CaseFormat.UPPER_SNAKE_CASE,

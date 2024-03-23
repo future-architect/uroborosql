@@ -20,7 +20,7 @@ import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Describe table Command
@@ -78,13 +78,13 @@ public class DescCommand extends ReplCommand {
 			// ラベル
 			writer.print("-");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+				writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();
 			writer.print("|");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad(label, labelLength.get(label)));
+				writer.print(ObjectUtils.rightPad(label, labelLength.get(label)));
 				writer.print("|");
 			}
 			writer.println();
@@ -99,7 +99,7 @@ public class DescCommand extends ReplCommand {
 				if (breakFlag) {
 					writer.print("-");
 					for (var label : DESC_COLUMN_LABELS) {
-						writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+						writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 						writer.print("-");
 					}
 					writer.println();
@@ -109,10 +109,10 @@ public class DescCommand extends ReplCommand {
 				writer.print("|");
 				for (var label : DESC_COLUMN_LABELS) {
 					var val = column.get(label);
-					if (StringUtils.isNumeric(val)) {
-						writer.print(StringUtils.leftPad(val, labelLength.get(label)));
+					if (ObjectUtils.isNumeric(val)) {
+						writer.print(ObjectUtils.leftPad(val, labelLength.get(label)));
 					} else {
-						writer.print(StringUtils.rightPad(val, labelLength.get(label)));
+						writer.print(ObjectUtils.rightPad(val, labelLength.get(label)));
 					}
 					writer.print("|");
 				}
@@ -120,7 +120,7 @@ public class DescCommand extends ReplCommand {
 			}
 			writer.print("-");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+				writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();

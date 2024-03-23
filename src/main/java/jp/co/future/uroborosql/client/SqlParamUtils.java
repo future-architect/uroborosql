@@ -10,13 +10,22 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -26,9 +35,10 @@ import jp.co.future.uroborosql.node.EmbeddedValueNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
+import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Sqlのバインドパラメータを操作するユーティリティ
@@ -57,7 +67,7 @@ public final class SqlParamUtils {
 	 * @return 入力内容をパラメータに分割した配列
 	 */
 	public static String[] parseLine(final String line) {
-		var sb = new StringBuffer();
+		var sb = new StringBuilder();
 		var matcher = PARAM_PAT.matcher(line);
 		while (matcher.find()) {
 			var arrayPart = matcher.group();
@@ -127,6 +137,85 @@ public final class SqlParamUtils {
 	}
 
 	/**
+	 * パラメータリストをREPLコマンド用の引数文字列に変換する.
+	 *
+	 * @param params 変換するパラメータのリスト
+	 * @return REPLコマンド用の引数文字列
+	 */
+	public static String formatPrams(final List<Parameter> params) {
+		return params.stream()
+				.map(SqlParamUtils::formatParam)
+				.collect(Collectors.joining(" "));
+	}
+
+	/**
+	 * パラメータをREPLコマンド用引数文字列に変換する.
+	 * @param param 変換対象パラメータ
+	 * @return REPLコマンド引数文字列
+	 */
+	public static String formatParam(final Parameter param) {
+		return param.getParameterName() + "=" + formatParamValue(param.getValue());
+	}
+
+	/**
+	 * パラメータの値をREPLコマンド用の値文字列に変換する.
+	 * @param val 変換対象の値
+	 * @return REPLコマンド用の値文字列
+	 */
+	private static String formatParamValue(final Object val) {
+		if (Objects.isNull(val)) {
+			return "[NULL]";
+		} else if (val instanceof Integer) {
+			return val.toString();
+		} else if (val instanceof Long) {
+			return val.toString() + "L";
+		} else if (val instanceof Float) {
+			return val.toString() + "F";
+		} else if (val instanceof Double) {
+			return val.toString() + "D";
+		} else if (val instanceof BigDecimal) {
+			return ((BigDecimal) val).toPlainString();
+		} else if (val instanceof Date) {
+			var date = ((Date) val).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			return "'" + DateTimeFormatter.ISO_DATE.format(date) + "'";
+		} else if (val instanceof LocalDate) {
+			return "'" + DateTimeFormatter.ISO_DATE.format((LocalDate) val) + "'";
+		} else if (val instanceof LocalDateTime) {
+			return "'" + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format((LocalDateTime) val) + "'";
+		} else if (val instanceof OffsetDateTime) {
+			return "'" + DateTimeFormatter.ISO_OFFSET_DATE_TIME.format((OffsetDateTime) val) + "'";
+		} else if (val instanceof ZonedDateTime) {
+			return "'" + DateTimeFormatter.ISO_ZONED_DATE_TIME.format((ZonedDateTime) val) + "'";
+		} else if (val instanceof LocalTime) {
+			return "'" + DateTimeFormatter.ISO_LOCAL_TIME.format((LocalTime) val) + "'";
+		} else if (val instanceof OffsetTime) {
+			return "'" + DateTimeFormatter.ISO_OFFSET_TIME.format((OffsetTime) val) + "'";
+		} else if (val instanceof Optional) {
+			return formatParamValue(((Optional<?>) val).orElse(null));
+		} else if (val instanceof List) {
+			var list = (List<?>) val;
+			return list.stream()
+					.map(SqlParamUtils::formatParamValue)
+					.collect(Collectors.joining(",", "[", "]"));
+		} else if (val.getClass().isArray()) {
+			var arr = (Object[]) val;
+			return Arrays.stream(arr)
+					.map(SqlParamUtils::formatParamValue)
+					.collect(Collectors.joining(",", "[", "]"));
+		} else if ("".equals(val)) {
+			return "[EMPTY]";
+		} else {
+			var str = val.toString();
+			if (str.contains(" ")) {
+				return "'" + str + "'";
+			} else {
+				return str;
+			}
+		}
+
+	}
+
+	/**
 	 * 1つのパラメータの設定
 	 *
 	 * パラメータ値は以下の表記が可能
@@ -155,7 +244,7 @@ public final class SqlParamUtils {
 			for (var i = 0; i < parts.length; i++) {
 				vals[i] = convertSingleValue(parts[i]);
 			}
-			ctx.param(key, Arrays.asList(vals));
+			ctx.param(key, List.of(vals));
 		} else {
 			ctx.param(key, convertSingleValue(val));
 		}
@@ -169,7 +258,7 @@ public final class SqlParamUtils {
 	 */
 	private static Object convertSingleValue(final String val) {
 		var value = val == null ? null : val.trim();
-		if (StringUtils.isEmpty(value) || "[NULL]".equalsIgnoreCase(value)) {
+		if (ObjectUtils.isEmpty(value) || "[NULL]".equalsIgnoreCase(value)) {
 			return null;
 		} else if ("[EMPTY]".equalsIgnoreCase(value)) {
 			return "";
@@ -214,7 +303,7 @@ public final class SqlParamUtils {
 	 * @return 数字の場合は<code>true</code>
 	 */
 	private static boolean isNumber(final String val) {
-		if (StringUtils.isEmpty(val)) {
+		if (ObjectUtils.isEmpty(val)) {
 			return false;
 		} else {
 			return NUMBER_PAT.matcher(val).matches();
@@ -233,9 +322,9 @@ public final class SqlParamUtils {
 	 * <li>1000.01F -> (Float)1000.01F</li>
 	 * <li>+1000.01F -> (Float)1000.01F</li>
 	 * <li>-1000.01F -> (Float)-1000.01F</li>
-	 * <li>1000.01D -> (Float)1000.01D</li>
-	 * <li>+1000.01D -> (Float)1000.01D</li>
-	 * <li>-1000.01D -> (Float)-1000.01D</li>
+	 * <li>1000.01D -> (Double)1000.01D</li>
+	 * <li>+1000.01D -> (Double)1000.01D</li>
+	 * <li>-1000.01D -> (Double)-1000.01D</li>
 	 * </ul>
 	 * （※）各Number型で桁あふれした場合はBigDecimal型が返却される
 	 *

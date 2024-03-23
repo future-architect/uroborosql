@@ -7,7 +7,6 @@
 package jp.co.future.uroborosql.dialect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ public class MsSqlDialect extends AbstractDialect {
 	 * 悲観ロックのErrorCode もしくは SqlState. MSSQLの場合はErrorCodeで判定する.
 	 * <pre>SQL Error [1222] [S00045]: ロック要求がタイムアウトしました。 </pre>
 	 */
-	private static final Set<String> pessimisticLockingErrorCodes = Collections.singleton("1222");
+	private static final Set<String> pessimisticLockingErrorCodes = Set.of("1222");
 
 	/**
 	 * コンストラクタ

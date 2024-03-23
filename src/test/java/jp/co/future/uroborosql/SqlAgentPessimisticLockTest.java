@@ -8,12 +8,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * 悲観ロックのテスト
@@ -21,25 +21,25 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  */
 public class SqlAgentPessimisticLockTest {
-	private static SqlConfig config;
+	private SqlConfig config;
 
-	@BeforeAll
-	public static void setUpClass() throws Exception {
-		config = UroboroSQL.builder("jdbc:h2:mem:SqlAgentPessimisticLockTest;DB_CLOSE_DELAY=-1;MVCC=true;", "sa", "sa")
+	@BeforeEach
+	public void setUp() throws Exception {
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1", "sa", "sa")
 				.setSqlAgentProvider(new SqlAgentProviderImpl().setQueryTimeout(10))
 				.build();
 		try (var agent = config.agent()) {
 			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var ddl : ddls) {
-				if (StringUtils.isNotBlank(ddl)) {
+				if (ObjectUtils.isNotBlank(ddl)) {
 					agent.updateWith(ddl.trim()).count();
 				}
 			}
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -54,12 +54,14 @@ public class SqlAgentPessimisticLockTest {
 		var sql = "select * from product where product_id = 1 for update";
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				var products1 = agent.queryWith(sql).collect();
+				var products1 = agent.queryWith(sql)
+						.collect();
 				assertThat(products1.size(), is(1));
 
 				agent.requiresNew(() -> {
 					try {
-						agent.queryWith(sql).collect();
+						agent.queryWith(sql)
+								.collect();
 						fail();
 					} catch (PessimisticLockException ex) {
 						// OK

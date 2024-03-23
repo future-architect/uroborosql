@@ -13,8 +13,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.GenerationType;
 import jp.co.future.uroborosql.enums.SqlKind;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.mapping.annotations.GeneratedValue;
 import jp.co.future.uroborosql.mapping.annotations.Id;
 import jp.co.future.uroborosql.mapping.annotations.Table;
@@ -50,8 +49,8 @@ public class MappingUtilsTest {
 		}
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 	}
 
 	@BeforeEach
@@ -68,23 +67,27 @@ public class MappingUtilsTest {
 			agent.required(() -> {
 				agent.updateWith("set schema schema1").count();
 
-				assertThat(agent.queryWith("select schema() as current_schema").one().get("CURRENT_SCHEMA"),
+				assertThat(agent.queryWith("select schema() as current_schema")
+						.one().get("CURRENT_SCHEMA"),
 						is("SCHEMA1"));
 
 				var test1 = new Test1(1, "name1");
 				agent.insert(test1);
-				var test1Result = agent.query(Test1.class).first().orElse(null);
+				var test1Result = agent.query(Test1.class)
+						.first().orElse(null);
 				assertThat(test1Result.getId1(), is(test1.getId1()));
 				assertThat(test1Result.getName1(), is(test1.getName1()));
 
 				agent.updateWith("set schema schema2").count();
 
-				assertThat(agent.queryWith("select schema() as current_schema").one().get("CURRENT_SCHEMA"),
+				assertThat(agent.queryWith("select schema() as current_schema")
+						.one().get("CURRENT_SCHEMA"),
 						is("SCHEMA2"));
 
 				var test2 = new Test2(1, "name2");
 				agent.insert(test2);
-				var test2Result = agent.query(Test2.class).first().orElse(null);
+				var test2Result = agent.query(Test2.class)
+						.first().orElse(null);
 				assertThat(test2Result.getId2(), is(test2.getId2()));
 				assertThat(test2Result.getName2(), is(test2.getName2()));
 			});

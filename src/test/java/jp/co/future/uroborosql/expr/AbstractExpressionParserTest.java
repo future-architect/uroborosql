@@ -9,8 +9,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -44,9 +44,11 @@ public abstract class AbstractExpressionParserTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+		sqlConfig = UroboroSQL
+				.builder(DriverManager
+						.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+						.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName())))
 				.setExpressionParser(getExpressionParser())
 				.build();
 
@@ -202,6 +204,8 @@ public abstract class AbstractExpressionParserTest {
 			PERFORMANCE_LOG.debug("\r\n{}", getPerformanceHeader());
 			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
+			assertThat(parser.getSqlConfig(), is(sqlConfig));
+
 			parser.initialize();
 			for (var i = 0; i < 10; i++) {
 				var start = Instant.now();

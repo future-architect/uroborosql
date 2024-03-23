@@ -9,7 +9,6 @@ package jp.co.future.uroborosql;
 import java.sql.SQLException;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -45,7 +44,7 @@ final class SqlEntityDeleteImpl<E> extends AbstractExtractionCondition<SqlEntity
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
 			return this.entityHandler.doDelete(agent(), context(), null);
 		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.DELETE, e);
+			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
 		}
 	}
 

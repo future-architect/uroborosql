@@ -1,2 +1,0 @@
-Parameter:Parameter name[product_id], Value[0], Class[BigDecimal]
-SQL:example/select_product executed.

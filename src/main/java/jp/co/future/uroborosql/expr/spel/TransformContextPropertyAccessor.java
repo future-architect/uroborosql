@@ -12,7 +12,7 @@ import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 /**
  * TransformContextに対するプロパティアクセッサ
@@ -20,16 +20,16 @@ import jp.co.future.uroborosql.utils.StringFunction;
  * @author H.Sugimoto
  */
 public class TransformContextPropertyAccessor implements PropertyAccessor {
-	/** ExpressionFunction */
-	private final StringFunction expressionFunction;
+	/** SqlFunction */
+	private final SqlFunction sqlFunction;
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param expressionFunction ExpressionFunction
+	 * @param sqlFunction sqlFunction
 	 */
-	public TransformContextPropertyAccessor(final StringFunction expressionFunction) {
-		this.expressionFunction = expressionFunction;
+	public TransformContextPropertyAccessor(final SqlFunction sqlFunction) {
+		this.sqlFunction = sqlFunction;
 	}
 
 	/**
@@ -61,8 +61,8 @@ public class TransformContextPropertyAccessor implements PropertyAccessor {
 	@Override
 	public TypedValue read(final EvaluationContext context, final Object target, final String name)
 			throws AccessException {
-		if (StringFunction.SHORT_NAME.equals(name)) {
-			return new TypedValue(expressionFunction);
+		if (SqlFunction.SHORT_NAME.equals(name)) {
+			return new TypedValue(sqlFunction);
 		} else {
 			var ctx = (TransformContext) target;
 			var param = ctx.getParam(name);

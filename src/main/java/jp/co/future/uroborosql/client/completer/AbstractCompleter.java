@@ -13,7 +13,7 @@ import org.jline.reader.Completer;
 import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public abstract class AbstractCompleter implements Completer {
 	private final List<ReplCommand> commands;
@@ -90,7 +90,7 @@ public abstract class AbstractCompleter implements Completer {
 				ans.add(builder.toString());
 			} else {
 				var part = parts[idx++];
-				if (StringUtils.isNotEmpty(part)) {
+				if (ObjectUtils.isNotEmpty(part)) {
 					ans.add(part);
 				}
 			}

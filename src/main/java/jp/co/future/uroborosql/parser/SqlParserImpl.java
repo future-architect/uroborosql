@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.node.PrefixSqlNode;
 import jp.co.future.uroborosql.node.SqlNode;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQL解析処理実装クラス
@@ -164,7 +164,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseIf() {
 		var condition = tokenizer.getToken().substring(2);
-		if (StringUtils.isBlank(condition)) {
+		if (ObjectUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
 		var ifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);
@@ -179,7 +179,7 @@ public class SqlParserImpl implements SqlParser {
 	 */
 	protected void parseElIf() {
 		var condition = tokenizer.getToken().substring(4);
-		if (StringUtils.isBlank(condition)) {
+		if (ObjectUtils.isBlank(condition)) {
 			throw new IfConditionNotFoundRuntimeException();
 		}
 		var elifNode = new IfNode(expressionParser, Math.max(this.position - 2, 0), condition);

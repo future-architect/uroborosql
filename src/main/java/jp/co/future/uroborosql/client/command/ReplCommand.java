@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,7 +40,7 @@ public abstract class ReplCommand {
 	@SuppressWarnings("unchecked")
 	protected ReplCommand(final boolean hidden, final Class<? extends Completer>... completers) {
 		this.hidden = hidden;
-		this.completers = Arrays.asList(completers);
+		this.completers = List.of(completers);
 	}
 
 	/**

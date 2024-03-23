@@ -1,1 +1,0 @@
-{"userName":"testUserName2","funcId":"testFunction2","sqlId":"111","sqlName":"example\/select_product","sql":"SELECT \/* 111 *\/ \t* FROM \tPRODUCT WHERE 1 = 1 AND\tPRODUCT_ID\tIN\t(?, ?)\/*product_id*\/ ORDER BY PRODUCT_ID","rowCount":1}

@@ -37,7 +37,7 @@ public class TableNameCompleter extends AbstractCompleter {
 	}
 
 	/**
-	 * DatabaseMetadateからテーブル名を取得して補完候補とする。
+	 * DatabaseMetadataからテーブル名を取得して補完候補とする。
 	 *
 	 * {@inheritDoc}
 	 *

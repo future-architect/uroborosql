@@ -38,7 +38,7 @@ public interface TransformContext {
 	/**
 	 * 実行時SQL取得
 	 *
-	 * @return 実行k時SQL
+	 * @return 実行時SQL
 	 */
 	String getExecutableSql();
 

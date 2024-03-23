@@ -17,17 +17,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 
 public class UpdateDelegateTest {
 	protected SqlConfig config;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
-				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.addUpdateAutoParameterBinder(ctx -> ctx.setUpdateDelegate(context -> 2)))
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.build();
+		config.getEventListenerHolder().addBeforeParseSqlListener(
+				evt -> evt.getExecutionContext().setUpdateDelegate(context -> 2));
 	}
 
 	/**

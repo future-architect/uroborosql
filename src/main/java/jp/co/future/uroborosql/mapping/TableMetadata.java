@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import jp.co.future.uroborosql.connection.ConnectionManager;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * テーブルメタ情報
@@ -194,10 +194,10 @@ public interface TableMetadata {
 	 */
 	default String getTableIdentifier() {
 		var identifierQuoteString = getIdentifierQuoteString();
-		if (StringUtils.isEmpty(identifierQuoteString)) {
+		if (ObjectUtils.isEmpty(identifierQuoteString)) {
 			identifierQuoteString = "";
 		}
-		if (!USE_QUALIFIED_TABLE_NAME || StringUtils.isEmpty(getSchema())) {
+		if (!USE_QUALIFIED_TABLE_NAME || ObjectUtils.isEmpty(getSchema())) {
 			return identifierQuoteString + getTableName() + identifierQuoteString;
 		} else {
 			return identifierQuoteString + getSchema() + identifierQuoteString + "." + identifierQuoteString
@@ -247,7 +247,7 @@ public interface TableMetadata {
 		var connection = connectionManager.getConnection();
 		var metaData = connection.getMetaData();
 
-		var schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema() : connection.getSchema();
+		var schema = ObjectUtils.isNotEmpty(table.getSchema()) ? table.getSchema() : connection.getSchema();
 		var tableName = table.getName();
 		var identifierQuoteString = metaData.getIdentifierQuoteString();
 
@@ -266,7 +266,7 @@ public interface TableMetadata {
 				} else if (metaData.storesUpperCaseIdentifiers()) {
 					tableName = tableName.toUpperCase();
 				}
-				if (StringUtils.isNotEmpty(schema)) {
+				if (ObjectUtils.isNotEmpty(schema)) {
 					if (metaData.storesLowerCaseIdentifiers()) {
 						schema = schema.toLowerCase();
 					} else if (metaData.storesUpperCaseIdentifiers()) {
@@ -285,7 +285,7 @@ public interface TableMetadata {
 				optimisticLockType = metaTable.getOptimisticLockType();
 			}
 
-			try (var rs = metaData.getColumns(null, StringUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
+			try (var rs = metaData.getColumns(null, ObjectUtils.isEmpty(schema) ? "%" : schema, tableName, "%")) {
 				while (rs.next()) {
 					var columnName = rs.getString("COLUMN_NAME");
 					actualSchema = rs.getString("TABLE_SCHEM");
@@ -322,7 +322,7 @@ public interface TableMetadata {
 				}
 			}
 		}
-		entityMetadata.setSchema(StringUtils.isNotEmpty(actualSchema) ? actualSchema : schema);
+		entityMetadata.setSchema(ObjectUtils.isNotEmpty(actualSchema) ? actualSchema : schema);
 		entityMetadata.setTableName(tableName);
 		if (TABLE_NAME_PATTERN.matcher(tableName).matches()) {
 			entityMetadata.setIdentifierQuoteString(identifierQuoteString);
