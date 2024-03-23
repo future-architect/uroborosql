@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.event.subscriber;
 import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.event.TransformSqlEvent;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQL文字列の前後をWrapするSqlFilter
@@ -79,10 +79,10 @@ public class WrapContextEventSubscriber extends EventSubscriber {
 
 		var newSql = evt.getSql();
 		// sqlを別のSQLで囲む場合のSQLを追加
-		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlBeginParts())) {
+		if (!wrapIgnore && ObjectUtils.isNotEmpty(getWrappedSqlBeginParts())) {
 			newSql = getWrappedSqlBeginParts() + newSql;
 		}
-		if (!wrapIgnore && StringUtils.isNotEmpty(getWrappedSqlEndParts())) {
+		if (!wrapIgnore && ObjectUtils.isNotEmpty(getWrappedSqlEndParts())) {
 			newSql = newSql + getWrappedSqlEndParts();
 		}
 

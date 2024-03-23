@@ -31,6 +31,7 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
+import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery.Nulls;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
@@ -334,7 +335,7 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
-	public void testQuery5() throws Exception {
+	void testQuery5() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -374,7 +375,7 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
-	public void testQuery6() throws Exception {
+	void testQuery6() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -415,7 +416,7 @@ public class DefaultEntityHandlerTest {
 	}
 
 	@Test
-	public void testQuery7() throws Exception {
+	void testQuery7() throws Exception {
 
 		try (var agent = config.agent()) {
 			agent.required(() -> {
@@ -513,75 +514,157 @@ public class DefaultEntityHandlerTest {
 				var test3 = new TestEntity(3L, "name3", 20, LocalDate.of(1990, Month.JUNE, 1), Optional.empty());
 				agent.insert(test3);
 
-				var list = agent.query(TestEntity.class).equal("id", 2)
+				// Equal
+				var list = agent.query(TestEntity.class)
+						.equal("id", 2)
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test2));
 
+				list = agent.query(TestEntity.class)
+						.equal("id", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
+				// EqualIfNotEmpty
+				list = agent.query(TestEntity.class)
+						.equalIfNotEmpty("id", 2)
+						.collect();
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test2));
+
+				list = agent.query(TestEntity.class)
+						.equalIfNotEmpty("id", null)
+						.collect();
+				assertThat(list.size(), is(3));
+
 				// Not Equal
-				list = agent.query(TestEntity.class).notEqual("id", 2)
+				list = agent.query(TestEntity.class)
+						.notEqual("id", 2)
 						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test3));
 
+				list = agent.query(TestEntity.class)
+						.notEqual("id", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
+				// Not Equal IfNotEmpty
+				list = agent.query(TestEntity.class)
+						.notEqualIfNotEmpty("id", 2)
+						.collect();
+				assertThat(list.size(), is(2));
+				assertThat(list.get(0), is(test1));
+				assertThat(list.get(1), is(test3));
+
+				list = agent.query(TestEntity.class)
+						.notEqualIfNotEmpty("id", null)
+						.collect();
+				assertThat(list.size(), is(3));
+
 				// Greater Than
-				list = agent.query(TestEntity.class).greaterThan("age", 21)
+				list = agent.query(TestEntity.class)
+						.greaterThan("age", 21)
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test1));
 
+				list = agent.query(TestEntity.class)
+						.greaterThan("age", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// Greater Equal
-				list = agent.query(TestEntity.class).greaterEqual("age", 21)
+				list = agent.query(TestEntity.class)
+						.greaterEqual("age", 21)
 						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
+				list = agent.query(TestEntity.class)
+						.greaterEqual("age", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// Less Than
-				list = agent.query(TestEntity.class).lessThan("age", 21)
+				list = agent.query(TestEntity.class)
+						.lessThan("age", 21)
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
+				list = agent.query(TestEntity.class)
+						.lessThan("age", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// Greater Equal
-				list = agent.query(TestEntity.class).lessEqual("age", 21)
+				list = agent.query(TestEntity.class)
+						.lessEqual("age", 21)
 						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
 
+				list = agent.query(TestEntity.class)
+						.lessEqual("age", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// In (array)
-				list = agent.query(TestEntity.class).in("id", 1, 2)
+				list = agent.query(TestEntity.class)
+						.in("id", 1, 2)
 						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
 				// In (list)
-				list = agent.query(TestEntity.class).in("id", List.of(2, 3))
+				list = agent.query(TestEntity.class)
+						.in("id", List.of(2, 3))
 						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test2));
 				assertThat(list.get(1), is(test3));
 
+				assertThrows(ParameterNotFoundRuntimeException.class, () -> {
+					agent.query(TestEntity.class)
+							.in("id")
+							.collect();
+				});
+
 				// Not In (array)
-				list = agent.query(TestEntity.class).notIn("id", 1, 2)
+				list = agent.query(TestEntity.class)
+						.notIn("id", 1, 2)
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
 				// Not In (list)
-				list = agent.query(TestEntity.class).notIn("id", List.of(2, 3))
+				list = agent.query(TestEntity.class)
+						.notIn("id", List.of(2, 3))
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test1));
+
+				assertThrows(ParameterNotFoundRuntimeException.class, () -> {
+					agent.query(TestEntity.class)
+							.notIn("id")
+							.collect();
+				});
 
 				// Like
 				list = agent.query(TestEntity.class).like("name", "name3")
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
+
+				list = agent.query(TestEntity.class).like("name", null)
+						.collect();
+				assertThat(list.size(), is(3));
 
 				// Like with wildcards (_)
 				list = agent.query(TestEntity.class).like("name", "n_me_")
@@ -607,6 +690,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
+				list = agent.query(TestEntity.class).startsWith("name", null)
+						.collect();
+				assertThat(list.size(), is(3));
+
 				// startsWith wildcards
 				list = agent.query(TestEntity.class).startsWith("name", "%ame")
 						.collect();
@@ -617,6 +704,10 @@ public class DefaultEntityHandlerTest {
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
+
+				list = agent.query(TestEntity.class).endsWith("name", null)
+						.collect();
+				assertThat(list.size(), is(3));
 
 				// endsWith wildcards
 				list = agent.query(TestEntity.class).endsWith("name", "%3")
@@ -631,6 +722,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(1), is(test2));
 				assertThat(list.get(2), is(test3));
 
+				list = agent.query(TestEntity.class).contains("name", null)
+						.collect();
+				assertThat(list.size(), is(3));
+
 				list = agent.query(TestEntity.class).contains("name", "%me_")
 						.collect();
 				assertThat(list.size(), is(0));
@@ -641,6 +736,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
+
+				list = agent.query(TestEntity.class).notLike("name", null)
+						.collect();
+				assertThat(list.size(), is(0));
 
 				// Not Like with wildcards (_)
 				list = agent.query(TestEntity.class).notLike("name", "name_")
@@ -654,6 +753,10 @@ public class DefaultEntityHandlerTest {
 
 				// notStartsWith
 				list = agent.query(TestEntity.class).notStartsWith("name", "name")
+						.collect();
+				assertThat(list.size(), is(0));
+
+				list = agent.query(TestEntity.class).notStartsWith("name", null)
 						.collect();
 				assertThat(list.size(), is(0));
 
@@ -672,6 +775,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
+				list = agent.query(TestEntity.class).notEndsWith("name", null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// notEndsWith wildcards
 				list = agent.query(TestEntity.class).notEndsWith("name", "%3")
 						.collect();
@@ -686,6 +793,10 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test3));
+
+				list = agent.query(TestEntity.class).notContains("name", null)
+						.collect();
+				assertThat(list.size(), is(0));
 
 				// notContains wildcards
 				list = agent.query(TestEntity.class).notContains("name", "_2")
@@ -708,6 +819,21 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
+				list = agent.query(TestEntity.class)
+						.between("birthday", null, LocalDate.of(1990, Month.MAY, 1))
+						.collect();
+				assertThat(list.size(), is(0));
+
+				list = agent.query(TestEntity.class)
+						.between("birthday", LocalDate.of(1990, Month.APRIL, 1), null)
+						.collect();
+				assertThat(list.size(), is(0));
+
+				list = agent.query(TestEntity.class)
+						.between("birthday", null, null)
+						.collect();
+				assertThat(list.size(), is(0));
+
 				// not between
 				list = agent.query(TestEntity.class)
 						.notBetween("birthday", LocalDate.of(1990, Month.APRIL, 15), LocalDate.of(1990, Month.MAY, 15))
@@ -723,6 +849,25 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
 
+				list = agent.query(TestEntity.class)
+						.notBetween("birthday", null, LocalDate.of(1990, Month.MAY, 1))
+						.asc("id")
+						.collect(); // birthday < null or birthday > 5/1
+				assertThat(list.size(), is(1));
+				assertThat(list.get(0), is(test3));
+
+				list = agent.query(TestEntity.class)
+						.notBetween("birthday", LocalDate.of(1990, Month.APRIL, 1), null)
+						.asc("id")
+						.collect(); // birthday < 4/1 or birthday > null
+				assertThat(list.size(), is(0));
+
+				list = agent.query(TestEntity.class)
+						.notBetween("birthday", null, null)
+						.asc("id")
+						.collect(); // birthday < 4/1 or birthday > 5/1
+				assertThat(list.size(), is(0));
+
 				// is null
 				list = agent.query(TestEntity.class).isNull("memo")
 						.collect();
@@ -736,7 +881,19 @@ public class DefaultEntityHandlerTest {
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
 
-				// where with param(s)
+				// where with param
+				list = agent.query(TestEntity.class)
+						.where("birthday < /*birthday1*/", "birthday1", LocalDate.of(1990, Month.APRIL, 15))
+						.where("\"Age\" < /*age*/", "age", 21)
+						.collect();
+				assertThat(list.size(), is(0));
+
+				list = agent.query(TestEntity.class)
+						.where(null, "birthday1", LocalDate.of(1990, Month.APRIL, 15))
+						.collect();
+				assertThat(list.size(), is(3));
+
+				// where with params
 				Map<String, Object> paramMap = new HashMap<>();
 				paramMap.put("birthday1", LocalDate.of(1990, Month.APRIL, 15));
 				paramMap.put("birthday2", LocalDate.of(1990, Month.MAY, 15));
@@ -754,6 +911,35 @@ public class DefaultEntityHandlerTest {
 						.collect();
 				assertThat(list.size(), is(1));
 				assertThat(list.get(0), is(test3));
+
+				// where
+				list = agent.query(TestEntity.class)
+						.where(null)
+						.collect();
+				assertThat(list.size(), is(3));
+
+				// where
+				list = agent.query(TestEntity.class)
+						.where(null, paramMap)
+						.collect();
+				assertThat(list.size(), is(3));
+
+				// where if not empty
+				list = agent.query(TestEntity.class)
+						.whereIfNotEmpty("birthday < /*birthday1*/", "birthday1", LocalDate.of(1990, Month.APRIL, 15))
+						.collect();
+				assertThat(list.size(), is(1));
+
+				list = agent.query(TestEntity.class)
+						.whereIfNotEmpty("birthday < /*birthday1*/", "birthday1", null)
+						.collect();
+				assertThat(list.size(), is(3));
+
+				// where if not empty
+				list = agent.query(TestEntity.class)
+						.whereIfNotEmpty(null, "birthday", 1)
+						.collect();
+				assertThat(list.size(), is(3));
 
 				// order by asc
 				list = agent.query(TestEntity.class)

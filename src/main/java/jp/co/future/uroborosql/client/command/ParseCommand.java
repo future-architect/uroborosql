@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.node.ExpressionNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.Node;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Parse sql Command
@@ -203,12 +203,12 @@ public class ParseCommand extends ReplCommand {
 	 */
 	private void write(final PrintWriter writer, final int tab, final String prefix, final String text,
 			final String suffix) {
-		writer.write(StringUtils.repeat('\t', tab));
-		if (StringUtils.isNotEmpty(prefix)) {
+		writer.write(ObjectUtils.repeat('\t', tab));
+		if (ObjectUtils.isNotEmpty(prefix)) {
 			writer.write(prefix);
 		}
 		writer.write(text);
-		if (StringUtils.isNotEmpty(suffix)) {
+		if (ObjectUtils.isNotEmpty(suffix)) {
 			writer.write(suffix);
 		}
 		writer.println();

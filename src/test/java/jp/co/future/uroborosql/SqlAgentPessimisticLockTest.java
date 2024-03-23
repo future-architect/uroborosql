@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * 悲観ロックのテスト
@@ -32,14 +32,14 @@ public class SqlAgentPessimisticLockTest {
 			var ddls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var ddl : ddls) {
-				if (StringUtils.isNotBlank(ddl)) {
+				if (ObjectUtils.isNotBlank(ddl)) {
 					agent.updateWith(ddl.trim()).count();
 				}
 			}
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}

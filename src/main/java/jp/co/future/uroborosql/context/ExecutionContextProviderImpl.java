@@ -41,7 +41,7 @@ import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * ExecutionContextプロバイダ実装
@@ -326,7 +326,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	private Map<? extends String, ? extends Parameter> buildConstParamMap() {
 		var paramMap = new HashMap<String, Parameter>();
 		for (var className : constantClassNames) {
-			if (StringUtils.isNotBlank(className)) {
+			if (ObjectUtils.isNotBlank(className)) {
 				try {
 					var targetClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 					makeConstParamMap(paramMap, targetClass);
@@ -346,7 +346,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 	private Map<? extends String, ? extends Parameter> buildEnumConstParamMap() {
 		var paramMap = new HashMap<String, Parameter>();
 		for (var packageName : enumConstantPackageNames) {
-			if (StringUtils.isNotBlank(packageName)) {
+			if (ObjectUtils.isNotBlank(packageName)) {
 				for (var targetClass : listUpEnumClasses(packageName)) {
 					makeEnumConstParamMap(paramMap, packageName, targetClass);
 				}

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQLリソース管理実装クラス
@@ -768,7 +768,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		protected String formatSqlBody(final String sqlBody) {
 			var newBody = sqlBody.trim();
 			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
-				newBody = StringUtils.removeEnd(newBody, "/");
+				newBody = ObjectUtils.removeEnd(newBody, "/");
 			} else {
 				newBody = newBody + System.lineSeparator();
 			}

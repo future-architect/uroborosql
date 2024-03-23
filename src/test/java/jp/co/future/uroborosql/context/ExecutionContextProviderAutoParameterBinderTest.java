@@ -29,7 +29,7 @@ import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class ExecutionContextProviderAutoParameterBinderTest {
 	private static SqlConfig config;
@@ -46,7 +46,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}

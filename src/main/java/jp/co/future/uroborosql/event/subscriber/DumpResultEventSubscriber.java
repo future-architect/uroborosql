@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.event.SqlQueryEvent;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * 実行結果をダンプ出力するSqlFilter.<br>
@@ -106,7 +106,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			// ヘッダ部出力
 			builder.append("+");
 			for (var key : keys) {
-				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
+				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 			builder.append(System.lineSeparator()).append("|");
 			for (var key : keys) {
@@ -114,7 +114,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			}
 			builder.append(System.lineSeparator()).append("+");
 			for (var key : keys) {
-				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
+				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
 			// データ部出力
@@ -127,9 +127,9 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 				}
 
 				if (len >= 13) {
-					builder.append("empty data.").append(StringUtils.repeat(' ', len - 13)).append("|");
+					builder.append("empty data.").append(ObjectUtils.repeat(' ', len - 13)).append("|");
 				} else {
-					builder.append("-").append(StringUtils.repeat(' ', len - 3)).append("|");
+					builder.append("-").append(ObjectUtils.repeat(' ', len - 3)).append("|");
 				}
 			} else {
 				for (var row : rows) {
@@ -142,7 +142,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			}
 			builder.append(System.lineSeparator()).append("+");
 			for (var key : keys) {
-				builder.append(StringUtils.repeat('-', maxLengthList.get(key))).append("+");
+				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
 
 			// カーソルを先頭の前に戻す
@@ -161,11 +161,11 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 		var strLen = getByteLength(str);
 		var spaceSize = (length - strLen) / 2;
 
-		var spaceStr = StringUtils.repeat(' ', spaceSize);
+		var spaceStr = ObjectUtils.repeat(' ', spaceSize);
 		var ans = spaceStr + str + spaceStr;
 		var fillLen = getByteLength(ans);
 		if (length > fillLen) {
-			ans = ans + StringUtils.repeat(' ', length - fillLen);
+			ans = ans + ObjectUtils.repeat(' ', length - fillLen);
 		}
 		return ans;
 	}
@@ -176,9 +176,9 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 		var spaceSize = length - valLen;
 
 		if (val instanceof Number) {
-			return StringUtils.repeat(' ', spaceSize) + getSubstringByte(val, length);
+			return ObjectUtils.repeat(' ', spaceSize) + getSubstringByte(val, length);
 		} else {
-			return getSubstringByte(val, length) + StringUtils.repeat(' ', spaceSize);
+			return getSubstringByte(val, length) + ObjectUtils.repeat(' ', spaceSize);
 		}
 
 	}

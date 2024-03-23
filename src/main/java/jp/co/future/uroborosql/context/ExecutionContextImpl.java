@@ -46,7 +46,7 @@ import jp.co.future.uroborosql.parameter.StreamParameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.BeanAccessor;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * ExecutionContext実装クラス
@@ -230,7 +230,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 */
 	@Override
 	public String getExecutableSql() {
-		if (StringUtils.isEmpty(executableSqlCache) && executableSql.length() > 0) {
+		if (ObjectUtils.isEmpty(executableSqlCache) && executableSql.length() > 0) {
 			executableSqlCache = executableSql.toString();
 			if (executableSqlCache.toUpperCase().contains("WHERE")) {
 				// where句の直後に来るANDやORの除去
@@ -471,7 +471,13 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	 */
 	@Override
 	public <V> ExecutionContext param(final String parameterName, final V value) {
-		return param(new Parameter(parameterName, value));
+		if (value instanceof InputStream) {
+			return param(new StreamParameter(parameterName, (InputStream) value));
+		} else if (value instanceof Reader) {
+			return param(new ReaderParameter(parameterName, (Reader) value));
+		} else {
+			return param(new Parameter(parameterName, value));
+		}
 	}
 
 	/**
@@ -496,6 +502,38 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
+	@Override
+	public <V> ExecutionContext param(final String parameterName, final V value, final SQLType sqlType) {
+		if (value instanceof InputStream) {
+			return param(new StreamParameter(parameterName, (InputStream) value));
+		} else if (value instanceof Reader) {
+			return param(new ReaderParameter(parameterName, (Reader) value));
+		} else {
+			return param(new Parameter(parameterName, value, sqlType));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
+	 */
+	@Override
+	public <V> ExecutionContext param(final String parameterName, final V value, final int sqlType) {
+		if (value instanceof InputStream) {
+			return param(new StreamParameter(parameterName, (InputStream) value));
+		} else if (value instanceof Reader) {
+			return param(new ReaderParameter(parameterName, (Reader) value));
+		} else {
+			return param(new Parameter(parameterName, value, sqlType));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
 	 */
 	@Override
@@ -504,38 +542,6 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			param(parameterName, value);
 		}
 		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
-	 */
-	@Override
-	public ExecutionContext paramMap(final Map<String, Object> paramMap) {
-		if (paramMap != null) {
-			paramMap.forEach(this::param);
-		}
-		return this;
-	}
-
-	@Override
-	public <V> ExecutionContext paramBean(final V bean) {
-		if (bean != null) {
-			BeanAccessor.fields(bean.getClass()).stream()
-					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, java.sql.SQLType)
-	 */
-	@Override
-	public <V> ExecutionContext param(final String parameterName, final V value, final SQLType sqlType) {
-		return param(new Parameter(parameterName, value, sqlType));
 	}
 
 	/**
@@ -554,16 +560,6 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#param(java.lang.String, java.lang.Object, int)
-	 */
-	@Override
-	public <V> ExecutionContext param(final String parameterName, final V value, final int sqlType) {
-		return param(new Parameter(parameterName, value, sqlType));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
 	 */
 	@Override
@@ -571,6 +567,98 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 		if (!hasParam(parameterName)) {
 			param(parameterName, value, sqlType);
 		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfNotEmpty(java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public <V> ExecutionContext paramIfNotEmpty(final String parameterName, final V value) {
+		if (ObjectUtils.isNotEmpty(value)) {
+			param(parameterName, value);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfNotEmpty(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
+	@Override
+	public <V> ExecutionContext paramIfNotEmpty(final String parameterName, final V value, final SQLType sqlType) {
+		if (ObjectUtils.isNotEmpty(value)) {
+			param(parameterName, value, sqlType);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfNotEmpty(java.lang.String, java.lang.Object, int)
+	 */
+	@Override
+	public <V> ExecutionContext paramIfNotEmpty(final String parameterName, final V value, final int sqlType) {
+		if (ObjectUtils.isNotEmpty(value)) {
+			param(parameterName, value, sqlType);
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramMap(java.util.Map)
+	 */
+	@Override
+	public ExecutionContext paramMap(final Map<String, Object> paramMap) {
+		if (ObjectUtils.isNotEmpty(paramMap)) {
+			paramMap.forEach(this::param);
+		}
+		return this;
+	}
+
+	@Override
+	public <V> ExecutionContext paramBean(final V bean) {
+		if (ObjectUtils.isNotEmpty(bean)) {
+			BeanAccessor.fields(bean.getClass()).stream()
+					.forEach(f -> param(f.getName(), BeanAccessor.value(f, bean)));
+		}
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int)
+	 */
+	@Override
+	public ExecutionContext retry(final int count) {
+		return retry(count, 0);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int, int)
+	 */
+	@Override
+	public ExecutionContext retry(final int count, final int waitTime) {
+		return this.setMaxRetryCount(count).setRetryWaitTime(waitTime);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
+	 */
+	@Override
+	public ExecutionContext sqlId(final String sqlId) {
+		this.setSqlId(sqlId);
 		return this;
 	}
 
@@ -646,129 +734,6 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 		if (!hasParam(parameterName)) {
 			inOutParam(parameterName, value, sqlType);
 		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream)
-	 */
-	@Override
-	public ExecutionContext blobParam(final String parameterName, final InputStream value) {
-		return param(new StreamParameter(parameterName, value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream)
-	 */
-	@Override
-	public ExecutionContext blobParamIfAbsent(final String parameterName, final InputStream value) {
-		if (!hasParam(parameterName)) {
-			blobParam(parameterName, value);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParam(java.lang.String, java.io.InputStream, int)
-	 */
-	@Override
-	public ExecutionContext blobParam(final String parameterName, final InputStream value, final int len) {
-		return param(new StreamParameter(parameterName, value, len));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#blobParamIfAbsent(java.lang.String, java.io.InputStream, int)
-	 */
-	@Override
-	public ExecutionContext blobParamIfAbsent(final String parameterName, final InputStream value, final int len) {
-		if (!hasParam(parameterName)) {
-			blobParam(parameterName, value, len);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader)
-	 */
-	@Override
-	public ExecutionContext clobParam(final String paramName, final Reader value) {
-		return param(new ReaderParameter(paramName, value));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader)
-	 */
-	@Override
-	public ExecutionContext clobParamIfAbsent(final String paramName, final Reader value) {
-		if (!hasParam(paramName)) {
-			clobParam(paramName, value);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParam(java.lang.String, java.io.Reader, int)
-	 */
-	@Override
-	public ExecutionContext clobParam(final String paramName, final Reader value, final int len) {
-		return param(new ReaderParameter(paramName, value, len));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#clobParamIfAbsent(java.lang.String, java.io.Reader, int)
-	 */
-	@Override
-	public ExecutionContext clobParamIfAbsent(final String paramName, final Reader value, final int len) {
-		if (!hasParam(paramName)) {
-			clobParam(paramName, value, len);
-		}
-		return this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int)
-	 */
-	@Override
-	public ExecutionContext retry(final int count) {
-		return retry(count, 0);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#retry(int, int)
-	 */
-	@Override
-	public ExecutionContext retry(final int count, final int waitTime) {
-		return this.setMaxRetryCount(count).setRetryWaitTime(waitTime);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#sqlId(String)
-	 */
-	@Override
-	public ExecutionContext sqlId(final String sqlId) {
-		this.setSqlId(sqlId);
 		return this;
 	}
 

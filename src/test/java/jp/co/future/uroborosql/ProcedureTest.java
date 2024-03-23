@@ -112,6 +112,37 @@ public class ProcedureTest {
 		}
 	}
 
+	@Test
+	void testCallStoredFunction() {
+		config.getSqlAgentProvider().setForceUpdateWithinTransaction(true);
+
+		try (var agent = config.agent()) {
+			agent.required(() -> {
+				try {
+					var ans = agent.proc("test/procedure")
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1")
+							.call();
+					assertThat(ans.get("ret"), is("TEST1"));
+				} catch (SQLException ex) {
+					Assertions.fail();
+				}
+			});
+
+			agent.required(() -> {
+				try {
+					var ans = agent.proc(() -> "test/procedure")
+							.outParam("ret", JDBCType.VARCHAR)
+							.param("param1", "test1")
+							.call();
+					assertThat(ans.get("ret"), is("TEST1"));
+				} catch (SQLException ex) {
+					Assertions.fail();
+				}
+			});
+		}
+	}
+
 	/**
 	 * SQLファイルが存在しない場合のテストケース。
 	 */

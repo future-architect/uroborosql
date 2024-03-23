@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +26,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.h2.jdbcx.JdbcDataSource;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
@@ -33,9 +35,11 @@ import jp.co.future.uroborosql.connection.DataSourceConnectionSupplierImpl;
 import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
+import jp.co.future.uroborosql.event.EventListenerHolder;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class UroboroSQLTest {
 	private List<Map<String, Object>> getDataFromFile(final Path path) {
@@ -46,7 +50,7 @@ public class UroboroSQLTest {
 				var parts = line.split("\t");
 				for (var part : parts) {
 					var keyValue = part.split(":", 2);
-					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
+					row.put(keyValue[0].toLowerCase(), ObjectUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
 			});
@@ -71,7 +75,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -93,7 +97,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -110,7 +114,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -127,7 +131,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -147,7 +151,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -171,7 +175,49 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
+					agent.updateWith(sql.trim()).count();
+				}
+			}
+
+			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+			agent.rollback();
+		}
+
+		assertEquals(true, config.getSqlResourceManager().existSql("ddl/create_tables"));
+	}
+
+	@Test
+	void builderSetEntityHandler() throws Exception {
+		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
+				.setEntityHandler(new DefaultEntityHandler()).build();
+		try (var agent = config.agent()) {
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+					StandardCharsets.UTF_8).split(";");
+			for (var sql : sqls) {
+				if (ObjectUtils.isNotBlank(sql)) {
+					agent.updateWith(sql.trim()).count();
+				}
+			}
+
+			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+			agent.rollback();
+		}
+
+		assertEquals(true, config.getSqlResourceManager().existSql("ddl/create_tables"));
+	}
+
+	@Test
+	void builderSetEventListenerHolder() throws Exception {
+		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
+				.setEventListenerHolder(new EventListenerHolder().addBeforeCommitListener(evt -> {
+					assertThat(evt.getConnection(), not(CoreMatchers.nullValue()));
+				})).build();
+		try (var agent = config.agent()) {
+			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
+					StandardCharsets.UTF_8).split(";");
+			for (var sql : sqls) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -193,7 +239,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -238,7 +284,7 @@ public class UroboroSQLTest {
 							Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 							StandardCharsets.UTF_8).split(";");
 					for (var sql : sqls) {
-						if (StringUtils.isNotBlank(sql)) {
+						if (ObjectUtils.isNotBlank(sql)) {
 							agent.updateWith(sql.trim()).count();
 						}
 					}
@@ -265,7 +311,7 @@ public class UroboroSQLTest {
 						Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 						StandardCharsets.UTF_8).split(";");
 				for (var sql : sqls) {
-					if (StringUtils.isNotBlank(sql)) {
+					if (ObjectUtils.isNotBlank(sql)) {
 						agent.updateWith(sql.trim()).count();
 					}
 				}
@@ -289,7 +335,7 @@ public class UroboroSQLTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}

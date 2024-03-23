@@ -80,7 +80,7 @@ import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.tx.LocalTransactionManager;
 import jp.co.future.uroborosql.tx.TransactionManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQL実行用クラス。
@@ -1770,9 +1770,9 @@ public class SqlAgentImpl implements SqlAgent {
 	private void transformContext(final ExecutionContext executionContext) {
 		var originalSql = executionContext.getSql();
 		var sqlName = executionContext.getSqlName();
-		if (StringUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
+		if (ObjectUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
 			originalSql = getSqlResourceManager().getSql(sqlName);
-			if (StringUtils.isEmpty(originalSql)) {
+			if (ObjectUtils.isEmpty(originalSql)) {
 				throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
 			}
 		}
@@ -1780,10 +1780,10 @@ public class SqlAgentImpl implements SqlAgent {
 		// SQL-IDの付与
 		if (originalSql.contains(keySqlId)) {
 			var sqlId = executionContext.getSqlId();
-			if (StringUtils.isEmpty(sqlId)) {
+			if (ObjectUtils.isEmpty(sqlId)) {
 				sqlId = sqlName;
 			}
-			if (StringUtils.isEmpty(sqlId)) {
+			if (ObjectUtils.isEmpty(sqlId)) {
 				sqlId = String.valueOf(originalSql.hashCode());
 			}
 
@@ -1822,7 +1822,7 @@ public class SqlAgentImpl implements SqlAgent {
 			SQL_LOG.debug("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
 		}
 
-		if (StringUtils.isEmpty(executionContext.getExecutableSql())) {
+		if (ObjectUtils.isEmpty(executionContext.getExecutableSql())) {
 			// SQLパーサーによるパース処理
 			var outputBindComment = (boolean) executionContext.contextAttrs().getOrDefault(
 					CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, true);

@@ -28,7 +28,7 @@ import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -264,7 +264,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private String getCacheKey(final ConnectionManager connectionManager, final Class<?> entityType) {
 		try {
 			var table = MappingUtils.getTable(entityType);
-			var schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+			var schema = ObjectUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
 					: Objects.toString(connectionManager.getConnection().getSchema(), "");
 			return String.format("%s.%s", schema.toUpperCase(), entityType.getName());
 		} catch (SQLException ex) {
@@ -394,7 +394,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(", ");
 			}
 			sql.append(col.getColumnIdentifier()).append("\tAS\t").append(col.getColumnIdentifier());
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				sql.append("\t").append("-- ").append(col.getRemarks());
 			}
 			sql.append(System.lineSeparator());
@@ -525,7 +525,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append(col.getColumnIdentifier());
 				parts.append(" = /*").append(camelColName).append("*/''");
 			}
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
@@ -674,11 +674,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 
 			parts.append(col.getColumnIdentifier());
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+			if (ignoreWhenEmpty && (col.isNullable() || ObjectUtils.isNotEmpty(col.getColumnDefault()))
 					|| autoIncrementColumn) {
 				wrapIfComment(sql, parts, col);
 			} else {
@@ -736,7 +736,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(parts);
 			} else {
 				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-				if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+				if (ignoreWhenEmpty && (col.isNullable() || ObjectUtils.isNotEmpty(col.getColumnDefault()))
 						|| autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {

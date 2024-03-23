@@ -18,7 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class AbstractDbTest {
 
@@ -38,7 +38,7 @@ public class AbstractDbTest {
 			agent = config.agent();
 			var sqls = new String(Files.readAllBytes(ddlPath), StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -75,7 +75,7 @@ public class AbstractDbTest {
 				var parts = line.split("\t");
 				for (var part : parts) {
 					var keyValue = part.split(":", 2);
-					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
+					row.put(keyValue[0].toLowerCase(), ObjectUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
 			});

@@ -50,7 +50,7 @@ import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQL REPL実装クラス
@@ -233,7 +233,7 @@ public class SqlREPL {
 		var executionContextProvider = sqlConfig.getExecutionContextProvider();
 		var constantClassNames = Arrays
 				.asList(p("executionContextProvider.constantClassNames", "").split("\\s*,\\s*")).stream()
-				.filter(StringUtils::isNotEmpty)
+				.filter(ObjectUtils::isNotEmpty)
 				.collect(Collectors.toList());
 		if (!constantClassNames.isEmpty()) {
 			executionContextProvider.setConstantClassNames(constantClassNames);
@@ -241,7 +241,7 @@ public class SqlREPL {
 
 		var enumConstantPackageNames = Arrays
 				.asList(p("executionContextProvider.enumConstantPackageNames", "").split("\\s*,\\s*")).stream()
-				.filter(StringUtils::isNotEmpty)
+				.filter(ObjectUtils::isNotEmpty)
 				.collect(Collectors.toList());
 		if (!enumConstantPackageNames.isEmpty()) {
 			executionContextProvider.setEnumConstantPackageNames(enumConstantPackageNames);

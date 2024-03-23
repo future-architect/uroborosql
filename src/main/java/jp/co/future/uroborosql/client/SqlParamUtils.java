@@ -38,7 +38,7 @@ import jp.co.future.uroborosql.node.ParenBindVariableNode;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Sqlのバインドパラメータを操作するユーティリティ
@@ -258,7 +258,7 @@ public final class SqlParamUtils {
 	 */
 	private static Object convertSingleValue(final String val) {
 		var value = val == null ? null : val.trim();
-		if (StringUtils.isEmpty(value) || "[NULL]".equalsIgnoreCase(value)) {
+		if (ObjectUtils.isEmpty(value) || "[NULL]".equalsIgnoreCase(value)) {
 			return null;
 		} else if ("[EMPTY]".equalsIgnoreCase(value)) {
 			return "";
@@ -303,7 +303,7 @@ public final class SqlParamUtils {
 	 * @return 数字の場合は<code>true</code>
 	 */
 	private static boolean isNumber(final String val) {
-		if (StringUtils.isEmpty(val)) {
+		if (ObjectUtils.isEmpty(val)) {
 			return false;
 		} else {
 			return NUMBER_PAT.matcher(val).matches();

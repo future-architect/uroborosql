@@ -44,7 +44,9 @@ public abstract class AbstractExpressionParserTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+		sqlConfig = UroboroSQL
+				.builder(DriverManager
+						.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName())))
 				.setExpressionParser(getExpressionParser())
@@ -202,6 +204,8 @@ public abstract class AbstractExpressionParserTest {
 			PERFORMANCE_LOG.debug("\r\n{}", getPerformanceHeader());
 			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
+			assertThat(parser.getSqlConfig(), is(sqlConfig));
+
 			parser.initialize();
 			for (var i = 0; i < 10; i++) {
 				var start = Instant.now();

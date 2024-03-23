@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * {@link Domain}用{@link PropertyMapper}
@@ -45,7 +45,7 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 	private Object toDomain(final Class<?> type, final Domain domain, final Object value) {
 		try {
 			var methodName = domain.factoryMethod();
-			if (StringUtils.isBlank(methodName)) {
+			if (ObjectUtils.isBlank(methodName)) {
 				// default
 				if (!type.isEnum()) {
 					return type.getConstructor(domain.valueType()).newInstance(value);

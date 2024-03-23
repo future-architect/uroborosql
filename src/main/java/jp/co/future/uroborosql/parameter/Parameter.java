@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * パラメータオブジェクト。<br>
@@ -117,7 +117,7 @@ public class Parameter {
 					try {
 						var prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
 						var method = value.getClass()
-								.getMethod(prefix + StringUtils.capitalize(propertyName));
+								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception e2) {
 						if (LOG.isWarnEnabled()) {

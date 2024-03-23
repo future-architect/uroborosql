@@ -6,11 +6,114 @@
  */
 package jp.co.future.uroborosql.utils;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-public final class StringUtils {
-	private StringUtils() {
+import org.springframework.util.StringUtils;
+
+public final class ObjectUtils {
+	private ObjectUtils() {
+	}
+
+	/**
+	 * 指定したオブジェクトが空かどうかを判定する.<br>
+	 * 指定したオブジェクトがOptional型の場合、その中身を評価する.<br>
+	 * 以下の場合に空と判定する.
+	 * <ul>
+	 * <li>null</li>
+	 * <li>空文字</li>
+	 * <li>空配列</li>
+	 * <li>空Collection</li>
+	 * <li>空Map</li>
+	 * </ul>
+	 *
+	 * <pre>
+	 * isEmpty(null)                      = true
+	 * isEmpty("")                        = true
+	 * isEmpty(" ")                       = false
+	 * isEmpty("bob")                     = false
+	 * isEmpty("  bob  ")                 = false
+	 * isEmpty(new String[0])             = true
+	 * isEmpty(new String[]{ "a" })       = false
+	 * isEmpty(List.of())                 = true
+	 * isEmpty(List.of("aa"))             = false
+	 * isEmpty(Map.of())                  = true
+	 * isEmpty(Map.of("aa", "bb"))        = false
+	 * isEmpty(Optional.empty())          = true
+	 * isEmpty(Optional.of(List.of()))    = true
+	 * isEmpty(Optional.of(List.of("a"))) = false
+	 * </pre>
+	 *
+	 * @see Optional#isEmpty()
+	 * @see Collection#isEmpty()
+	 * @see Map#isEmpty()
+	 *
+	 * @param obj 対象オブジェクト
+	 * @return null / 空文字 / 空配列 / 空Collection / 空Map の場合<code>true</code>
+	 */
+	public static boolean isEmpty(final Object obj) {
+		var val = obj instanceof Optional ? ((Optional<?>) obj).orElse(null) : obj;
+		if (val == null) {
+			return true;
+		} else if (val instanceof CharSequence) {
+			// 文字列
+			return ((CharSequence) val).length() == 0;
+		} else if (val instanceof Collection) {
+			// Collection
+			return ((Collection<?>) val).isEmpty();
+		} else if (val instanceof Map) {
+			// Map
+			return ((Map<?, ?>) val).isEmpty();
+		} else if (val.getClass().isArray()) {
+			// 配列
+			return Array.getLength(val) == 0;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 指定したオブジェクトが空でないことを判定する.<br>
+	 * 指定したオブジェクトがOptional型の場合、その中身を評価する.<br>
+	 * 以下の場合に空と判定する.
+	 * <ul>
+	 * <li>null</li>
+	 * <li>空文字</li>
+	 * <li>空配列</li>
+	 * <li>空Collection</li>
+	 * <li>空Map</li>
+	 * </ul>
+	 *
+	 * <pre>
+	 * isEmpty(null)                      = false
+	 * isEmpty("")                        = false
+	 * isEmpty(" ")                       = true
+	 * isEmpty("bob")                     = true
+	 * isEmpty("  bob  ")                 = true
+	 * isEmpty(new String[0])             = false
+	 * isEmpty(new String[]{ "a" })       = true
+	 * isEmpty(List.of())                 = false
+	 * isEmpty(List.of("aa"))             = true
+	 * isEmpty(Map.of())                  = false
+	 * isEmpty(Map.of("aa", "bb"))        = true
+	 * isEmpty(Optional.empty())          = false
+	 * isEmpty(Optional.of(List.of()))    = false
+	 * isEmpty(Optional.of(List.of("a"))) = true
+	 * </pre>
+	 *
+	 * @see Optional#isEmpty()
+	 * @see Collection#isEmpty()
+	 * @see Map#isEmpty()
+	 *
+	 * @param obj 対象オブジェクト
+	 * @return null / 空文字 / 空配列 / 空Collection / 空Map 以外の場合<code>true</code>
+	 */
+	public static boolean isNotEmpty(final Object obj) {
+		return !isEmpty(obj);
 	}
 
 	/**
@@ -99,24 +202,6 @@ public final class StringUtils {
 	}
 
 	/**
-	 * 対象文字列がnull または 空文字であること判定する
-	 *
-	 * <pre>
-	 * isEmpty(null)      = true
-	 * isEmpty("")        = true
-	 * isEmpty(" ")       = false
-	 * isEmpty("bob")     = false
-	 * isEmpty("  bob  ") = false
-	 * </pre>
-	 *
-	 * @param cs 対象文字列
-	 * @return 空文字の場合<code>true</code>
-	 */
-	public static boolean isEmpty(final CharSequence cs) {
-		return cs == null || cs.length() == 0;
-	}
-
-	/**
 	 * 対象文字列がnull、空文字、空白のいずれでもないこと判定する
 	 *
 	 * <pre>
@@ -134,26 +219,6 @@ public final class StringUtils {
 	 */
 	public static boolean isNotBlank(final CharSequence cs) {
 		return !isBlank(cs);
-	}
-
-	/**
-	 * 対象文字列がnull または空文字でないことを判定する
-	 *
-	 * <pre>
-	 * isNotEmpty(null)      = false
-	 * isNotEmpty("")        = false
-	 * isNotEmpty(" ")       = true
-	 * isNotEmpty("bob")     = true
-	 * isNotEmpty("  bob  ") = true
-	 * </pre>
-	 *
-	 * @see StringUtils#isNotEmpty(CharSequence)
-	 *
-	 * @param cs 対象文字列
-	 * @return null または空文字でない場合<code>true</code>
-	 */
-	public static boolean isNotEmpty(final CharSequence cs) {
-		return !isEmpty(cs);
 	}
 
 	/**

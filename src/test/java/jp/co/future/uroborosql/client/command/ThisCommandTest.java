@@ -20,7 +20,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class ThisCommandTest extends ReaderTestSupport {
 	private SqlConfig sqlConfig;
@@ -40,7 +40,7 @@ public class ThisCommandTest extends ReaderTestSupport {
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (var sql : sqls) {
-			if (StringUtils.isNotBlank(sql)) {
+			if (ObjectUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
 		}
