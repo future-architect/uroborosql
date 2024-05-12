@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -51,12 +53,12 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
-					.setVersion(0);
+					.setVersion(1);
 
 			assertThat(agent.merge(insertEntity), is(1));
 			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
@@ -84,7 +86,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -97,12 +99,12 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
-					.setVersion(0);
+					.setVersion(1);
 
 			TestEntity result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(10));
@@ -128,7 +130,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -143,12 +145,12 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(Optional.of("住所10_new"))
-					.setVersion(0);
+					.setVersion(1);
 
 			assertThat(agent.mergeWithLocking(insertEntity), is(1));
 			TestEntity result2 = agent.find(TestEntity.class, 10).orElse(null);
@@ -176,7 +178,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -189,7 +191,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2_new")));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
@@ -220,7 +222,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -233,7 +235,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.empty()));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
@@ -264,7 +266,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 					.mapToObj(i -> new TestEntity()
 							.setName("名前" + i)
 							.setAddress(Optional.of("住所" + i))
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntity.class, entities.stream()), is(9));
 
@@ -277,12 +279,12 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
 			assertThat(result1.getAddress(), is(Optional.of("住所2"))); // 更新されないこと
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(2));
 
 			TestEntity insertEntity = new TestEntity()
 					.setName("名前10_new")
 					.setAddress(null)
-					.setVersion(0);
+					.setVersion(1);
 
 			TestEntity result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
@@ -327,7 +329,7 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 							.setId(i)
 							.setEndAt(LocalDate.now().plusDays(i))
 							.setName("名前" + i)
-							.setVersion(0))
+							.setVersion(1))
 					.collect(Collectors.toList());
 			assertThat(agent.inserts(TestEntityMultiKey.class, entities.stream()), is(9));
 
@@ -335,20 +337,19 @@ public class SqlEntityMergeTest extends AbstractDbTest {
 			TestEntityMultiKey updateEntity = new TestEntityMultiKey()
 					.setId(beforeEntity.getId())
 					.setEndAt(beforeEntity.getEndAt())
-					.setName(beforeEntity.getName() + "_new")
-					.setVersion(beforeEntity.getVersion());
+					.setName(beforeEntity.getName() + "_new");
 
 			TestEntityMultiKey result1 = agent.mergeAndReturn(updateEntity);
 			assertThat(result1.getId(), is(updateEntity.getId()));
 			assertThat(result1.getEndAt(), is(updateEntity.getEndAt()));
 			assertThat(result1.getName(), is(updateEntity.getName()));
-			assertThat(result1.getVersion(), is(updateEntity.getVersion() + 1));
+			assertThat(result1.getVersion(), is(beforeEntity.getVersion() + 1));
 
 			TestEntityMultiKey insertEntity = new TestEntityMultiKey()
 					.setId(11)
 					.setEndAt(LocalDate.now().plusDays(11))
 					.setName("名前11_new")
-					.setVersion(0);
+					.setVersion(1);
 
 			TestEntityMultiKey result2 = agent.mergeAndReturn(insertEntity);
 			assertThat(result2.getId(), is(insertEntity.getId()));
