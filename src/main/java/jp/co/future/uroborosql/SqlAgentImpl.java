@@ -1115,7 +1115,7 @@ public class SqlAgentImpl extends AbstractAgent {
 			return query.first()
 					.map(findEntity -> {
 						for (MappingColumn mappingColumn : mappingColumns.values()) {
-							if (!mappingColumn.isId()) {
+							if (!mappingColumn.isId() && !mappingColumn.isVersion()) {
 								Object value = mappingColumn.getValue(entity);
 								if (value != null) {
 									mappingColumn.setValue(findEntity, value);
@@ -1294,7 +1294,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							.filter(col -> !excludeColumns.contains(col)
 									&& !col.getJavaType().getRawType().isPrimitive()
 									&& col.getValue(entity) != null)
-							.collect(Collectors.toMap(col -> col.getCamelName(), col -> true));
+							.collect(Collectors.toMap(MappingColumn::getCamelName, col -> true));
 				}
 
 				entityList.add(entity);
@@ -1382,7 +1382,7 @@ public class SqlAgentImpl extends AbstractAgent {
 							.filter(col -> !excludeColumns.contains(col)
 									&& !col.getJavaType().getRawType().isPrimitive()
 									&& col.getValue(entity) != null)
-							.collect(Collectors.toMap(col -> col.getCamelName(), col -> true));
+							.collect(Collectors.toMap(MappingColumn::getCamelName, col -> true));
 				}
 				// 退避しておいたid値をこのタイミングで設定する
 				if (nonNullObjectIdFlags != null && !nonNullObjectIdFlags.isEmpty()) {
@@ -1552,7 +1552,7 @@ public class SqlAgentImpl extends AbstractAgent {
 	 *
 	 * @param <T> ResultSetの1行を変換した型
 	 */
-	private final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
+	private static final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
 		private final ResultSetConverter<T> converter;
 		private final ResultSet rs;
 		private boolean finished = false;
