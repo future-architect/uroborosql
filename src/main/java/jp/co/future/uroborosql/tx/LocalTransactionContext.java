@@ -221,8 +221,8 @@ class LocalTransactionContext implements TransactionContext {
 							.forEach(listener -> listener.accept(afterEventObj));
 				}
 			}
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 		clearState();
 	}
@@ -250,8 +250,8 @@ class LocalTransactionContext implements TransactionContext {
 							.forEach(listener -> listener.accept(afterEventObj));
 				}
 			}
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 		clearState();
 	}
@@ -286,8 +286,8 @@ class LocalTransactionContext implements TransactionContext {
 		if (connection != null) {
 			try {
 				connection.rollback(savepointMap.get(savepointName));
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		}
 	}
@@ -307,8 +307,8 @@ class LocalTransactionContext implements TransactionContext {
 		if (connection != null) {
 			try {
 				savepointMap.put(savepointName, connection.setSavepoint(savepointName));
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		}
 	}
@@ -334,8 +334,8 @@ class LocalTransactionContext implements TransactionContext {
 		if (savepoint != null && connection != null) {
 			try {
 				connection.releaseSavepoint(savepoint);
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		}
 	}
@@ -370,8 +370,8 @@ class LocalTransactionContext implements TransactionContext {
 					LOG.warn("Connection close was skipped because the connection was already closed.");
 				}
 			}
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 		connection = null;
 	}
@@ -395,8 +395,8 @@ class LocalTransactionContext implements TransactionContext {
 		for (var savepointName : savepointNames) {
 			try {
 				savepointMap.put(savepointName, connection.setSavepoint(savepointName));
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		}
 	}

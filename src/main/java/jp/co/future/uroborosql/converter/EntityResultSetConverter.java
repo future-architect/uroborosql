@@ -47,8 +47,8 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 		this.mapperManager = mapperManager;
 		try {
 			this.constructor = entityType.getConstructor();
-		} catch (NoSuchMethodException e) {
-			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", e);
+		} catch (NoSuchMethodException ex) {
+			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", ex);
 		}
 
 		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(schema, entityType))
@@ -87,10 +87,10 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, position));
 			}
 			return rec;
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-			throw new UroborosqlRuntimeException(e);
-		} catch (SQLException | RuntimeException | Error e) {
-			throw e;
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+			throw new UroborosqlRuntimeException(ex);
+		} catch (SQLException | RuntimeException | Error ex) {
+			throw ex;
 		}
 	}
 }

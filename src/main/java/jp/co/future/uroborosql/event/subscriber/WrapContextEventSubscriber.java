@@ -12,9 +12,10 @@ import jp.co.future.uroborosql.event.TransformSqlEvent;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
- * SQL文字列の前後をWrapするSqlFilter
+ * SQL文字列の前後をWrapするイベントサブスクライバ
  *
  * @author H.Sugimoto
+ * @since v1.0.0
  */
 public class WrapContextEventSubscriber extends EventSubscriber {
 

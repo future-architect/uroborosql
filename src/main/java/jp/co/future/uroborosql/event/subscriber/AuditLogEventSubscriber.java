@@ -18,9 +18,10 @@ import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.event.SqlUpdateEvent;
 
 /**
- * 監査用ログを出力するSqlFilter
+ * 監査用ログを出力するイベントサブスクライバ
  *
- * @author K.Miyazaki, J.Choi
+ * @author H.Sugimoto
+ * @since v1.0.0
  *
  */
 public class AuditLogEventSubscriber extends EventSubscriber {
@@ -71,7 +72,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 				rowCount = resultSet.getRow();
 				resultSet.beforeFirst();
 			}
-		} catch (SQLException e) {
+		} catch (SQLException ex) {
 			// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 		}
 

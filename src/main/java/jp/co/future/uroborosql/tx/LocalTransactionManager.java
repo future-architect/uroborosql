@@ -16,6 +16,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -29,6 +32,9 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
  * @author ota
  */
 public class LocalTransactionManager implements TransactionManager {
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
 	/** SQL設定クラス */
 	private final SqlConfig sqlConfig;
 
@@ -182,7 +188,7 @@ public class LocalTransactionManager implements TransactionManager {
 		try {
 			return currentTxContext(true).orElseThrow().getConnection();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			LOG.error(ex.getMessage(), ex);
 			return null;
 		}
 	}

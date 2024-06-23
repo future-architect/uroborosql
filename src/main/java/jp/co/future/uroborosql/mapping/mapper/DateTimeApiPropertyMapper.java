@@ -127,7 +127,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
-		} catch (NoSuchMethodException | SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException ex) {
 			return false;
 		}
 	}
@@ -141,7 +141,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
-		} catch (NoSuchMethodException | SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException ex) {
 			return false;
 		}
 	}
@@ -213,8 +213,9 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			var value = getInt(rs, columnIndex);
 			try {
 				return rs.wasNull() ? null : (Era) rawType.getMethod("of", int.class).invoke(null, value);
-			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException
+					| SecurityException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 
@@ -231,8 +232,8 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 						localDate.getMonthValue(),
 						localDate.getDayOfMonth());
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
-				throw new UroborosqlRuntimeException(e);
+					| NoSuchMethodException | SecurityException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 		throw new UroborosqlRuntimeException();

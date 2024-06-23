@@ -55,7 +55,7 @@ public class HistoryCommand extends ReplCommand {
 				if (keywords.isEmpty() || keywords.stream().anyMatch(s -> value.contains(s))) {
 					writer.println(String.format("%" + sizeLen + "d : %s", entry.index() + 1, value));
 				}
-			} catch (Exception e) {
+			} catch (Exception ex) {
 				// do nothing
 			}
 		});

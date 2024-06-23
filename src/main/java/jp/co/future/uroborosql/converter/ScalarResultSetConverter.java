@@ -158,8 +158,8 @@ public class ScalarResultSetConverter<E> implements ResultSetConverter<E> {
 			}
 
 			return (E) mapperManager.getValue(this.javaType, rs, this.columnPosition);
-		} catch (SQLException | RuntimeException | Error e) {
-			throw e;
+		} catch (SQLException | RuntimeException | Error ex) {
+			throw ex;
 		}
 	}
 }

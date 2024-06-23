@@ -34,7 +34,7 @@ public class SqlAgentSampleApp {
 	 */
 	public SqlAgentSampleApp(final String url, final String user, final String password) throws Exception {
 		// SQL設定オブジェクトを生成する(JDBCを利用する場合）
-		// SQL実行時に行う各種フィルタ処理を管理するクラスを設定
+		// SQL実行時に行う各種イベントサブスクライバ処理を管理するクラスを設定
 		config = UroboroSQL.builder(url, user, password).build();
 		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 

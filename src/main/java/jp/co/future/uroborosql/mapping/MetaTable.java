@@ -77,9 +77,9 @@ public class MetaTable implements Table {
 	public Class<? extends OptimisticLockSupplier> getOptimisticLockType() {
 		try {
 			return (Class<? extends OptimisticLockSupplier>) Class.forName(this.optimisticLockSupplierClassName);
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException ex) {
 			throw new UroborosqlRuntimeException(
-					"OptimisticLockSupplier class : " + this.optimisticLockSupplierClassName + " not found.", e);
+					"OptimisticLockSupplier class : " + this.optimisticLockSupplierClassName + " not found.", ex);
 		}
 	}
 }

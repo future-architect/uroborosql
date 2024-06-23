@@ -257,8 +257,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
-			} catch (IOException e) {
-				COVERAGE_LOG.error(e.getMessage(), e);
+			} catch (IOException ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 				return;
 			}
 			map.put(coverageData.getMd5(), sqlCoverage);
@@ -272,8 +272,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	public synchronized void onSqlAgentClose() {
 		try {
 			write();
-		} catch (Exception e) {
-			COVERAGE_LOG.error(e.getMessage(), e);
+		} catch (Exception ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 	}
 
@@ -282,8 +282,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				write();
-			} catch (Exception e) {
-				COVERAGE_LOG.error(e.getMessage(), e);
+			} catch (Exception ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 			}
 		}));
 	}

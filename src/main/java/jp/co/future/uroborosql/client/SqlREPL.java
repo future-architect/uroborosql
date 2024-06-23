@@ -60,6 +60,9 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @author H.Sugimoto
  */
 public class SqlREPL {
+	/** REPLロガー */
+	private static final org.slf4j.Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
+
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
 	/** プロパティパス */
@@ -197,8 +200,8 @@ public class SqlREPL {
 				m.appendTail(sb);
 
 				urls.add(Paths.get(sb.toString()).toUri().toURL());
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Exception ex) {
+				REPL_LOG.error(ex.getMessage(), ex);
 			}
 		});
 		additionalClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), currentClassLoader);
@@ -209,8 +212,8 @@ public class SqlREPL {
 		loader.forEach(driver -> {
 			try {
 				DriverManager.registerDriver(new DriverShim(driver));
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Exception ex) {
+				REPL_LOG.error(ex.getMessage(), ex);
 			}
 		});
 
@@ -303,8 +306,8 @@ public class SqlREPL {
 				}
 			} catch (UserInterruptException | EndOfFileException ex) {
 				break;
-			} catch (Exception e) {
-				e.printStackTrace(System.err);
+			} catch (Exception ex) {
+				REPL_LOG.error(ex.getMessage(), ex);
 			}
 		}
 	}
@@ -380,7 +383,7 @@ public class SqlREPL {
 		props.forEach((key, value) -> {
 			try {
 				writer.println(key + "=" + value);
-			} catch (Exception e) {
+			} catch (Exception ex) {
 				// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 			}
 		});

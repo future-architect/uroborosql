@@ -108,8 +108,8 @@ public final class MappingUtils {
 		public Object getValue(final Object entity) {
 			try {
 				return this.field.get(entity);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalArgumentException | IllegalAccessException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 
@@ -122,8 +122,8 @@ public final class MappingUtils {
 		public void setValue(final Object entity, final Object value) {
 			try {
 				this.field.set(entity, value);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalArgumentException | IllegalAccessException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 

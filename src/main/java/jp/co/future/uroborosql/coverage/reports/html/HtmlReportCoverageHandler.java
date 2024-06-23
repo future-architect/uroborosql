@@ -114,8 +114,8 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 								.getResourceAsStream(packagePath + "/" + filename)) {
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
-						} catch (IOException e) {
-							COVERAGE_LOG.error(e.getMessage(), e);
+						} catch (IOException ex) {
+							COVERAGE_LOG.error(ex.getMessage(), ex);
 						}
 					});
 			// write report
@@ -131,8 +131,8 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 
 				writeSuffix(writer);
 			}
-		} catch (IOException e) {
-			COVERAGE_LOG.error(e.getMessage(), e);
+		} catch (IOException ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 	}
 

@@ -48,7 +48,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/test03.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = SqlAgentImpl.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -100,7 +100,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = SqlAgentImpl.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -127,7 +127,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = SqlAgentImpl.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);

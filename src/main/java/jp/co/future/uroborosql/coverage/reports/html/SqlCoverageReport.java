@@ -128,8 +128,8 @@ class SqlCoverageReport {
 
 				writeSuffix(writer);
 			}
-		} catch (IOException e) {
-			COVERAGE_LOG.error(e.getMessage(), e);
+		} catch (IOException ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 		updated = false;
 	}

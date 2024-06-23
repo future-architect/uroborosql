@@ -36,12 +36,13 @@ import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
- * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターの抽象クラス.
+ * 特定のカラムの読み書きに対して暗号化/復号化を行うイベントサブスクライバの抽象クラス.
  *
  * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
  *
  * @param <T> SecretColumnEventSubscriberの具象型
  * @author H.Sugimoto
+ * @since v1.0.0
  *
  */
 public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscriber {

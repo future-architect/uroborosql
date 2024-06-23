@@ -148,7 +148,7 @@ public class SqlQueryTest extends AbstractDbTest {
 	}
 
 	/**
-	 * SQLのdoTransformフィルターのテストケース。
+	 * SQLのdoTransformイベントリスナーのテストケース。
 	 */
 	@Test
 	void testQueryFilterQueryWith() throws Exception {

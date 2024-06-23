@@ -42,7 +42,7 @@ public class CoberturaCoverageHandlerTest {
 		var path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
-		var field = SqlAgentImpl.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);

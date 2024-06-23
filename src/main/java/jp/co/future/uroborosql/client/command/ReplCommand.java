@@ -126,7 +126,7 @@ public abstract class ReplCommand {
 					// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 				}
 			});
-		} catch (IOException e) {
+		} catch (IOException ex) {
 			// ここで例外が出てもメッセージ表示が正しく出ないだけなので、エラーを握りつぶす
 		}
 		terminal.flush();

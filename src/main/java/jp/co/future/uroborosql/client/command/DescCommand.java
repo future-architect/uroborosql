@@ -17,6 +17,8 @@ import java.util.Properties;
 
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -28,6 +30,9 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @author H.Sugimoto
  */
 public class DescCommand extends ReplCommand {
+	/** REPLロガー */
+	private static final Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
+
 	/** DESCで表示する項目 */
 	private static final String[] DESC_COLUMN_LABELS = { "TABLE_NAME", "COLUMN_NAME", "TYPE_NAME", "COLUMN_SIZE",
 			"DECIMAL_DIGITS", "IS_NULLABLE", "COLUMN_DEF", "REMARKS" };
@@ -125,7 +130,7 @@ public class DescCommand extends ReplCommand {
 			}
 			writer.println();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			REPL_LOG.error(ex.getMessage(), ex);
 		}
 		writer.flush();
 

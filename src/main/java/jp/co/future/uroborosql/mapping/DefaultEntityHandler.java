@@ -255,8 +255,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return CACHE.get(cacheKey, key -> {
 			try {
 				return createMetadata(connectionManager, entityType);
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		});
 	}

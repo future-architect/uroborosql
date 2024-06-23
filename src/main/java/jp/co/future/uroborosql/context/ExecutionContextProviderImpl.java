@@ -368,8 +368,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 		List<URL> roots;
 		try {
 			roots = Collections.list(classLoader.getResources(resourceName));
-		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+		} catch (IOException ex) {
+			LOG.error(ex.getMessage(), ex);
 			return Set.of();
 		}
 
@@ -378,15 +378,15 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			if ("file".equalsIgnoreCase(root.getProtocol())) {
 				try {
 					classes.addAll(findEnumClassesWithFile(packageName, Paths.get(root.toURI())));
-				} catch (URISyntaxException e) {
-					LOG.error(e.getMessage(), e);
+				} catch (URISyntaxException ex) {
+					LOG.error(ex.getMessage(), ex);
 				}
 			}
 			if ("jar".equalsIgnoreCase(root.getProtocol())) {
 				try (var jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
 					classes.addAll(findEnumClassesWithJar(packageName, jarFile));
-				} catch (IOException e) {
-					LOG.error(e.getMessage(), e);
+				} catch (IOException ex) {
+					LOG.error(ex.getMessage(), ex);
 				}
 			}
 		}
@@ -415,8 +415,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 					})
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
-		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+		} catch (IOException ex) {
+			LOG.error(ex.getMessage(), ex);
 			return Set.of();
 		}
 	}
@@ -455,8 +455,8 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider {
 			if (type.isEnum()) {
 				return Optional.of(type);
 			}
-		} catch (ClassNotFoundException e) {
-			LOG.error(e.getMessage(), e);
+		} catch (ClassNotFoundException ex) {
+			LOG.error(ex.getMessage(), ex);
 		}
 		return Optional.empty();
 	}

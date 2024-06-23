@@ -63,8 +63,8 @@ public class DomainPropertyMapper implements PropertyMapper<Object> {
 			}
 			return method.invoke(null, value);
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException
-				| SecurityException e) {
-			throw new UroborosqlRuntimeException(e);
+				| SecurityException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 

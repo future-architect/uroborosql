@@ -26,13 +26,14 @@ import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
- * 実行結果をダンプ出力するSqlFilter.<br>
+ * 実行結果をダンプ出力するイベントサブスクライバ.<br>
  *
- * このSqlFilterを使用する際は、PreparedStatementを生成する際、ResultSetTypeに
+ * このイベントサブスクライバを使用する際は、PreparedStatementを生成する際、ResultSetTypeに
  * <code>ResultSet.TYPE_SCROLL_INSENSITIVE</code> または<code>ResultSet.TYPE_SCROLL_SENSITIVE</code>
  * を指定してください。
  *
  * @author H.Sugimoto
+ * @since v1.0.0
  *
  */
 public class DumpResultEventSubscriber extends EventSubscriber {
@@ -64,8 +65,8 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			if (EVENT_LOG.isDebugEnabled()) {
 				EVENT_LOG.debug("{}", displayResult(evt.getResultSet()));
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (SQLException ex) {
+			EVENT_LOG.warn(ex.getMessage(), ex);
 		}
 	}
 
@@ -151,8 +152,8 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			}
 
 			return builder;
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			EVENT_LOG.error(ex.getMessage(), ex);
 		}
 		return null;
 	}

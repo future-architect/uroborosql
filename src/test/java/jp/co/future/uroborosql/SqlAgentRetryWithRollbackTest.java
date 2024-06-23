@@ -301,7 +301,7 @@ public class SqlAgentRetryWithRollbackTest {
 	}
 
 	/**
-	 * リトライテスト用の例外をスローするフィルター
+	 * リトライテスト用の例外をスローするイベントサブスクライバ
 	 *
 	 * @author H.Sugimoto
 	 */

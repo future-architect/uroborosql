@@ -177,8 +177,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public ResultSet resultSet() {
 		try {
 			return agent().query(context());
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 
@@ -201,8 +201,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public List<Map<String, Object>> collect(final CaseFormat caseFormat) {
 		try {
 			return agent().query(context(), caseFormat);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 
@@ -237,8 +237,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public <T> Stream<T> stream(final ResultSetConverter<T> converter) {
 		try {
 			return agent().query(context(), converter);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 

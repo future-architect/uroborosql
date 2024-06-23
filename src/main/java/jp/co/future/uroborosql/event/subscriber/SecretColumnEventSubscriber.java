@@ -15,11 +15,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 /**
- * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターのデフォルト実装.
- *
+ * 特定のカラムの読み書きに対して暗号化/復号化を行うイベントサブスクライバのデフォルト実装.<br>
  * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
  *
  * @author H.Sugimoto
+ * @since v1.0.0
  *
  */
 public class SecretColumnEventSubscriber extends AbstractSecretColumnEventSubscriber<SecretColumnEventSubscriber> {

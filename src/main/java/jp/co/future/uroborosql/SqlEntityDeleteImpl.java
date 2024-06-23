@@ -43,8 +43,8 @@ final class SqlEntityDeleteImpl<E> extends AbstractExtractionCondition<SqlEntity
 		try {
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
 			return this.entityHandler.doDelete(agent(), context(), null);
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
