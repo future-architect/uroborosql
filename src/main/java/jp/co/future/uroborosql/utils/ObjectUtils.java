@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import org.springframework.util.StringUtils;
-
 public final class ObjectUtils {
 	private ObjectUtils() {
 	}
@@ -211,8 +209,6 @@ public final class ObjectUtils {
 	 * isNotBlank("bob")     = true
 	 * isNotBlank("  bob  ") = true
 	 * </pre>
-	 *
-	 * @see StringUtils#isNotBlank(CharSequence)
 	 *
 	 * @param cs 対象文字列
 	 * @return null、空文字、空白以外の場合<code>true</code>
