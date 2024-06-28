@@ -10,6 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.SpelNode;
@@ -20,7 +22,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 /**
  * SpringExpressionを利用した評価式パーサー
@@ -28,11 +30,14 @@ import jp.co.future.uroborosql.utils.StringFunction;
  * @author H.Sugimoto
  */
 public class SpelExpressionParser extends AbstractExpressionParser {
+	/** パーサーロガー */
+	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
+
 	/** 評価式のパーサー */
-	private static org.springframework.expression.ExpressionParser parser;
+	private static final org.springframework.expression.ExpressionParser parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 
 	/** TransformContextに対するプロパティアクセサ */
-	private static TransformContextPropertyAccessor transformContextPropertyAccessor;
+	private TransformContextPropertyAccessor transformContextPropertyAccessor;
 
 	/**
 	 * コンストラクタ
@@ -48,9 +53,8 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	@Override
 	public void initialize() {
 		super.initialize();
-		parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 		transformContextPropertyAccessor = new TransformContextPropertyAccessor(
-				getSqlConfig().getDialect().getExpressionFunction());
+				getSqlConfig().getDialect().getSqlFunction());
 	}
 
 	/**
@@ -68,7 +72,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private static class SpringElExpression implements Expression {
+	private class SpringElExpression implements Expression {
 		/** 評価式 */
 		private final org.springframework.expression.Expression expr;
 
@@ -91,9 +95,9 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			try {
 				var ctx = getEvaluationContext(context);
 				return expr.getValue(ctx);
-			} catch (EvaluationException e) {
+			} catch (EvaluationException ex) {
 				throw new ExpressionRuntimeException("Acquire an object failed.[" + expr.getExpressionString() + "]",
-						e);
+						ex);
 			}
 		}
 
@@ -127,7 +131,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 				var state = new ExpressionState(ctx);
 				for (var prop : props) {
 					var propName = prop.getName();
-					if (!StringFunction.SHORT_NAME.equals(propName)) {
+					if (!SqlFunction.SHORT_NAME.equals(propName)) {
 						try {
 							var value = prop.getValue(state);
 							builder.append(propName)
@@ -135,8 +139,8 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 									.append(Objects.toString(value, null))
 									.append("],");
 						} catch (EvaluationException ex) {
-							// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
-							ex.printStackTrace();
+							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
+							PARSER_LOG.warn(ex.getMessage(), ex);
 						}
 					}
 				}
@@ -157,7 +161,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			traverseNode(root, props);
 			for (var prop : props) {
 				var propName = prop.getName();
-				if (!StringFunction.SHORT_NAME.equals(propName)) {
+				if (!SqlFunction.SHORT_NAME.equals(propName)) {
 					params.add(prop.getName());
 				}
 			}

@@ -11,7 +11,7 @@ import java.time.Month;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * {@link java.time.Month}を文字列に変換する{@link BindParameterMapper}
@@ -37,6 +37,6 @@ public class MonthToStringParameterMapper implements BindParameterMapper<Month> 
 	@Override
 	public Object toJdbc(final Month original, final Connection connection,
 			final BindParameterMapperManager parameterMapperManager) {
-		return StringUtils.leftPad(String.valueOf(original.getValue()), 2, '0');
+		return ObjectUtils.leftPad(String.valueOf(original.getValue()), 2, '0');
 	}
 }

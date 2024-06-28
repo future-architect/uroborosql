@@ -8,7 +8,6 @@ package jp.co.future.uroborosql.dialect;
 
 import java.sql.JDBCType;
 import java.sql.SQLType;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ public class PostgresqlDialect extends AbstractDialect {
 	 * 悲観ロックのErrorCode もしくは SqlState. Postgresqlの場合はSqlStateで判定する.
 	 * <pre>Error [55P03]: ERROR: リレーション"XXX"の行ロックを取得できませんでした</pre>
 	 */
-	private static final Set<String> pessimisticLockingErrorCodes = Collections.singleton("55P03");
+	private static final Set<String> pessimisticLockingErrorCodes = Set.of("55P03");
 
 	/**
 	 * コンストラクタ

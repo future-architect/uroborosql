@@ -67,22 +67,22 @@ public abstract class JavaType {
 		/**
 		 * スーパークラス・またはインタフェースを表すTypeを返す。
 		 *
-		 * @param parentclass スーパークラス・またはインタフェース
+		 * @param parentClass スーパークラス・またはインタフェース
 		 * @return Type
 		 */
-		public Type getGenericParentClass(final Class<?> parentclass) {
-			return this.generics.computeIfAbsent(parentclass, this::findGenericParentClass);
+		public Type getGenericParentClass(final Class<?> parentClass) {
+			return this.generics.computeIfAbsent(parentClass, this::findGenericParentClass);
 		}
 
-		private Type findGenericParentClass(final Class<?> parentclass) {
-			Class<?> subclass = getSubclass(parentclass);
+		private Type findGenericParentClass(final Class<?> parentClass) {
+			Class<?> subclass = getSubclass(parentClass);
 			Class<?> superclass = subclass.getSuperclass();
-			if (superclass != null && superclass.equals(parentclass)) {
+			if (superclass != null && superclass.equals(parentClass)) {
 				return subclass.getGenericSuperclass();
 			}
 			var interfaces = subclass.getInterfaces();
 			for (var i = 0; i < interfaces.length; i++) {
-				if (interfaces[i].equals(parentclass)) {
+				if (interfaces[i].equals(parentClass)) {
 					return subclass.getGenericInterfaces()[i];
 				}
 			}

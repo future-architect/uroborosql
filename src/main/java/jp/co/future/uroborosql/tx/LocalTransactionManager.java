@@ -14,10 +14,16 @@ import java.util.Deque;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
+import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
@@ -26,14 +32,17 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
  * @author ota
  */
 public class LocalTransactionManager implements TransactionManager {
+	/** ロガー */
+	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+
 	/** SQL設定クラス */
 	private final SqlConfig sqlConfig;
 
 	/** トランザクションコンテキストのスタック */
-	private final Deque<LocalTransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
+	private final Deque<TransactionContext> txCtxStack = new ConcurrentLinkedDeque<>();
 
 	/** トランザクション管理外の接続に利用する便宜上のトランザクション */
-	private Optional<LocalTransactionContext> unmanagedTransaction = Optional.empty();
+	private Optional<TransactionContext> unmanagedTransaction = Optional.empty();
 
 	/** トランザクション内での更新を強制するかどうか */
 	private final boolean updatable;
@@ -56,70 +65,77 @@ public class LocalTransactionManager implements TransactionManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(java.lang.Runnable)
 	 */
 	@Override
-	public void required(final SQLRunnable runnable) {
+	public void required(final Runnable runnable) {
 		requiredInternal(toSupplier(runnable));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#required(java.util.function.Supplier)
 	 */
 	@Override
-	public <R> R required(final SQLSupplier<R> supplier) {
+	public <R> R required(final Supplier<R> supplier) {
 		return requiredInternal(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(java.lang.Runnable)
 	 */
 	@Override
-	public void requiresNew(final SQLRunnable runnable) {
+	public void requiresNew(final Runnable runnable) {
 		requiresNewInternal(toSupplier(runnable));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#requiresNew(java.util.function.Supplier)
 	 */
 	@Override
-	public <R> R requiresNew(final SQLSupplier<R> supplier) {
+	public <R> R requiresNew(final Supplier<R> supplier) {
 		return requiresNewInternal(supplier);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(java.lang.Runnable)
 	 */
 	@Override
-	public void notSupported(final SQLRunnable runnable) {
+	public void notSupported(final Runnable runnable) {
 		notSupportedInternal(toSupplier(runnable));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#notSupported(java.util.function.Supplier)
 	 */
 	@Override
-	public <R> R notSupported(final SQLSupplier<R> supplier) {
+	public <R> R notSupported(final Supplier<R> supplier) {
 		return notSupportedInternal(supplier);
 	}
 
 	/**
-	 * 現在有効なTransactionContextを取得する
+	 * unmanagedTransactionも含め、現在有効なTransactionContextを取得する
 	 *
-	 * @return 現在有効なTransactionContext
+	 * @param unmanagedCreate unmanagedTransactionが利用される場合に、unmanagedTransactionが未作成ならunmanagedTransactionを作成するかどうか。<code>true</code>なら作成する.
+	 * @return unmanagedTransactionも含め、現在有効なTransactionContext
 	 */
-	private Optional<LocalTransactionContext> currentTxContext() {
-		return Optional.ofNullable(this.txCtxStack.peek());
+	private Optional<TransactionContext> currentTxContext(final boolean unmanagedCreate) {
+		return Optional.ofNullable(this.txCtxStack.peek()).or(() -> {
+			if (unmanagedCreate && this.unmanagedTransaction.isEmpty()) {
+				this.unmanagedTransaction = Optional
+						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
+			}
+			return this.unmanagedTransaction;
+		});
 	}
 
 	/**
@@ -129,12 +145,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setRollbackOnly() {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().setRollbackOnly();
-		} else {
-			this.unmanagedTransaction.ifPresent(LocalTransactionContext::setRollbackOnly);
-		}
+		currentTxContext(false).ifPresent(TransactionContext::setRollbackOnly);
 	}
 
 	/**
@@ -144,12 +155,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void setSavepoint(final String savepointName) {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().setSavepoint(savepointName);
-		} else {
-			this.unmanagedTransaction.ifPresent(ut -> ut.setSavepoint(savepointName));
-		}
+		currentTxContext(false).ifPresent(txCtx -> txCtx.setSavepoint(savepointName));
 	}
 
 	/**
@@ -159,12 +165,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void releaseSavepoint(final String savepointName) {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().releaseSavepoint(savepointName);
-		} else {
-			this.unmanagedTransaction.ifPresent(ut -> ut.releaseSavepoint(savepointName));
-		}
+		currentTxContext(false).ifPresent(txCtx -> txCtx.releaseSavepoint(savepointName));
 	}
 
 	/**
@@ -174,12 +175,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback(final String savepointName) {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().rollback(savepointName);
-		} else {
-			this.unmanagedTransaction.ifPresent(ut -> ut.rollback(savepointName));
-		}
+		currentTxContext(false).ifPresent(txCtx -> txCtx.rollback(savepointName));
 	}
 
 	/**
@@ -189,19 +185,10 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public Connection getConnection() {
-		var txContext = currentTxContext();
 		try {
-			if (txContext.isPresent()) {
-				return txContext.get().getConnection();
-			} else {
-				if (!this.unmanagedTransaction.isPresent()) {
-					this.unmanagedTransaction = Optional
-							.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
-				}
-				return this.unmanagedTransaction.get().getConnection();
-			}
+			return currentTxContext(true).orElseThrow().getConnection();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			LOG.error(ex.getMessage(), ex);
 			return null;
 		}
 	}
@@ -214,16 +201,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public PreparedStatement getPreparedStatement(final ExecutionContext executionContext) throws SQLException {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			return txContext.get().getPreparedStatement(executionContext);
-		} else {
-			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
-			}
-			return this.unmanagedTransaction.get().getPreparedStatement(executionContext);
-		}
+		return currentTxContext(true).orElseThrow().getPreparedStatement(executionContext);
 	}
 
 	/**
@@ -234,27 +212,18 @@ public class LocalTransactionManager implements TransactionManager {
 	 * @throws SQLException SQL例外
 	 */
 	public CallableStatement getCallableStatement(final ExecutionContext executionContext) throws SQLException {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			return txContext.get().getCallableStatement(executionContext);
-		} else {
-			if (!this.unmanagedTransaction.isPresent()) {
-				this.unmanagedTransaction = Optional
-						.of(new LocalTransactionContext(this.sqlConfig, this.updatable, this.connectionContext));
-			}
-			return this.unmanagedTransaction.get().getCallableStatement(executionContext);
-		}
+		return currentTxContext(true).orElseThrow().getCallableStatement(executionContext);
 	}
 
 	/**
 	 * 処理ブロックの実行
 	 *
-	 * @param block 処理ブロック
-	 * @return SQLサプライヤ
+	 * @param runnable 処理ブロック
+	 * @return サプライヤ
 	 */
-	private SQLSupplier<Void> toSupplier(final SQLRunnable block) {
+	private Supplier<Void> toSupplier(final Runnable runnable) {
 		return () -> {
-			block.run();
+			runnable.run();
 			return null;
 		};
 	}
@@ -262,45 +231,44 @@ public class LocalTransactionManager implements TransactionManager {
 	/**
 	 * requiredメソッドの内部実装
 	 *
-	 * @param supplier SQLサプライヤ
+	 * @param supplier サプライヤ
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	private <R> R requiredInternal(final SQLSupplier<R> supplier) {
-		if (currentTxContext().isPresent()) {
+	private <R> R requiredInternal(final Supplier<R> supplier) {
+		if (!this.txCtxStack.isEmpty()) {
 			return supplier.get();
 		} else {
-			return runInNewTx(supplier);
+			return runInNewTx(supplier, false);
 		}
 	}
 
 	/**
 	 * requiresNewメソッドの内部実装
 	 *
-	 * @param supplier SQLサプライヤ
+	 * @param supplier サプライヤ
 	 * @return 実行結果
 	 * @throws SQLException SQL例外
 	 */
-	private <R> R requiresNewInternal(final SQLSupplier<R> supplier) {
-		return runInNewTx(supplier);
+	private <R> R requiresNewInternal(final Supplier<R> supplier) {
+		return runInNewTx(supplier, true);
 	}
 
 	/**
 	 * notSupportedメソッドの内部実装
 	 *
-	 * @param supplier SQLサプライヤ
+	 * @param supplier サプライヤ
 	 * @return 実行結果
 	 */
-	private <R> R notSupportedInternal(final SQLSupplier<R> supplier) {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
+	private <R> R notSupportedInternal(final Supplier<R> supplier) {
+		if (!this.txCtxStack.isEmpty()) {
 			// トランザクションをサスペンド
-			var txContextValue = this.txCtxStack.pop();
+			var txCtx = this.txCtxStack.pop();
 			try {
 				return supplier.get();
 			} finally {
 				//戻す
-				this.txCtxStack.push(txContextValue);
+				this.txCtxStack.push(txCtx);
 			}
 		} else {
 			return supplier.get();
@@ -311,25 +279,38 @@ public class LocalTransactionManager implements TransactionManager {
 	 * 新しいトランザクションを開始して処理を実行
 	 *
 	 * @param supplier トランザクション内で実行する処理
+	 * @param isRequiredNew 新規トランザクションかどうか
 	 * @param <R> 結果の型
 	 * @return 処理の結果
 	 */
-	private <R> R runInNewTx(final SQLSupplier<R> supplier) {
-		try (var txContext = new LocalTransactionContext(this.sqlConfig, true,
-				this.connectionContext)) {
-			this.txCtxStack.push(txContext);
+	private <R> R runInNewTx(final Supplier<R> supplier, final boolean isRequiredNew) {
+		try (var txCtx = new LocalTransactionContext(this.sqlConfig, true, this.connectionContext)) {
+			this.txCtxStack.push(txCtx);
 			try {
-				return supplier.get();
-			} catch (Throwable th) {
-				txContext.setRollbackOnly();
-				throw th;
-			} finally {
-				try {
-					txContext.close();
-				} finally {
-					this.txCtxStack.pop();
+				// トランザクション開始後イベント発行
+				if (this.sqlConfig.getEventListenerHolder().hasAfterBeginTransactionListener()) {
+					var eventObj = new AfterBeginTransactionEvent(txCtx, isRequiredNew, txCtxStack.size());
+					this.sqlConfig.getEventListenerHolder().getAfterBeginTransactionListeners()
+							.forEach(listener -> listener.accept(eventObj));
 				}
+				R result = null;
+				try {
+					result = supplier.get();
+					return result;
+				} finally {
+					// トランザクション終了前イベント発行
+					if (this.sqlConfig.getEventListenerHolder().hasBeforeEndTransactionListener()) {
+						var eventObj = new BeforeEndTransactionEvent(txCtx, isRequiredNew, txCtxStack.size(), result);
+						this.sqlConfig.getEventListenerHolder().getBeforeEndTransactionListeners()
+								.forEach(listener -> listener.accept(eventObj));
+					}
+				}
+			} catch (Throwable th) {
+				txCtx.setRollbackOnly();
+				throw th;
 			}
+		} finally {
+			this.txCtxStack.pop();
 		}
 	}
 
@@ -340,13 +321,11 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void close() {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			this.txCtxStack.forEach(LocalTransactionContext::close);
+		if (!this.txCtxStack.isEmpty()) {
+			this.txCtxStack.forEach(TransactionContext::close);
 			this.txCtxStack.clear();
-		} else {
-			this.unmanagedTransaction.ifPresent(LocalTransactionContext::close);
 		}
+		this.unmanagedTransaction.ifPresent(TransactionContext::close);
 	}
 
 	/**
@@ -356,12 +335,7 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void commit() {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().commit();
-		} else {
-			this.unmanagedTransaction.ifPresent(LocalTransactionContext::commit);
-		}
+		currentTxContext(false).ifPresent(TransactionContext::commit);
 	}
 
 	/**
@@ -371,55 +345,51 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public void rollback() {
-		var txContext = currentTxContext();
-		if (txContext.isPresent()) {
-			txContext.get().rollback();
-		} else {
-			this.unmanagedTransaction.ifPresent(LocalTransactionContext::rollback);
-		}
+		currentTxContext(false).ifPresent(TransactionContext::rollback);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(java.util.function.Supplier)
 	 */
 	@Override
-	public <R> R savepointScope(final SQLSupplier<R> supplier) {
-		var savepointName = UUID.randomUUID().toString();
-		setSavepoint(savepointName);
-		try {
-			return supplier.get();
-		} catch (Throwable th) {
-			rollback(savepointName);
-			throw th;
-		} finally {
-			releaseSavepoint(savepointName);
-		}
+	public <R> R savepointScope(final Supplier<R> supplier) {
+		return currentTxContext(false).map(txCtx -> {
+			var savepointName = UUID.randomUUID().toString();
+			txCtx.setSavepoint(savepointName);
+			try {
+				return supplier.get();
+			} catch (Throwable th) {
+				txCtx.rollback(savepointName);
+				throw th;
+			} finally {
+				txCtx.releaseSavepoint(savepointName);
+			}
+		}).orElse(null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#savepointScope(java.lang.Runnable)
 	 */
 	@Override
-	public void savepointScope(final SQLRunnable runnable) {
+	public void savepointScope(final Runnable runnable) {
 		savepointScope(toSupplier(runnable));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLSupplier)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(java.util.function.Supplier)
 	 */
 	@Override
-	public <R> R autoCommitScope(final SQLSupplier<R> supplier) {
-		try (var txContext = new LocalTransactionContext(this.sqlConfig, true,
-				this.connectionContext)) {
-			this.txCtxStack.push(txContext);
+	public <R> R autoCommitScope(final Supplier<R> supplier) {
+		try (var txCtx = new LocalTransactionContext(this.sqlConfig, true, this.connectionContext)) {
+			this.txCtxStack.push(txCtx);
 
-			var conn = txContext.getConnection();
+			var conn = txCtx.getConnection();
 			var preserveAutoCommitState = conn.getAutoCommit();
 			try {
 				// autoCommit=trueに設定する
@@ -428,7 +398,7 @@ public class LocalTransactionManager implements TransactionManager {
 				}
 				return supplier.get();
 			} catch (Throwable th) {
-				txContext.setRollbackOnly();
+				txCtx.setRollbackOnly();
 				throw th;
 			} finally {
 				if (!preserveAutoCommitState) {
@@ -445,10 +415,10 @@ public class LocalTransactionManager implements TransactionManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(jp.co.future.uroborosql.tx.SQLRunnable)
+	 * @see jp.co.future.uroborosql.tx.TransactionManager#autoCommitScope(java.lang.Runnable)
 	 */
 	@Override
-	public void autoCommitScope(final SQLRunnable runnable) {
+	public void autoCommitScope(final Runnable runnable) {
 		autoCommitScope(toSupplier(runnable));
 	}
 

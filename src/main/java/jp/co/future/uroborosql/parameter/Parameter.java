@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * パラメータオブジェクト。<br>
@@ -101,8 +101,10 @@ public class Parameter {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-							subParameterName);
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+								subParameterName);
+					}
 				}
 			} else {
 				try {
@@ -110,20 +112,24 @@ public class Parameter {
 					var field = value.getClass().getDeclaredField(propertyName);
 					field.setAccessible(true);
 					subValue = field.get(value);
-				} catch (NoSuchFieldException e) {
+				} catch (NoSuchFieldException ex) {
 					// メソッドアクセスで値の取得を実施
 					try {
 						var prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
 						var method = value.getClass()
-								.getMethod(prefix + StringUtils.capitalize(propertyName));
+								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
-					} catch (Exception e2) {
-						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-								subParameterName, e2);
+					} catch (Exception ex2) {
+						if (LOG.isWarnEnabled()) {
+							LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+									subParameterName, ex2);
+						}
 					}
-				} catch (Exception e) {
-					LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-							subParameterName, e);
+				} catch (Exception ex) {
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
+								subParameterName, ex);
+					}
 				}
 			}
 		}
@@ -180,8 +186,8 @@ public class Parameter {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (SQL_LOG.isTraceEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			SQL_LOG.trace("Set the parameter.[INDEX[{}], {}]", index, this);
+		if (SQL_LOG.isInfoEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
+			SQL_LOG.info("Set the parameter.[INDEX[{}], {}]", index, this);
 		}
 	}
 

@@ -36,7 +36,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Coberturaカバレッジレポート出力ハンドラ<br>
@@ -52,7 +52,8 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author ota
  */
 public class CoberturaCoverageHandler implements CoverageHandler {
-	protected static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
+	/** カバレッジロガー. */
+	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
 
 	/**
 	 * カバレッジ数値 line branch セット
@@ -91,12 +92,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * ポイントブランチ情報
 	 */
 	private static class PointBranch {
-		@SuppressWarnings("unused")
-		private final Range range;
 		private final Set<BranchCoverageState> status = EnumSet.noneOf(BranchCoverageState.class);
 
 		private PointBranch(final Range range) {
-			this.range = range;
 		}
 
 		private void add(final BranchCoverageState state) {
@@ -112,12 +110,9 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 * 行ブランチ情報
 	 */
 	private static class LineBranch {
-		@SuppressWarnings("unused")
-		private final int rowIndex;
 		private final Map<Range, PointBranch> branches = new HashMap<>();
 
 		private LineBranch(final int rowIndex) {
-			this.rowIndex = rowIndex;
 		}
 
 		private void add(final Range idx, final BranchCoverageState state) {
@@ -140,8 +135,6 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	private static class SqlCoverage {
 		private final String name;
-		@SuppressWarnings("unused")
-		private final String md5;
 		/** 各行範囲 */
 		private final List<LineRange> lineRanges;
 
@@ -154,7 +147,6 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				final int hashIndex)
 				throws IOException {
 			this.name = hashIndex <= 0 ? name : name + "_hash_" + hashIndex;
-			this.md5 = md5;
 			this.lineRanges = CoverageHandler.parseLineRanges(sql);
 			this.hitLines = new int[lineRanges.stream()
 					.mapToInt(LineRange::getLineIndex)
@@ -231,7 +223,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	public CoberturaCoverageHandler() {
 		var s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
-		if (StringUtils.isNotEmpty(s)) {
+		if (ObjectUtils.isNotEmpty(s)) {
 			this.reportPath = Paths.get(s);
 		} else {
 			this.reportPath = Paths.get("target", "coverage", "sql-cover.xml");
@@ -253,7 +245,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 	@Override
 	public synchronized void accept(final CoverageData coverageData) {
-		if (StringUtils.isEmpty(coverageData.getSqlName())) {
+		if (ObjectUtils.isEmpty(coverageData.getSqlName())) {
 			//SQL名の設定されていないSQLは集約しない
 			return;
 		}
@@ -265,8 +257,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
-			} catch (IOException e) {
-				LOG.error(e.getMessage(), e);
+			} catch (IOException ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 				return;
 			}
 			map.put(coverageData.getMd5(), sqlCoverage);
@@ -280,8 +272,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	public synchronized void onSqlAgentClose() {
 		try {
 			write();
-		} catch (Exception e) {
-			LOG.error(e.getMessage(), e);
+		} catch (Exception ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 	}
 
@@ -290,8 +282,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				write();
-			} catch (Exception e) {
-				LOG.error(e.getMessage(), e);
+			} catch (Exception ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 			}
 		}));
 	}

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class SqlAgentQueryWithIteratorTest {
 	private SqlConfig config;
@@ -32,13 +31,13 @@ public class SqlAgentQueryWithIteratorTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:SqlAgentTest")).build();
+		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1")).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (var sql : sqls) {
-			if (StringUtils.isNotBlank(sql)) {
+			if (ObjectUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
 		}
@@ -58,7 +57,7 @@ public class SqlAgentQueryWithIteratorTest {
 				var parts = line.split("\t");
 				for (var part : parts) {
 					var keyValue = part.split(":", 2);
-					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
+					row.put(keyValue[0].toLowerCase(), ObjectUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
 			});
@@ -69,7 +68,7 @@ public class SqlAgentQueryWithIteratorTest {
 	}
 
 	private void truncateTable(final Object... tables) {
-		Arrays.asList(tables).stream().forEach(tbl -> {
+		List.of(tables).stream().forEach(tbl -> {
 			try {
 				agent.updateWith("truncate table " + tbl.toString()).count();
 			} catch (Exception ex) {

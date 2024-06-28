@@ -32,7 +32,7 @@ import jp.co.future.uroborosql.mapping.JavaType;
 import jp.co.future.uroborosql.mapping.annotations.Domain;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * 検索結果をプリミティブ型（のラッパークラス）に変換する変換器
@@ -127,7 +127,7 @@ public class ScalarResultSetConverter<E> implements ResultSetConverter<E> {
 		this.col = CaseFormat.UPPER_SNAKE_CASE.convert(col);
 		this.javaType = JavaType.of(columnType);
 		this.mapperManager = mapperManager;
-		this.columnPosition = StringUtils.isEmpty(col) ? 1 : -1;
+		this.columnPosition = ObjectUtils.isEmpty(col) ? 1 : -1;
 	}
 
 	/**
@@ -158,8 +158,8 @@ public class ScalarResultSetConverter<E> implements ResultSetConverter<E> {
 			}
 
 			return (E) mapperManager.getValue(this.javaType, rs, this.columnPosition);
-		} catch (SQLException | RuntimeException | Error e) {
-			throw e;
+		} catch (SQLException | RuntimeException | Error ex) {
+			throw ex;
 		}
 	}
 }

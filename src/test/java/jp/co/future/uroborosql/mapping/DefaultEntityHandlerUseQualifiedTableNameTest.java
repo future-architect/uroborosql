@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 
 /**
  * DefaultEntityHandler の "uroborosql.use.qualified.table.name=true" オプションのテスト.<br>
@@ -51,8 +50,8 @@ public class DefaultEntityHandlerUseQualifiedTableNameTest {
 		System.setProperty("uroborosql.use.qualified.table.name", "true");
 
 		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter()))
 				.build();
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 		DefaultEntityHandler.clearCache();
 		MappingUtils.clearCache();
 	}

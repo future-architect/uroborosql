@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQLリソース管理実装クラス
@@ -158,7 +158,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
 			final boolean detectChanges) {
-		this(Arrays.asList(loadPath), fileExtension, charset, detectChanges);
+		this(List.of(loadPath), fileExtension, charset, detectChanges);
 	}
 
 	/**
@@ -233,8 +233,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		if (detectChanges) {
 			try {
 				watcher = FileSystems.getDefault().newWatchService();
-			} catch (IOException e) {
-				LOG.error("Can't start watcher service.", e);
+			} catch (IOException ex) {
+				LOG.error("Can't start watcher service.", ex);
 				return;
 			}
 		}
@@ -261,7 +261,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				if (!es.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
 					es.shutdownNow();
 				}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException ex) {
 				es.shutdownNow();
 			}
 		}
@@ -277,7 +277,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			try {
 				key = watcher.take();
 			} catch (InterruptedException ex) {
-				LOG.debug("WatchService catched InterruptedException.");
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("WatchService caught InterruptedException.");
+				}
 				break;
 			} catch (Throwable ex) {
 				LOG.error("Unexpected exception occurred.", ex);
@@ -297,7 +299,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var dir = watchDirs.get(key);
 				var path = dir.resolve(evt.context());
 
-				LOG.debug("file changed.({}). path={}", kind.name(), path);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("file changed.({}). path={}", kind.name(), path);
+				}
 				var isSqlFile = path.toString().endsWith(fileExtension);
 				if (Files.isDirectory(path) || !isSqlFile) {
 					// ENTRY_DELETEの時はFiles.isDirectory()がfalseになるので拡張子での判定も行う
@@ -321,7 +325,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		}
 		try {
 			watcher.close();
-		} catch (IOException e) {
+		} catch (IOException ex) {
 			// do nothing
 		}
 	}
@@ -394,10 +398,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/**
 	 * sqlNameとそれに対するSqlInfoのMapを生成する
 	 */
-	private void generateSqlInfos() {
+	protected void generateSqlInfos() {
 		try {
 			for (var loadPath : this.loadPaths) {
-				var loadPathSlash = loadPath.toString().replaceAll("\\\\", "/");
+				var loadPathSlash = loadPath.toString().replace('\\', '/');
 				var root = Thread.currentThread().getContextClassLoader().getResources(loadPathSlash);
 
 				while (root.hasMoreElements()) {
@@ -408,12 +412,14 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
 						traverseJar(url, loadPathSlash);
 					} else {
-						LOG.warn("Unsupported scheme. scheme : {}, url : {}", scheme, url);
+						if (LOG.isWarnEnabled()) {
+							LOG.warn("Unsupported scheme. scheme : {}, url : {}", scheme, url);
+						}
 					}
 				}
 			}
-		} catch (IOException | URISyntaxException e) {
-			LOG.error("Can't load sql files.", e);
+		} catch (IOException | URISyntaxException ex) {
+			LOG.error("Can't load sql files.", ex);
 		}
 	}
 
@@ -526,7 +532,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
 	 */
 	private void traverseFile(final Path path, final boolean watch, final boolean remove) {
-		LOG.trace("traverseFile start. path : {}, watch : {}, remove : {}.", path, watch, remove);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("traverseFile start. path : {}, watch : {}, remove : {}.", path, watch, remove);
+		}
 		if (Files.notExists(path)) {
 			return;
 		}
@@ -559,8 +567,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	@SuppressWarnings("resource")
 	private void traverseJar(final URL url, final String loadPath) {
-		LOG.trace("traverseJar start. url : {}, loadPath : {}.", url, loadPath);
-
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("traverseJar start. url : {}, loadPath : {}.", url, loadPath);
+		}
 		FileSystem fs = null;
 		try {
 			var uri = url.toURI();
@@ -629,8 +638,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				final List<Path> loadPaths,
 				final Dialect dialect,
 				final Charset charset) {
-			LOG.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
-					sqlName, path, dialect, charset);
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.",
+						sqlName, path, dialect, charset);
+			}
 			this.sqlName = sqlName;
 			this.dialect = dialect;
 			this.charset = charset;
@@ -649,8 +660,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			if (SCHEME_FILE.equalsIgnoreCase(path.toUri().getScheme())) {
 				try {
 					return Files.getLastModifiedTime(path);
-				} catch (IOException e) {
-					LOG.warn("Can't get lastModifiedTime. path:{}", path, e);
+				} catch (IOException ex) {
+					if (LOG.isWarnEnabled()) {
+						LOG.warn("Can't get lastModifiedTime. path:{}", path, ex);
+					}
 				}
 			}
 			return FileTime.fromMillis(0L);
@@ -709,10 +722,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						try {
 							var body = new String(Files.readAllBytes(path), charset);
 							sqlBody = formatSqlBody(body);
-							LOG.debug("Loaded SQL template.[{}]", path);
-						} catch (IOException e) {
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("Loaded SQL template.[{}]", path);
+							}
+						} catch (IOException ex) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
-									+ path.toAbsolutePath().toString() + "].", e);
+									+ path.toAbsolutePath().toString() + "].", ex);
 						}
 					}
 				} else {
@@ -730,11 +745,13 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 								var body = reader.lines()
 										.collect(Collectors.joining(System.lineSeparator()));
 								sqlBody = formatSqlBody(body);
-								LOG.debug("Loaded SQL template.[{}]", path);
+								if (LOG.isDebugEnabled()) {
+									LOG.debug("Loaded SQL template.[{}]", path);
+								}
 							}
-						} catch (IOException e) {
+						} catch (IOException ex) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
-									+ path.toAbsolutePath().toString() + "].", e);
+									+ path.toAbsolutePath().toString() + "].", ex);
 						}
 					}
 				}
@@ -751,7 +768,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		protected String formatSqlBody(final String sqlBody) {
 			var newBody = sqlBody.trim();
 			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
-				newBody = StringUtils.removeEnd(newBody, "/");
+				newBody = ObjectUtils.removeEnd(newBody, "/");
 			} else {
 				newBody = newBody + System.lineSeparator();
 			}
@@ -861,13 +878,17 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
-					LOG.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
-							oldPath, currentPath, currentTimeStamp.toString());
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}", sqlName,
+								oldPath, currentPath, currentTimeStamp.toString());
+					}
 				} else {
 					if (!this.lastModified.equals(currentTimeStamp)) {
 						replaceFlag = true;
-						LOG.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
-								currentTimeStamp.toString());
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("sql file changed. sqlName={}, path={}, lastModified={}", sqlName, currentPath,
+									currentTimeStamp.toString());
+						}
 					}
 				}
 

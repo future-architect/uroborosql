@@ -25,9 +25,11 @@ import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.enums.SqlKind;
+import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class ExecutionContextProviderAutoParameterBinderTest {
 	private static SqlConfig config;
@@ -44,7 +46,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -79,8 +81,13 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleQueryAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", insDate);
-		config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
+		var listener = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("upd_datetime", insDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -96,19 +103,24 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product")
+					.param("product_id", productId)
+					.first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// QueryAutoParameterBinderはupdateでは適用されないためupdDateとなる
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 
-			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 
-			binder = ctx -> ctx.param("upd_datetime", updDate);
-			config.getExecutionContextProvider().addQueryAutoParameterBinder(binder);
+			listener = evt -> evt.getExecutionContext()
+					.param("upd_datetime", updDate);
 
-			assertThat(agent.query("example/select_product_where_upd_datetime").collect().size(), is(1));
+			config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
-			config.getExecutionContextProvider().removeQueryAutoParameterBinder(binder);
+			assertThat(agent.query("example/select_product_where_upd_datetime")
+					.collect().size(), is(1));
+
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 		}
 
 	}
@@ -117,8 +129,14 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 	void testSingleUpdateAutoParameterBinder() {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
-		Consumer<ExecutionContext> binder = ctx -> ctx.param("upd_datetime", updDate);
-		config.getExecutionContextProvider().addUpdateAutoParameterBinder(binder);
+		var listener = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("upd_datetime", updDate);
+			}
+		};
+
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -134,7 +152,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product")
+					.param("product_id", productId)
+					.first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
@@ -147,7 +167,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					is(2));
 		}
 
-		config.getExecutionContextProvider().removeUpdateAutoParameterBinder(binder);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener);
 	}
 
 	@Test
@@ -156,14 +176,28 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var colNumeric = new BigDecimal("10.00");
 		var colTimestamp = LocalDateTime.now();
 
-		var factory = config.getExecutionContextProvider();
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("col_varchar", colVarchar);
+			}
+		};
 
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("col_varchar", colVarchar);
-		factory.addQueryAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("col_numeric", colNumeric);
-		factory.addQueryAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("col_timestamp", colTimestamp);
-		factory.addQueryAutoParameterBinder(binder3);
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("col_numeric", colNumeric);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("col_timestamp", colTimestamp);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			// insert match
@@ -224,9 +258,9 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertThat(row.get("col_timestamp"), is(Timestamp.valueOf(colTimestamp)));
 		}
 
-		factory.removeQueryAutoParameterBinder(binder1);
-		factory.removeQueryAutoParameterBinder(binder2);
-		factory.removeQueryAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
@@ -234,16 +268,17 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
-		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
-		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.param("upd_datetime",
-				((LocalDateTime) ctx.getParam("upd_datetime")
-						.getValue()).plusDays(1));
-		factory.addUpdateAutoParameterBinder(binder3);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
+				.param("ins_datetime", insDate);
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
+				.param("upd_datetime", updDate);
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
+				.param(
+						"upd_datetime",
+						((LocalDateTime) evt.getExecutionContext().getParam("upd_datetime").getValue()).plusDays(1));
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -257,15 +292,17 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("version_no", 1)
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product")
+					.param("product_id", productId)
+					.first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate.plusDays(1))));
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
-		factory.removeUpdateAutoParameterBinder(binder2);
-		factory.removeUpdateAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
@@ -273,14 +310,26 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 		var insDate = LocalDateTime.of(2016, 12, 31, 0, 0, 0, 0);
 		var updDate = LocalDateTime.of(2017, 1, 2, 12, 23, 30, 0);
 
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", insDate);
-		factory.addUpdateAutoParameterBinder(binder1);
-		Consumer<ExecutionContext> binder2 = ctx -> ctx.param("upd_datetime", updDate);
-		factory.addUpdateAutoParameterBinder(binder2);
-		Consumer<ExecutionContext> binder3 = ctx -> ctx.paramIfAbsent("upd_datetime", updDate.plusDays(1));
-		factory.addUpdateAutoParameterBinder(binder3);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("ins_datetime", insDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
+		var listener2 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext()
+						.param("upd_datetime", updDate);
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener2);
+		var listener3 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT != evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().paramIfAbsent("upd_datetime", updDate.plusDays(1));
+			}
+		};
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener3);
 
 		try (var agent = config.agent()) {
 			var productId = 10;
@@ -296,24 +345,30 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.param("upd_datetime", LocalDateTime.of(2016, 1, 1, 0, 0, 0, 0))
 					.count();
 
-			var row = agent.query("example/select_product").param("product_id", productId).first();
+			var row = agent.query("example/select_product")
+					.param("product_id", productId)
+					.first();
 			assertThat(row.get("INS_DATETIME"), is(Timestamp.valueOf(insDate)));
 			// UpdateAutoParameterBinderのほうが後で設定されるため、上書きされる）
 			assertThat(row.get("UPD_DATETIME"), is(Timestamp.valueOf(updDate)));
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
-		factory.removeUpdateAutoParameterBinder(binder2);
-		factory.removeUpdateAutoParameterBinder(binder3);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener2);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener3);
 	}
 
 	@Test
 	void testQueryAutoBindIfCase() {
-		var factory = config.getExecutionContextProvider();
 
 		var productId = 2;
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.paramIfAbsent("product_id", productId);
-		factory.addQueryAutoParameterBinder(binder1);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> {
+			if (SqlKind.SELECT == evt.getExecutionContext().getSqlKind()) {
+				evt.getExecutionContext().paramIfAbsent("product_id", productId);
+			}
+		};
+
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
 
 		try (var agent = config.agent()) {
 			// insert
@@ -329,20 +384,21 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 					.count(), is(1));
 
 			// query
-			assertThat(agent.query("example/select_product").collect().size(), is(1));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(1));
 
-			factory.removeQueryAutoParameterBinder(binder1);
+			config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
 			// query
-			assertThat(agent.query("example/select_product").collect().size(), is(2));
+			assertThat(agent.query("example/select_product")
+					.collect().size(), is(2));
 		}
 	}
 
 	@Test
 	void testBatchUpdateAutoBind() {
-		var factory = config.getExecutionContextProvider();
-
-		Consumer<ExecutionContext> binder1 = ctx -> ctx.param("ins_datetime", LocalDateTime.now());
-		factory.addUpdateAutoParameterBinder(binder1);
+		var listener1 = (Consumer<BeforeParseSqlEvent>) evt -> evt.getExecutionContext()
+				.param("ins_datetime", LocalDateTime.now());
+		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
 
 		var count = 1000;
 		try (var agent = config.agent()) {
@@ -371,7 +427,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 			assertNotEquals(1, dateCount);
 		}
 
-		factory.removeUpdateAutoParameterBinder(binder1);
+		config.getEventListenerHolder().removeBeforeParseSqlListener(listener1);
 	}
 
 }

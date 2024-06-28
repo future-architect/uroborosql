@@ -11,13 +11,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.Emp;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
@@ -26,19 +24,20 @@ import jp.co.future.uroborosql.dialect.DefaultDialect;
 import jp.co.future.uroborosql.exception.EndCommentNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
 import jp.co.future.uroborosql.exception.TokenNotClosedRuntimeException;
+import jp.co.future.uroborosql.model.Emp;
 import jp.co.future.uroborosql.node.BindVariableNode;
 import jp.co.future.uroborosql.node.IfNode;
 import jp.co.future.uroborosql.node.SqlNode;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 public class SqlParserTest {
 	private SqlConfig sqlConfig;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
+		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
-						.setEnumConstantPackageNames(Arrays.asList(TestEnum1.class.getPackage().getName())))
+						.setEnumConstantPackageNames(List.of(TestEnum1.class.getPackage().getName())))
 				.build();
 	}
 
@@ -741,7 +740,7 @@ public class SqlParserTest {
 	@Test
 	void testParseBindVariable3() throws Exception {
 		var sql = "BETWEEN sal ? AND ?";
-		var sql2 = "BETWEEN sal ?/*$1*/ AND ?/*$2*/";
+		var sql2 = "BETWEEN sal ? AND ?"; // ? のパースは v1.0　で行わなくなった
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
@@ -749,12 +748,7 @@ public class SqlParserTest {
 		ctx.param("$2", 1000);
 		var transformer = parser.parse();
 		transformer.transform(ctx);
-		System.out.println(ctx.getExecutableSql());
 		assertEquals(sql2, ctx.getExecutableSql(), "1");
-		var vars = ctx.getBindVariables();
-		assertEquals(2, vars.length, "2");
-		assertEquals(Integer.valueOf(0), vars[0], "3");
-		assertEquals(Integer.valueOf(1000), vars[1], "4");
 	}
 
 	@Test
@@ -815,7 +809,7 @@ public class SqlParserTest {
 		SqlParser parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
 				sqlConfig.getDialect().isRemoveTerminator(), true);
 		var ctx = sqlConfig.context();
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
+		ctx.param(SqlFunction.SHORT_NAME, new SqlFunction(new DefaultDialect()));
 		ctx.param("enames", "SCOTT,MARY");
 		var transformer = parser.parse();
 		transformer.transform(ctx);
@@ -911,7 +905,7 @@ public class SqlParserTest {
 		ctx.param("val3", "ab");
 
 		var sql2 = "1=1 ";
-		ctx.param(StringFunction.SHORT_NAME, new StringFunction(new DefaultDialect()));
+		ctx.param(SqlFunction.SHORT_NAME, new SqlFunction(new DefaultDialect()));
 		var transformer = parser.parse();
 		transformer.transform(ctx);
 		System.out.println(ctx.getExecutableSql());

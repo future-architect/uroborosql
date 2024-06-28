@@ -10,11 +10,14 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
 import jp.co.future.uroborosql.parser.TransformContext;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 import ognl.ASTProperty;
 import ognl.Node;
 import ognl.Ognl;
@@ -27,6 +30,8 @@ import ognl.OgnlRuntime;
  * @author H.Sugimoto
  */
 public class OgnlExpressionParser extends AbstractExpressionParser {
+	/** パーサーロガー */
+	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
 
 	/**
 	 * コンストラクタ
@@ -43,7 +48,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	public void initialize() {
 		super.initialize();
 		OgnlRuntime.setPropertyAccessor(TransformContext.class,
-				new TransformContextPropertyAccessor(getSqlConfig().getDialect().getExpressionFunction()));
+				new TransformContextPropertyAccessor(getSqlConfig().getDialect().getSqlFunction()));
 	}
 
 	/**
@@ -86,8 +91,8 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 		public Object getValue(final Object context) {
 			try {
 				return Ognl.getValue(expression, context);
-			} catch (OgnlException e) {
-				throw new ExpressionRuntimeException("Acquire an object failed.[" + expression + "]", e);
+			} catch (OgnlException ex) {
+				throw new ExpressionRuntimeException("Acquire an object failed.[" + expression + "]", ex);
 			}
 		}
 
@@ -104,7 +109,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 				traverseNode((Node) expression, props);
 				for (var prop : props) {
 					var propName = prop.toString();
-					if (!StringFunction.SHORT_NAME.equals(propName)) {
+					if (!SqlFunction.SHORT_NAME.equals(propName)) {
 						try {
 							var value = Ognl.getValue(prop, context, null);
 							builder.append(propName)
@@ -112,8 +117,8 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 									.append(Objects.toString(value, null))
 									.append("],");
 						} catch (OgnlException ex) {
-							// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
-							ex.printStackTrace();
+							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
+							PARSER_LOG.warn(ex.getMessage(), ex);
 						}
 					}
 				}
@@ -132,7 +137,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 			traverseNode((Node) expression, props);
 			for (var prop : props) {
 				var propName = prop.toString();
-				if (!StringFunction.SHORT_NAME.equals(propName)) {
+				if (!SqlFunction.SHORT_NAME.equals(propName)) {
 					params.add(propName);
 				}
 			}

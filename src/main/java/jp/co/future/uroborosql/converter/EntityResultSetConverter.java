@@ -31,7 +31,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  */
 public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	private final PropertyMapperManager mapperManager;
-	private final Constructor<E> constructor;
+	private final Constructor<? extends E> constructor;
 	private final Map<String, MappingColumn> mappingColumnMap;
 	private Map<MappingColumn, Integer> columnPositionMap;
 
@@ -42,14 +42,13 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 	 * @param entityType エンティティタイプ
 	 * @param mapperManager PropertyMapperManager
 	 */
-	@SuppressWarnings({ "unchecked" })
 	public EntityResultSetConverter(final String schema, final Class<? extends E> entityType,
 			final PropertyMapperManager mapperManager) {
 		this.mapperManager = mapperManager;
 		try {
-			this.constructor = (Constructor<E>) entityType.getConstructor();
-		} catch (NoSuchMethodException e) {
-			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", e);
+			this.constructor = entityType.getConstructor();
+		} catch (NoSuchMethodException ex) {
+			throw new UroborosqlRuntimeException("EntityType should have a default constructor.", ex);
 		}
 
 		this.mappingColumnMap = Arrays.stream(MappingUtils.getMappingColumns(schema, entityType))
@@ -68,7 +67,9 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 				var rsmd = rs.getMetaData();
 				var columnCount = rsmd.getColumnCount();
 
-				columnPositionMap = new HashMap<>(columnCount);
+				// resizeが発生しないよう、初期loadFactorで溢れないサイズを指定する。
+				// MapのloadFactorはデフォルト0.75(3/4)なので 4/3 を掛けている。そのうえで切り捨てが発生してもキャパシティを越えないよう +1 している。
+				columnPositionMap = new HashMap<>(columnCount * 4 / 3 + 1);
 				// columnLabelsは1始まりの配列で値を格納
 				for (var i = 1; i <= columnCount; i++) {
 					var columnLabel = CaseFormat.UPPER_SNAKE_CASE.convert(rsmd.getColumnLabel(i));
@@ -86,10 +87,10 @@ public class EntityResultSetConverter<E> implements ResultSetConverter<E> {
 				column.setValue(rec, mapperManager.getValue(column.getJavaType(), rs, position));
 			}
 			return rec;
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-			throw new UroborosqlRuntimeException(e);
-		} catch (SQLException | RuntimeException | Error e) {
-			throw e;
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+			throw new UroborosqlRuntimeException(ex);
+		} catch (SQLException | RuntimeException | Error ex) {
+			throw ex;
 		}
 	}
 }

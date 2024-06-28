@@ -8,8 +8,7 @@ import java.util.Map;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.AuditLogSqlFilter;
-import jp.co.future.uroborosql.filter.SqlFilterManagerImpl;
+import jp.co.future.uroborosql.event.subscriber.AuditLogEventSubscriber;
 
 /**
  * SqlAgent（SQL実行エンジン）実装サンプル
@@ -35,9 +34,9 @@ public class SqlAgentSampleApp {
 	 */
 	public SqlAgentSampleApp(final String url, final String user, final String password) throws Exception {
 		// SQL設定オブジェクトを生成する(JDBCを利用する場合）
-		// SQL実行時に行う各種フィルタ処理を管理するクラスを設定
-		config = UroboroSQL.builder(url, user, password)
-				.setSqlFilterManager(new SqlFilterManagerImpl().addSqlFilter(new AuditLogSqlFilter())).build();
+		// SQL実行時に行う各種イベントサブスクライバ処理を管理するクラスを設定
+		config = UroboroSQL.builder(url, user, password).build();
+		config.getEventListenerHolder().addEventSubscriber(new AuditLogEventSubscriber());
 
 		// JNDIなどのDataSourceを利用する場合は、DataSource用のConnectionSupplierを指定してください
 		// Connectionの管理をDataSource側に委譲します
@@ -70,7 +69,8 @@ public class SqlAgentSampleApp {
 		// SqlAgent（SQL実行エンジン）を設定オブジェクトから取得
 		try (var agent = config.agent()) {
 			// SQLの実行
-			try (var rs = agent.query(sqlName).paramMap(params).resultSet()) {
+			try (var rs = agent.query(sqlName).paramMap(params)
+					.resultSet()) {
 				// 実行結果はResultSetで返ってくるので、値を取得
 				List<String> headers = new ArrayList<>();
 				var rsmd = rs.getMetaData();

@@ -13,12 +13,19 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.JDBCType;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -28,6 +35,9 @@ import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
 public class ExecutionContextImplTest {
+	/** ロガー */
+	protected static final Logger log = LoggerFactory.getLogger(ExecutionContextImplTest.class);
+
 	private static SqlConfig config = null;
 
 	@BeforeAll
@@ -37,13 +47,13 @@ public class ExecutionContextImplTest {
 
 	private ExecutionContext getExecutionContext(final String sql) {
 		var s = replaceLineSep(sql);
-		var ctx = config.contextWith(s);
+		var ctx = config.context().setSql(s);
 		ctx.addSqlPart(s);
 		return ctx;
 	}
 
 	private String replaceLineSep(final String sql) {
-		return sql.replaceAll("\\[LF\\]", System.lineSeparator());
+		return sql.replace("[LF]", System.lineSeparator());
 	}
 
 	@Test
@@ -90,6 +100,29 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]where /* comment */ --comment [LF] order = 1");
 		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
 				ctx62.getExecutableSql());
+		var ctx63 = getExecutionContext(
+				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1"),
+				ctx63.getExecutableSql());
+		var ctx64 = getExecutionContext(
+				"select * from test[LF]where /* comment */ --comment [LF] and aaa = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] aaa = 1"),
+				ctx64.getExecutableSql());
+		var ctx65 = getExecutionContext(
+				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] and aaa = 1");
+		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] aaa = 1"),
+				ctx65.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstAndKeyWordWhenWhereClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -128,6 +161,18 @@ public class ExecutionContextImplTest {
 		assertEquals(replaceLineSep(
 				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
 				ctx8.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF], aaa[LF], bbb[LF], ccc from test");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSelectClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -168,6 +213,17 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenOrderByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -210,6 +266,17 @@ public class ExecutionContextImplTest {
 				"select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
 		assertEquals(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb"),
 				ctx62.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenGroupByClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -261,6 +328,18 @@ public class ExecutionContextImplTest {
 				replaceLineSep(
 						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
 				ctx52.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep(
+				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenStartBracket elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -317,6 +396,17 @@ public class ExecutionContextImplTest {
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
 		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
 				ctx63.getExecutableSql());
+
+		var startTime = Instant.now(Clock.systemDefaultZone());
+		var sql = replaceLineSep("select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
+		for (var i = 0; i < 1000000; i++) {
+			var timeCtx = config.context().setSql(sql);
+			timeCtx.addSqlPart(sql);
+			timeCtx.getExecutableSql();
+		}
+		log.info("removeFirstCommaWhenSetClause elapsed time. {}",
+				DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS").format(
+						LocalTime.MIDNIGHT.plus(Duration.between(startTime, Instant.now(Clock.systemDefaultZone())))));
 	}
 
 	@Test
@@ -375,46 +465,28 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
 
 		ctx = getExecutionContext("select * from dummy");
-		InputStream is1 = new ByteArrayInputStream("value1".getBytes());
-		ctx.blobParamIfAbsent("key1", is1, "value1".length());
-		var stream1 = (StreamParameter) ctx.getParam("key1");
-		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
-		InputStream is2 = new ByteArrayInputStream("value2".getBytes());
-		ctx.blobParamIfAbsent("key1", is2, "value2".length());
-		assertThat(ctx.getParam("key1"), is(stream1));
-
-		ctx = getExecutionContext("select * from dummy");
 		InputStream is11 = new ByteArrayInputStream("value1".getBytes());
-		ctx.blobParamIfAbsent("key1", is11);
+		ctx.paramIfAbsent("key1", is11);
 		var stream11 = (StreamParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
 		InputStream is22 = new ByteArrayInputStream("value2".getBytes());
-		ctx.blobParamIfAbsent("key1", is22);
+		ctx.paramIfAbsent("key1", is22);
 		assertThat(ctx.getParam("key1"), is(stream11));
 
 		ctx = getExecutionContext("select * from dummy");
 		Reader r1 = new StringReader("value1");
-		ctx.clobParamIfAbsent("key1", r1);
+		ctx.paramIfAbsent("key1", r1);
 		var reader1 = (ReaderParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
 		Reader r2 = new StringReader("value2");
-		ctx.clobParamIfAbsent("key1", r2);
+		ctx.paramIfAbsent("key1", r2);
 		assertThat(ctx.getParam("key1"), is(reader1));
-
-		ctx = getExecutionContext("select * from dummy");
-		Reader r11 = new StringReader("value1");
-		ctx.clobParamIfAbsent("key1", r11, "value1".length());
-		var reader11 = (ReaderParameter) ctx.getParam("key1");
-		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
-		Reader r22 = new StringReader("value2");
-		ctx.clobParamIfAbsent("key1", r22, "value1".length());
-		assertThat(ctx.getParam("key1"), is(reader11));
 	}
 
 	@Test
 	void testParamOptionalHasValue() throws Exception {
 		var ctx = config
-				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+				.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.of("testId");
 		ctx.param("id", id);
 
@@ -422,7 +494,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.param("id", id, JDBCType.VARCHAR);
 
@@ -430,7 +502,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -438,7 +510,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.inOutParam("id", id, JDBCType.VARCHAR);
 
@@ -446,7 +518,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.of("testId");
 		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -459,7 +531,7 @@ public class ExecutionContextImplTest {
 	@Test
 	void testParamOptionalNullValue() throws Exception {
 		var ctx = config
-				.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+				.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		Optional<String> id = Optional.empty();
 		ctx.param("id", id);
 
@@ -467,7 +539,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.param("id", id, JDBCType.VARCHAR);
 
@@ -475,7 +547,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.param("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -483,7 +555,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.inOutParam("id", id, JDBCType.VARCHAR);
 
@@ -491,7 +563,7 @@ public class ExecutionContextImplTest {
 
 		assertThat(ctx.getExecutableSql(), is("select * from test where 1 = 1 AND id = ?/*id*/"));
 
-		ctx = config.contextWith("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
+		ctx = config.context().setSql("select * from test where 1 = 1/*IF id != null */ AND id = /*id*//*END*/");
 		id = Optional.empty();
 		ctx.inOutParam("id", id, JDBCType.VARCHAR.getVendorTypeNumber());
 
@@ -514,7 +586,7 @@ public class ExecutionContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		var ctx = config.contextWith(sql);
+		var ctx = config.context().setSql(sql);
 
 		var entity = new TestEntity(10, "Taro", 20, Optional.of("memo1"));
 		ctx.paramBean(entity);
@@ -524,7 +596,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		entity = new TestEntity(10, "Taro", 20, Optional.empty());
 		ctx.paramBean(entity);
@@ -534,7 +606,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		ctx.paramBean(null);
 
@@ -557,7 +629,7 @@ public class ExecutionContextImplTest {
 				+ "/*IF age > 0 */, /*age*//*END*/"
 				+ "/*IF memo != null */, /*memo*//*END*/"
 				+ ")";
-		var ctx = config.contextWith(sql);
+		var ctx = config.context().setSql(sql);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("id", 10);
@@ -572,7 +644,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		map = new HashMap<>();
 		map.put("id", 10);
@@ -586,7 +658,7 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getExecutableSql(),
 				is("insert into test ( id, name, age, memo) values ( ?/*id*/, ?/*name*/, ?/*age*/, ?/*memo*/)"));
 
-		ctx = config.contextWith(sql);
+		ctx = config.context().setSql(sql);
 
 		ctx.paramMap(null);
 
@@ -598,13 +670,13 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testContext() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		assertEquals(ctx, ctx.context());
 	}
 
 	@Test
 	void testGetParameterNames() {
-		var ctx = config.contextWith("select * from test")
+		var ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2");
 		assertThat(((ExecutionContextImpl) ctx).getParameterNames().size(), is(2));
@@ -614,14 +686,14 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testSetRetry() {
-		var ctx = config.contextWith("select * from test")
+		var ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
 				.retry(3);
 		assertThat(ctx.getMaxRetryCount(), is(3));
 		assertThat(ctx.getRetryWaitTime(), is(0));
 
-		ctx = config.contextWith("select * from test")
+		ctx = config.context().setSql("select * from test")
 				.param("param1", 1)
 				.param("param2", "2")
 				.retry(4, 10);
@@ -631,7 +703,7 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testGetDefineColumnType() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		ctx.addDefineColumnType(1, JDBCType.CHAR.getVendorTypeNumber());
 
 		assertThat(ctx.getDefineColumnTypes().get(1), is(JDBCType.CHAR.getVendorTypeNumber()));
@@ -639,14 +711,14 @@ public class ExecutionContextImplTest {
 
 	@Test
 	void testGetParameterMapperManager() {
-		var ctx = config.contextWith("select * from test");
+		var ctx = config.context().setSql("select * from test");
 		assertThat(((ExecutionContextImpl) ctx).getParameterMapperManager(), not(nullValue()));
 	}
 
 	@Test
 	void testSqlId() {
 		var testSqlId = "TEST_SQL_ID";
-		var ctx = config.contextWith("select * from test").sqlId(testSqlId);
+		var ctx = config.context().setSql("select * from test").sqlId(testSqlId);
 		assertThat(ctx.getSqlId(), is(testSqlId));
 	}
 

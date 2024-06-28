@@ -12,7 +12,7 @@ import java.util.List;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * テーブルメタ情報クラス
@@ -115,7 +115,7 @@ public class TableMetadataImpl implements TableMetadata {
 			this.optimisticLockType = optimisticLockType;
 			this.ordinalPosition = ordinalPosition;
 
-			if (StringUtils.isEmpty(identifierQuoteString)) {
+			if (ObjectUtils.isEmpty(identifierQuoteString)) {
 				this.identifierQuoteString = "";
 			} else {
 				this.identifierQuoteString = identifierQuoteString;

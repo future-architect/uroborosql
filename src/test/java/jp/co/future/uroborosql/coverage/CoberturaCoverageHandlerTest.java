@@ -11,11 +11,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.SqlAgentImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
 
 public class CoberturaCoverageHandlerTest {
 	/**
@@ -42,7 +42,7 @@ public class CoberturaCoverageHandlerTest {
 		var path = Paths.get("target", "coverage", "test-sql-cover.xml");
 		Files.deleteIfExists(path);
 		//カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -52,18 +52,24 @@ public class CoberturaCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new CoberturaCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("example/select_test").param("id", "A001").collect();
+			agent.query("example/select_test")
+					.param("id", "A001")
+					.collect();
 
-			agent.query("covertest/test01").param("id", 1).collect();
-			agent.query("covertest/test02").collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
+			agent.query("covertest/test02")
+					.collect();
 		}
 
-		var filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
+		var eventSubscriber = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
-		filter.initialize();
-		config.getSqlFilterManager().addSqlFilter(filter);
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 		try (var agent = config.agent()) {
-			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
 
 		}
 

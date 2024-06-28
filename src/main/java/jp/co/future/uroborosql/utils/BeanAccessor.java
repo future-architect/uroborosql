@@ -25,7 +25,10 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
  * @author hoshi-k
  *
  */
-public class BeanAccessor {
+public final class BeanAccessor {
+	private BeanAccessor() {
+		// do nothing
+	}
 
 	/**
 	 * Class to convert Object to Map<br>
@@ -45,7 +48,7 @@ public class BeanAccessor {
 				@Override
 				public Iterator<Entry<String, Object>> iterator() {
 					return new Iterator<>() {
-						int index = 0;
+						private int index = 0;
 
 						@Override
 						public boolean hasNext() {
@@ -122,8 +125,8 @@ public class BeanAccessor {
 		try {
 			f.setAccessible(true);
 			return f.get(bean);
-		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (IllegalArgumentException | IllegalAccessException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 

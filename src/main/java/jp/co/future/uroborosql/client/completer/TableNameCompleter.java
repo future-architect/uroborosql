@@ -12,6 +12,8 @@ import java.util.List;
 import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
@@ -23,6 +25,10 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
  *
  */
 public class TableNameCompleter extends AbstractCompleter {
+	/** REPLロガー */
+	private static final Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
+
+	/** Connectionサプライヤ. */
 	private final ConnectionSupplier connectionSupplier;
 
 	/**
@@ -37,7 +43,7 @@ public class TableNameCompleter extends AbstractCompleter {
 	}
 
 	/**
-	 * DatabaseMetadateからテーブル名を取得して補完候補とする。
+	 * DatabaseMetadataからテーブル名を取得して補完候補とする。
 	 *
 	 * {@inheritDoc}
 	 *
@@ -85,7 +91,7 @@ public class TableNameCompleter extends AbstractCompleter {
 				}
 			}
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			REPL_LOG.error(ex.getMessage(), ex);
 			return;
 		}
 	}

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class EntityResultSetConverterTest {
 
@@ -124,9 +124,9 @@ public class EntityResultSetConverterTest {
 
 	@Test
 	void testCreateRecord() {
-		var clob = StringUtils.repeat('1', 10000);
-		var nclob = StringUtils.repeat('あ', 10000);
-		var blob = StringUtils.repeat('x', 20000).getBytes();
+		var clob = ObjectUtils.repeat('1', 10000);
+		var nclob = ObjectUtils.repeat('あ', 10000);
+		var blob = ObjectUtils.repeat('x', 20000).getBytes();
 		Object[] arr = { 1, 2 };
 
 		var entity = new ColumnTypeTest2();

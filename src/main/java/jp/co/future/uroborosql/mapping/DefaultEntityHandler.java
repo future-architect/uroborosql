@@ -9,7 +9,7 @@ package jp.co.future.uroborosql.mapping;
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -28,7 +28,7 @@ import jp.co.future.uroborosql.mapping.TableMetadata.Column;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapper;
 import jp.co.future.uroborosql.mapping.mapper.PropertyMapperManager;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * デフォルトORM処理クラス
@@ -82,7 +82,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createSelectContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+		return agent.context().setSql(buildSelectSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -109,7 +109,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
+		return agent.context().setSql(buildInsertSQL(metadata, entityType, agent.getSqlConfig()))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -123,7 +123,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
+		return agent.context().setSql(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), addCondition, true))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -137,7 +137,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createDeleteContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType, final boolean addCondition) {
-		return agent.contextWith(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
+		return agent.context().setSql(buildDeleteSQL(metadata, entityType, agent.getSqlConfig(), addCondition))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -151,7 +151,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createBatchInsertContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
+		return agent.context().setSql(buildInsertSQL(metadata, entityType, agent.getSqlConfig(), false))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -179,7 +179,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	@Override
 	public ExecutionContext createBatchUpdateContext(final SqlAgent agent, final TableMetadata metadata,
 			final Class<? extends Object> entityType) {
-		return agent.contextWith(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
+		return agent.context().setSql(buildUpdateSQL(metadata, entityType, agent.getSqlConfig(), true, false))
 				.setSqlId(createSqlId(metadata, entityType))
 				.setSchema(metadata.getSchema())
 				.setSqlName(entityType != null ? entityType.getCanonicalName() : null);
@@ -255,8 +255,8 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		return CACHE.get(cacheKey, key -> {
 			try {
 				return createMetadata(connectionManager, entityType);
-			} catch (SQLException e) {
-				throw new UroborosqlSQLException(e);
+			} catch (SQLException ex) {
+				throw new UroborosqlSQLException(ex);
 			}
 		});
 	}
@@ -264,7 +264,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 	private String getCacheKey(final ConnectionManager connectionManager, final Class<?> entityType) {
 		try {
 			var table = MappingUtils.getTable(entityType);
-			var schema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+			var schema = ObjectUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
 					: Objects.toString(connectionManager.getConnection().getSchema(), "");
 			return String.format("%s.%s", schema.toUpperCase(), entityType.getName());
 		} catch (SQLException ex) {
@@ -394,7 +394,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(", ");
 			}
 			sql.append(col.getColumnIdentifier()).append("\tAS\t").append(col.getColumnIdentifier());
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				sql.append("\t").append("-- ").append(col.getRemarks());
 			}
 			sql.append(System.lineSeparator());
@@ -525,7 +525,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				parts.append(col.getColumnIdentifier());
 				parts.append(" = /*").append(camelColName).append("*/''");
 			}
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
@@ -549,7 +549,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 		if (addCondition) {
 			sql.append("WHERE").append(System.lineSeparator());
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays.asList(metadata.getColumns().get(0));
+					: List.of(metadata.getColumns().get(0));
 			firstFlag = true;
 			for (final TableMetadata.Column col : cols) {
 				var parts = new StringBuilder().append("\t");
@@ -608,7 +608,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			sql.append("WHERE").append(System.lineSeparator());
 
 			var cols = !metadata.getKeyColumns().isEmpty() ? metadata.getKeyColumns()
-					: Arrays.asList(metadata.getColumns().get(0));
+					: List.of(metadata.getColumns().get(0));
 			for (var col : cols) {
 				var parts = new StringBuilder().append("\t");
 				if (firstFlag) {
@@ -674,11 +674,11 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 			}
 
 			parts.append(col.getColumnIdentifier());
-			if (StringUtils.isNotEmpty(col.getRemarks())) {
+			if (ObjectUtils.isNotEmpty(col.getRemarks())) {
 				parts.append("\t").append("-- ").append(col.getRemarks());
 			}
 			parts.append(System.lineSeparator());
-			if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+			if (ignoreWhenEmpty && (col.isNullable() || ObjectUtils.isNotEmpty(col.getColumnDefault()))
 					|| autoIncrementColumn) {
 				wrapIfComment(sql, parts, col);
 			} else {
@@ -736,7 +736,7 @@ public class DefaultEntityHandler implements EntityHandler<Object> {
 				sql.append(parts);
 			} else {
 				parts.append("/*").append(getParamName.apply(col)).append("*/''").append(System.lineSeparator());
-				if (ignoreWhenEmpty && (col.isNullable() || StringUtils.isNotEmpty(col.getColumnDefault()))
+				if (ignoreWhenEmpty && (col.isNullable() || ObjectUtils.isNotEmpty(col.getColumnDefault()))
 						|| autoIncrementColumn) {
 					wrapIfComment(sql, parts, col);
 				} else {

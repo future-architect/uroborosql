@@ -13,7 +13,7 @@ import java.util.Set;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.mapping.JavaType;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 /**
  * Databaseの方言を表すインタフェース
@@ -25,11 +25,11 @@ public interface Dialect {
 	String PARAM_KEY_ESCAPE_CHAR = "ESC_CHAR";
 
 	/**
-	 * 評価式内で使用する式関数を取得.
+	 * 評価式内で使用するSQL関数を取得.
 	 *
 	 * @return 式関数
 	 */
-	StringFunction getExpressionFunction();
+	SqlFunction getSqlFunction();
 
 	/**
 	 * データベースを判別するための文字列を取得.

@@ -4,17 +4,16 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.JDBCType;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -30,7 +29,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var ctx = agent.contextFrom("example/selectinsert_product")
+		var ctx = agent.context().setSqlName("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR);
 
@@ -41,7 +40,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(0, 1))
+				.param("product_id", List.of(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -65,7 +64,35 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var expectedDataList = getDataFromFile(Paths.get(
 				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
 		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
-				.param("product_id", Arrays.asList(0, 1))
+				.param("product_id", List.of(0, 1))
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
+
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
+	}
+
+	/**
+	 * DB更新処理のテストケース。(SupplierでSQLNameを決定)
+	 */
+	@Test
+	void testUpdateSupplier() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
+
+		String productName = null;
+		var updateCount = agent
+				.update(() -> productName == null ? "example/selectinsert_product" : "example/selectinsert_product2")
+				.param("product_id", new BigDecimal("0"))
+				.param("product_name", productName)
+				.param("jan_code", "1234567890123")
+				.count();
+		assertEquals(1, updateCount, "データの登録に失敗しました。");
+
+		// 検証処理
+		var expectedDataList = getDataFromFile(Paths.get(
+				"src/test/resources/data/expected/SqlAgent", "testExecuteUpdate.ltsv"));
+		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
+				.param("product_id", List.of(0, 1))
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
@@ -98,16 +125,40 @@ public class SqlUpdateTest extends AbstractDbTest {
 	 */
 	@Test
 	void testNotFoundFile() throws Exception {
-		try {
-			var ctx = agent.contextFrom("file");
+		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
+			var ctx = agent.context().setSqlName("file");
 			agent.update(ctx);
-			// 例外が発生しなかった場合
-			fail();
-		} catch (UroborosqlRuntimeException ex) {
-			// OK
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
+		});
+	}
+
+	/**
+	 * SQLファイルが空文字の場合のテストケース。
+	 */
+	@Test
+	void testSqlNameEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.update("");
+		});
+	}
+
+	/**
+	 * 更新実行処理のテストケース（SQLがNULLの場合）。
+	 */
+	@Test
+	void testUpdateWithSqlNull() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.updateWith(null);
+		});
+	}
+
+	/**
+	 * 更新実行処理のテストケース（SQLがEmptyの場合）。
+	 */
+	@Test
+	void testUpdateWithSqlEmpty() throws Exception {
+		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+			agent.updateWith("");
+		});
 	}
 
 	/**

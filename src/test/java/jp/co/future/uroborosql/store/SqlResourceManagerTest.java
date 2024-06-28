@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ public class SqlResourceManagerTest {
 
 	@Test
 	void testConstructorMultiSqlPaths() throws Exception {
-		var manager = new SqlResourceManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		var manager = new SqlResourceManagerImpl(List.of("sql", "secondary_sql"));
 		assertThat(manager.getCharset(), is(Charset.defaultCharset()));
 
 		Dialect dialect = new H2Dialect();
@@ -95,7 +96,7 @@ public class SqlResourceManagerTest {
 
 	@Test
 	void testGetSqlWithMultiSqlPaths() throws Exception {
-		var manager = new SqlResourceManagerImpl(Arrays.asList("sql", "secondary_sql"));
+		var manager = new SqlResourceManagerImpl(List.of("sql", "secondary_sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -121,7 +122,7 @@ public class SqlResourceManagerTest {
 
 	@Test
 	void testGetSqlWithMultiSqlPathsReverse() throws Exception {
-		var manager = new SqlResourceManagerImpl(Arrays.asList("secondary_sql", "sql"));
+		var manager = new SqlResourceManagerImpl(List.of("secondary_sql", "sql"));
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -214,7 +215,7 @@ public class SqlResourceManagerTest {
 
 			Thread.sleep(WAIT_TIME);
 
-			Files.write(newFilePath, Arrays.asList("select * from ADD_WATCH"));
+			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -249,7 +250,7 @@ public class SqlResourceManagerTest {
 
 			Thread.sleep(WAIT_TIME);
 
-			Files.write(newFilePath, Arrays.asList("select * from ADD_WATCH"));
+			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -289,7 +290,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dir);
 
 			var sql = "select * from test -- oracle";
-			Files.write(newFilePath, Arrays.asList(sql));
+			Files.write(newFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -341,7 +342,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(defaultDir);
 
 			var sql = "select * from test -- default";
-			Files.write(defaultFilePath, Arrays.asList(sql));
+			Files.write(defaultFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -353,7 +354,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dialectDir);
 
 			sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, Arrays.asList(sql));
+			Files.write(dialectFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -411,7 +412,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dialectDir);
 
 			var sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, Arrays.asList(sql));
+			Files.write(dialectFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -423,7 +424,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(defaultDir);
 
 			sql = "select * from test -- default";
-			Files.write(defaultFilePath, Arrays.asList(sql));
+			Files.write(defaultFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -572,7 +573,7 @@ public class SqlResourceManagerTest {
 
 			Thread.sleep(WAIT_TIME);
 
-			Files.write(newFilePath, Arrays.asList("select * from ADD_WATCH"));
+			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -607,7 +608,7 @@ public class SqlResourceManagerTest {
 
 			Thread.sleep(WAIT_TIME);
 
-			Files.write(newFilePath, Arrays.asList("select * from ADD_WATCH"));
+			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -648,7 +649,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dir);
 
 			var sql = "select * from test -- oracle";
-			Files.write(newFilePath, Arrays.asList(sql));
+			Files.write(newFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -701,7 +702,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(defaultDir);
 
 			var sql = "select * from test -- default";
-			Files.write(defaultFilePath, Arrays.asList(sql));
+			Files.write(defaultFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -713,7 +714,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dialectDir);
 
 			sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, Arrays.asList(sql));
+			Files.write(dialectFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -772,7 +773,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(dialectDir);
 
 			var sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, Arrays.asList(sql));
+			Files.write(dialectFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 
@@ -784,7 +785,7 @@ public class SqlResourceManagerTest {
 			Files.createDirectories(defaultDir);
 
 			sql = "select * from test -- default";
-			Files.write(defaultFilePath, Arrays.asList(sql));
+			Files.write(defaultFilePath, List.of(sql));
 
 			Thread.sleep(WAIT_TIME);
 

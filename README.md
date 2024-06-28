@@ -1,4 +1,4 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/jp.co.future/uroborosql/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/jp.co.future/uroborosql) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://raw.githubusercontent.com/future-architect/uroborosql/master/LICENSE) [![Javadocs](https://www.javadoc.io/badge/jp.co.future/uroborosql.svg)](https://www.javadoc.io/doc/jp.co.future/uroborosql) [![Build Status](https://travis-ci.org/future-architect/uroborosql.svg?branch=master)](https://travis-ci.org/future-architect/uroborosql) [![Coverage Status](https://coveralls.io/repos/github/future-architect/uroborosql/badge.svg?branch=master)](https://coveralls.io/github/future-architect/uroborosql?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/jp.co.future/uroborosql/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/jp.co.future/uroborosql) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://raw.githubusercontent.com/future-architect/uroborosql/master/LICENSE) [![Javadocs](https://www.javadoc.io/badge/jp.co.future/uroborosql.svg)](https://www.javadoc.io/doc/jp.co.future/uroborosql) [![Build Status](https://github.com/future-architect/uroborosql/actions/workflows/ci.yml/badge.svg)](https://github.com/future-architect/uroborosql/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/future-architect/uroborosql/badge.svg?branch=master)](https://coveralls.io/github/future-architect/uroborosql?branch=master)
 
 uroboroSQL
 ==========
@@ -25,7 +25,7 @@ for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.26.3</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
 <dependency>
     <groupId>ognl</groupId>
@@ -40,7 +40,7 @@ or
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>0.26.3</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
 <dependency>
     <groupId>org.springframework</groupId>
@@ -52,14 +52,14 @@ or
 ### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.26.3'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.0-SNAPSHOT'
 compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
 or
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '0.26.3'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.0-SNAPSHOT'
 compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
 ```
 

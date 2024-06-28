@@ -37,7 +37,8 @@ public class ParameterTest {
 
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", date);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1")
+					.param("targetDate", date);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -54,7 +55,8 @@ public class ParameterTest {
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", localDate);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1")
+					.param("targetDate", localDate);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -72,7 +74,8 @@ public class ParameterTest {
 		var localDate = LocalDate.of(2002, Month.JANUARY, 1);
 		var date = Date.from(LocalDate.parse("2002-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant());
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING1").param("targetDate", Optional.of(localDate));
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING1")
+					.param("targetDate", Optional.of(localDate));
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -103,7 +106,8 @@ public class ParameterTest {
 		});
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING2").param("targetStr", param);
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING2")
+					.param("targetStr", param);
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -123,7 +127,8 @@ public class ParameterTest {
 	void testSetInParameter_array() throws SQLException {
 
 		try (var agent = config.agent()) {
-			var ctx = agent.contextFrom("test/PARAM_MAPPING3").param("targetStrs", List.of("1", "2", "3"));
+			var ctx = agent.context().setSqlName("test/PARAM_MAPPING3")
+					.param("targetStrs", List.of("1", "2", "3"));
 
 			try (var rs = agent.query(ctx)) {
 				assertThat("結果が0件です。", rs.next(), is(true));
@@ -150,7 +155,8 @@ public class ParameterTest {
 			agent.updateWith("create table if not exists BYTE_ARRAY_TEST (ID VARCHAR(10), DATA BINARY(10))").count();
 
 			assertThat("更新件数が一致しません",
-					agent.updateWith("INSERT INTO BYTE_ARRAY_TEST VALUES (/*id*/, /*data*/)").param("id", 1)
+					agent.updateWith("INSERT INTO BYTE_ARRAY_TEST VALUES (/*id*/, /*data*/)")
+							.param("id", 1)
 							.param("data", "test".getBytes()).count(),
 					is(1));
 		}
@@ -168,23 +174,31 @@ public class ParameterTest {
 
 			var sql = "select * from COLUMN_TYPE_TEST WHERE 1 = 1 /*IF bean.colVarchar != null*/ AND COL_VARCHAR = /*bean.colVarchar*//*END*//*IF bean.colBoolean != null*/ AND COL_BOOLEAN = /*bean.colBoolean*//*END*/";
 			var child1 = new ColumnTypeChild("test", 'X', 0, null, null, null, null);
-			var list = agent.queryWith(sql).param("bean", child1).collect();
+			var list = agent.queryWith(sql)
+					.param("bean", child1)
+					.collect();
 			assertThat(list.size(), is(1));
 			assertThat(list.get(0).get("COL_VARCHAR"), is("test"));
 			assertThat(list.get(0).get("COL_BOOLEAN"), is(true));
 
 			child1 = new ColumnTypeChild("test2", 'X', 0, null, null, null, null);
-			list = agent.queryWith(sql).param("bean", child1).collect();
+			list = agent.queryWith(sql)
+					.param("bean", child1)
+					.collect();
 			assertThat(list.size(), is(0));
 
 			var child2 = new ColumnTypeChild(null, 'X', 0, true, null, null, null);
-			list = agent.queryWith(sql).param("bean", child2).collect();
+			list = agent.queryWith(sql)
+					.param("bean", child2)
+					.collect();
 			assertThat(list.size(), is(1));
 			assertThat(list.get(0).get("COL_VARCHAR"), is("test"));
 			assertThat(list.get(0).get("COL_BOOLEAN"), is(true));
 
 			child2 = new ColumnTypeChild(null, 'X', 0, false, null, null, null);
-			list = agent.queryWith(sql).param("bean", child2).collect();
+			list = agent.queryWith(sql)
+					.param("bean", child2)
+					.collect();
 			assertThat(list.size(), is(0));
 		}
 	}

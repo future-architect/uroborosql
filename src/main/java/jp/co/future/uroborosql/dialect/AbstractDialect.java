@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 import jp.co.future.uroborosql.enums.ForUpdateType;
 import jp.co.future.uroborosql.mapping.JavaType;
-import jp.co.future.uroborosql.utils.StringFunction;
+import jp.co.future.uroborosql.utils.SqlFunction;
 
 /**
  * Dialectの抽象親クラス
@@ -44,7 +44,7 @@ public abstract class AbstractDialect implements Dialect {
 	/** エスケープするパターン */
 	private final Pattern escapePattern;
 
-	private final StringFunction expressionFunction;
+	private final SqlFunction sqlFunction;
 
 	protected final Map<Integer, JavaType> typeMap;
 
@@ -109,7 +109,7 @@ public abstract class AbstractDialect implements Dialect {
 		this.wildcards = wildcards != null ? wildcards : DEFAULT_WILDCARDS;
 		this.escapePattern = generateEscapePattern(this.escapeChar, this.wildcards);
 		this.typeMap = new ConcurrentHashMap<>(DEFAULT_TYPE_MAP);
-		this.expressionFunction = new StringFunction(this);
+		this.sqlFunction = new SqlFunction(this);
 	}
 
 	/**
@@ -138,11 +138,11 @@ public abstract class AbstractDialect implements Dialect {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.dialect.Dialect#getExpressionFunction()
+	 * @see jp.co.future.uroborosql.dialect.Dialect#getSqlFunction()
 	 */
 	@Override
-	public StringFunction getExpressionFunction() {
-		return this.expressionFunction;
+	public SqlFunction getSqlFunction() {
+		return this.sqlFunction;
 	}
 
 	/**

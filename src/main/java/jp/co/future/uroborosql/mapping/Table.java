@@ -6,7 +6,7 @@
  */
 package jp.co.future.uroborosql.mapping;
 
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * テーブル情報
@@ -34,7 +34,7 @@ public interface Table {
 	 * @return テーブル識別名
 	 */
 	default String getIdentifier() {
-		if (StringUtils.isEmpty(getSchema())) {
+		if (ObjectUtils.isEmpty(getSchema())) {
 			return getName();
 		} else {
 			return getSchema() + "." + getName();

@@ -11,12 +11,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.AbstractAgent;
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.SqlAgentImpl;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
-import jp.co.future.uroborosql.filter.WrapContextSqlFilter;
+import jp.co.future.uroborosql.event.subscriber.WrapContextEventSubscriber;
 
 public class HtmlReportCoverageHandlerTest {
 	/**
@@ -48,7 +48,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/test03.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -57,19 +57,27 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("example/select_test").param("id", "A001").collect();
+			agent.query("example/select_test")
+					.param("id", "A001")
+					.collect();
 
-			agent.query("covertest/test01").param("id", 1).collect();
-			agent.query("covertest/test01").collect();
-			agent.query("covertest/test02").collect();
-			agent.query("covertest/test03").collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
+			agent.query("covertest/test01")
+					.collect();
+			agent.query("covertest/test02")
+					.collect();
+			agent.query("covertest/test03")
+					.collect();
 		}
-		var filter = new WrapContextSqlFilter("/* PREFIX */", "/* SUFFIX */",
+		var eventSubscriber = new WrapContextEventSubscriber("/* PREFIX */", "/* SUFFIX */",
 				".*(FOR\\sUPDATE|\\.NEXTVAL).*");
-		filter.initialize();
-		config.getSqlFilterManager().addSqlFilter(filter);
+		config.getEventListenerHolder().addEventSubscriber(eventSubscriber);
 		try (var agent = config.agent()) {
-			agent.query("covertest/test01").param("id", 1).collect();
+			agent.query("covertest/test01")
+					.param("id", 1)
+					.collect();
 
 		}
 
@@ -92,7 +100,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -101,7 +109,8 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch").collect();
+			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch")
+					.collect();
 		}
 
 		assertThat(Files.readAllLines(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportNoBranch.html"))
@@ -118,7 +127,7 @@ public class HtmlReportCoverageHandlerTest {
 		Files.deleteIfExists(path.resolve("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch.html"));
 
 		// カバレッジ用インスタンスをクリア
-		var field = AbstractAgent.class.getDeclaredField("coverageHandlerRef");
+		var field = SqlAgentImpl.class.getDeclaredField("COVERAGE_HANDLER_REF");
 		field.setAccessible(true);
 		@SuppressWarnings("unchecked")
 		var ref = (AtomicReference<CoverageHandler>) field.get(null);
@@ -127,7 +136,8 @@ public class HtmlReportCoverageHandlerTest {
 		var before = ref.get();
 		ref.set(new HtmlReportCoverageHandler());
 		try (var agent = config.agent()) {
-			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch").collect();
+			agent.query("covertest/HtmlReportCoverageHandlerTest/testReportLastNoBranch")
+					.collect();
 		}
 
 		assertThat(

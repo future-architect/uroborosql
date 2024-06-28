@@ -51,12 +51,12 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 *
 	 * @see java.sql.Wrapper#unwrap(java.lang.Class)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
-		if (iface != null && this.getClass().isAssignableFrom(iface)) {
-			return iface.cast(this);
+		if (iface != null && iface.isAssignableFrom(this.getClass())) {
+			return (T) this;
 		}
-
 		return wrapped.unwrap(iface);
 	}
 
@@ -67,10 +67,11 @@ public abstract class AbstractResultSetWrapper implements ResultSet {
 	 */
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
-		if (iface != null && this.getClass().isAssignableFrom(iface)) {
+		if (iface != null && iface.isAssignableFrom(this.getClass())) {
 			return true;
+		} else {
+			return wrapped.isWrapperFor(iface);
 		}
-		return wrapped.isWrapperFor(iface);
 	}
 
 	/**

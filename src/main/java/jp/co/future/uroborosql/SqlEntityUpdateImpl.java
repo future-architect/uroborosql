@@ -11,7 +11,6 @@ import java.sql.SQLType;
 import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -53,8 +52,8 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		try {
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
 			return this.entityHandler.doUpdate(agent(), context(), null);
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(SqlKind.UPDATE, e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -65,7 +64,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value);
 		return this;
 	}
 
@@ -76,7 +75,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final Supplier<V> supplier) {
-		param(CaseFormat.CAMEL_CASE.convert(col), supplier);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), supplier);
 		return this;
 	}
 
@@ -87,7 +86,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value, final int sqlType) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
 		return this;
 	}
 
@@ -98,7 +97,7 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 */
 	@Override
 	public <V> SqlEntityUpdate<E> set(final String col, final V value, final SQLType sqlType) {
-		param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
+		context().param(CaseFormat.CAMEL_CASE.convert(col), value, sqlType);
 		return this;
 	}
 }

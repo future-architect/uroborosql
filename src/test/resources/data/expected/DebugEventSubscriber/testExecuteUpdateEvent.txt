@@ -1,0 +1,3 @@
+Before Set Parameter - Parameter:Parameter name[product_id], Value[0], Class[BigDecimal], SQL type[DECIMAL]
+Before Set Parameter - Parameter:Parameter name[jan_code], Value[1234567890123], Class[String], SQL type[CHAR]
+Execute Update - sqlName:example/selectinsert_product executed. Count:1 items.

@@ -11,6 +11,8 @@ import java.util.Properties;
 
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter.SqlKeyword;
@@ -27,6 +29,8 @@ import jp.co.future.uroborosql.mapping.TableMetadata;
  * @author H.Sugimoto
  */
 public class GenerateCommand extends ReplCommand {
+	/** REPLロガー */
+	private static final Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
 
 	/**
 	 * Constructor
@@ -87,8 +91,8 @@ public class GenerateCommand extends ReplCommand {
 				ctx = sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true);
 			}
 			writer.println(ctx.getSql());
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (SQLException ex) {
+			REPL_LOG.error(ex.getMessage(), ex);
 		}
 
 		writer.flush();

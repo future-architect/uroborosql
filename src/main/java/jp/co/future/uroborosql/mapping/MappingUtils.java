@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.mapping.annotations.SequenceGenerator;
 import jp.co.future.uroborosql.mapping.annotations.Transient;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * マッピング情報ユーティリティ
@@ -108,8 +108,8 @@ public final class MappingUtils {
 		public Object getValue(final Object entity) {
 			try {
 				return this.field.get(entity);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalArgumentException | IllegalAccessException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 
@@ -122,8 +122,8 @@ public final class MappingUtils {
 		public void setValue(final Object entity, final Object value) {
 			try {
 				this.field.set(entity, value);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalArgumentException | IllegalAccessException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 
@@ -378,7 +378,7 @@ public final class MappingUtils {
 
 	private static String getCacheKey(final String schema, final Class<?> entityType) {
 		var table = getTable(entityType);
-		var currentSchema = StringUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
+		var currentSchema = ObjectUtils.isNotEmpty(table.getSchema()) ? table.getSchema()
 				: Objects.toString(schema, "");
 		return String.format("%s.%s", currentSchema.toUpperCase(), entityType.getName());
 	}

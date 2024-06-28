@@ -152,7 +152,8 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 						Year.of(2021));
 				agent.insertAndReturn(test2);
 
-				var list = agent.query(TestEntity.class).collect();
+				var list = agent.query(TestEntity.class)
+						.collect();
 				assertThat(list.size(), is(2));
 				assertThat(list.get(0), is(test1));
 				assertThat(list.get(1), is(test2));
@@ -530,25 +531,15 @@ public class LegacyToStringParameterMapperWithOgnlTest {
 			} else if (date.compareTo(other.date) != 0) {
 				return false;
 			}
-			if (!Objects.equals(dateTime, other.dateTime) || (dayOfWeek != other.dayOfWeek) || !Objects.equals(id, other.id) || !Objects.equals(localDate, other.localDate)) {
+			if (!Objects.equals(dateTime, other.dateTime) || dayOfWeek != other.dayOfWeek
+					|| !Objects.equals(id, other.id) || !Objects.equals(localDate, other.localDate)) {
 				return false;
 			}
-			if (month != other.month) {
+			if (month != other.month || !Objects.equals(monthDay, other.monthDay)
+					|| !Objects.equals(sqlTime, other.sqlTime) || !Objects.equals(time, other.time)) {
 				return false;
 			}
-			if (!Objects.equals(monthDay, other.monthDay)) {
-				return false;
-			}
-			if (!Objects.equals(sqlTime, other.sqlTime)) {
-				return false;
-			}
-			if (!Objects.equals(time, other.time)) {
-				return false;
-			}
-			if (!Objects.equals(year, other.year)) {
-				return false;
-			}
-			if (!Objects.equals(yearMonth, other.yearMonth)) {
+			if (!Objects.equals(year, other.year) || !Objects.equals(yearMonth, other.yearMonth)) {
 				return false;
 			}
 			return true;

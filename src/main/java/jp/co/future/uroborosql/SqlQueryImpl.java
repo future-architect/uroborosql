@@ -49,7 +49,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Map<String, Object> first() {
-		return first(agent().getDefaultMapKeyCaseFormat());
+		return first(agent().getMapKeyCaseFormat());
 	}
 
 	/**
@@ -79,7 +79,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findFirst() {
-		return findFirst(agent().getDefaultMapKeyCaseFormat());
+		return findFirst(agent().getMapKeyCaseFormat());
 	}
 
 	/**
@@ -113,7 +113,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Map<String, Object> one() {
-		return one(agent().getDefaultMapKeyCaseFormat());
+		return one(agent().getMapKeyCaseFormat());
 	}
 
 	/**
@@ -143,7 +143,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Optional<Map<String, Object>> findOne() {
-		return findOne(agent().getDefaultMapKeyCaseFormat());
+		return findOne(agent().getMapKeyCaseFormat());
 	}
 
 	@Override
@@ -177,8 +177,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public ResultSet resultSet() {
 		try {
 			return agent().query(context());
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 
@@ -189,7 +189,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public List<Map<String, Object>> collect() {
-		return collect(agent().getDefaultMapKeyCaseFormat());
+		return collect(agent().getMapKeyCaseFormat());
 	}
 
 	/**
@@ -201,8 +201,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public List<Map<String, Object>> collect(final CaseFormat caseFormat) {
 		try {
 			return agent().query(context(), caseFormat);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 
@@ -225,7 +225,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream() {
-		return stream(agent().getDefaultMapKeyCaseFormat());
+		return stream(agent().getMapKeyCaseFormat());
 	}
 
 	/**
@@ -237,8 +237,8 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	public <T> Stream<T> stream(final ResultSetConverter<T> converter) {
 		try {
 			return agent().query(context(), converter);
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 
@@ -249,7 +249,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 	 */
 	@Override
 	public Stream<Map<String, Object>> stream(final CaseFormat caseFormat) {
-		return stream(new MapResultSetConverter(this.agent.getSqlConfig(), caseFormat));
+		return stream(new MapResultSetConverter(agent().getSqlConfig(), caseFormat));
 	}
 
 	/**
@@ -262,7 +262,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 		if (type == null) {
 			throw new IllegalArgumentException("Argument 'type' is required.");
 		}
-		var manager = new PropertyMapperManager(this.agent.getSqlConfig().getClock());
+		var manager = new PropertyMapperManager(agent().getSqlConfig().getClock());
 		if (ScalarResultSetConverter.accept(type)) {
 			return stream(new ScalarResultSetConverter<>(null, type, manager));
 		} else {
@@ -294,7 +294,7 @@ final class SqlQueryImpl extends AbstractSqlFluent<SqlQuery> implements SqlQuery
 			throw new IllegalArgumentException(type.getName() + " is not supported.");
 		}
 		return stream(new ScalarResultSetConverter<>(col, type,
-				new PropertyMapperManager(this.agent.getSqlConfig().getClock())));
+				new PropertyMapperManager(agent().getSqlConfig().getClock())));
 	}
 
 }
