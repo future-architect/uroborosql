@@ -37,8 +37,8 @@ final class SqlUpdateImpl extends AbstractSqlFluent<SqlUpdate> implements SqlUpd
 	public int count() {
 		try {
 			return agent().update(context());
-		} catch (SQLException e) {
-			throw new UroborosqlSQLException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlSQLException(ex);
 		}
 	}
 }

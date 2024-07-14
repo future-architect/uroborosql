@@ -42,8 +42,8 @@ public final class JdbcParameterFactory {
 	public static Array createArrayOf(final Connection conn, final String typeName, final Object[] elements) {
 		try {
 			return conn.createArrayOf(typeName, elements);
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 
@@ -58,8 +58,8 @@ public final class JdbcParameterFactory {
 	public static Blob createBlob(final Connection conn) {
 		try {
 			return conn.createBlob();
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 
@@ -74,8 +74,8 @@ public final class JdbcParameterFactory {
 	public static Clob createClob(final Connection conn) {
 		try {
 			return conn.createClob();
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 
@@ -90,8 +90,8 @@ public final class JdbcParameterFactory {
 	public static NClob createNClob(final Connection conn) {
 		try {
 			return conn.createNClob();
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 
@@ -106,8 +106,8 @@ public final class JdbcParameterFactory {
 	public static SQLXML createSQLXML(final Connection conn) {
 		try {
 			return conn.createSQLXML();
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 
@@ -124,8 +124,8 @@ public final class JdbcParameterFactory {
 	public static Struct createStruct(final Connection conn, final String typeName, final Object[] attributes) {
 		try {
 			return conn.createStruct(typeName, attributes);
-		} catch (SQLException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (SQLException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 }

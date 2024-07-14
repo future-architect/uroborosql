@@ -21,7 +21,7 @@ import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * TestCase DefaultSqlConfig
@@ -52,7 +52,7 @@ public class SqlConfigTest {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}
@@ -62,7 +62,7 @@ public class SqlConfigTest {
 			sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/setup/insert_product.sql")),
 					StandardCharsets.UTF_8).split(";");
 			for (var sql : sqls) {
-				if (StringUtils.isNotBlank(sql)) {
+				if (ObjectUtils.isNotBlank(sql)) {
 					agent.updateWith(sql.trim()).count();
 				}
 			}

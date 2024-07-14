@@ -110,7 +110,7 @@ public abstract class OracleDialect extends AbstractDialect {
 		try {
 			var majorVersion = Integer.parseInt(databaseVersion.substring(0, databaseVersion.indexOf(".")));
 			return isTargetVersion(majorVersion);
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException ex) {
 			return false;
 		}
 	}

@@ -22,7 +22,7 @@ import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 import jp.co.future.uroborosql.fluent.Procedure;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * エラーハンドリングのテスト
@@ -45,7 +45,7 @@ public class SqlAgentRetryWithRollbackTest {
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (var sql : sqls) {
-			if (StringUtils.isNotBlank(sql)) {
+			if (ObjectUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
 		}
@@ -301,7 +301,7 @@ public class SqlAgentRetryWithRollbackTest {
 	}
 
 	/**
-	 * リトライテスト用の例外をスローするフィルター
+	 * リトライテスト用の例外をスローするイベントサブスクライバ
 	 *
 	 * @author H.Sugimoto
 	 */

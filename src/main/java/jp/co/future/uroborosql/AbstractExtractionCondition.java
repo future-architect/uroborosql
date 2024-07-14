@@ -15,6 +15,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.ExtractionCondition;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 import jp.co.future.uroborosql.utils.CaseFormat;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * 抽出条件の生成を担当するクラス
@@ -146,6 +147,20 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#equalIfNotEmpty(java.lang.String, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T equalIfNotEmpty(final String col, final V value) {
+		if (ObjectUtils.isNotEmpty(value)) {
+			this.equal(col, value);
+		}
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notEqual(java.lang.String, java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
@@ -153,6 +168,20 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	public <V> T notEqual(final String col, final V value) {
 		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotEqual<>(col, value));
 		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#notEqualIfNotEmpty(java.lang.String, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T notEqualIfNotEmpty(final String col, final V value) {
+		if (ObjectUtils.isNotEmpty(value)) {
+			this.notEqual(col, value);
+		}
 		return (T) this;
 	}
 
@@ -477,8 +506,10 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	@SuppressWarnings("unchecked")
 	@Override
 	public T where(final CharSequence rawString) {
-		this.rawStrings.add(rawString);
-		this.useOperator = true;
+		if (ObjectUtils.isNotEmpty(rawString)) {
+			this.rawStrings.add(rawString);
+			this.useOperator = true;
+		}
 		return (T) this;
 	}
 
@@ -487,10 +518,28 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	 *
 	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#where(java.lang.CharSequence, java.lang.String, java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <V> T where(final CharSequence rawString, final String paramName, final V value) {
-		context().param(paramName, value);
-		return this.where(rawString);
+		if (ObjectUtils.isNotEmpty(rawString)) {
+			context().param(paramName, value);
+			this.where(rawString);
+		}
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#whereIfNotEmpty(java.lang.CharSequence, java.lang.String, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T whereIfNotEmpty(final CharSequence rawString, final String paramName, final V value) {
+		if (ObjectUtils.isNotEmpty(rawString) && ObjectUtils.isNotEmpty(value)) {
+			this.where(rawString, paramName, value);
+		}
+		return (T) this;
 	}
 
 	/**
@@ -498,10 +547,12 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	 *
 	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#where(java.lang.CharSequence, java.util.Map)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public T where(final CharSequence rawString, final Map<String, Object> paramMap) {
 		context().paramMap(paramMap);
-		return this.where(rawString);
+		this.where(rawString);
+		return (T) this;
 	}
 
 	/**

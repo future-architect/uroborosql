@@ -58,7 +58,7 @@ public class DomainParameterMapper implements BindParameterMapper<Object> {
 							"unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
 				}
 				return method.invoke(original);
-			} catch (NoSuchMethodException e) {
+			} catch (NoSuchMethodException ex) {
 				try {
 					// static?
 					var method = type.getMethod(methodName, type);
@@ -70,12 +70,12 @@ public class DomainParameterMapper implements BindParameterMapper<Object> {
 								"unmatch method result type. [" + type.getSimpleName() + "#" + methodName + "]");
 					}
 					return method.invoke(null, original);
-				} catch (NoSuchMethodException e2) {
-					throw new UroborosqlRuntimeException(e);// 元のエラーでthrow
+				} catch (NoSuchMethodException ex2) {
+					throw new UroborosqlRuntimeException(ex);// 元のエラーでthrow
 				}
 			}
-		} catch (IllegalAccessException | InvocationTargetException | SecurityException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (IllegalAccessException | InvocationTargetException | SecurityException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 

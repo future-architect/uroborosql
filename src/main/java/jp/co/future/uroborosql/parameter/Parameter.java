@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * パラメータオブジェクト。<br>
@@ -112,23 +112,23 @@ public class Parameter {
 					var field = value.getClass().getDeclaredField(propertyName);
 					field.setAccessible(true);
 					subValue = field.get(value);
-				} catch (NoSuchFieldException e) {
+				} catch (NoSuchFieldException ex) {
 					// メソッドアクセスで値の取得を実施
 					try {
 						var prefix = boolean.class.equals(value.getClass()) ? "is" : "get";
 						var method = value.getClass()
-								.getMethod(prefix + StringUtils.capitalize(propertyName));
+								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
-					} catch (Exception e2) {
+					} catch (Exception ex2) {
 						if (LOG.isWarnEnabled()) {
 							LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-									subParameterName, e2);
+									subParameterName, ex2);
 						}
 					}
-				} catch (Exception e) {
+				} catch (Exception ex) {
 					if (LOG.isWarnEnabled()) {
 						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-								subParameterName, e);
+								subParameterName, ex);
 					}
 				}
 			}

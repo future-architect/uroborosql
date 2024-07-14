@@ -17,10 +17,12 @@ import java.util.Properties;
 
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Describe table Command
@@ -28,6 +30,9 @@ import jp.co.future.uroborosql.utils.StringUtils;
  * @author H.Sugimoto
  */
 public class DescCommand extends ReplCommand {
+	/** REPLロガー */
+	private static final Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
+
 	/** DESCで表示する項目 */
 	private static final String[] DESC_COLUMN_LABELS = { "TABLE_NAME", "COLUMN_NAME", "TYPE_NAME", "COLUMN_SIZE",
 			"DECIMAL_DIGITS", "IS_NULLABLE", "COLUMN_DEF", "REMARKS" };
@@ -78,13 +83,13 @@ public class DescCommand extends ReplCommand {
 			// ラベル
 			writer.print("-");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+				writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();
 			writer.print("|");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad(label, labelLength.get(label)));
+				writer.print(ObjectUtils.rightPad(label, labelLength.get(label)));
 				writer.print("|");
 			}
 			writer.println();
@@ -99,7 +104,7 @@ public class DescCommand extends ReplCommand {
 				if (breakFlag) {
 					writer.print("-");
 					for (var label : DESC_COLUMN_LABELS) {
-						writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+						writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 						writer.print("-");
 					}
 					writer.println();
@@ -109,10 +114,10 @@ public class DescCommand extends ReplCommand {
 				writer.print("|");
 				for (var label : DESC_COLUMN_LABELS) {
 					var val = column.get(label);
-					if (StringUtils.isNumeric(val)) {
-						writer.print(StringUtils.leftPad(val, labelLength.get(label)));
+					if (ObjectUtils.isNumeric(val)) {
+						writer.print(ObjectUtils.leftPad(val, labelLength.get(label)));
 					} else {
-						writer.print(StringUtils.rightPad(val, labelLength.get(label)));
+						writer.print(ObjectUtils.rightPad(val, labelLength.get(label)));
 					}
 					writer.print("|");
 				}
@@ -120,12 +125,12 @@ public class DescCommand extends ReplCommand {
 			}
 			writer.print("-");
 			for (var label : DESC_COLUMN_LABELS) {
-				writer.print(StringUtils.rightPad("", labelLength.get(label), "-"));
+				writer.print(ObjectUtils.rightPad("", labelLength.get(label), "-"));
 				writer.print("-");
 			}
 			writer.println();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			REPL_LOG.error(ex.getMessage(), ex);
 		}
 		writer.flush();
 

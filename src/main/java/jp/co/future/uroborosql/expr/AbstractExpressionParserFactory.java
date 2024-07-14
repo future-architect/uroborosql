@@ -43,8 +43,8 @@ public abstract class AbstractExpressionParserFactory implements ExpressionParse
 			return (ExpressionParser) Class.forName(className)
 					.getConstructor().newInstance();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-			throw new UroborosqlRuntimeException(className + " could not be created.", e);
+				| NoSuchMethodException | SecurityException | ClassNotFoundException ex) {
+			throw new UroborosqlRuntimeException(className + " could not be created.", ex);
 		}
 	}
 }

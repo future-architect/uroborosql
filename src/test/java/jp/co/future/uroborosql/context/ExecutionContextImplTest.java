@@ -465,40 +465,22 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getParam("key1").getValue(), is("value1"));
 
 		ctx = getExecutionContext("select * from dummy");
-		InputStream is1 = new ByteArrayInputStream("value1".getBytes());
-		ctx.blobParamIfAbsent("key1", is1, "value1".length());
-		var stream1 = (StreamParameter) ctx.getParam("key1");
-		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
-		InputStream is2 = new ByteArrayInputStream("value2".getBytes());
-		ctx.blobParamIfAbsent("key1", is2, "value2".length());
-		assertThat(ctx.getParam("key1"), is(stream1));
-
-		ctx = getExecutionContext("select * from dummy");
 		InputStream is11 = new ByteArrayInputStream("value1".getBytes());
-		ctx.blobParamIfAbsent("key1", is11);
+		ctx.paramIfAbsent("key1", is11);
 		var stream11 = (StreamParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[BLOB]"));
 		InputStream is22 = new ByteArrayInputStream("value2".getBytes());
-		ctx.blobParamIfAbsent("key1", is22);
+		ctx.paramIfAbsent("key1", is22);
 		assertThat(ctx.getParam("key1"), is(stream11));
 
 		ctx = getExecutionContext("select * from dummy");
 		Reader r1 = new StringReader("value1");
-		ctx.clobParamIfAbsent("key1", r1);
+		ctx.paramIfAbsent("key1", r1);
 		var reader1 = (ReaderParameter) ctx.getParam("key1");
 		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
 		Reader r2 = new StringReader("value2");
-		ctx.clobParamIfAbsent("key1", r2);
+		ctx.paramIfAbsent("key1", r2);
 		assertThat(ctx.getParam("key1"), is(reader1));
-
-		ctx = getExecutionContext("select * from dummy");
-		Reader r11 = new StringReader("value1");
-		ctx.clobParamIfAbsent("key1", r11, "value1".length());
-		var reader11 = (ReaderParameter) ctx.getParam("key1");
-		assertThat(ctx.getParam("key1").getValue(), is("[CLOB]"));
-		Reader r22 = new StringReader("value2");
-		ctx.clobParamIfAbsent("key1", r22, "value1".length());
-		assertThat(ctx.getParam("key1"), is(reader11));
 	}
 
 	@Test

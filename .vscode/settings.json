@@ -23,6 +23,8 @@
         "jdbc",
         "jline",
         "jquery",
+        "ltsv",
+        "LTSV",
         "Miyazaki",
         "MSSQL",
         "multibyte",

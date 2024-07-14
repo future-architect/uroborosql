@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQLリソース管理実装クラス
@@ -233,8 +233,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		if (detectChanges) {
 			try {
 				watcher = FileSystems.getDefault().newWatchService();
-			} catch (IOException e) {
-				LOG.error("Can't start watcher service.", e);
+			} catch (IOException ex) {
+				LOG.error("Can't start watcher service.", ex);
 				return;
 			}
 		}
@@ -261,7 +261,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				if (!es.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
 					es.shutdownNow();
 				}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException ex) {
 				es.shutdownNow();
 			}
 		}
@@ -325,7 +325,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		}
 		try {
 			watcher.close();
-		} catch (IOException e) {
+		} catch (IOException ex) {
 			// do nothing
 		}
 	}
@@ -398,7 +398,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/**
 	 * sqlNameとそれに対するSqlInfoのMapを生成する
 	 */
-	private void generateSqlInfos() {
+	protected void generateSqlInfos() {
 		try {
 			for (var loadPath : this.loadPaths) {
 				var loadPathSlash = loadPath.toString().replace('\\', '/');
@@ -418,8 +418,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					}
 				}
 			}
-		} catch (IOException | URISyntaxException e) {
-			LOG.error("Can't load sql files.", e);
+		} catch (IOException | URISyntaxException ex) {
+			LOG.error("Can't load sql files.", ex);
 		}
 	}
 
@@ -660,9 +660,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			if (SCHEME_FILE.equalsIgnoreCase(path.toUri().getScheme())) {
 				try {
 					return Files.getLastModifiedTime(path);
-				} catch (IOException e) {
+				} catch (IOException ex) {
 					if (LOG.isWarnEnabled()) {
-						LOG.warn("Can't get lastModifiedTime. path:{}", path, e);
+						LOG.warn("Can't get lastModifiedTime. path:{}", path, ex);
 					}
 				}
 			}
@@ -725,9 +725,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 							if (LOG.isDebugEnabled()) {
 								LOG.debug("Loaded SQL template.[{}]", path);
 							}
-						} catch (IOException e) {
+						} catch (IOException ex) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
-									+ path.toAbsolutePath().toString() + "].", e);
+									+ path.toAbsolutePath().toString() + "].", ex);
 						}
 					}
 				} else {
@@ -749,9 +749,9 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 									LOG.debug("Loaded SQL template.[{}]", path);
 								}
 							}
-						} catch (IOException e) {
+						} catch (IOException ex) {
 							throw new UroborosqlRuntimeException("Failed to load SQL template["
-									+ path.toAbsolutePath().toString() + "].", e);
+									+ path.toAbsolutePath().toString() + "].", ex);
 						}
 					}
 				}
@@ -768,7 +768,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		protected String formatSqlBody(final String sqlBody) {
 			var newBody = sqlBody.trim();
 			if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
-				newBody = StringUtils.removeEnd(newBody, "/");
+				newBody = ObjectUtils.removeEnd(newBody, "/");
 			} else {
 				newBody = newBody + System.lineSeparator();
 			}

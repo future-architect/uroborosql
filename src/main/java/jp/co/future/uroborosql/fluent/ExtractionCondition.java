@@ -27,6 +27,16 @@ public interface ExtractionCondition<T> {
 	<V> T equal(String col, V value);
 
 	/**
+	 * 値が空でない場合にWhere句に equal 条件を追加する.
+	 *
+	 * @param <V> 値の型
+	 * @param col bind column name
+	 * @param value 値
+	 * @return T
+	 */
+	<V> T equalIfNotEmpty(String col, V value);
+
+	/**
 	 * Where句に not equal 条件を追加する.
 	 *
 	 * @param <V> 値の型
@@ -35,6 +45,16 @@ public interface ExtractionCondition<T> {
 	 * @return T
 	 */
 	<V> T notEqual(String col, V value);
+
+	/**
+	 * 値が空でない場合にWhere句に not equal 条件を追加する.
+	 *
+	 * @param <V> 値の型
+	 * @param col bind column name
+	 * @param value 値
+	 * @return T
+	 */
+	<V> T notEqualIfNotEmpty(String col, V value);
 
 	/**
 	 * Where句に greater than 条件を追加する.
@@ -266,6 +286,17 @@ public interface ExtractionCondition<T> {
 	 * @return T
 	 */
 	<V> T where(CharSequence rawString, String paramName, V value);
+
+	/**
+	 * 条件式にバインドする値が空でない場合にWhere句に 素の文字列指定で 条件を追加する. 複数回呼び出した場合はそれぞれの条件をANDで結合する.
+	 *
+	 * @param <V> 値の型
+	 * @param rawString Where句に出力する条件式
+	 * @param paramName 条件式にバインドするパラメータ名
+	 * @param value 条件式にバインドする値
+	 * @return T
+	 */
+	<V> T whereIfNotEmpty(CharSequence rawString, String paramName, V value);
 
 	/**
 	 * Where句に 素の文字列指定で 条件を追加する. 複数回呼び出した場合はそれぞれの条件をANDで結合する.

@@ -125,8 +125,8 @@ public final class BeanAccessor {
 		try {
 			f.setAccessible(true);
 			return f.get(bean);
-		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new UroborosqlRuntimeException(e);
+		} catch (IllegalArgumentException | IllegalAccessException ex) {
+			throw new UroborosqlRuntimeException(ex);
 		}
 	}
 

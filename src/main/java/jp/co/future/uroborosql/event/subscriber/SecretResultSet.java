@@ -20,6 +20,7 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * ResultSetのラッパークラス。検索結果に暗号化したカラムが含まれる場合復号化して値を返す
  *
  * @author H.Sugimoto
+ * @since v1.0.0
  */
 public class SecretResultSet extends AbstractResultSetWrapper {
 

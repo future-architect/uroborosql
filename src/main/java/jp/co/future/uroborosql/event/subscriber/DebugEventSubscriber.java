@@ -23,6 +23,7 @@ import jp.co.future.uroborosql.event.SqlUpdateEvent;
  * デバッグログを出力するEventSubscriber
  *
  * @author H.Sugimoto
+ * @since v1.0.0
  */
 public class DebugEventSubscriber extends EventSubscriber {
 	/** ロガー */
@@ -47,8 +48,8 @@ public class DebugEventSubscriber extends EventSubscriber {
 						evt.isRequiredNew(),
 						evt.getTransactionLevel(),
 						evt.occurredOn());
-			} catch (SQLException e) {
-				EVENT_LOG.error(e.getMessage(), e);
+			} catch (SQLException ex) {
+				EVENT_LOG.error(ex.getMessage(), ex);
 			}
 		}
 	}
@@ -63,8 +64,8 @@ public class DebugEventSubscriber extends EventSubscriber {
 						evt.getTransactionLevel(),
 						evt.getResult(),
 						evt.occurredOn());
-			} catch (SQLException e) {
-				EVENT_LOG.error(e.getMessage(), e);
+			} catch (SQLException ex) {
+				EVENT_LOG.error(ex.getMessage(), ex);
 			}
 		}
 	}
@@ -102,7 +103,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 			try {
 				counts = new int[] { evt.getPreparedStatement().getUpdateCount() };
 			} catch (SQLException ex) {
-				ex.printStackTrace();
+				EVENT_LOG.error(ex.getMessage(), ex);
 			}
 
 			var builder = new StringBuilder();

@@ -185,6 +185,31 @@ public class SqlBatchTest extends AbstractDbTest {
 	}
 
 	/**
+	 * バッチ処理のテストケース(Stream)。
+	 */
+	@Test
+	void testExecuteBatchStreamSupplier() throws Exception {
+		// 事前条件
+		truncateTable("PRODUCT");
+
+		// 処理実行
+		var input = getDataFromFile(Paths.get("src/test/resources/data/expected/SqlAgent",
+				"testExecuteBatchStream.ltsv"));
+		var count = agent.batch(() -> "example/insert_product").paramStream(input.stream()).count();
+
+		assertEquals(100, count, "データの登録件数が不正です。");
+
+		// 検証処理
+		var expectedDataList = getDataFromFile(Paths.get(
+				"src/test/resources/data/expected/SqlAgent", "testExecuteBatchStream.ltsv"));
+		List<Map<String, Object>> actualDataList = agent.query("example/select_product")
+				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
+				.collect(Collectors.toList());
+
+		assertEquals(expectedDataList.toString(), actualDataList.toString());
+	}
+
+	/**
 	 * バッチ処理のテストケース(Bean Stream)。
 	 */
 	@Test

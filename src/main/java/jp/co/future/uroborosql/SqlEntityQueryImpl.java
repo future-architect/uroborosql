@@ -165,8 +165,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			}
 			context().setSql(sql.toString());
 			return this.entityHandler.doSelect(agent(), context(), this.entityType);
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -234,8 +234,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		try (var rs = agent().query(context())) {
 			rs.next();
 			return rs.getLong(1);
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -263,8 +263,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -289,8 +289,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
-		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -315,8 +315,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		try {
 			return (T) mappingColumn
 					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
-		} catch (SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -337,8 +337,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			if (rs.next()) {
 				runnable.run();
 			}
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 
@@ -359,8 +359,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			if (!rs.next()) {
 				runnable.run();
 			}
-		} catch (final SQLException e) {
-			throw new EntitySqlRuntimeException(context().getSqlKind(), e);
+		} catch (final SQLException ex) {
+			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
 	}
 

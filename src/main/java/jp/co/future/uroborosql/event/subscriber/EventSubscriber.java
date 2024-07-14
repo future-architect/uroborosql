@@ -29,6 +29,12 @@ import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.event.SqlUpdateEvent;
 import jp.co.future.uroborosql.event.TransformSqlEvent;
 
+/**
+ * イベントサブスクライバ抽象親クラス
+ *
+ * @author H.Sugimoto
+ * @since v1.0.0
+ */
 public abstract class EventSubscriber {
 	/** ExecutionContext初期化後イベントリスナ. */
 	private Optional<Consumer<AfterInitializeExecutionContextEvent>> afterInitializeExecutionContextListener = Optional

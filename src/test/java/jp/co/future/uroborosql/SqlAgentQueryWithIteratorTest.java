@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class SqlAgentQueryWithIteratorTest {
 	private SqlConfig config;
@@ -37,7 +37,7 @@ public class SqlAgentQueryWithIteratorTest {
 		var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 				StandardCharsets.UTF_8).split(";");
 		for (var sql : sqls) {
-			if (StringUtils.isNotBlank(sql)) {
+			if (ObjectUtils.isNotBlank(sql)) {
 				agent.updateWith(sql.trim()).count();
 			}
 		}
@@ -57,7 +57,7 @@ public class SqlAgentQueryWithIteratorTest {
 				var parts = line.split("\t");
 				for (var part : parts) {
 					var keyValue = part.split(":", 2);
-					row.put(keyValue[0].toLowerCase(), StringUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
+					row.put(keyValue[0].toLowerCase(), ObjectUtils.isBlank(keyValue[1]) ? null : keyValue[1]);
 				}
 				ans.add(row);
 			});

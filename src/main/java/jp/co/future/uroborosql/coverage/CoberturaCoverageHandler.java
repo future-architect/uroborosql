@@ -36,7 +36,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Coberturaカバレッジレポート出力ハンドラ<br>
@@ -223,7 +223,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	 */
 	public CoberturaCoverageHandler() {
 		var s = System.getProperty(SqlAgent.KEY_SQL_COVERAGE + ".file");
-		if (StringUtils.isNotEmpty(s)) {
+		if (ObjectUtils.isNotEmpty(s)) {
 			this.reportPath = Paths.get(s);
 		} else {
 			this.reportPath = Paths.get("target", "coverage", "sql-cover.xml");
@@ -245,7 +245,7 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 
 	@Override
 	public synchronized void accept(final CoverageData coverageData) {
-		if (StringUtils.isEmpty(coverageData.getSqlName())) {
+		if (ObjectUtils.isEmpty(coverageData.getSqlName())) {
 			//SQL名の設定されていないSQLは集約しない
 			return;
 		}
@@ -257,8 +257,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			try {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
-			} catch (IOException e) {
-				COVERAGE_LOG.error(e.getMessage(), e);
+			} catch (IOException ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 				return;
 			}
 			map.put(coverageData.getMd5(), sqlCoverage);
@@ -272,8 +272,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 	public synchronized void onSqlAgentClose() {
 		try {
 			write();
-		} catch (Exception e) {
-			COVERAGE_LOG.error(e.getMessage(), e);
+		} catch (Exception ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 	}
 
@@ -282,8 +282,8 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				write();
-			} catch (Exception e) {
-				COVERAGE_LOG.error(e.getMessage(), e);
+			} catch (Exception ex) {
+				COVERAGE_LOG.error(ex.getMessage(), ex);
 			}
 		}));
 	}

@@ -10,6 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.SpelNode;
@@ -28,6 +30,9 @@ import jp.co.future.uroborosql.utils.SqlFunction;
  * @author H.Sugimoto
  */
 public class SpelExpressionParser extends AbstractExpressionParser {
+	/** パーサーロガー */
+	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
+
 	/** 評価式のパーサー */
 	private static final org.springframework.expression.ExpressionParser parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 
@@ -90,9 +95,9 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 			try {
 				var ctx = getEvaluationContext(context);
 				return expr.getValue(ctx);
-			} catch (EvaluationException e) {
+			} catch (EvaluationException ex) {
 				throw new ExpressionRuntimeException("Acquire an object failed.[" + expr.getExpressionString() + "]",
-						e);
+						ex);
 			}
 		}
 
@@ -134,8 +139,8 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 									.append(Objects.toString(value, null))
 									.append("],");
 						} catch (EvaluationException ex) {
-							// ダンプ処理でシステムが止まっては困るのでスタックトレースを出して握りつぶす
-							ex.printStackTrace();
+							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
+							PARSER_LOG.warn(ex.getMessage(), ex);
 						}
 					}
 				}

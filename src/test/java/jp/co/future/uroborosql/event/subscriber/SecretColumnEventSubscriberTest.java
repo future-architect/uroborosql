@@ -60,7 +60,7 @@ public class SecretColumnEventSubscriberTest extends AbstractDbTest {
 	void testExecuteQueryFilter() throws Exception {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
 
-		// skipFilter = falseの別のフィルター設定
+		// skipFilter = falseの別のイベントサブスクライバ設定
 		var skipConfig = UroboroSQL
 				.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "sa", "")
 				.build();

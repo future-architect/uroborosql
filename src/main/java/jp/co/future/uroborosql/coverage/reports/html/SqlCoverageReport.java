@@ -31,7 +31,7 @@ import jp.co.future.uroborosql.coverage.LineRange;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.coverage.Range;
 import jp.co.future.uroborosql.coverage.Ranges;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 class SqlCoverageReport {
 	/** カバレッジロガー. */
@@ -128,8 +128,8 @@ class SqlCoverageReport {
 
 				writeSuffix(writer);
 			}
-		} catch (IOException e) {
-			COVERAGE_LOG.error(e.getMessage(), e);
+		} catch (IOException ex) {
+			COVERAGE_LOG.error(ex.getMessage(), ex);
 		}
 		updated = false;
 	}
@@ -421,7 +421,7 @@ class SqlCoverageReport {
 	}
 
 	private String escapeHtml4(final String str) {
-		if (StringUtils.isEmpty(str)) {
+		if (ObjectUtils.isEmpty(str)) {
 			return "";
 		} else {
 			return str.replace("\"", "&quot;")

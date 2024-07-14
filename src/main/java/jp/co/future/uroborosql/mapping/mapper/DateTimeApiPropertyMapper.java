@@ -36,7 +36,7 @@ import java.util.Optional;
 
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.mapping.JavaType;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * Date and Time API用{@link PropertyMapper}
@@ -127,7 +127,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
-		} catch (NoSuchMethodException | SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException ex) {
 			return false;
 		}
 	}
@@ -141,7 +141,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Modifier.isStatic(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& method.getReturnType().equals(type);
-		} catch (NoSuchMethodException | SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException ex) {
 			return false;
 		}
 	}
@@ -213,8 +213,9 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			var value = getInt(rs, columnIndex);
 			try {
 				return rs.wasNull() ? null : (Era) rawType.getMethod("of", int.class).invoke(null, value);
-			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				throw new UroborosqlRuntimeException(e);
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException
+					| SecurityException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 
@@ -231,8 +232,8 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 						localDate.getMonthValue(),
 						localDate.getDayOfMonth());
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
-				throw new UroborosqlRuntimeException(e);
+					| NoSuchMethodException | SecurityException ex) {
+				throw new UroborosqlRuntimeException(ex);
 			}
 		}
 		throw new UroborosqlRuntimeException();
@@ -252,9 +253,9 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 		var columnType = rs.getMetaData().getColumnType(columnIndex);
 		if (isStringType(columnType)) {
 			var str = rs.getString(columnIndex);
-			if (StringUtils.isEmpty(str)) {
+			if (ObjectUtils.isEmpty(str)) {
 				return 0;
-			} else if (StringUtils.isNumeric(str)) {
+			} else if (ObjectUtils.isNumeric(str)) {
 				return Integer.parseInt(str);
 			} else {
 				throw new UroborosqlRuntimeException("Text '" + str + "' could not be parsed to integer.");
@@ -280,7 +281,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {
 						try {
-							if (StringUtils.isEmpty(str)) {
+							if (ObjectUtils.isEmpty(str)) {
 								return null;
 							} else if (str.length() == 8) { // yyyyMMdd
 								return LocalDate.parse(str, DateTimeFormatter.BASIC_ISO_DATE);
@@ -313,7 +314,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {
 						try {
-							if (StringUtils.isEmpty(str)) {
+							if (ObjectUtils.isEmpty(str)) {
 								return null;
 							} else if (str.contains("-") && str.contains(":")) { // yyyy-MM-ddTHH:mm:ss, yyyy-MM-ddTHH:mm:ss.S ~ yyyy-MM-ddTHH:mm:ss.SSSSSSSSS
 								return LocalDateTime.parse(str, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -352,7 +353,7 @@ public class DateTimeApiPropertyMapper implements PropertyMapper<TemporalAccesso
 			return Optional.ofNullable(rs.getString(columnIndex))
 					.map(str -> {
 						try {
-							if (StringUtils.isEmpty(str)) {
+							if (ObjectUtils.isEmpty(str)) {
 								return null;
 							} else if (str.contains(":")) { // HH:mm, HH:mm:ss, HH:mm:ss.S ~ HH:mm:ss.SSSSSSSSS
 								return LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);

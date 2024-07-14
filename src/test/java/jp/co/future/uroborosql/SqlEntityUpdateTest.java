@@ -378,6 +378,32 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 	}
 
 	/**
+	 * Entityを使った一括更新処理のテストケース。
+	 */
+	@Test
+	void testEntityUpdatesAndReturnWithEntityType() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteBatch.ltsv"));
+
+		agent.required(() -> {
+
+			List<Product> products = agent.query(Product.class).stream().map(p -> {
+				p.setProductName(p.getProductName() + "_new");
+				p.setProductKanaName(null);
+				return p;
+			}).collect(Collectors.toList());
+			List<Product> newProducts = agent.updatesAndReturn(Product.class, products.stream())
+					.collect(Collectors.toList());
+			assertThat(newProducts.size(), is(2));
+
+			assertThat(newProducts.get(0).getProductName(), is("商品名1_new"));
+			assertThat(newProducts.get(0).getProductKanaName(), nullValue());
+			assertThat(newProducts.get(1).getProductName(), is("商品名2_new"));
+			assertThat(newProducts.get(1).getProductKanaName(), nullValue());
+		});
+	}
+
+	/**
 	 * Entityを使った一括更新処理で楽観ロックエラーが発生するケース
 	 */
 	@Test

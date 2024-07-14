@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -17,7 +19,7 @@ import jp.co.future.uroborosql.dialect.Dialect;
 
 /**
  * 評価式内で利用するメソッドを提供するクラス.<br>
- * 評価式内で{@link StringUtils} の提供するメソッドを利用できるようにするためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供する.<br>
+ * 評価式内で{@link ObjectUtils} の提供するメソッドを利用できるようにするためにstaticメソッドをインスタンスメソッドとしてデリゲートし提供する.<br>
  *
  * 利用する際はstatic final なフィールドに格納するなどして複数のインスタンスを生成しないようにすること
  *
@@ -47,43 +49,85 @@ public final class SqlFunction {
 	}
 
 	/**
-	 * 対象文字列が空文字であること判定する
+	 * 指定したオブジェクトが空かどうかを判定する.<br>
+	 * 指定したオブジェクトがOptional型の場合、その中身を評価する.<br>
+	 * 以下の場合に空と判定する.
+	 * <ul>
+	 * <li>null</li>
+	 * <li>空文字</li>
+	 * <li>空配列</li>
+	 * <li>空Collection</li>
+	 * <li>空Map</li>
+	 * </ul>
 	 *
 	 * <pre>
-	 * isEmpty(null)      = true
-	 * isEmpty("")        = true
-	 * isEmpty(" ")       = false
-	 * isEmpty("bob")     = false
-	 * isEmpty("  bob  ") = false
+	 * isEmpty(null)                      = true
+	 * isEmpty("")                        = true
+	 * isEmpty(" ")                       = false
+	 * isEmpty("bob")                     = false
+	 * isEmpty("  bob  ")                 = false
+	 * isEmpty(new String[0])             = true
+	 * isEmpty(new String[]{ "a" })       = false
+	 * isEmpty(List.of())                 = true
+	 * isEmpty(List.of("aa"))             = false
+	 * isEmpty(Map.of())                  = true
+	 * isEmpty(Map.of("aa", "bb"))        = false
+	 * isEmpty(Optional.empty())          = true
+	 * isEmpty(Optional.of(List.of()))    = true
+	 * isEmpty(Optional.of(List.of("a"))) = false
 	 * </pre>
 	 *
-	 * @see StringUtils#isEmpty(CharSequence)
+	 * @see ObjectUtils#isEmpty(Object)
+	 * @see Optional#isEmpty()
+	 * @see Collection#isEmpty()
+	 * @see Map#isEmpty()
 	 *
 	 * @param obj 対象オブジェクト
-	 * @return null または 空文字の場合<code>true</code>
+	 * @return null / 空文字 / 空配列 / 空Collection / 空Map の場合<code>true</code>
 	 */
 	public boolean isEmpty(final Object obj) {
-		return StringUtils.isEmpty(getStringValue(obj, ""));
+		return ObjectUtils.isEmpty(obj);
 	}
 
 	/**
-	 * 対象文字列が空文字でないことを判定する
+	 * 指定したオブジェクトが空でないことを判定する.<br>
+	 * 指定したオブジェクトがOptional型の場合、その中身を評価する.<br>
+	 * 以下の場合に空と判定する.
+	 * <ul>
+	 * <li>null</li>
+	 * <li>空文字</li>
+	 * <li>空配列</li>
+	 * <li>空Collection</li>
+	 * <li>空Map</li>
+	 * </ul>
 	 *
 	 * <pre>
-	 * isNotEmpty(null)      = false
-	 * isNotEmpty("")        = false
-	 * isNotEmpty(" ")       = true
-	 * isNotEmpty("bob")     = true
-	 * isNotEmpty("  bob  ") = true
+	 * isEmpty(null)                      = false
+	 * isEmpty("")                        = false
+	 * isEmpty(" ")                       = true
+	 * isEmpty("bob")                     = true
+	 * isEmpty("  bob  ")                 = true
+	 * isEmpty(new String[0])             = false
+	 * isEmpty(new String[]{ "a" })       = true
+	 * isEmpty(List.of())                 = false
+	 * isEmpty(List.of("aa"))             = true
+	 * isEmpty(Map.of())                  = false
+	 * isEmpty(Map.of("aa", "bb"))        = true
+	 * isEmpty(Optional.empty())          = false
+	 * isEmpty(Optional.of(List.of()))    = false
+	 * isEmpty(Optional.of(List.of("a"))) = true
 	 * </pre>
 	 *
-	 * @see StringUtils#isNotEmpty(CharSequence)
+	 * @see ObjectUtils#isNotEmpty(Object)
+	 * @see Optional#isEmpty()
+	 * @see Collection#isEmpty()
+	 * @see Map#isEmpty()
 	 *
 	 * @param obj 対象オブジェクト
-	 * @return null、空文字のいずれでもない場合<code>true</code>
+	 * @return null / 空文字 / 空配列 / 空Collection / 空Map 以外の場合<code>true</code>
 	 */
 	public boolean isNotEmpty(final Object obj) {
-		return StringUtils.isNotEmpty(getStringValue(obj, ""));
+		return ObjectUtils.isNotEmpty(obj);
 	}
 
 	/**
@@ -97,13 +141,13 @@ public final class SqlFunction {
 	 * isBlank("  bob  ") = false
 	 * </pre>
 	 *
-	 * @see StringUtils#isBlank(CharSequence)
+	 * @see ObjectUtils#isBlank(CharSequence)
 	 *
 	 * @param obj 対象オブジェクト
 	 * @return null または 空文字もしくは空白の場合<code>true</code>
 	 */
 	public boolean isBlank(final Object obj) {
-		return StringUtils.isBlank(getStringValue(obj, ""));
+		return ObjectUtils.isBlank(getStringValue(obj, ""));
 	}
 
 	/**
@@ -117,13 +161,13 @@ public final class SqlFunction {
 	 * isNotBlank("  bob  ") = true
 	 * </pre>
 	 *
-	 * @see StringUtils#isNotBlank(CharSequence)
+	 * @see ObjectUtils#isNotBlank(CharSequence)
 	 *
 	 * @param obj 対象オブジェクト
 	 * @return null、空文字、空白のいずれでもない場合<code>true</code>
 	 */
 	public boolean isNotBlank(final Object obj) {
-		return StringUtils.isNotBlank(getStringValue(obj, ""));
+		return ObjectUtils.isNotBlank(getStringValue(obj, ""));
 	}
 
 	/**
@@ -137,13 +181,13 @@ public final class SqlFunction {
 	 * trim("    abc    ") = "abc"
 	 * </pre>
 	 *
-	 * @see StringUtils#trim(String)
+	 * @see ObjectUtils#trim(String)
 	 *
 	 * @param obj トリムする文字列を表すオブジェクト
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は<code>null</code>
 	 */
 	public String trim(final Object obj) {
-		return StringUtils.trim(getStringValue(obj));
+		return ObjectUtils.trim(getStringValue(obj));
 	}
 
 	/**
@@ -158,13 +202,13 @@ public final class SqlFunction {
 	 * trimToEmpty("    abc    ") = "abc"
 	 * </pre>
 	 *
-	 * @see StringUtils#trimToEmpty(String)
+	 * @see ObjectUtils#trimToEmpty(String)
 	 *
 	 * @param obj トリムする文字列を表すオブジェクト
 	 * @return トリム後の文字列。入力が<code>null</code>の場合は空文字となる
 	 */
 	public String trimToEmpty(final Object obj) {
-		return StringUtils.trimToEmpty(getStringValue(obj));
+		return ObjectUtils.trimToEmpty(getStringValue(obj));
 	}
 
 	/**
@@ -179,14 +223,14 @@ public final class SqlFunction {
 	 * left("abc", 4)   = "abc"
 	 * </pre>
 	 *
-	 * @see StringUtils#left(String, int)
+	 * @see ObjectUtils#left(String, int)
 	 *
 	 * @param obj 対象文字列を表すオブジェクト
 	 * @param len 文字数
 	 * @return 文字列の先頭から文字数で指定した長さの文字列
 	 */
 	public String left(final Object obj, final int len) {
-		return StringUtils.left(getStringValue(obj), len);
+		return ObjectUtils.left(getStringValue(obj), len);
 	}
 
 	/**
@@ -201,14 +245,14 @@ public final class SqlFunction {
 	 * right("abc", 4)   = "abc"
 	 * </pre>
 	 *
-	 * @see StringUtils#right(String, int)
+	 * @see ObjectUtils#right(String, int)
 	 *
 	 * @param obj 対象文字列を表すオブジェクト
 	 * @param len 文字数
 	 * @return 文字列の最後から文字数で指定した長さの文字列
 	 */
 	public String right(final Object obj, final int len) {
-		return StringUtils.right(getStringValue(obj), len);
+		return ObjectUtils.right(getStringValue(obj), len);
 	}
 
 	/**
@@ -225,7 +269,7 @@ public final class SqlFunction {
 	 * mid("abc", -2, 2)  = "ab"
 	 * </pre>
 	 *
-	 * @see StringUtils#mid(String, int, int)
+	 * @see ObjectUtils#mid(String, int, int)
 	 *
 	 * @param obj 対象文字列を表すオブジェクト
 	 * @param pos 開始位置
@@ -233,7 +277,7 @@ public final class SqlFunction {
 	 * @return 文字列の開始位置から文字数で指定した長さの文字列
 	 */
 	public String mid(final Object obj, final int pos, final int len) {
-		return StringUtils.mid(getStringValue(obj), pos, len);
+		return ObjectUtils.mid(getStringValue(obj), pos, len);
 	}
 
 	/**
@@ -248,14 +292,14 @@ public final class SqlFunction {
 	 * rightPad("bat", -1) = "bat"
 	 * </pre>
 	 *
-	 * @see StringUtils#rightPad(String, int)
+	 * @see ObjectUtils#rightPad(String, int)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @return 指定した長さになるまで末尾に空白を埋めた文字列
 	 */
 	public String rightPad(final Object obj, final int size) {
-		return StringUtils.rightPad(getStringValue(obj), size);
+		return ObjectUtils.rightPad(getStringValue(obj), size);
 	}
 
 	/**
@@ -270,7 +314,7 @@ public final class SqlFunction {
 	 * rightPad("bat", -1, 'z') = "bat"
 	 * </pre>
 	 *
-	 * @see StringUtils#rightPad(String, int, char)
+	 * @see ObjectUtils#rightPad(String, int, char)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
@@ -278,7 +322,7 @@ public final class SqlFunction {
 	 * @return 指定した長さになるまで末尾に埋め込み文字を埋めた文字列
 	 */
 	public String rightPad(final Object obj, final int size, final char padChar) {
-		return StringUtils.rightPad(getStringValue(obj), size, padChar);
+		return ObjectUtils.rightPad(getStringValue(obj), size, padChar);
 	}
 
 	/**
@@ -293,14 +337,14 @@ public final class SqlFunction {
 	 * leftPad("bat", -1) = "bat"
 	 * </pre>
 	 *
-	 * @see StringUtils#leftPad(String, int)
+	 * @see ObjectUtils#leftPad(String, int)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
 	 * @return 指定した長さになるまで先頭に空白を埋めた文字列
 	 */
 	public String leftPad(final Object obj, final int size) {
-		return StringUtils.leftPad(getStringValue(obj), size);
+		return ObjectUtils.leftPad(getStringValue(obj), size);
 	}
 
 	/**
@@ -315,7 +359,7 @@ public final class SqlFunction {
 	 * leftPad("bat", -1, 'z') = "bat"
 	 * </pre>
 	 *
-	 * @see StringUtils#leftPad(String, int, char)
+	 * @see ObjectUtils#leftPad(String, int, char)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @param size 文字埋め後の長さ
@@ -323,7 +367,7 @@ public final class SqlFunction {
 	 * @return 指定した長さになるまで末尾に埋め込み文字を埋めた文字列
 	 */
 	public String leftPad(final Object obj, final int size, final char padChar) {
-		return StringUtils.leftPad(getStringValue(obj), size, padChar);
+		return ObjectUtils.leftPad(getStringValue(obj), size, padChar);
 	}
 
 	/**
@@ -339,13 +383,13 @@ public final class SqlFunction {
 	 * split(" abc ")    = ["abc"]
 	 * </pre>
 	 *
-	 * @see StringUtils#split(String)
+	 * @see ObjectUtils#split(String)
 	 *
 	 * @param obj  変換元文字列を表すオブジェクト または {@code null}
 	 * @return 空白で区切った文字列配列
 	 */
 	public String[] split(final Object obj) {
-		return StringUtils.split(getStringValue(obj));
+		return ObjectUtils.split(getStringValue(obj));
 	}
 
 	/**
@@ -361,14 +405,14 @@ public final class SqlFunction {
 	 * split("a b c", ' ')    = ["a", "b", "c"]
 	 * </pre>
 	 *
-	 * @see StringUtils#split(String, char)
+	 * @see ObjectUtils#split(String, char)
 	 *
 	 * @param obj 変換元文字列を表すオブジェクト または {@code null}
 	 * @param separatorChar 区切り文字
 	 * @return 区切り文字で区切った文字列配列
 	 */
 	public String[] split(final Object obj, final char separatorChar) {
-		return StringUtils.split(getStringValue(obj), separatorChar);
+		return ObjectUtils.split(getStringValue(obj), separatorChar);
 	}
 
 	/**
@@ -384,7 +428,7 @@ public final class SqlFunction {
 	 * split("ab:cd:ef", ":", 2)    = ["ab", "cd:ef"]
 	 * </pre>
 	 *
-	 * @see StringUtils#split(String, String, int)
+	 * @see ObjectUtils#split(String, String, int)
 	 *
 	 * @param obj 変換元文字列を表すオブジェクト または {@code null}
 	 * @param separatorChars 区切り文字
@@ -392,7 +436,7 @@ public final class SqlFunction {
 	 * @return 区切り文字で区切った文字列配列
 	 */
 	public String[] split(final Object obj, final String separatorChars, final int max) {
-		return StringUtils.split(getStringValue(obj), separatorChars, max);
+		return ObjectUtils.split(getStringValue(obj), separatorChars, max);
 	}
 
 	/**
@@ -405,14 +449,14 @@ public final class SqlFunction {
 	 * capitalize("cAt") = "CAt"
 	 * </pre>
 	 *
-	 * @see StringUtils#capitalize(String)
+	 * @see ObjectUtils#capitalize(String)
 	 * @see #uncapitalize(Object)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を大文字にした文字列
 	 */
 	public String capitalize(final Object obj) {
-		return StringUtils.capitalize(getStringValue(obj));
+		return ObjectUtils.capitalize(getStringValue(obj));
 	}
 
 	/**
@@ -425,14 +469,14 @@ public final class SqlFunction {
 	 * uncapitalize("CAT") = "cAT"
 	 * </pre>
 	 *
-	 * @see StringUtils#uncapitalize(String)
+	 * @see ObjectUtils#uncapitalize(String)
 	 * @see #capitalize(Object)
 	 *
 	 * @param obj 文字列を表すオブジェクト
 	 * @return 先頭を小文字にした文字列
 	 */
 	public String uncapitalize(final Object obj) {
-		return StringUtils.uncapitalize(getStringValue(obj));
+		return ObjectUtils.uncapitalize(getStringValue(obj));
 	}
 
 	/**
@@ -455,7 +499,7 @@ public final class SqlFunction {
 			throw new IllegalStateException("dialect is not set.");
 		}
 		CharSequence val = getStringValue(obj);
-		if (StringUtils.isEmpty(val)) {
+		if (ObjectUtils.isEmpty(val)) {
 			return "%";
 		} else {
 			return dialect.escapeLikePattern(val) + "%";
@@ -482,7 +526,7 @@ public final class SqlFunction {
 			throw new IllegalStateException("dialect is not set.");
 		}
 		CharSequence val = getStringValue(obj);
-		if (StringUtils.isEmpty(val)) {
+		if (ObjectUtils.isEmpty(val)) {
 			return "%";
 		} else {
 			return "%" + dialect.escapeLikePattern(val) + "%";
@@ -509,7 +553,7 @@ public final class SqlFunction {
 			throw new IllegalStateException("dialect is not set.");
 		}
 		CharSequence val = getStringValue(obj);
-		if (StringUtils.isEmpty(val)) {
+		if (ObjectUtils.isEmpty(val)) {
 			return "%";
 		} else {
 			return "%" + dialect.escapeLikePattern(val);

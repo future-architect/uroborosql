@@ -33,15 +33,16 @@ import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.event.SqlQueryEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
-import jp.co.future.uroborosql.utils.StringUtils;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
- * 特定のカラムの読み書きに対して暗号化/復号化を行うSQLフィルターの抽象クラス.
+ * 特定のカラムの読み書きに対して暗号化/復号化を行うイベントサブスクライバの抽象クラス.
  *
  * 登録、更新時はパラメータを暗号化 検索時は検索結果を復号化する
  *
  * @param <T> SecretColumnEventSubscriberの具象型
  * @author H.Sugimoto
+ * @since v1.0.0
  *
  */
 public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscriber {
@@ -113,7 +114,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 
 		KeyStore store;
 		try {
-			if (StringUtils.isBlank(getKeyStoreFilePath())) {
+			if (ObjectUtils.isBlank(getKeyStoreFilePath())) {
 				SETTING_LOG.error("Invalid KeyStore file path. Path:{}", getKeyStoreFilePath());
 				setSkip(true);
 				return;
@@ -129,12 +130,12 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 				setSkip(true);
 				return;
 			}
-			if (StringUtils.isBlank(getStorePassword())) {
+			if (ObjectUtils.isBlank(getStorePassword())) {
 				SETTING_LOG.error("Invalid password for access KeyStore.");
 				setSkip(true);
 				return;
 			}
-			if (StringUtils.isBlank(getAlias())) {
+			if (ObjectUtils.isBlank(getAlias())) {
 				SETTING_LOG.error("No alias for access KeyStore.");
 				setSkip(true);
 				return;
@@ -186,7 +187,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 					} else {
 						objStr = obj.toString();
 					}
-					if (StringUtils.isNotEmpty(objStr)) {
+					if (ObjectUtils.isNotEmpty(objStr)) {
 						try {
 							synchronized (encryptCipher) {
 								evt.setParameter(
@@ -262,7 +263,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			}
 
 			var secretStr = secret.toString();
-			if (StringUtils.isNotEmpty(secretStr)) {
+			if (ObjectUtils.isNotEmpty(secretStr)) {
 				synchronized (cipher) {
 					try {
 						return decrypt(cipher, secretKey, secretStr);
