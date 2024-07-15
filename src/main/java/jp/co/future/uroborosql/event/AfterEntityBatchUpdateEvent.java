@@ -53,7 +53,6 @@ public class AfterEntityBatchUpdateEvent extends ExecutionEvent {
 	/**
 	 * EntityType の取得.
 	 * @return entityType
-	 * @return
 	 */
 	public Class<?> getEntityType() {
 		return entityType;

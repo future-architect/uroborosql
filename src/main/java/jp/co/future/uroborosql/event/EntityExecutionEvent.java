@@ -46,7 +46,6 @@ public abstract class EntityExecutionEvent extends ExecutionEvent {
 	/**
 	 * EntityType の取得.
 	 * @return entityType
-	 * @return
 	 */
 	public Class<?> getEntityType() {
 		return entityType;

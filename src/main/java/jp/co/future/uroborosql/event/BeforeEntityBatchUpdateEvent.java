@@ -48,7 +48,7 @@ public class BeforeEntityBatchUpdateEvent extends ExecutionEvent {
 
 	/**
 	 * Entity の設定.
-	 * @param entity
+	 * @param entity Entity
 	 * @deprecated use inner logic only
 	 */
 	@Deprecated
@@ -59,7 +59,6 @@ public class BeforeEntityBatchUpdateEvent extends ExecutionEvent {
 	/**
 	 * EntityType の取得.
 	 * @return entityType
-	 * @return
 	 */
 	public Class<?> getEntityType() {
 		return entityType;

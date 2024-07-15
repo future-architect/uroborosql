@@ -56,7 +56,7 @@ public class BeforeEntityBulkInsertEvent extends ExecutionEvent {
 
 	/**
 	 * Entity の設定.
-	 * @param entity
+	 * @param entity Entity
 	 * @deprecated use inner logic only
 	 */
 	@Deprecated
@@ -67,7 +67,6 @@ public class BeforeEntityBulkInsertEvent extends ExecutionEvent {
 	/**
 	 * EntityType の取得.
 	 * @return entityType
-	 * @return
 	 */
 	public Class<?> getEntityType() {
 		return entityType;
@@ -83,7 +82,7 @@ public class BeforeEntityBulkInsertEvent extends ExecutionEvent {
 
 	/**
 	 * Bulk frame count の設定.
-	 * @param Bulk frame count
+	 * @param frameCount Bulk frame count
 	 * @deprecated use inner logic only
 	 */
 	@Deprecated
