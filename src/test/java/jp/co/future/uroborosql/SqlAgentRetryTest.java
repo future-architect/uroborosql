@@ -723,25 +723,25 @@ public class SqlAgentRetryTest {
 		 */
 		@Override
 		public void initialize() {
-			sqlQueryListener(evt -> {
+			afterSqlQueryListener(evt -> {
 				if (retryCount > currentCount++) {
 					evt.getPreparedStatement().getConnection().rollback();
 					throw new SQLException("Test Retry Exception", sqlState, errorCode);
 				}
 			});
-			sqlUpdateListener(evt -> {
+			afterSqlUpdateListener(evt -> {
 				if (retryCount > currentCount++) {
 					evt.getPreparedStatement().getConnection().rollback();
 					throw new SQLException("Test Retry Exception", sqlState, errorCode);
 				}
 			});
-			sqlBatchListener(evt -> {
+			afterSqlBatchListener(evt -> {
 				if (retryCount > currentCount++) {
 					evt.getPreparedStatement().getConnection().rollback();
 					throw new SQLException("Test Retry Exception", sqlState, errorCode);
 				}
 			});
-			procedureListener(evt -> {
+			afterProcedureListener(evt -> {
 				if (retryCount > currentCount++) {
 					evt.getCallableStatement().getConnection().rollback();
 					throw new SQLException("Test Retry Exception", sqlState, errorCode);

@@ -14,7 +14,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class TransformSqlEvent extends ExecutionEvent {
+public class BeforeTransformSqlEvent extends ExecutionEvent {
 	/** 変換前SQL. */
 	private String sql;
 
@@ -24,7 +24,7 @@ public class TransformSqlEvent extends ExecutionEvent {
 	 * @param executionContext ExecutionContext
 	 * @param sql 変換前SQL
 	 */
-	public TransformSqlEvent(final ExecutionContext executionContext, final String sql) {
+	public BeforeTransformSqlEvent(final ExecutionContext executionContext, final String sql) {
 		super(executionContext);
 		this.sql = sql;
 	}

@@ -67,11 +67,11 @@ import jp.co.future.uroborosql.event.BeforeEntityInsertEvent;
 import jp.co.future.uroborosql.event.BeforeEntityQueryEvent;
 import jp.co.future.uroborosql.event.BeforeEntityUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
-import jp.co.future.uroborosql.event.ProcedureEvent;
-import jp.co.future.uroborosql.event.SqlBatchEvent;
-import jp.co.future.uroborosql.event.SqlQueryEvent;
-import jp.co.future.uroborosql.event.SqlUpdateEvent;
-import jp.co.future.uroborosql.event.TransformSqlEvent;
+import jp.co.future.uroborosql.event.AfterProcedureEvent;
+import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
+import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
 import jp.co.future.uroborosql.exception.PessimisticLockException;
@@ -1398,9 +1398,9 @@ public class SqlAgentImpl implements SqlAgent {
 						}
 						rs = stmt.executeQuery();
 						// Query実行後イベント発行
-						if (getSqlConfig().getEventListenerHolder().hasSqlQueryListener()) {
-							var eventObj = new SqlQueryEvent(executionContext, rs, stmt.getConnection(), stmt);
-							for (var listener : getSqlConfig().getEventListenerHolder().getSqlQueryListeners()) {
+						if (getSqlConfig().getEventListenerHolder().hasAfterSqlQueryListener()) {
+							var eventObj = new AfterSqlQueryEvent(executionContext, rs, stmt.getConnection(), stmt);
+							for (var listener : getSqlConfig().getEventListenerHolder().getAfterSqlQueryListeners()) {
 								listener.accept(eventObj);
 							}
 							rs = eventObj.getResultSet();
@@ -1561,9 +1561,9 @@ public class SqlAgentImpl implements SqlAgent {
 					}
 					var count = stmt.executeUpdate();
 					// Update実行後イベント発行
-					if (getSqlConfig().getEventListenerHolder().hasSqlUpdateListener()) {
-						var eventObj = new SqlUpdateEvent(executionContext, count, stmt.getConnection(), stmt);
-						for (var listener : getSqlConfig().getEventListenerHolder().getSqlUpdateListeners()) {
+					if (getSqlConfig().getEventListenerHolder().hasAfterSqlUpdateListener()) {
+						var eventObj = new AfterSqlUpdateEvent(executionContext, count, stmt.getConnection(), stmt);
+						for (var listener : getSqlConfig().getEventListenerHolder().getAfterSqlUpdateListeners()) {
 							listener.accept(eventObj);
 						}
 						count = eventObj.getCount();
@@ -1690,9 +1690,9 @@ public class SqlAgentImpl implements SqlAgent {
 					}
 					var counts = stmt.executeBatch();
 					// Batch実行後イベント発行
-					if (getSqlConfig().getEventListenerHolder().hasSqlBatchListener()) {
-						var eventObj = new SqlBatchEvent(executionContext, counts, stmt.getConnection(), stmt);
-						for (var listener : getSqlConfig().getEventListenerHolder().getSqlBatchListeners()) {
+					if (getSqlConfig().getEventListenerHolder().hasAfterSqlBatchListener()) {
+						var eventObj = new AfterSqlBatchEvent(executionContext, counts, stmt.getConnection(), stmt);
+						for (var listener : getSqlConfig().getEventListenerHolder().getAfterSqlBatchListeners()) {
 							listener.accept(eventObj);
 						}
 						counts = eventObj.getCounts();
@@ -1815,10 +1815,10 @@ public class SqlAgentImpl implements SqlAgent {
 					}
 					var result = callableStatement.execute();
 					// Procedure実行後イベント発行
-					if (getSqlConfig().getEventListenerHolder().hasProcedureListener()) {
-						var eventObj = new ProcedureEvent(executionContext, result, callableStatement.getConnection(),
+					if (getSqlConfig().getEventListenerHolder().hasAfterProcedureListener()) {
+						var eventObj = new AfterProcedureEvent(executionContext, result, callableStatement.getConnection(),
 								callableStatement);
-						for (var listener : getSqlConfig().getEventListenerHolder().getProcedureListeners()) {
+						for (var listener : getSqlConfig().getEventListenerHolder().getAfterProcedureListeners()) {
 							listener.accept(eventObj);
 						}
 						result = eventObj.isResult();
@@ -1910,9 +1910,9 @@ public class SqlAgentImpl implements SqlAgent {
 		}
 
 		// SQL変換前イベント発行
-		if (getSqlConfig().getEventListenerHolder().hasTransformSqlListener()) {
-			var eventObj = new TransformSqlEvent(executionContext, originalSql);
-			getSqlConfig().getEventListenerHolder().getTransformSqlListeners()
+		if (getSqlConfig().getEventListenerHolder().hasBeforeTransformSqlListener()) {
+			var eventObj = new BeforeTransformSqlEvent(executionContext, originalSql);
+			getSqlConfig().getEventListenerHolder().getBeforeTransformSqlListeners()
 					.forEach(listener -> listener.accept(eventObj));
 			originalSql = eventObj.getSql();
 		}

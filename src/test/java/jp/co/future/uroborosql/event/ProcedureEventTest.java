@@ -39,7 +39,7 @@ public class ProcedureEventTest extends AbstractDbTest {
 			public void initialize() {
 				afterGetOutParameterListener(this::afterGetOutParameter);
 				afterCreateCallableStatementListener(this::afterCreateCallableStatement);
-				procedureListener(this::procedure);
+				afterProcedureListener(this::afterProcedure);
 			}
 
 			void afterGetOutParameter(final AfterGetOutParameterEvent event) {
@@ -56,7 +56,7 @@ public class ProcedureEventTest extends AbstractDbTest {
 				assertThat(event.getCallableStatement(), not(nullValue()));
 			}
 
-			void procedure(final ProcedureEvent event) {
+			void afterProcedure(final AfterProcedureEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 				assertThat(event.getCallableStatement(), not(nullValue()));

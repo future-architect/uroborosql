@@ -13,6 +13,7 @@ import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlBatch;
 import jp.co.future.uroborosql.fluent.TriConsumer;
@@ -56,6 +57,7 @@ final class SqlBatchImpl extends AbstractSqlFluent<SqlBatch> implements SqlBatch
 	 */
 	SqlBatchImpl(final SqlAgent agent, final ExecutionContext context) {
 		super(agent, context);
+		context.setSqlKind(SqlKind.BATCH_INSERT);
 	}
 
 	/**

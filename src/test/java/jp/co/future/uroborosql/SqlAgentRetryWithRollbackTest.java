@@ -309,8 +309,6 @@ public class SqlAgentRetryWithRollbackTest {
 		private int retryCount = 0;
 		private int currentCount = 0;
 		private int errorCode = -1;
-		@SuppressWarnings("unused")
-		private String sqlState = "";
 
 		public RetryEventSubscriber(final int retryCount, final int errorCode) {
 			this(retryCount, errorCode, "23000");
@@ -320,7 +318,6 @@ public class SqlAgentRetryWithRollbackTest {
 			this.retryCount = retryCount;
 			this.currentCount = 0;
 			this.errorCode = errorCode;
-			this.sqlState = sqlState;
 		}
 
 		/**
@@ -331,25 +328,25 @@ public class SqlAgentRetryWithRollbackTest {
 		 */
 		@Override
 		public void initialize() {
-			sqlQueryListener(evt -> {
+			afterSqlQueryListener(evt -> {
 				if (retryCount > currentCount++) {
 					//				preparedStatement.getConnection().rollback();
 					throw new SQLException("Test Retry Exception", "23000", errorCode);
 				}
 			});
-			sqlUpdateListener(evt -> {
+			afterSqlUpdateListener(evt -> {
 				if (retryCount > currentCount++) {
 					//				preparedStatement.getConnection().rollback();
 					throw new SQLException("Test Retry Exception", "23000", errorCode);
 				}
 			});
-			sqlBatchListener(evt -> {
+			afterSqlBatchListener(evt -> {
 				if (retryCount > currentCount++) {
 					//				preparedStatement.getConnection().rollback();
 					throw new SQLException("Test Retry Exception", "23000", errorCode);
 				}
 			});
-			procedureListener(evt -> {
+			afterProcedureListener(evt -> {
 				if (retryCount > currentCount++) {
 					//				callableStatement.getConnection().rollback();
 					throw new SQLException("Test Retry Exception", "23000", errorCode);

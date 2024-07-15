@@ -15,9 +15,9 @@ import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
 import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
-import jp.co.future.uroborosql.event.SqlBatchEvent;
-import jp.co.future.uroborosql.event.SqlQueryEvent;
-import jp.co.future.uroborosql.event.SqlUpdateEvent;
+import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 
 /**
  * デバッグログを出力するEventSubscriber
@@ -35,9 +35,9 @@ public class DebugEventSubscriber extends EventSubscriber {
 		beforeEndTransactionListener(this::beforeEndTransaction);
 		beforeSetParameterListener(this::beforeSetParameter);
 		afterGetOutParameterListener(this::afterGetOutParameter);
-		sqlQueryListener(this::sqlQuery);
-		sqlUpdateListener(this::sqlUpdate);
-		sqlBatchListener(this::sqlBatch);
+		afterSqlQueryListener(this::afterSqlQuery);
+		afterSqlUpdateListener(this::afterSqlUpdate);
+		afterSqlBatchListener(this::afterSqlBatch);
 	}
 
 	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
@@ -83,21 +83,21 @@ public class DebugEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void sqlQuery(final SqlQueryEvent evt) {
+	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		if (EVENT_LOG.isDebugEnabled()) {
 			EVENT_LOG.debug("Execute Query - sqlName:{} executed.", evt.getExecutionContext().getSqlName());
 			EVENT_LOG.trace("Execute Query sql:{}", evt.getPreparedStatement());
 		}
 	}
 
-	void sqlUpdate(final SqlUpdateEvent evt) {
+	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
 		if (EVENT_LOG.isDebugEnabled()) {
 			EVENT_LOG.debug("Execute Update - sqlName:{} executed. Count:{} items.",
 					evt.getExecutionContext().getSqlName(), evt.getCount());
 		}
 	}
 
-	void sqlBatch(final SqlBatchEvent evt) {
+	void afterSqlBatch(final AfterSqlBatchEvent evt) {
 		if (EVENT_LOG.isDebugEnabled()) {
 			var counts = evt.getCounts();
 			try {

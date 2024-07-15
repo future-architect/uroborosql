@@ -17,7 +17,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class ProcedureEvent extends ExecutionEvent {
+public class AfterProcedureEvent extends ExecutionEvent {
 	/** 実行結果. 最初の結果がResultSetオブジェクトの場合はtrue。更新カウントであるか、または結果がない場合はfalse. */
 	private final boolean result;
 
@@ -35,7 +35,7 @@ public class ProcedureEvent extends ExecutionEvent {
 	 * @param connection Connection
 	 * @param callableStatement CallableStatement
 	 */
-	public ProcedureEvent(final ExecutionContext executionContext,
+	public AfterProcedureEvent(final ExecutionContext executionContext,
 			final boolean result,
 			final Connection connection,
 			final CallableStatement callableStatement) {

@@ -7,7 +7,7 @@ import jp.co.future.uroborosql.mapping.annotations.Version;
 
 @Table(name = "PRODUCT")
 public class Product {
-	private int productId;
+	private Integer productId;
 	private String productName;
 	private String productKanaName;
 	private String janCode;
@@ -15,14 +15,19 @@ public class Product {
 	private Date insDatetime;
 	private Date updDatetime;
 	@Version
-	private int versionNo;
+	private Integer versionNo;
 
 	public Product() {
 	}
 
-	public Product(final int productId, final String productName, final String productKanaName,
+	public Product(final Integer productId,
+			final String productName,
+			final String productKanaName,
 			final String janCode,
-			final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
+			final String productDescription,
+			final Date insDatetime,
+			final Date updDatetime,
+			final Integer versionNo) {
 		this.productId = productId;
 		this.productName = productName;
 		this.productKanaName = productKanaName;
@@ -33,11 +38,11 @@ public class Product {
 		this.versionNo = versionNo;
 	}
 
-	public int getProductId() {
+	public Integer getProductId() {
 		return productId;
 	}
 
-	public void setProductId(final int productId) {
+	public void setProductId(final Integer productId) {
 		this.productId = productId;
 	}
 
@@ -89,11 +94,11 @@ public class Product {
 		this.updDatetime = updDatetime;
 	}
 
-	public int getVersionNo() {
+	public Integer getVersionNo() {
 		return versionNo;
 	}
 
-	public void setVersionNo(final int versionNo) {
+	public void setVersionNo(final Integer versionNo) {
 		this.versionNo = versionNo;
 	}
 }

@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
-import jp.co.future.uroborosql.event.SqlBatchEvent;
-import jp.co.future.uroborosql.event.SqlQueryEvent;
-import jp.co.future.uroborosql.event.SqlUpdateEvent;
+import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 
 /**
  * 監査用ログを出力するイベントサブスクライバ
@@ -54,12 +54,12 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 	 */
 	@Override
 	public void initialize() {
-		sqlQueryListener(this::sqlQuery);
-		sqlUpdateListener(this::sqlUpdate);
-		sqlBatchListener(this::sqlBatch);
+		afterSqlQueryListener(this::afterSqlQuery);
+		afterSqlUpdateListener(this::afterSqlUpdate);
+		afterSqlBatchListener(this::afterSqlBatch);
 	}
 
-	void sqlQuery(final SqlQueryEvent evt) {
+	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		var resultSet = evt.getResultSet();
 		// カウント初期値
 		var rowCount = -1;
@@ -98,7 +98,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void sqlUpdate(final SqlUpdateEvent evt) {
+	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時
@@ -121,7 +121,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		}
 	}
 
-	void sqlBatch(final SqlBatchEvent evt) {
+	void afterSqlBatch(final AfterSqlBatchEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey);
 		if (userName == null) {
 			// ユーザ名が設定されていない時

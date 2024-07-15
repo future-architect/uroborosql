@@ -22,7 +22,11 @@ import jp.co.future.uroborosql.event.AfterEntityQueryEvent;
 import jp.co.future.uroborosql.event.AfterEntityUpdateEvent;
 import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
 import jp.co.future.uroborosql.event.AfterInitializeExecutionContextEvent;
+import jp.co.future.uroborosql.event.AfterProcedureEvent;
 import jp.co.future.uroborosql.event.AfterRollbackEvent;
+import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeCommitEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.event.BeforeEntityBatchInsertEvent;
@@ -35,13 +39,9 @@ import jp.co.future.uroborosql.event.BeforeEntityUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.BeforeRollbackEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
+import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
 import jp.co.future.uroborosql.event.EventListenerHolder;
 import jp.co.future.uroborosql.event.ExecutionConsumer;
-import jp.co.future.uroborosql.event.ProcedureEvent;
-import jp.co.future.uroborosql.event.SqlBatchEvent;
-import jp.co.future.uroborosql.event.SqlQueryEvent;
-import jp.co.future.uroborosql.event.SqlUpdateEvent;
-import jp.co.future.uroborosql.event.TransformSqlEvent;
 
 /**
  * イベントサブスクライバ抽象親クラス
@@ -55,8 +55,8 @@ public abstract class EventSubscriber {
 			.empty();
 	/** パラメータ設定前イベントリスナ. */
 	private Optional<Consumer<BeforeSetParameterEvent>> beforeSetParameterListener = Optional.empty();
-	/** SQL変換イベントリスナ. */
-	private Optional<Consumer<TransformSqlEvent>> transformSqlListener = Optional.empty();
+	/** SQL変換前イベントリスナ. */
+	private Optional<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListener = Optional.empty();
 	/** SQLパース前イベントリスナ. */
 	private Optional<Consumer<BeforeParseSqlEvent>> beforeParseSqlListener = Optional.empty();
 	/** 出力パラメータ取得後イベントリスナ. */
@@ -68,13 +68,13 @@ public abstract class EventSubscriber {
 	private Optional<ExecutionConsumer<AfterCreateCallableStatementEvent>> afterCreateCallableStatementListener = Optional
 			.empty();
 	/** SQLQuery実行後イベントリスナ. */
-	private Optional<ExecutionConsumer<SqlQueryEvent>> sqlQueryListener = Optional.empty();
+	private Optional<ExecutionConsumer<AfterSqlQueryEvent>> afterSqlQueryListener = Optional.empty();
 	/** SQLUpdate実行後イベントリスナ. */
-	private Optional<ExecutionConsumer<SqlUpdateEvent>> sqlUpdateListener = Optional.empty();
+	private Optional<ExecutionConsumer<AfterSqlUpdateEvent>> afterSqlUpdateListener = Optional.empty();
 	/** SQLBatch実行後イベントリスナ. */
-	private Optional<ExecutionConsumer<SqlBatchEvent>> sqlBatchListener = Optional.empty();
+	private Optional<ExecutionConsumer<AfterSqlBatchEvent>> afterSqlBatchListener = Optional.empty();
 	/** Procedure実行後イベントリスナ. */
-	private Optional<ExecutionConsumer<ProcedureEvent>> procedureListener = Optional.empty();
+	private Optional<ExecutionConsumer<AfterProcedureEvent>> afterProcedureListener = Optional.empty();
 	/** EntityQuery実行前イベントリスナ. */
 	private Optional<ExecutionConsumer<BeforeEntityQueryEvent>> beforeEntityQueryListener = Optional.empty();
 	/** EntityQuery実行後イベントリスナ. */
@@ -136,9 +136,9 @@ public abstract class EventSubscriber {
 		/** パラメータ設定前イベントリスナ. */
 		beforeSetParameterListener()
 				.ifPresent(listener -> eventListenerHolder.addBeforeSetParameterListener(listener));
-		/** SQL変換イベントリスナ. */
-		transformSqlListener()
-				.ifPresent(listener -> eventListenerHolder.addTransformSqlListener(listener));
+		/** SQL変換前イベントリスナ. */
+		beforeTransformSqlListener()
+				.ifPresent(listener -> eventListenerHolder.addBeforeTransformSqlListener(listener));
 		/** SQLパース前イベントリスナ. */
 		beforeParseSqlListener()
 				.ifPresent(listener -> eventListenerHolder.addBeforeParseSqlListener(listener));
@@ -152,17 +152,17 @@ public abstract class EventSubscriber {
 		afterCreateCallableStatementListener()
 				.ifPresent(listener -> eventListenerHolder.addAfterCreateCallableStatementListener(listener));
 		/** SQLQuery実行後イベントリスナ. */
-		sqlQueryListener()
-				.ifPresent(listener -> eventListenerHolder.addSqlQueryListener(listener));
+		afterSqlQueryListener()
+				.ifPresent(listener -> eventListenerHolder.addAfterSqlQueryListener(listener));
 		/** SQLUpdate実行後イベントリスナ. */
-		sqlUpdateListener()
-				.ifPresent(listener -> eventListenerHolder.addSqlUpdateListener(listener));
+		afterSqlUpdateListener()
+				.ifPresent(listener -> eventListenerHolder.addAfterSqlUpdateListener(listener));
 		/** SQLBatch実行後イベントリスナ. */
-		sqlBatchListener()
-				.ifPresent(listener -> eventListenerHolder.addSqlBatchListener(listener));
+		afterSqlBatchListener()
+				.ifPresent(listener -> eventListenerHolder.addAfterSqlBatchListener(listener));
 		/** Procedure実行後イベントリスナ. */
-		procedureListener()
-				.ifPresent(listener -> eventListenerHolder.addProcedureListener(listener));
+		afterProcedureListener()
+				.ifPresent(listener -> eventListenerHolder.addAfterProcedureListener(listener));
 		/** EntityQuery実行前イベントリスナ. */
 		beforeEntityQueryListener()
 				.ifPresent(listener -> eventListenerHolder.addBeforeEntityQueryListener(listener));
@@ -237,9 +237,9 @@ public abstract class EventSubscriber {
 		/** パラメータ設定前イベントリスナ. */
 		beforeSetParameterListener()
 				.ifPresent(listener -> eventListenerHolder.removeBeforeSetParameterListener(listener));
-		/** SQL変換イベントリスナ. */
-		transformSqlListener()
-				.ifPresent(listener -> eventListenerHolder.removeTransformSqlListener(listener));
+		/** SQL変換前イベントリスナ. */
+		beforeTransformSqlListener()
+				.ifPresent(listener -> eventListenerHolder.removeBeforeTransformSqlListener(listener));
 		/** SQLパース前イベントリスナ. */
 		beforeParseSqlListener()
 				.ifPresent(listener -> eventListenerHolder.removeBeforeParseSqlListener(listener));
@@ -253,17 +253,17 @@ public abstract class EventSubscriber {
 		afterCreateCallableStatementListener()
 				.ifPresent(listener -> eventListenerHolder.removeAfterCreateCallableStatementListener(listener));
 		/** SQLQuery実行後イベントリスナ. */
-		sqlQueryListener()
-				.ifPresent(listener -> eventListenerHolder.removeSqlQueryListener(listener));
+		afterSqlQueryListener()
+				.ifPresent(listener -> eventListenerHolder.removeAfterSqlQueryListener(listener));
 		/** SQLUpdate実行後イベントリスナ. */
-		sqlUpdateListener()
-				.ifPresent(listener -> eventListenerHolder.removeSqlUpdateListener(listener));
+		afterSqlUpdateListener()
+				.ifPresent(listener -> eventListenerHolder.removeAfterSqlUpdateListener(listener));
 		/** SQLBatch実行後イベントリスナ. */
-		sqlBatchListener()
-				.ifPresent(listener -> eventListenerHolder.removeSqlBatchListener(listener));
+		afterSqlBatchListener()
+				.ifPresent(listener -> eventListenerHolder.removeAfterSqlBatchListener(listener));
 		/** Procedure実行後イベントリスナ. */
-		procedureListener()
-				.ifPresent(listener -> eventListenerHolder.removeProcedureListener(listener));
+		afterProcedureListener()
+				.ifPresent(listener -> eventListenerHolder.removeAfterProcedureListener(listener));
 		/** EntityQuery実行前イベントリスナ. */
 		beforeEntityQueryListener()
 				.ifPresent(listener -> eventListenerHolder.removeBeforeEntityQueryListener(listener));
@@ -343,11 +343,11 @@ public abstract class EventSubscriber {
 	}
 
 	/**
-	 * SQL変換イベントリスナ の取得
-	 * @return SQL変換イベントリスナ
+	 * SQL変換前イベントリスナ の取得
+	 * @return SQL変換前イベントリスナ
 	 */
-	protected final Optional<Consumer<TransformSqlEvent>> transformSqlListener() {
-		return transformSqlListener;
+	protected final Optional<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListener() {
+		return beforeTransformSqlListener;
 	}
 
 	/**
@@ -386,32 +386,32 @@ public abstract class EventSubscriber {
 	 * SQLQuery実行後イベントリスナ の取得
 	 * @return SQLQuery実行後イベントリスナ
 	 */
-	protected final Optional<ExecutionConsumer<SqlQueryEvent>> sqlQueryListener() {
-		return sqlQueryListener;
+	protected final Optional<ExecutionConsumer<AfterSqlQueryEvent>> afterSqlQueryListener() {
+		return afterSqlQueryListener;
 	}
 
 	/**
 	 * SQLUpdate実行後イベントリスナ の取得
 	 * @return SQLUpdate実行後イベントリスナ
 	 */
-	protected final Optional<ExecutionConsumer<SqlUpdateEvent>> sqlUpdateListener() {
-		return sqlUpdateListener;
+	protected final Optional<ExecutionConsumer<AfterSqlUpdateEvent>> afterSqlUpdateListener() {
+		return afterSqlUpdateListener;
 	}
 
 	/**
 	 * SQLBatch実行後イベントリスナ の取得
 	 * @return SQLBatch実行後イベントリスナ
 	 */
-	protected final Optional<ExecutionConsumer<SqlBatchEvent>> sqlBatchListener() {
-		return sqlBatchListener;
+	protected final Optional<ExecutionConsumer<AfterSqlBatchEvent>> afterSqlBatchListener() {
+		return afterSqlBatchListener;
 	}
 
 	/**
 	 * Procedure実行後イベントリスナ の取得
 	 * @return Procedure実行後イベントリスナ
 	 */
-	protected final Optional<ExecutionConsumer<ProcedureEvent>> procedureListener() {
-		return procedureListener;
+	protected final Optional<ExecutionConsumer<AfterProcedureEvent>> afterProcedureListener() {
+		return afterProcedureListener;
 	}
 
 	/**
@@ -592,11 +592,11 @@ public abstract class EventSubscriber {
 	}
 
 	/**
-	 * SQL変換イベントリスナ の設定
-	 * @param listener SQL変換イベントリスナ
+	 * SQL変換前イベントリスナ の設定
+	 * @param listener SQL変換前イベントリスナ
 	 */
-	protected final void transformSqlListener(final Consumer<TransformSqlEvent> listener) {
-		this.transformSqlListener = Optional.ofNullable(listener);
+	protected final void beforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
+		this.beforeTransformSqlListener = Optional.ofNullable(listener);
 	}
 
 	/**
@@ -637,32 +637,32 @@ public abstract class EventSubscriber {
 	 * SQLQuery実行後イベントリスナ の設定
 	 * @param listener SQLQuery実行後イベントリスナ
 	 */
-	protected final void sqlQueryListener(final ExecutionConsumer<SqlQueryEvent> listener) {
-		this.sqlQueryListener = Optional.ofNullable(listener);
+	protected final void afterSqlQueryListener(final ExecutionConsumer<AfterSqlQueryEvent> listener) {
+		this.afterSqlQueryListener = Optional.ofNullable(listener);
 	}
 
 	/**
 	 * SQLUpdate実行後イベントリスナ の設定
 	 * @param listener SQLUpdate実行後イベントリスナ
 	 */
-	protected final void sqlUpdateListener(final ExecutionConsumer<SqlUpdateEvent> listener) {
-		this.sqlUpdateListener = Optional.ofNullable(listener);
+	protected final void afterSqlUpdateListener(final ExecutionConsumer<AfterSqlUpdateEvent> listener) {
+		this.afterSqlUpdateListener = Optional.ofNullable(listener);
 	}
 
 	/**
 	 * SQLBatch実行後イベントリスナ の設定
 	 * @param listener SQLBatch実行後イベントリスナ
 	 */
-	protected final void sqlBatchListener(final ExecutionConsumer<SqlBatchEvent> listener) {
-		this.sqlBatchListener = Optional.ofNullable(listener);
+	protected final void afterSqlBatchListener(final ExecutionConsumer<AfterSqlBatchEvent> listener) {
+		this.afterSqlBatchListener = Optional.ofNullable(listener);
 	}
 
 	/**
 	 * Procedure実行後イベントリスナ の設定
 	 * @param listener Procedure実行後イベントリスナ
 	 */
-	protected final void procedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
-		this.procedureListener = Optional.ofNullable(listener);
+	protected final void afterProcedureListener(final ExecutionConsumer<AfterProcedureEvent> listener) {
+		this.afterProcedureListener = Optional.ofNullable(listener);
 	}
 
 	/**

@@ -196,7 +196,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			var product = new Product();
 			product.setProductId(1);
 			product.setProductName("商品名_new");
-			assertThat(product.getVersionNo(), is(0));
+			product.setVersionNo(0);
 
 			assertThat(agent.update(product), is(1));
 			assertThat(product.getVersionNo(), is(1));
@@ -217,7 +217,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			var product = new Product();
 			product.setProductId(1);
 			product.setProductName("商品名_new");
-			assertThat(product.getVersionNo(), is(0));
+			product.setVersionNo(0);
 
 			assertThat(agent.updateAndReturn(product), is(product));
 			assertThat(product.getVersionNo(), is(1));

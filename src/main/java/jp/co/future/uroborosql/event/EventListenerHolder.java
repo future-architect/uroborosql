@@ -24,8 +24,8 @@ public class EventListenerHolder {
 	private final List<Consumer<AfterInitializeExecutionContextEvent>> afterInitializeExecutionContextListeners = new ArrayList<>();
 	/** パラメータ設定前イベントリスナ. */
 	private final List<Consumer<BeforeSetParameterEvent>> beforeSetParameterListeners = new ArrayList<>();
-	/** SQL変換イベントリスナ. */
-	private final List<Consumer<TransformSqlEvent>> transformSqlListeners = new ArrayList<>();
+	/** SQL変換前イベントリスナ. */
+	private final List<Consumer<BeforeTransformSqlEvent>> beforeTransformSqlListeners = new ArrayList<>();
 	/** SQLパース前イベントリスナ. */
 	private final List<Consumer<BeforeParseSqlEvent>> beforeParseSqlListeners = new ArrayList<>();
 	/** 出力パラメータ取得後イベントリスナ. */
@@ -35,13 +35,13 @@ public class EventListenerHolder {
 	/** CallableStatement生成後イベントリスナ. */
 	private final List<ExecutionConsumer<AfterCreateCallableStatementEvent>> afterCreateCallableStatementListeners = new ArrayList<>();
 	/** SQLQuery実行後イベントリスナ. */
-	private final List<ExecutionConsumer<SqlQueryEvent>> sqlQueryListeners = new ArrayList<>();
+	private final List<ExecutionConsumer<AfterSqlQueryEvent>> afterSqlQueryListeners = new ArrayList<>();
 	/** SQLUpdate実行後イベントリスナ. */
-	private final List<ExecutionConsumer<SqlUpdateEvent>> sqlUpdateListeners = new ArrayList<>();
+	private final List<ExecutionConsumer<AfterSqlUpdateEvent>> afterSqlUpdateListeners = new ArrayList<>();
 	/** SQLBatch実行後イベントリスナ. */
-	private final List<ExecutionConsumer<SqlBatchEvent>> sqlBatchListeners = new ArrayList<>();
+	private final List<ExecutionConsumer<AfterSqlBatchEvent>> afterSqlBatchListeners = new ArrayList<>();
 	/** Procedure実行後イベントリスナ. */
-	private final List<ExecutionConsumer<ProcedureEvent>> procedureListeners = new ArrayList<>();
+	private final List<ExecutionConsumer<AfterProcedureEvent>> afterProcedureListeners = new ArrayList<>();
 	/** EntityQuery実行前イベントリスナ. */
 	private final List<ExecutionConsumer<BeforeEntityQueryEvent>> beforeEntityQueryListeners = new ArrayList<>();
 	/** EntityQuery実行後イベントリスナ. */
@@ -146,13 +146,13 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換イベントリスナの追加
-	 * @param listener SQL変換イベントリスナ
+	 * SQL変換前イベントリスナの追加
+	 * @param listener SQL変換前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addTransformSqlListener(final Consumer<TransformSqlEvent> listener) {
+	public EventListenerHolder addBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.transformSqlListeners.add(listener);
+		this.beforeTransformSqlListeners.add(listener);
 		return this;
 	}
 
@@ -207,9 +207,9 @@ public class EventListenerHolder {
 	 * @param listener SQLQuery実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlQueryListener(final ExecutionConsumer<SqlQueryEvent> listener) {
+	public EventListenerHolder addAfterSqlQueryListener(final ExecutionConsumer<AfterSqlQueryEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlQueryListeners.add(listener);
+		this.afterSqlQueryListeners.add(listener);
 		return this;
 	}
 
@@ -218,9 +218,9 @@ public class EventListenerHolder {
 	 * @param listener SQLUpdate実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlUpdateListener(final ExecutionConsumer<SqlUpdateEvent> listener) {
+	public EventListenerHolder addAfterSqlUpdateListener(final ExecutionConsumer<AfterSqlUpdateEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlUpdateListeners.add(listener);
+		this.afterSqlUpdateListeners.add(listener);
 		return this;
 	}
 
@@ -229,9 +229,9 @@ public class EventListenerHolder {
 	 * @param listener SQLBatch実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addSqlBatchListener(final ExecutionConsumer<SqlBatchEvent> listener) {
+	public EventListenerHolder addAfterSqlBatchListener(final ExecutionConsumer<AfterSqlBatchEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlBatchListeners.add(listener);
+		this.afterSqlBatchListeners.add(listener);
 		return this;
 	}
 
@@ -240,9 +240,9 @@ public class EventListenerHolder {
 	 * @param listener Procedure実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder addProcedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
+	public EventListenerHolder addAfterProcedureListener(final ExecutionConsumer<AfterProcedureEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.procedureListeners.add(listener);
+		this.afterProcedureListeners.add(listener);
 		return this;
 	}
 
@@ -504,13 +504,13 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換イベントリスナの削除
-	 * @param listener SQL変換イベントリスナ
+	 * SQL変換前イベントリスナの削除
+	 * @param listener SQL変換前イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeTransformSqlListener(final Consumer<TransformSqlEvent> listener) {
+	public EventListenerHolder removeBeforeTransformSqlListener(final Consumer<BeforeTransformSqlEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.transformSqlListeners.remove(listener);
+		this.beforeTransformSqlListeners.remove(listener);
 		return this;
 	}
 
@@ -565,9 +565,9 @@ public class EventListenerHolder {
 	 * @param listener SQLQuery実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeSqlQueryListener(final ExecutionConsumer<SqlQueryEvent> listener) {
+	public EventListenerHolder removeAfterSqlQueryListener(final ExecutionConsumer<AfterSqlQueryEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlQueryListeners.remove(listener);
+		this.afterSqlQueryListeners.remove(listener);
 		return this;
 	}
 
@@ -576,9 +576,9 @@ public class EventListenerHolder {
 	 * @param listener SQLUpdate実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeSqlUpdateListener(final ExecutionConsumer<SqlUpdateEvent> listener) {
+	public EventListenerHolder removeAfterSqlUpdateListener(final ExecutionConsumer<AfterSqlUpdateEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlUpdateListeners.remove(listener);
+		this.afterSqlUpdateListeners.remove(listener);
 		return this;
 	}
 
@@ -587,9 +587,9 @@ public class EventListenerHolder {
 	 * @param listener SQLBatch実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeSqlBatchListener(final ExecutionConsumer<SqlBatchEvent> listener) {
+	public EventListenerHolder removeAfterSqlBatchListener(final ExecutionConsumer<AfterSqlBatchEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.sqlBatchListeners.remove(listener);
+		this.afterSqlBatchListeners.remove(listener);
 		return this;
 	}
 
@@ -598,9 +598,9 @@ public class EventListenerHolder {
 	 * @param listener Procedure実行後イベントリスナ
 	 * @return EventListenerHolder
 	 */
-	public EventListenerHolder removeProcedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
+	public EventListenerHolder removeAfterProcedureListener(final ExecutionConsumer<AfterProcedureEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
-		this.procedureListeners.remove(listener);
+		this.afterProcedureListeners.remove(listener);
 		return this;
 	}
 
@@ -856,11 +856,11 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換イベントリスナリストの取得.
-	 * @return SQL変換イベントリスナリスト
+	 * SQL変換前イベントリスナリストの取得.
+	 * @return SQL変換前イベントリスナリスト
 	 */
-	public List<Consumer<TransformSqlEvent>> getTransformSqlListeners() {
-		return transformSqlListeners;
+	public List<Consumer<BeforeTransformSqlEvent>> getBeforeTransformSqlListeners() {
+		return beforeTransformSqlListeners;
 	}
 
 	/**
@@ -899,32 +899,32 @@ public class EventListenerHolder {
 	 * SQLQuery実行後イベントリスナリストの取得.
 	 * @return SQLQuery実行後イベントリスナリスト
 	 */
-	public List<ExecutionConsumer<SqlQueryEvent>> getSqlQueryListeners() {
-		return sqlQueryListeners;
+	public List<ExecutionConsumer<AfterSqlQueryEvent>> getAfterSqlQueryListeners() {
+		return afterSqlQueryListeners;
 	}
 
 	/**
 	 * SQLUpdate実行後イベントリスナリストの取得.
 	 * @return SQLUpdate実行後イベントリスナリスト
 	 */
-	public List<ExecutionConsumer<SqlUpdateEvent>> getSqlUpdateListeners() {
-		return sqlUpdateListeners;
+	public List<ExecutionConsumer<AfterSqlUpdateEvent>> getAfterSqlUpdateListeners() {
+		return afterSqlUpdateListeners;
 	}
 
 	/**
 	 * SQLBatch実行後イベントリスナリストの取得.
 	 * @return SQLBatch実行後イベントリスナリスト
 	 */
-	public List<ExecutionConsumer<SqlBatchEvent>> getSqlBatchListeners() {
-		return sqlBatchListeners;
+	public List<ExecutionConsumer<AfterSqlBatchEvent>> getAfterSqlBatchListeners() {
+		return afterSqlBatchListeners;
 	}
 
 	/**
 	 * Procedure実行後イベントリスナリストの取得.
 	 * @return Procedure実行後イベントリスナリスト
 	 */
-	public List<ExecutionConsumer<ProcedureEvent>> getProcedureListeners() {
-		return procedureListeners;
+	public List<ExecutionConsumer<AfterProcedureEvent>> getAfterProcedureListeners() {
+		return afterProcedureListeners;
 	}
 
 	/**
@@ -1104,11 +1104,11 @@ public class EventListenerHolder {
 	}
 
 	/**
-	 * SQL変換イベントリスナがあるかどうか.
-	 * @return SQL変換イベントリスナがある場合は<code>true</code>
+	 * SQL変換前イベントリスナがあるかどうか.
+	 * @return SQL変換前イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasTransformSqlListener() {
-		return !transformSqlListeners.isEmpty();
+	public boolean hasBeforeTransformSqlListener() {
+		return !beforeTransformSqlListeners.isEmpty();
 	}
 
 	/**
@@ -1147,32 +1147,32 @@ public class EventListenerHolder {
 	 * SQLQuery実行後イベントリスナがあるかどうか.
 	 * @return SQLQuery実行後イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasSqlQueryListener() {
-		return !sqlQueryListeners.isEmpty();
+	public boolean hasAfterSqlQueryListener() {
+		return !afterSqlQueryListeners.isEmpty();
 	}
 
 	/**
 	 * SQLUpdate実行後イベントリスナがあるかどうか.
 	 * @return SQLUpdate実行後イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasSqlUpdateListener() {
-		return !sqlUpdateListeners.isEmpty();
+	public boolean hasAfterSqlUpdateListener() {
+		return !afterSqlUpdateListeners.isEmpty();
 	}
 
 	/**
 	 * SQLBatch実行後イベントリスナがあるかどうか.
 	 * @return SQLBatch実行後イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasSqlBatchListener() {
-		return !sqlBatchListeners.isEmpty();
+	public boolean hasAfterSqlBatchListener() {
+		return !afterSqlBatchListeners.isEmpty();
 	}
 
 	/**
 	 * Procedure実行後イベントリスナがあるかどうか.
 	 * @return Procedure実行後イベントリスナがある場合は<code>true</code>
 	 */
-	public boolean hasProcedureListener() {
-		return !procedureListeners.isEmpty();
+	public boolean hasAfterProcedureListener() {
+		return !afterProcedureListeners.isEmpty();
 	}
 
 	/**

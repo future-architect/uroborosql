@@ -8,19 +8,18 @@ package jp.co.future.uroborosql.event;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 
 /**
- * SqlQuery実行後イベントオブジェクト
+ * SqlUpdate実行後イベントオブジェクト
  *
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class SqlQueryEvent extends ExecutionEvent {
-	/** ResultSet. */
-	private ResultSet resultSet;
+public class AfterSqlUpdateEvent extends ExecutionEvent {
+	/** 実行結果. */
+	private int count;
 
 	/** Connection. */
 	private final Connection connection;
@@ -32,34 +31,34 @@ public class SqlQueryEvent extends ExecutionEvent {
 	 * コンストラクタ.
 	 *
 	 * @param executionContext ExecutionContext
-	 * @param resultSet ResultSet
+	 * @param count 実行結果
 	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
-	public SqlQueryEvent(final ExecutionContext executionContext,
-			final ResultSet resultSet,
+	public AfterSqlUpdateEvent(final ExecutionContext executionContext,
+			final int count,
 			final Connection connection,
 			final PreparedStatement preparedStatement) {
 		super(executionContext);
-		this.resultSet = resultSet;
+		this.count = count;
 		this.connection = connection;
 		this.preparedStatement = preparedStatement;
 	}
 
 	/**
-	 * ResultSetの取得.
-	 * @return ResultSet
+	 * 実行結果の取得.
+	 * @return 実行結果
 	 */
-	public ResultSet getResultSet() {
-		return resultSet;
+	public int getCount() {
+		return count;
 	}
 
 	/**
-	 * ResultSetの設定.
-	 * @param resultSet ResultSet
+	 * 実行結果の設定.
+	 * @param count 実行結果
 	 */
-	public void setResultSet(final ResultSet resultSet) {
-		this.resultSet = resultSet;
+	public void setCount(final int count) {
+		this.count = count;
 	}
 
 	/**
