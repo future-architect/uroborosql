@@ -42,6 +42,34 @@ public class EventListenerHolder {
 	private final List<ExecutionConsumer<SqlBatchEvent>> sqlBatchListeners = new ArrayList<>();
 	/** Procedure実行後イベントリスナ. */
 	private final List<ExecutionConsumer<ProcedureEvent>> procedureListeners = new ArrayList<>();
+	/** EntityQuery実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityQueryEvent>> beforeEntityQueryListeners = new ArrayList<>();
+	/** EntityQuery実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityQueryEvent>> afterEntityQueryListeners = new ArrayList<>();
+	/** EntityInsert実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityInsertEvent>> beforeEntityInsertListeners = new ArrayList<>();
+	/** EntityInsert実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityInsertEvent>> afterEntityInsertListeners = new ArrayList<>();
+	/** EntityUpdate実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityUpdateEvent>> beforeEntityUpdateListeners = new ArrayList<>();
+	/** EntityUpdate実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityUpdateEvent>> afterEntityUpdateListeners = new ArrayList<>();
+	/** EntityDelete実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityDeleteEvent>> beforeEntityDeleteListeners = new ArrayList<>();
+	/** EntityDelete実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityDeleteEvent>> afterEntityDeleteListeners = new ArrayList<>();
+	/** EntityBatchInsert実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityBatchInsertEvent>> beforeEntityBatchInsertListeners = new ArrayList<>();
+	/** EntityBatchInsert実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityBatchInsertEvent>> afterEntityBatchInsertListeners = new ArrayList<>();
+	/** EntityBatchUpdate実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityBatchUpdateEvent>> beforeEntityBatchUpdateListeners = new ArrayList<>();
+	/** EntityBatchUpdate実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityBatchUpdateEvent>> afterEntityBatchUpdateListeners = new ArrayList<>();
+	/** EntityBulkInsert実行前イベントリスナ. */
+	private final List<ExecutionConsumer<BeforeEntityBulkInsertEvent>> beforeEntityBulkInsertListeners = new ArrayList<>();
+	/** EntityBulkInsert実行後イベントリスナ. */
+	private final List<ExecutionConsumer<AfterEntityBulkInsertEvent>> afterEntityBulkInsertListeners = new ArrayList<>();
 	/** トランザクション開始後イベントリスナ. */
 	private final List<Consumer<AfterBeginTransactionEvent>> afterBeginTransactionListeners = new ArrayList<>();
 	/** トランザクション終了前イベントリスナ. */
@@ -215,6 +243,174 @@ public class EventListenerHolder {
 	public EventListenerHolder addProcedureListener(final ExecutionConsumer<ProcedureEvent> listener) {
 		Objects.requireNonNull(listener, "listener must not be null.");
 		this.procedureListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityQuery実行前イベントリスナの追加
+	 * @param listener EntityInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityQueryListener(
+			final ExecutionConsumer<BeforeEntityQueryEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityQueryListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityQuery実行後イベントリスナの追加
+	 * @param listener EntityInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityQueryListener(
+			final ExecutionConsumer<AfterEntityQueryEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityQueryListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityInsert実行前イベントリスナの追加
+	 * @param listener EntityInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityInsertListener(
+			final ExecutionConsumer<BeforeEntityInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityInsertListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityInsert実行後イベントリスナの追加
+	 * @param listener EntityInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityInsertListener(
+			final ExecutionConsumer<AfterEntityInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityInsertListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityUpdate実行前イベントリスナの追加
+	 * @param listener EntityUpdate実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityUpdateListener(
+			final ExecutionConsumer<BeforeEntityUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityUpdateListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityUpdate実行後イベントリスナの追加
+	 * @param listener EntityUpdate実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityUpdateListener(
+			final ExecutionConsumer<AfterEntityUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityUpdateListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityDelete実行前イベントリスナの追加
+	 * @param listener EntityDelete実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityDeleteListener(
+			final ExecutionConsumer<BeforeEntityDeleteEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityDeleteListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityDelete実行後イベントリスナの追加
+	 * @param listener EntityDelete実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityDeleteListener(
+			final ExecutionConsumer<AfterEntityDeleteEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityDeleteListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchInsert実行前イベントリスナの追加
+	 * @param listener EntityBatchInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityBatchInsertListener(
+			final ExecutionConsumer<BeforeEntityBatchInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBatchInsertListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchInsert実行後イベントリスナの追加
+	 * @param listener EntityBatchInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityBatchInsertListener(
+			final ExecutionConsumer<AfterEntityBatchInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBatchInsertListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchUpdate実行前イベントリスナの追加
+	 * @param listener EntityBatchUpdate実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityBatchUpdateListener(
+			final ExecutionConsumer<BeforeEntityBatchUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBatchUpdateListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchUpdate実行後イベントリスナの追加
+	 * @param listener EntityBatchUpdate実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityBatchUpdateListener(
+			final ExecutionConsumer<AfterEntityBatchUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBatchUpdateListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBulkInsert実行前イベントリスナの追加
+	 * @param listener EntityBulkInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addBeforeEntityBulkInsertListener(
+			final ExecutionConsumer<BeforeEntityBulkInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBulkInsertListeners.add(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBulkInsert実行後イベントリスナの追加
+	 * @param listener EntityBulkInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder addAfterEntityBulkInsertListener(
+			final ExecutionConsumer<AfterEntityBulkInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBulkInsertListeners.add(listener);
 		return this;
 	}
 
@@ -409,6 +605,174 @@ public class EventListenerHolder {
 	}
 
 	/**
+	 * EntityQuery実行前イベントリスナの削除
+	 * @param listener EntityQuery実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityQueryListener(
+			final ExecutionConsumer<BeforeEntityQueryEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityQueryListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityQuery実行後イベントリスナの削除
+	 * @param listener EntityQuery実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityQueryListener(
+			final ExecutionConsumer<AfterEntityQueryEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityQueryListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityInsert実行前イベントリスナの削除
+	 * @param listener EntityInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityInsertListener(
+			final ExecutionConsumer<BeforeEntityInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityInsert実行後イベントリスナの削除
+	 * @param listener EntityInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityInsertListener(
+			final ExecutionConsumer<AfterEntityInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityUpdate実行前イベントリスナの削除
+	 * @param listener EntityUpdate実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityUpdateListener(
+			final ExecutionConsumer<BeforeEntityUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityUpdateListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityUpdate実行後イベントリスナの削除
+	 * @param listener EntityUpdate実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityUpdateListener(
+			final ExecutionConsumer<AfterEntityUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityUpdateListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityDelete実行前イベントリスナの削除
+	 * @param listener EntityDelete実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityDeleteListener(
+			final ExecutionConsumer<BeforeEntityDeleteEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityDeleteListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityDelete実行後イベントリスナの削除
+	 * @param listener EntityDelete実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityDeleteListener(
+			final ExecutionConsumer<AfterEntityDeleteEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityDeleteListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchInsert実行前イベントリスナの削除
+	 * @param listener EntityBatchInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityBatchInsertListener(
+			final ExecutionConsumer<BeforeEntityBatchInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBatchInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchInsert実行後イベントリスナの削除
+	 * @param listener EntityBatchInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityBatchInsertListener(
+			final ExecutionConsumer<AfterEntityBatchInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBatchInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchUpdate実行前イベントリスナの削除
+	 * @param listener EntityBatchUpdate実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityBatchUpdateListener(
+			final ExecutionConsumer<BeforeEntityBatchUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBatchUpdateListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBatchUpdate実行後イベントリスナの削除
+	 * @param listener EntityBatchUpdate実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityBatchUpdateListener(
+			final ExecutionConsumer<AfterEntityBatchUpdateEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBatchUpdateListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBulkInsert実行前イベントリスナの削除
+	 * @param listener EntityBulkInsert実行前イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeBeforeEntityBulkInsertListener(
+			final ExecutionConsumer<BeforeEntityBulkInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.beforeEntityBulkInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
+	 * EntityBulkInsert実行後イベントリスナの削除
+	 * @param listener EntityBulkInsert実行後イベントリスナ
+	 * @return EventListenerHolder
+	 */
+	public EventListenerHolder removeAfterEntityBulkInsertListener(
+			final ExecutionConsumer<AfterEntityBulkInsertEvent> listener) {
+		Objects.requireNonNull(listener, "listener must not be null.");
+		this.afterEntityBulkInsertListeners.remove(listener);
+		return this;
+	}
+
+	/**
 	 * トランザクション開始後イベントリスナの削除
 	 * @param listener トランザクション開始後イベントリスナ
 	 * @return EventListenerHolder
@@ -564,6 +928,118 @@ public class EventListenerHolder {
 	}
 
 	/**
+	 * EntityQuery実行前イベントリスナリストの取得.
+	 * @return EntityQuery実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityQueryEvent>> getBeforeEntityQueryListeners() {
+		return beforeEntityQueryListeners;
+	}
+
+	/**
+	 * EntityQuery実行後イベントリスナリストの取得.
+	 * @return EntityQuery実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityQueryEvent>> getAfterEntityQueryListeners() {
+		return afterEntityQueryListeners;
+	}
+
+	/**
+	 * EntityInsert実行前イベントリスナリストの取得.
+	 * @return EntityInsert実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityInsertEvent>> getBeforeEntityInsertListeners() {
+		return beforeEntityInsertListeners;
+	}
+
+	/**
+	 * EntityInsert実行後イベントリスナリストの取得.
+	 * @return EntityInsert実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityInsertEvent>> getAfterEntityInsertListeners() {
+		return afterEntityInsertListeners;
+	}
+
+	/**
+	 * EntityUpdate実行前イベントリスナリストの取得.
+	 * @return EntityUpdate実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityUpdateEvent>> getBeforeEntityUpdateListeners() {
+		return beforeEntityUpdateListeners;
+	}
+
+	/**
+	 * EntityUpdate実行後イベントリスナリストの取得.
+	 * @return EntityUpdate実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityUpdateEvent>> getAfterEntityUpdateListeners() {
+		return afterEntityUpdateListeners;
+	}
+
+	/**
+	 * EntityDelete実行前イベントリスナリストの取得.
+	 * @return EntityDelete実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityDeleteEvent>> getBeforeEntityDeleteListeners() {
+		return beforeEntityDeleteListeners;
+	}
+
+	/**
+	 * EntityDelete実行後イベントリスナリストの取得.
+	 * @return EntityDelete実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityDeleteEvent>> getAfterEntityDeleteListeners() {
+		return afterEntityDeleteListeners;
+	}
+
+	/**
+	 * EntityBatchInsert実行前イベントリスナリストの取得.
+	 * @return EntityBatchInsert実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityBatchInsertEvent>> getBeforeEntityBatchInsertListeners() {
+		return beforeEntityBatchInsertListeners;
+	}
+
+	/**
+	 * EntityBatchInsert実行後イベントリスナリストの取得.
+	 * @return EntityBatchInsert実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityBatchInsertEvent>> getAfterEntityBatchInsertListeners() {
+		return afterEntityBatchInsertListeners;
+	}
+
+	/**
+	 * EntityBatchUpdate実行前イベントリスナリストの取得.
+	 * @return EntityBatchUpdate実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityBatchUpdateEvent>> getBeforeEntityBatchUpdateListeners() {
+		return beforeEntityBatchUpdateListeners;
+	}
+
+	/**
+	 * EntityBatchUpdate実行後イベントリスナリストの取得.
+	 * @return EntityBatchUpdate実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityBatchUpdateEvent>> getAfterEntityBatchUpdateListeners() {
+		return afterEntityBatchUpdateListeners;
+	}
+
+	/**
+	 * EntityBulkInsert実行前イベントリスナリストの取得.
+	 * @return EntityBulkInsert実行前イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<BeforeEntityBulkInsertEvent>> getBeforeEntityBulkInsertListeners() {
+		return beforeEntityBulkInsertListeners;
+	}
+
+	/**
+	 * EntityBulkInsert実行後イベントリスナリストの取得.
+	 * @return EntityBulkInsert実行後イベントリスナリスト
+	 */
+	public List<ExecutionConsumer<AfterEntityBulkInsertEvent>> getAfterEntityBulkInsertListeners() {
+		return afterEntityBulkInsertListeners;
+	}
+
+	/**
 	 * トランザクション開始後イベントリスナリストの取得.
 	 * @return トランザクション開始後イベントリスナリスト
 	 */
@@ -697,6 +1173,118 @@ public class EventListenerHolder {
 	 */
 	public boolean hasProcedureListener() {
 		return !procedureListeners.isEmpty();
+	}
+
+	/**
+	 * EntityQuery実行前イベントリスナがあるかどうか.
+	 * @return EntityQuery実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityQueryListener() {
+		return !beforeEntityQueryListeners.isEmpty();
+	}
+
+	/**
+	 * EntityQuery実行後イベントリスナがあるかどうか.
+	 * @return EntityQuery実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityQueryListener() {
+		return !afterEntityQueryListeners.isEmpty();
+	}
+
+	/**
+	 * EntityInsert実行前イベントリスナがあるかどうか.
+	 * @return EntityInsert実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityInsertListener() {
+		return !beforeEntityInsertListeners.isEmpty();
+	}
+
+	/**
+	 * EntityInsert実行後イベントリスナがあるかどうか.
+	 * @return EntityInsert実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityInsertListener() {
+		return !afterEntityInsertListeners.isEmpty();
+	}
+
+	/**
+	 * EntityUpdate実行前イベントリスナがあるかどうか.
+	 * @return EntityUpdate実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityUpdateListener() {
+		return !beforeEntityUpdateListeners.isEmpty();
+	}
+
+	/**
+	 * EntityUpdate実行後イベントリスナがあるかどうか.
+	 * @return EntityUpdate実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityUpdateListener() {
+		return !afterEntityUpdateListeners.isEmpty();
+	}
+
+	/**
+	 * EntityDelete実行前イベントリスナがあるかどうか.
+	 * @return EntityDelete実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityDeleteListener() {
+		return !beforeEntityDeleteListeners.isEmpty();
+	}
+
+	/**
+	 * EntityDelete実行後イベントリスナがあるかどうか.
+	 * @return EntityDelete実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityDeleteListener() {
+		return !afterEntityDeleteListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBatchInsert実行前イベントリスナがあるかどうか.
+	 * @return EntityBatchInsert実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityBatchInsertListener() {
+		return !beforeEntityBatchInsertListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBatchInsert実行後イベントリスナがあるかどうか.
+	 * @return EntityBatchInsert実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityBatchInsertListener() {
+		return !afterEntityBatchInsertListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBatchUpdate実行前イベントリスナがあるかどうか.
+	 * @return EntityBatchUpdate実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityBatchUpdateListener() {
+		return !beforeEntityBatchUpdateListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBatchUpdate実行後イベントリスナがあるかどうか.
+	 * @return EntityBatchUpdate実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityBatchUpdateListener() {
+		return !afterEntityBatchUpdateListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBulkInsert実行前イベントリスナがあるかどうか.
+	 * @return EntityBulkInsert実行前イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasBeforeEntityBulkInsertListener() {
+		return !beforeEntityBulkInsertListeners.isEmpty();
+	}
+
+	/**
+	 * EntityBulkInsert実行後イベントリスナがあるかどうか.
+	 * @return EntityBulkInsert実行後イベントリスナがある場合は<code>true</code>
+	 */
+	public boolean hasAfterEntityBulkInsertListener() {
+		return !afterEntityBulkInsertListeners.isEmpty();
 	}
 
 	/**

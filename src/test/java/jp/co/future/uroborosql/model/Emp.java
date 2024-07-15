@@ -1,5 +1,8 @@
 package jp.co.future.uroborosql.model;
 
+import jp.co.future.uroborosql.mapping.annotations.Table;
+
+@Table(name = "EMP")
 public class Emp {
 	private String job;
 

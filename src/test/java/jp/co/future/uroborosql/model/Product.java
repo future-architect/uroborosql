@@ -2,8 +2,10 @@ package jp.co.future.uroborosql.model;
 
 import java.util.Date;
 
+import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 
+@Table(name = "PRODUCT")
 public class Product {
 	private int productId;
 	private String productName;
