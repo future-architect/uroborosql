@@ -11,6 +11,8 @@ import java.sql.SQLType;
 import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.AfterEntityUpdateEvent;
+import jp.co.future.uroborosql.event.BeforeEntityUpdateEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -27,6 +29,8 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 		implements SqlEntityUpdate<E> {
 	/** エンティティハンドラー */
 	private final EntityHandler<?> entityHandler;
+	/** エンティティタイプ */
+	private final Class<? extends E> entityType;
 
 	/**
 	 * Constructor
@@ -35,11 +39,13 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 * @param entityHandler EntityHandler
 	 * @param tableMetadata TableMetadata
 	 * @param context ExecutionContext
+	 * @param entityType EntityType
 	 */
 	SqlEntityUpdateImpl(final SqlAgent agent, final EntityHandler<?> entityHandler,
-			final TableMetadata tableMetadata, final ExecutionContext context) {
+			final TableMetadata tableMetadata, final ExecutionContext context, final Class<? extends E> entityType) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
+		this.entityType = entityType;
 	}
 
 	/**
@@ -51,7 +57,27 @@ final class SqlEntityUpdateImpl<E> extends AbstractExtractionCondition<SqlEntity
 	public int count() {
 		try {
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
-			return this.entityHandler.doUpdate(agent(), context(), null);
+
+			// EntityUpdate実行前イベント発行
+			var eventListenerHolder = agent().getSqlConfig().getEventListenerHolder();
+			if (eventListenerHolder.hasBeforeEntityUpdateListener()) {
+				var eventObj = new BeforeEntityUpdateEvent(context(), null, this.entityType);
+				for (var listener : eventListenerHolder.getBeforeEntityUpdateListeners()) {
+					listener.accept(eventObj);
+				}
+			}
+
+			var count = this.entityHandler.doUpdate(agent(), context(), null);
+
+			// EntityUpdate実行後イベント発行
+			if (eventListenerHolder.hasAfterEntityUpdateListener()) {
+				var eventObj = new AfterEntityUpdateEvent(context(), null, entityType, count);
+				for (var listener : eventListenerHolder.getAfterEntityUpdateListeners()) {
+					listener.accept(eventObj);
+				}
+				count = eventObj.getCount();
+			}
+			return count;
 		} catch (final SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}

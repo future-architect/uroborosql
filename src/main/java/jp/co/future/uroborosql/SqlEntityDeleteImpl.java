@@ -9,6 +9,8 @@ package jp.co.future.uroborosql;
 import java.sql.SQLException;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.event.AfterEntityDeleteEvent;
+import jp.co.future.uroborosql.event.BeforeEntityDeleteEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityDelete;
 import jp.co.future.uroborosql.mapping.EntityHandler;
@@ -22,7 +24,10 @@ import jp.co.future.uroborosql.mapping.TableMetadata;
  */
 final class SqlEntityDeleteImpl<E> extends AbstractExtractionCondition<SqlEntityDelete<E>>
 		implements SqlEntityDelete<E> {
+	/** エンティティハンドラー */
 	private final EntityHandler<?> entityHandler;
+	/** エンティティタイプ */
+	private final Class<? extends E> entityType;
 
 	/**
 	 * Constructor
@@ -31,18 +36,40 @@ final class SqlEntityDeleteImpl<E> extends AbstractExtractionCondition<SqlEntity
 	 * @param entityHandler EntityHandler
 	 * @param tableMetadata TableMetadata
 	 * @param context ExecutionContext
+	 * @param entityType EntityType
 	 */
 	SqlEntityDeleteImpl(final SqlAgent agent, final EntityHandler<?> entityHandler, final TableMetadata tableMetadata,
-			final ExecutionContext context) {
+			final ExecutionContext context, final Class<? extends E> entityType) {
 		super(agent, tableMetadata, context);
 		this.entityHandler = entityHandler;
+		this.entityType = entityType;
 	}
 
 	@Override
 	public int count() {
 		try {
 			context().setSql(new StringBuilder(context().getSql()).append(getWhereClause()).toString());
-			return this.entityHandler.doDelete(agent(), context(), null);
+
+			// EntityDelete実行前イベント発行
+			var eventListenerHolder = agent().getSqlConfig().getEventListenerHolder();
+			if (eventListenerHolder.hasBeforeEntityDeleteListener()) {
+				var eventObj = new BeforeEntityDeleteEvent(context(), null, this.entityType);
+				for (var listener : eventListenerHolder.getBeforeEntityDeleteListeners()) {
+					listener.accept(eventObj);
+				}
+			}
+
+			var count = this.entityHandler.doDelete(agent(), context(), null);
+
+			// EntityDelete実行後イベント発行
+			if (eventListenerHolder.hasAfterEntityDeleteListener()) {
+				var eventObj = new AfterEntityDeleteEvent(context(), null, this.entityType, count);
+				for (var listener : eventListenerHolder.getAfterEntityDeleteListeners()) {
+					listener.accept(eventObj);
+				}
+				count = eventObj.getCount();
+			}
+			return count;
 		} catch (final SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}

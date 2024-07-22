@@ -17,7 +17,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class SqlBatchEvent extends ExecutionEvent {
+public class AfterSqlBatchEvent extends ExecutionEvent {
 	/** 実行結果. */
 	private int[] counts;
 
@@ -35,7 +35,7 @@ public class SqlBatchEvent extends ExecutionEvent {
 	 * @param connection Connection
 	 * @param preparedStatement PreparedStatement
 	 */
-	public SqlBatchEvent(final ExecutionContext executionContext,
+	public AfterSqlBatchEvent(final ExecutionContext executionContext,
 			final int[] counts,
 			final Connection connection,
 			final PreparedStatement preparedStatement) {

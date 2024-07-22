@@ -106,42 +106,6 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V> T paramIfAbsent(final String paramName, final V value) {
-		context().paramIfAbsent(paramName, value);
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V> T paramIfAbsent(final String paramName, final V value, final SQLType sqlType) {
-		context().paramIfAbsent(paramName, value, sqlType);
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V> T paramIfAbsent(final String paramName, final V value, final int sqlType) {
-		context().paramIfAbsent(paramName, value, sqlType);
-		return (T) this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfNotEmpty(java.lang.String, java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
@@ -172,6 +136,42 @@ abstract class AbstractSqlFluent<T extends SqlFluent<T>> implements SqlFluent<T>
 	@Override
 	public <V> T paramIfNotEmpty(final String paramName, final V value, final int sqlType) {
 		context().paramIfNotEmpty(paramName, value, sqlType);
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T paramIfAbsent(final String paramName, final V value) {
+		context().paramIfAbsent(paramName, value);
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, java.sql.SQLType)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T paramIfAbsent(final String paramName, final V value, final SQLType sqlType) {
+		context().paramIfAbsent(paramName, value, sqlType);
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlFluent#paramIfAbsent(java.lang.String, java.lang.Object, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T paramIfAbsent(final String paramName, final V value, final int sqlType) {
+		context().paramIfAbsent(paramName, value, sqlType);
 		return (T) this;
 	}
 

@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 public class SqlResourceManagerTest {
-	private static final int WAIT_TIME = 100;
+	private static final int WAIT_TIME = 1000;
 	private static final String TARGET_TEST_CLASSES_SQL1 = "target/test-classes/sql/";
 	private static final String TARGET_TEST_CLASSES_SQL2 = "target/test-classes/parent/child/sql/";
 

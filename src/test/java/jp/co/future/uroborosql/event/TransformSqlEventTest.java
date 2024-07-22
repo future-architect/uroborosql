@@ -24,14 +24,14 @@ public class TransformSqlEventTest extends AbstractDbTest {
 			@Override
 			public void initialize() {
 				afterInitializeExecutionContextListener(this::afterInitializeExecutionContext);
-				transformSqlListener(this::transformSql);
+				beforeTransformSqlListener(this::transformSql);
 			}
 
 			void afterInitializeExecutionContext(final AfterInitializeExecutionContextEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 			}
 
-			void transformSql(final TransformSqlEvent event) {
+			void transformSql(final BeforeTransformSqlEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 				assertThat(event.getSql(), containsString("PRODUCT"));
 			}
@@ -53,10 +53,10 @@ public class TransformSqlEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				transformSqlListener(this::transformSql);
+				beforeTransformSqlListener(this::transformSql);
 			}
 
-			void transformSql(final TransformSqlEvent event) {
+			void transformSql(final BeforeTransformSqlEvent event) {
 				event.setSql(event.getSql() + System.lineSeparator() + "limit 1");
 			}
 		};

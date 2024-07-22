@@ -24,10 +24,10 @@ public class SqlBatchEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlBatchListener(this::sqlBatch);
+				afterSqlBatchListener(this::sqlBatch);
 			}
 
-			void sqlBatch(final SqlBatchEvent event) {
+			void sqlBatch(final AfterSqlBatchEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 				var counts = new int[100];
@@ -59,10 +59,10 @@ public class SqlBatchEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlBatchListener(this::sqlBatch);
+				afterSqlBatchListener(this::sqlBatch);
 			}
 
-			void sqlBatch(final SqlBatchEvent event) {
+			void sqlBatch(final AfterSqlBatchEvent event) {
 				var counts = new int[200];
 				Arrays.fill(counts, 1);
 				event.setCounts(counts);

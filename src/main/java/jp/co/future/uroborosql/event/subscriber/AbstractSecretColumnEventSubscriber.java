@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
-import jp.co.future.uroborosql.event.SqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.ObjectUtils;
@@ -163,7 +163,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		}
 
 		beforeSetParameterListener(this::beforeSetParameter);
-		sqlQueryListener(this::sqlQuery);
+		afterSqlQueryListener(this::afterSqlQuery);
 	}
 
 	void beforeSetParameter(final BeforeSetParameterEvent evt) {
@@ -204,7 +204,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		}
 	}
 
-	void sqlQuery(final SqlQueryEvent evt) {
+	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		// 検索結果に暗号化対象カラムが含まれる場合、値の取得時に復号化されるようResultSetを SecretResultSet でラップして返す
 		if (skip) {
 			return;

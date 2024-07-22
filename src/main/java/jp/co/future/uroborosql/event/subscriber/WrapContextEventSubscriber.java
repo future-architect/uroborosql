@@ -8,7 +8,7 @@ package jp.co.future.uroborosql.event.subscriber;
 
 import java.util.regex.Pattern;
 
-import jp.co.future.uroborosql.event.TransformSqlEvent;
+import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -63,10 +63,10 @@ public class WrapContextEventSubscriber extends EventSubscriber {
 			ignorePattern = Pattern.compile(getWrapIgnorePattern(), Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		}
 
-		transformSqlListener(this::transformSql);
+		beforeTransformSqlListener(this::beforeTransformSql);
 	}
 
-	void transformSql(final TransformSqlEvent evt) {
+	void beforeTransformSql(final BeforeTransformSqlEvent evt) {
 		// SQLの前後を別のSQLでWrapする加工を行う。
 		// ただし、以下の場合は加工対象外とする。
 		// - wrapIgnorePatternに当てはまるSQLの場合

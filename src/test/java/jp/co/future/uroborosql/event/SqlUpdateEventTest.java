@@ -22,10 +22,10 @@ public class SqlUpdateEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlUpdateListener(this::sqlUpdate);
+				afterSqlUpdateListener(this::sqlUpdate);
 			}
 
-			void sqlUpdate(final SqlUpdateEvent event) {
+			void sqlUpdate(final AfterSqlUpdateEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 				assertThat(event.getCount(), is(1));
@@ -47,10 +47,10 @@ public class SqlUpdateEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlUpdateListener(this::sqlUpdate);
+				afterSqlUpdateListener(this::sqlUpdate);
 			}
 
-			void sqlUpdate(final SqlUpdateEvent event) {
+			void sqlUpdate(final AfterSqlUpdateEvent event) {
 				event.setCount(10);
 			}
 		};

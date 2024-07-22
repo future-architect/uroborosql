@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
+import jp.co.future.uroborosql.event.AfterEntityQueryEvent;
+import jp.co.future.uroborosql.event.BeforeEntityQueryEvent;
 import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
@@ -123,6 +125,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#stream()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Stream<E> stream() {
 		try {
@@ -164,7 +167,28 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 				sql = dialect.addOptimizerHints(sql, this.optimizerHints);
 			}
 			context().setSql(sql.toString());
-			return this.entityHandler.doSelect(agent(), context(), this.entityType);
+
+			// EntityQuery実行前イベント発行
+			var eventListenerHolder = agent().getSqlConfig().getEventListenerHolder();
+			if (eventListenerHolder.hasBeforeEntityQueryListener()) {
+				var eventObj = new BeforeEntityQueryEvent(context(), null, this.entityType);
+				for (var listener : eventListenerHolder.getBeforeEntityQueryListeners()) {
+					listener.accept(eventObj);
+				}
+			}
+
+			Stream<E> results = this.entityHandler.doSelect(agent(), context(), this.entityType);
+
+			// EntityQuery実行後イベント発行
+			if (eventListenerHolder.hasAfterEntityQueryListener()) {
+				var eventObj = new AfterEntityQueryEvent(context(), null, this.entityType, results);
+				for (var listener : eventListenerHolder.getAfterEntityQueryListeners()) {
+					listener.accept(eventObj);
+				}
+				return (Stream<E>) eventObj.getResults();
+			} else {
+				return results;
+			}
 		} catch (final SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
@@ -178,11 +202,11 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <C> Stream<C> select(final String col, final Class<C> type) {
 		var fieldName = CaseFormat.CAMEL_CASE.convert(col);
-		var field = BeanAccessor.fields(entityType).stream()
+		var field = BeanAccessor.fields(this.entityType).stream()
 				.filter(f -> f.getName().equalsIgnoreCase(fieldName))
 				.findFirst()
 				.orElseThrow(() -> new UroborosqlRuntimeException(
-						"field:" + fieldName + " not found in " + entityType.getSimpleName() + "."));
+						"field:" + fieldName + " not found in " + this.entityType.getSimpleName() + "."));
 		includeColumns(fieldName);
 
 		return stream().map(e -> type.cast(BeanAccessor.value(field, e)));
@@ -248,7 +272,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T sum(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), this.entityType, camelColumnName);
 		if (!mappingColumn.isNumber()) {
 			throw new UroborosqlRuntimeException("Column is not of type Number. col=" + camelColumnName);
 		}
@@ -277,7 +301,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T min(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), this.entityType, camelColumnName);
 		var column = tableMetadata().getColumn(camelColumnName);
 		var sql = new StringBuilder("select min(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")
@@ -303,7 +327,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	@Override
 	public <T> T max(final String col) {
 		var camelColumnName = CaseFormat.CAMEL_CASE.convert(col);
-		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), entityType, camelColumnName);
+		var mappingColumn = MappingUtils.getMappingColumn(context().getSchema(), this.entityType, camelColumnName);
 		var column = tableMetadata().getColumn(camelColumnName);
 		var sql = new StringBuilder("select max(t_.").append(column.getColumnIdentifier()).append(") as ")
 				.append(column.getColumnIdentifier()).append(" from (")

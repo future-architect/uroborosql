@@ -22,10 +22,10 @@ public class SqlQueryEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlQueryListener(this::sqlQuery);
+				afterSqlQueryListener(this::sqlQuery);
 			}
 
-			void sqlQuery(final SqlQueryEvent event) {
+			void sqlQuery(final AfterSqlQueryEvent event) {
 				assertThat(event.getExecutionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 				assertThat(event.getResultSet(), not(nullValue()));
@@ -48,10 +48,10 @@ public class SqlQueryEventTest extends AbstractDbTest {
 
 			@Override
 			public void initialize() {
-				sqlQueryListener(this::sqlQuery);
+				afterSqlQueryListener(this::sqlQuery);
 			}
 
-			void sqlQuery(final SqlQueryEvent event) {
+			void sqlQuery(final AfterSqlQueryEvent event) {
 				event.setResultSet(event.getResultSet());
 			}
 		};

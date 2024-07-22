@@ -22,7 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jp.co.future.uroborosql.event.SqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -51,10 +51,10 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 	 */
 	@Override
 	public void initialize() {
-		sqlQueryListener(this::sqlQuery);
+		afterSqlQueryListener(this::afterSqlQuery);
 	}
 
-	void sqlQuery(final SqlQueryEvent evt) {
+	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
 				if (EVENT_LOG.isWarnEnabled()) {
