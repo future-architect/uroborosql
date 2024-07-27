@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
 import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
-import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
-import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
+import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
+import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 
 /**
  * デバッグログを出力するEventSubscriber
@@ -27,7 +27,7 @@ import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
  */
 public class DebugEventSubscriber extends EventSubscriber {
 	/** ロガー */
-	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event.debug");
 
 	@Override
 	public void initialize() {

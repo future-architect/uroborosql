@@ -97,10 +97,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	private ExecutorService es;
 
 	/** sqlNameとそれに対するSqlInfoの紐付きを持つMap */
-	private final ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
+	protected final ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
 
 	/** WatchKeyに対するディレクトリPathを取得するためのMap */
-	private final ConcurrentHashMap<WatchKey, Path> watchDirs = new ConcurrentHashMap<>();
+	protected final ConcurrentHashMap<WatchKey, Path> watchDirs = new ConcurrentHashMap<>();
 
 	/**
 	 * コンストラクタ
