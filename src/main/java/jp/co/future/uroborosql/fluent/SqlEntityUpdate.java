@@ -17,6 +17,31 @@ import java.util.function.Supplier;
  */
 public interface SqlEntityUpdate<E> extends ExtractionCondition<SqlEntityUpdate<E>> {
 	/**
+	 * 発行するSQLに付与するSQL_IDを設定する
+	 *
+	 * @param sqlId SQL_ID文字列
+	 * @return SqlEntityUpdate
+	 */
+	SqlEntityUpdate<E> sqlId(String sqlId);
+
+	/**
+	 * リトライ回数を設定する。 リトライ待機時間は0msが設定される
+	 *
+	 * @param count リトライ回数
+	 * @return SqlEntityUpdate
+	 */
+	SqlEntityUpdate<E> retry(int count);
+
+	/**
+	 * リトライ回数を設定する
+	 *
+	 * @param count リトライ回数
+	 * @param waitTime リトライ待機時間（ms）
+	 * @return SqlEntityUpdate
+	 */
+	SqlEntityUpdate<E> retry(int count, int waitTime);
+
+	/**
 	 * 更新結果の取得（終端処理）
 	 *
 	 * @return 更新件数
