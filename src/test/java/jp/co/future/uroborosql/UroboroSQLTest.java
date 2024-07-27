@@ -36,7 +36,6 @@ import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.dialect.H2Dialect;
 import jp.co.future.uroborosql.enums.InsertsType;
 import jp.co.future.uroborosql.event.EventListenerHolder;
-import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.ObjectUtils;
@@ -171,26 +170,6 @@ public class UroboroSQLTest {
 	void builderSetSqlResourceManager() throws Exception {
 		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
 				.setSqlResourceManager(new SqlResourceManagerImpl(false)).build();
-		try (var agent = config.agent()) {
-			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
-					StandardCharsets.UTF_8).split(";");
-			for (var sql : sqls) {
-				if (ObjectUtils.isNotBlank(sql)) {
-					agent.updateWith(sql.trim()).count();
-				}
-			}
-
-			insert(agent, Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-			agent.rollback();
-		}
-
-		assertEquals(true, config.getSqlResourceManager().existSql("ddl/create_tables"));
-	}
-
-	@Test
-	void builderSetEntityHandler() throws Exception {
-		var config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName(), "", "", null)
-				.setEntityHandler(new DefaultEntityHandler()).build();
 		try (var agent = config.agent()) {
 			var sqls = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/ddl/create_tables.sql")),
 					StandardCharsets.UTF_8).split(";");
