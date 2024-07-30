@@ -38,7 +38,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  */
 public class DumpResultEventSubscriber extends EventSubscriber {
 	/** ロガー */
-	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event.dumpresult");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";

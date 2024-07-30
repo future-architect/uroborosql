@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
  */
 public class AuditLogEventSubscriber extends EventSubscriber {
 	/** イベントロガー */
-	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event");
+	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event.auditlog");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
