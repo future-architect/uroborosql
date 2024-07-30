@@ -112,7 +112,6 @@ public final class UroboroSQL {
 		private EventListenerHolder eventListenerHolder;
 		private ExecutionContextProvider executionContextProvider;
 		private SqlAgentProvider sqlAgentProvider;
-		private EntityHandler<?> entityHandler;
 		private Clock clock;
 		private Dialect dialect;
 		private ExpressionParser expressionParser;
@@ -123,7 +122,6 @@ public final class UroboroSQL {
 			this.eventListenerHolder = new EventListenerHolder();
 			this.executionContextProvider = new ExecutionContextProviderImpl();
 			this.sqlAgentProvider = new SqlAgentProviderImpl();
-			this.entityHandler = new DefaultEntityHandler();
 			this.clock = null;
 			this.dialect = null;
 			this.expressionParser = null;
@@ -185,17 +183,6 @@ public final class UroboroSQL {
 		}
 
 		/**
-		 * EntityHandlerの設定.
-		 *
-		 * @param entityHandler entityHandler
-		 * @return UroboroSQLBuilder
-		 */
-		public UroboroSQLBuilder setEntityHandler(final EntityHandler<?> entityHandler) {
-			this.entityHandler = entityHandler;
-			return this;
-		}
-
-		/**
 		 * Clockの設定.
 		 *
 		 * @param clock clock
@@ -244,7 +231,6 @@ public final class UroboroSQL {
 					this.executionContextProvider,
 					this.sqlAgentProvider,
 					this.eventListenerHolder,
-					this.entityHandler,
 					this.clock,
 					this.dialect,
 					this.expressionParser);
@@ -303,7 +289,6 @@ public final class UroboroSQL {
 				final ExecutionContextProvider executionContextProvider,
 				final SqlAgentProvider sqlAgentProvider,
 				final EventListenerHolder eventListenerHolder,
-				final EntityHandler<?> entityHandler,
 				final Clock clock,
 				final Dialect dialect,
 				final ExpressionParser expressionParser) {
@@ -312,7 +297,7 @@ public final class UroboroSQL {
 			this.executionContextProvider = executionContextProvider;
 			this.sqlAgentProvider = sqlAgentProvider;
 			this.eventListenerHolder = eventListenerHolder;
-			this.entityHandler = entityHandler;
+			this.entityHandler = new DefaultEntityHandler();
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
 				if (SETTING_LOG.isWarnEnabled()) {
