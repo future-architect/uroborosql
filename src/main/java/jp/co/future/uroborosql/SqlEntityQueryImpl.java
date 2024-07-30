@@ -83,6 +83,38 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#sqlId(java.lang.String)
+	 */
+	@Override
+	public SqlEntityQuery<E> sqlId(final String sqlId) {
+		context().setSqlId(sqlId);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#retry(int)
+	 */
+	@Override
+	public SqlEntityQuery<E> retry(final int count) {
+		return retry(count, 0);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#retry(int, int)
+	 */
+	@Override
+	public SqlEntityQuery<E> retry(final int count, final int waitTime) {
+		context().setMaxRetryCount(count).setRetryWaitTime(waitTime);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.fluent.SqlEntityQuery#collect()
 	 */
 	@Override

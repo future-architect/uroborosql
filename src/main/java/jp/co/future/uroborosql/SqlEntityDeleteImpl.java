@@ -45,6 +45,38 @@ final class SqlEntityDeleteImpl<E> extends AbstractExtractionCondition<SqlEntity
 		this.entityType = entityType;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityDelete#sqlId(java.lang.String)
+	 */
+	@Override
+	public SqlEntityDelete<E> sqlId(final String sqlId) {
+		context().setSqlId(sqlId);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityDelete#retry(int)
+	 */
+	@Override
+	public SqlEntityDelete<E> retry(final int count) {
+		return retry(count, 0);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.SqlEntityDelete#retry(int, int)
+	 */
+	@Override
+	public SqlEntityDelete<E> retry(final int count, final int waitTime) {
+		context().setMaxRetryCount(count).setRetryWaitTime(waitTime);
+		return this;
+	}
+
 	@Override
 	public int count() {
 		try {

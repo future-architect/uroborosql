@@ -53,6 +53,31 @@ public interface SqlEntityQuery<E> extends ExtractionCondition<SqlEntityQuery<E>
 	}
 
 	/**
+	 * 発行するSQLに付与するSQL_IDを設定する
+	 *
+	 * @param sqlId SQL_ID文字列
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> sqlId(String sqlId);
+
+	/**
+	 * リトライ回数を設定する。 リトライ待機時間は0msが設定される
+	 *
+	 * @param count リトライ回数
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> retry(int count);
+
+	/**
+	 * リトライ回数を設定する
+	 *
+	 * @param count リトライ回数
+	 * @param waitTime リトライ待機時間（ms）
+	 * @return SqlEntityQuery
+	 */
+	SqlEntityQuery<E> retry(int count, int waitTime);
+
+	/**
 	 * 検索結果の取得（終端処理）
 	 *
 	 * @return 検索結果のEntityリスト.
