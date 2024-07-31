@@ -100,6 +100,15 @@ public class EventListenerHolder {
 	}
 
 	/**
+	 * EventListenerHolderに追加されたEventSubscriberのリストを取得する.
+	 *
+	 * @return EventSubscriberリスト
+	 */
+	public List<EventSubscriber> getEventSubscribers() {
+		return List.copyOf(this.eventSubscribers);
+	}
+
+	/**
 	 * EventSubscriberを追加し、EventSubscriberによるイベント登録を行う.
 	 * @param eventSubscriber EventSubscriber
 	 * @return EventListenerHolder
