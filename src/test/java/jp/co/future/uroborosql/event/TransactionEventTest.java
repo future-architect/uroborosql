@@ -20,7 +20,7 @@ public class TransactionEventTest extends AbstractDbTest {
 	@Test
 	void testValidateEventObjRequired() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -64,20 +64,19 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		agent.required(() -> agent.query(Product.class)
 				.collect());
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 	@Test
 	void testValidateEventObjCommit() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -94,19 +93,18 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		agent.commit();
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 	@Test
 	void testValidateEventObjRollback() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -123,19 +121,18 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		agent.rollback();
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 	@Test
 	void testValidateEventObjRollbackOnly() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -152,9 +149,7 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionContext(), not(nullValue()));
 				assertThat(event.getConnection(), not(nullValue()));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		try (var newAgent = config.agent()) {
 			newAgent.required(() -> {
@@ -164,13 +159,14 @@ public class TransactionEventTest extends AbstractDbTest {
 			});
 		}
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 	@Test
 	void testValidateEventObjResultNull() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -183,22 +179,21 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionLevel(), is(1));
 				assertThat(event.getResult(), is(nullValue()));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		agent.required(() -> {
 			agent.query(Product.class)
 					.collect();
 		});
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 	@Test
 	void testValidateEventObjRequiresNew() {
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
-		var es = new EventSubscriber() {
+		config.getEventListenerHolder().addEventSubscriber(new EventSubscriber() {
 
 			@Override
 			public void initialize() {
@@ -211,14 +206,13 @@ public class TransactionEventTest extends AbstractDbTest {
 				assertThat(event.getTransactionLevel(), is(1));
 				assertThat(event.getResult(), instanceOf(List.class));
 			}
-		};
-
-		config.getEventListenerHolder().addEventSubscriber(es);
+		});
 
 		agent.requiresNew(() -> agent.query(Product.class)
 				.collect());
 
-		config.getEventListenerHolder().removeEventSubscriber(es);
+		config.getEventListenerHolder().getEventSubscribers().stream()
+				.forEach(es -> config.getEventListenerHolder().removeEventSubscriber(es));
 	}
 
 }
