@@ -377,6 +377,19 @@ public class LocalTxManagerTest {
 	}
 
 	@Test
+	void testSavepointScopeWithUnmanagedConnection() {
+		try (var agent = config.agent()) {
+			try {
+				agent.savepointScope(() -> {
+					throw new IllegalAccessError();
+				});
+			} catch (UroborosqlRuntimeException ex) {
+				assertThat(ex.getMessage(), is("UnmanagedConnection cannot use savepoint."));
+			}
+		}
+	}
+
+	@Test
 	void testagentEx01() {
 
 		try (var agent = config.agent()) {
