@@ -10,16 +10,6 @@
       <password>${env.OSSRH_PASS}</password>
     </server>
     <server>
-      <id>ossrh-release</id>
-      <username>${env.OSSRH_USER}</username>
-      <password>${env.OSSRH_PASS}</password>
-    </server>
-    <server>
-      <id>ossrh-snapshot</id>
-      <username>${env.OSSRH_USER}</username>
-      <password>${env.OSSRH_PASS}</password>
-    </server>
-    <server>
       <id>gpg.passphrase</id>
       <passphrase>${env.MAVEN_GPG_PASSPHRASE}</passphrase>
     </server>
