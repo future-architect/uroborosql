@@ -140,7 +140,7 @@ public class EntityResultSetConverterTest {
 		Optional<ColumnTypeTest2> optional = agent.queryWith("select * from COLUMN_TYPE_TEST2").findFirst(
 				ColumnTypeTest2.class);
 		assertThat(optional.isPresent(), is(true));
-		var row = optional.get();
+		var row = optional.orElseThrow();
 
 		assertThat(row.getColClob(), is(clob));
 		assertThat(row.getColNclob(), is(nclob));

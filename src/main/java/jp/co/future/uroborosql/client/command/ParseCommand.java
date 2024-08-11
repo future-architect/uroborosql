@@ -53,60 +53,60 @@ public class ParseCommand extends ReplCommand {
 		writer.println("PARSE:");
 
 		if (parts.length > 1) {
-			var path = sqlConfig.getSqlResourceManager().getSqlPathList().stream()
+			sqlConfig.getSqlResourceManager().getSqlPathList().stream()
 					.filter(p -> p.equalsIgnoreCase(parts[1]))
-					.findFirst();
-			if (path.isPresent()) {
-				var sql = sqlConfig.getSqlResourceManager().getSql(path.get());
+					.findFirst()
+					.ifPresentOrElse(path -> {
+						var sql = sqlConfig.getSqlResourceManager().getSql(path);
 
-				// 対象SQLの出力
-				writer.println("");
-				writer.println("SQL :");
-				var sqlLines = sql.split("\\r\\n|\\r|\\n");
-				for (var sqlLine : sqlLines) {
-					writer.println(sqlLine);
-				}
+						// 対象SQLの出力
+						writer.println("");
+						writer.println("SQL :");
+						var sqlLines = sql.split("\\r\\n|\\r|\\n");
+						for (var sqlLine : sqlLines) {
+							writer.println(sqlLine);
+						}
 
-				// IF分岐の出力
-				writer.println("");
-				writer.println("BRANCHES :");
-				var parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
-						sqlConfig.getDialect().isRemoveTerminator(), true);
-				var transformer = parser.parse();
-				var rootNode = transformer.getRoot();
-				Set<String> bindParams = new LinkedHashSet<>();
-				traverseNode(writer, 0, sqlConfig.getExpressionParser(), rootNode, bindParams);
+						// IF分岐の出力
+						writer.println("");
+						writer.println("BRANCHES :");
+						var parser = new SqlParserImpl(sql, sqlConfig.getExpressionParser(),
+								sqlConfig.getDialect().isRemoveTerminator(), true);
+						var transformer = parser.parse();
+						var rootNode = transformer.getRoot();
+						Set<String> bindParams = new LinkedHashSet<>();
+						traverseNode(writer, 0, sqlConfig.getExpressionParser(), rootNode, bindParams);
 
-				// 利用されているバインドパラメータの出力
-				writer.println("");
-				var constPrefix = sqlConfig.getExecutionContextProvider().getConstParamPrefix();
-				var ctx = sqlConfig.getExecutionContextProvider().createExecutionContext();
-				writer.println("BIND_PARAMS :");
-				// 定数以外のバインドパラメータ
-				bindParams.stream().filter(param -> !param.startsWith(constPrefix))
-						.sorted()
-						.forEach(param -> write(writer, 1, null, param, null));
-				// 定数バインドパラメータ
-				bindParams.stream().filter(param -> param.startsWith(constPrefix))
-						.sorted().forEach(param -> {
-							// 定数についてはバインド値が取得できるので、実際の値を追加で表示
-							var parameter = ctx.getParam(param);
-							if (parameter != null) {
-								var value = parameter.getValue();
-								String suffix = null;
-								if (value instanceof String) {
-									suffix = String.format(" ('%s')", value);
-								} else {
-									suffix = String.format(" (%s)", value);
-								}
-								write(writer, 1, null, param, suffix);
-							} else {
-								write(writer, 1, null, param, " (not found)");
-							}
-						});
-			} else {
-				writer.println("sqlName : " + parts[1] + " not found.");
-			}
+						// 利用されているバインドパラメータの出力
+						writer.println("");
+						var constPrefix = sqlConfig.getExecutionContextProvider().getConstParamPrefix();
+						var ctx = sqlConfig.getExecutionContextProvider().createExecutionContext();
+						writer.println("BIND_PARAMS :");
+						// 定数以外のバインドパラメータ
+						bindParams.stream().filter(param -> !param.startsWith(constPrefix))
+								.sorted()
+								.forEach(param -> write(writer, 1, null, param, null));
+						// 定数バインドパラメータ
+						bindParams.stream().filter(param -> param.startsWith(constPrefix))
+								.sorted().forEach(param -> {
+									// 定数についてはバインド値が取得できるので、実際の値を追加で表示
+									var parameter = ctx.getParam(param);
+									if (parameter != null) {
+										var value = parameter.getValue();
+										String suffix = null;
+										if (value instanceof String) {
+											suffix = String.format(" ('%s')", value);
+										} else {
+											suffix = String.format(" (%s)", value);
+										}
+										write(writer, 1, null, param, suffix);
+									} else {
+										write(writer, 1, null, param, " (not found)");
+									}
+								});
+					}, () -> {
+						writer.println("sqlName : " + parts[1] + " not found.");
+					});
 		} else {
 			writer.println("sqlName must be specified.");
 		}

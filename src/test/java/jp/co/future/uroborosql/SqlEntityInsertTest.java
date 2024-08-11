@@ -24,7 +24,7 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
 			agent.insert(product);
 
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品1"));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品1"));
 		});
 	}
 
@@ -35,8 +35,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 			var product = new Product(1, "商品1", "ショウヒン1", "1111-1", "商品-1", new Date(), new Date(), 1);
 			var insertedProduct = agent.insertAndReturn(product);
 
-			assertThat(agent.find(Product.class, 1).get().getProductId(), is(insertedProduct.getProductId()));
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品1"));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductId(), is(insertedProduct.getProductId()));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品1"));
 		});
 	}
 
@@ -68,8 +68,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			})), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -84,8 +84,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			})), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -130,8 +130,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BATCH), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -146,8 +146,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BATCH), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -168,8 +168,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BULK), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -184,8 +184,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BULK), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -206,8 +206,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			})), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -222,8 +222,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			})), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -244,8 +244,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BATCH), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -260,8 +260,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BULK), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -276,8 +276,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BATCH), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 
 		// 事前条件
@@ -292,8 +292,8 @@ public class SqlEntityInsertTest extends AbstractDbTest {
 				e.setProductDescription(e.getProductDescription() + "_new");
 				return e;
 			}), InsertsType.BULK), is(2));
-			assertThat(agent.find(Product.class, 11).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 12).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 11).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 12).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 

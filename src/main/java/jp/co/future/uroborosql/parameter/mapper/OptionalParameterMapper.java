@@ -34,6 +34,7 @@ public class OptionalParameterMapper implements BindParameterMapper<Optional<?>>
 	@Override
 	public Object toJdbc(final Optional<?> original, final Connection connection,
 			final BindParameterMapperManager parameterMapperManager) {
-		return original.isPresent() ? parameterMapperManager.toJdbc(original.get(), connection) : null;
+		return original.map(obj -> parameterMapperManager.toJdbc(obj, connection))
+				.orElse(null);
 	}
 }

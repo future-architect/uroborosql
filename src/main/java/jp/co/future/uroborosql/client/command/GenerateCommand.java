@@ -18,9 +18,7 @@ import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter;
 import jp.co.future.uroborosql.client.completer.SqlKeywordCompleter.SqlKeyword;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.mapping.MetaTable;
-import jp.co.future.uroborosql.mapping.Table;
 import jp.co.future.uroborosql.mapping.TableMetadata;
 
 /**
@@ -63,33 +61,22 @@ public class GenerateCommand extends ReplCommand {
 					.getProperty("sql.optimisticLockSupplier",
 							"jp.co.future.uroborosql.mapping.LockVersionOptimisticLockSupplier");
 
-			Table table = new MetaTable(tableName, null, versionColumnName, optimisticLockSupplier);
+			var table = new MetaTable(tableName, null, versionColumnName, optimisticLockSupplier);
 			var metadata = TableMetadata.createTableEntityMetadata(agent, table);
 			metadata.setSchema(null);
 
-			ExecutionContext ctx = null;
-			if (sqlKeyword.isPresent()) {
-				var keyword = sqlKeyword.get();
+			var ctx = sqlKeyword.map(keyword -> {
 				switch (keyword) {
 				case INSERT:
-					ctx = sqlConfig.getEntityHandler().createInsertContext(agent, metadata, null);
-					break;
-
+					return sqlConfig.getEntityHandler().createInsertContext(agent, metadata, null);
 				case UPDATE:
-					ctx = sqlConfig.getEntityHandler().createUpdateContext(agent, metadata, null, true);
-					break;
-
+					return sqlConfig.getEntityHandler().createUpdateContext(agent, metadata, null, true);
 				case DELETE:
-					ctx = sqlConfig.getEntityHandler().createDeleteContext(agent, metadata, null, true);
-					break;
-
+					return sqlConfig.getEntityHandler().createDeleteContext(agent, metadata, null, true);
 				default:
-					ctx = sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true);
-					break;
+					return sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true);
 				}
-			} else {
-				ctx = sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true);
-			}
+			}).orElseGet(() -> sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true));
 			writer.println(ctx.getSql());
 		} catch (SQLException ex) {
 			REPL_LOG.error(ex.getMessage(), ex);

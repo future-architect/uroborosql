@@ -318,7 +318,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		context().setSql(sql.toString());
 		try {
 			return (T) mappingColumn
-					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType)
+							.findFirst()
+							.orElseThrow());
 		} catch (final SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
@@ -344,7 +346,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		context().setSql(sql.toString());
 		try {
 			return (T) mappingColumn
-					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType)
+							.findFirst()
+							.orElseThrow());
 		} catch (SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}
@@ -370,7 +374,9 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		context().setSql(sql.toString());
 		try {
 			return (T) mappingColumn
-					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType).findFirst().get());
+					.getValue(this.entityHandler.doSelect(agent(), context(), this.entityType)
+							.findFirst()
+							.orElseThrow());
 		} catch (SQLException ex) {
 			throw new EntitySqlRuntimeException(context().getSqlKind(), ex);
 		}

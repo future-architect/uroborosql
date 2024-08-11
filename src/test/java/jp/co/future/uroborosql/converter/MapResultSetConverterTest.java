@@ -129,7 +129,7 @@ public class MapResultSetConverterTest {
 
 			var optional = agent.queryWith("select * from COLUMN_TYPE_TEST2").findFirst();
 			assertThat(optional.isPresent(), is(true));
-			var row = optional.get();
+			var row = optional.orElseThrow();
 
 			assertThat(row.get("COL_INT"), is(1));
 			assertThat(row.get("COL_BOOLEAN"), is(true));

@@ -538,7 +538,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst();
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
@@ -570,7 +570,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0)).findOne();
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
 		assertEquals("商品名0", map.get("PRODUCT_NAME"));
 		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
@@ -601,7 +601,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst();
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
 		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
@@ -640,7 +640,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findOne();
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("product_id"));
 		assertEquals("商品名0", map.get("product_name"));
 		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
@@ -724,7 +724,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst(CaseFormat.PASCAL_CASE);
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("ProductId"));
 		assertEquals("商品名0", map.get("ProductName"));
 		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
@@ -757,7 +757,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findOne(CaseFormat.PASCAL_CASE);
 		assertTrue(optional.isPresent());
 
-		var map = optional.get();
+		var map = optional.orElseThrow();
 		assertEquals(new BigDecimal("0"), map.get("ProductId"));
 		assertEquals("商品名0", map.get("ProductName"));
 		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
@@ -823,7 +823,7 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		assertTrue(optional.isPresent());
 
-		var product = optional.get();
+		var product = optional.orElseThrow();
 
 		assertEquals(0, product.getProductId());
 		assertEquals("商品名0", product.getProductName());
@@ -920,7 +920,7 @@ public class SqlQueryTest extends AbstractDbTest {
 				.findOne(Product.class);
 		assertTrue(optional.isPresent());
 
-		var product = optional.get();
+		var product = optional.orElseThrow();
 
 		assertEquals(0, product.getProductId());
 		assertEquals("商品名0", product.getProductName());

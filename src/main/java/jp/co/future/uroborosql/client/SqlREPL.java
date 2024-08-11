@@ -333,13 +333,14 @@ public class SqlREPL {
 		}
 
 		var parts = SqlParamUtils.parseLine(line);
-		var command = commands.stream().filter(c -> c.is(parts[0])).findFirst();
-		if (command.isPresent()) {
-			return command.get().execute(reader, parts, sqlConfig, props);
-		} else {
-			showHelp(reader.getTerminal());
-			return true;
-		}
+		return commands.stream()
+				.filter(c -> c.is(parts[0]))
+				.findFirst()
+				.map(cmd -> cmd.execute(reader, parts, sqlConfig, props))
+				.orElseGet(() -> {
+					showHelp(reader.getTerminal());
+					return true;
+				});
 	}
 
 	/**

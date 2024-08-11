@@ -37,7 +37,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		agent.required(() -> {
 			assertThat(agent.update(Product.class).set("productName", "商品名_new").equal("productId", 1).count(), is(1));
 			assertThat(agent.query(Product.class).equal("productId", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -50,7 +50,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			assertThat(agent.update(Product.class).set("product_name", "商品名_new").equal("product_id", 1).count(),
 					is(1));
 			assertThat(agent.query(Product.class).equal("product_id", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -68,11 +68,11 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			var product0 = agent.query(Product.class).equal("productId", 0)
-					.one().get();
+					.one().orElseThrow();
 			assertThat(product0.getProductName(), is("商品名_new"));
 			assertThat(product0.getProductKanaName(), is("ショウヒンメイ_new"));
 			var product1 = agent.query(Product.class).equal("productId", 1)
-					.one().get();
+					.one().orElseThrow();
 			assertThat(product1.getProductName(), is("商品名_new"));
 			assertThat(product1.getProductKanaName(), is("ショウヒンメイ_new"));
 		});
@@ -89,9 +89,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("productId", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("productId", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -106,9 +106,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("product_id", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("product_id", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -124,9 +124,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("productId", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("productId", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -142,9 +142,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("product_id", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("product_id", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -160,9 +160,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("productId", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("productId", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -178,9 +178,9 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 							.count(),
 					is(2));
 			assertThat(agent.query(Product.class).equal("product_id", 0)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 			assertThat(agent.query(Product.class).equal("product_id", 1)
-					.one().get().getProductName(), is("商品名_new"));
+					.one().orElseThrow().getProductName(), is("商品名_new"));
 		});
 	}
 
@@ -200,8 +200,8 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 			assertThat(agent.update(product), is(1));
 			assertThat(product.getVersionNo(), is(1));
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品名_new"));
-			assertThat(agent.find(Product.class, 2).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品名_new"));
+			assertThat(agent.find(Product.class, 2).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -221,8 +221,8 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 
 			assertThat(agent.updateAndReturn(product), is(product));
 			assertThat(product.getVersionNo(), is(1));
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品名_new"));
-			assertThat(agent.find(Product.class, 2).get().getVersionNo(), is(0));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品名_new"));
+			assertThat(agent.find(Product.class, 2).orElseThrow().getVersionNo(), is(0));
 		});
 	}
 
@@ -319,10 +319,10 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			}).collect(Collectors.toList());
 			assertThat(agent.updates(products.stream()), is(2));
 
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 1).get().getProductKanaName(), nullValue());
-			assertThat(agent.find(Product.class, 2).get().getProductName(), is("商品名2_new"));
-			assertThat(agent.find(Product.class, 2).get().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductName(), is("商品名2_new"));
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductKanaName(), nullValue());
 		});
 	}
 
@@ -370,10 +370,10 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			}).collect(Collectors.toList());
 			assertThat(agent.updates(Product.class, products.stream()), is(2));
 
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 1).get().getProductKanaName(), nullValue());
-			assertThat(agent.find(Product.class, 2).get().getProductName(), is("商品名2_new"));
-			assertThat(agent.find(Product.class, 2).get().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductName(), is("商品名2_new"));
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductKanaName(), nullValue());
 		});
 	}
 
@@ -458,10 +458,10 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 			}).collect(Collectors.toList());
 			assertThat(agent.updates(products.stream(), (ctx, count, e) -> count == 1), is(2));
 
-			assertThat(agent.find(Product.class, 1).get().getProductName(), is("商品名1_new"));
-			assertThat(agent.find(Product.class, 1).get().getProductKanaName(), nullValue());
-			assertThat(agent.find(Product.class, 2).get().getProductName(), is("商品名2_new"));
-			assertThat(agent.find(Product.class, 2).get().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductName(), is("商品名1_new"));
+			assertThat(agent.find(Product.class, 1).orElseThrow().getProductKanaName(), nullValue());
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductName(), is("商品名2_new"));
+			assertThat(agent.find(Product.class, 2).orElseThrow().getProductKanaName(), nullValue());
 		});
 	}
 
