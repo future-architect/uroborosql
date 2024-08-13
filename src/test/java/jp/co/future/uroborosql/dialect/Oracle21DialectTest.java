@@ -20,16 +20,16 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
- * Oracle12Dialectの個別実装部分のテストケース
+ * Oracle21Dialectの個別実装部分のテストケース
  *
  * @author H.Sugimoto
  *
  */
-public class Oracle12DialectTest {
-	private final Dialect dialect = new Oracle12Dialect();
+public class Oracle21DialectTest {
+	private final Dialect dialect = new Oracle21Dialect();
 
 	@Test
-	void testAccept12() {
+	void testAccept21() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -44,18 +44,18 @@ public class Oracle12DialectTest {
 
 			@Override
 			public String getDatabaseName() {
-				return "Oracle-12.1";
+				return "Oracle-21.1";
 			}
 		};
 
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, instanceOf(Oracle12Dialect.class));
+		assertThat(dialect, instanceOf(Oracle21Dialect.class));
 	}
 
 	@Test
-	void testAcceptUnder12() {
+	void testAcceptUnder21() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -70,18 +70,18 @@ public class Oracle12DialectTest {
 
 			@Override
 			public String getDatabaseName() {
-				return "Oracle-11.1";
+				return "Oracle-19.1";
 			}
 		};
 
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, not(instanceOf(Oracle12Dialect.class)));
+		assertThat(dialect, not(instanceOf(Oracle21Dialect.class)));
 	}
 
 	@Test
-	void testAcceptOver12() {
+	void testAcceptOver21() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -96,14 +96,14 @@ public class Oracle12DialectTest {
 
 			@Override
 			public String getDatabaseName() {
-				return "Oracle-13.1";
+				return "Oracle-23.1";
 			}
 		};
 
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, not(instanceOf(Oracle12Dialect.class)));
+		assertThat(dialect, not(instanceOf(Oracle21Dialect.class)));
 	}
 
 	@Test

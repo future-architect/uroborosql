@@ -7,7 +7,7 @@
 package jp.co.future.uroborosql.dialect;
 
 /**
- * Oracle12（以降のバージョンも含む）用のDialect
+ * Oracle12用のDialect
  *
  * @author H.Sugimoto
  */
@@ -17,6 +17,16 @@ public class Oracle12Dialect extends OracleDialect {
 	 */
 	public Oracle12Dialect() {
 		super('\\', new char[] { '%', '_', '％', '＿' });
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.dialect.OracleDialect#isTargetVersion(int)
+	 */
+	@Override
+	protected boolean isTargetVersion(final int majorVersion) {
+		return majorVersion == 12;
 	}
 
 	/**
@@ -60,15 +70,5 @@ public class Oracle12Dialect extends OracleDialect {
 			builder.append(System.lineSeparator());
 		}
 		return builder.toString();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.dialect.OracleDialect#isTargetVersion(int)
-	 */
-	@Override
-	protected boolean isTargetVersion(final int majorVersion) {
-		return majorVersion >= 12;
 	}
 }
