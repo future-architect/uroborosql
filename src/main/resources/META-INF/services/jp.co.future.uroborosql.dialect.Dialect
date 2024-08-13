@@ -1,7 +1,13 @@
+jp.co.future.uroborosql.dialect.Oracle23Dialect
+jp.co.future.uroborosql.dialect.Oracle21Dialect
+jp.co.future.uroborosql.dialect.Oracle19Dialect
+jp.co.future.uroborosql.dialect.Oracle18Dialect
 jp.co.future.uroborosql.dialect.Oracle12Dialect
 jp.co.future.uroborosql.dialect.Oracle11Dialect
 jp.co.future.uroborosql.dialect.Oracle10Dialect
 jp.co.future.uroborosql.dialect.MsSqlDialect
+jp.co.future.uroborosql.dialect.MariaDb10Dialect
+jp.co.future.uroborosql.dialect.MariaDb5Dialect
 jp.co.future.uroborosql.dialect.MySqlDialect
 jp.co.future.uroborosql.dialect.PostgresqlDialect
 jp.co.future.uroborosql.dialect.H2Dialect

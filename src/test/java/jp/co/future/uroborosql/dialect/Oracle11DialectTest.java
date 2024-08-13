@@ -20,7 +20,7 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
- * Oracle10Dialectの個別実装部分のテストケース
+ * Oracle11Dialectの個別実装部分のテストケース
  *
  * @author H.Sugimoto
  *
