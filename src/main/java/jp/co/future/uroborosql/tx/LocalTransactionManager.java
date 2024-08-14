@@ -24,6 +24,7 @@ import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.event.AfterBeginTransactionEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlSQLException;
 
 /**
@@ -355,18 +356,18 @@ public class LocalTransactionManager implements TransactionManager {
 	 */
 	@Override
 	public <R> R savepointScope(final Supplier<R> supplier) {
-		return currentTxContext(false).map(txCtx -> {
-			var savepointName = UUID.randomUUID().toString();
-			txCtx.setSavepoint(savepointName);
-			try {
-				return supplier.get();
-			} catch (Throwable th) {
-				txCtx.rollback(savepointName);
-				throw th;
-			} finally {
-				txCtx.releaseSavepoint(savepointName);
-			}
-		}).orElse(null);
+		var txCtx = currentTxContext(false)
+				.orElseThrow(() -> new UroborosqlRuntimeException("UnmanagedConnection cannot use savepoint."));
+		var savepointName = UUID.randomUUID().toString();
+		txCtx.setSavepoint(savepointName);
+		try {
+			return supplier.get();
+		} catch (Throwable th) {
+			txCtx.rollback(savepointName);
+			throw th;
+		} finally {
+			txCtx.releaseSavepoint(savepointName);
+		}
 	}
 
 	/**
