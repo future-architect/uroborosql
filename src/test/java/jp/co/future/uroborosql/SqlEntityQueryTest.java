@@ -159,13 +159,17 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		// camel case
 		var productName = agent.query(Product.class)
 				.equal("product_id", 1)
-				.select("productName", String.class).findFirst().get();
+				.select("productName", String.class)
+				.findFirst()
+				.orElseThrow();
 		assertEquals(productName, "商品名1");
 
 		// snake case
 		var janCode = agent.query(Product.class)
 				.equal("product_id", 1)
-				.select("jan_code", String.class).findFirst().get();
+				.select("jan_code", String.class)
+				.findFirst()
+				.orElseThrow();
 		assertEquals(janCode, "1234567890124");
 
 		// multiple case

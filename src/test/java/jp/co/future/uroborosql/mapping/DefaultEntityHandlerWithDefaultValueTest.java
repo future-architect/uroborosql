@@ -80,9 +80,9 @@ public class DefaultEntityHandlerWithDefaultValueTest {
 				assertThat(data, is(test1));
 				data = agent.find(TestEntityWithDefaultValue.class, 2).orElse(null);
 				assertThat(data.getId(), is(2L));
-				assertThat(data.getName().get(), is("default name"));
-				assertThat(data.getAge().get(), is(10));
-				assertThat(data.getBirthday().get(), is(LocalDate.of(2000, Month.JANUARY, 1)));
+				assertThat(data.getName().orElseThrow(), is("default name"));
+				assertThat(data.getAge().orElseThrow(), is(10));
+				assertThat(data.getBirthday().orElseThrow(), is(LocalDate.of(2000, Month.JANUARY, 1)));
 				assertThat(data.getMemo(), is(Optional.empty()));
 			});
 		}
@@ -107,15 +107,15 @@ public class DefaultEntityHandlerWithDefaultValueTest {
 				var data = agent.find(TestEntityWithDefaultValue.class, result1.getId())
 						.orElse(null);
 				assertThat(data.getId(), is(result1.getId()));
-				assertThat(data.getName().get(), is("name1"));
-				assertThat(data.getAge().get(), is(20));
-				assertThat(data.getBirthday().get(), is(LocalDate.of(1990, Month.APRIL, 1)));
+				assertThat(data.getName().orElseThrow(), is("name1"));
+				assertThat(data.getAge().orElseThrow(), is(20));
+				assertThat(data.getBirthday().orElseThrow(), is(LocalDate.of(1990, Month.APRIL, 1)));
 				assertThat(data.getMemo(), is(Optional.of("memo1")));
 				data = agent.find(TestEntityWithDefaultValue.class, result2.getId()).orElse(null);
 				assertThat(data.getId(), is(result2.getId()));
-				assertThat(data.getName().get(), is("default name"));
-				assertThat(data.getAge().get(), is(10));
-				assertThat(data.getBirthday().get(), is(LocalDate.of(2000, Month.JANUARY, 1)));
+				assertThat(data.getName().orElseThrow(), is("default name"));
+				assertThat(data.getAge().orElseThrow(), is(10));
+				assertThat(data.getBirthday().orElseThrow(), is(LocalDate.of(2000, Month.JANUARY, 1)));
 				assertThat(data.getMemo(), is(Optional.empty()));
 			});
 		}

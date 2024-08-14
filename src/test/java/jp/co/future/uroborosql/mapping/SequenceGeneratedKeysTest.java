@@ -71,7 +71,9 @@ public class SequenceGeneratedKeysTest {
 	void testInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
 						.get("ID");
 
 				var test1 = new TestEntityWithSeq("name1");
@@ -100,7 +102,9 @@ public class SequenceGeneratedKeysTest {
 	void testInsertAndUpdate() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
 						.get("ID");
 
 				var test1 = new TestEntityWithSeq("name1");
@@ -124,10 +128,14 @@ public class SequenceGeneratedKeysTest {
 	void testInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
-						.get().get("ID");
-				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
-						.get().get("ID");
+				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
+				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
 
 				var test1 = new TestEntityWithSeqMultikey("name1");
 				agent.insert(test1);
@@ -172,7 +180,9 @@ public class SequenceGeneratedKeysTest {
 	void testBulkInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
 						.get("ID");
 
 				var test1 = new TestEntityWithSeq("name1");
@@ -204,10 +214,14 @@ public class SequenceGeneratedKeysTest {
 	void testBulkInserMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
-						.get().get("ID");
-				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
-						.get().get("ID");
+				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
+				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
 
 				var test1 = new TestEntityWithSeqMultikey("name1");
 				var test2 = new TestEntityWithSeqMultikey("name2");
@@ -244,7 +258,9 @@ public class SequenceGeneratedKeysTest {
 	void testBatchInsert() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id").findFirst().get()
+				long currVal = (Long) agent.queryWith("select currval('test_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
 						.get("ID");
 
 				var test1 = new TestEntityWithSeq("name1");
@@ -276,10 +292,14 @@ public class SequenceGeneratedKeysTest {
 	void testBatchInsertMultikey() throws Exception {
 		try (var agent = config.agent()) {
 			agent.required(() -> {
-				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id").findFirst()
-						.get().get("ID");
-				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id").findFirst()
-						.get().get("ID");
+				long idCurrVal = (Long) agent.queryWith("select currval('test_multikey_id_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
+				long id2CurrVal = (Long) agent.queryWith("select currval('test_multikey_id2_seq') as id")
+						.findFirst()
+						.orElseThrow()
+						.get("ID");
 
 				var test1 = new TestEntityWithSeqMultikey("name1");
 				var test2 = new TestEntityWithSeqMultikey("name2");

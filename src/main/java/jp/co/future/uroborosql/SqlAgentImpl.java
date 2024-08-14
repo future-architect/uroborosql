@@ -59,6 +59,10 @@ import jp.co.future.uroborosql.event.AfterEntityDeleteEvent;
 import jp.co.future.uroborosql.event.AfterEntityInsertEvent;
 import jp.co.future.uroborosql.event.AfterEntityQueryEvent;
 import jp.co.future.uroborosql.event.AfterEntityUpdateEvent;
+import jp.co.future.uroborosql.event.AfterProcedureEvent;
+import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
+import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeEntityBatchInsertEvent;
 import jp.co.future.uroborosql.event.BeforeEntityBatchUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeEntityBulkInsertEvent;
@@ -67,10 +71,6 @@ import jp.co.future.uroborosql.event.BeforeEntityInsertEvent;
 import jp.co.future.uroborosql.event.BeforeEntityQueryEvent;
 import jp.co.future.uroborosql.event.BeforeEntityUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
-import jp.co.future.uroborosql.event.AfterProcedureEvent;
-import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
-import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
-import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeTransformSqlEvent;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.OptimisticLockException;
@@ -1269,7 +1269,7 @@ public class SqlAgentImpl implements SqlAgent {
 					: 0);
 
 			if (updatedEntities != null && versionColumn.isPresent()) {
-				var vColumn = versionColumn.get();
+				var vColumn = versionColumn.orElseThrow();
 				var keyColumns = metadata.getColumns().stream()
 						.filter(TableMetadata.Column::isKey)
 						.sorted(Comparator.comparingInt(TableMetadata.Column::getKeySeq))
@@ -1816,7 +1816,8 @@ public class SqlAgentImpl implements SqlAgent {
 					var result = callableStatement.execute();
 					// Procedure実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasAfterProcedureListener()) {
-						var eventObj = new AfterProcedureEvent(executionContext, result, callableStatement.getConnection(),
+						var eventObj = new AfterProcedureEvent(executionContext, result,
+								callableStatement.getConnection(),
 								callableStatement);
 						for (var listener : getSqlConfig().getEventListenerHolder().getAfterProcedureListeners()) {
 							listener.accept(eventObj);
