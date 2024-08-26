@@ -22,12 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
+import jp.co.future.uroborosql.log.CoverageLogger;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -41,10 +39,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author ota
  */
-public class HtmlReportCoverageHandler implements CoverageHandler {
-	/** カバレッジロガー. */
-	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
-
+public class HtmlReportCoverageHandler implements CoverageHandler, CoverageLogger {
 	/** カバレッジ情報. */
 	private final Map<String, Map<String, SqlCoverageReport>> coverages = new ConcurrentHashMap<>();
 
@@ -115,7 +110,10 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
 						} catch (IOException ex) {
-							COVERAGE_LOG.error(ex.getMessage(), ex);
+							COVERAGE_LOG.atError()
+									.setMessage(ex.getMessage())
+									.setCause(ex)
+									.log();
 						}
 					});
 			// write report
@@ -132,7 +130,10 @@ public class HtmlReportCoverageHandler implements CoverageHandler {
 				writeSuffix(writer);
 			}
 		} catch (IOException ex) {
-			COVERAGE_LOG.error(ex.getMessage(), ex);
+			COVERAGE_LOG.atError()
+					.setMessage(ex.getMessage())
+					.setCause(ex)
+					.log();
 		}
 	}
 

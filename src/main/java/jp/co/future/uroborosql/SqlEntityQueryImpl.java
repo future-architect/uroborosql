@@ -14,9 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.enums.ForUpdateType;
@@ -26,6 +23,7 @@ import jp.co.future.uroborosql.exception.DataNonUniqueException;
 import jp.co.future.uroborosql.exception.EntitySqlRuntimeException;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.fluent.SqlEntityQuery;
+import jp.co.future.uroborosql.log.ServiceLogger;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
@@ -38,10 +36,8 @@ import jp.co.future.uroborosql.utils.CaseFormat;
  * @param <E> Entity型
  * @author ota
  */
-final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>> implements SqlEntityQuery<E> {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
-
+final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQuery<E>>
+		implements SqlEntityQuery<E>, ServiceLogger {
 	private final EntityHandler<?> entityHandler;
 	private final Class<? extends E> entityType;
 	private final List<SortOrder> sortOrders;
@@ -585,9 +581,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			if (LOG.isWarnEnabled()) {
-				LOG.warn("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
-			}
+			LOG.atWarn()
+					.log("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -606,9 +601,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			if (LOG.isWarnEnabled()) {
-				LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
-			}
+			LOG.atWarn()
+					.log("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -629,9 +623,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			if (LOG.isWarnEnabled()) {
-				LOG.warn("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
-			}
+			LOG.atWarn()
+					.log("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
 		} else {
@@ -649,9 +642,8 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsOptimizerHints()) {
 			this.optimizerHints.add(hint);
 		} else {
-			if (LOG.isWarnEnabled()) {
-				LOG.warn("Optimizer Hints is not supported.");
-			}
+			LOG.atWarn()
+					.log("Optimizer Hints is not supported.");
 		}
 		return this;
 	}

@@ -49,6 +49,7 @@ import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
+import jp.co.future.uroborosql.log.ReplLogger;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -59,10 +60,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class SqlREPL {
-	/** REPLロガー */
-	private static final org.slf4j.Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
-
+public class SqlREPL implements ReplLogger {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
 	/** プロパティパス */
@@ -201,7 +199,10 @@ public class SqlREPL {
 
 				urls.add(Paths.get(sb.toString()).toUri().toURL());
 			} catch (Exception ex) {
-				REPL_LOG.error(ex.getMessage(), ex);
+				REPL_LOG.atError()
+						.setMessage(ex.getMessage())
+						.setCause(ex)
+						.log();
 			}
 		});
 		additionalClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), currentClassLoader);
@@ -213,7 +214,10 @@ public class SqlREPL {
 			try {
 				DriverManager.registerDriver(new DriverShim(driver));
 			} catch (Exception ex) {
-				REPL_LOG.error(ex.getMessage(), ex);
+				REPL_LOG.atError()
+						.setMessage(ex.getMessage())
+						.setCause(ex)
+						.log();
 			}
 		});
 
@@ -307,7 +311,10 @@ public class SqlREPL {
 			} catch (UserInterruptException | EndOfFileException ex) {
 				break;
 			} catch (Exception ex) {
-				REPL_LOG.error(ex.getMessage(), ex);
+				REPL_LOG.atError()
+						.setMessage(ex.getMessage())
+						.setCause(ex)
+						.log();
 			}
 		}
 	}

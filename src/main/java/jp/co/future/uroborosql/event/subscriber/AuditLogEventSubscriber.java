@@ -10,12 +10,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
+import jp.co.future.uroborosql.log.EventLogger;
 
 /**
  * 監査用ログを出力するイベントサブスクライバ
@@ -26,7 +26,7 @@ import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
  */
 public class AuditLogEventSubscriber extends EventSubscriber {
 	/** イベントロガー */
-	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event.auditlog");
+	private static final Logger EVENT_LOG = EventLogger.getEventLogger("auditlog");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
@@ -76,77 +76,54 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 			// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
 		}
 
-		var userName = getParam(evt.getExecutionContext(), userNameKey);
-		if (userName == null) {
-			// ユーザ名が設定されていない時
-			userName = DEFAULT_USER_NAME;
-		}
-
-		var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-		if (funcId == null) {
-			// 機能IDが設定されていない時
-			funcId = DEFAULT_FUNC_ID;
-		}
-
-		if (EVENT_LOG.isDebugEnabled()) {
-			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
-					funcId,
-					evt.getExecutionContext().getSqlId(),
-					evt.getExecutionContext().getSqlName(),
-					evt.getExecutionContext().getExecutableSql(),
-					rowCount));
-		}
+		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
+		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
+		var reportRowCount = rowCount;
+		EVENT_LOG.atDebug()
+				.setMessage("AuditData: {}")
+				.addArgument(() -> new AuditData(userName,
+						funcId,
+						evt.getExecutionContext().getSqlId(),
+						evt.getExecutionContext().getSqlName(),
+						evt.getExecutionContext().getExecutableSql(),
+						reportRowCount))
+				.log();
 	}
 
 	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
-		var userName = getParam(evt.getExecutionContext(), userNameKey);
-		if (userName == null) {
-			// ユーザ名が設定されていない時
-			userName = DEFAULT_USER_NAME;
-		}
-
-		var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-		if (funcId == null) {
-			// 機能IDが設定されていない時
-			funcId = DEFAULT_FUNC_ID;
-		}
-
-		if (EVENT_LOG.isDebugEnabled()) {
-			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
-					funcId,
-					evt.getExecutionContext().getSqlId(),
-					evt.getExecutionContext().getSqlName(),
-					evt.getExecutionContext().getExecutableSql(),
-					evt.getCount()));
-		}
+		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
+		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
+		EVENT_LOG.atDebug()
+				.setMessage("AuditData: {}")
+				.addArgument(() -> new AuditData(userName,
+						funcId,
+						evt.getExecutionContext().getSqlId(),
+						evt.getExecutionContext().getSqlName(),
+						evt.getExecutionContext().getExecutableSql(),
+						evt.getCount()))
+				.log();
 	}
 
 	void afterSqlBatch(final AfterSqlBatchEvent evt) {
-		var userName = getParam(evt.getExecutionContext(), userNameKey);
-		if (userName == null) {
-			// ユーザ名が設定されていない時
-			userName = DEFAULT_USER_NAME;
-		}
-
-		var funcId = getParam(evt.getExecutionContext(), funcIdKey);
-		if (funcId == null) {
-			// 機能IDが設定されていない時
-			funcId = DEFAULT_FUNC_ID;
-		}
-		var rowCount = -1;
-		if (EVENT_LOG.isDebugEnabled()) {
-			try {
-				rowCount = evt.getPreparedStatement().getUpdateCount();
-			} catch (SQLException ex) {
-				// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
-			}
-			EVENT_LOG.debug("AuditData: {}", new AuditData(userName,
-					funcId,
-					evt.getExecutionContext().getSqlId(),
-					evt.getExecutionContext().getSqlName(),
-					evt.getExecutionContext().getExecutableSql(),
-					rowCount));
-		}
+		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
+		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
+		EVENT_LOG.atDebug()
+				.setMessage("AuditData: {}")
+				.addArgument(() -> {
+					var rowCount = -1;
+					try {
+						rowCount = evt.getPreparedStatement().getUpdateCount();
+					} catch (SQLException ex) {
+						// ここでの例外は実処理に影響を及ぼさないよう握りつぶす
+					}
+					return new AuditData(userName,
+							funcId,
+							evt.getExecutionContext().getSqlId(),
+							evt.getExecutionContext().getSqlName(),
+							evt.getExecutionContext().getExecutableSql(),
+							rowCount);
+				})
+				.log();
 	}
 
 	/**
@@ -176,12 +153,13 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 	 *
 	 * @param ctx ExecutionContext
 	 * @param key パラメータのキー
+	 * @param nullDefault パラメータ値が取得できなかった時のデフォルト値
 	 * @return パラメータの値。キーに対するパラメータが存在しない場合は<code>null</code>.
 	 */
-	private String getParam(final ExecutionContext ctx, final String key) {
+	private String getParam(final ExecutionContext ctx, final String key, final String nullDefault) {
 		var param = ctx.getParam(key);
 		if (param == null) {
-			return null;
+			return nullDefault;
 		} else {
 			return String.valueOf(param.getValue());
 		}

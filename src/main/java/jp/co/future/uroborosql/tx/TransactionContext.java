@@ -15,8 +15,9 @@ import java.util.List;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.log.ServiceLogger;
 
-public interface TransactionContext extends AutoCloseable {
+public interface TransactionContext extends AutoCloseable, ServiceLogger {
 
 	/**
 	 * SqlConfigの取得.

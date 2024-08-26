@@ -30,12 +30,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jp.co.future.uroborosql.SqlAgent;
+import jp.co.future.uroborosql.log.CoverageLogger;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -51,10 +50,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author ota
  */
-public class CoberturaCoverageHandler implements CoverageHandler {
-	/** カバレッジロガー. */
-	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
-
+public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger {
 	/**
 	 * カバレッジ数値 line branch セット
 	 */
@@ -258,7 +254,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
 			} catch (IOException ex) {
-				COVERAGE_LOG.error(ex.getMessage(), ex);
+				COVERAGE_LOG.atError()
+						.setMessage(ex.getMessage())
+						.setCause(ex)
+						.log();
 				return;
 			}
 			map.put(coverageData.getMd5(), sqlCoverage);
@@ -273,7 +272,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 		try {
 			write();
 		} catch (Exception ex) {
-			COVERAGE_LOG.error(ex.getMessage(), ex);
+			COVERAGE_LOG.atError()
+					.setMessage(ex.getMessage())
+					.setCause(ex)
+					.log();
 		}
 	}
 
@@ -283,7 +285,10 @@ public class CoberturaCoverageHandler implements CoverageHandler {
 			try {
 				write();
 			} catch (Exception ex) {
-				COVERAGE_LOG.error(ex.getMessage(), ex);
+				COVERAGE_LOG.atError()
+						.setMessage(ex.getMessage())
+						.setCause(ex)
+						.log();
 			}
 		}));
 	}

@@ -23,20 +23,15 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.coverage.CoverageHandler;
 import jp.co.future.uroborosql.coverage.LineRange;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.coverage.Range;
 import jp.co.future.uroborosql.coverage.Ranges;
+import jp.co.future.uroborosql.log.CoverageLogger;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
-class SqlCoverageReport {
-	/** カバレッジロガー. */
-	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
-
+class SqlCoverageReport implements CoverageLogger {
 	private final String name;
 	private final String sql;
 	private final Path path;
@@ -129,7 +124,10 @@ class SqlCoverageReport {
 				writeSuffix(writer);
 			}
 		} catch (IOException ex) {
-			COVERAGE_LOG.error(ex.getMessage(), ex);
+			COVERAGE_LOG.atError()
+					.setMessage(ex.getMessage())
+					.setCause(ex)
+					.log();
 		}
 		updated = false;
 	}

@@ -13,10 +13,8 @@ import java.sql.SQLType;
 import java.util.Map;
 import java.util.Objects;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
+import jp.co.future.uroborosql.log.ServiceLogger;
+import jp.co.future.uroborosql.log.SqlLogger;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -26,13 +24,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class Parameter {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
-
-	/** SQLロガー */
-	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
-
+public class Parameter implements ServiceLogger, SqlLogger {
 	/** 未設定のSQLType */
 	protected static final SQLType SQL_TYPE_NOT_SET = null;
 
@@ -101,10 +93,10 @@ public class Parameter {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					if (LOG.isWarnEnabled()) {
-						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-								subParameterName);
-					}
+					LOG.atWarn()
+							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
+							.addArgument(subParameterName)
+							.log();
 				}
 			} else {
 				try {
@@ -120,21 +112,24 @@ public class Parameter {
 								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception ex2) {
-						if (LOG.isWarnEnabled()) {
-							LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-									subParameterName, ex2);
-						}
+						LOG.atWarn()
+								.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
+								.addArgument(subParameterName)
+								.setCause(ex2)
+								.log();
 					}
 				} catch (Exception ex) {
-					if (LOG.isWarnEnabled()) {
-						LOG.warn("Set subparameter value to NULL because property can not be accessed.[{}]",
-								subParameterName, ex);
-					}
+					LOG.atWarn()
+							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
+							.addArgument(subParameterName)
+							.setCause(ex)
+							.log();
 				}
 			}
 		}
 
 		return new Parameter(subParameterName, subValue);
+
 	}
 
 	/**
@@ -186,8 +181,12 @@ public class Parameter {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (SQL_LOG.isInfoEnabled() && Boolean.FALSE.toString().equals(MDC.get("SuppressParameterLogOutput"))) {
-			SQL_LOG.info("Set the parameter.[INDEX[{}], {}]", index, this);
+		if (SQL_LOG.isInfoEnabled() && !isSuppressParameterLogging()) {
+			SQL_LOG.atInfo()
+					.setMessage("Set the parameter.[INDEX[{}], {}]")
+					.addArgument(index)
+					.addArgument(this)
+					.log();
 		}
 	}
 

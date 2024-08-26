@@ -17,8 +17,6 @@ import java.util.Set;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -26,6 +24,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.Dialect;
+import jp.co.future.uroborosql.log.PerformanceLogger;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
@@ -34,10 +33,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
  *
  * @author H.Sugimoto
  */
-public abstract class AbstractExpressionParserTest {
-	/** ロガー */
-	protected static final Logger PERFORMANCE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.performance");
-
+public abstract class AbstractExpressionParserTest implements PerformanceLogger {
 	protected SqlConfig sqlConfig;
 	protected ExecutionContext ctx;
 	protected static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
@@ -201,7 +197,10 @@ public abstract class AbstractExpressionParserTest {
 	@Test
 	void testPerformance() {
 		if (PERFORMANCE_LOG.isDebugEnabled()) {
-			PERFORMANCE_LOG.debug("\r\n{}", getPerformanceHeader());
+			PERFORMANCE_LOG.atDebug()
+					.setMessage("\r\n{}")
+					.addArgument(this::getPerformanceHeader)
+					.log();
 			var parser = getExpressionParser();
 			parser.setSqlConfig(sqlConfig);
 			assertThat(parser.getSqlConfig(), is(sqlConfig));
@@ -214,8 +213,12 @@ public abstract class AbstractExpressionParserTest {
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
-				PERFORMANCE_LOG.debug("No{}:{}", i,
-						formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))));
+				PERFORMANCE_LOG.atDebug()
+						.setMessage("No{}:{}")
+						.addArgument(i)
+						.addArgument(
+								() -> formatter.format(LocalTime.MIDNIGHT.plus(Duration.between(start, Instant.now()))))
+						.log();
 			}
 		}
 	}

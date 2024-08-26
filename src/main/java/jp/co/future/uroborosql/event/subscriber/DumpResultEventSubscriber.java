@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
+import jp.co.future.uroborosql.log.EventLogger;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -37,8 +37,11 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  */
 public class DumpResultEventSubscriber extends EventSubscriber {
+	/** 改行文字 */
+	private static final String LINE_SEPARATOR = System.lineSeparator();
+
 	/** ロガー */
-	private static final Logger EVENT_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.event.dumpresult");
+	private static final Logger EVENT_LOG = EventLogger.getEventLogger("dumpresult");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
@@ -57,16 +60,16 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				if (EVENT_LOG.isWarnEnabled()) {
-					EVENT_LOG.warn(
-							"ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
-				}
+				EVENT_LOG.atWarn()
+						.log("ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			if (EVENT_LOG.isDebugEnabled()) {
-				EVENT_LOG.debug("{}", displayResult(evt.getResultSet()));
-			}
+			EVENT_LOG.atDebug()
+					.log(() -> displayResult(evt.getResultSet()).toString());
 		} catch (SQLException ex) {
-			EVENT_LOG.warn(ex.getMessage(), ex);
+			EVENT_LOG.atWarn()
+					.setMessage(ex.getMessage())
+					.setCause(ex)
+					.log();
 		}
 	}
 
@@ -103,17 +106,17 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 				rows.add(data);
 			}
 
-			var builder = new StringBuilder(System.lineSeparator());
+			var builder = new StringBuilder(LINE_SEPARATOR);
 			// ヘッダ部出力
 			builder.append("+");
 			for (var key : keys) {
 				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
-			builder.append(System.lineSeparator()).append("|");
+			builder.append(LINE_SEPARATOR).append("|");
 			for (var key : keys) {
 				builder.append(fillHeader(key, maxLengthList.get(key))).append("|");
 			}
-			builder.append(System.lineSeparator()).append("+");
+			builder.append(LINE_SEPARATOR).append("+");
 			for (var key : keys) {
 				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
@@ -121,7 +124,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 			// データ部出力
 
 			if (rows.isEmpty()) {
-				builder.append(System.lineSeparator()).append("|");
+				builder.append(LINE_SEPARATOR).append("|");
 				var len = 1;
 				for (var key : keys) {
 					len = len + maxLengthList.get(key) + 1;
@@ -134,14 +137,14 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 				}
 			} else {
 				for (var row : rows) {
-					builder.append(System.lineSeparator()).append("|");
+					builder.append(LINE_SEPARATOR).append("|");
 					for (var key : keys) {
 						builder.append(fillData(row.get(key), maxLengthList.get(key))).append("|");
 					}
 				}
 
 			}
-			builder.append(System.lineSeparator()).append("+");
+			builder.append(LINE_SEPARATOR).append("+");
 			for (var key : keys) {
 				builder.append(ObjectUtils.repeat('-', maxLengthList.get(key))).append("+");
 			}
@@ -153,7 +156,10 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 
 			return builder;
 		} catch (Exception ex) {
-			EVENT_LOG.error(ex.getMessage(), ex);
+			EVENT_LOG.atError()
+					.setMessage(ex.getMessage())
+					.setCause(ex)
+					.log();
 		}
 		return null;
 	}
