@@ -88,7 +88,7 @@ public class TableNameCompleter extends AbstractCompleter implements ReplLogger 
 				}
 			}
 		} catch (SQLException ex) {
-			REPL_LOG.atError()
+			atError(REPL_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

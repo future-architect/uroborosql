@@ -124,7 +124,7 @@ class SqlCoverageReport implements CoverageLogger {
 				writeSuffix(writer);
 			}
 		} catch (IOException ex) {
-			COVERAGE_LOG.atError()
+			atError(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

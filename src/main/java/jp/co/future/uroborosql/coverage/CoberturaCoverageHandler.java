@@ -254,7 +254,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
 			} catch (IOException ex) {
-				COVERAGE_LOG.atError()
+				atError(COVERAGE_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -272,7 +272,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 		try {
 			write();
 		} catch (Exception ex) {
-			COVERAGE_LOG.atError()
+			atError(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -285,7 +285,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 			try {
 				write();
 			} catch (Exception ex) {
-				COVERAGE_LOG.atError()
+				atError(COVERAGE_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();

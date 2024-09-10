@@ -581,7 +581,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.atWarn()
+			atWarn(LOG)
 					.log("'FOR UPDATE NOWAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
@@ -601,7 +601,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return forUpdateWait(agent().getSqlConfig().getSqlAgentProvider().getDefaultForUpdateWaitSeconds());
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.atWarn()
+			atWarn(LOG)
 					.log("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
@@ -623,7 +623,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 			return this;
 		} else if (!agent().getSqlConfig().getSqlAgentProvider().isStrictForUpdateType()
 				&& dialect.supportsForUpdate()) {
-			LOG.atWarn()
+			atWarn(LOG)
 					.log("'FOR UPDATE WAIT' is not supported. Set 'FOR UPDATE' instead.");
 			this.forUpdateType = ForUpdateType.NORMAL;
 			return this;
@@ -642,7 +642,7 @@ final class SqlEntityQueryImpl<E> extends AbstractExtractionCondition<SqlEntityQ
 		if (dialect.supportsOptimizerHints()) {
 			this.optimizerHints.add(hint);
 		} else {
-			LOG.atWarn()
+			atWarn(LOG)
 					.log("Optimizer Hints is not supported.");
 		}
 		return this;

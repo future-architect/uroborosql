@@ -17,6 +17,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.NClob;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.DayOfWeek;
@@ -92,6 +93,49 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertEquals("1234567890123", rs.getString("JAN_CODE"));
 		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
 		assertFalse(rs.next(), "結果が複数件です。");
+	}
+
+	/**
+	 * クエリ実行処理のテストケース。（ログ抑止
+	 */
+	@Test
+	void testQueryWithSuppressLog() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		agent.required(() -> {
+			agent.suppressLogging();
+			try (var rs = agent.query("example/select_product")
+					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
+					.resultSet()) {
+				assertNotNull(rs, "ResultSetが取得できませんでした。");
+				assertTrue(rs.next(), "結果が0件です。");
+				assertEquals("0", rs.getString("PRODUCT_ID"));
+				assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+				assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+				assertEquals("1234567890123", rs.getString("JAN_CODE"));
+				assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+				assertFalse(rs.next(), "結果が複数件です。");
+			} catch (SQLException ex) {
+				fail(ex);
+			}
+
+			agent.releaseLogging();
+			try (var rs = agent.query("example/select_product")
+					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
+					.resultSet()) {
+				assertNotNull(rs, "ResultSetが取得できませんでした。");
+				assertTrue(rs.next(), "結果が0件です。");
+				assertEquals("0", rs.getString("PRODUCT_ID"));
+				assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
+				assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
+				assertEquals("1234567890123", rs.getString("JAN_CODE"));
+				assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+				assertFalse(rs.next(), "結果が複数件です。");
+			} catch (SQLException ex) {
+				fail(ex);
+			}
+		});
 	}
 
 	/**

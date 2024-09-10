@@ -44,6 +44,7 @@ import java.util.stream.StreamSupport;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.log.ServiceLogger;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -228,7 +229,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			try {
 				watcher = FileSystems.getDefault().newWatchService();
 			} catch (IOException ex) {
-				LOG.atError()
+				atError(LOG)
 						.setMessage("Can't start watcher service.")
 						.setCause(ex)
 						.log();
@@ -274,11 +275,11 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			try {
 				key = watcher.take();
 			} catch (InterruptedException ex) {
-				LOG.atDebug()
+				atDebug(LOG)
 						.log("WatchService caught InterruptedException.");
 				break;
 			} catch (Throwable ex) {
-				LOG.atError()
+				atError(LOG)
 						.setMessage("Unexpected exception occurred.")
 						.setCause(ex)
 						.log();
@@ -298,7 +299,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var dir = watchDirs.get(key);
 				var path = dir.resolve(evt.context());
 
-				LOG.atDebug()
+				atDebug(LOG)
 						.setMessage("file changed.({}). path={}")
 						.addArgument(kind.name())
 						.addArgument(path)
@@ -413,7 +414,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
 						traverseJar(url, loadPathSlash);
 					} else {
-						LOG.atWarn()
+						atWarn(LOG)
 								.setMessage("Unsupported scheme. scheme : {}, url : {}")
 								.addArgument(scheme)
 								.addArgument(url)
@@ -422,7 +423,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				}
 			}
 		} catch (IOException | URISyntaxException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage("Can't load sql files.")
 					.setCause(ex)
 					.log();
@@ -538,7 +539,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param remove 削除指定。<code>true</code>の場合、指定のPathを除外する。<code>false</code>の場合は格納する
 	 */
 	private void traverseFile(final Path path, final boolean watch, final boolean remove) {
-		LOG.atTrace()
+		atTrace(LOG)
 				.setMessage("traverseFile start. path : {}, watch : {}, remove : {}.")
 				.addArgument(path)
 				.addArgument(watch)
@@ -576,7 +577,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	@SuppressWarnings("resource")
 	private void traverseJar(final URL url, final String loadPath) {
-		LOG.atTrace()
+		atTrace(LOG)
 				.setMessage("traverseJar start. url : {}, loadPath : {}.")
 				.addArgument(url)
 				.addArgument(loadPath)
@@ -621,7 +622,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/**
 	 * SQLファイルの情報を保持するオブジェクト
 	 */
-	public static class SqlInfo {
+	public static class SqlInfo implements ServiceLogger {
 		/** キーとなるsqlName */
 		private final String sqlName;
 		/** 対象のDialect */
@@ -649,7 +650,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				final List<Path> loadPaths,
 				final Dialect dialect,
 				final Charset charset) {
-			LOG.atTrace()
+			atTrace(LOG)
 					.setMessage("SqlInfo - sqlName : {}, path : {}, dialect : {}, charset : {}.")
 					.addArgument(sqlName)
 					.addArgument(path)
@@ -670,12 +671,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		 * @param path 対象のPath
 		 * @return 最終更新日時
 		 */
-		private static FileTime getLastModifiedTime(final Path path) {
+		private FileTime getLastModifiedTime(final Path path) {
 			if (SCHEME_FILE.equalsIgnoreCase(path.toUri().getScheme())) {
 				try {
 					return Files.getLastModifiedTime(path);
 				} catch (IOException ex) {
-					LOG.atWarn()
+					atWarn(LOG)
 							.setMessage("Can't get lastModifiedTime. path:{}")
 							.addArgument(path)
 							.setCause(ex)
@@ -738,7 +739,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 						try {
 							var body = new String(Files.readAllBytes(path), charset);
 							sqlBody = formatSqlBody(body);
-							LOG.atDebug()
+							atDebug(LOG)
 									.setMessage("Loaded SQL template.[{}]")
 									.addArgument(path)
 									.log();
@@ -762,7 +763,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 								var body = reader.lines()
 										.collect(Collectors.joining(System.lineSeparator()));
 								sqlBody = formatSqlBody(body);
-								LOG.atDebug()
+								atDebug(LOG)
 										.setMessage("Loaded SQL template.[{}]")
 										.addArgument(path)
 										.log();
@@ -896,7 +897,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				var currentTimeStamp = getLastModifiedTime(currentPath);
 				if (!oldPath.equals(currentPath)) {
 					replaceFlag = true;
-					LOG.atDebug()
+					atDebug(LOG)
 							.setMessage("sql file switched. sqlName={}, oldPath={}, newPath={}, lastModified={}")
 							.addArgument(sqlName)
 							.addArgument(oldPath)
@@ -906,7 +907,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				} else {
 					if (!this.lastModified.equals(currentTimeStamp)) {
 						replaceFlag = true;
-						LOG.atDebug()
+						atDebug(LOG)
 								.setMessage("sql file changed. sqlName={}, path={}, lastModified={}")
 								.addArgument(sqlName)
 								.addArgument(currentPath)

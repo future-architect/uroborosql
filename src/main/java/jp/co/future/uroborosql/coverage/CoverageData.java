@@ -62,7 +62,7 @@ public class CoverageData implements CoverageLogger {
 			}
 			return builder.toString();
 		} catch (Exception ex) {
-			COVERAGE_LOG.atError()
+			atError(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

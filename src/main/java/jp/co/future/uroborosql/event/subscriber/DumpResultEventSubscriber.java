@@ -36,7 +36,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @since v1.0.0
  *
  */
-public class DumpResultEventSubscriber extends EventSubscriber {
+public class DumpResultEventSubscriber extends EventSubscriber implements EventLogger {
 	/** 改行文字 */
 	private static final String LINE_SEPARATOR = System.lineSeparator();
 
@@ -60,13 +60,13 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				EVENT_LOG.atWarn()
+				atWarn(EVENT_LOG)
 						.log("ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			EVENT_LOG.atDebug()
+			atDebug(EVENT_LOG)
 					.log(() -> displayResult(evt.getResultSet()).toString());
 		} catch (SQLException ex) {
-			EVENT_LOG.atWarn()
+			atWarn(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -156,7 +156,7 @@ public class DumpResultEventSubscriber extends EventSubscriber {
 
 			return builder;
 		} catch (Exception ex) {
-			EVENT_LOG.atError()
+			atError(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

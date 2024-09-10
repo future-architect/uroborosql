@@ -199,7 +199,7 @@ public class SqlREPL implements ReplLogger {
 
 				urls.add(Paths.get(sb.toString()).toUri().toURL());
 			} catch (Exception ex) {
-				REPL_LOG.atError()
+				atError(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -214,7 +214,7 @@ public class SqlREPL implements ReplLogger {
 			try {
 				DriverManager.registerDriver(new DriverShim(driver));
 			} catch (Exception ex) {
-				REPL_LOG.atError()
+				atError(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -311,7 +311,7 @@ public class SqlREPL implements ReplLogger {
 			} catch (UserInterruptException | EndOfFileException ex) {
 				break;
 			} catch (Exception ex) {
-				REPL_LOG.atError()
+				atError(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();

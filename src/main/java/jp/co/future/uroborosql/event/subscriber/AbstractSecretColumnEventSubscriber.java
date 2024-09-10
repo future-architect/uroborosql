@@ -114,7 +114,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		KeyStore store;
 		try {
 			if (ObjectUtils.isBlank(getKeyStoreFilePath())) {
-				SETTING_LOG.atError()
+				atError(SETTING_LOG)
 						.setMessage("Invalid KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -123,7 +123,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			}
 			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
-				SETTING_LOG.atError()
+				atError(SETTING_LOG)
 						.setMessage("Not found KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -131,7 +131,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
-				SETTING_LOG.atError()
+				atError(SETTING_LOG)
 						.setMessage("Invalid KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -139,14 +139,14 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 				return;
 			}
 			if (ObjectUtils.isBlank(getStorePassword())) {
-				SETTING_LOG.atError()
+				atError(SETTING_LOG)
 						.setMessage("Invalid password for access KeyStore.")
 						.log();
 				setSkip(true);
 				return;
 			}
 			if (ObjectUtils.isBlank(getAlias())) {
-				SETTING_LOG.atError()
+				atError(SETTING_LOG)
 						.setMessage("No alias for access KeyStore.")
 						.log();
 				setSkip(true);
@@ -170,7 +170,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
-			SETTING_LOG.atError()
+			atError(SETTING_LOG)
 					.setMessage("Failed to acquire secret key.")
 					.setCause(ex)
 					.log();
@@ -209,7 +209,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 										new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
 							}
 						} catch (Exception ex) {
-							EVENT_LOG.atWarn()
+							atWarn(EVENT_LOG)
 									.setMessage("Encrypt Exception key:{}")
 									.addArgument(key)
 									.log();
@@ -231,7 +231,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
 					getCryptColumnNames(), getCharset()));
 		} catch (Exception ex) {
-			EVENT_LOG.atError()
+			atError(EVENT_LOG)
 					.setMessage("Failed to create SecretResultSet.")
 					.setCause(ex)
 					.log();
@@ -391,7 +391,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
 			this.charset = StandardCharsets.UTF_8;
-			SETTING_LOG.atError()
+			atError(SETTING_LOG)
 					.setMessage(
 							"The specified character set could not be converted to {}. Set the default character set({}).")
 					.addArgument(charset)

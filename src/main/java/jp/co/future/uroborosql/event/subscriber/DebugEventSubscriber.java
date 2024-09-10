@@ -25,7 +25,7 @@ import jp.co.future.uroborosql.log.EventLogger;
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class DebugEventSubscriber extends EventSubscriber {
+public class DebugEventSubscriber extends EventSubscriber implements EventLogger {
 	/** ロガー */
 	private static final Logger EVENT_LOG = EventLogger.getEventLogger("debug");
 
@@ -42,7 +42,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 
 	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
 		try {
-			EVENT_LOG.atDebug()
+			atDebug(EVENT_LOG)
 					.setMessage("Begin Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, occurredOn:{}")
 					.addArgument(evt.getTransactionContext().getConnection())
 					.addArgument(evt.isRequiredNew())
@@ -50,7 +50,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 					.addArgument(evt.occurredOn())
 					.log();
 		} catch (SQLException ex) {
-			EVENT_LOG.atError()
+			atError(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -59,7 +59,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		try {
-			EVENT_LOG.atDebug()
+			atDebug(EVENT_LOG)
 					.setMessage(
 							"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, result:{}, occurredOn:{}")
 					.addArgument(evt.getTransactionContext().getConnection())
@@ -69,7 +69,7 @@ public class DebugEventSubscriber extends EventSubscriber {
 					.addArgument(evt.occurredOn())
 					.log();
 		} catch (SQLException ex) {
-			EVENT_LOG.atError()
+			atError(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -77,14 +77,14 @@ public class DebugEventSubscriber extends EventSubscriber {
 	}
 
 	void beforeSetParameter(final BeforeSetParameterEvent evt) {
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("Before Set Parameter - Parameter:{}")
 				.addArgument(evt.getParameter())
 				.log();
 	}
 
 	void afterGetOutParameter(final AfterGetOutParameterEvent evt) {
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("After Get OutParameter - key:{}, value:{}. parameterIndex:{}")
 				.addArgument(evt.getKey())
 				.addArgument(evt.getValue())
@@ -93,18 +93,18 @@ public class DebugEventSubscriber extends EventSubscriber {
 	}
 
 	void afterSqlQuery(final AfterSqlQueryEvent evt) {
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("Execute Query - sqlName:{} executed.")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.log();
-		EVENT_LOG.atTrace()
+		atTrace(EVENT_LOG)
 				.setMessage("Execute Query sql:{}")
 				.addArgument(evt.getPreparedStatement())
 				.log();
 	}
 
 	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("Execute Update - sqlName:{} executed. Count:{} items.")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.addArgument(evt.getCount())
@@ -112,14 +112,14 @@ public class DebugEventSubscriber extends EventSubscriber {
 	}
 
 	void afterSqlBatch(final AfterSqlBatchEvent evt) {
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("Execute Update - sqlName:{} executed. Results:{}")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.addArgument(() -> {
 					try {
 						return new int[] { evt.getPreparedStatement().getUpdateCount() };
 					} catch (SQLException ex) {
-						EVENT_LOG.atError()
+						atError(EVENT_LOG)
 								.setMessage(ex.getMessage())
 								.setCause(ex)
 								.log();

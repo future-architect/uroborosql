@@ -234,7 +234,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 
 	}
 
-	public static final class InternalConfig implements SqlConfig {
+	public static final class InternalConfig implements SqlConfig, SettingLogger {
 		/**
 		 * コネクション提供クラス.
 		 */
@@ -296,12 +296,12 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			this.entityHandler = new DefaultEntityHandler();
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
-				SETTING_LOG.atWarn()
+				atWarn(SETTING_LOG)
 						.log("SqlConfig - Clock was not set. Set SystemClock.");
 			} else {
 				this.clock = clock;
 			}
-			SETTING_LOG.atInfo()
+			atInfo(SETTING_LOG)
 					.setMessage("SqlConfig - Clock : {} has been selected.")
 					.addArgument(this.clock)
 					.log();
@@ -314,7 +314,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			} else {
 				this.dialect = dialect;
 			}
-			SETTING_LOG.atInfo()
+			atInfo(SETTING_LOG)
 					.setMessage("SqlConfig - Dialect : {} has been selected.")
 					.addArgument(() -> this.dialect.getClass().getSimpleName())
 					.log();
@@ -329,7 +329,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			} else {
 				this.expressionParser = expressionParser;
 			}
-			SETTING_LOG.atInfo()
+			atInfo(SETTING_LOG)
 					.setMessage("SqlConfig - ExpressionParser : {} has been selected.")
 					.addArgument(() -> this.expressionParser.getClass().getSimpleName())
 					.log();

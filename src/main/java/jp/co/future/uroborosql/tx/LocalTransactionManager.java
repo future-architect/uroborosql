@@ -183,7 +183,7 @@ public class LocalTransactionManager implements TransactionManager {
 		try {
 			return currentTxContext(true).orElseThrow().getConnection();
 		} catch (SQLException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

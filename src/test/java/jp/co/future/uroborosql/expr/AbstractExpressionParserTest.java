@@ -197,7 +197,7 @@ public abstract class AbstractExpressionParserTest implements PerformanceLogger 
 	@Test
 	void testPerformance() {
 		if (PERFORMANCE_LOG.isDebugEnabled()) {
-			PERFORMANCE_LOG.atDebug()
+			atDebug(PERFORMANCE_LOG)
 					.setMessage("\r\n{}")
 					.addArgument(this::getPerformanceHeader)
 					.log();
@@ -213,7 +213,7 @@ public abstract class AbstractExpressionParserTest implements PerformanceLogger 
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
-				PERFORMANCE_LOG.atDebug()
+				atDebug(PERFORMANCE_LOG)
 						.setMessage("No{}:{}")
 						.addArgument(i)
 						.addArgument(

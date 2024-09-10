@@ -888,7 +888,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 			preparedStatement.addBatch();
 		}
 		if (!isSuppressLogging()) {
-			SQL_LOG.atDebug()
+			atDebug(SQL_LOG)
 					.setMessage("{} items Added for batch process.")
 					.addArgument(batchParameters.size())
 					.log();
@@ -923,7 +923,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 			parameterIndex++;
 		}
 
-		SQL_LOG.atDebug()
+		atDebug(SQL_LOG)
 				.setMessage("Stored procedure out parameter[{}]")
 				.addArgument(out)
 				.log();

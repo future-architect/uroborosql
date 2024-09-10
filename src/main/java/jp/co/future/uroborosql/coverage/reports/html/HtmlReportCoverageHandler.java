@@ -110,7 +110,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler, CoverageLogge
 							Files.copy(src, Paths.get(this.reportDirPath + "/" + filename),
 									StandardCopyOption.REPLACE_EXISTING);
 						} catch (IOException ex) {
-							COVERAGE_LOG.atError()
+							atError(COVERAGE_LOG)
 									.setMessage(ex.getMessage())
 									.setCause(ex)
 									.log();
@@ -130,7 +130,7 @@ public class HtmlReportCoverageHandler implements CoverageHandler, CoverageLogge
 				writeSuffix(writer);
 			}
 		} catch (IOException ex) {
-			COVERAGE_LOG.atError()
+			atError(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

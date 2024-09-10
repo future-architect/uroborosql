@@ -153,13 +153,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 						var newValue = new Parameter(fieldName, field.get(null));
 						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							SETTING_LOG.atWarn()
+							atWarn(SETTING_LOG)
 									.setMessage("Duplicate constant name. Constant name:{}, old value:{} destroy.")
 									.addArgument(fieldName)
 									.addArgument(prevValue.getValue())
 									.log();
 						}
-						SETTING_LOG.atInfo()
+						atInfo(SETTING_LOG)
 								.setMessage("Constant [name:{}, value:{}] added to parameter.")
 								.addArgument(fieldName)
 								.addArgument(newValue.getValue())
@@ -177,7 +177,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException | SecurityException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -205,13 +205,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 			var newValue = new Parameter(fieldName, value);
 			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				SETTING_LOG.atWarn()
+				atWarn(SETTING_LOG)
 						.setMessage("Duplicate Enum name. Enum name:{}, old value:{} destroy.")
 						.addArgument(fieldName)
 						.addArgument(prevValue.getValue())
 						.log();
 			}
-			SETTING_LOG.atInfo()
+			atInfo(SETTING_LOG)
 					.setMessage("Enum [name:{}, value:{}] added to parameter.")
 					.addArgument(fieldName)
 					.addArgument(newValue.getValue())
@@ -327,7 +327,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 					var targetClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 					makeConstParamMap(paramMap, targetClass);
 				} catch (ClassNotFoundException ex) {
-					LOG.atError()
+					atError(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -361,14 +361,14 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 	 * @return クラスリスト
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Set<Class<? extends Enum<?>>> listUpEnumClasses(final String packageName) {
+	private Set<Class<? extends Enum<?>>> listUpEnumClasses(final String packageName) {
 		var resourceName = packageName.replace('.', '/');
 		var classLoader = Thread.currentThread().getContextClassLoader();
 		List<URL> roots;
 		try {
 			roots = Collections.list(classLoader.getResources(resourceName));
 		} catch (IOException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -381,7 +381,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				try {
 					classes.addAll(findEnumClassesWithFile(packageName, Paths.get(root.toURI())));
 				} catch (URISyntaxException ex) {
-					LOG.atError()
+					atError(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -391,7 +391,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				try (var jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
 					classes.addAll(findEnumClassesWithJar(packageName, jarFile));
 				} catch (IOException ex) {
-					LOG.atError()
+					atError(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -411,7 +411,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 	 * @throws ClassNotFoundException エラー
 	 * @throws IOException
 	 */
-	private static Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
+	private Set<Class<?>> findEnumClassesWithFile(final String packageName, final Path dir) {
 		var prefix = packageName + ".";
 		try (var stream = Files.walk(dir)) {
 			return stream.filter(entry -> entry.getFileName().toString().endsWith(".class"))
@@ -424,7 +424,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
 		} catch (IOException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -441,7 +441,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 	 * @throws ClassNotFoundException エラー
 	 * @throws IOException
 	 */
-	private static Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
+	private Collection<? extends Class<?>> findEnumClassesWithJar(final String packageName,
 			final JarFile jarFile) {
 		var resourceName = packageName.replace('.', '/');
 		return Collections.list(jarFile.entries()).stream()
@@ -460,14 +460,14 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 	 * @param className クラス名
 	 * @return ロードしたEnumクラス
 	 */
-	private static Optional<Class<?>> loadEnum(final String className) {
+	private Optional<Class<?>> loadEnum(final String className) {
 		try {
 			var type = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 			if (type.isEnum()) {
 				return Optional.of(type);
 			}
 		} catch (ClassNotFoundException ex) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

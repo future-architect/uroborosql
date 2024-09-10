@@ -360,7 +360,7 @@ class LocalTransactionContext implements TransactionContext {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			} else {
-				LOG.atWarn()
+				atWarn(LOG)
 						.log("Connection close was skipped because the connection was already closed.");
 			}
 		} catch (SQLException ex) {

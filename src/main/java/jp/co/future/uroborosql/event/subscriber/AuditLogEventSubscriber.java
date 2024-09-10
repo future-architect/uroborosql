@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.log.EventLogger;
  * @since v1.0.0
  *
  */
-public class AuditLogEventSubscriber extends EventSubscriber {
+public class AuditLogEventSubscriber extends EventSubscriber implements EventLogger {
 	/** イベントロガー */
 	private static final Logger EVENT_LOG = EventLogger.getEventLogger("auditlog");
 
@@ -79,7 +79,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
 		var reportRowCount = rowCount;
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> new AuditData(userName,
 						funcId,
@@ -93,7 +93,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> new AuditData(userName,
 						funcId,
@@ -107,7 +107,7 @@ public class AuditLogEventSubscriber extends EventSubscriber {
 	void afterSqlBatch(final AfterSqlBatchEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
-		EVENT_LOG.atDebug()
+		atDebug(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> {
 					var rowCount = -1;

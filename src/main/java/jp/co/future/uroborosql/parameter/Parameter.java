@@ -93,7 +93,7 @@ public class Parameter implements ServiceLogger, SqlLogger {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					LOG.atWarn()
+					atWarn(LOG)
 							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 							.addArgument(subParameterName)
 							.log();
@@ -112,14 +112,14 @@ public class Parameter implements ServiceLogger, SqlLogger {
 								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception ex2) {
-						LOG.atWarn()
+						atWarn(LOG)
 								.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 								.addArgument(subParameterName)
 								.setCause(ex2)
 								.log();
 					}
 				} catch (Exception ex) {
-					LOG.atWarn()
+					atWarn(LOG)
 							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 							.addArgument(subParameterName)
 							.setCause(ex)
@@ -182,7 +182,7 @@ public class Parameter implements ServiceLogger, SqlLogger {
 	 */
 	protected void parameterLog(final int index) {
 		if (SQL_LOG.isInfoEnabled() && !isSuppressParameterLogging()) {
-			SQL_LOG.atInfo()
+			atInfo(SQL_LOG)
 					.setMessage("Set the parameter.[INDEX[{}], {}]")
 					.addArgument(index)
 					.addArgument(this)

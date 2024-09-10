@@ -97,7 +97,7 @@ public class IfNode extends BranchNode {
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					PARSER_LOG.atInfo()
+					atInfo(PARSER_LOG)
 							.setMessage("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]")
 							.addArgument(expression)
 							.addArgument(resultValue)

@@ -1356,7 +1356,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		// REPLで実行するための文字列をREPLログに出力する
 		outputReplLog(executionContext);
 
-		LOG.atDebug()
+		atDebug(LOG)
 				.setMessage("Execute query sql. sqlName: {}")
 				.addArgument(executionContext.getSqlName())
 				.log();
@@ -1401,7 +1401,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						var pessimisticLockingErrorCodes = dialect.getPessimisticLockingErrorCodes();
 						if (maxRetryCount > loopCount
 								&& (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState))) {
-							LOG.atDebug()
+							atDebug(LOG)
 									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
 									.addArgument(loopCount + 1)
 									.addArgument(() -> String.format("%,3d", retryWaitTime))
@@ -1440,7 +1440,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			return null;
 		} finally {
 			// 後処理
-			PERFORMANCE_LOG.atInfo()
+			atInfo(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1498,7 +1498,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
-			LOG.atInfo()
+			atInfo(LOG)
 					.log("Performs update delegate of update process.");
 			return executionContext.getUpdateDelegate().apply(executionContext);
 		}
@@ -1513,7 +1513,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			// REPLで実行するための文字列をREPLログに出力する
 			outputReplLog(executionContext);
 
-			LOG.atDebug()
+			atDebug(LOG)
 					.setMessage("Execute update sql. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
@@ -1571,7 +1571,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							LOG.atDebug()
+							atDebug(LOG)
 									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
 									.addArgument(loopCount + 1)
 									.addArgument(() -> String.format("%,3d", retryWaitTime))
@@ -1603,7 +1603,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			PERFORMANCE_LOG.atInfo()
+			atInfo(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1630,7 +1630,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
 			releaseParameterLogging();
-			LOG.atInfo()
+			atInfo(LOG)
 					.log("Performs update delegate of batch process.");
 			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
 		}
@@ -1642,7 +1642,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			// INパラメータ設定
 			executionContext.bindBatchParams(stmt);
 
-			LOG.atDebug()
+			atDebug(LOG)
 					.setMessage("Execute batch sql. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
@@ -1697,7 +1697,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							LOG.atDebug()
+							atDebug(LOG)
 									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
 									.addArgument(loopCount + 1)
 									.addArgument(() -> String.format("%,3d", retryWaitTime))
@@ -1730,7 +1730,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			PERFORMANCE_LOG.atInfo()
+			atInfo(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1764,7 +1764,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			// パラメータ設定
 			executionContext.bindParams(callableStatement);
 
-			LOG.atDebug()
+			atDebug(LOG)
 					.setMessage("Execute stored procedure. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
@@ -1808,7 +1808,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							LOG.atDebug()
+							atDebug(LOG)
 									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
 									.addArgument(loopCount + 1)
 									.addArgument(() -> String.format("%,3d", retryWaitTime))
@@ -1840,7 +1840,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			PERFORMANCE_LOG.atInfo()
+			atInfo(PERFORMANCE_LOG)
 					.setMessage("Stored procedure execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1880,12 +1880,12 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 
 		if (SQL_LOG.isInfoEnabled() && sqlName != null) {
 			if (executionContext.getSqlKind().isEntityType()) {
-				SQL_LOG.atInfo()
+				atInfo(SQL_LOG)
 						.setMessage("EntityClass : {}")
 						.addArgument(sqlName)
 						.log();
 			} else if (getSqlResourceManager().existSql(sqlName)) {
-				SQL_LOG.atInfo()
+				atInfo(SQL_LOG)
 						.setMessage("SQLPath : {}")
 						.addArgument(() -> getSqlResourceManager().getSqlPath(sqlName))
 						.log();
@@ -1912,7 +1912,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 					.forEach(listener -> listener.accept(eventObj));
 		}
 
-		SQL_LOG.atDebug()
+		atDebug(SQL_LOG)
 				.setMessage("Template SQL[{}{}{}]")
 				.addArgument(System.lineSeparator())
 				.addArgument(originalSql)
@@ -1932,7 +1932,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 				// SQLカバレッジ用のログを出力する
 				var coverageData = new CoverageData(sqlName, originalSql,
 						contextTransformer.getPassedRoute());
-				COVERAGE_LOG.atDebug()
+				atDebug(COVERAGE_LOG)
 						.setMessage("coverage data: {}")
 						.addArgument(coverageData)
 						.log();
@@ -1941,7 +1941,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			}
 		}
 
-		SQL_LOG.atInfo()
+		atInfo(SQL_LOG)
 				.setMessage("Executed SQL[{}{}{}]")
 				.addArgument(System.lineSeparator())
 				.addArgument(executionContext.getExecutableSql())
@@ -1977,7 +1977,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 		}
 
 		if (outputExceptionLog) {
-			LOG.atError()
+			atError(LOG)
 					.setMessage(() -> {
 						var builder = new StringBuilder();
 						builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
@@ -2034,7 +2034,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 			builder.append(" ");
 			builder.append(SqlParamUtils.formatPrams(params));
 		}
-		REPL_LOG.atInfo()
+		atInfo(REPL_LOG)
 				.setMessage("REPL command: {}")
 				.addArgument(builder.toString())
 				.log();
@@ -2900,7 +2900,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 	 *
 	 * @param <T> ResultSetの1行を変換した型
 	 */
-	private static final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
+	private static final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T>
+			implements ServiceLogger {
 		private final ResultSetConverter<T> converter;
 		private final ResultSet rs;
 		private boolean finished = false;
@@ -2929,7 +2930,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						rs.close();
 					}
 				} catch (SQLException ex2) {
-					LOG.atError()
+					atError(LOG)
 							.setMessage(ex2.getMessage())
 							.setCause(ex2)
 							.log();
@@ -2941,7 +2942,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLogger, PerformanceLogger,
 						rs.close();
 					}
 				} catch (SQLException ex2) {
-					LOG.atError()
+					atError(LOG)
 							.setMessage(ex2.getMessage())
 							.setCause(ex2)
 							.log();
