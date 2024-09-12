@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package jp.co.future.uroborosql.log;
+package jp.co.future.uroborosql.log.support;
 
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -65,7 +65,12 @@ public interface LoggerBase {
 		MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
 	}
 
-	default LoggingEventBuilder atError(final Logger logger) {
+	/**
+	 * ERRORレベルの fluent-logging エントリーポイント. ログ抑止されている場合は出力しない.
+	 * @param logger ログ出力するためのロガー
+	 * @return ERRORレベルに適したLoggingEventBuilderインスタンス
+	 */
+	default LoggingEventBuilder errorWith(final Logger logger) {
 		if (!isSuppressLogging()) {
 			return logger.atError();
 		} else {
@@ -73,7 +78,12 @@ public interface LoggerBase {
 		}
 	}
 
-	default LoggingEventBuilder atWarn(final Logger logger) {
+	/**
+	 * WARNレベルの fluent-logging エントリーポイント. ログ抑止されている場合は出力しない.
+	 * @param logger ログ出力するためのロガー
+	 * @return WARNレベルに適したLoggingEventBuilderインスタンス
+	 */
+	default LoggingEventBuilder warnWith(final Logger logger) {
 		if (!isSuppressLogging()) {
 			return logger.atWarn();
 		} else {
@@ -81,7 +91,12 @@ public interface LoggerBase {
 		}
 	}
 
-	default LoggingEventBuilder atInfo(final Logger logger) {
+	/**
+	 * INFOレベルの fluent-logging エントリーポイント. ログ抑止されている場合は出力しない.
+	 * @param logger ログ出力するためのロガー
+	 * @return INFOレベルに適したLoggingEventBuilderインスタンス
+	 */
+	default LoggingEventBuilder infoWith(final Logger logger) {
 		if (!isSuppressLogging()) {
 			return logger.atInfo();
 		} else {
@@ -89,7 +104,12 @@ public interface LoggerBase {
 		}
 	}
 
-	default LoggingEventBuilder atDebug(final Logger logger) {
+	/**
+	 * DEBUGレベルの fluent-logging エントリーポイント. ログ抑止されている場合は出力しない.
+	 * @param logger ログ出力するためのロガー
+	 * @return DEBUGレベルに適したLoggingEventBuilderインスタンス
+	 */
+	default LoggingEventBuilder debugWith(final Logger logger) {
 		if (!isSuppressLogging()) {
 			return logger.atDebug();
 		} else {
@@ -97,7 +117,12 @@ public interface LoggerBase {
 		}
 	}
 
-	default LoggingEventBuilder atTrace(final Logger logger) {
+	/**
+	 * TRACEレベルの fluent-logging エントリーポイント. ログ抑止されている場合は出力しない.
+	 * @param logger ログ出力するためのロガー
+	 * @return TRACEレベルに適したLoggingEventBuilderインスタンス
+	 */
+	default LoggingEventBuilder traceWith(final Logger logger) {
 		if (!isSuppressLogging()) {
 			return logger.atTrace();
 		} else {

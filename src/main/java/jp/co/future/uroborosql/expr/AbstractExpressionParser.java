@@ -7,14 +7,14 @@
 package jp.co.future.uroborosql.expr;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.log.ParserLogger;
+import jp.co.future.uroborosql.log.support.ParserLoggingSupport;
 
 /**
  * 評価式パーサの共通親クラス
  *
  * @author H.Sugimoto
  */
-public abstract class AbstractExpressionParser implements ExpressionParser, ParserLogger {
+public abstract class AbstractExpressionParser implements ExpressionParser, ParserLoggingSupport {
 
 	/** SqlConfig */
 	private SqlConfig sqlConfig;

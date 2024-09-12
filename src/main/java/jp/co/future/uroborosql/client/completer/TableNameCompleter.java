@@ -15,7 +15,7 @@ import org.jline.reader.ParsedLine;
 
 import jp.co.future.uroborosql.client.command.ReplCommand;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
-import jp.co.future.uroborosql.log.ReplLogger;
+import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
 
 /**
  * テーブル名を補完するCompleter
@@ -23,7 +23,7 @@ import jp.co.future.uroborosql.log.ReplLogger;
  * @author H.Sugimoto
  *
  */
-public class TableNameCompleter extends AbstractCompleter implements ReplLogger {
+public class TableNameCompleter extends AbstractCompleter implements ReplLoggingSupport {
 
 	/** Connectionサプライヤ. */
 	private final ConnectionSupplier connectionSupplier;
@@ -88,7 +88,7 @@ public class TableNameCompleter extends AbstractCompleter implements ReplLogger 
 				}
 			}
 		} catch (SQLException ex) {
-			atError(REPL_LOG)
+			errorWith(REPL_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

@@ -34,7 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.log.CoverageLogger;
+import jp.co.future.uroborosql.log.support.CoverageLoggingSupport;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -50,7 +50,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author ota
  */
-public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger {
+public class CoberturaCoverageHandler implements CoverageHandler, CoverageLoggingSupport {
 	/**
 	 * カバレッジ数値 line branch セット
 	 */
@@ -254,7 +254,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 				sqlCoverage = new SqlCoverage(coverageData.getSqlName(), coverageData.getSql(), coverageData.getMd5(),
 						sourcesDirPath, map.size());
 			} catch (IOException ex) {
-				atError(COVERAGE_LOG)
+				errorWith(COVERAGE_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -272,7 +272,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 		try {
 			write();
 		} catch (Exception ex) {
-			atError(COVERAGE_LOG)
+			errorWith(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -285,7 +285,7 @@ public class CoberturaCoverageHandler implements CoverageHandler, CoverageLogger
 			try {
 				write();
 			} catch (Exception ex) {
-				atError(COVERAGE_LOG)
+				errorWith(COVERAGE_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();

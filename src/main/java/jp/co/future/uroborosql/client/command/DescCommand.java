@@ -125,7 +125,7 @@ public class DescCommand extends ReplCommand {
 			}
 			writer.println();
 		} catch (SQLException ex) {
-			atError(REPL_LOG)
+			errorWith(REPL_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

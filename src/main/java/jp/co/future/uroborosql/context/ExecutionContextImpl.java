@@ -35,7 +35,7 @@ import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
-import jp.co.future.uroborosql.log.SqlLogger;
+import jp.co.future.uroborosql.log.support.SqlLoggingSupport;
 import jp.co.future.uroborosql.parameter.InOutParameter;
 import jp.co.future.uroborosql.parameter.OutParameter;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -51,7 +51,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, SqlLogger {
+public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, SqlLoggingSupport {
 	/**
 	 * @see #getParameterNames()
 	 */
@@ -888,7 +888,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 			preparedStatement.addBatch();
 		}
 		if (!isSuppressLogging()) {
-			atDebug(SQL_LOG)
+			debugWith(SQL_LOG)
 					.setMessage("{} items Added for batch process.")
 					.addArgument(batchParameters.size())
 					.log();
@@ -923,7 +923,7 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 			parameterIndex++;
 		}
 
-		atDebug(SQL_LOG)
+		debugWith(SQL_LOG)
 				.setMessage("Stored procedure out parameter[{}]")
 				.addArgument(out)
 				.log();

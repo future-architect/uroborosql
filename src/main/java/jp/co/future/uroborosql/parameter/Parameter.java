@@ -13,8 +13,8 @@ import java.sql.SQLType;
 import java.util.Map;
 import java.util.Objects;
 
-import jp.co.future.uroborosql.log.ServiceLogger;
-import jp.co.future.uroborosql.log.SqlLogger;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
+import jp.co.future.uroborosql.log.support.SqlLoggingSupport;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class Parameter implements ServiceLogger, SqlLogger {
+public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	/** 未設定のSQLType */
 	protected static final SQLType SQL_TYPE_NOT_SET = null;
 
@@ -93,7 +93,7 @@ public class Parameter implements ServiceLogger, SqlLogger {
 			if (value instanceof Map) {
 				subValue = ((Map) value).get(propertyName);
 				if (subValue == null) {
-					atWarn(LOG)
+					warnWith(LOG)
 							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 							.addArgument(subParameterName)
 							.log();
@@ -112,14 +112,14 @@ public class Parameter implements ServiceLogger, SqlLogger {
 								.getMethod(prefix + ObjectUtils.capitalize(propertyName));
 						subValue = method.invoke(value);
 					} catch (Exception ex2) {
-						atWarn(LOG)
+						warnWith(LOG)
 								.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 								.addArgument(subParameterName)
 								.setCause(ex2)
 								.log();
 					}
 				} catch (Exception ex) {
-					atWarn(LOG)
+					warnWith(LOG)
 							.setMessage("Set subparameter value to NULL because property can not be accessed.[{}]")
 							.addArgument(subParameterName)
 							.setCause(ex)
@@ -182,7 +182,7 @@ public class Parameter implements ServiceLogger, SqlLogger {
 	 */
 	protected void parameterLog(final int index) {
 		if (SQL_LOG.isInfoEnabled() && !isSuppressParameterLogging()) {
-			atInfo(SQL_LOG)
+			infoWith(SQL_LOG)
 					.setMessage("Set the parameter.[INDEX[{}], {}]")
 					.addArgument(index)
 					.addArgument(this)

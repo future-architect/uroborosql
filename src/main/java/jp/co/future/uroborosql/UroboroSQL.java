@@ -28,8 +28,8 @@ import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.event.EventListenerHolder;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.expr.ExpressionParserFactory;
-import jp.co.future.uroborosql.log.ServiceLogger;
-import jp.co.future.uroborosql.log.SettingLogger;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
+import jp.co.future.uroborosql.log.support.SettingLoggingSupport;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManager;
@@ -41,7 +41,7 @@ import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
  * @author H.Sugimoto
  * @since v0.4.0
  */
-public final class UroboroSQL implements ServiceLogger, SettingLogger {
+public final class UroboroSQL implements ServiceLoggingSupport, SettingLoggingSupport {
 	private UroboroSQL() {
 	}
 
@@ -234,7 +234,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 
 	}
 
-	public static final class InternalConfig implements SqlConfig, SettingLogger {
+	public static final class InternalConfig implements SqlConfig, SettingLoggingSupport {
 		/**
 		 * コネクション提供クラス.
 		 */
@@ -296,12 +296,12 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			this.entityHandler = new DefaultEntityHandler();
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
-				atWarn(SETTING_LOG)
+				warnWith(SETTING_LOG)
 						.log("SqlConfig - Clock was not set. Set SystemClock.");
 			} else {
 				this.clock = clock;
 			}
-			atInfo(SETTING_LOG)
+			infoWith(SETTING_LOG)
 					.setMessage("SqlConfig - Clock : {} has been selected.")
 					.addArgument(this.clock)
 					.log();
@@ -314,7 +314,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			} else {
 				this.dialect = dialect;
 			}
-			atInfo(SETTING_LOG)
+			infoWith(SETTING_LOG)
 					.setMessage("SqlConfig - Dialect : {} has been selected.")
 					.addArgument(() -> this.dialect.getClass().getSimpleName())
 					.log();
@@ -329,7 +329,7 @@ public final class UroboroSQL implements ServiceLogger, SettingLogger {
 			} else {
 				this.expressionParser = expressionParser;
 			}
-			atInfo(SETTING_LOG)
+			infoWith(SETTING_LOG)
 					.setMessage("SqlConfig - ExpressionParser : {} has been selected.")
 					.addArgument(() -> this.expressionParser.getClass().getSimpleName())
 					.log();

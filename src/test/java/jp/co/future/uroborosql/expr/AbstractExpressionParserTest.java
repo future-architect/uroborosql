@@ -24,7 +24,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.context.ExecutionContextProviderImpl;
 import jp.co.future.uroborosql.context.test.TestEnum1;
 import jp.co.future.uroborosql.dialect.Dialect;
-import jp.co.future.uroborosql.log.PerformanceLogger;
+import jp.co.future.uroborosql.log.support.PerformanceLoggingSupport;
 import jp.co.future.uroborosql.parser.SqlParser;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 
@@ -33,7 +33,7 @@ import jp.co.future.uroborosql.parser.SqlParserImpl;
  *
  * @author H.Sugimoto
  */
-public abstract class AbstractExpressionParserTest implements PerformanceLogger {
+public abstract class AbstractExpressionParserTest implements PerformanceLoggingSupport {
 	protected SqlConfig sqlConfig;
 	protected ExecutionContext ctx;
 	protected static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
@@ -197,7 +197,7 @@ public abstract class AbstractExpressionParserTest implements PerformanceLogger 
 	@Test
 	void testPerformance() {
 		if (PERFORMANCE_LOG.isDebugEnabled()) {
-			atDebug(PERFORMANCE_LOG)
+			debugWith(PERFORMANCE_LOG)
 					.setMessage("\r\n{}")
 					.addArgument(this::getPerformanceHeader)
 					.log();
@@ -213,7 +213,7 @@ public abstract class AbstractExpressionParserTest implements PerformanceLogger 
 					var expr = parser.parse("param" + j + " == null");
 					expr.getValue(context);
 				}
-				atDebug(PERFORMANCE_LOG)
+				debugWith(PERFORMANCE_LOG)
 						.setMessage("No{}:{}")
 						.addArgument(i)
 						.addArgument(

@@ -13,7 +13,7 @@ import java.util.Set;
 import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
-import jp.co.future.uroborosql.log.ParserLogger;
+import jp.co.future.uroborosql.log.support.ParserLoggingSupport;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.SqlFunction;
 import ognl.ASTProperty;
@@ -65,7 +65,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private static class OgnlExpression implements Expression, ParserLogger {
+	private static class OgnlExpression implements Expression, ParserLoggingSupport {
 		private final Object expression;
 
 		/**
@@ -113,7 +113,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 									.append("],");
 						} catch (OgnlException ex) {
 							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
-							atWarn(PARSER_LOG)
+							warnWith(PARSER_LOG)
 									.setMessage(ex.getMessage())
 									.setCause(ex)
 									.log();

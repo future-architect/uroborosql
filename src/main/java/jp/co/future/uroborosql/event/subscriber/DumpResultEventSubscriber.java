@@ -22,7 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
-import jp.co.future.uroborosql.log.EventLogger;
+import jp.co.future.uroborosql.log.support.EventLoggingSupport;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
@@ -36,12 +36,12 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @since v1.0.0
  *
  */
-public class DumpResultEventSubscriber extends EventSubscriber implements EventLogger {
+public class DumpResultEventSubscriber extends EventSubscriber implements EventLoggingSupport {
 	/** 改行文字 */
 	private static final String LINE_SEPARATOR = System.lineSeparator();
 
 	/** ロガー */
-	private static final Logger EVENT_LOG = EventLogger.getEventLogger("dumpresult");
+	private static final Logger EVENT_LOG = EventLoggingSupport.getEventLogger("dumpresult");
 
 	/** 文字数計算用のエンコーディング */
 	private static final String ENCODING_SHIFT_JIS = "Shift-JIS";
@@ -60,13 +60,13 @@ public class DumpResultEventSubscriber extends EventSubscriber implements EventL
 	void afterSqlQuery(final AfterSqlQueryEvent evt) {
 		try {
 			if (evt.getResultSet().getType() == ResultSet.TYPE_FORWARD_ONLY) {
-				atWarn(EVENT_LOG)
+				warnWith(EVENT_LOG)
 						.log("ResultSet type is TYPE_FORWARD_ONLY. DumpResultEventSubscriber use ResultSet#beforeFirst(). Please Set TYPE_SCROLL_INSENSITIVE or TYPE_SCROLL_SENSITIVE.");
 			}
-			atDebug(EVENT_LOG)
+			debugWith(EVENT_LOG)
 					.log(() -> displayResult(evt.getResultSet()).toString());
 		} catch (SQLException ex) {
-			atWarn(EVENT_LOG)
+			warnWith(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -156,7 +156,7 @@ public class DumpResultEventSubscriber extends EventSubscriber implements EventL
 
 			return builder;
 		} catch (Exception ex) {
-			atError(EVENT_LOG)
+			errorWith(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

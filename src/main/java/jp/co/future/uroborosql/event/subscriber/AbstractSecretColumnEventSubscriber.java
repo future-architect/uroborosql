@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
-import jp.co.future.uroborosql.log.EventLogger;
-import jp.co.future.uroborosql.log.SettingLogger;
+import jp.co.future.uroborosql.log.support.EventLoggingSupport;
+import jp.co.future.uroborosql.log.support.SettingLoggingSupport;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.ObjectUtils;
@@ -47,9 +47,9 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  */
 public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscriber
-		implements EventLogger, SettingLogger {
+		implements EventLoggingSupport, SettingLoggingSupport {
 	/** イベントロガー */
-	private static final Logger EVENT_LOG = EventLogger.getEventLogger("secretcolumn");
+	private static final Logger EVENT_LOG = EventLoggingSupport.getEventLogger("secretcolumn");
 
 	/** 暗号キー */
 	private SecretKey secretKey = null;
@@ -114,7 +114,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 		KeyStore store;
 		try {
 			if (ObjectUtils.isBlank(getKeyStoreFilePath())) {
-				atError(SETTING_LOG)
+				errorWith(SETTING_LOG)
 						.setMessage("Invalid KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -123,7 +123,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			}
 			var storeFile = toPath(getKeyStoreFilePath());
 			if (!Files.exists(storeFile)) {
-				atError(SETTING_LOG)
+				errorWith(SETTING_LOG)
 						.setMessage("Not found KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -131,7 +131,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 				return;
 			}
 			if (Files.isDirectory(storeFile)) {
-				atError(SETTING_LOG)
+				errorWith(SETTING_LOG)
 						.setMessage("Invalid KeyStore file path. Path:{}")
 						.addArgument(getKeyStoreFilePath())
 						.log();
@@ -139,14 +139,14 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 				return;
 			}
 			if (ObjectUtils.isBlank(getStorePassword())) {
-				atError(SETTING_LOG)
+				errorWith(SETTING_LOG)
 						.setMessage("Invalid password for access KeyStore.")
 						.log();
 				setSkip(true);
 				return;
 			}
 			if (ObjectUtils.isBlank(getAlias())) {
-				atError(SETTING_LOG)
+				errorWith(SETTING_LOG)
 						.setMessage("No alias for access KeyStore.")
 						.log();
 				setSkip(true);
@@ -170,7 +170,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			useIV = encryptCipher.getIV() != null;
 		} catch (Exception ex) {
-			atError(SETTING_LOG)
+			errorWith(SETTING_LOG)
 					.setMessage("Failed to acquire secret key.")
 					.setCause(ex)
 					.log();
@@ -209,7 +209,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 										new Parameter(key, encrypt(encryptCipher, secretKey, objStr)));
 							}
 						} catch (Exception ex) {
-							atWarn(EVENT_LOG)
+							warnWith(EVENT_LOG)
 									.setMessage("Encrypt Exception key:{}")
 									.addArgument(key)
 									.log();
@@ -231,7 +231,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			evt.setResultSet(new SecretResultSet(evt.getResultSet(), this.createDecryptor(),
 					getCryptColumnNames(), getCharset()));
 		} catch (Exception ex) {
-			atError(EVENT_LOG)
+			errorWith(EVENT_LOG)
 					.setMessage("Failed to create SecretResultSet.")
 					.setCause(ex)
 					.log();
@@ -391,7 +391,7 @@ public abstract class AbstractSecretColumnEventSubscriber<T> extends EventSubscr
 			this.charset = Charset.forName(charset);
 		} catch (UnsupportedCharsetException ex) {
 			this.charset = StandardCharsets.UTF_8;
-			atError(SETTING_LOG)
+			errorWith(SETTING_LOG)
 					.setMessage(
 							"The specified character set could not be converted to {}. Set the default character set({}).")
 					.addArgument(charset)

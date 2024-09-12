@@ -17,7 +17,7 @@ import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
 import jp.co.future.uroborosql.event.BeforeEndTransactionEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
-import jp.co.future.uroborosql.log.EventLogger;
+import jp.co.future.uroborosql.log.support.EventLoggingSupport;
 
 /**
  * デバッグログを出力するEventSubscriber
@@ -25,9 +25,9 @@ import jp.co.future.uroborosql.log.EventLogger;
  * @author H.Sugimoto
  * @since v1.0.0
  */
-public class DebugEventSubscriber extends EventSubscriber implements EventLogger {
+public class DebugEventSubscriber extends EventSubscriber implements EventLoggingSupport {
 	/** ロガー */
-	private static final Logger EVENT_LOG = EventLogger.getEventLogger("debug");
+	private static final Logger EVENT_LOG = EventLoggingSupport.getEventLogger("debug");
 
 	@Override
 	public void initialize() {
@@ -42,7 +42,7 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 
 	void afterBeginTransaction(final AfterBeginTransactionEvent evt) {
 		try {
-			atDebug(EVENT_LOG)
+			debugWith(EVENT_LOG)
 					.setMessage("Begin Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, occurredOn:{}")
 					.addArgument(evt.getTransactionContext().getConnection())
 					.addArgument(evt.isRequiredNew())
@@ -50,7 +50,7 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 					.addArgument(evt.occurredOn())
 					.log();
 		} catch (SQLException ex) {
-			atError(EVENT_LOG)
+			errorWith(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -59,7 +59,7 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		try {
-			atDebug(EVENT_LOG)
+			debugWith(EVENT_LOG)
 					.setMessage(
 							"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, result:{}, occurredOn:{}")
 					.addArgument(evt.getTransactionContext().getConnection())
@@ -69,7 +69,7 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 					.addArgument(evt.occurredOn())
 					.log();
 		} catch (SQLException ex) {
-			atError(EVENT_LOG)
+			errorWith(EVENT_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -77,14 +77,14 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 	}
 
 	void beforeSetParameter(final BeforeSetParameterEvent evt) {
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("Before Set Parameter - Parameter:{}")
 				.addArgument(evt.getParameter())
 				.log();
 	}
 
 	void afterGetOutParameter(final AfterGetOutParameterEvent evt) {
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("After Get OutParameter - key:{}, value:{}. parameterIndex:{}")
 				.addArgument(evt.getKey())
 				.addArgument(evt.getValue())
@@ -93,18 +93,18 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 	}
 
 	void afterSqlQuery(final AfterSqlQueryEvent evt) {
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("Execute Query - sqlName:{} executed.")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.log();
-		atTrace(EVENT_LOG)
+		traceWith(EVENT_LOG)
 				.setMessage("Execute Query sql:{}")
 				.addArgument(evt.getPreparedStatement())
 				.log();
 	}
 
 	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("Execute Update - sqlName:{} executed. Count:{} items.")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.addArgument(evt.getCount())
@@ -112,14 +112,14 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLogger
 	}
 
 	void afterSqlBatch(final AfterSqlBatchEvent evt) {
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("Execute Update - sqlName:{} executed. Results:{}")
 				.addArgument(evt.getExecutionContext().getSqlName())
 				.addArgument(() -> {
 					try {
 						return new int[] { evt.getPreparedStatement().getUpdateCount() };
 					} catch (SQLException ex) {
-						atError(EVENT_LOG)
+						errorWith(EVENT_LOG)
 								.setMessage(ex.getMessage())
 								.setCause(ex)
 								.log();

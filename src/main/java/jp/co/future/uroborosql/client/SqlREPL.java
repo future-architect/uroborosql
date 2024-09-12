@@ -49,7 +49,7 @@ import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
-import jp.co.future.uroborosql.log.ReplLogger;
+import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -60,7 +60,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class SqlREPL implements ReplLogger {
+public class SqlREPL implements ReplLoggingSupport {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
 	/** プロパティパス */
@@ -199,7 +199,7 @@ public class SqlREPL implements ReplLogger {
 
 				urls.add(Paths.get(sb.toString()).toUri().toURL());
 			} catch (Exception ex) {
-				atError(REPL_LOG)
+				errorWith(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -214,7 +214,7 @@ public class SqlREPL implements ReplLogger {
 			try {
 				DriverManager.registerDriver(new DriverShim(driver));
 			} catch (Exception ex) {
-				atError(REPL_LOG)
+				errorWith(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();
@@ -311,7 +311,7 @@ public class SqlREPL implements ReplLogger {
 			} catch (UserInterruptException | EndOfFileException ex) {
 				break;
 			} catch (Exception ex) {
-				atError(REPL_LOG)
+				errorWith(REPL_LOG)
 						.setMessage(ex.getMessage())
 						.setCause(ex)
 						.log();

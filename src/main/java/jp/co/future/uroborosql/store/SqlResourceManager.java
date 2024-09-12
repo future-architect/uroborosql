@@ -10,14 +10,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 import jp.co.future.uroborosql.dialect.Dialect;
-import jp.co.future.uroborosql.log.ServiceLogger;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
 
 /**
  * SQLリソース管理インターフェース
  *
  * @author H.Sugimoto
  */
-public interface SqlResourceManager extends ServiceLogger {
+public interface SqlResourceManager extends ServiceLoggingSupport {
 
 	/**
 	 * 初期化<br>

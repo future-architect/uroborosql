@@ -74,7 +74,7 @@ public class GenerateCommand extends ReplCommand {
 			}).orElseGet(() -> sqlConfig.getEntityHandler().createSelectContext(agent, metadata, null, true));
 			writer.println(ctx.getSql());
 		} catch (SQLException ex) {
-			atError(REPL_LOG)
+			errorWith(REPL_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

@@ -28,10 +28,10 @@ import jp.co.future.uroborosql.coverage.LineRange;
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.coverage.Range;
 import jp.co.future.uroborosql.coverage.Ranges;
-import jp.co.future.uroborosql.log.CoverageLogger;
+import jp.co.future.uroborosql.log.support.CoverageLoggingSupport;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
-class SqlCoverageReport implements CoverageLogger {
+class SqlCoverageReport implements CoverageLoggingSupport {
 	private final String name;
 	private final String sql;
 	private final Path path;
@@ -124,7 +124,7 @@ class SqlCoverageReport implements CoverageLogger {
 				writeSuffix(writer);
 			}
 		} catch (IOException ex) {
-			atError(COVERAGE_LOG)
+			errorWith(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

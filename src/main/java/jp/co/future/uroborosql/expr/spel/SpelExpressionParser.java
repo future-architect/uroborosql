@@ -135,7 +135,7 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 									.append("],");
 						} catch (EvaluationException ex) {
 							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
-							atWarn(PARSER_LOG)
+							warnWith(PARSER_LOG)
 									.setMessage(ex.getMessage())
 									.setCause(ex)
 									.log();

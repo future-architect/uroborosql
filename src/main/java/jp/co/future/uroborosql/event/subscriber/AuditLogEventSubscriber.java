@@ -15,7 +15,7 @@ import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.event.AfterSqlBatchEvent;
 import jp.co.future.uroborosql.event.AfterSqlQueryEvent;
 import jp.co.future.uroborosql.event.AfterSqlUpdateEvent;
-import jp.co.future.uroborosql.log.EventLogger;
+import jp.co.future.uroborosql.log.support.EventLoggingSupport;
 
 /**
  * 監査用ログを出力するイベントサブスクライバ
@@ -24,9 +24,9 @@ import jp.co.future.uroborosql.log.EventLogger;
  * @since v1.0.0
  *
  */
-public class AuditLogEventSubscriber extends EventSubscriber implements EventLogger {
+public class AuditLogEventSubscriber extends EventSubscriber implements EventLoggingSupport {
 	/** イベントロガー */
-	private static final Logger EVENT_LOG = EventLogger.getEventLogger("auditlog");
+	private static final Logger EVENT_LOG = EventLoggingSupport.getEventLogger("auditlog");
 
 	/** 機能名取得用のパラメータキー名 */
 	private String funcIdKey = "_funcId";
@@ -79,7 +79,7 @@ public class AuditLogEventSubscriber extends EventSubscriber implements EventLog
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
 		var reportRowCount = rowCount;
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> new AuditData(userName,
 						funcId,
@@ -93,7 +93,7 @@ public class AuditLogEventSubscriber extends EventSubscriber implements EventLog
 	void afterSqlUpdate(final AfterSqlUpdateEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> new AuditData(userName,
 						funcId,
@@ -107,7 +107,7 @@ public class AuditLogEventSubscriber extends EventSubscriber implements EventLog
 	void afterSqlBatch(final AfterSqlBatchEvent evt) {
 		var userName = getParam(evt.getExecutionContext(), userNameKey, DEFAULT_USER_NAME);
 		var funcId = getParam(evt.getExecutionContext(), funcIdKey, DEFAULT_FUNC_ID);
-		atDebug(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("AuditData: {}")
 				.addArgument(() -> {
 					var rowCount = -1;

@@ -8,14 +8,14 @@ package jp.co.future.uroborosql.coverage;
 
 import java.security.MessageDigest;
 
-import jp.co.future.uroborosql.log.CoverageLogger;
+import jp.co.future.uroborosql.log.support.CoverageLoggingSupport;
 
 /**
  * カバレッジログ出力用データクラス
  *
  * @author ota
  */
-public class CoverageData implements CoverageLogger {
+public class CoverageData implements CoverageLoggingSupport {
 	/** SQL名. */
 	private final String sqlName;
 
@@ -62,7 +62,7 @@ public class CoverageData implements CoverageLogger {
 			}
 			return builder.toString();
 		} catch (Exception ex) {
-			atError(COVERAGE_LOG)
+			errorWith(COVERAGE_LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();

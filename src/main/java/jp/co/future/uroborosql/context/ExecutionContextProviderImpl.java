@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.AfterInitializeExecutionContextEvent;
-import jp.co.future.uroborosql.log.ServiceLogger;
-import jp.co.future.uroborosql.log.SettingLogger;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
+import jp.co.future.uroborosql.log.support.SettingLoggingSupport;
 import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
@@ -47,7 +47,8 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class ExecutionContextProviderImpl implements ExecutionContextProvider, ServiceLogger, SettingLogger {
+public class ExecutionContextProviderImpl
+		implements ExecutionContextProvider, ServiceLoggingSupport, SettingLoggingSupport {
 	/** 定数パラメータプレフィックス */
 	private String constParamPrefix = "CLS_";
 
@@ -153,13 +154,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 						var newValue = new Parameter(fieldName, field.get(null));
 						var prevValue = paramMap.put(fieldName, newValue);
 						if (prevValue != null) {
-							atWarn(SETTING_LOG)
+							warnWith(SETTING_LOG)
 									.setMessage("Duplicate constant name. Constant name:{}, old value:{} destroy.")
 									.addArgument(fieldName)
 									.addArgument(prevValue.getValue())
 									.log();
 						}
-						atInfo(SETTING_LOG)
+						infoWith(SETTING_LOG)
 								.setMessage("Constant [name:{}, value:{}] added to parameter.")
 								.addArgument(fieldName)
 								.addArgument(newValue.getValue())
@@ -177,7 +178,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException | SecurityException ex) {
-			atError(LOG)
+			errorWith(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -205,13 +206,13 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 			var newValue = new Parameter(fieldName, value);
 			var prevValue = paramMap.put(fieldName, newValue);
 			if (prevValue != null) {
-				atWarn(SETTING_LOG)
+				warnWith(SETTING_LOG)
 						.setMessage("Duplicate Enum name. Enum name:{}, old value:{} destroy.")
 						.addArgument(fieldName)
 						.addArgument(prevValue.getValue())
 						.log();
 			}
-			atInfo(SETTING_LOG)
+			infoWith(SETTING_LOG)
 					.setMessage("Enum [name:{}, value:{}] added to parameter.")
 					.addArgument(fieldName)
 					.addArgument(newValue.getValue())
@@ -327,7 +328,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 					var targetClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 					makeConstParamMap(paramMap, targetClass);
 				} catch (ClassNotFoundException ex) {
-					atError(LOG)
+					errorWith(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -368,7 +369,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 		try {
 			roots = Collections.list(classLoader.getResources(resourceName));
 		} catch (IOException ex) {
-			atError(LOG)
+			errorWith(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -381,7 +382,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				try {
 					classes.addAll(findEnumClassesWithFile(packageName, Paths.get(root.toURI())));
 				} catch (URISyntaxException ex) {
-					atError(LOG)
+					errorWith(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -391,7 +392,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				try (var jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
 					classes.addAll(findEnumClassesWithJar(packageName, jarFile));
 				} catch (IOException ex) {
-					atError(LOG)
+					errorWith(LOG)
 							.setMessage(ex.getMessage())
 							.setCause(ex)
 							.log();
@@ -424,7 +425,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
 		} catch (IOException ex) {
-			atError(LOG)
+			errorWith(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
@@ -467,7 +468,7 @@ public class ExecutionContextProviderImpl implements ExecutionContextProvider, S
 				return Optional.of(type);
 			}
 		} catch (ClassNotFoundException ex) {
-			atError(LOG)
+			errorWith(LOG)
 					.setMessage(ex.getMessage())
 					.setCause(ex)
 					.log();
