@@ -1,0 +1,1 @@
+REPL command: update example/selectinsert_product product_id=0 jan_code=1234567890123

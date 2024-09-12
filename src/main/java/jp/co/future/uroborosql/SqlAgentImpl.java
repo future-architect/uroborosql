@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import jp.co.future.uroborosql.client.SqlParamUtils;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -82,14 +81,12 @@ import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
 import jp.co.future.uroborosql.log.support.CoverageLoggingSupport;
 import jp.co.future.uroborosql.log.support.PerformanceLoggingSupport;
-import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
 import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
 import jp.co.future.uroborosql.log.support.SqlLoggingSupport;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.mapping.TableMetadata;
-import jp.co.future.uroborosql.parameter.Parameter;
 import jp.co.future.uroborosql.parser.SqlParserImpl;
 import jp.co.future.uroborosql.store.SqlResourceManager;
 import jp.co.future.uroborosql.tx.LocalTransactionManager;
@@ -103,7 +100,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @author H.Sugimoto
  */
 public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, PerformanceLoggingSupport, SqlLoggingSupport,
-		CoverageLoggingSupport, ReplLoggingSupport {
+		CoverageLoggingSupport {
 	/** ExecutionContext属性キー:リトライカウント */
 	private static final String CTX_ATTR_KEY_RETRY_COUNT = "__retryCount";
 
@@ -1355,9 +1352,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		// INパラメータ設定
 		executionContext.bindParams(stmt);
 
-		// REPLで実行するための文字列をREPLログに出力する
-		outputReplLog(executionContext);
-
 		debugWith(LOG)
 				.setMessage("Execute query sql. sqlName: {}")
 				.addArgument(executionContext.getSqlName())
@@ -1511,9 +1505,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 
 			// INパラメータ設定
 			executionContext.bindParams(stmt);
-
-			// REPLで実行するための文字列をREPLログに出力する
-			outputReplLog(executionContext);
 
 			debugWith(LOG)
 					.setMessage("Execute update sql. sqlName: {}")
@@ -2002,43 +1993,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		}
 
 		throw cause;
-	}
-
-	/**
-	 * REPLでSQLを実行するためのコマンドをログとしてREPL_LOGに出力する.
-	 *
-	 * @param executionContext executionContext
-	 */
-	private void outputReplLog(final ExecutionContext executionContext) {
-		if (!(REPL_LOG.isInfoEnabled() && executionContext.getSqlName() != null &&
-				(SqlKind.SELECT.equals(executionContext.getSqlKind()) ||
-						SqlKind.UPDATE.equals(executionContext.getSqlKind())))) {
-			// REPLログ出力対象でない場合は何もしない
-			return;
-		}
-
-		var builder = new StringBuilder();
-
-		if (SqlKind.SELECT.equals(executionContext.getSqlKind())) {
-			builder.append("query ");
-		} else {
-			builder.append("update ");
-		}
-
-		builder.append(executionContext.getSqlName());
-
-		var params = new ArrayList<Parameter>();
-		for (var bindName : executionContext.getBindNames()) {
-			params.add(executionContext.getParam(bindName));
-		}
-		if (!params.isEmpty()) {
-			builder.append(" ");
-			builder.append(SqlParamUtils.formatPrams(params));
-		}
-		infoWith(REPL_LOG)
-				.setMessage("REPL command: {}")
-				.addArgument(builder.toString())
-				.log();
 	}
 
 	/**
