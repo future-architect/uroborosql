@@ -19,13 +19,14 @@ import org.jline.terminal.Terminal;
 
 import jp.co.future.uroborosql.client.SqlREPL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
 
 /**
  * REPLで実行するコマンドの抽象親クラス
  *
  * @author H.Sugimoto
  */
-public abstract class ReplCommand {
+public abstract class ReplCommand implements ReplLoggingSupport {
 	/** 利用する入力補完の並び */
 	private final List<Class<? extends Completer>> completers;
 	/** HELPコマンドで非表示 */

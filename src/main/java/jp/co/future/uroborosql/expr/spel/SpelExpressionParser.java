@@ -10,8 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.SpelNode;
@@ -30,9 +28,6 @@ import jp.co.future.uroborosql.utils.SqlFunction;
  * @author H.Sugimoto
  */
 public class SpelExpressionParser extends AbstractExpressionParser {
-	/** パーサーロガー */
-	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
-
 	/** 評価式のパーサー */
 	private static final org.springframework.expression.ExpressionParser parser = new org.springframework.expression.spel.standard.SpelExpressionParser();
 
@@ -140,7 +135,10 @@ public class SpelExpressionParser extends AbstractExpressionParser {
 									.append("],");
 						} catch (EvaluationException ex) {
 							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
-							PARSER_LOG.warn(ex.getMessage(), ex);
+							warnWith(PARSER_LOG)
+									.setMessage(ex.getMessage())
+									.setCause(ex)
+									.log();
 						}
 					}
 				}

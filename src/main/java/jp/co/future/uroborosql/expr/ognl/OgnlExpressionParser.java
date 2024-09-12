@@ -10,12 +10,10 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.exception.ExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.AbstractExpressionParser;
 import jp.co.future.uroborosql.expr.Expression;
+import jp.co.future.uroborosql.log.support.ParserLoggingSupport;
 import jp.co.future.uroborosql.parser.TransformContext;
 import jp.co.future.uroborosql.utils.SqlFunction;
 import ognl.ASTProperty;
@@ -30,9 +28,6 @@ import ognl.OgnlRuntime;
  * @author H.Sugimoto
  */
 public class OgnlExpressionParser extends AbstractExpressionParser {
-	/** パーサーロガー */
-	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
-
 	/**
 	 * コンストラクタ
 	 */
@@ -70,7 +65,7 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 	 *
 	 * @author H.Sugimoto
 	 */
-	private static class OgnlExpression implements Expression {
+	private static class OgnlExpression implements Expression, ParserLoggingSupport {
 		private final Object expression;
 
 		/**
@@ -118,7 +113,10 @@ public class OgnlExpressionParser extends AbstractExpressionParser {
 									.append("],");
 						} catch (OgnlException ex) {
 							// ダンプ処理でシステムが止まっては困るのでログ出力して握りつぶす
-							PARSER_LOG.warn(ex.getMessage(), ex);
+							warnWith(PARSER_LOG)
+									.setMessage(ex.getMessage())
+									.setCause(ex)
+									.log();
 						}
 					}
 				}

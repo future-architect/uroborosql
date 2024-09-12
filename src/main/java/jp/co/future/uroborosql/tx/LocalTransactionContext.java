@@ -17,9 +17,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
@@ -38,9 +35,6 @@ import jp.co.future.uroborosql.exception.UroborosqlTransactionException;
  * @author ota
  */
 class LocalTransactionContext implements TransactionContext {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
-
 	/** セーブポイント名リスト */
 	private final List<String> savepointNames = new ArrayList<>();
 
@@ -366,9 +360,8 @@ class LocalTransactionContext implements TransactionContext {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			} else {
-				if (LOG.isWarnEnabled()) {
-					LOG.warn("Connection close was skipped because the connection was already closed.");
-				}
+				warnWith(LOG)
+						.log("Connection close was skipped because the connection was already closed.");
 			}
 		} catch (SQLException ex) {
 			throw new UroborosqlSQLException(ex);

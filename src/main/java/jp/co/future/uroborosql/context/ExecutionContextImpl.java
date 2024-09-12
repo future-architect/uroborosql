@@ -28,9 +28,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.config.SqlConfigAware;
 import jp.co.future.uroborosql.enums.SqlKind;
@@ -38,6 +35,7 @@ import jp.co.future.uroborosql.event.AfterGetOutParameterEvent;
 import jp.co.future.uroborosql.event.BeforeParseSqlEvent;
 import jp.co.future.uroborosql.event.BeforeSetParameterEvent;
 import jp.co.future.uroborosql.exception.ParameterNotFoundRuntimeException;
+import jp.co.future.uroborosql.log.support.SqlLoggingSupport;
 import jp.co.future.uroborosql.parameter.InOutParameter;
 import jp.co.future.uroborosql.parameter.OutParameter;
 import jp.co.future.uroborosql.parameter.Parameter;
@@ -53,7 +51,7 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
+public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, SqlLoggingSupport {
 	/**
 	 * @see #getParameterNames()
 	 */
@@ -85,9 +83,6 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 
 	/** 不要な空白、改行を除去するための正規表現 */
 	private static final Pattern CLEAR_BLANK_PATTERN = Pattern.compile("(?m)^\\s*(\\r\\n|\\r|\\n)");
-
-	/** SQLロガー */
-	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
 
 	/** SqlConfig. */
 	private SqlConfig sqlConfig;
@@ -892,8 +887,11 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			bindParams(preparedStatement);
 			preparedStatement.addBatch();
 		}
-		if (SQL_LOG.isDebugEnabled()) {
-			SQL_LOG.debug("{} items Added for batch process.", batchParameters.size());
+		if (!isSuppressLogging()) {
+			debugWith(SQL_LOG)
+					.setMessage("{} items Added for batch process.")
+					.addArgument(batchParameters.size())
+					.log();
 		}
 		return this;
 	}
@@ -925,9 +923,10 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware {
 			parameterIndex++;
 		}
 
-		if (SQL_LOG.isDebugEnabled()) {
-			SQL_LOG.debug("Stored procedure out parameter[{}]", out);
-		}
+		debugWith(SQL_LOG)
+				.setMessage("Stored procedure out parameter[{}]")
+				.addArgument(out)
+				.log();
 		return out;
 	}
 

@@ -36,10 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import jp.co.future.uroborosql.client.SqlParamUtils;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
@@ -84,6 +80,11 @@ import jp.co.future.uroborosql.fluent.SqlEntityQuery;
 import jp.co.future.uroborosql.fluent.SqlEntityUpdate;
 import jp.co.future.uroborosql.fluent.SqlQuery;
 import jp.co.future.uroborosql.fluent.SqlUpdate;
+import jp.co.future.uroborosql.log.support.CoverageLoggingSupport;
+import jp.co.future.uroborosql.log.support.PerformanceLoggingSupport;
+import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
+import jp.co.future.uroborosql.log.support.SqlLoggingSupport;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.mapping.MappingColumn;
 import jp.co.future.uroborosql.mapping.MappingUtils;
@@ -101,25 +102,8 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  *
  * @author H.Sugimoto
  */
-public class SqlAgentImpl implements SqlAgent {
-	/** ロガー */
-	private static final Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
-
-	/** SQLロガー */
-	private static final Logger SQL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql");
-
-	/** SQLカバレッジ用ロガー */
-	private static final Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
-
-	/** パフォーマンスロガー */
-	private static final Logger PERFORMANCE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.performance");
-
-	/** REPLロガー */
-	private static final Logger REPL_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.repl");
-
-	/** ログ出力を抑止するためのMDCキー */
-	private static final String SUPPRESS_PARAMETER_LOG_OUTPUT = "SuppressParameterLogOutput";
-
+public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, PerformanceLoggingSupport, SqlLoggingSupport,
+		CoverageLoggingSupport, ReplLoggingSupport {
 	/** ExecutionContext属性キー:リトライカウント */
 	private static final String CTX_ATTR_KEY_RETRY_COUNT = "__retryCount";
 
@@ -176,14 +160,17 @@ public class SqlAgentImpl implements SqlAgent {
 		// クラス名が指定されている場合はそのクラス名を指定
 		var sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
 		if (sqlCoverageClassName == null) {
-			COVERAGE_LOG.info("system property - uroborosql.sql.coverage not set. sql coverage turned off.");
+			COVERAGE_LOG.atInfo()
+					.log("system property - uroborosql.sql.coverage not set. sql coverage turned off.");
 		} else if (Boolean.FALSE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
 			sqlCoverageClassName = null;
-			COVERAGE_LOG.info("system property - uroborosql.sql.coverage is set to false. sql coverage turned off.");
+			COVERAGE_LOG.atInfo()
+					.log("system property - uroborosql.sql.coverage is set to false. sql coverage turned off.");
 		} else if (Boolean.TRUE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
 			// trueの場合は、デフォルト値を設定
 			sqlCoverageClassName = "jp.co.future.uroborosql.coverage.CoberturaCoverageHandler";
-			COVERAGE_LOG.info("system property - uroborosql.sql.coverage is set to true. sql coverage turned on.");
+			COVERAGE_LOG.atInfo()
+					.log("system property - uroborosql.sql.coverage is set to true. sql coverage turned on.");
 		}
 
 		CoverageHandler handler = null;
@@ -191,12 +178,18 @@ public class SqlAgentImpl implements SqlAgent {
 			try {
 				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
 						Thread.currentThread().getContextClassLoader()).getConstructor().newInstance();
-				COVERAGE_LOG.info("CoverageHandler : {}", sqlCoverageClassName);
+				COVERAGE_LOG.atInfo()
+						.setMessage("CoverageHandler : {}")
+						.addArgument(sqlCoverageClassName)
+						.log();
 			} catch (Exception ex) {
-				COVERAGE_LOG.warn("Failed to instantiate CoverageHandler class. Class:{}, Cause:{}",
-						sqlCoverageClassName,
-						ex.getMessage());
-				COVERAGE_LOG.info("Turn off sql coverage due to failure to instantiate CoverageHandler class.");
+				COVERAGE_LOG.atWarn()
+						.setMessage("Failed to instantiate CoverageHandler class. Class:{}, Cause:{}")
+						.addArgument(sqlCoverageClassName)
+						.addArgument(ex.getMessage())
+						.log();
+				COVERAGE_LOG.atInfo()
+						.log("Turn off sql coverage due to failure to instantiate CoverageHandler class.");
 			}
 		}
 
@@ -267,6 +260,7 @@ public class SqlAgentImpl implements SqlAgent {
 		if (COVERAGE_HANDLER_REF.get() != null) {
 			COVERAGE_HANDLER_REF.get().onSqlAgentClose();
 		}
+		releaseLogging();
 	}
 
 	/**
@@ -1349,9 +1343,6 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public ResultSet query(final ExecutionContext executionContext) throws SQLException {
-		// パラメータログを出力する
-		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
-
 		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
 			executionContext.setSqlKind(SqlKind.SELECT);
 		}
@@ -1367,26 +1358,22 @@ public class SqlAgentImpl implements SqlAgent {
 		// REPLで実行するための文字列をREPLログに出力する
 		outputReplLog(executionContext);
 
-		Instant startTime = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Execute query sql. sqlName: {}", executionContext.getSqlName());
-		}
-		if (PERFORMANCE_LOG.isInfoEnabled()) {
-			startTime = Instant.now(getSqlConfig().getClock());
-		}
+		debugWith(LOG)
+				.setMessage("Execute query sql. sqlName: {}")
+				.addArgument(executionContext.getSqlName())
+				.log();
+		var startTime = PERFORMANCE_LOG.isInfoEnabled() ? Instant.now(getSqlConfig().getClock()) : null;
 
 		try {
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() >= 0) {
-				maxRetryCount = executionContext.getMaxRetryCount();
-			}
+			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
+					? executionContext.getMaxRetryCount()
+					: getMaxRetryCount();
 
 			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var retryWaitTime = getRetryWaitTime();
-			if (executionContext.getRetryWaitTime() > 0) {
-				retryWaitTime = executionContext.getRetryWaitTime();
-			}
+			var retryWaitTime = executionContext.getRetryWaitTime() > 0
+					? executionContext.getRetryWaitTime()
+					: getRetryWaitTime();
 			var loopCount = 0;
 			var dialect = getDialect();
 			ResultSet rs = null;
@@ -1416,11 +1403,11 @@ public class SqlAgentImpl implements SqlAgent {
 						var pessimisticLockingErrorCodes = dialect.getPessimisticLockingErrorCodes();
 						if (maxRetryCount > loopCount
 								&& (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState))) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format(
-										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
-										loopCount + 1, retryWaitTime));
-							}
+							debugWith(LOG)
+									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
+									.addArgument(loopCount + 1)
+									.addArgument(() -> String.format("%,3d", retryWaitTime))
+									.log();
 							if (retryWaitTime > 0) {
 								try {
 									Thread.sleep(retryWaitTime);
@@ -1455,13 +1442,12 @@ public class SqlAgentImpl implements SqlAgent {
 			return null;
 		} finally {
 			// 後処理
-			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
-				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
-						generateSqlName(executionContext),
-						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
-			}
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			infoWith(PERFORMANCE_LOG)
+					.setMessage("SQL execution time [{}({})] : [{}]")
+					.addArgument(() -> generateSqlName(executionContext))
+					.addArgument(executionContext.getSqlKind())
+					.addArgument(() -> formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())))
+					.log();
 		}
 	}
 
@@ -1505,9 +1491,6 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public int update(final ExecutionContext executionContext) throws SQLException {
-		// パラメータログを出力する
-		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
-
 		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
 			executionContext.setSqlKind(SqlKind.UPDATE);
 		}
@@ -1517,10 +1500,8 @@ public class SqlAgentImpl implements SqlAgent {
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
-			if (LOG.isInfoEnabled()) {
-				LOG.info("Performs update delegate of update process.");
-			}
+			infoWith(LOG)
+					.log("Performs update delegate of update process.");
 			return executionContext.getUpdateDelegate().apply(executionContext);
 		}
 
@@ -1534,25 +1515,24 @@ public class SqlAgentImpl implements SqlAgent {
 			// REPLで実行するための文字列をREPLログに出力する
 			outputReplLog(executionContext);
 
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute update sql. sqlName: {}", executionContext.getSqlName());
-			}
+			debugWith(LOG)
+					.setMessage("Execute update sql. sqlName: {}")
+					.addArgument(executionContext.getSqlName())
+					.log();
 
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() >= 0) {
-				maxRetryCount = executionContext.getMaxRetryCount();
-			}
+			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
+					? executionContext.getMaxRetryCount()
+					: getMaxRetryCount();
 
 			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var retryWaitTime = getRetryWaitTime();
-			if (executionContext.getRetryWaitTime() > 0) {
-				retryWaitTime = executionContext.getRetryWaitTime();
-			}
+			var retryWaitTime = executionContext.getRetryWaitTime() > 0
+					? executionContext.getRetryWaitTime()
+					: getRetryWaitTime();
 			var loopCount = 0;
 			do {
 				try {
@@ -1593,11 +1573,11 @@ public class SqlAgentImpl implements SqlAgent {
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format(
-										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
-										loopCount + 1, retryWaitTime));
-							}
+							debugWith(LOG)
+									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
+									.addArgument(loopCount + 1)
+									.addArgument(() -> String.format("%,3d", retryWaitTime))
+									.log();
 							if (retryWaitTime > 0) {
 								try {
 									Thread.sleep(retryWaitTime);
@@ -1623,13 +1603,14 @@ public class SqlAgentImpl implements SqlAgent {
 			handleException(executionContext, ex);
 			return 0;
 		} finally {
-			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
-				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
-						generateSqlName(executionContext),
-						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
-			}
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			// 後処理
+			var curStartTime = startTime;
+			infoWith(PERFORMANCE_LOG)
+					.setMessage("SQL execution time [{}({})] : [{}]")
+					.addArgument(() -> generateSqlName(executionContext))
+					.addArgument(executionContext.getSqlKind())
+					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.log();
 		}
 	}
 
@@ -1639,7 +1620,7 @@ public class SqlAgentImpl implements SqlAgent {
 	@Override
 	public int[] batch(final ExecutionContext executionContext) throws SQLException {
 		// バッチ処理の場合大量のログが出力されるため、パラメータログの出力を抑止する
-		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.TRUE.toString());
+		suppressParameterLogging();
 
 		if (SqlKind.NONE.equals(executionContext.getSqlKind())) {
 			executionContext.setSqlKind(SqlKind.BATCH_INSERT);
@@ -1650,10 +1631,9 @@ public class SqlAgentImpl implements SqlAgent {
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
-			if (LOG.isInfoEnabled()) {
-				LOG.info("Performs update delegate of batch process.");
-			}
+			releaseParameterLogging();
+			infoWith(LOG)
+					.log("Performs update delegate of batch process.");
 			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
 		}
 
@@ -1664,24 +1644,23 @@ public class SqlAgentImpl implements SqlAgent {
 			// INパラメータ設定
 			executionContext.bindBatchParams(stmt);
 
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute batch sql. sqlName: {}", executionContext.getSqlName());
-			}
+			debugWith(LOG)
+					.setMessage("Execute batch sql. sqlName: {}")
+					.addArgument(executionContext.getSqlName())
+					.log();
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() >= 0) {
-				maxRetryCount = executionContext.getMaxRetryCount();
-			}
+			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
+					? executionContext.getMaxRetryCount()
+					: getMaxRetryCount();
 
 			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var retryWaitTime = getRetryWaitTime();
-			if (executionContext.getRetryWaitTime() > 0) {
-				retryWaitTime = executionContext.getRetryWaitTime();
-			}
+			var retryWaitTime = executionContext.getRetryWaitTime() > 0
+					? executionContext.getRetryWaitTime()
+					: getRetryWaitTime();
 			var loopCount = 0;
 			do {
 				try {
@@ -1720,11 +1699,11 @@ public class SqlAgentImpl implements SqlAgent {
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format(
-										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
-										loopCount + 1, retryWaitTime));
-							}
+							debugWith(LOG)
+									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
+									.addArgument(loopCount + 1)
+									.addArgument(() -> String.format("%,3d", retryWaitTime))
+									.log();
 							if (retryWaitTime > 0) {
 								try {
 									Thread.sleep(retryWaitTime);
@@ -1752,13 +1731,14 @@ public class SqlAgentImpl implements SqlAgent {
 			return null;
 		} finally {
 			// 後処理
-			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
-				PERFORMANCE_LOG.info("SQL execution time [{}({})] : [{}]",
-						generateSqlName(executionContext),
-						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
-			}
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			var curStartTime = startTime;
+			infoWith(PERFORMANCE_LOG)
+					.setMessage("SQL execution time [{}({})] : [{}]")
+					.addArgument(() -> generateSqlName(executionContext))
+					.addArgument(executionContext.getSqlKind())
+					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.log();
+			releaseParameterLogging();
 		}
 	}
 
@@ -1769,9 +1749,6 @@ public class SqlAgentImpl implements SqlAgent {
 	 */
 	@Override
 	public Map<String, Object> procedure(final ExecutionContext executionContext) throws SQLException {
-		// パラメータログを出力する
-		MDC.put(SUPPRESS_PARAMETER_LOG_OUTPUT, Boolean.FALSE.toString());
-
 		// procedureやfunctionの場合、SQL文法エラーになるためバインドパラメータコメントを出力しない
 		executionContext.contextAttrs().put(CTX_ATTR_KEY_OUTPUT_BIND_COMMENT, false);
 
@@ -1789,24 +1766,24 @@ public class SqlAgentImpl implements SqlAgent {
 			// パラメータ設定
 			executionContext.bindParams(callableStatement);
 
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Execute stored procedure. sqlName: {}", executionContext.getSqlName());
-			}
+			debugWith(LOG)
+					.setMessage("Execute stored procedure. sqlName: {}")
+					.addArgument(executionContext.getSqlName())
+					.log();
 			if (PERFORMANCE_LOG.isInfoEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var maxRetryCount = getMaxRetryCount();
-			if (executionContext.getMaxRetryCount() >= 0) {
-				maxRetryCount = executionContext.getMaxRetryCount();
-			}
+			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
+					? executionContext.getMaxRetryCount()
+					: getMaxRetryCount();
 
 			// デフォルトリトライ待機時間を取得し、個別指定（ExecutionContextの値）があれば上書き
-			var retryWaitTime = getRetryWaitTime();
-			if (executionContext.getRetryWaitTime() > 0) {
-				retryWaitTime = executionContext.getRetryWaitTime();
-			}
+			var retryWaitTime = executionContext.getRetryWaitTime() > 0
+					? executionContext.getRetryWaitTime()
+					: getRetryWaitTime();
+
 			var loopCount = 0;
 			do {
 				try {
@@ -1833,11 +1810,11 @@ public class SqlAgentImpl implements SqlAgent {
 						var errorCode = String.valueOf(ex.getErrorCode());
 						var sqlState = ex.getSQLState();
 						if (getSqlRetryCodes().contains(errorCode) || getSqlRetryCodes().contains(sqlState)) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug(String.format(
-										"Caught the error code to be retried.(%d times). Retry after %,3d ms.",
-										loopCount + 1, retryWaitTime));
-							}
+							debugWith(LOG)
+									.setMessage("Caught the error code to be retried.({} times). Retry after {} ms.")
+									.addArgument(loopCount + 1)
+									.addArgument(() -> String.format("%,3d", retryWaitTime))
+									.log();
 							if (retryWaitTime > 0) {
 								try {
 									Thread.sleep(retryWaitTime);
@@ -1863,13 +1840,14 @@ public class SqlAgentImpl implements SqlAgent {
 		} catch (SQLException ex) {
 			handleException(executionContext, ex);
 		} finally {
-			if (PERFORMANCE_LOG.isInfoEnabled() && startTime != null) {
-				PERFORMANCE_LOG.info("Stored procedure execution time [{}({})] : [{}]",
-						generateSqlName(executionContext),
-						executionContext.getSqlKind(),
-						formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())));
-			}
-			MDC.remove(SUPPRESS_PARAMETER_LOG_OUTPUT);
+			// 後処理
+			var curStartTime = startTime;
+			infoWith(PERFORMANCE_LOG)
+					.setMessage("Stored procedure execution time [{}({})] : [{}]")
+					.addArgument(() -> generateSqlName(executionContext))
+					.addArgument(executionContext.getSqlKind())
+					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.log();
 		}
 		return null;
 	}
@@ -1904,9 +1882,15 @@ public class SqlAgentImpl implements SqlAgent {
 
 		if (SQL_LOG.isInfoEnabled() && sqlName != null) {
 			if (executionContext.getSqlKind().isEntityType()) {
-				SQL_LOG.info("EntityClass : {}", sqlName);
+				infoWith(SQL_LOG)
+						.setMessage("EntityClass : {}")
+						.addArgument(sqlName)
+						.log();
 			} else if (getSqlResourceManager().existSql(sqlName)) {
-				SQL_LOG.info("SQLPath : {}", getSqlResourceManager().getSqlPath(sqlName));
+				infoWith(SQL_LOG)
+						.setMessage("SQLPath : {}")
+						.addArgument(() -> getSqlResourceManager().getSqlPath(sqlName))
+						.log();
 			}
 		}
 
@@ -1930,9 +1914,12 @@ public class SqlAgentImpl implements SqlAgent {
 					.forEach(listener -> listener.accept(eventObj));
 		}
 
-		if (SQL_LOG.isDebugEnabled()) {
-			SQL_LOG.debug("Template SQL[{}{}{}]", System.lineSeparator(), originalSql, System.lineSeparator());
-		}
+		debugWith(SQL_LOG)
+				.setMessage("Template SQL[{}{}{}]")
+				.addArgument(System.lineSeparator())
+				.addArgument(originalSql)
+				.addArgument(System.lineSeparator())
+				.log();
 
 		if (ObjectUtils.isEmpty(executionContext.getExecutableSql())) {
 			// SQLパーサーによるパース処理
@@ -1947,18 +1934,21 @@ public class SqlAgentImpl implements SqlAgent {
 				// SQLカバレッジ用のログを出力する
 				var coverageData = new CoverageData(sqlName, originalSql,
 						contextTransformer.getPassedRoute());
-				if (COVERAGE_LOG.isDebugEnabled()) {
-					COVERAGE_LOG.debug("coverage data: {}", coverageData);
-				}
+				debugWith(COVERAGE_LOG)
+						.setMessage("coverage data: {}")
+						.addArgument(coverageData)
+						.log();
 
 				COVERAGE_HANDLER_REF.get().accept(coverageData);
 			}
 		}
 
-		if (SQL_LOG.isInfoEnabled()) {
-			SQL_LOG.info("Executed SQL[{}{}{}]", System.lineSeparator(), executionContext.getExecutableSql(),
-					System.lineSeparator());
-		}
+		infoWith(SQL_LOG)
+				.setMessage("Executed SQL[{}{}{}]")
+				.addArgument(System.lineSeparator())
+				.addArgument(executionContext.getExecutableSql())
+				.addArgument(System.lineSeparator())
+				.log();
 	}
 
 	/** 時間計測用のログに出力するSQL名を生成する.
@@ -1988,21 +1978,27 @@ public class SqlAgentImpl implements SqlAgent {
 			cause = cause.getNextException();
 		}
 
-		if (outputExceptionLog && LOG.isErrorEnabled()) {
-			var builder = new StringBuilder();
-			builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
-					.append(System.lineSeparator());
-			builder.append("Executed SQL[").append(executionContext.getExecutableSql()).append("]")
-					.append(System.lineSeparator());
-			if (executionContext instanceof ExecutionContextImpl) {
-				var bindParameters = ((ExecutionContextImpl) executionContext).getBindParameters();
-				for (var i = 0; i < bindParameters.length; i++) {
-					var parameter = bindParameters[i];
-					builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ").append(parameter.toString())
-							.append("]").append(System.lineSeparator());
-				}
-			}
-			LOG.error(builder.toString(), cause);
+		if (outputExceptionLog) {
+			errorWith(LOG)
+					.setMessage(() -> {
+						var builder = new StringBuilder();
+						builder.append(System.lineSeparator()).append("Exception occurred in SQL execution.")
+								.append(System.lineSeparator());
+						builder.append("Executed SQL[").append(executionContext.getExecutableSql()).append("]")
+								.append(System.lineSeparator());
+						if (executionContext instanceof ExecutionContextImpl) {
+							var bindParameters = ((ExecutionContextImpl) executionContext).getBindParameters();
+							for (var i = 0; i < bindParameters.length; i++) {
+								var parameter = bindParameters[i];
+								builder.append("Bind Parameter.[INDEX[").append(i + 1).append("], ")
+										.append(parameter.toString())
+										.append("]").append(System.lineSeparator());
+							}
+						}
+						return builder.toString();
+					})
+					.setCause(cause)
+					.log();
 		}
 
 		throw cause;
@@ -2014,8 +2010,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 * @param executionContext executionContext
 	 */
 	private void outputReplLog(final ExecutionContext executionContext) {
-		if (!(REPL_LOG.isInfoEnabled() &&
-				executionContext.getSqlName() != null &&
+		if (!(REPL_LOG.isInfoEnabled() && executionContext.getSqlName() != null &&
 				(SqlKind.SELECT.equals(executionContext.getSqlKind()) ||
 						SqlKind.UPDATE.equals(executionContext.getSqlKind())))) {
 			// REPLログ出力対象でない場合は何もしない
@@ -2040,7 +2035,10 @@ public class SqlAgentImpl implements SqlAgent {
 			builder.append(" ");
 			builder.append(SqlParamUtils.formatPrams(params));
 		}
-		REPL_LOG.info("REPL command: {}", builder.toString());
+		infoWith(REPL_LOG)
+				.setMessage("REPL command: {}")
+				.addArgument(builder.toString())
+				.log();
 	}
 
 	/**
@@ -2893,7 +2891,7 @@ public class SqlAgentImpl implements SqlAgent {
 	 * @return フォーマットした経過時間
 	 */
 	private static String formatElapsedTime(final Instant start, final Instant end) {
-		return ELAPSED_TIME_FORMAT.format(LocalTime.MIDNIGHT.plus(Duration.between(start, end)));
+		return ELAPSED_TIME_FORMAT.format(LocalTime.MIDNIGHT.plus(Duration.between(start != null ? start : end, end)));
 	}
 
 	/**
@@ -2903,7 +2901,8 @@ public class SqlAgentImpl implements SqlAgent {
 	 *
 	 * @param <T> ResultSetの1行を変換した型
 	 */
-	private static final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
+	private static final class ResultSetSpliterator<T> extends Spliterators.AbstractSpliterator<T>
+			implements ServiceLoggingSupport {
 		private final ResultSetConverter<T> converter;
 		private final ResultSet rs;
 		private boolean finished = false;
@@ -2932,7 +2931,10 @@ public class SqlAgentImpl implements SqlAgent {
 						rs.close();
 					}
 				} catch (SQLException ex2) {
-					LOG.error(ex2.getMessage(), ex2);
+					errorWith(LOG)
+							.setMessage(ex2.getMessage())
+							.setCause(ex2)
+							.log();
 				}
 				throw ex;
 			} catch (SQLException ex) {
@@ -2941,7 +2943,10 @@ public class SqlAgentImpl implements SqlAgent {
 						rs.close();
 					}
 				} catch (SQLException ex2) {
-					LOG.error(ex2.getMessage(), ex2);
+					errorWith(LOG)
+							.setMessage(ex2.getMessage())
+							.setCause(ex2)
+							.log();
 				}
 				throw new UroborosqlSQLException(ex);
 			}

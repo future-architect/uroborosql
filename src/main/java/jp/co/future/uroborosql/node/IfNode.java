@@ -6,9 +6,6 @@
  */
 package jp.co.future.uroborosql.node;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.coverage.PassedRoute;
 import jp.co.future.uroborosql.exception.IllegalBoolExpressionRuntimeException;
 import jp.co.future.uroborosql.expr.ExpressionParser;
@@ -20,9 +17,6 @@ import jp.co.future.uroborosql.parser.TransformContext;
  * @author H.Sugimoto
  */
 public class IfNode extends BranchNode {
-	/** パーサーロガー */
-	private static final Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
-
 	private final ExpressionParser expressionParser;
 	/** 評価式 */
 	private final String expression;
@@ -103,9 +97,15 @@ public class IfNode extends BranchNode {
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					var builder = expr.dumpNode(transformContext);
-					PARSER_LOG.info("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]", expression, resultValue,
-							builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
+					infoWith(PARSER_LOG)
+							.setMessage("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]")
+							.addArgument(expression)
+							.addArgument(resultValue)
+							.addArgument(() -> {
+								var builder = expr.dumpNode(transformContext);
+								return builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1);
+							})
+							.log();
 				}
 			}
 			passState(resultValue);

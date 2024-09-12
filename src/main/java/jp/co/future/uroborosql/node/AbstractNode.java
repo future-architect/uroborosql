@@ -10,13 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.future.uroborosql.coverage.PassedRoute;
+import jp.co.future.uroborosql.log.support.ParserLoggingSupport;
 
 /**
  * SQLノードの抽象親クラス
  *
  * @author H.Sugimoto
  */
-public abstract class AbstractNode implements Node {
+public abstract class AbstractNode implements Node, ParserLoggingSupport {
 
 	/** 子ノード */
 	private final List<Node> children = new ArrayList<>();

@@ -10,13 +10,14 @@ import java.sql.Connection;
 import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.connection.ConnectionManager;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
 
 /**
  * トランザクションマネージャ
  *
  * @author ota
  */
-public interface TransactionManager extends ConnectionManager {
+public interface TransactionManager extends ConnectionManager, ServiceLoggingSupport {
 
 	/**
 	 * トランザクションを実行します。

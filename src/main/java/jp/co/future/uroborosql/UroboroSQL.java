@@ -13,9 +13,6 @@ import java.util.stream.StreamSupport;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionContextBuilder;
@@ -31,6 +28,8 @@ import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.event.EventListenerHolder;
 import jp.co.future.uroborosql.expr.ExpressionParser;
 import jp.co.future.uroborosql.expr.ExpressionParserFactory;
+import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
+import jp.co.future.uroborosql.log.support.SettingLoggingSupport;
 import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
 import jp.co.future.uroborosql.mapping.EntityHandler;
 import jp.co.future.uroborosql.store.SqlResourceManager;
@@ -42,10 +41,7 @@ import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
  * @author H.Sugimoto
  * @since v0.4.0
  */
-public final class UroboroSQL {
-	/** 設定ロガー */
-	private static final Logger SETTING_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.setting");
-
+public final class UroboroSQL implements ServiceLoggingSupport, SettingLoggingSupport {
 	private UroboroSQL() {
 	}
 
@@ -238,7 +234,7 @@ public final class UroboroSQL {
 
 	}
 
-	public static final class InternalConfig implements SqlConfig {
+	public static final class InternalConfig implements SqlConfig, SettingLoggingSupport {
 		/**
 		 * コネクション提供クラス.
 		 */
@@ -300,15 +296,15 @@ public final class UroboroSQL {
 			this.entityHandler = new DefaultEntityHandler();
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
-				if (SETTING_LOG.isWarnEnabled()) {
-					SETTING_LOG.warn("SqlConfig - Clock was not set. Set SystemClock.");
-				}
+				warnWith(SETTING_LOG)
+						.log("SqlConfig - Clock was not set. Set SystemClock.");
 			} else {
 				this.clock = clock;
 			}
-			if (SETTING_LOG.isInfoEnabled()) {
-				SETTING_LOG.info("SqlConfig - Clock : {} has been selected.", this.clock.toString());
-			}
+			infoWith(SETTING_LOG)
+					.setMessage("SqlConfig - Clock : {} has been selected.")
+					.addArgument(this.clock)
+					.log();
 
 			if (dialect == null) {
 				this.dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
@@ -318,10 +314,10 @@ public final class UroboroSQL {
 			} else {
 				this.dialect = dialect;
 			}
-			if (SETTING_LOG.isInfoEnabled()) {
-				SETTING_LOG.info("SqlConfig - Dialect : {} has been selected.",
-						this.dialect.getClass().getSimpleName());
-			}
+			infoWith(SETTING_LOG)
+					.setMessage("SqlConfig - Dialect : {} has been selected.")
+					.addArgument(() -> this.dialect.getClass().getSimpleName())
+					.log();
 
 			if (expressionParser == null) {
 				var expressionParserFactory = StreamSupport
@@ -333,10 +329,10 @@ public final class UroboroSQL {
 			} else {
 				this.expressionParser = expressionParser;
 			}
-			if (SETTING_LOG.isInfoEnabled()) {
-				SETTING_LOG.info("SqlConfig - ExpressionParser : {} has been selected.",
-						this.expressionParser.getClass().getSimpleName());
-			}
+			infoWith(SETTING_LOG)
+					.setMessage("SqlConfig - ExpressionParser : {} has been selected.")
+					.addArgument(() -> this.expressionParser.getClass().getSimpleName())
+					.log();
 
 			this.sqlResourceManager.setDialect(this.dialect);
 			this.executionContextProvider.setSqlConfig(this);
