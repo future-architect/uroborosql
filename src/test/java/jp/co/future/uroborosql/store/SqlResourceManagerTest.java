@@ -8,23 +8,16 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.dialect.H2Dialect;
-import jp.co.future.uroborosql.dialect.Oracle10Dialect;
 import jp.co.future.uroborosql.dialect.PostgresqlDialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 
 public class SqlResourceManagerTest {
-	private static final int WAIT_TIME = 1000;
-	private static final String TARGET_TEST_CLASSES_SQL1 = "target/test-classes/sql/";
-	private static final String TARGET_TEST_CLASSES_SQL2 = "target/test-classes/parent/child/sql/";
-
 	@Test
 	void testConstructor() throws Exception {
 		var manager = new SqlResourceManagerImpl("sql", ".sql", Charset.defaultCharset());
@@ -53,9 +46,13 @@ public class SqlResourceManagerTest {
 	void testGetSqlPathList() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl(true);
+		var manager = new SqlResourceManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
+		List.of("example/select_test",
+				"example/select_test2",
+				"example/select_test3")
+				.forEach(sqlName -> manager.getSql(sqlName));
 
 		var pathList = manager.getSqlPathList();
 		assertThat(pathList, hasItem("example/select_test"));
@@ -140,15 +137,11 @@ public class SqlResourceManagerTest {
 	void testGetSqlH2() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl(true);
+		var manager = new SqlResourceManagerImpl();
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
 		try {
-			assertThat(manager.existSql("example/select_test"), is(true));
-			assertThat(manager.existSql("example/select_test2"), is(true));
-			assertThat(manager.existSql("example/select_test3"), is(true));
-
 			assertThat(manager.getSql("example/select_test"), containsString("H2DB"));
 			assertThat(manager.getSql("example/select_test"), containsString("file"));
 
@@ -157,6 +150,10 @@ public class SqlResourceManagerTest {
 
 			assertThat(manager.getSql("example/select_test3"), containsString("H2DB"));
 			assertThat(manager.getSql("example/select_test3"), containsString("zip"));
+
+			assertThat(manager.existSql("example/select_test"), is(true));
+			assertThat(manager.existSql("example/select_test2"), is(true));
+			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
 			manager.shutdown();
 		}
@@ -166,15 +163,11 @@ public class SqlResourceManagerTest {
 	void testGetSqlPostgresql() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl(true);
+		var manager = new SqlResourceManagerImpl();
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
 		try {
-			assertThat(manager.existSql("example/select_test"), is(true));
-			assertThat(manager.existSql("example/select_test2"), is(true));
-			assertThat(manager.existSql("example/select_test3"), is(true));
-
 			assertThat(manager.getSql("example/select_test"), containsString("postgresql"));
 			assertThat(manager.getSql("example/select_test"), containsString("file"));
 
@@ -183,36 +176,10 @@ public class SqlResourceManagerTest {
 
 			assertThat(manager.getSql("example/select_test3"), containsString("postgresql"));
 			assertThat(manager.getSql("example/select_test3"), containsString("zip"));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testGetSqlWithNoWatcher() throws Exception {
-
-		var sqlName = "test/ADD_WATCH";
-		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
-		Files.deleteIfExists(newFilePath);
-
-		var manager = new SqlResourceManagerImpl(true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql("example/select_test"), is(true));
+			assertThat(manager.existSql("example/select_test2"), is(true));
+			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
 			manager.shutdown();
 		}
@@ -236,9 +203,13 @@ public class SqlResourceManagerTest {
 	void testGetSqlPathListLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
+		List.of("example/select_test",
+				"example/select_test2",
+				"example/select_test3")
+				.forEach(sqlName -> manager.getSql(sqlName));
 
 		var pathList = manager.getSqlPathList();
 		assertThat(pathList, hasItem("example/select_test"));
@@ -271,15 +242,11 @@ public class SqlResourceManagerTest {
 	void testGetSqlH2LoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql");
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
 		try {
-			assertThat(manager.existSql("example/select_test"), is(true));
-			assertThat(manager.existSql("example/select_test2"), is(true));
-			assertThat(manager.existSql("example/select_test3"), is(true));
-
 			assertThat(manager.getSql("example/select_test"), containsString("H2DB"));
 			assertThat(manager.getSql("example/select_test"), containsString("file"));
 
@@ -288,6 +255,10 @@ public class SqlResourceManagerTest {
 
 			assertThat(manager.getSql("example/select_test3"), containsString("H2DB"));
 			assertThat(manager.getSql("example/select_test3"), containsString("zip"));
+
+			assertThat(manager.existSql("example/select_test"), is(true));
+			assertThat(manager.existSql("example/select_test2"), is(true));
+			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
 			manager.shutdown();
 		}
@@ -297,15 +268,11 @@ public class SqlResourceManagerTest {
 	void testGetSqlPostgresqlLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
+		var manager = new SqlResourceManagerImpl("parent/child/sql");
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
 		try {
-			assertThat(manager.existSql("example/select_test"), is(true));
-			assertThat(manager.existSql("example/select_test2"), is(true));
-			assertThat(manager.existSql("example/select_test3"), is(true));
-
 			assertThat(manager.getSql("example/select_test"), containsString("postgresql"));
 			assertThat(manager.getSql("example/select_test"), containsString("file"));
 
@@ -314,39 +281,12 @@ public class SqlResourceManagerTest {
 
 			assertThat(manager.getSql("example/select_test3"), containsString("postgresql"));
 			assertThat(manager.getSql("example/select_test3"), containsString("zip"));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testGetSqlWithNoWatcherLoadPathHasChildDir() throws Exception {
-
-		var sqlName = "test/ADD_WATCH";
-		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
-		Files.deleteIfExists(newFilePath);
-
-		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql("example/select_test"), is(true));
+			assertThat(manager.existSql("example/select_test2"), is(true));
+			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
 			manager.shutdown();
 		}
 	}
-
 }

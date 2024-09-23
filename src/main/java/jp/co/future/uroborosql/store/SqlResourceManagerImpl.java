@@ -6,8 +6,12 @@
  */
 package jp.co.future.uroborosql.store;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +28,7 @@ import java.util.stream.StreamSupport;
 
 import jp.co.future.uroborosql.dialect.Dialect;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
+import jp.co.future.uroborosql.utils.ObjectUtils;
 
 /**
  * SQLリソース管理実装クラス
@@ -31,11 +36,20 @@ import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
  * @author H.Sugimoto
  */
 public class SqlResourceManagerImpl implements SqlResourceManager {
+	/** zip, jar内のファイルのscheme */
+	private static final String SCHEME_JAR = "jar";
+
+	/** ファイルシステム上のファイルのscheme */
+	private static final String SCHEME_FILE = "file";
+
 	/** 有効なDialectのSet */
 	private static final Set<String> dialects = StreamSupport
 			.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 			.map(Dialect::getDatabaseType)
 			.collect(Collectors.toSet());
+
+	/** CharBufferのキャパシティ. */
+	private static final int BUFFER_CAPACITY = 8 * 1024;
 
 	/** SQLファイルをロードするルートパスのリスト */
 	private final List<Path> loadPaths;
@@ -49,31 +63,20 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/** SQLファイルエンコーディング */
 	private final Charset charset;
 
-	/** 初期化時にSQLを全件ロードするかどうか */
-	private final boolean loadAllOnInitialize;
-
 	/** Dialect */
 	private Dialect dialect;
 
 	/** sqlNameとそれに対するSqlInfoの紐付きを持つMap */
 	protected final ConcurrentHashMap<String, SqlInfo> sqlInfos = new ConcurrentHashMap<>();
 
-	/** SQLリソースローダー */
-	private SqlResourceLoader sqlResourceLoader;
+	/** クラスローダー */
+	private final ClassLoader classLoader;
 
 	/**
 	 * コンストラクタ
 	 */
 	public SqlResourceManagerImpl() {
-		this(DEFAULT_LOAD_PATH, false);
-	}
-
-	/**
-	 * コンストラクタ
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
-	 */
-	public SqlResourceManagerImpl(final boolean loadAllOnInitialize) {
-		this(DEFAULT_LOAD_PATH, loadAllOnInitialize);
+		this(DEFAULT_LOAD_PATH);
 	}
 
 	/**
@@ -82,17 +85,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param loadPath SQLファイルをロードするルートパス
 	 */
 	public SqlResourceManagerImpl(final String loadPath) {
-		this(loadPath, null, false);
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param loadPath SQLファイルをロードするルートパス
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
-	 */
-	public SqlResourceManagerImpl(final String loadPath, final boolean loadAllOnInitialize) {
-		this(loadPath, null, loadAllOnInitialize);
+		this(loadPath, null);
 	}
 
 	/**
@@ -110,22 +103,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 *
 	 * @param loadPath SQLファイルをロードするルートパス
 	 * @param fileExtension SQLファイル拡張子
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
-	 */
-	public SqlResourceManagerImpl(final String loadPath, final String fileExtension,
-			final boolean loadAllOnInitialize) {
-		this(loadPath, fileExtension, null, loadAllOnInitialize);
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param loadPath SQLファイルをロードするルートパス
-	 * @param fileExtension SQLファイル拡張子
 	 * @param charset SQLファイルエンコーディング
 	 */
 	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset) {
-		this(List.of(loadPath), fileExtension, charset, false);
+		this(List.of(loadPath), fileExtension, charset, null);
 	}
 
 	/**
@@ -134,11 +115,11 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param loadPath SQLファイルをロードするルートパス
 	 * @param fileExtension SQLファイル拡張子
 	 * @param charset SQLファイルエンコーディング
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
+	 * @param classLoader SQLをロードするために利用するクラスローダー
 	 */
 	public SqlResourceManagerImpl(final String loadPath, final String fileExtension, final Charset charset,
-			final boolean loadAllOnInitialize) {
-		this(List.of(loadPath), fileExtension, charset, loadAllOnInitialize);
+			final ClassLoader classLoader) {
+		this(List.of(loadPath), fileExtension, charset, classLoader);
 	}
 
 	/**
@@ -154,32 +135,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * コンストラクタ
 	 *
 	 * @param loadPaths SQLファイルをロードするルートパスのリスト
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
-	 */
-	public SqlResourceManagerImpl(final List<String> loadPaths, final boolean loadAllOnInitialize) {
-		this(loadPaths, null, loadAllOnInitialize);
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param loadPaths SQLファイルをロードするルートパスのリスト
 	 * @param fileExtension SQLファイル拡張子
 	 */
 	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension) {
-		this(loadPaths, fileExtension, null);
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param loadPaths SQLファイルをロードするルートパスのリスト
-	 * @param fileExtension SQLファイル拡張子
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
-	 */
-	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension,
-			final boolean loadAllOnInitialize) {
-		this(loadPaths, fileExtension, null, loadAllOnInitialize);
+		this(loadPaths, fileExtension, null, null);
 	}
 
 	/**
@@ -188,25 +147,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param loadPaths SQLファイルをロードするルートパスのリスト
 	 * @param fileExtension SQLファイル拡張子
 	 * @param charset SQLファイルエンコーディング
-	 *
-	 * @throws IllegalArgumentException loadPathsに<code>null</code>が含まれる場合
-	 */
-	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset) {
-		this(loadPaths, fileExtension, charset, false);
-	}
-
-	/**
-	 * コンストラクタ
-	 *
-	 * @param loadPaths SQLファイルをロードするルートパスのリスト
-	 * @param fileExtension SQLファイル拡張子
-	 * @param charset SQLファイルエンコーディング
-	 * @param loadAllOnInitialize 初期化時にSQLを全件ロードするかどうか
+	 * @param classLoader SQLをロードするために利用するクラスローダー
 	 *
 	 * @throws IllegalArgumentException loadPathsに<code>null</code>が含まれる場合
 	 */
 	public SqlResourceManagerImpl(final List<String> loadPaths, final String fileExtension, final Charset charset,
-			final boolean loadAllOnInitialize) {
+			final ClassLoader classLoader) {
 		this.loadPaths = loadPaths.stream()
 				.filter(Objects::nonNull)
 				.map(Paths::get)
@@ -218,8 +164,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				.collect(Collectors.toList());
 		this.fileExtension = fileExtension != null ? fileExtension : ".sql";
 		this.charset = charset != null ? charset : Charset.forName(Charset.defaultCharset().displayName());
-		this.loadAllOnInitialize = loadAllOnInitialize;
-		this.sqlResourceLoader = new SqlResourceLoaderImpl(this.fileExtension, this.charset);
+		this.classLoader = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
 	}
 
 	/**
@@ -229,9 +174,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	@Override
 	public void initialize() {
-		if (loadAllOnInitialize) {
-			generateAllSqlInfos();
-		}
 	}
 
 	/**
@@ -288,26 +230,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlResourceLoader()
-	 */
-	@Override
-	public SqlResourceLoader getSqlResourceLoader() {
-		return sqlResourceLoader;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see jp.co.future.uroborosql.store.SqlResourceManager#setSqlResourceLoader(jp.co.future.uroborosql.store.SqlResourceLoader)
-	 */
-	@Override
-	public void setSqlResourceLoader(final SqlResourceLoader sqlResourceLoader) {
-		this.sqlResourceLoader = sqlResourceLoader;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @see jp.co.future.uroborosql.store.SqlResourceManager#existSql(java.lang.String)
 	 */
 	@Override
@@ -338,36 +260,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	}
 
 	/**
-	 * sqlNameとそれに対するSqlInfoのMapを生成する.
-	 */
-	protected void generateAllSqlInfos() {
-		for (var loadPath : this.loadPaths) {
-			var sqls = sqlResourceLoader.loadAllSql(loadPath);
-			sqls.stream()
-					.forEach(sqlInfo -> {
-						var path = sqlInfo.getPath();
-						if (validPath(path)) {
-							var sqlName = getSqlName(path);
-							this.sqlInfos.compute(sqlName, remappingSqlInfo(sqlInfo));
-						}
-					});
-			if (LOG.isTraceEnabled()) {
-				this.sqlInfos.forEach((sqlName, sqlInfo) -> {
-					traceWith(LOG)
-							.setMessage("SqlInfo - sqlName : {}, path : {}, rootPath : {}, scheme : {}, sqlBody : {}.")
-							.addArgument(sqlName)
-							.addArgument(sqlInfo.getPath())
-							.addArgument(sqlInfo.getRootPath())
-							.addArgument(sqlInfo.getScheme())
-							.addArgument(sqlInfo.getSqlBody())
-							.log();
-				});
-			}
-		}
-
-	}
-
-	/**
 	 * sqlNameに対するSqlInfoを生成する.
 	 *
 	 * @param sqlName SQL名
@@ -375,18 +267,17 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @throws IOException SQLの読み込みに失敗した場合
 	 */
 	protected boolean generateSqlInfo(final String sqlName) throws IOException {
-		var dialectName = dialect.getDatabaseType().toLowerCase();
 		for (var loadPath : loadPaths) {
-			var path = loadPath.resolve(dialectName).resolve(sqlName + fileExtension);
-			var url = sqlResourceLoader.getResource(path);
+			var path = getDialectSqlPath(loadPath, sqlName);
+			var url = getResource(path);
 			if (url == null) {
-				path = loadPath.resolve(sqlName + fileExtension);
-				url = sqlResourceLoader.getResource(path);
+				path = getDefaultSqlPath(loadPath, sqlName);
+				url = getResource(path);
 			}
 			if (url != null) {
 				try {
 					var scheme = url.toURI().getScheme().toLowerCase();
-					var sqlBody = sqlResourceLoader.loadSql(url);
+					var sqlBody = loadSql(url);
 					var sqlInfo = new SqlInfo(path, loadPath, scheme, sqlBody);
 					this.sqlInfos.compute(sqlName, remappingSqlInfo(sqlInfo));
 					traceWith(LOG)
@@ -404,6 +295,28 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * sqlNameに対するDialectフォルダを含まないファイルのパスを取得する
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 * @param sqlName SQL名
+	 * @return ルートパスからDialectフォルダを含まないSQLのパス
+	 */
+	protected Path getDefaultSqlPath(final Path loadPath, final String sqlName) {
+		return loadPath.resolve(sqlName + fileExtension);
+	}
+
+	/**
+	 * sqlNameに対するDialectフォルダを含むファイルのパスを取得する
+	 *
+	 * @param loadPath SQLファイルをロードするルートパス
+	 * @param sqlName SQL名
+	 * @return ルートパスからDialectフォルダを含むSQLのパス
+	 */
+	protected Path getDialectSqlPath(final Path loadPath, final String sqlName) {
+		return loadPath.resolve(dialect.getDatabaseType().toLowerCase()).resolve(sqlName + fileExtension);
 	}
 
 	/**
@@ -428,7 +341,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					return sqlInfo;
 				}
 				// schemeはjarよりもfileを優先
-				if (SqlInfo.SCHEME_FILE.equals(sqlInfo.getScheme()) && SqlInfo.SCHEME_JAR.equals(v.getScheme())) {
+				if (SCHEME_FILE.equals(sqlInfo.getScheme()) && SCHEME_JAR.equals(v.getScheme())) {
 					return sqlInfo;
 				}
 				// ロードパスの並び順が先の方を優先
@@ -488,6 +401,65 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				throw new UroborosqlRuntimeException("I/O error occurred. sqName : " + sqlName, ex);
 			}
 		}
+	}
+
+	/**
+	 * クラスローダーからリソースのURLを取得する
+	 *
+	 * @param path リソースのパス
+	 * @return リソースのURL. リソースが存在しない場合は<code>null</code>
+	 */
+	protected URL getResource(final Path path) throws IOException {
+		var resources = Collections.list(classLoader.getResources(path.toString().replace('\\', '/')));
+		if (resources.isEmpty()) {
+			return null;
+		}
+		try {
+			for (URL resource : resources) {
+				if (SCHEME_FILE.equalsIgnoreCase(resource.toURI().getScheme())) {
+					return resource;
+				}
+			}
+		} catch (URISyntaxException ex) {
+			throw new IOException(ex);
+		}
+		return resources.get(0);
+	}
+
+	/**
+	 * 指定したURLのSQLファイルのSQL本文をロードする.
+	 *
+	 * @param url SQLファイルのURL
+	 * @return SQL本文
+	 * @throws IOException ファイルの読み込みに失敗した場合
+	 */
+	protected String loadSql(final URL url) throws IOException {
+		try (var reader = new BufferedReader(new InputStreamReader(url.openStream(), getCharset()))) {
+			var builder = new StringBuilder();
+			var charBuffer = CharBuffer.allocate(BUFFER_CAPACITY);
+			var numCharsRead = 0;
+			while ((numCharsRead = reader.read(charBuffer)) != -1) {
+				builder.append(charBuffer.array(), 0, numCharsRead);
+				charBuffer.clear();
+			}
+			return formatSqlBody(builder.toString());
+		}
+	}
+
+	/**
+	 * SQL文の不要な文字削除と末尾の改行文字付与を行う.
+	 *
+	 * @param sqlBody 元となるSQL文
+	 * @return 整形後のSQL文
+	 */
+	protected String formatSqlBody(final String sqlBody) {
+		var newBody = sqlBody.trim();
+		if (newBody.endsWith("/") && !newBody.endsWith("*/")) {
+			newBody = ObjectUtils.removeEnd(newBody, "/");
+		} else {
+			newBody = newBody + System.lineSeparator();
+		}
+		return newBody;
 	}
 
 	/**
@@ -558,5 +530,69 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * SQLファイルの情報を保持するオブジェクト
+	 */
+	protected static class SqlInfo {
+		/** sqlNameに対応するPath. */
+		private final Path path;
+
+		/** 読み込みを行ったSQLルートパス */
+		private final Path rootPath;
+
+		/** 読み込んだファイルのscheme */
+		private final String scheme;
+
+		/** SQLファイルの内容.*/
+		private final String sqlBody;
+
+		/**
+		 * コンストラクタ
+		 * @param path Path
+		 * @param rootPath 読み込みを行ったSQLルートパス
+		 * @param scheme 読み込んだファイルのscheme
+		 * @param sqlBody SqlBody
+		 */
+		public SqlInfo(final Path path, final Path rootPath, final String scheme, final String sqlBody) {
+			this.path = path;
+			this.rootPath = rootPath;
+			this.scheme = scheme;
+			this.sqlBody = sqlBody;
+		}
+
+		/**
+		 * sqlNameに対応するPath.を取得します.
+		 * @return sqlNameに対応するPath.
+		 */
+		public Path getPath() {
+			return path;
+		}
+
+		/**
+		 * 読み込みを行ったSQLルートパスを取得します.
+		 * @return 読み込みを行ったSQLルートパス
+		 */
+		public Path getRootPath() {
+			return rootPath;
+		}
+
+		/**
+		 * 読み込んだファイルのschemeを取得します.
+		 * @return 読み込んだファイルのscheme
+		 */
+		public String getScheme() {
+			return scheme;
+		}
+
+		/**
+		 * SQLファイルの内容.を取得します.
+		 * @return SQLファイルの内容.
+		 */
+		public String getSqlBody() {
+			return sqlBody;
+		}
+
 	}
 }

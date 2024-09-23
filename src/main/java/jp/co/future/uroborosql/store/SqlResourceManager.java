@@ -126,16 +126,4 @@ public interface SqlResourceManager extends ServiceLoggingSupport {
 	 */
 	void setDialect(Dialect dialect);
 
-	/**
-	 * SqlResourceLoaderの取得
-	 * @return SqlResourceLoader
-	 */
-	SqlResourceLoader getSqlResourceLoader();
-
-	/**
-	 * SqlResourceLoaderの設定
-	 * @param sqlResourceLoader SqlResourceLoader
-	 */
-	void setSqlResourceLoader(SqlResourceLoader sqlResourceLoader);
-
 }
