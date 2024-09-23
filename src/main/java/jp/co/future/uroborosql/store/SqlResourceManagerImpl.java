@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -36,16 +35,13 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
  * @author H.Sugimoto
  */
 public class SqlResourceManagerImpl implements SqlResourceManager {
-	/** zip, jar内のファイルのscheme */
-	private static final String SCHEME_JAR = "jar";
-
 	/** ファイルシステム上のファイルのscheme */
 	private static final String SCHEME_FILE = "file";
 
 	/** 有効なDialectのSet */
 	private static final Set<String> dialects = StreamSupport
 			.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
-			.map(Dialect::getDatabaseType)
+			.map(dialect -> dialect.getDatabaseType().toLowerCase())
 			.collect(Collectors.toSet());
 
 	/** CharBufferのキャパシティ. */
@@ -279,7 +275,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 					var scheme = url.toURI().getScheme().toLowerCase();
 					var sqlBody = loadSql(url);
 					var sqlInfo = new SqlInfo(path, loadPath, scheme, sqlBody);
-					this.sqlInfos.compute(sqlName, remappingSqlInfo(sqlInfo));
+					this.sqlInfos.put(sqlName, sqlInfo);
 					traceWith(LOG)
 							.setMessage("SqlInfo - sqlName : {}, path : {}, rootPath : {}, scheme : {}, sqlBody : {}.")
 							.addArgument(sqlName)
@@ -317,41 +313,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 */
 	protected Path getDialectSqlPath(final Path loadPath, final String sqlName) {
 		return loadPath.resolve(dialect.getDatabaseType().toLowerCase()).resolve(sqlName + fileExtension);
-	}
-
-	/**
-	 * 優先度が高いSqlInfoが採用されるようにMapの再配置を行う.
-	 * <pre>
-	 * 1. Dialect付Pathを優先
-	 * 2. schemeはjarよりもfileを優先
-	 * 3. rootPathがloadPathsの並び順で前にいるものを優先
-	 * </pre>
-	 * @param sqlInfo
-	 *
-	 * @return 優先度判定を行った結果優先となったインスタンスを返すBiFunction
-	 */
-	private BiFunction<String, SqlInfo, SqlInfo> remappingSqlInfo(final SqlInfo sqlInfo) {
-		return (k, v) -> {
-			if (v == null) {
-				// sqlNameに対するインスタンスがなければ追加
-				return sqlInfo;
-			} else {
-				// Dialect付Pathを優先
-				if (isDialectPath(sqlInfo.getPath()) && !isDialectPath(v.getPath())) {
-					return sqlInfo;
-				}
-				// schemeはjarよりもfileを優先
-				if (SCHEME_FILE.equals(sqlInfo.getScheme()) && SCHEME_JAR.equals(v.getScheme())) {
-					return sqlInfo;
-				}
-				// ロードパスの並び順が先の方を優先
-				if (loadPaths.indexOf(sqlInfo.getRootPath()) < loadPaths.indexOf(v.getRootPath())) {
-					return sqlInfo;
-				}
-				// それ以外の場合は現在のインスタンスを適用
-				return v;
-			}
-		};
 	}
 
 	/**
@@ -469,7 +430,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * @param path 相対パスを取得する元のパス
 	 * @return 相対パス
 	 */
-	protected Path relativePath(final Path path) {
+	private Path relativePath(final Path path) {
 		var pathList = StreamSupport.stream(path.spliterator(), false)
 				.collect(Collectors.toList());
 
@@ -488,48 +449,6 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 		}
 		// loadPathと一致しなかった場合は元のpathを返却する
 		return path;
-	}
-
-	/**
-	 * 引数で指定したパスがDialect指定なし、または現在のDialect指定に対応するパスかどうかを判定する
-	 * <pre>
-	 *  Dialect=postgresqlの場合
-	 *
-	 *  - example/test.sql            : true
-	 *  - postgresql/example/test.sql : true
-	 *  - oracle/example/test.sql     : false
-	 *  - example                     : true
-	 *  - postgresql                  : true
-	 *  - oracle                      : false
-	 * </pre>
-	 *
-	 *
-	 * @param path 検査対象のPath
-	 * @return 妥当なPathの場合<code>true</code>
-	 */
-	protected boolean validPath(final Path path) {
-		var relativePath = relativePath(path);
-		if (relativePath.equals(path)) {
-			return true;
-		}
-
-		var dialectName = relativePath.getName(0).toString().toLowerCase();
-		// loadPathの直下が現在のdialect以外と一致する場合は無効なパスと判定する
-		return !dialects.contains(dialectName) || isDialectPath(relativePath);
-	}
-
-	/**
-	 * Dialect配下のPathかどうかを判定する.
-	 * @param path 対象となるPath
-	 * @return Dialect配下のPathの場合<code>true</code>
-	 */
-	protected boolean isDialectPath(final Path path) {
-		for (var p : path) {
-			if (this.dialect.getDatabaseType().equals(p.toString().toLowerCase())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
