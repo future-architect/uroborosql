@@ -42,7 +42,7 @@ public class ExitCommand extends ReplCommand {
 
 		try {
 			var sqlResourceManager = sqlConfig.getSqlResourceManager();
-			sqlResourceManager.shutdown();
+			sqlResourceManager.clearCache();
 		} catch (Exception ex) {
 			// do nothing
 		}

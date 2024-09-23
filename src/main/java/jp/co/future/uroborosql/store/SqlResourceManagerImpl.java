@@ -174,10 +174,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlResourceManager#shutdown()
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#clearCache()
 	 */
 	@Override
-	public void shutdown() {
+	public void clearCache() {
 		this.sqlInfos.clear();
 	}
 
@@ -230,6 +230,21 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	@Override
 	public boolean existSql(final String sqlName) {
 		return sqlInfos.containsKey(sqlName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#reloadSql(java.lang.String)
+	 */
+	@Override
+	public boolean reloadSql(final String sqlName) {
+		sqlInfos.remove(sqlName);
+		try {
+			return generateSqlInfo(sqlName);
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	/**

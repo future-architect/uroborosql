@@ -39,9 +39,10 @@ public class ViewCommand extends ReplCommand {
 			final Properties props) {
 		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
+			var sqlResourceManager = sqlConfig.getSqlResourceManager();
 			var sqlName = parts[1].replace('.', '/');
-			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
-				var sql = sqlConfig.getSqlResourceManager().getSql(sqlName);
+			if (sqlResourceManager.reloadSql(sqlName)) {
+				var sql = sqlResourceManager.getSql(sqlName);
 				var sqlLines = sql.split("\\r\\n|\\r|\\n");
 				for (var sqlLine : sqlLines) {
 					writer.println(sqlLine);

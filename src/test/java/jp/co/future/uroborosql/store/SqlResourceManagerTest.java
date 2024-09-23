@@ -88,6 +88,20 @@ public class SqlResourceManagerTest {
 	}
 
 	@Test
+	void testReloadSql() throws Exception {
+		var manager = new SqlResourceManagerImpl();
+		manager.setDialect(new H2Dialect());
+		manager.initialize();
+		List.of("example/select_test")
+				.forEach(sqlName -> manager.getSql(sqlName));
+
+		assertThat(manager.reloadSql("example/select_test"), is(true));
+		assertThat(manager.reloadSql("example/select_test2"), is(true));
+		assertThat(manager.reloadSql("example/select_test3"), is(true));
+		assertThat(manager.reloadSql("example/select_test4"), is(false));
+	}
+
+	@Test
 	void testGetSql() throws Exception {
 		var manager = new SqlResourceManagerImpl();
 		manager.setDialect(new H2Dialect());
@@ -180,7 +194,7 @@ public class SqlResourceManagerTest {
 			assertThat(manager.existSql("example/select_test2"), is(true));
 			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
-			manager.shutdown();
+			manager.clearCache();
 		}
 	}
 
@@ -204,7 +218,7 @@ public class SqlResourceManagerTest {
 			assertThat(manager.existSql("example/select_test2"), is(true));
 			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
-			manager.shutdown();
+			manager.clearCache();
 		}
 	}
 
@@ -293,7 +307,7 @@ public class SqlResourceManagerTest {
 			assertThat(manager.existSql("example/select_test2"), is(true));
 			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
-			manager.shutdown();
+			manager.clearCache();
 		}
 	}
 
@@ -317,7 +331,7 @@ public class SqlResourceManagerTest {
 			assertThat(manager.existSql("example/select_test2"), is(true));
 			assertThat(manager.existSql("example/select_test3"), is(true));
 		} finally {
-			manager.shutdown();
+			manager.clearCache();
 		}
 	}
 }
