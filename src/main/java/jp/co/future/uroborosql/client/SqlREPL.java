@@ -54,7 +54,6 @@ import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
-import jp.co.future.uroborosql.store.SqlInfo;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -68,6 +67,13 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
 public class SqlREPL implements ReplLoggingSupport {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
+
+	/** ファイルシステム上のファイルのscheme */
+	private static final String SCHEME_FILE = "file";
+
+	/** jar上のファイルのscheme */
+	private static final String SCHEME_JAR = "jar";
+
 	/** プロパティパス */
 	private final Path propPath;
 
@@ -287,9 +293,9 @@ public class SqlREPL implements ReplLoggingSupport {
 				.flatMap(url -> {
 					try {
 						var scheme = url.toURI().getScheme();
-						if (SqlInfo.SCHEME_FILE.equalsIgnoreCase(scheme)) {
+						if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
 							return traverseFile(url, rootPath, fileExtension).stream();
-						} else if (SqlInfo.SCHEME_JAR.equalsIgnoreCase(scheme)) {
+						} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
 							return traverseJar(url, rootPath, fileExtension).stream();
 						}
 						return null;
