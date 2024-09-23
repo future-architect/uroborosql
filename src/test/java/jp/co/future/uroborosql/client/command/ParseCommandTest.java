@@ -27,11 +27,13 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+		sqlConfig = UroboroSQL
+				.builder(DriverManager
+						.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(List.of("jp.co.future.uroborosql.context.test.TestConsts"))
 						.setEnumConstantPackageNames(List.of("jp.co.future.uroborosql.context.test")))
-				.setSqlResourceManager(new SqlResourceManagerImpl())
+				.setSqlResourceManager(new SqlResourceManagerImpl(true))
 				.build();
 
 		command = new ParseCommand();

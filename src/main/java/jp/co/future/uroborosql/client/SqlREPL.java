@@ -228,11 +228,10 @@ public class SqlREPL implements ReplLoggingSupport {
 		var loadPath = p("sql.loadPath", "sql");
 		var fileExtension = p("sql.fileExtension", ".sql");
 		var charset = Charset.forName(p("sql.encoding", "UTF-8"));
-		var detectChanges = Boolean.parseBoolean(p("sql.detectChanges", "true"));
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
-				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
+				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, true))
 				.build();
 		sqlConfig.getEventListenerHolder().addEventSubscriber(new DumpResultEventSubscriber());
 

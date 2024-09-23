@@ -33,8 +33,9 @@ public class BindParamCompleterTest extends ReaderTestSupport {
 	@BeforeEach
 	public void setUp() throws Exception {
 		super.setUp();
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
-				.setSqlResourceManager(new SqlResourceManagerImpl(false))
+		sqlConfig = UroboroSQL.builder(DriverManager
+				.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+				.setSqlResourceManager(new SqlResourceManagerImpl())
 				.setDialect(new DefaultDialect())
 				.build();
 	}

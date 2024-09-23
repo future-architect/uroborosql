@@ -4,15 +4,12 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -53,17 +50,10 @@ public class SqlResourceManagerTest {
 	}
 
 	@Test
-	void testConstructorMultiSqlPathsNull() throws Exception {
-		assertThrows(IllegalArgumentException.class, () -> {
-			new SqlResourceManagerImpl(Arrays.asList(null, "secondary_sql"));
-		});
-	}
-
-	@Test
 	void testGetSqlPathList() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl();
+		var manager = new SqlResourceManagerImpl(true);
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -150,7 +140,7 @@ public class SqlResourceManagerTest {
 	void testGetSqlH2() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl();
+		var manager = new SqlResourceManagerImpl(true);
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -176,7 +166,7 @@ public class SqlResourceManagerTest {
 	void testGetSqlPostgresql() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl();
+		var manager = new SqlResourceManagerImpl(true);
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
@@ -199,49 +189,13 @@ public class SqlResourceManagerTest {
 	}
 
 	@Test
-	void testGetSqlWithWatcher() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "test/ADD_WATCH";
-		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
-		Files.deleteIfExists(newFilePath);
-
-		var manager = new SqlResourceManagerImpl(true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(newFilePath);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-		} finally {
-			manager.shutdown();
-		}
-
-	}
-
-	@Test
 	void testGetSqlWithNoWatcher() throws Exception {
 
 		var sqlName = "test/ADD_WATCH";
 		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL1, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		var manager = new SqlResourceManagerImpl();
+		var manager = new SqlResourceManagerImpl(true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -259,196 +213,6 @@ public class SqlResourceManagerTest {
 			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql("example/select_test"), is(true));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDialectSqlFolder() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "example/select_test";
-		var dir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "example");
-		var newFilePath = dir.resolve("select_test.sql");
-		Files.deleteIfExists(newFilePath);
-		Files.deleteIfExists(dir);
-
-		var manager = new SqlResourceManagerImpl(true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(dir);
-
-			var sql = "select * from test -- oracle";
-			Files.write(newFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(newFilePath);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Files.deleteIfExists(dir);
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDefaultFolderAndDialectFolder() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "unit_test/select_test";
-		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
-		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
-		var defaultFilePath = defaultDir.resolve("select_test.sql");
-		var dialectFilePath = dialectDir.resolve("select_test.sql");
-		Files.deleteIfExists(defaultFilePath);
-		Files.deleteIfExists(defaultDir);
-		Files.deleteIfExists(dialectFilePath);
-		Files.deleteIfExists(dialectDir);
-
-		var manager = new SqlResourceManagerImpl(true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			// defaultから先に作る場合
-			Files.createDirectories(defaultDir);
-
-			var sql = "select * from test -- default";
-			Files.write(defaultFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(dialectDir);
-
-			sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDialectFolderAndDefaultFolder() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "unit_test/select_test";
-		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "unit_test");
-		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL1, "oracle", "unit_test");
-		var defaultFilePath = defaultDir.resolve("select_test.sql");
-		var dialectFilePath = dialectDir.resolve("select_test.sql");
-		Files.deleteIfExists(defaultFilePath);
-		Files.deleteIfExists(defaultDir);
-		Files.deleteIfExists(dialectFilePath);
-		Files.deleteIfExists(dialectDir);
-
-		var manager = new SqlResourceManagerImpl(true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			// dialectから先に作る場合
-			Files.createDirectories(dialectDir);
-
-			var sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(defaultDir);
-
-			sql = "select * from test -- default";
-			Files.write(defaultFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle")); // default より dialectが優先される
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefaultが有効になる
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
 		} finally {
 			manager.shutdown();
 		}
@@ -472,7 +236,7 @@ public class SqlResourceManagerTest {
 	void testGetSqlPathListLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql");
+		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -507,7 +271,7 @@ public class SqlResourceManagerTest {
 	void testGetSqlH2LoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql");
+		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
 		manager.setDialect(new H2Dialect());
 		manager.initialize();
 
@@ -533,7 +297,7 @@ public class SqlResourceManagerTest {
 	void testGetSqlPostgresqlLoadPathHasChildDir() throws Exception {
 		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql");
+		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
 		manager.setDialect(new PostgresqlDialect());
 		manager.initialize();
 
@@ -556,50 +320,13 @@ public class SqlResourceManagerTest {
 	}
 
 	@Test
-	void testGetSqlWithWatcherLoadPathHasChildDir() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "test/ADD_WATCH";
-		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
-		Files.deleteIfExists(newFilePath);
-
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
-				true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.write(newFilePath, List.of("select * from ADD_WATCH"));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(newFilePath);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-		} finally {
-			manager.shutdown();
-		}
-
-	}
-
-	@Test
 	void testGetSqlWithNoWatcherLoadPathHasChildDir() throws Exception {
 
 		var sqlName = "test/ADD_WATCH";
 		var newFilePath = Paths.get(TARGET_TEST_CLASSES_SQL2, sqlName + ".sql");
 		Files.deleteIfExists(newFilePath);
 
-		var manager = new SqlResourceManagerImpl("parent/child/sql");
+		var manager = new SqlResourceManagerImpl("parent/child/sql", true);
 		manager.setDialect(new Oracle10Dialect());
 		manager.initialize();
 
@@ -617,199 +344,6 @@ public class SqlResourceManagerTest {
 			Thread.sleep(WAIT_TIME);
 
 			assertThat(manager.existSql("example/select_test"), is(true));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDialectSqlFolderLoadPathHasChildDir() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "example/select_test";
-		var dir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "example");
-		var newFilePath = dir.resolve("select_test.sql");
-		Files.deleteIfExists(newFilePath);
-		Files.deleteIfExists(dir);
-
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
-				true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(dir);
-
-			var sql = "select * from test -- oracle";
-			Files.write(newFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(newFilePath);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Files.deleteIfExists(dir);
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDefaultFolderAndDialectFolderLoadPathHasChildDir() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "unit_test/select_test";
-		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
-		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
-		var defaultFilePath = defaultDir.resolve("select_test.sql");
-		var dialectFilePath = dialectDir.resolve("select_test.sql");
-		Files.deleteIfExists(defaultFilePath);
-		Files.deleteIfExists(defaultDir);
-		Files.deleteIfExists(dialectFilePath);
-		Files.deleteIfExists(dialectDir);
-
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
-				true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			// defaultから先に作る場合
-			Files.createDirectories(defaultDir);
-
-			var sql = "select * from test -- default";
-			Files.write(defaultFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(dialectDir);
-
-			sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-		} finally {
-			manager.shutdown();
-		}
-	}
-
-	@Test
-	void testAddDialectFolderAndDefaultFolderLoadPathHasChildDir() throws Exception {
-		assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("mac"));
-
-		var sqlName = "unit_test/select_test";
-		var defaultDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "unit_test");
-		var dialectDir = Paths.get(TARGET_TEST_CLASSES_SQL2, "oracle", "unit_test");
-		var defaultFilePath = defaultDir.resolve("select_test.sql");
-		var dialectFilePath = dialectDir.resolve("select_test.sql");
-		Files.deleteIfExists(defaultFilePath);
-		Files.deleteIfExists(defaultDir);
-		Files.deleteIfExists(dialectFilePath);
-		Files.deleteIfExists(dialectDir);
-
-		var manager = new SqlResourceManagerImpl("parent/child/sql", ".sql", StandardCharsets.UTF_8,
-				true);
-		manager.setDialect(new Oracle10Dialect());
-		manager.initialize();
-
-		try {
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
-
-			Thread.sleep(WAIT_TIME);
-
-			// dialectから先に作る場合
-			Files.createDirectories(dialectDir);
-
-			var sql = "select * from test -- oracle";
-			Files.write(dialectFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle"));
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.createDirectories(defaultDir);
-
-			sql = "select * from test -- default";
-			Files.write(defaultFilePath, List.of(sql));
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("oracle")); // default より dialectが優先される
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(dialectFilePath);
-			Files.deleteIfExists(dialectDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(true));
-			assertThat(manager.getSql(sqlName), containsString("default")); // dialect が削除された段階でdefaultが有効になる
-
-			Thread.sleep(WAIT_TIME);
-
-			Files.deleteIfExists(defaultFilePath);
-			Files.deleteIfExists(defaultDir);
-
-			Thread.sleep(WAIT_TIME);
-
-			assertThat(manager.existSql(sqlName), is(false));
 		} finally {
 			manager.shutdown();
 		}

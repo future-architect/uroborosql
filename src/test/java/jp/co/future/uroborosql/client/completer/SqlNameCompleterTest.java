@@ -25,7 +25,7 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 			commands.add(command);
 		}
 
-		sqlManager = new SqlResourceManagerImpl(false);
+		sqlManager = new SqlResourceManagerImpl(true);
 		sqlManager.setDialect(new DefaultDialect());
 		sqlManager.initialize();
 	}

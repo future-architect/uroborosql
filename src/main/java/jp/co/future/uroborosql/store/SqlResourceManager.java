@@ -18,6 +18,8 @@ import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
  * @author H.Sugimoto
  */
 public interface SqlResourceManager extends ServiceLoggingSupport {
+	/** SQLファイルロードのデフォルトルートパス */
+	String DEFAULT_LOAD_PATH = "sql";
 
 	/**
 	 * 初期化<br>
@@ -123,5 +125,17 @@ public interface SqlResourceManager extends ServiceLoggingSupport {
 	 * @param dialect Dialect
 	 */
 	void setDialect(Dialect dialect);
+
+	/**
+	 * SqlResourceLoaderの取得
+	 * @return SqlResourceLoader
+	 */
+	SqlResourceLoader getSqlResourceLoader();
+
+	/**
+	 * SqlResourceLoaderの設定
+	 * @param sqlResourceLoader SqlResourceLoader
+	 */
+	void setSqlResourceLoader(SqlResourceLoader sqlResourceLoader);
 
 }

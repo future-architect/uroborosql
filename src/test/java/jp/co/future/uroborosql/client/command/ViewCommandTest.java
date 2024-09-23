@@ -21,6 +21,7 @@ import jp.co.future.uroborosql.client.ReaderTestSupport;
 import jp.co.future.uroborosql.client.completer.ReplCommandCompleter;
 import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class ViewCommandTest extends ReaderTestSupport {
@@ -35,7 +36,10 @@ public class ViewCommandTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+		sqlConfig = UroboroSQL
+				.builder(DriverManager
+						.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+				.setSqlResourceManager(new SqlResourceManagerImpl(true))
 				.build();
 		agent = sqlConfig.agent();
 
