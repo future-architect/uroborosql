@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +43,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 			.map(dialect -> dialect.getDatabaseType().toLowerCase())
 			.collect(Collectors.toSet());
 
-	/** CharBufferのキャパシティ. */
+	/** Bufferのキャパシティ. */
 	private static final int BUFFER_CAPACITY = 8 * 1024;
 
 	/** SQLファイルをロードするルートパスのリスト */
@@ -397,11 +396,10 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	protected String loadSql(final URL url) throws IOException {
 		try (var reader = new BufferedReader(new InputStreamReader(url.openStream(), getCharset()))) {
 			var builder = new StringBuilder();
-			var charBuffer = CharBuffer.allocate(BUFFER_CAPACITY);
+			var buffer = new char[BUFFER_CAPACITY];
 			var numCharsRead = 0;
-			while ((numCharsRead = reader.read(charBuffer)) != -1) {
-				builder.append(charBuffer.array(), 0, numCharsRead);
-				charBuffer.clear();
+			while ((numCharsRead = reader.read(buffer)) != -1) {
+				builder.append(buffer, 0, numCharsRead);
 			}
 			return formatSqlBody(builder.toString());
 		}
