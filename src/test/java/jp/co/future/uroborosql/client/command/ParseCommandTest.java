@@ -27,7 +27,9 @@ public class ParseCommandTest extends ReaderTestSupport {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		sqlConfig = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
+		sqlConfig = UroboroSQL
+				.builder(DriverManager
+						.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1"))
 				.setExecutionContextProvider(new ExecutionContextProviderImpl()
 						.setConstantClassNames(List.of("jp.co.future.uroborosql.context.test.TestConsts"))
 						.setEnumConstantPackageNames(List.of("jp.co.future.uroborosql.context.test")))
@@ -35,6 +37,23 @@ public class ParseCommandTest extends ReaderTestSupport {
 				.build();
 
 		command = new ParseCommand();
+		List.of("ddl/create_tables",
+				"example/insert_column_type_test",
+				"example/insert_product",
+				"example/insert_product_for_bean",
+				"example/insert_product_for_optional",
+				"example/insert_product_regist_work",
+				"example/select_column_type_test",
+				"example/select_consts",
+				"example/select_enum",
+				"example/select_product",
+				"example/select_product_param_camel",
+				"example/select_product_where_upd_datetime",
+				"example/select_test",
+				"example/selectinsert_product",
+				"example/selectinsert_product2",
+				"test/PARSE_TEST")
+				.forEach(sqlName -> sqlConfig.getSqlResourceManager().getSql(sqlName));
 	}
 
 	@AfterEach

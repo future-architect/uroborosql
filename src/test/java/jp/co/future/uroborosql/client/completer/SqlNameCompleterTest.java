@@ -25,9 +25,25 @@ public class SqlNameCompleterTest extends ReaderTestSupport {
 			commands.add(command);
 		}
 
-		sqlManager = new SqlResourceManagerImpl(false);
+		sqlManager = new SqlResourceManagerImpl();
 		sqlManager.setDialect(new DefaultDialect());
 		sqlManager.initialize();
+		List.of("ddl/create_tables",
+				"example/insert_column_type_test",
+				"example/insert_product",
+				"example/insert_product_for_bean",
+				"example/insert_product_for_optional",
+				"example/insert_product_regist_work",
+				"example/select_column_type_test",
+				"example/select_consts",
+				"example/select_enum",
+				"example/select_product",
+				"example/select_product_param_camel",
+				"example/select_product_where_upd_datetime",
+				"example/select_test",
+				"example/selectinsert_product",
+				"example/selectinsert_product2")
+				.forEach(sqlName -> sqlManager.getSql(sqlName));
 	}
 
 	@Test

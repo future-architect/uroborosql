@@ -9,6 +9,8 @@ package jp.co.future.uroborosql.client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -20,6 +22,7 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.regex.Pattern;
@@ -49,6 +52,7 @@ import jp.co.future.uroborosql.client.completer.SqlNameCompleter;
 import jp.co.future.uroborosql.client.completer.TableNameCompleter;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.event.subscriber.DumpResultEventSubscriber;
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.log.support.ReplLoggingSupport;
 import jp.co.future.uroborosql.store.SqlResourceManagerImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
@@ -63,6 +67,13 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
 public class SqlREPL implements ReplLoggingSupport {
 	/** プロパティ上のクラスパスに指定された環境変数を置換するための正規表現 */
 	private static final Pattern SYSPROP_PAT = Pattern.compile("\\$\\{(.+?)\\}");
+
+	/** ファイルシステム上のファイルのscheme */
+	private static final String SCHEME_FILE = "file";
+
+	/** jar上のファイルのscheme */
+	private static final String SCHEME_JAR = "jar";
+
 	/** プロパティパス */
 	private final Path propPath;
 
@@ -228,11 +239,10 @@ public class SqlREPL implements ReplLoggingSupport {
 		var loadPath = p("sql.loadPath", "sql");
 		var fileExtension = p("sql.fileExtension", ".sql");
 		var charset = Charset.forName(p("sql.encoding", "UTF-8"));
-		var detectChanges = Boolean.parseBoolean(p("sql.detectChanges", "true"));
 
 		// config
 		sqlConfig = UroboroSQL.builder(url, user, password, schema)
-				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset, detectChanges))
+				.setSqlResourceManager(new SqlResourceManagerImpl(loadPath, fileExtension, charset))
 				.build();
 		sqlConfig.getEventListenerHolder().addEventSubscriber(new DumpResultEventSubscriber());
 
@@ -257,6 +267,7 @@ public class SqlREPL implements ReplLoggingSupport {
 		if (!constantClassNames.isEmpty() || !enumConstantPackageNames.isEmpty()) {
 			executionContextProvider.initialize();
 		}
+		loadAllSqlNames(Paths.get(loadPath), fileExtension);
 	}
 
 	/**
@@ -274,6 +285,93 @@ public class SqlREPL implements ReplLoggingSupport {
 	 * @param terminal Terminal
 	 */
 	private void dispose(final Terminal terminal) {
+	}
+
+	private void loadAllSqlNames(final Path rootPath, final String fileExtension) {
+		Thread.currentThread().getContextClassLoader()
+				.resources(rootPath.toString().replace('\\', '/'))
+				.flatMap(url -> {
+					try {
+						var scheme = url.toURI().getScheme();
+						if (SCHEME_FILE.equalsIgnoreCase(scheme)) {
+							return traverseFile(url, rootPath, fileExtension).stream();
+						} else if (SCHEME_JAR.equalsIgnoreCase(scheme)) {
+							return traverseJar(url, rootPath, fileExtension).stream();
+						}
+						return null;
+					} catch (IOException | URISyntaxException ex) {
+						errorWith(REPL_LOG)
+								.setMessage("Can't load sql files.")
+								.setCause(ex)
+								.log();
+						throw new UroborosqlRuntimeException("I/O error occurred.", ex);
+					}
+				})
+				.filter(Objects::nonNull)
+				.map(sqlName -> sqlConfig.getSqlResourceManager().getSql(sqlName))
+				.count();
+	}
+
+	/**
+	 * 指定されたURL配下のファイルを順次追跡し、SQL名のリストを取得する.
+	 *
+	 * @param url 追跡を行うディレクトリ、またはファイルのURL
+	 * @param rootPath 読み込みを行ったSQLルートパス
+	 * @return PathとSQL本文を格納したMap
+	 * @param fileExtension ファイル拡張子
+	 * @throws IOException SQLの読み込みに失敗した場合
+	 */
+	private List<String> traverseFile(final URL url, final Path rootPath, final String fileExtension)
+			throws IOException {
+		try {
+			var path = Path.of(url.toURI());
+			if (Files.notExists(path)) {
+				List.of();
+			}
+			var sqlNames = new ArrayList<String>();
+			if (Files.isDirectory(path)) {
+				try (var ds = Files.newDirectoryStream(path)) {
+					for (var child : ds) {
+						sqlNames.addAll(traverseFile(child.toUri().toURL(), rootPath, fileExtension));
+					}
+				} catch (IOException ex) {
+					throw new UroborosqlRuntimeException("I/O error occurred.", ex);
+				}
+			} else if (path.toString().endsWith(fileExtension)) {
+				sqlNames.add(sqlConfig.getSqlResourceManager().getSqlName(path));
+			}
+			return sqlNames;
+		} catch (URISyntaxException ex) {
+			throw new IOException(ex);
+		}
+	}
+
+	/**
+	 * 指定されたjarのURL配下のファイルを順次追跡し、SQL名のリストを取得する.
+	 *
+	 * @param url 追跡を行うディレクトリ、またはファイルのURL
+	 * @param rootPath 読み込みを行ったSQLルートパス
+	 * @param fileExtension ファイル拡張子
+	 * @return PathとSQL本文を格納したMap
+	 * @throws IOException SQLの読み込みに失敗した場合
+	 */
+	private List<String> traverseJar(final URL url, final Path rootPath, final String fileExtension)
+			throws IOException {
+		var conn = (JarURLConnection) url.openConnection();
+		try (var jarFile = conn.getJarFile()) {
+			return jarFile.stream()
+					.map(jarEntry -> {
+						var name = jarEntry.getName();
+						if (!jarEntry.isDirectory() && name.endsWith(fileExtension)) {
+							var path = Paths.get(name);
+							return sqlConfig.getSqlResourceManager().getSqlName(path);
+						} else {
+							return null;
+						}
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+		}
 	}
 
 	/**

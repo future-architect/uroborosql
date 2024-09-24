@@ -44,12 +44,12 @@ public class UpdateCommand extends ReplCommand {
 			final Properties props) {
 		var writer = reader.getTerminal().writer();
 		if (parts.length >= 2) {
+			var sqlResourceManager = sqlConfig.getSqlResourceManager();
 			var sqlName = parts[1].replace('.', '/');
-			if (sqlConfig.getSqlResourceManager().existSql(sqlName)) {
-
+			if (sqlResourceManager.reloadSql(sqlName)) {
 				try (var agent = sqlConfig.agent()) {
 					var ctx = agent.context().setSqlName(sqlName);
-					ctx.setSql(sqlConfig.getSqlResourceManager().getSql(ctx.getSqlName()));
+					ctx.setSql(sqlResourceManager.getSql(ctx.getSqlName()));
 					var params = Arrays.copyOfRange(parts, 2, parts.length);
 					SqlParamUtils.setSqlParams(sqlConfig, ctx, params);
 					try {

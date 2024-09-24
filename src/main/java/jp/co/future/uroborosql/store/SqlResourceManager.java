@@ -18,6 +18,8 @@ import jp.co.future.uroborosql.log.support.ServiceLoggingSupport;
  * @author H.Sugimoto
  */
 public interface SqlResourceManager extends ServiceLoggingSupport {
+	/** SQLファイルロードのデフォルトルートパス */
+	String DEFAULT_LOAD_PATH = "sql";
 
 	/**
 	 * 初期化<br>
@@ -25,9 +27,9 @@ public interface SqlResourceManager extends ServiceLoggingSupport {
 	void initialize();
 
 	/**
-	 * 停止処理<br>
+	 * キャッシュクリア処理<br>
 	 */
-	void shutdown();
+	void clearCache();
 
 	/**
 	 * SQL文取得<br>
@@ -43,6 +45,14 @@ public interface SqlResourceManager extends ServiceLoggingSupport {
 	 * @return 存在する場合は<code>true</code>
 	 */
 	boolean existSql(String sqlName);
+
+	/**
+	 * 指定したSQL名のSQLをロードし直します.
+	 *
+	 * @param sqlName SQL名
+	 * @return sqlNameに対するSQLが存在する場合は<code>true</code>
+	 */
+	boolean reloadSql(String sqlName);
 
 	/**
 	 * SqlNameを与えられたPathから生成する<br>
