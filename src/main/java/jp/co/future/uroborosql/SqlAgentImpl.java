@@ -2316,7 +2316,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return query.first()
 					.map(findEntity -> {
 						for (var mappingColumn : mappingColumns.values()) {
-							if (!mappingColumn.isId()) {
+							if (!mappingColumn.isId() && !mappingColumn.isVersion()) {
 								var value = mappingColumn.getValue(entity);
 								if (value != null) {
 									mappingColumn.setValue(findEntity, value);
