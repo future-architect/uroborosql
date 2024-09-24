@@ -5,14 +5,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.not;
 
 import java.sql.Connection;
-import java.sql.JDBCType;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.OffsetTime;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -23,19 +18,18 @@ import org.junit.jupiter.api.Test;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
-import jp.co.future.uroborosql.mapping.JavaType;
 
 /**
- * PostgresqlDialectの個別実装部分のテストケース
+ * Oracle23Dialectの個別実装部分のテストケース
  *
  * @author H.Sugimoto
  *
  */
-public class PostgresqlDialectTest {
-	private final Dialect dialect = new PostgresqlDialect();
+public class Oracle23DialectTest {
+	private final Dialect dialect = new Oracle23Dialect();
 
 	@Test
-	void testAccept12() {
+	void testAccept23() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -50,14 +44,71 @@ public class PostgresqlDialectTest {
 
 			@Override
 			public String getDatabaseName() {
-				return "PostgreSQL";
+				return "Oracle-23.1";
 			}
 		};
 
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, instanceOf(PostgresqlDialect.class));
+		assertThat(dialect, instanceOf(Oracle23Dialect.class));
+	}
+
+	@Test
+	void testAcceptUnder23() {
+		ConnectionSupplier supplier = new ConnectionSupplier() {
+
+			@Override
+			public Connection getConnection() {
+				return null;
+			}
+
+			@Override
+			public Connection getConnection(final ConnectionContext ctx) {
+				return null;
+			}
+
+			@Override
+			public String getDatabaseName() {
+				return "Oracle-21.1";
+			}
+		};
+
+		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
+				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
+
+		assertThat(dialect, not(instanceOf(Oracle23Dialect.class)));
+	}
+
+	@Test
+	void testAcceptOver23() {
+		ConnectionSupplier supplier = new ConnectionSupplier() {
+
+			@Override
+			public Connection getConnection() {
+				return null;
+			}
+
+			@Override
+			public Connection getConnection(final ConnectionContext ctx) {
+				return null;
+			}
+
+			@Override
+			public String getDatabaseName() {
+				return "Oracle-24.1";
+			}
+		};
+
+		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
+				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
+
+		assertThat(dialect, instanceOf(Oracle23Dialect.class));
+	}
+
+	@Test
+	void testGetSequenceNextValSql() {
+		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("test_sequence.nextval"));
 	}
 
 	@Test
@@ -65,20 +116,20 @@ public class PostgresqlDialectTest {
 		assertThat(dialect.escapeLikePattern(""), is(""));
 		assertThat(dialect.escapeLikePattern(null), nullValue());
 		assertThat(dialect.escapeLikePattern("pattern"), is("pattern"));
-		assertThat(dialect.escapeLikePattern("%pattern"), is("$%pattern"));
-		assertThat(dialect.escapeLikePattern("_pattern"), is("$_pattern"));
-		assertThat(dialect.escapeLikePattern("pat%tern"), is("pat$%tern"));
-		assertThat(dialect.escapeLikePattern("pat_tern"), is("pat$_tern"));
-		assertThat(dialect.escapeLikePattern("pattern%"), is("pattern$%"));
-		assertThat(dialect.escapeLikePattern("pattern_"), is("pattern$_"));
+		assertThat(dialect.escapeLikePattern("%pattern"), is("\\%pattern"));
+		assertThat(dialect.escapeLikePattern("_pattern"), is("\\_pattern"));
+		assertThat(dialect.escapeLikePattern("pat%tern"), is("pat\\%tern"));
+		assertThat(dialect.escapeLikePattern("pat_tern"), is("pat\\_tern"));
+		assertThat(dialect.escapeLikePattern("pattern%"), is("pattern\\%"));
+		assertThat(dialect.escapeLikePattern("pattern_"), is("pattern\\_"));
 		assertThat(dialect.escapeLikePattern("pat[]tern"), is("pat[]tern"));
-		assertThat(dialect.escapeLikePattern("pat％tern"), is("pat％tern"));
-		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat＿tern"));
+		assertThat(dialect.escapeLikePattern("pat％tern"), is("pat\\％tern"));
+		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat\\＿tern"));
 	}
 
 	@Test
 	void testGetEscapeChar() {
-		assertThat(dialect.getEscapeChar(), is('$'));
+		assertThat(dialect.getEscapeChar(), is('\\'));
 	}
 
 	@Test
@@ -86,35 +137,23 @@ public class PostgresqlDialectTest {
 		assertThat(dialect.supportsBulkInsert(), is(true));
 		assertThat(dialect.supportsLimitClause(), is(true));
 		assertThat(dialect.supportsNullValuesOrdering(), is(true));
+		assertThat(dialect.supportsIdentity(), is(true));
+		assertThat(dialect.supportsSequence(), is(true));
 		assertThat(dialect.isRemoveTerminator(), is(true));
-		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(true));
+		assertThat(dialect.isRollbackToSavepointBeforeRetry(), is(false));
 		assertThat(dialect.supportsForUpdate(), is(true));
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
-		assertThat(dialect.supportsForUpdateWait(), is(false));
+		assertThat(dialect.supportsForUpdateWait(), is(true));
+		assertThat(dialect.supportsOptimizerHints(), is(true));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 	}
 
 	@Test
 	void testGetLimitClause() {
-		assertThat(dialect.getLimitClause(3, 5), is("LIMIT 3 OFFSET 5" + System.lineSeparator()));
-		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5" + System.lineSeparator()));
-		assertThat(dialect.getLimitClause(3, 0), is("LIMIT 3 " + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(3, 5), is("OFFSET 5 ROWS FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(0, 5), is("OFFSET 5 ROWS" + System.lineSeparator()));
+		assertThat(dialect.getLimitClause(3, 0), is("FETCH FIRST 3 ROWS ONLY" + System.lineSeparator()));
 		assertThat(dialect.getLimitClause(0, 0), is(""));
-	}
-
-	@Test
-	void testGetJavaType() {
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "json").getClass(), JavaType.of(String.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "jsonb").getClass(), JavaType.of(String.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.OTHER, "other").getClass(), JavaType.of(Object.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamptz").getClass(),
-				JavaType.of(ZonedDateTime.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIMESTAMP, "timestamp").getClass(),
-				JavaType.of(Timestamp.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIME, "timetz").getClass(),
-				JavaType.of(OffsetTime.class).getClass());
-		assertEquals(dialect.getJavaType(JDBCType.TIME, "time").getClass(),
-				JavaType.of(Time.class).getClass());
 	}
 
 	@Test
@@ -132,30 +171,20 @@ public class PostgresqlDialectTest {
 	void testAddOptimizerHints1() {
 		var sql = new StringBuilder("SELECT")
 				.append(System.lineSeparator())
-				.append(" * FROM test")
-				.append(System.lineSeparator())
-				.append("WHERE 1 = 1 ORDER id")
+				.append(" * FROM test WHERE 1 = 1 ORDER id")
 				.append(System.lineSeparator());
 		List<String> hints = new ArrayList<>();
 		hints.add("INDEX (test test_ix)");
 		hints.add("USE_NL");
 
 		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
-				is("/*+" + System.lineSeparator() + "\t" + "INDEX (test test_ix)"
-						+ System.lineSeparator() + "\t"
-						+ "USE_NL"
-						+ System.lineSeparator() + " */"
-						+ System.lineSeparator() + "SELECT"
-						+ System.lineSeparator()
-						+ " * FROM test"
-						+ System.lineSeparator()
-						+ "WHERE 1 = 1 ORDER id"
-						+ System.lineSeparator()));
+				is("SELECT /*+ INDEX (test test_ix) USE_NL */" + System.lineSeparator()
+						+ " * FROM test WHERE 1 = 1 ORDER id" + System.lineSeparator()));
 	}
 
 	@Test
 	void testAddOptimizerHints2() {
-		var sql = new StringBuilder("SELECT")
+		var sql = new StringBuilder("SELECT /* SQL_ID */")
 				.append(System.lineSeparator())
 				.append(" * FROM PUBLIC.TEST_1");
 		List<String> hints = new ArrayList<>();
@@ -163,23 +192,13 @@ public class PostgresqlDialectTest {
 		hints.add("USE_NL");
 
 		assertThat(dialect.addOptimizerHints(sql, hints).toString(),
-				is("/*+" + System.lineSeparator() + "\t" + "INDEX (PUBLIC.TEST_1 test_ix)"
-						+ System.lineSeparator() + "\t"
-						+ "USE_NL"
-						+ System.lineSeparator() + " */"
-						+ System.lineSeparator() + "SELECT"
-						+ System.lineSeparator()
+				is("SELECT /* SQL_ID */ /*+ INDEX (PUBLIC.TEST_1 test_ix) USE_NL */" + System.lineSeparator()
 						+ " * FROM PUBLIC.TEST_1"));
 	}
 
 	@Test
 	void testGetPessimisticLockingErrorCodes() {
-		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("55P03")));
-	}
-
-	@Test
-	void testGetSequenceNextValSql() {
-		assertThat(dialect.getSequenceNextValSql("test_sequence"), is("nextval('test_sequence')"));
+		assertThat(dialect.getPessimisticLockingErrorCodes(), is(containsInAnyOrder("54", "30006")));
 	}
 
 }

@@ -20,16 +20,42 @@ import jp.co.future.uroborosql.connection.ConnectionSupplier;
 import jp.co.future.uroborosql.enums.ForUpdateType;
 
 /**
- * Oracle12Dialectの個別実装部分のテストケース
+ * Oracle18Dialectの個別実装部分のテストケース
  *
  * @author H.Sugimoto
  *
  */
-public class Oracle12DialectTest {
-	private final Dialect dialect = new Oracle12Dialect();
+public class Oracle18DialectTest {
+	private final Dialect dialect = new Oracle18Dialect();
 
 	@Test
-	void testAccept12() {
+	void testAccept18() {
+		ConnectionSupplier supplier = new ConnectionSupplier() {
+
+			@Override
+			public Connection getConnection() {
+				return null;
+			}
+
+			@Override
+			public Connection getConnection(final ConnectionContext ctx) {
+				return null;
+			}
+
+			@Override
+			public String getDatabaseName() {
+				return "Oracle-18.1";
+			}
+		};
+
+		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
+				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
+
+		assertThat(dialect, instanceOf(Oracle18Dialect.class));
+	}
+
+	@Test
+	void testAcceptUnder18() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -51,11 +77,11 @@ public class Oracle12DialectTest {
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, instanceOf(Oracle12Dialect.class));
+		assertThat(dialect, not(instanceOf(Oracle18Dialect.class)));
 	}
 
 	@Test
-	void testAcceptUnder12() {
+	void testAcceptOver18() {
 		ConnectionSupplier supplier = new ConnectionSupplier() {
 
 			@Override
@@ -70,40 +96,14 @@ public class Oracle12DialectTest {
 
 			@Override
 			public String getDatabaseName() {
-				return "Oracle-11.1";
+				return "Oracle-19.1";
 			}
 		};
 
 		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
 				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
 
-		assertThat(dialect, not(instanceOf(Oracle12Dialect.class)));
-	}
-
-	@Test
-	void testAcceptOver12() {
-		ConnectionSupplier supplier = new ConnectionSupplier() {
-
-			@Override
-			public Connection getConnection() {
-				return null;
-			}
-
-			@Override
-			public Connection getConnection(final ConnectionContext ctx) {
-				return null;
-			}
-
-			@Override
-			public String getDatabaseName() {
-				return "Oracle-13.1";
-			}
-		};
-
-		var dialect = StreamSupport.stream(ServiceLoader.load(Dialect.class).spliterator(), false)
-				.filter(d -> d.accept(supplier)).findFirst().orElseGet(DefaultDialect::new);
-
-		assertThat(dialect, not(instanceOf(Oracle12Dialect.class)));
+		assertThat(dialect, not(instanceOf(Oracle18Dialect.class)));
 	}
 
 	@Test
