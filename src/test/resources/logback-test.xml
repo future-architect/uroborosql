@@ -33,11 +33,11 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.sql.parser" level="INFO" additivity="false">
+	<logger name="jp.co.future.uroborosql.parser" level="INFO" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="jp.co.future.uroborosql.sql.coverage" level="INFO" additivity="false">
+	<logger name="jp.co.future.uroborosql.coverage" level="INFO" additivity="false">
 		<appender-ref ref="CoverageLog" />
 	</logger>
 
