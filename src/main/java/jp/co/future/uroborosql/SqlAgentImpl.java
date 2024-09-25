@@ -157,17 +157,23 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		// クラス名が指定されている場合はそのクラス名を指定
 		var sqlCoverageClassName = System.getProperty(KEY_SQL_COVERAGE);
 		if (sqlCoverageClassName == null) {
-			COVERAGE_LOG.atInfo()
+			COVERAGE_LOG.atDebug()
 					.log("system property - uroborosql.sql.coverage not set. sql coverage turned off.");
 		} else if (Boolean.FALSE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
 			sqlCoverageClassName = null;
-			COVERAGE_LOG.atInfo()
+			COVERAGE_LOG.atDebug()
 					.log("system property - uroborosql.sql.coverage is set to false. sql coverage turned off.");
 		} else if (Boolean.TRUE.toString().equalsIgnoreCase(sqlCoverageClassName)) {
 			// trueの場合は、デフォルト値を設定
 			sqlCoverageClassName = "jp.co.future.uroborosql.coverage.CoberturaCoverageHandler";
-			COVERAGE_LOG.atInfo()
+			COVERAGE_LOG.atDebug()
 					.log("system property - uroborosql.sql.coverage is set to true. sql coverage turned on.");
+		} else {
+			COVERAGE_LOG.atDebug()
+					.setMessage(
+							"system property - uroborosql.sql.coverage is set to custom class:{}. sql coverage turned on.")
+					.addArgument(sqlCoverageClassName)
+					.log();
 		}
 
 		CoverageHandler handler = null;
@@ -175,7 +181,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			try {
 				handler = (CoverageHandler) Class.forName(sqlCoverageClassName, true,
 						Thread.currentThread().getContextClassLoader()).getConstructor().newInstance();
-				COVERAGE_LOG.atInfo()
+				COVERAGE_LOG.atDebug()
 						.setMessage("CoverageHandler : {}")
 						.addArgument(sqlCoverageClassName)
 						.log();
@@ -185,7 +191,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 						.addArgument(sqlCoverageClassName)
 						.addArgument(ex.getMessage())
 						.log();
-				COVERAGE_LOG.atInfo()
+				COVERAGE_LOG.atDebug()
 						.log("Turn off sql coverage due to failure to instantiate CoverageHandler class.");
 			}
 		}
@@ -1356,7 +1362,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 				.setMessage("Execute query sql. sqlName: {}")
 				.addArgument(executionContext.getSqlName())
 				.log();
-		var startTime = PERFORMANCE_LOG.isInfoEnabled() ? Instant.now(getSqlConfig().getClock()) : null;
+		var startTime = PERFORMANCE_LOG.isDebugEnabled() ? Instant.now(getSqlConfig().getClock()) : null;
 
 		try {
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
@@ -1436,7 +1442,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return null;
 		} finally {
 			// 後処理
-			infoWith(PERFORMANCE_LOG)
+			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1494,7 +1500,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
-			infoWith(LOG)
+			debugWith(LOG)
 					.log("Performs update delegate of update process.");
 			return executionContext.getUpdateDelegate().apply(executionContext);
 		}
@@ -1511,7 +1517,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.addArgument(executionContext.getSqlName())
 					.log();
 
-			if (PERFORMANCE_LOG.isInfoEnabled()) {
+			if (PERFORMANCE_LOG.isDebugEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
@@ -1596,7 +1602,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			infoWith(PERFORMANCE_LOG)
+			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1623,7 +1629,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		// 更新移譲処理の指定がある場合は移譲処理を実行し結果を返却
 		if (executionContext.getUpdateDelegate() != null) {
 			releaseParameterLogging();
-			infoWith(LOG)
+			debugWith(LOG)
 					.log("Performs update delegate of batch process.");
 			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
 		}
@@ -1639,7 +1645,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.setMessage("Execute batch sql. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
-			if (PERFORMANCE_LOG.isInfoEnabled()) {
+			if (PERFORMANCE_LOG.isDebugEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
@@ -1723,7 +1729,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			infoWith(PERFORMANCE_LOG)
+			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1761,7 +1767,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.setMessage("Execute stored procedure. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
-			if (PERFORMANCE_LOG.isInfoEnabled()) {
+			if (PERFORMANCE_LOG.isDebugEnabled()) {
 				startTime = Instant.now(getSqlConfig().getClock());
 			}
 
@@ -1833,7 +1839,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		} finally {
 			// 後処理
 			var curStartTime = startTime;
-			infoWith(PERFORMANCE_LOG)
+			debugWith(PERFORMANCE_LOG)
 					.setMessage("Stored procedure execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
@@ -1871,14 +1877,14 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			originalSql = originalSql.replace(keySqlId, sqlId);
 		}
 
-		if (SQL_LOG.isInfoEnabled() && sqlName != null) {
+		if (SQL_LOG.isDebugEnabled() && sqlName != null) {
 			if (executionContext.getSqlKind().isEntityType()) {
-				infoWith(SQL_LOG)
+				debugWith(SQL_LOG)
 						.setMessage("EntityClass : {}")
 						.addArgument(sqlName)
 						.log();
 			} else if (getSqlResourceManager().existSql(sqlName)) {
-				infoWith(SQL_LOG)
+				debugWith(SQL_LOG)
 						.setMessage("SQLPath : {}")
 						.addArgument(() -> getSqlResourceManager().getSqlPath(sqlName))
 						.log();
@@ -1905,7 +1911,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.forEach(listener -> listener.accept(eventObj));
 		}
 
-		debugWith(SQL_LOG)
+		traceWith(SQL_LOG)
 				.setMessage("Template SQL[{}{}{}]")
 				.addArgument(System.lineSeparator())
 				.addArgument(originalSql)
@@ -1925,7 +1931,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 				// SQLカバレッジ用のログを出力する
 				var coverageData = new CoverageData(sqlName, originalSql,
 						contextTransformer.getPassedRoute());
-				debugWith(COVERAGE_LOG)
+				traceWith(COVERAGE_LOG)
 						.setMessage("coverage data: {}")
 						.addArgument(coverageData)
 						.log();
@@ -1934,7 +1940,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			}
 		}
 
-		infoWith(SQL_LOG)
+		debugWith(SQL_LOG)
 				.setMessage("Executed SQL[{}{}{}]")
 				.addArgument(System.lineSeparator())
 				.addArgument(executionContext.getExecutableSql())

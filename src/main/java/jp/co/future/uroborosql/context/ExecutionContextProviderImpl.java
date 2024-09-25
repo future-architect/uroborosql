@@ -160,7 +160,7 @@ public class ExecutionContextProviderImpl
 									.addArgument(prevValue.getValue())
 									.log();
 						}
-						infoWith(SETTING_LOG)
+						debugWith(SETTING_LOG)
 								.setMessage("Constant [name:{}, value:{}] added to parameter.")
 								.addArgument(fieldName)
 								.addArgument(newValue.getValue())
@@ -212,7 +212,7 @@ public class ExecutionContextProviderImpl
 						.addArgument(prevValue.getValue())
 						.log();
 			}
-			infoWith(SETTING_LOG)
+			debugWith(SETTING_LOG)
 					.setMessage("Enum [name:{}, value:{}] added to parameter.")
 					.addArgument(fieldName)
 					.addArgument(newValue.getValue())

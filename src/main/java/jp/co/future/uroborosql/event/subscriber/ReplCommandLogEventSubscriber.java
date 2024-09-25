@@ -71,7 +71,7 @@ public class ReplCommandLogEventSubscriber extends EventSubscriber implements Ev
 			builder.append(" ");
 			builder.append(SqlParamUtils.formatPrams(params));
 		}
-		infoWith(EVENT_LOG)
+		debugWith(EVENT_LOG)
 				.setMessage("REPL command: {}")
 				.addArgument(builder.toString())
 				.log();

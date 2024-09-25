@@ -296,12 +296,12 @@ public final class UroboroSQL implements ServiceLoggingSupport, SettingLoggingSu
 			this.entityHandler = new DefaultEntityHandler();
 			if (clock == null) {
 				this.clock = Clock.systemDefaultZone();
-				warnWith(SETTING_LOG)
+				traceWith(SETTING_LOG)
 						.log("SqlConfig - Clock was not set. Set SystemClock.");
 			} else {
 				this.clock = clock;
 			}
-			infoWith(SETTING_LOG)
+			debugWith(SETTING_LOG)
 					.setMessage("SqlConfig - Clock : {} has been selected.")
 					.addArgument(this.clock)
 					.log();
@@ -314,7 +314,7 @@ public final class UroboroSQL implements ServiceLoggingSupport, SettingLoggingSu
 			} else {
 				this.dialect = dialect;
 			}
-			infoWith(SETTING_LOG)
+			debugWith(SETTING_LOG)
 					.setMessage("SqlConfig - Dialect : {} has been selected.")
 					.addArgument(() -> this.dialect.getClass().getSimpleName())
 					.log();
@@ -329,7 +329,7 @@ public final class UroboroSQL implements ServiceLoggingSupport, SettingLoggingSu
 			} else {
 				this.expressionParser = expressionParser;
 			}
-			infoWith(SETTING_LOG)
+			debugWith(SETTING_LOG)
 					.setMessage("SqlConfig - ExpressionParser : {} has been selected.")
 					.addArgument(() -> this.expressionParser.getClass().getSimpleName())
 					.log();
