@@ -11,5 +11,5 @@ import org.slf4j.LoggerFactory;
 
 public interface CoverageLoggingSupport extends LoggerBase {
 	/** SQLカバレッジ用ロガー */
-	Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage");
+	Logger COVERAGE_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.coverage");
 }

@@ -96,12 +96,12 @@ public class SqlREPL implements ReplLoggingSupport {
 	public static void main(final String... args) {
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.log")).setLevel(Level.INFO);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.setting")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.INFO);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.performance")).setLevel(Level.DEBUG);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.event")).setLevel(Level.DEBUG);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.repl")).setLevel(Level.WARN);
 		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql")).setLevel(Level.DEBUG);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser")).setLevel(Level.ERROR);
-		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.sql.coverage")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.parser")).setLevel(Level.ERROR);
+		((Logger) LoggerFactory.getLogger("jp.co.future.uroborosql.coverage")).setLevel(Level.ERROR);
 
 		var propFile = "repl.properties";
 		if (args.length != 0) {

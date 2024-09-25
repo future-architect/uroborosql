@@ -11,5 +11,5 @@ import org.slf4j.LoggerFactory;
 
 public interface ParserLoggingSupport extends LoggerBase {
 	/** パーサーロガー */
-	Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.sql.parser");
+	Logger PARSER_LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.parser");
 }
