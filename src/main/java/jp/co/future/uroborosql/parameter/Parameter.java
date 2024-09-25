@@ -181,8 +181,8 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (SQL_LOG.isInfoEnabled() && !isSuppressParameterLogging()) {
-			infoWith(SQL_LOG)
+		if (SQL_LOG.isDebugEnabled() && !isSuppressParameterLogging()) {
+			debugWith(SQL_LOG)
 					.setMessage("Set the parameter.[INDEX[{}], {}]")
 					.addArgument(index)
 					.addArgument(this)

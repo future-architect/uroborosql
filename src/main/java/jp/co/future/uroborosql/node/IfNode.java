@@ -92,12 +92,12 @@ public class IfNode extends BranchNode {
 
 		if (result instanceof Boolean) {
 			var resultValue = (Boolean) result;
-			if (PARSER_LOG.isInfoEnabled()) {
+			if (PARSER_LOG.isDebugEnabled()) {
 				if (Boolean.TRUE.toString().equalsIgnoreCase(expression)
 						|| Boolean.FALSE.toString().equalsIgnoreCase(expression)) {
 					// 単純なBoolean評価の場合はログを出力しない
 				} else {
-					infoWith(PARSER_LOG)
+					debugWith(PARSER_LOG)
 							.setMessage("Evaluation Expression:[{}], Result:[{}], Parameter:[{}]")
 							.addArgument(expression)
 							.addArgument(resultValue)
