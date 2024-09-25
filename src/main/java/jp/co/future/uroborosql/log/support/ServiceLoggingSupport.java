@@ -11,5 +11,5 @@ import org.slf4j.LoggerFactory;
 
 public interface ServiceLoggingSupport extends LoggerBase {
 	/** ロガー */
-	Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log.support");
+	Logger LOG = LoggerFactory.getLogger("jp.co.future.uroborosql.log");
 }
