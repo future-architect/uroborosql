@@ -26,9 +26,9 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 <dependency>
-    <groupId>ognl</groupId>
-    <artifactId>ognl</artifactId>
-    <version>3.1.23</version>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-expression</artifactId>
+    <version>5.3.20</version>
 </dependency>
 ```
 
@@ -41,9 +41,9 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 <dependency>
-    <groupId>org.springframework</groupId>
-    <artifactId>spring-expression</artifactId>
-    <version>5.3.20</version>
+    <groupId>ognl</groupId>
+    <artifactId>ognl</artifactId>
+    <version>3.1.23</version>
 </dependency>
 ```
 
@@ -51,14 +51,14 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 
 ```gradle
 compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.0-SNAPSHOT'
-compile group: 'ognl', name: 'ognl', version: '3.1.23'
+compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
 ```
 
 または
 
 ```gradle
 compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.0-SNAPSHOT'
-compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
+compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
 ## Documentation
@@ -67,7 +67,7 @@ compile group: 'org.springframework', name: 'spring-expression', version: '5.3.2
 
 ## Requirement
 
-- Java 1.8 or later.
+- Java 11 or later.
 
 ## Quick start
 
@@ -109,29 +109,33 @@ INTO
 ```
 
 ```java
-SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
+SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")
+    .build();
 
 try (SqlAgent agent = config.agent()) {
   // SELECT
-  List<Map<String, Object>> departments = agent.query("department/select_department").param("dept_no", 1001).collect();
+  List<Map<String, Object>> departments = agent.query("department/select_department")
+      .param("dept_no", 1001)
+      .collect();
 
   // INSERT
   int count = agent.update("department/insert_department")
-    .param("dept_no", 1001)
-    .param("dept_name", "sales")
-    .count();
+      .param("dept_no", 1001)
+      .param("dept_name", "sales")
+      .count();
 }
 ```
 
 ### DAO Interface
 
 ```java
-SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
+SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")
+    .build();
 
 try (SqlAgent agent = config.agent()) {
   // select
-  Department dept =
-      agent.find(Department.class, 1001).orElse(null);
+  Department dept = agent.find(Department.class, 1001)
+      .orElse(null);
 
   // insert
   Department hrDept = new Department();
@@ -168,12 +172,14 @@ try (SqlAgent agent = config.agent()) {
 
 - CLI
   - <https://github.com/future-architect/uroboroSQL-formatter>
+- VSCode Plugin
+  - <https://github.com/future-architect/vscode-uroborosql-fmt>
+- Eclipse Plugin
+  - <https://github.com/future-architect/eclipse-uroborosql-formatter>
 - Sublime Text 3 Plugin
   - <https://github.com/future-architect/Sublime-uroboroSQL-formatter>
 - IntelliJ IDEA Platform Plugin
   - <https://github.com/future-architect/idea-uroborosql-formatter>
-- Eclipse Plugin
-  - <https://github.com/future-architect/eclipse-uroborosql-formatter>
 
 ## License
 

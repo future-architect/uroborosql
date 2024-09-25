@@ -383,6 +383,7 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 *
 	 * @param path リソースのパス
 	 * @return リソースのURL. リソースが存在しない場合は<code>null</code>
+	 * @throws IOException リソースの取得に失敗した場合
 	 */
 	protected URL getResource(final Path path) throws IOException {
 		var resources = Collections.list(classLoader.getResources(path.toString().replace('\\', '/')));

@@ -1,2 +1,2 @@
-jp.co.future.uroborosql.expr.ognl.OgnlExpressionParserFactory
 jp.co.future.uroborosql.expr.spel.SpelExpressionParserFactory
+jp.co.future.uroborosql.expr.ognl.OgnlExpressionParserFactory
