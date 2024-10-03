@@ -2217,7 +2217,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#delete(java.lang.Class)
+	 * @see jp.co.future.uroborosql.SqlAgent#update(java.lang.Class)
 	 */
 	@Override
 	public <E> SqlEntityUpdate<E> update(final Class<? extends E> entityType) {
@@ -2230,11 +2230,11 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			var metadata = handler.getMetadata(this.transactionManager, entityType);
 
 			var context = handler.createUpdateContext(this, metadata, entityType, false);
-			context.setSqlKind(SqlKind.ENTITY_DELETE);
+			context.setSqlKind(SqlKind.ENTITY_UPDATE);
 
 			return new SqlEntityUpdateImpl<>(this, handler, metadata, context, entityType);
 		} catch (SQLException ex) {
-			throw new EntitySqlRuntimeException(SqlKind.ENTITY_DELETE, ex);
+			throw new EntitySqlRuntimeException(SqlKind.ENTITY_UPDATE, ex);
 		}
 	}
 
