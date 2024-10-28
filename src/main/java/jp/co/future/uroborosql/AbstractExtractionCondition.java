@@ -556,6 +556,16 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#contextAttrs()
+	 */
+	@Override
+	public Map<String, Object> contextAttrs() {
+		return context().contextAttrs();
+	}
+
+	/**
 	 * 条件指定用のラップクラス
 	 */
 	public static abstract class Operator {
