@@ -61,4 +61,11 @@ public class SqlEntityDeleteTest extends AbstractDbTest {
 		});
 	}
 
+	@Test
+	void testContextAttrs() {
+		var delete = agent.delete(Product.class);
+		delete.contextAttrs().put("dummyValue", Integer.MAX_VALUE);
+		assertThat(delete.contextAttrs().get("dummyValue"), is(Integer.MAX_VALUE));
+	}
+
 }

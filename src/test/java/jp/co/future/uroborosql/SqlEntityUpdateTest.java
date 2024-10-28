@@ -532,6 +532,13 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 		});
 	}
 
+	@Test
+	void testContextAttrs() {
+		var update = agent.update(TestEntity.class);
+		update.contextAttrs().put("dummyValue", Integer.MAX_VALUE);
+		assertThat(update.contextAttrs().get("dummyValue"), is(Integer.MAX_VALUE));
+	}
+
 	@Table(name = "test_entity")
 	public static class TestEntity {
 		@Id

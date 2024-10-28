@@ -481,4 +481,11 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(products.size(), is(2));
 	}
 
+	@Test
+	void testContextAttrs() {
+		var query = agent.query(Product.class);
+		query.contextAttrs().put("dummyValue", Integer.MAX_VALUE);
+		assertThat(query.contextAttrs().get("dummyValue"), is(Integer.MAX_VALUE));
+	}
+
 }

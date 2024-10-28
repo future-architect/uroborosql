@@ -307,4 +307,10 @@ public interface ExtractionCondition<T> {
 	 */
 	T where(CharSequence rawString, Map<String, Object> paramMap);
 
+	/**
+	 * ExecutionContextが保持する属性を取得する
+	 * @return ExecutionContext属性情報
+	 */
+	Map<String, Object> contextAttrs();
+
 }
