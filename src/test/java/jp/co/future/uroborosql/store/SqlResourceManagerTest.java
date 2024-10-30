@@ -67,10 +67,13 @@ public class SqlResourceManagerTest {
 		List.of("example/select_test")
 				.forEach(sqlName -> manager.getSql(sqlName));
 
-		assertThat(manager.getSqlPath("example/select_test"), is(Paths.get("sql/h2/example/select_test.sql")));
-		assertThat(manager.getSqlPath("example/select_test2"), is(Paths.get("sql/example/select_test2.sql")));
-		assertThat(manager.getSqlPath("example/select_test3"), is(Paths.get("sql/h2/example/select_test3.sql")));
-		assertThrows(UroborosqlRuntimeException.class, () -> manager.getSqlPath("example/select_test4"));
+		assertThat(manager.getSqlUrl("example/select_test").getPath(),
+				containsString("/sql/h2/example/select_test.sql"));
+		assertThat(manager.getSqlUrl("example/select_test2").getPath(),
+				containsString("/sql/example/select_test2.sql"));
+		assertThat(manager.getSqlUrl("example/select_test3").getPath(),
+				containsString("/sql/h2/example/select_test3.sql"));
+		assertThrows(UroborosqlRuntimeException.class, () -> manager.getSqlUrl("example/select_test4"));
 	}
 
 	@Test
