@@ -1885,8 +1885,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 						.log();
 			} else if (getSqlResourceManager().existSql(sqlName)) {
 				debugWith(SQL_LOG)
-						.setMessage("SQLPath : {}")
-						.addArgument(() -> getSqlResourceManager().getSqlPath(sqlName))
+						.setMessage("SQLUrl : {}")
+						.addArgument(() -> getSqlResourceManager().getSqlUrl(sqlName))
 						.log();
 			}
 		}

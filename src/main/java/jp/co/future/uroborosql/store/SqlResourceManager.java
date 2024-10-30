@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql.store;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -107,12 +108,12 @@ public interface SqlResourceManager extends ServiceLoggingSupport {
 	String getSqlName(final Path path);
 
 	/**
-	 * SQL名に対して現在有効なファイルパスを取得する
+	 * SQL名に対して現在有効なURLを取得する
 	 *
 	 * @param sqlName SQL名
-	 * @return 現在有効なファイルパス。存在しないSQL名の場合はUroborosqlRuntimeExceptionがスローされる
+	 * @return 現在有効なURL。存在しないSQL名の場合はUroborosqlRuntimeExceptionがスローされる
 	 */
-	Path getSqlPath(String sqlName);
+	URL getSqlUrl(String sqlName);
 
 	/**
 	 * ロードしたSQLのパス一覧を取得する

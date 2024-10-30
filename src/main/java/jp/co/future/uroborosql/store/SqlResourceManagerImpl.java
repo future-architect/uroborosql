@@ -288,12 +288,12 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 				try {
 					var scheme = url.toURI().getScheme().toLowerCase();
 					var sqlBody = loadSql(url);
-					var sqlInfo = new SqlInfo(path, loadPath, scheme, sqlBody);
+					var sqlInfo = new SqlInfo(url, loadPath, scheme, sqlBody);
 					this.sqlInfos.put(sqlName, sqlInfo);
 					traceWith(LOG)
-							.setMessage("SqlInfo - sqlName : {}, path : {}, rootPath : {}, scheme : {}, sqlBody : {}.")
+							.setMessage("SqlInfo - sqlName : {}, url : {}, rootPath : {}, scheme : {}, sqlBody : {}.")
 							.addArgument(sqlName)
-							.addArgument(sqlInfo.getPath())
+							.addArgument(sqlInfo.getUrl())
 							.addArgument(sqlInfo.getRootPath())
 							.addArgument(sqlInfo.getScheme())
 							.addArgument(sqlInfo.getSqlBody())
@@ -359,16 +359,16 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 *
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlPath(java.lang.String)
+	 * @see jp.co.future.uroborosql.store.SqlResourceManager#getSqlUrl(java.lang.String)
 	 */
 	@Override
-	public Path getSqlPath(final String sqlName) {
+	public URL getSqlUrl(final String sqlName) {
 		if (existSql(sqlName)) {
-			return sqlInfos.get(sqlName).getPath();
+			return sqlInfos.get(sqlName).getUrl();
 		} else {
 			try {
 				if (generateSqlInfo(sqlName)) {
-					return sqlInfos.get(sqlName).getPath();
+					return sqlInfos.get(sqlName).getUrl();
 				} else {
 					throw new UroborosqlRuntimeException("sql file not found. sqlName : " + sqlName);
 				}
@@ -469,8 +469,8 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 	 * SQLファイルの情報を保持するオブジェクト
 	 */
 	protected static class SqlInfo {
-		/** sqlNameに対応するPath. */
-		private final Path path;
+		/** sqlNameに対応するURL. */
+		private final URL url;
 
 		/** 読み込みを行ったSQLルートパス */
 		private final Path rootPath;
@@ -483,24 +483,24 @@ public class SqlResourceManagerImpl implements SqlResourceManager {
 
 		/**
 		 * コンストラクタ
-		 * @param path Path
+		 * @param url URL
 		 * @param rootPath 読み込みを行ったSQLルートパス
 		 * @param scheme 読み込んだファイルのscheme
 		 * @param sqlBody SqlBody
 		 */
-		public SqlInfo(final Path path, final Path rootPath, final String scheme, final String sqlBody) {
-			this.path = path;
+		public SqlInfo(final URL url, final Path rootPath, final String scheme, final String sqlBody) {
+			this.url = url;
 			this.rootPath = rootPath;
 			this.scheme = scheme;
 			this.sqlBody = sqlBody;
 		}
 
 		/**
-		 * sqlNameに対応するPath.を取得します.
-		 * @return sqlNameに対応するPath.
+		 * sqlNameに対応するURLを取得します.
+		 * @return sqlNameに対応するURL.
 		 */
-		public Path getPath() {
-			return path;
+		public URL getUrl() {
+			return url;
 		}
 
 		/**
