@@ -29,6 +29,7 @@ jobs:
         run: mvn --no-transfer-progress -DrepoToken=${{ secrets.COVERALL_REPO_SECRET }} coveralls:report 
 
   integration-test:
+    needs: build
     name: Integration Test ( ${{ matrix.db }} )
     runs-on: ubuntu-latest
     strategy:
