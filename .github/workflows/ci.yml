@@ -48,4 +48,4 @@ jobs:
           cache: 'maven'
 
       - name: ⚙️ Matrix Test with Maven
-        run: mvn --batch-mode --update-snapshots --no-transfer-progress -P${{ matrix.db }} test
+        run: mvn --batch-mode --update-snapshots --no-transfer-progress -P${{ matrix.db }} -Dgroups=matrix test
