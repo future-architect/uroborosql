@@ -33,6 +33,7 @@ jobs:
     name: Integration Test ( ${{ matrix.db }} )
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         db: [h2, postgresql, oracle, sqlserver]
     timeout-minutes: 15
