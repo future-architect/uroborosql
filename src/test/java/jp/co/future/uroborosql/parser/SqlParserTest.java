@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -962,13 +961,7 @@ public class SqlParserTest {
 			transformer.transform(ctx);
 
 			st = conn.prepareStatement(ctx.getExecutableSql());
-			var parameterMetaData = st.getParameterMetaData();
-			var paramTypeMap = new HashMap<Integer, Integer>();
-			for (var count = 1; count <= parameterMetaData.getParameterCount(); count++) {
-				paramTypeMap.put(count, parameterMetaData.getParameterType(count));
-			}
-
-			ctx.bindParams(st, paramTypeMap);
+			ctx.bindParams(st);
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			var msg = ex.getMessage();
@@ -995,13 +988,7 @@ public class SqlParserTest {
 			transformer.transform(ctx);
 
 			st = conn.prepareStatement(ctx.getExecutableSql());
-			var parameterMetaData = st.getParameterMetaData();
-			var paramTypeMap = new HashMap<Integer, Integer>();
-			for (var count = 1; count <= parameterMetaData.getParameterCount(); count++) {
-				paramTypeMap.put(count, parameterMetaData.getParameterType(count));
-			}
-
-			ctx.bindParams(st, paramTypeMap);
+			ctx.bindParams(st);
 			fail("テスト失敗");
 		} catch (ParameterNotFoundRuntimeException ex) {
 			var msg = ex.getMessage();
@@ -1030,13 +1017,7 @@ public class SqlParserTest {
 			transformer.transform(ctx);
 
 			st = conn.prepareStatement(ctx.getExecutableSql());
-			var parameterMetaData = st.getParameterMetaData();
-			var paramTypeMap = new HashMap<Integer, Integer>();
-			for (var count = 1; count <= parameterMetaData.getParameterCount(); count++) {
-				paramTypeMap.put(count, parameterMetaData.getParameterType(count));
-			}
-
-			ctx.bindParams(st, paramTypeMap);
+			ctx.bindParams(st);
 		} catch (Exception ex) {
 			fail("期待しない例外. ex=" + ex.getMessage());
 		}
