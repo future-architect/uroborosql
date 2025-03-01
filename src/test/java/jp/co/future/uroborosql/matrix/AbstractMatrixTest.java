@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -26,6 +28,9 @@ import jp.co.future.uroborosql.utils.ObjectUtils;
 
 @Tag("matrix")
 public class AbstractMatrixTest {
+	/** ロガー */
+	private static final Logger log = LoggerFactory.getLogger(AbstractMatrixTest.class);
+
 	private static final Properties jdbcProps;
 
 	protected SqlConfig config;
@@ -49,6 +54,12 @@ public class AbstractMatrixTest {
 	public void setUp() throws Exception {
 		var testDbType = System.getProperty("test.db.type", "h2");
 		var url = jdbcProps.getProperty(String.format("%s.url", testDbType));
+		log.atInfo()
+				.setMessage("Matrix Test DB Type:{}. url:{}")
+				.addArgument(testDbType)
+				.addArgument(url)
+				.log();
+
 		config = UroboroSQL.builder(url, null, null).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
