@@ -41,7 +41,7 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	/**
 	 * SQL型
 	 */
-	protected final SQLType sqlType;
+	protected SQLType sqlType;
 
 	/**
 	 * コンストラクタ。
@@ -206,6 +206,24 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	 */
 	public Object getValue() {
 		return value;
+	}
+
+	/**
+	 * SQLType取得。
+	 *
+	 * @return SQLType
+	 */
+	public SQLType getSqlType() {
+		return sqlType;
+	}
+
+	/**
+	 * SQLType設定。
+	 *
+	 * @param sqlType SQLType
+	 */
+	public void setSqlType(final SQLType sqlType) {
+		this.sqlType = sqlType;
 	}
 
 	/**

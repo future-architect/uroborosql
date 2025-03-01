@@ -499,7 +499,12 @@ LICENSE file in the root directory of this source tree.
 			<version>${mssql.version}</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<version>${mysql.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers</artifactId>
@@ -530,6 +535,12 @@ LICENSE file in the root directory of this source tree.
 			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<snapshotRepository>
@@ -555,5 +566,6 @@ LICENSE file in the root directory of this source tree.
 		<postgresql.version>42.7.5</postgresql.version>
 		<oracle.version>23.7.0.25.01</oracle.version>
 		<mssql.version>12.8.1.jre11</mssql.version>
+		<mysql.version>8.4.0</mysql.version>
 	</properties>
 </project>

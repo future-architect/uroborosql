@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: [h2, postgresql, oracle, sqlserver]
+        db: [h2, postgresql, oracle, sqlserver, mysql, mysql8]
     timeout-minutes: 15
 
     steps:

@@ -88,6 +88,16 @@ public class MsSqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#needsStrictSqlTypeForNullSetting()
+	 */
+	@Override
+	public boolean needsStrictSqlTypeForNullSetting() {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override

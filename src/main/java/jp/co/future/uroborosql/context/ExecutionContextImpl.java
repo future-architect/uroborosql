@@ -9,6 +9,7 @@ package jp.co.future.uroborosql.context;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.CallableStatement;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,6 +28,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.config.SqlConfigAware;
@@ -846,12 +849,21 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 	 */
 	@Override
 	public ExecutionContext bindParams(final PreparedStatement preparedStatement) throws SQLException {
+		var paramSqlTypeMap = getParamSqlTypeMap(preparedStatement);
+		return bindParams(preparedStatement, paramSqlTypeMap);
+	}
+
+	private ExecutionContext bindParams(final PreparedStatement preparedStatement,
+			final Map<Integer, Integer> paramSqlTypeMap) throws SQLException {
 		var bindParameters = getBindParameters();
 
 		var matchParams = new HashSet<String>();
 		var parameterIndex = 1;
 		for (var bindParameter : bindParameters) {
 			var parameter = bindParameter;
+			if (!paramSqlTypeMap.isEmpty() && paramSqlTypeMap.containsKey(parameterIndex)) {
+				parameter.setSqlType(JDBCType.valueOf(paramSqlTypeMap.get(parameterIndex)));
+			}
 			// パラメータ設定前イベント発行
 			if (getSqlConfig().getEventListenerHolder().hasBeforeSetParameterListener()) {
 				var eventObj = new BeforeSetParameterEvent(this, bindParameter);
@@ -880,11 +892,12 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 	public ExecutionContext bindBatchParams(final PreparedStatement preparedStatement) throws SQLException {
 		// parameterMap に設定されている共通のパラメータ（ESCAPE_CHARなど）を引き継ぐため、退避しておく
 		var tempParamMap = new HashMap<>(parameterMap);
+		var paramSqlTypeMap = getParamSqlTypeMap(preparedStatement);
 		for (var paramMap : batchParameters) {
 			var batchParamMap = new HashMap<>(tempParamMap);
 			batchParamMap.putAll(paramMap);
 			parameterMap = batchParamMap;
-			bindParams(preparedStatement);
+			bindParams(preparedStatement, paramSqlTypeMap);
 			preparedStatement.addBatch();
 		}
 		if (!isSuppressLogging()) {
@@ -894,6 +907,40 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 					.log();
 		}
 		return this;
+	}
+
+	/**
+	 * ParameterMetaDataを利用してバインドするパラメータのSQLTypeを取得する.<br>
+	 * ParameterMetaDataは利用するDBによりサポート状況が違うため、Dialectによりサポート状況を判断する.
+	 *
+	 * @param stmt PreparedStatement
+	 * @param dialect Dialect
+	 * @return バインドパラメータの添え字（1始まり）をキー、SQLType（の数値）を値とするMap. 厳密なSQLType指定が不要なDBの場合は空のMapを返す.
+	 */
+	private Map<Integer, Integer> getParamSqlTypeMap(final PreparedStatement stmt) {
+		if (!getSqlConfig().getDialect().needsStrictSqlTypeForNullSetting()) {
+			return Map.of();
+		}
+
+		try {
+			var parameterMetaData = stmt.getParameterMetaData();
+			return IntStream.rangeClosed(1, parameterMetaData.getParameterCount())
+					.mapToObj(pos -> {
+						try {
+							return Map.entry(pos, parameterMetaData.getParameterType(pos));
+						} catch (SQLException ex) {
+							throw new IllegalStateException(ex);
+						}
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		} catch (SQLException | IllegalStateException ex) {
+			warnWith(SQL_LOG)
+					.setMessage("Failed to get ParameterMetaData.")
+					.setCause(ex)
+					.log();
+			return Map.of();
+		}
 	}
 
 	/**

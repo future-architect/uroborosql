@@ -400,7 +400,7 @@ public class ExecutionContextProviderAutoParameterBinderTest {
 				.param("ins_datetime", LocalDateTime.now());
 		config.getEventListenerHolder().addBeforeParseSqlListener(listener1);
 
-		var count = 1000;
+		var count = 2000;
 		try (var agent = config.agent()) {
 			agent.updateWith("truncate table PRODUCT").count();
 
