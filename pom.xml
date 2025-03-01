@@ -418,6 +418,24 @@ LICENSE file in the root directory of this source tree.
 				<test.db.type>sqlserver</test.db.type>
 			</properties>
 		</profile>
+		<profile>
+			<id>mysql</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<test.db.type>mysql</test.db.type>
+			</properties>
+		</profile>
+		<profile>
+			<id>mysql8</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<test.db.type>mysql8</test.db.type>
+			</properties>
+		</profile>
 	</profiles>
 	<dependencies>
 		<dependency>
