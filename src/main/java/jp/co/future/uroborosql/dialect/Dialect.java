@@ -150,6 +150,15 @@ public interface Dialect {
 		return true;
 	}
 
+	/**
+	 * カラムにNULLを設定する際、カラムの厳密なSQLTypeを指定する必要があるか.
+	 *
+	 * @return カラムにNULLを設定する際、カラムの厳密なSQLTypeを指定する必要がある場合<code>true</code>
+	 */
+	default boolean needsStrictSqlTypeForNullSetting() {
+		return false;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**
