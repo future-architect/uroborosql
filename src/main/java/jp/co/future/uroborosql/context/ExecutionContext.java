@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLType;
+import java.time.Clock;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -308,4 +309,10 @@ public interface ExecutionContext
 	 */
 	ExecutionContext setUpdateDelegate(Function<ExecutionContext, Integer> updateDelegate);
 
+	/**
+	 * SqlConfigが保持するClockを取得する.
+	 *
+	 * @return SqlConfigが保持するClock
+	 */
+	Clock getClock();
 }

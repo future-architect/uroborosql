@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLType;
+import java.time.Clock;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1242,6 +1243,16 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 	public ExecutionContext setUpdateDelegate(final Function<ExecutionContext, Integer> updateDelegate) {
 		this.updateDelegate = updateDelegate;
 		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getClock()
+	 */
+	@Override
+	public Clock getClock() {
+		return getSqlConfig().getClock();
 	}
 
 }

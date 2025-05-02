@@ -722,6 +722,12 @@ public class ExecutionContextImplTest {
 		assertThat(ctx.getSqlId(), is(testSqlId));
 	}
 
+	@Test
+	void testGetClock() {
+		var ctx = config.context().setSql("select * from test");
+		assertThat(ctx.getClock(), is(config.getClock()));
+	}
+
 	private void transform(final ExecutionContext ctx) {
 		SqlParser sqlParser = new SqlParserImpl(ctx.getSql(), config.getExpressionParser(),
 				config.getDialect().isRemoveTerminator(), true);
