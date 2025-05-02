@@ -527,6 +527,35 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#updates(java.util.List)
+	 */
+	@Override
+	public SqlUpdate updates(final List<String> sqlNames) {
+		if (sqlNames == null || sqlNames.isEmpty()) {
+			throw new IllegalArgumentException("sqlNames is required.");
+		}
+		if (sqlNames.size() == 1) {
+			return update(sqlNames.get(0));
+		}
+		var sqls = sqlNames.stream()
+				.map(sqlName -> {
+					var sql = getSqlResourceManager().getSql(sqlName);
+					if (ObjectUtils.isEmpty(sql)) {
+						throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
+					}
+					return sql;
+				})
+				.collect(Collectors.joining(";" + System.lineSeparator()));
+
+		var sqlName = sqlNames.stream()
+				.collect(Collectors.joining(","));
+
+		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.SqlAgent#batch(java.lang.String)
 	 */
 	@Override
