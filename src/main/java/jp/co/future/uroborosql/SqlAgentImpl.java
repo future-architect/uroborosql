@@ -537,14 +537,11 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		if (sqlNames.size() == 1) {
 			return update(sqlNames.get(0));
 		}
+		if (!getDialect().supportsUpdateChained()) {
+			throw new UroborosqlRuntimeException(getDialect().getDatabaseName() + " does not support updateChained.");
+		}
 		var sqls = sqlNames.stream()
-				.map(sqlName -> {
-					var sql = getSqlResourceManager().getSql(sqlName);
-					if (ObjectUtils.isEmpty(sql)) {
-						throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
-					}
-					return sql;
-				})
+				.map(sqlName -> getSqlResourceManager().getSql(sqlName))
 				.collect(Collectors.joining(";" + System.lineSeparator()));
 
 		var sqlName = sqlNames.stream()
@@ -1888,9 +1885,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		var sqlName = executionContext.getSqlName();
 		if (ObjectUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
 			originalSql = getSqlResourceManager().getSql(sqlName);
-			if (ObjectUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
-			}
 		}
 
 		// SQL-IDの付与

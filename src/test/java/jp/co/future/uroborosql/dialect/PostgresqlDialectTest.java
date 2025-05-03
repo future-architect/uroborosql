@@ -92,6 +92,7 @@ public class PostgresqlDialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
+		assertThat(dialect.supportsUpdateChained(), is(true));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(false));
 	}
 

@@ -127,10 +127,10 @@ public class SqlUpdateTest extends AbstractDbTest {
 	}
 
 	/**
-	 * DB複数更新処理(SQLファイルn件)のテストケース。(Fluent API)
+	 * DB複数更新処理(SQLファイルn件)のテストケース.
 	 */
 	@Test
-	void testUpdatesMultiFileFluent() throws Exception {
+	void testUpdateChained() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
@@ -167,7 +167,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	 * 最初の更新SQLが複数件を更新する場合
 	 */
 	@Test
-	void testUpdatesMultiFileFluentFirstSQLMultiRowUpdate() throws Exception {
+	void testUpdateChainedFirstSQLMultiRowUpdate() throws Exception {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 		agent.update("example/selectinsert_product")

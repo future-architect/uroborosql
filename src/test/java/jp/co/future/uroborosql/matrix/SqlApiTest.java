@@ -18,8 +18,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.model.Product;
 
 class SqlApiTest extends AbstractMatrixTest {
@@ -153,6 +155,33 @@ class SqlApiTest extends AbstractMatrixTest {
 		product = newProducts.get(10);
 		assertThat(product.getProductId(), is(11));
 		assertThat(product.getProductName(), is("商品11"));
+	}
+
+	/**
+	 * PRODUCTテーブルの複数SQL一括更新がサポートされていないDBの場合のテストケース。
+	 */
+	@Test
+	void testProductUpdateChainedNotSupported() throws Exception {
+		if (config.getDialect().supportsUpdateChained()) {
+			// updateChainedがサポートされている場合は何もしない
+			return;
+		}
+
+		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
+			agent.updateChained(List.of(
+					"example/update_product",
+					"example/insert_product"))
+					.param("product_ids", List.of(1, 2, 3))
+					.param("product_id", 11)
+					.param("product_name", "商品11")
+					.param("product_kana_name", "ショウヒン11")
+					.param("jan_code", "1234567890111")
+					.param("product_description", "商品11説明")
+					.param("ins_datetime", new Date())
+					.param("upd_datetime", new Date())
+					.param("version_no", 1)
+					.count();
+		});
 	}
 
 }

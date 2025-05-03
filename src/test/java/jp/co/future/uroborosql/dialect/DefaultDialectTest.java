@@ -90,6 +90,7 @@ public class DefaultDialectTest {
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(false));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
+		assertThat(dialect.supportsUpdateChained(), is(true));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(false));
 	}
 
