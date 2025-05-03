@@ -151,6 +151,15 @@ public interface Dialect {
 	}
 
 	/**
+	 * 複数SQLを指定された順で1つにつなげて更新処理を実行できるかどうか.
+	 *
+	 * @return 複数SQLを指定された順で1つにつなげて更新処理が実行できる場合<code>true</code>
+	 */
+	default boolean supportsUpdateChained() {
+		return true;
+	}
+
+	/**
 	 * カラムにNULLを設定する際、カラムの厳密なSQLTypeを指定する必要があるか.
 	 *
 	 * @return カラムにNULLを設定する際、カラムの厳密なSQLTypeを指定する必要がある場合<code>true</code>

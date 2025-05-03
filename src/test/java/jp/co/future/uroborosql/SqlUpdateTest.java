@@ -110,7 +110,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var updateCount = agent.updates(List.of("example/selectinsert_product"))
+		var updateCount = agent.updateChained(List.of("example/selectinsert_product"))
 				.param("product_id", new BigDecimal("0"))
 				.param("jan_code", "1234567890123").count();
 		assertEquals(1, updateCount, "データの登録に失敗しました。");
@@ -134,8 +134,9 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var updateCount = agent.updates(List.of("example/selectinsert_product",
-				"example/insert_product_regist_work"))
+		var updateCount = agent.updateChained(List.of("example/selectinsert_product",
+				"example/insert_product_regist_work",
+				"example/update_product"))
 				.param("product_id", new BigDecimal("2"))
 				.param("product_name", "商品名2")
 				.param("product_kana_name", "ショウヒンメイニ")
@@ -153,6 +154,43 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.collect();
 
 		assertEquals(productRegistWorks.size(), 2);
+
+		var products = agent.query(Product.class)
+				.asc("product_id")
+				.collect();
+		assertEquals(products.get(0).getProductName(), "商品名1_updated");
+		assertEquals(products.get(1).getProductName(), "商品名0_updated");
+	}
+
+	/**
+	 * DB複数更新処理(SQLファイルn件)のテストケース。(Fluent API)<br/>
+	 * 最初の更新SQLが複数件を更新する場合
+	 */
+	@Test
+	void testUpdatesMultiFileFluentFirstSQLMultiRowUpdate() throws Exception {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
+		agent.update("example/selectinsert_product")
+				.param("product_id", new BigDecimal("2"))
+				.param("jan_code", "1234567890123")
+				.count();
+
+		var updateCount = agent.updateChained(List.of(
+				"example/update_product",
+				"example/selectinsert_product"))
+				.param("product_id", new BigDecimal("3"))
+				.param("jan_code", "1234567890123")
+				.count();
+		assertEquals(2, updateCount, "データの登録に失敗しました。");
+
+		// 検証処理
+		var products = agent.query(Product.class)
+				.asc("product_id")
+				.collect();
+		assertEquals(products.size(), 3);
+		assertEquals(products.get(0).getProductName(), "商品名1_updated");
+		assertEquals(products.get(1).getProductName(), "商品名0_updated");
+		assertEquals(products.get(2).getProductName(), "商品名0");
 	}
 
 	/**
@@ -223,7 +261,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	void testUpdatesSqlNameEmpty() throws Exception {
 		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
-			agent.updates(List.of());
+			agent.updateChained(List.of());
 		});
 	}
 
@@ -233,7 +271,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	void testUpdatesNotFoundFile() throws Exception {
 		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
-			agent.updates(List.of("example/selectinsert_product", "not_exists_file"));
+			agent.updateChained(List.of("example/selectinsert_product", "not_exists_file"));
 		});
 	}
 

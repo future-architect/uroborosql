@@ -527,10 +527,10 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#updates(java.util.List)
+	 * @see jp.co.future.uroborosql.SqlAgent#updateChained(java.util.List)
 	 */
 	@Override
-	public SqlUpdate updates(final List<String> sqlNames) {
+	public SqlUpdate updateChained(final List<String> sqlNames) {
 		if (sqlNames == null || sqlNames.isEmpty()) {
 			throw new IllegalArgumentException("sqlNames is required.");
 		}
