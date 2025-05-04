@@ -150,6 +150,15 @@ public interface Dialect {
 		return true;
 	}
 
+	/**
+	 * 複数SQLを指定された順で1つにつなげて更新処理を実行できるかどうか.
+	 *
+	 * @return 複数SQLを指定された順で1つにつなげて更新処理が実行できる場合<code>true</code>
+	 */
+	default boolean supportsUpdateChained() {
+		return true;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**
