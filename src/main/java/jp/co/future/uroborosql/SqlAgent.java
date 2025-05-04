@@ -281,10 +281,10 @@ public interface SqlAgent extends TransactionManager {
 	/**
 	 * 複数SQLを指定された順で1つにつなげて更新処理を実行（Fluent API）
 	 *
-	 * @param sqlNames 実行するSQLファイル名リスト
+	 * @param sqlNames 実行するSQLファイル名（複数指定可）
 	 * @return SqlUpdate
 	 */
-	SqlUpdate updateChained(List<String> sqlNames);
+	SqlUpdate updateChained(String... sqlNames);
 
 	/**
 	 * バッチ処理の実行（Fluent API）

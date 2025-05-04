@@ -110,7 +110,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var updateCount = agent.updateChained(List.of("example/selectinsert_product"))
+		var updateCount = agent.updateChained("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"))
 				.param("jan_code", "1234567890123").count();
 		assertEquals(1, updateCount, "データの登録に失敗しました。");
@@ -134,9 +134,9 @@ public class SqlUpdateTest extends AbstractDbTest {
 		// 事前条件
 		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteUpdate.ltsv"));
 
-		var updateCount = agent.updateChained(List.of("example/selectinsert_product",
+		var updateCount = agent.updateChained("example/selectinsert_product",
 				"example/insert_product_regist_work",
-				"example/update_product"))
+				"example/update_product")
 				.param("product_id", new BigDecimal("2"))
 				.param("product_name", "商品名2")
 				.param("product_kana_name", "ショウヒンメイニ")
@@ -175,9 +175,9 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("jan_code", "1234567890123")
 				.count();
 
-		var updateCount = agent.updateChained(List.of(
+		var updateCount = agent.updateChained(
 				"example/update_product",
-				"example/selectinsert_product"))
+				"example/selectinsert_product")
 				.param("product_id", new BigDecimal("3"))
 				.param("jan_code", "1234567890123")
 				.count();
@@ -261,7 +261,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	void testUpdatesSqlNameEmpty() throws Exception {
 		Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
-			agent.updateChained(List.of());
+			agent.updateChained((String[]) null);
 		});
 	}
 
@@ -271,7 +271,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 	@Test
 	void testUpdatesNotFoundFile() throws Exception {
 		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
-			agent.updateChained(List.of("example/selectinsert_product", "not_exists_file"));
+			agent.updateChained("example/selectinsert_product", "not_exists_file");
 		});
 	}
 

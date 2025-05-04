@@ -527,24 +527,27 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @see jp.co.future.uroborosql.SqlAgent#updateChained(java.util.List)
+	 * @see jp.co.future.uroborosql.SqlAgent#updateChained(java.lang.String[])
 	 */
 	@Override
-	public SqlUpdate updateChained(final List<String> sqlNames) {
-		if (sqlNames == null || sqlNames.isEmpty()) {
+	public SqlUpdate updateChained(final String... sqlNames) {
+		if (sqlNames == null || sqlNames.length == 0) {
 			throw new IllegalArgumentException("sqlNames is required.");
 		}
-		if (sqlNames.size() == 1) {
-			return update(sqlNames.get(0));
+		if (sqlNames.length == 1) {
+			warnWith(LOG)
+					.setMessage("If sqlNames is single, use update method instead of updateChained.")
+					.log();
+			return update(sqlNames[0]);
 		}
 		if (!getDialect().supportsUpdateChained()) {
 			throw new UroborosqlRuntimeException(getDialect().getDatabaseName() + " does not support updateChained.");
 		}
-		var sqls = sqlNames.stream()
+		var sqls = Arrays.stream(sqlNames)
 				.map(sqlName -> getSqlResourceManager().getSql(sqlName))
 				.collect(Collectors.joining(";" + System.lineSeparator()));
 
-		var sqlName = sqlNames.stream()
+		var sqlName = Arrays.stream(sqlNames)
 				.collect(Collectors.joining(","));
 
 		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));

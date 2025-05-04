@@ -123,9 +123,8 @@ class SqlApiTest extends AbstractMatrixTest {
 				}));
 
 		// 検証対象メソッド
-		var updateCount = agent.updateChained(List.of(
-				"example/update_product",
-				"example/insert_product"))
+		var updateCount = agent.updateChained("example/update_product",
+				"example/insert_product")
 				.param("product_ids", List.of(1, 2, 3))
 				.param("product_id", 11)
 				.param("product_name", "商品11")
@@ -168,9 +167,8 @@ class SqlApiTest extends AbstractMatrixTest {
 		}
 
 		Assertions.assertThrowsExactly(UroborosqlRuntimeException.class, () -> {
-			agent.updateChained(List.of(
-					"example/update_product",
-					"example/insert_product"))
+			agent.updateChained("example/update_product",
+					"example/insert_product")
 					.param("product_ids", List.of(1, 2, 3))
 					.param("product_id", 11)
 					.param("product_name", "商品11")
