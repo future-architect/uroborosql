@@ -619,8 +619,7 @@ public abstract class AbstractAgent implements SqlAgent {
 				})
 				.collect(Collectors.joining(";" + System.lineSeparator()));
 
-		String sqlName = Arrays.stream(sqlNames)
-				.collect(Collectors.joining(","));
+		String sqlName = String.join(",", sqlNames);
 
 		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));
 	}
