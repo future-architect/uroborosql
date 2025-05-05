@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -588,6 +589,39 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public SqlUpdate updateWith(final String sql) {
 		return new SqlUpdateImpl(this, contextWith(sql));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#updateChained(java.lang.String[])
+	 */
+	@Override
+	public SqlUpdate updateChained(final String... sqlNames) {
+		if (sqlNames == null || sqlNames.length == 0) {
+			throw new IllegalArgumentException("sqlNames is required.");
+		}
+		if (sqlNames.length == 1) {
+			LOG.warn("If sqlNames is single, use update method instead of updateChained.");
+			return update(sqlNames[0]);
+		}
+		if (!getSqlConfig().getDialect().supportsUpdateChained()) {
+			throw new UroborosqlRuntimeException(
+					getSqlConfig().getDialect().getDatabaseName() + " does not support updateChained.");
+		}
+		String sqls = Arrays.stream(sqlNames)
+				.map(sqlName -> {
+					String sql = getSqlManager().getSql(sqlName);
+					if (StringUtils.isEmpty(sql)) {
+						throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
+					}
+					return sql;
+				})
+				.collect(Collectors.joining(";" + System.lineSeparator()));
+
+		String sqlName = String.join(",", sqlNames);
+
+		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));
 	}
 
 	/**
