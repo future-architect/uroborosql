@@ -547,8 +547,7 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 				.map(sqlName -> getSqlResourceManager().getSql(sqlName))
 				.collect(Collectors.joining(";" + System.lineSeparator()));
 
-		var sqlName = Arrays.stream(sqlNames)
-				.collect(Collectors.joining(","));
+		var sqlName = String.join(",", sqlNames);
 
 		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));
 	}
