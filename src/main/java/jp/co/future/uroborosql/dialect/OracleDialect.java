@@ -80,6 +80,16 @@ public abstract class OracleDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsUpdateChained()
+	 */
+	@Override
+	public boolean supportsUpdateChained() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#getSequenceNextValSql(java.lang.String)
 	 */
 	@Override

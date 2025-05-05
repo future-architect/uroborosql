@@ -146,6 +146,7 @@ public class Oracle21DialectTest {
 		assertThat(dialect.supportsForUpdateWait(), is(true));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
+		assertThat(dialect.supportsUpdateChained(), is(false));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(false));
 	}
 

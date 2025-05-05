@@ -52,7 +52,7 @@ public class AbstractMatrixTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		var testDbType = System.getProperty("test.db.type", "h2");
+		var testDbType = getTestDbType();
 		var url = jdbcProps.getProperty(String.format("%s.url", testDbType));
 		log.atInfo()
 				.setMessage("Matrix Test DB Type:{}. url:{}")
@@ -70,6 +70,15 @@ public class AbstractMatrixTest {
 		if (agent != null) {
 			agent.close();
 		}
+	}
+
+	/**
+	 * テスト対象のDBTypeを取得.
+	 *
+	 * @return DBTypeを表す文字列 （システムプロパティ：test.db.type に指定された文字列）
+	 */
+	protected String getTestDbType() {
+		return System.getProperty("test.db.type", "h2");
 	}
 
 	/**

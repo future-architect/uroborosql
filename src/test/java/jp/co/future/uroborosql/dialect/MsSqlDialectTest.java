@@ -93,6 +93,7 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsForUpdateWait(), is(false));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
+		assertThat(dialect.supportsUpdateChained(), is(true));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(true));
 	}
 

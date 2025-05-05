@@ -527,6 +527,34 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#updateChained(java.lang.String[])
+	 */
+	@Override
+	public SqlUpdate updateChained(final String... sqlNames) {
+		if (sqlNames == null || sqlNames.length == 0) {
+			throw new IllegalArgumentException("sqlNames is required.");
+		}
+		if (sqlNames.length == 1) {
+			warnWith(LOG)
+					.setMessage("If sqlNames is single, use update method instead of updateChained.")
+					.log();
+			return update(sqlNames[0]);
+		}
+		if (!getDialect().supportsUpdateChained()) {
+			throw new UroborosqlRuntimeException(getDialect().getDatabaseName() + " does not support updateChained.");
+		}
+		var sqls = Arrays.stream(sqlNames)
+				.map(sqlName -> getSqlResourceManager().getSql(sqlName))
+				.collect(Collectors.joining(";" + System.lineSeparator()));
+
+		var sqlName = String.join(",", sqlNames);
+
+		return new SqlUpdateImpl(this, context().setSqlName(sqlName).setSql(sqls));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.SqlAgent#batch(java.lang.String)
 	 */
 	@Override
@@ -1859,9 +1887,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		var sqlName = executionContext.getSqlName();
 		if (ObjectUtils.isEmpty(originalSql) && getSqlResourceManager() != null) {
 			originalSql = getSqlResourceManager().getSql(sqlName);
-			if (ObjectUtils.isEmpty(originalSql)) {
-				throw new UroborosqlRuntimeException("sql file:[" + sqlName + "] is not found.");
-			}
 		}
 
 		// SQL-IDの付与
