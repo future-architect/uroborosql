@@ -389,8 +389,17 @@ public class ExecutionContextProviderImpl
 				}
 			}
 			if ("jar".equalsIgnoreCase(root.getProtocol())) {
-				try (var jarFile = ((JarURLConnection) root.openConnection()).getJarFile()) {
-					classes.addAll(findEnumClassesWithJar(packageName, jarFile));
+				try {
+					var conn = (JarURLConnection) root.openConnection();
+					conn.setUseCaches(false);
+					try (var jarFile = conn.getJarFile()) {
+						classes.addAll(findEnumClassesWithJar(packageName, jarFile));
+					} catch (IOException ex) {
+						errorWith(LOG)
+								.setMessage(ex.getMessage())
+								.setCause(ex)
+								.log();
+					}
 				} catch (IOException ex) {
 					errorWith(LOG)
 							.setMessage(ex.getMessage())
