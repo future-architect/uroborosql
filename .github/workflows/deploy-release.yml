@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-release:
-    name: Release on Sonatype OSS
+    name: Release on Maven Central
     runs-on: ubuntu-latest
 
     env:
