@@ -100,10 +100,11 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public SqlContext createSqlContext() {
 		SqlContextImpl sqlContext = new SqlContextImpl();
-		Map<String, Parameter> paramMap = new ConcurrentHashMap<>(getConstParameterMap());
+		Map<String, Parameter> paramMap = getConstParameterMap();
 
 		// 自動バインド用パラメータ生成クラスが指定されている場合は、そこで生成されたパラメータをパラメータマップに追加する
 		if (autoBindParameterCreators != null && !autoBindParameterCreators.isEmpty()) {
+			paramMap = new ConcurrentHashMap<>(getConstParameterMap());
 			for (AutoBindParameterCreator creator : getAutoBindParameterCreators()) {
 				Map<String, Parameter> bindMap = creator.getBindParameterMap();
 				if (bindMap != null && !bindMap.isEmpty()) {
@@ -153,8 +154,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public void initialize() {
 		parameterMapperManager = new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock());
 
-		Map<String, Parameter> paramMap = new HashMap<>();
-		paramMap.putAll(buildConstParamMap());
+		Map<String, Parameter> paramMap = new HashMap<>(buildConstParamMap());
 		paramMap.putAll(buildEnumConstParamMap());
 		constParameterMap = Collections.unmodifiableMap(paramMap);
 	}
@@ -381,7 +381,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public SqlContextFactory addQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
 		queryAutoParameterBinders.add(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -394,7 +394,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	@Override
 	public SqlContextFactory removeQueryAutoParameterBinder(final Consumer<SqlContext> binder) {
 		queryAutoParameterBinders.remove(binder);
-		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce((first, second) -> first.andThen(second))
+		queryAutoParameterBinder = queryAutoParameterBinders.stream().reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -408,7 +408,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public SqlContextFactory addUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
 		updateAutoParameterBinders.add(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce((first, second) -> first.andThen(second))
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
@@ -422,7 +422,7 @@ public class SqlContextFactoryImpl implements SqlContextFactory {
 	public SqlContextFactory removeUpdateAutoParameterBinder(final Consumer<SqlContext> binder) {
 		updateAutoParameterBinders.remove(binder);
 		updateAutoParameterBinder = updateAutoParameterBinders.stream()
-				.reduce((first, second) -> first.andThen(second))
+				.reduce(Consumer::andThen)
 				.orElse(null);
 		return this;
 	}
