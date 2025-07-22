@@ -1,9 +1,13 @@
 package jp.co.future.uroborosql.context;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.ResultSet;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,18 +18,25 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.context.test.TestConsts;
 import jp.co.future.uroborosql.context.test.TestEnum1;
+import jp.co.future.uroborosql.context.test.TestManyConsts;
 import jp.co.future.uroborosql.parameter.Parameter;
 
 public class SqlContextFactoryTest {
+	/** ロガー */
+	private static final Logger log = LoggerFactory.getLogger(SqlContextFactoryTest.class);
 
 	private SqlConfig sqlConfig;
 
@@ -96,6 +107,24 @@ public class SqlContextFactoryTest {
 		return map;
 	}
 
+	@Test
+	public void testManyConst_class_performance() {
+		sqlContextFactory.setConstantClassNames(Arrays.asList(TestManyConsts.class.getName()));
+
+		sqlContextFactory.initialize();
+
+		try (SqlAgent agent = sqlConfig.agent()) {
+			Instant startTime = Instant.now(sqlConfig.getClock());
+
+			IntStream.rangeClosed(1, 100000)
+					.forEach(idx -> agent.queryWith("select 1"));
+
+			// 実行結果が1秒以内で終了すること（パフォーマンス改善前は15秒かかっている）
+			assertThat(Duration.between(startTime, Instant.now(sqlConfig.getClock())).getSeconds() < 1L,
+					is(true));
+		}
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testConst_enum() {
@@ -149,10 +178,7 @@ public class SqlContextFactoryTest {
 		SqlContext ctx = sqlContextFactory.createSqlContext();
 		assertThat(ctx.getParam("DUMMY"), is(nullValue()));
 
-		creators.add(() -> {
-			ConcurrentHashMap<String, Parameter> params = new ConcurrentHashMap<>();
-			return params;
-		});
+		creators.add(ConcurrentHashMap::new);
 
 		sqlContextFactory.initialize();
 		ctx = sqlContextFactory.createSqlContext();
