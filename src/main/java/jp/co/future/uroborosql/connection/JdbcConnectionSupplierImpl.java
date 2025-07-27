@@ -97,7 +97,8 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		}
 		JdbcConnectionContext jdbcCtx = (JdbcConnectionContext) ctx;
 		try {
-			Connection connection = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
+			Connection connection = new MetadataCachedConnectionWrapper(
+					DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties()), ctx.cacheSchemaName());
 
 			String schema = jdbcCtx.schema();
 			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {

@@ -96,7 +96,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = ds.getConnection();
+				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchemaName());
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());

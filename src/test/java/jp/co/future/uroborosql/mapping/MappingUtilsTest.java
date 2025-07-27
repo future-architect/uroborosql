@@ -5,10 +5,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -71,7 +73,11 @@ public class MappingUtilsTest {
 	public void testMultiSchema() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 
 				assertThat(agent.queryWith("select schema() as current_schema").one().get("CURRENT_SCHEMA"),
 						is("SCHEMA1"));
@@ -82,7 +88,11 @@ public class MappingUtilsTest {
 				assertThat(test1Result.getId1(), is(test1.getId1()));
 				assertThat(test1Result.getName1(), is(test1.getName1()));
 
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 
 				assertThat(agent.queryWith("select schema() as current_schema").one().get("CURRENT_SCHEMA"),
 						is("SCHEMA2"));
@@ -100,11 +110,20 @@ public class MappingUtilsTest {
 	public void testGetMappingColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
+
 				assertThat(MappingUtils.getMappingColumn(Test1.class, "id1").getName(), is("ID1"));
 				assertThat(MappingUtils.getMappingColumn(Test1.class, SqlKind.NONE, "id1").getName(), is("ID1"));
 				assertThat(MappingUtils.getMappingColumn("SCHEMA1", Test1.class, "id1").getName(), is("ID1"));
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				assertThat(MappingUtils.getMappingColumn(Test1.class, "id1").getName(), is("ID1"));
 				assertThat(MappingUtils.getMappingColumn(Test1.class, SqlKind.NONE, "id1").getName(), is("ID1"));
 				assertThat(MappingUtils.getMappingColumn("SCHEMA2", Test1.class, "id1").getName(), is("ID1"));
@@ -116,13 +135,21 @@ public class MappingUtilsTest {
 	public void testGetMappingColumns() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				MappingColumn[] test1Columns = MappingUtils.getMappingColumns(Test1.class);
 				assertThat(test1Columns.length, is(3));
 				test1Columns = MappingUtils.getMappingColumns(Test1.class, SqlKind.NONE);
 				assertThat(test1Columns.length, is(3));
 
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				MappingColumn[] test2Columns = MappingUtils.getMappingColumns(Test1.class);
 				assertThat(test2Columns.length, is(3));
 				test2Columns = MappingUtils.getMappingColumns(Test1.class, SqlKind.NONE);
@@ -135,13 +162,21 @@ public class MappingUtilsTest {
 	public void testGetMappingColumnMap() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				Map<String, MappingColumn> test1Columns = MappingUtils.getMappingColumnMap(Test1.class, SqlKind.NONE);
 				assertThat(test1Columns.size(), is(3));
 				test1Columns = MappingUtils.getMappingColumnMap("SCHEMA1", Test1.class, SqlKind.NONE);
 				assertThat(test1Columns.size(), is(3));
 
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				Map<String, MappingColumn> test2Columns = MappingUtils.getMappingColumnMap(Test1.class, SqlKind.NONE);
 				assertThat(test2Columns.size(), is(3));
 				test2Columns = MappingUtils.getMappingColumnMap("SCHEMA2", Test1.class, SqlKind.NONE);
@@ -154,7 +189,11 @@ public class MappingUtilsTest {
 	public void testGetIdMappingColumns() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				MappingColumn[] test1IdColumns = MappingUtils.getIdMappingColumns(Test1.class);
 				assertThat(test1IdColumns.length, is(1));
 				assertThat(test1IdColumns[0].getName(), is("ID1"));
@@ -162,7 +201,11 @@ public class MappingUtilsTest {
 				assertThat(test1IdColumnsWithSchema.length, is(1));
 				assertThat(test1IdColumnsWithSchema[0].getName(), is("ID1"));
 
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				MappingColumn[] test2IdColumns = MappingUtils.getIdMappingColumns(Test1.class);
 				assertThat(test2IdColumns.length, is(1));
 				assertThat(test2IdColumns[0].getName(), is("ID1"));
@@ -178,13 +221,21 @@ public class MappingUtilsTest {
 	public void testGetVersionMappingColumn() throws Exception {
 		try (SqlAgent agent = config.agent()) {
 			agent.required(() -> {
-				agent.updateWith("set schema schema1").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA1");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				Optional<MappingColumn> test1VersionColumn = MappingUtils.getVersionMappingColumn(Test1.class);
 				assertThat(test1VersionColumn.isPresent(), is(true));
 				test1VersionColumn = MappingUtils.getVersionMappingColumn("SCHEMA1", Test1.class);
 				assertThat(test1VersionColumn.isPresent(), is(true));
 
-				agent.updateWith("set schema schema2").count();
+				try {
+					agent.getConnection().setSchema("SCHEMA2");
+				} catch (SQLException ex) {
+					Assert.fail(ex.getMessage());
+				}
 				Optional<MappingColumn> test2VersionColumn = MappingUtils.getVersionMappingColumn(Test1.class);
 				assertThat(test2VersionColumn.isPresent(), is(true));
 				test2VersionColumn = MappingUtils.getVersionMappingColumn("SCHEMA2", Test1.class);
@@ -215,8 +266,7 @@ public class MappingUtilsTest {
 		public Test1() {
 		}
 
-		public Test1(Integer id1, String name1) {
-			super();
+		public Test1(final Integer id1, final String name1) {
 			this.id1 = id1;
 			this.name1 = name1;
 		}
@@ -225,7 +275,7 @@ public class MappingUtilsTest {
 			return id1;
 		}
 
-		public void setId1(Integer id1) {
+		public void setId1(final Integer id1) {
 			this.id1 = id1;
 		}
 
@@ -233,7 +283,7 @@ public class MappingUtilsTest {
 			return name1;
 		}
 
-		public void setName1(String name1) {
+		public void setName1(final String name1) {
 			this.name1 = name1;
 		}
 	}
@@ -248,8 +298,7 @@ public class MappingUtilsTest {
 		public Test2() {
 		}
 
-		public Test2(Integer id2, String name2) {
-			super();
+		public Test2(final Integer id2, final String name2) {
 			this.id2 = id2;
 			this.name2 = name2;
 		}
@@ -258,7 +307,7 @@ public class MappingUtilsTest {
 			return id2;
 		}
 
-		public void setId2(Integer id2) {
+		public void setId2(final Integer id2) {
 			this.id2 = id2;
 		}
 
@@ -266,7 +315,7 @@ public class MappingUtilsTest {
 			return name2;
 		}
 
-		public void setName2(String name2) {
+		public void setName2(final String name2) {
 			this.name2 = name2;
 		}
 	}
