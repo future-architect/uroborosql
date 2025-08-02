@@ -69,9 +69,11 @@ public class MsSqlDialectTest {
 		assertThat(dialect.escapeLikePattern("pat_tern"), is("pat$_tern"));
 		assertThat(dialect.escapeLikePattern("pattern%"), is("pattern$%"));
 		assertThat(dialect.escapeLikePattern("pattern_"), is("pattern$_"));
-		assertThat(dialect.escapeLikePattern("pat[]tern"), is("pat[]tern"));
 		assertThat(dialect.escapeLikePattern("pat％tern"), is("pat％tern"));
 		assertThat(dialect.escapeLikePattern("pat＿tern"), is("pat＿tern"));
+		assertThat(dialect.escapeLikePattern("p[at]tern"), is("p$[at$]tern"));
+		assertThat(dialect.escapeLikePattern("[]pattern"), is("$[$]pattern"));
+		assertThat(dialect.escapeLikePattern("pattern[]"), is("pattern$[$]"));
 	}
 
 	@Test
