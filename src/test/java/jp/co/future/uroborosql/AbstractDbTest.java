@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 public class AbstractDbTest {
@@ -32,6 +33,7 @@ public class AbstractDbTest {
 	public void setUp() throws Exception {
 		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName() + ";DB_CLOSE_DELAY=-1";
 		config = UroboroSQL.builder(url, "sa", "").build();
+		((JdbcConnectionSupplierImpl) config.getConnectionSupplier()).setDefaultCacheSchema(true);
 		config.getSqlAgentProvider().setFetchSize(1000);
 		var ddlPath = getDdlPath();
 		if (ddlPath != null) {

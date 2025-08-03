@@ -55,7 +55,8 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		}
 		var jdbcCtx = (JdbcConnectionContext) ctx;
 		try {
-			var connection = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
+			var connection = new MetadataCachedConnectionWrapper(
+					DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties()), jdbcCtx.cacheSchema());
 
 			var schema = jdbcCtx.schema();
 			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
@@ -116,5 +117,14 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
 		defaultConnectionContext.transactionIsolation(transactionIsolation);
+	}
+
+	/**
+	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 *
+	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	public void setDefaultCacheSchema(final boolean cache) {
+		defaultConnectionContext.cacheSchema(cache);
 	}
 }
