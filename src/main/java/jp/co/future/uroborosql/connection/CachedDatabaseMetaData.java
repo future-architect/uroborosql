@@ -42,13 +42,23 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 		this.originalConn = originalConn;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
+		if (!isWrapperFor(iface)) {
+			throw new SQLException("Cannot unwrap to " + iface.getName());
+		}
+		if (iface.isInstance(this)) {
+			return (T) this;
+		}
 		return originalMetaData.unwrap(iface);
 	}
 
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+		if (iface.isInstance(this)) {
+			return true;
+		}
 		return originalMetaData.isWrapperFor(iface);
 	}
 
@@ -659,15 +669,13 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getProcedureColumns(final String catalog, final String schemaPattern,
-			final String procedureNamePattern,
-			final String columnNamePattern) throws SQLException {
+			final String procedureNamePattern, final String columnNamePattern) throws SQLException {
 		return originalMetaData.getProcedureColumns(catalog, schemaPattern, procedureNamePattern, columnNamePattern);
 	}
 
 	@Override
 	public ResultSet getTables(final String catalog, final String schemaPattern, final String tableNamePattern,
-			final String[] types)
-			throws SQLException {
+			final String[] types) throws SQLException {
 		return originalMetaData.getTables(catalog, schemaPattern, tableNamePattern, types);
 	}
 
@@ -688,15 +696,13 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getColumns(final String catalog, final String schemaPattern, final String tableNamePattern,
-			final String columnNamePattern)
-			throws SQLException {
+			final String columnNamePattern) throws SQLException {
 		return originalMetaData.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern);
 	}
 
 	@Override
 	public ResultSet getColumnPrivileges(final String catalog, final String schema, final String table,
-			final String columnNamePattern)
-			throws SQLException {
+			final String columnNamePattern) throws SQLException {
 		return originalMetaData.getColumnPrivileges(catalog, schema, table, columnNamePattern);
 	}
 
@@ -708,8 +714,7 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getBestRowIdentifier(final String catalog, final String schema, final String table,
-			final int scope, final boolean nullable)
-			throws SQLException {
+			final int scope, final boolean nullable) throws SQLException {
 		return originalMetaData.getBestRowIdentifier(catalog, schema, table, scope, nullable);
 	}
 
@@ -740,8 +745,7 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 	public ResultSet getCrossReference(final String parentCatalog, final String parentSchema, final String parentTable,
 			final String foreignCatalog, final String foreignSchema, final String foreignTable) throws SQLException {
 		return originalMetaData.getCrossReference(parentCatalog, parentSchema, parentTable, foreignCatalog,
-				foreignSchema,
-				foreignTable);
+				foreignSchema, foreignTable);
 	}
 
 	@Override
@@ -751,8 +755,7 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getIndexInfo(final String catalog, final String schema, final String table, final boolean unique,
-			final boolean approximate)
-			throws SQLException {
+			final boolean approximate) throws SQLException {
 		return originalMetaData.getIndexInfo(catalog, schema, table, unique, approximate);
 	}
 
@@ -818,8 +821,7 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getUDTs(final String catalog, final String schemaPattern, final String typeNamePattern,
-			final int[] types)
-			throws SQLException {
+			final int[] types) throws SQLException {
 		return originalMetaData.getUDTs(catalog, schemaPattern, typeNamePattern, types);
 	}
 
@@ -950,8 +952,7 @@ public class CachedDatabaseMetaData implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getFunctionColumns(final String catalog, final String schemaPattern,
-			final String functionNamePattern,
-			final String columnNamePattern) throws SQLException {
+			final String functionNamePattern, final String columnNamePattern) throws SQLException {
 		return originalMetaData.getFunctionColumns(catalog, schemaPattern, functionNamePattern, columnNamePattern);
 	}
 

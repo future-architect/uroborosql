@@ -37,7 +37,7 @@ public class MetadataCachedConnectionWrapper implements Connection {
 	private final Connection original;
 
 	/** Whether to cache the schema name. */
-	private final boolean cacheSchema;
+	private boolean cacheSchema;
 
 	/** Cached DatabaseMetaData. */
 	private DatabaseMetaData cachedMetadata = null;
@@ -56,13 +56,41 @@ public class MetadataCachedConnectionWrapper implements Connection {
 		this.cacheSchema = cacheSchema;
 	}
 
+	/**
+	 * スキーマ名をキャッシュするかどうかを取得する.
+	 *
+	 * @return スキーマ名をキャッシュする場合<code>true</code>.
+	 */
+	public boolean isCacheSchema() {
+		return cacheSchema;
+	}
+
+	/**
+	 * スキーマ名をキャッシュするかどうかを設定する.
+	 *
+	 * @param cacheSchema スキーマ名をキャッシュするかどうか. キャッシュする場合<code>true</code>
+	 */
+	public void setCacheSchema(final boolean cacheSchema) {
+		this.cacheSchema = cacheSchema;
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
+		if (!isWrapperFor(iface)) {
+			throw new SQLException("Cannot unwrap to " + iface.getName());
+		}
+		if (iface.isInstance(this)) {
+			return (T) this;
+		}
 		return original.unwrap(iface);
 	}
 
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+		if (iface.isInstance(this)) {
+			return true;
+		}
 		return original.isWrapperFor(iface);
 	}
 
@@ -108,6 +136,8 @@ public class MetadataCachedConnectionWrapper implements Connection {
 
 	@Override
 	public void close() throws SQLException {
+		// コネクションのクローズタイミングでスキーマのキャッシュをクリアすることで、コネクションプールから再取得された場合に前回キャッシュした内容が残ることを防ぐ
+		cachedSchemaName = null;
 		original.close();
 	}
 
