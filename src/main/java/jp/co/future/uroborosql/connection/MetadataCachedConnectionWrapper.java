@@ -373,4 +373,9 @@ public class MetadataCachedConnectionWrapper implements Connection {
 		return original.getNetworkTimeout();
 	}
 
+	@Override
+	public String toString() {
+		return original.toString();
+	}
+
 }

@@ -328,4 +328,9 @@ public class CloseIgnoringConnectionWrapper implements Connection {
 		}
 		return original.isWrapperFor(iface);
 	}
+
+	@Override
+	public String toString() {
+		return original.toString();
+	}
 }
