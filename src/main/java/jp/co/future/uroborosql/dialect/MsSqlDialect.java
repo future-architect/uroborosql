@@ -19,6 +19,8 @@ import jp.co.future.uroborosql.enums.ForUpdateType;
  * @author H.Sugimoto
  */
 public class MsSqlDialect extends AbstractDialect {
+	private static final char[] WILDCARDS = { '%', '_', '[', ']' };
+
 	/**
 	 * 悲観ロックのErrorCode もしくは SqlState. MSSQLの場合はErrorCodeで判定する.
 	 * <pre>SQL Error [1222] [S00045]: ロック要求がタイムアウトしました。 </pre>
@@ -29,6 +31,7 @@ public class MsSqlDialect extends AbstractDialect {
 	 * コンストラクタ
 	 */
 	public MsSqlDialect() {
+		super('$', WILDCARDS);
 	}
 
 	/**
