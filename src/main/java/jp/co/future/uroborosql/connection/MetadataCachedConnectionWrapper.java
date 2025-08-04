@@ -26,22 +26,72 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 /**
- * CloseしないConnectionを提供するためのWrapper
+ * DatabaseMetadataの一部をキャッシュするConnectionを提供するためのWrapper
  *
  * @author H.Sugimoto
- * @deprecated use {@link CloseIgnoringConnectionWrapper}
+ * @since v0.26.10
  */
-@Deprecated
-public class DoNotCloseConnectionWrapper implements Connection {
+public class MetadataCachedConnectionWrapper implements Connection {
+
+	/** Original connection. */
 	private final Connection original;
+
+	/** Whether to cache the schema name. */
+	private boolean cacheSchema;
+
+	/** Cached DatabaseMetaData. */
+	private DatabaseMetaData cachedMetadata = null;
+
+	/** Cached Schema Name. */
+	private String cachedSchemaName = null;
 
 	/**
 	 * コンストラクタ
 	 *
 	 * @param original 元となるコネクション
+	 * @param cacheSchema スキーマ名をキャッシュするかどうか. キャッシュする場合は <code>true</code>
 	 */
-	public DoNotCloseConnectionWrapper(final Connection original) {
+	MetadataCachedConnectionWrapper(final Connection original, final boolean cacheSchema) {
 		this.original = original;
+		this.cacheSchema = cacheSchema;
+	}
+
+	/**
+	 * スキーマ名をキャッシュするかどうかを取得する.
+	 *
+	 * @return スキーマ名をキャッシュする場合<code>true</code>.
+	 */
+	public boolean isCacheSchema() {
+		return cacheSchema;
+	}
+
+	/**
+	 * スキーマ名をキャッシュするかどうかを設定する.
+	 *
+	 * @param cacheSchema スキーマ名をキャッシュするかどうか. キャッシュする場合<code>true</code>
+	 */
+	public void setCacheSchema(final boolean cacheSchema) {
+		this.cacheSchema = cacheSchema;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T unwrap(final Class<T> iface) throws SQLException {
+		if (!isWrapperFor(iface)) {
+			throw new SQLException("Cannot unwrap to " + iface.getName());
+		}
+		if (iface.isInstance(this)) {
+			return (T) this;
+		}
+		return original.unwrap(iface);
+	}
+
+	@Override
+	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+		if (iface.isInstance(this)) {
+			return true;
+		}
+		return original.isWrapperFor(iface);
 	}
 
 	@Override
@@ -86,7 +136,11 @@ public class DoNotCloseConnectionWrapper implements Connection {
 
 	@Override
 	public void close() throws SQLException {
-		// do nothing
+		// コネクションのクローズタイミングでスキーマやメタデータのキャッシュをクリアすることで、
+		// コネクションプールから再取得された場合に前回キャッシュした内容が残ることを防ぐ
+		cachedSchemaName = null;
+		cachedMetadata = null;
+		original.close();
 	}
 
 	@Override
@@ -96,7 +150,10 @@ public class DoNotCloseConnectionWrapper implements Connection {
 
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException {
-		return original.getMetaData();
+		if (cachedMetadata == null) {
+			cachedMetadata = new CachedDatabaseMetaData(original.getMetaData(), this);
+		}
+		return cachedMetadata;
 	}
 
 	@Override
@@ -198,7 +255,8 @@ public class DoNotCloseConnectionWrapper implements Connection {
 
 	@Override
 	public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
-			final int resultSetHoldability) throws SQLException {
+			final int resultSetHoldability)
+			throws SQLException {
 		return original.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 
@@ -287,11 +345,19 @@ public class DoNotCloseConnectionWrapper implements Connection {
 	@Override
 	public void setSchema(final String schema) throws SQLException {
 		original.setSchema(schema);
+		cachedSchemaName = schema;
 	}
 
 	@Override
 	public String getSchema() throws SQLException {
-		return original.getSchema();
+		if (!cacheSchema) {
+			return original.getSchema();
+		} else {
+			if (cachedSchemaName == null) {
+				cachedSchemaName = original.getSchema();
+			}
+			return cachedSchemaName;
+		}
 	}
 
 	@Override
@@ -309,23 +375,9 @@ public class DoNotCloseConnectionWrapper implements Connection {
 		return original.getNetworkTimeout();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T unwrap(final Class<T> iface) throws SQLException {
-		if (!isWrapperFor(iface)) {
-			throw new SQLException("Cannot unwrap to " + iface.getName());
-		}
-		if (iface.isInstance(this)) {
-			return (T) this;
-		}
-		return original.unwrap(iface);
+	public String toString() {
+		return original.toString();
 	}
 
-	@Override
-	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
-		if (iface.isInstance(this)) {
-			return true;
-		}
-		return original.isWrapperFor(iface);
-	}
 }

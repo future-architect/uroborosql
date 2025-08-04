@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
+import jp.co.future.uroborosql.connection.MetadataCachedConnectionWrapper;
 import jp.co.future.uroborosql.context.SqlContext;
 import jp.co.future.uroborosql.coverage.CoverageData;
 import jp.co.future.uroborosql.coverage.CoverageHandler;
@@ -1157,6 +1158,22 @@ public abstract class AbstractAgent implements SqlAgent {
 	@Override
 	public void setDefaultInsertsType(final InsertsType defaultInsertsType) {
 		this.defaultInsertsType = defaultInsertsType;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#setCacheSchema(boolean)
+	 */
+	@Override
+	public void setCacheSchema(final boolean cache) throws SQLException {
+		Connection conn = getConnection();
+		if (conn.isWrapperFor(MetadataCachedConnectionWrapper.class)) {
+			((MetadataCachedConnectionWrapper) conn).setCacheSchema(cache);
+		} else {
+			throw new SQLException("Cannot set cacheSchema option.");
+		}
 	}
 
 	/**

@@ -20,11 +20,23 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	private final Connection connection;
 
 	/**
-	 * コンストラクタ。
+	 * コンストラクタ.
+	 *
 	 * @param connection コネクション
 	 */
 	public DefaultConnectionSupplierImpl(final Connection connection) {
-		this.connection = new CloseIgnoringConnectionWrapper(connection);
+		this(connection, false);
+	}
+
+	/**
+	 * コンストラクタ.
+	 *
+	 * @param connection コネクション
+	 * @param cacheSchema スキーマ名をキャッシュするかどうか. キャッシュする場合は<code>true</code>.
+	 */
+	public DefaultConnectionSupplierImpl(final Connection connection, final boolean cacheSchema) {
+		this.connection = new MetadataCachedConnectionWrapper(new CloseIgnoringConnectionWrapper(connection),
+				cacheSchema);
 	}
 
 	/**
@@ -46,4 +58,14 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	public Connection getConnection(final ConnectionContext ctx) {
 		throw new UnsupportedOperationException();
 	}
+
+	/**
+	 * 保持しているConnectionにスキーマ名のキャッシュオプションを指定
+	 *
+	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	public void setCacheSchema(final boolean cache) {
+		((MetadataCachedConnectionWrapper) connection).setCacheSchema(cache);
+	}
+
 }

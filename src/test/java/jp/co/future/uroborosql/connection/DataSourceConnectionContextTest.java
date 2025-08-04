@@ -1,7 +1,7 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Connection;
 
@@ -15,6 +15,7 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.dataSourceName(), is(DataSourceConnectionContext.DEFAULT_DATASOURCE_NAME));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -24,7 +25,15 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
+	}
+
+	@Test
+	public void testDataSourceConnectionContextWithCacheSchema() {
+		DataSourceConnectionContext ctx = ConnectionContextBuilder.dataSource()
+				.cacheSchema(true);
+		assertThat(ctx.cacheSchema(), is(true));
 	}
 
 	@Test(expected = IllegalArgumentException.class)

@@ -202,6 +202,14 @@ public interface SqlAgent extends TransactionManager, SqlConfigAware {
 	void setDefaultInsertsType(InsertsType defaultInsertsType);
 
 	/**
+	 * スキーマ名をキャッシュするかどうかを設定する.
+	 *
+	 * @param cache スキーマ名をキャッシュするかどうか. キャッシュする場合<code>true</code>
+	 * @exception SQLException スキーマ名のキャッシュ指定に失敗した場合の例外.
+	 */
+	void setCacheSchema(boolean cache) throws SQLException;
+
+	/**
 	 * 空のSqlContextの生成
 	 *
 	 * @return 生成したSqlContext

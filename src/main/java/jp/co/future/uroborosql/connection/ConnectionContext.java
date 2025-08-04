@@ -23,12 +23,13 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 	public static String PROPS_READ_ONLY = "readonly";
 	/** プロパティ：トランザクション分離レベル */
 	public static String PROPS_TRANSACTION_ISOLATION = "transactionisolation";
+	/** プロパティ：スキーマ名のキャッシュ */
+	private static String PROPS_CACHE_SCHEMA = "__cache_schema__";
 
 	/**
 	 * コンストラクタ
 	 */
 	protected ConnectionContext() {
-		super();
 	}
 
 	/**
@@ -111,6 +112,28 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 		} else {
 			throw new IllegalArgumentException("Unsupported level [" + transactionIsolation + "]");
 		}
+		return (T) this;
+	}
+
+	/**
+	 * スキーマ名のキャッシュオプションを取得
+	 *
+	 * @return スキーマ名をキャッシュする場合は<code>true</code>. 初期値は<code>false</code>
+	 */
+	public boolean cacheSchema() {
+		return (boolean) getOrDefault(PROPS_CACHE_SCHEMA, false);
+	}
+
+	/**
+	 * スキーマ名のキャッシュオプションを指定
+	 *
+	 * @param <T> {@link ConnectionContext}の具象型
+	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 * @return {@link ConnectionContext}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ConnectionContext> T cacheSchema(final boolean cache) {
+		put(PROPS_CACHE_SCHEMA, cache);
 		return (T) this;
 	}
 

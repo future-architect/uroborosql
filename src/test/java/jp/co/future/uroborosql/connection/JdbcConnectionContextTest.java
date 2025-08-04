@@ -1,7 +1,8 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Connection;
 import java.util.Properties;
@@ -23,6 +24,7 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.schema(), is(nullValue()));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -36,6 +38,13 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
+	}
+
+	@Test
+	public void testJdbcConnectionContextWithCacheSchema() {
+		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL)
+				.cacheSchema(true);
+		assertThat(ctx.cacheSchema(), is(true));
 	}
 
 	@Test

@@ -1,6 +1,6 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -42,7 +43,6 @@ public class AbstractDbTest {
 		public Product(final int productId, final String productName, final String productKanaName,
 				final String janCode,
 				final String productDescription, final Date insDatetime, final Date updDatetime, final int versionNo) {
-			super();
 			this.productId = productId;
 			this.productName = productName;
 			this.productKanaName = productKanaName;
@@ -146,13 +146,13 @@ public class AbstractDbTest {
 	protected SqlAgent agent;
 
 	public AbstractDbTest() {
-		super();
 	}
 
 	@Before
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
+		((DefaultConnectionSupplierImpl) config.getConnectionSupplier()).setCacheSchema(true);
 		config.getSqlAgentFactory().setFetchSize(1000);
 		Path ddlPath = getDdlPath();
 		if (ddlPath != null) {
@@ -229,7 +229,7 @@ public class AbstractDbTest {
 		List<Map<String, Object>> dataList = getDataFromFile(path);
 
 		dataList.stream().map(map -> map.get("table")).collect(Collectors.toSet())
-				.forEach(tbl -> truncateTable(tbl));
+				.forEach(this::truncateTable);
 
 		dataList.forEach(map -> {
 			try {

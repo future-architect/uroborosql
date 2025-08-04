@@ -96,7 +96,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = ds.getConnection();
+				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchema());
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());
@@ -169,7 +169,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するReadOnlyオプションを指定
+	 * で指定したデータソースに対するReadOnlyオプションを取得
 	 *
 	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */
@@ -211,6 +211,25 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
 		defaultConnectionContext.transactionIsolation(transactionIsolation);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するスキーマ名のキャッシュオプションの取得
+	 *
+	 * @return スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	public boolean isDefaultCacheSchema() {
+		return defaultConnectionContext.cacheSchema();
+	}
+
+	/**
+	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 *
+	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	public void setDefaultCacheSchema(final boolean cache) {
+		defaultConnectionContext.cacheSchema(cache);
 	}
 
 }

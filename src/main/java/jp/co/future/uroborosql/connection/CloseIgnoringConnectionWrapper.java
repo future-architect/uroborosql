@@ -198,7 +198,7 @@ public class CloseIgnoringConnectionWrapper implements Connection {
 	@Override
 	public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
 			final int resultSetHoldability)
-					throws SQLException {
+			throws SQLException {
 		return original.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 
@@ -309,13 +309,28 @@ public class CloseIgnoringConnectionWrapper implements Connection {
 		return original.getNetworkTimeout();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T unwrap(final Class<T> iface) throws SQLException {
+		if (!isWrapperFor(iface)) {
+			throw new SQLException("Cannot unwrap to " + iface.getName());
+		}
+		if (iface.isInstance(this)) {
+			return (T) this;
+		}
 		return original.unwrap(iface);
 	}
 
 	@Override
 	public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+		if (iface.isInstance(this)) {
+			return true;
+		}
 		return original.isWrapperFor(iface);
+	}
+
+	@Override
+	public String toString() {
+		return original.toString();
 	}
 }
