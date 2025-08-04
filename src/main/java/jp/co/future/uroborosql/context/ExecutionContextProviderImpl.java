@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -82,7 +81,7 @@ public class ExecutionContextProviderImpl
 	public ExecutionContext createExecutionContext() {
 		var executionContext = new ExecutionContextImpl();
 		executionContext.setSqlConfig(getSqlConfig());
-		executionContext.setConstParameterMap(new ConcurrentHashMap<>(getConstParameterMap()));
+		executionContext.setConstParameterMap(getConstParameterMap());
 		executionContext.setParameterMapperManager(
 				new BindParameterMapperManager(parameterMapperManager, getSqlConfig().getClock()));
 		executionContext.setResultSetType(defaultResultSetType);
