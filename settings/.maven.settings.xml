@@ -14,12 +14,4 @@
       <passphrase>${env.MAVEN_GPG_PASSPHRASE}</passphrase>
     </server>
   </servers>
-  <profiles>
-    <profile>
-      <id>ossrh</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-  </profiles>
 </settings>
