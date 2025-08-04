@@ -31,15 +31,15 @@ jobs:
           java-version: 8
           distribution: 'adopt'
           cache: 'maven'
-          server-id: ossrh-release
-          server-username: OSSRH_USER
-          server-password: OSSRH_PASS
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Publish Release Package
         run: mvn --batch-mode --no-transfer-progress --settings ./settings/.maven.settings.xml -DperformRelease=true -DskipTests=true clean deploy
         env:
-          OSSRH_USER: ${{ secrets.OSSRH_USER }}
-          OSSRH_PASS: ${{ secrets.OSSRH_PASS }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
