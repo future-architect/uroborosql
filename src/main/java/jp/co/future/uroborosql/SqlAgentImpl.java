@@ -38,6 +38,7 @@ import java.util.stream.StreamSupport;
 
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
+import jp.co.future.uroborosql.connection.MetadataCachedConnectionWrapper;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.context.ExecutionContextImpl;
 import jp.co.future.uroborosql.converter.MapResultSetConverter;
@@ -2791,6 +2792,23 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 	@Override
 	public SqlAgent setInsertsType(final InsertsType defaultInsertsType) {
 		this.insertsType = defaultInsertsType;
+		return this;
+	}
+
+	/**
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.SqlAgent#setCacheSchema(boolean)
+	 */
+	@Override
+	public SqlAgent setCacheSchema(final boolean cache) throws SQLException {
+		var conn = getConnection();
+		if (conn.isWrapperFor(MetadataCachedConnectionWrapper.class)) {
+			((MetadataCachedConnectionWrapper) conn).setCacheSchema(cache);
+		} else {
+			throw new SQLException("Cannot set cacheSchema option.");
+		}
 		return this;
 	}
 

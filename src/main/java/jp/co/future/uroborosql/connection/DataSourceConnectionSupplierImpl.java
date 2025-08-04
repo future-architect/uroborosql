@@ -86,7 +86,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = ds.getConnection();
+				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchema());
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());
@@ -159,7 +159,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 
 	/**
 	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
-	 * で指定したデータソースに対するReadOnlyオプションを指定
+	 * で指定したデータソースに対するReadOnlyオプションを取得
 	 *
 	 * @return readOnlyの場合は<code>true</code>. 初期値は<code>false</code>
 	 */

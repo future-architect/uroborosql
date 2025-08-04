@@ -24,7 +24,14 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.schema(), is(nullValue()));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
+	}
+
+	@Test
+	public void testJdbcConnectionContextWithCacheSchema() {
+		var ctx = ConnectionContextBuilder.jdbc(URL).cacheSchema(true);
+		assertThat(ctx.cacheSchema(), is(true));
 	}
 
 	@Test

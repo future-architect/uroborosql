@@ -171,6 +171,15 @@ public interface SqlAgent extends TransactionManager {
 	SqlAgent setInsertsType(InsertsType insertsType);
 
 	/**
+	 * スキーマ名をキャッシュするかどうかを設定する.
+	 *
+	 * @param cache スキーマ名をキャッシュするかどうか. キャッシュする場合<code>true</code>
+	 * @return SqlAgent
+	 * @exception SQLException スキーマ名のキャッシュ指定に失敗した場合の例外.
+	 */
+	SqlAgent setCacheSchema(boolean cache) throws SQLException;
+
+	/**
 	 * クエリ実行処理。
 	 *
 	 * @param executionContext ExecutionContext
