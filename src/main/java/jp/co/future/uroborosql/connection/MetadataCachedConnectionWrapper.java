@@ -136,8 +136,10 @@ public class MetadataCachedConnectionWrapper implements Connection {
 
 	@Override
 	public void close() throws SQLException {
-		// コネクションのクローズタイミングでスキーマのキャッシュをクリアすることで、コネクションプールから再取得された場合に前回キャッシュした内容が残ることを防ぐ
+		// コネクションのクローズタイミングでスキーマやメタデータのキャッシュをクリアすることで、
+		// コネクションプールから再取得された場合に前回キャッシュした内容が残ることを防ぐ
 		cachedSchemaName = null;
+		cachedMetadata = null;
 		original.close();
 	}
 
