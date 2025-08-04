@@ -23,7 +23,7 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 </dependency>
 <dependency>
     <groupId>org.springframework</groupId>
@@ -38,7 +38,7 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 </dependency>
 <dependency>
     <groupId>ognl</groupId>
@@ -50,14 +50,14 @@ uroboroSQLは主にSQL中心の設計コンセプトを採用しています。J
 ### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.6'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.7'
 compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
 ```
 
 または
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.6'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.7'
 compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
