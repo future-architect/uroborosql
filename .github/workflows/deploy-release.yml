@@ -33,7 +33,7 @@ jobs:
           cache: 'maven'
           server-id: central
           server-username: CENTRAL_USERNAME
-          server-password: OSSRH_PCENTRAL_PASSWORDASS
+          server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
