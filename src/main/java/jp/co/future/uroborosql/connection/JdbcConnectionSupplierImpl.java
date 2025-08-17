@@ -192,7 +192,7 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	/**
 	 * デフォルトのDB接続情報にスキーマ名の固定オプションを指定
 	 *
-	 * @param cache スキーマ名を固定する場合は<code>true</code>
+	 * @param fixed スキーマ名を固定する場合は<code>true</code>
 	 */
 	public void setDefaultFixSchema(final boolean fixed) {
 		defaultConnectionContext.fixSchema(fixed);
