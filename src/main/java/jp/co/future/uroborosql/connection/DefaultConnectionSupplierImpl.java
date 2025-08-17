@@ -7,6 +7,7 @@
 package jp.co.future.uroborosql.connection;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * デフォルトコネクション供給クラス<br>
@@ -16,8 +17,23 @@ import java.sql.Connection;
  * @author H.Sugimoto
  */
 public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
+	/**
+	 * コネクションのスキーマ名の取り扱いを指定するオプション
+	 */
+	public enum SchemaOption {
+		/** キャッシュしない */
+		NONE,
+		/** キャッシュする */
+		CACHE,
+		/** 固定する */
+		FIX
+	}
+
 	/**  コネクション */
 	private final Connection connection;
+
+	/** スキーマ名を固定する場合のスキーマ名 */
+	private String fixedSchemaName = null;
 
 	/**
 	 * コンストラクタ.
@@ -25,18 +41,29 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param connection コネクション
 	 */
 	public DefaultConnectionSupplierImpl(final Connection connection) {
-		this(connection, false);
+		this(connection, SchemaOption.NONE);
 	}
 
 	/**
 	 * コンストラクタ.
 	 *
 	 * @param connection コネクション
-	 * @param cacheSchema スキーマ名をキャッシュするかどうか. キャッシュする場合は<code>true</code>.
+	 * @param schemaOption コネクションのスキーマ名の取り扱いを指定するオプション
 	 */
-	public DefaultConnectionSupplierImpl(final Connection connection, final boolean cacheSchema) {
-		this.connection = new MetadataCachedConnectionWrapper(new CloseIgnoringConnectionWrapper(connection),
-				cacheSchema);
+	public DefaultConnectionSupplierImpl(final Connection connection, final SchemaOption schemaOption) {
+		if (schemaOption == SchemaOption.FIX) {
+			if (fixedSchemaName == null) {
+				try {
+					fixedSchemaName = connection.getSchema();
+				} catch (SQLException ex) {
+					throw new UnsupportedOperationException(ex);
+				}
+			}
+			this.connection = new SchemaFixedConnectionWrapper(connection, fixedSchemaName);
+		} else {
+			this.connection = new MetadataCachedConnectionWrapper(new CloseIgnoringConnectionWrapper(connection),
+					schemaOption == SchemaOption.CACHE);
+		}
 	}
 
 	/**
@@ -65,7 +92,15 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
 	 */
 	public void setCacheSchema(final boolean cache) {
-		((MetadataCachedConnectionWrapper) connection).setCacheSchema(cache);
+		try {
+			if (connection.isWrapperFor(MetadataCachedConnectionWrapper.class)) {
+				connection.unwrap(MetadataCachedConnectionWrapper.class).setCacheSchema(cache);
+			} else {
+				throw new UnsupportedOperationException("Schema is fixed.");
+			}
+		} catch (SQLException ex) {
+			throw new IllegalStateException(ex);
+		}
 	}
 
 }

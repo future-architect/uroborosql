@@ -1,7 +1,11 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,6 +33,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is("PUBLIC"));
 			assertThat(conn.getAutoCommit(), is(false));
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 	}
@@ -93,6 +98,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(false));
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 
@@ -104,6 +110,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is(ctx.schema()));
 			assertThat(conn.getAutoCommit(), is(ctx.autoCommit()));
 			assertThat(conn.isReadOnly(), is(ctx.readOnly()));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(ctx.transactionIsolation()));
 		}
 	}
@@ -225,6 +232,46 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getAutoCommit(), is(autoCommit));
 			// assertThat(conn.isReadOnly(), is(readonly)); // H2はreadonlyオプションが適用されないためコメントアウト
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	public void testSetDefaultCacheSchema() throws Exception {
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+		String schema = "PUBLIC";
+		boolean cache = true;
+
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
+		supplier.setDefaultCacheSchema(cache);
+		try (Connection conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(url));
+			assertThat(conn.getSchema(), is(schema));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(true));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	public void testSetDefaultFixSchema() throws Exception {
+		String url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		String user = "";
+		String password = "";
+		String schema = "PUBLIC";
+		boolean fixed = true;
+
+		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+				ConnectionContextBuilder.jdbc(url, user, password));
+		supplier.setDefaultFixSchema(fixed);
+		try (Connection conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(url));
+			assertThat(conn.getSchema(), is(schema));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.isWrapperFor(MetadataCachedConnectionWrapper.class), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 	}

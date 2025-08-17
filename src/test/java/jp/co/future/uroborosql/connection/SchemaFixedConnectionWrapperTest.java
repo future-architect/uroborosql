@@ -12,7 +12,6 @@ import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,16 +31,17 @@ import org.junit.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 
-public class CloseIgnoringConnectionWrapperTest {
+public class SchemaFixedConnectionWrapperTest {
 	private SqlConfig config;
 	private Connection target;
 
 	@Before
 	public void setUp() throws Exception {
-		Connection conn = DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
-				"sa", "sa");
-		config = UroboroSQL.builder(conn).build();
-		target = config.getConnectionSupplier().getConnection();
+		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
+				"sa", "sa").build();
+		JdbcConnectionSupplierImpl supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
+		supplier.setDefaultFixSchema(true);
+		target = supplier.getConnection();
 	}
 
 	@After
@@ -120,12 +120,31 @@ public class CloseIgnoringConnectionWrapperTest {
 		target.commit();
 		target.rollback();
 		target.close();
-		assertThat(target.isClosed(), is(false));
+		assertThat(target.isClosed(), is(true));
 	}
 
 	@Test
 	public void testGetMetaData() throws Exception {
-		assertThat(target.getMetaData(), is(instanceOf(DatabaseMetaData.class)));
+		DatabaseMetaData metadata = target.getMetaData();
+		assertThat(metadata, is(instanceOf(DatabaseMetaData.class)));
+		assertThat(metadata, is(instanceOf(CachedDatabaseMetaData.class)));
+		assertThat(metadata.isWrapperFor(DatabaseMetaData.class), is(true));
+		assertThat(metadata.isWrapperFor(CachedDatabaseMetaData.class), is(true));
+
+		CachedDatabaseMetaData cmetadata = metadata.unwrap(CachedDatabaseMetaData.class);
+		// 1回目（キャッシュされていない場合）
+		assertThat(cmetadata.getDatabaseProductName(), is("H2"));
+		assertThat(cmetadata.getDatabaseProductVersion(), is("1.4.199 (2019-03-13)"));
+		assertThat(cmetadata.getDatabaseMajorVersion(), is(1));
+		assertThat(cmetadata.getDatabaseMinorVersion(), is(4));
+		assertThat(cmetadata.getURL(), is("jdbc:h2:mem:" + this.getClass().getSimpleName()));
+
+		// 2回目（キャッシュされている場合）
+		assertThat(cmetadata.getDatabaseProductName(), is("H2"));
+		assertThat(cmetadata.getDatabaseProductVersion(), is("1.4.199 (2019-03-13)"));
+		assertThat(cmetadata.getDatabaseMajorVersion(), is(1));
+		assertThat(cmetadata.getDatabaseMinorVersion(), is(4));
+		assertThat(cmetadata.getURL(), is("jdbc:h2:mem:" + this.getClass().getSimpleName()));
 	}
 
 	@Test
@@ -224,10 +243,9 @@ public class CloseIgnoringConnectionWrapperTest {
 		assertThat(target.createArrayOf("char", new Object[] {}), is(instanceOf(Array.class)));
 	}
 
-	@Test
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSchema() throws Exception {
 		target.setSchema("PUBLIC");
-		assertThat(target.getSchema(), is("PUBLIC"));
 	}
 
 	@Test
@@ -242,9 +260,10 @@ public class CloseIgnoringConnectionWrapperTest {
 	public void testUnwrap() throws Exception {
 		assertThat(target.isWrapperFor(Connection.class), is(true));
 		assertThat(target.unwrap(Connection.class), is(instanceOf(Connection.class)));
-		assertThat(target.isWrapperFor(CloseIgnoringConnectionWrapper.class), is(true));
-		assertThat(target.unwrap(CloseIgnoringConnectionWrapper.class),
-				is(instanceOf(CloseIgnoringConnectionWrapper.class)));
+		assertThat(target.isWrapperFor(MetadataCachedConnectionWrapper.class), is(false));
+		assertThat(target.isWrapperFor(SchemaFixedConnectionWrapper.class), is(true));
+		assertThat(target.unwrap(SchemaFixedConnectionWrapper.class),
+				is(instanceOf(SchemaFixedConnectionWrapper.class)));
 	}
 
 }

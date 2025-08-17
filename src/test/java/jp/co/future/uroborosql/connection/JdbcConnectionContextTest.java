@@ -25,6 +25,7 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
 		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -37,6 +38,8 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.schema(), is(nullValue()));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -45,6 +48,15 @@ public class JdbcConnectionContextTest {
 		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL)
 				.cacheSchema(true);
 		assertThat(ctx.cacheSchema(), is(true));
+		assertThat(ctx.fixSchema(), is(false));
+	}
+
+	@Test
+	public void testJdbcConnectionContextWithFixSchema() {
+		JdbcConnectionContext ctx = ConnectionContextBuilder.jdbc(URL)
+				.fixSchema(true);
+		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(true));
 	}
 
 	@Test
@@ -56,6 +68,8 @@ public class JdbcConnectionContextTest {
 		assertThat(ctx.schema(), is(SCHEMA));
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
+		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -79,6 +93,10 @@ public class JdbcConnectionContextTest {
 
 		assertThat(ctx.schema(null).schema(), is(SCHEMA));
 		assertThat(ctx.schema("schema").schema(), is("schema"));
+
+		assertThat(ctx.cacheSchema(true).cacheSchema(), is(true));
+
+		assertThat(ctx.fixSchema(true).fixSchema(), is(true));
 
 		assertThat(ctx.autoCommit(true).autoCommit(), is(true));
 		assertThat(ctx.readOnly(true).readOnly(), is(true));

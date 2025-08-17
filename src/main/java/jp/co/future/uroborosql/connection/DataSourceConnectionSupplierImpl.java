@@ -96,7 +96,17 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchema());
+				Connection original = ds.getConnection();
+				if (ctx.fixSchema()) {
+					String schemaName = ctx.fixedSchemaName();
+					if (schemaName == null) {
+						schemaName = original.getSchema();
+						ctx.fixedSchemaName(schemaName);
+					}
+					connection = new SchemaFixedConnectionWrapper(original, schemaName);
+				} else {
+					connection = new MetadataCachedConnectionWrapper(original, ctx.cacheSchema());
+				}
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());
@@ -230,6 +240,25 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public void setDefaultCacheSchema(final boolean cache) {
 		defaultConnectionContext.cacheSchema(cache);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するスキーマ名の固定オプションの取得
+	 *
+	 * @return スキーマ名を固定する場合は<code>true</code>
+	 */
+	public boolean isDefaultFixSchema() {
+		return defaultConnectionContext.fixSchema();
+	}
+
+	/**
+	 * デフォルトのDB接続情報にスキーマ名の固定オプションを指定
+	 *
+	 * @param fixed スキーマ名を固定する場合は<code>true</code>
+	 */
+	public void setDefaultFixSchema(final boolean fixed) {
+		defaultConnectionContext.fixSchema(fixed);
 	}
 
 }

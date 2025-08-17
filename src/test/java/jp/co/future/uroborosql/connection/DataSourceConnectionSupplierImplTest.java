@@ -1,7 +1,9 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.sql.Connection;
 
@@ -148,6 +150,31 @@ public class DataSourceConnectionSupplierImplTest {
 			// assertThat(conn.isReadOnly(), is(readonly)); // H2はreadonlyオプションが適用されないためコメントアウト
 			assertThat(conn.isReadOnly(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	public void testSetDefaultCacheSchema() throws Exception {
+		boolean cache = true;
+
+		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		supplier.setDefaultCacheSchema(cache);
+		assertThat(supplier.isDefaultCacheSchema(), is(cache));
+		try (Connection conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(URL1));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(cache));
+		}
+	}
+
+	@Test
+	public void testSetDefaultFixSchema() throws Exception {
+		boolean fixed = true;
+
+		DataSourceConnectionSupplierImpl supplier = new DataSourceConnectionSupplierImpl();
+		supplier.setDefaultFixSchema(fixed);
+		assertThat(supplier.isDefaultFixSchema(), is(fixed));
+		try (Connection conn = supplier.getConnection()) {
+			assertThat(conn.isWrapperFor(SchemaFixedConnectionWrapper.class), is(true));
 		}
 	}
 
