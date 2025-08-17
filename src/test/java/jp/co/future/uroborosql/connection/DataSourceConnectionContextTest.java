@@ -17,6 +17,7 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
 		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -27,6 +28,7 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.autoCommit(), is(false));
 		assertThat(ctx.readOnly(), is(false));
 		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(false));
 		assertThat(ctx.transactionIsolation(), is(-1));
 	}
 
@@ -34,6 +36,14 @@ public class DataSourceConnectionContextTest {
 	public void testDataSourceConnectionContextWithCacheSchema() {
 		var ctx = ConnectionContextBuilder.dataSource().cacheSchema(true);
 		assertThat(ctx.cacheSchema(), is(true));
+		assertThat(ctx.fixSchema(), is(false));
+	}
+
+	@Test
+	public void testDataSourceConnectionContextWithFixedSchema() {
+		var ctx = ConnectionContextBuilder.dataSource().fixSchema(true);
+		assertThat(ctx.cacheSchema(), is(false));
+		assertThat(ctx.fixSchema(), is(true));
 	}
 
 	@Test
@@ -50,6 +60,8 @@ public class DataSourceConnectionContextTest {
 		assertThat(ctx.dataSourceName("dataSourceName").dataSourceName(), is("dataSourceName"));
 		assertThat(ctx.autoCommit(true).autoCommit(), is(true));
 		assertThat(ctx.readOnly(true).readOnly(), is(true));
+		assertThat(ctx.cacheSchema(true).cacheSchema(), is(true));
+		assertThat(ctx.fixSchema(true).fixSchema(), is(true));
 		assertThat(ctx.transactionIsolation(Connection.TRANSACTION_REPEATABLE_READ).transactionIsolation(),
 				is(Connection.TRANSACTION_REPEATABLE_READ));
 	}

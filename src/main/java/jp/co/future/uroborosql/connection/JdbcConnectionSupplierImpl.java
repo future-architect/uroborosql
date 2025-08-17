@@ -55,13 +55,23 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		}
 		var jdbcCtx = (JdbcConnectionContext) ctx;
 		try {
-			var connection = new MetadataCachedConnectionWrapper(
-					DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties()), jdbcCtx.cacheSchema());
-
-			var schema = jdbcCtx.schema();
-			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
-				connection.setSchema(schema);
+			var original = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
+			Connection connection;
+			if (jdbcCtx.fixSchema()) {
+				var schemaName = jdbcCtx.fixedSchemaName();
+				if (schemaName == null) {
+					schemaName = original.getSchema();
+					jdbcCtx.fixedSchemaName(schemaName);
+				}
+				connection = new SchemaFixedConnectionWrapper(original, schemaName);
+			} else {
+				connection = new MetadataCachedConnectionWrapper(original, jdbcCtx.cacheSchema());
+				var schema = jdbcCtx.schema();
+				if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
+					connection.setSchema(schema);
+				}
 			}
+
 			if (jdbcCtx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(jdbcCtx.autoCommit());
 			}
@@ -126,5 +136,14 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public void setDefaultCacheSchema(final boolean cache) {
 		defaultConnectionContext.cacheSchema(cache);
+	}
+
+	/**
+	 * デフォルトのDB接続情報にスキーマ名の固定オプションを指定
+	 *
+	 * @param fixed スキーマ名を固定する場合は<code>true</code>
+	 */
+	public void setDefaultFixSchema(final boolean fixed) {
+		defaultConnectionContext.fixSchema(fixed);
 	}
 }

@@ -21,6 +21,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.model.Product;
 
@@ -53,6 +54,96 @@ class SqlApiTest extends AbstractMatrixTest {
 		var newProducts = agent.query("example/select_product")
 				.param("product_id", List.of(1))
 				.collect(Product.class);
+
+		assertThat(newProducts, is(not(empty())));
+		assertThat(newProducts.size(), is(1));
+		var product = newProducts.get(0);
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品１"));
+		assertThat(product.getProductKanaName(), is("ショウヒン１"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("商品１説明"));
+		assertThat(product.getInsDatetime(), is(nullValue()));
+		assertThat(product.getUpdDatetime(), is(nullValue()));
+		assertThat(product.getVersionNo(), is(1));
+	}
+
+	/**
+	 * PRODUCTテーブルのクエリ実行処理のテストケース（CacheSchema=true）
+	 */
+	@Test
+	void testProductQueryWithCacheSchema() throws Exception {
+		var supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
+		supplier.setDefaultCacheSchema(true);
+
+		truncateTable("PRODUCT");
+		var products = agent.query(Product.class)
+				.in("productId", List.of(1))
+				.collect();
+
+		assertThat(products, is(empty()));
+
+		var newProduct = new Product();
+		newProduct.setProductId(1);
+		newProduct.setProductName("商品１");
+		newProduct.setProductKanaName("ショウヒン１");
+		newProduct.setJanCode("1234567890123");
+		newProduct.setProductDescription("商品１説明");
+		newProduct.setInsDatetime(null);
+		newProduct.setUpdDatetime(null);
+		newProduct.setVersionNo(1);
+
+		var updateCount = agent.insert(newProduct);
+		assertThat(updateCount, is(1));
+
+		var newProducts = agent.query(Product.class)
+				.in("productId", List.of(1))
+				.collect();
+
+		assertThat(newProducts, is(not(empty())));
+		assertThat(newProducts.size(), is(1));
+		var product = newProducts.get(0);
+		assertThat(product.getProductId(), is(1));
+		assertThat(product.getProductName(), is("商品１"));
+		assertThat(product.getProductKanaName(), is("ショウヒン１"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("商品１説明"));
+		assertThat(product.getInsDatetime(), is(nullValue()));
+		assertThat(product.getUpdDatetime(), is(nullValue()));
+		assertThat(product.getVersionNo(), is(1));
+	}
+
+	/**
+	 * PRODUCTテーブルのクエリ実行処理のテストケース（CacheSchema=true）
+	 */
+	@Test
+	void testProductQueryWithFixSchema() throws Exception {
+		var supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
+		supplier.setDefaultFixSchema(true);
+
+		truncateTable("PRODUCT");
+		var products = agent.query(Product.class)
+				.in("productId", List.of(1))
+				.collect();
+
+		assertThat(products, is(empty()));
+
+		var newProduct = new Product();
+		newProduct.setProductId(1);
+		newProduct.setProductName("商品１");
+		newProduct.setProductKanaName("ショウヒン１");
+		newProduct.setJanCode("1234567890123");
+		newProduct.setProductDescription("商品１説明");
+		newProduct.setInsDatetime(null);
+		newProduct.setUpdDatetime(null);
+		newProduct.setVersionNo(1);
+
+		var updateCount = agent.insert(newProduct);
+		assertThat(updateCount, is(1));
+
+		var newProducts = agent.query(Product.class)
+				.in("productId", List.of(1))
+				.collect();
 
 		assertThat(newProducts, is(not(empty())));
 		assertThat(newProducts.size(), is(1));
