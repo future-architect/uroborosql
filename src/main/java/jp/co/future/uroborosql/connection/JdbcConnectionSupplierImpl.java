@@ -61,7 +61,9 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 				var schemaName = jdbcCtx.fixedSchemaName();
 				if (schemaName == null) {
 					schemaName = original.getSchema();
-					jdbcCtx.fixedSchemaName(schemaName);
+					if (schemaName != null) {
+						jdbcCtx.fixedSchemaName(schemaName);
+					}
 				}
 				connection = new SchemaFixedConnectionWrapper(original, schemaName);
 			} else {
