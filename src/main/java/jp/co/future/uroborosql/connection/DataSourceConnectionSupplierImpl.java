@@ -101,7 +101,9 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					String schemaName = ctx.fixedSchemaName();
 					if (schemaName == null) {
 						schemaName = original.getSchema();
-						ctx.fixedSchemaName(schemaName);
+						if (schemaName != null) {
+							ctx.fixedSchemaName(schemaName);
+						}
 					}
 					connection = new SchemaFixedConnectionWrapper(original, schemaName);
 				} else {
