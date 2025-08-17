@@ -59,7 +59,8 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 					throw new UnsupportedOperationException(ex);
 				}
 			}
-			this.connection = new SchemaFixedConnectionWrapper(connection, fixedSchemaName);
+			this.connection = new SchemaFixedConnectionWrapper(new CloseIgnoringConnectionWrapper(connection),
+					fixedSchemaName);
 		} else {
 			this.connection = new MetadataCachedConnectionWrapper(new CloseIgnoringConnectionWrapper(connection),
 					schemaOption == SchemaOption.CACHE);
