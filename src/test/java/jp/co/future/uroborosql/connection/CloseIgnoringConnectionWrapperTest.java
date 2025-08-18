@@ -1,7 +1,10 @@
 package jp.co.future.uroborosql.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -239,6 +242,9 @@ public class CloseIgnoringConnectionWrapperTest {
 	public void testUnwrap() throws Exception {
 		assertThat(target.isWrapperFor(Connection.class), is(true));
 		assertThat(target.unwrap(Connection.class), is(instanceOf(Connection.class)));
+		assertThat(target.isWrapperFor(CloseIgnoringConnectionWrapper.class), is(true));
+		assertThat(target.unwrap(CloseIgnoringConnectionWrapper.class),
+				is(instanceOf(CloseIgnoringConnectionWrapper.class)));
 	}
 
 }

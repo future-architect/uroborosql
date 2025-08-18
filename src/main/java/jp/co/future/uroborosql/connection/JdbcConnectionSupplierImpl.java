@@ -97,12 +97,23 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 		}
 		JdbcConnectionContext jdbcCtx = (JdbcConnectionContext) ctx;
 		try {
-			Connection connection = new MetadataCachedConnectionWrapper(
-					DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties()), jdbcCtx.cacheSchema());
-
-			String schema = jdbcCtx.schema();
-			if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
-				connection.setSchema(schema);
+			Connection original = DriverManager.getConnection(jdbcCtx.url(), jdbcCtx.toProperties());
+			Connection connection;
+			if (jdbcCtx.fixSchema()) {
+				String schemaName = jdbcCtx.fixedSchemaName();
+				if (schemaName == null) {
+					schemaName = original.getSchema();
+					if (schemaName != null) {
+						jdbcCtx.fixedSchemaName(schemaName);
+					}
+				}
+				connection = new SchemaFixedConnectionWrapper(original, schemaName);
+			} else {
+				connection = new MetadataCachedConnectionWrapper(original, jdbcCtx.cacheSchema());
+				String schema = jdbcCtx.schema();
+				if (schema != null && !Objects.equals(connection.getSchema(), schema)) {
+					connection.setSchema(schema);
+				}
 			}
 			if (jdbcCtx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(jdbcCtx.autoCommit());
@@ -172,11 +183,22 @@ public class JdbcConnectionSupplierImpl implements ConnectionSupplier {
 	}
 
 	/**
-	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 * {@inheritDoc}
 	 *
-	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultCacheSchema(boolean)
 	 */
+	@Override
 	public void setDefaultCacheSchema(final boolean cache) {
 		defaultConnectionContext.cacheSchema(cache);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultFixSchema(boolean)
+	 */
+	@Override
+	public void setDefaultFixSchema(final boolean fixed) {
+		defaultConnectionContext.fixSchema(fixed);
 	}
 }

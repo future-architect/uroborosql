@@ -20,7 +20,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import jp.co.future.uroborosql.config.SqlConfig;
-import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl;
 import jp.co.future.uroborosql.mapping.annotations.Version;
 import jp.co.future.uroborosql.utils.StringUtils;
 
@@ -152,7 +151,7 @@ public class AbstractDbTest {
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder(DriverManager.getConnection("jdbc:h2:mem:" + this.getClass().getSimpleName()))
 				.build();
-		((DefaultConnectionSupplierImpl) config.getConnectionSupplier()).setCacheSchema(true);
+		config.getConnectionSupplier().setDefaultCacheSchema(true);
 		config.getSqlAgentFactory().setFetchSize(1000);
 		Path ddlPath = getDdlPath();
 		if (ddlPath != null) {

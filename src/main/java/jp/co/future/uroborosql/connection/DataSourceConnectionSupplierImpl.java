@@ -96,7 +96,19 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchema());
+				Connection original = ds.getConnection();
+				if (ctx.fixSchema()) {
+					String schemaName = ctx.fixedSchemaName();
+					if (schemaName == null) {
+						schemaName = original.getSchema();
+						if (schemaName != null) {
+							ctx.fixedSchemaName(schemaName);
+						}
+					}
+					connection = new SchemaFixedConnectionWrapper(original, schemaName);
+				} else {
+					connection = new MetadataCachedConnectionWrapper(original, ctx.cacheSchema());
+				}
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());
@@ -224,12 +236,33 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	}
 
 	/**
-	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 * {@inheritDoc}
 	 *
-	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultCacheSchema(boolean)
 	 */
+	@Override
 	public void setDefaultCacheSchema(final boolean cache) {
 		defaultConnectionContext.cacheSchema(cache);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するスキーマ名の固定オプションの取得
+	 *
+	 * @return スキーマ名を固定する場合は<code>true</code>
+	 */
+	public boolean isDefaultFixSchema() {
+		return defaultConnectionContext.fixSchema();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultFixSchema(boolean)
+	 */
+	@Override
+	public void setDefaultFixSchema(final boolean fixed) {
+		defaultConnectionContext.fixSchema(fixed);
 	}
 
 }

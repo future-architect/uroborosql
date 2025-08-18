@@ -43,6 +43,14 @@ public class MySqlDialectTest {
 			}
 
 			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
+			}
+
+			@Override
 			public String getDatabaseName() {
 				return "MySQL";
 			}
