@@ -146,6 +146,31 @@ public class DataSourceConnectionSupplierImplTest {
 	}
 
 	@Test
+	public void testSetDefaultCacheSchema() throws Exception {
+		var cache = true;
+
+		var supplier = new DataSourceConnectionSupplierImpl();
+		supplier.setDefaultCacheSchema(cache);
+		assertThat(supplier.isDefaultCacheSchema(), is(cache));
+		try (var conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(URL1));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(cache));
+		}
+	}
+
+	@Test
+	public void testSetDefaultFixSchema() throws Exception {
+		var fixed = true;
+
+		var supplier = new DataSourceConnectionSupplierImpl();
+		supplier.setDefaultFixSchema(fixed);
+		assertThat(supplier.isDefaultFixSchema(), is(fixed));
+		try (var conn = supplier.getConnection()) {
+			assertThat(conn.isWrapperFor(SchemaFixedConnectionWrapper.class), is(true));
+		}
+	}
+
+	@Test
 	void testSetDefaultTransactionIsolation() throws Exception {
 		var supplier = new DataSourceConnectionSupplierImpl();
 		supplier.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);

@@ -28,7 +28,7 @@ import org.junit.Test;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 
-public class MetadataCachedConnectionWrapperTest {
+public class SchemaFixedConnectionWrapperTest {
 	private SqlConfig config;
 	private Connection target;
 
@@ -37,18 +37,13 @@ public class MetadataCachedConnectionWrapperTest {
 		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
 				"sa", "sa").build();
 		var supplier = config.getConnectionSupplier();
-		supplier.setDefaultCacheSchema(true);
+		supplier.setDefaultFixSchema(true);
 		target = supplier.getConnection();
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		config.getConnectionSupplier().getConnection().close();
-	}
-
-	@Test
-	public void testCacheSchema() throws Exception {
-		assertThat(target.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(true));
 	}
 
 	@Test
@@ -263,10 +258,10 @@ public class MetadataCachedConnectionWrapperTest {
 	public void testUnwrap() throws Exception {
 		assertThat(target.isWrapperFor(Connection.class), is(true));
 		assertThat(target.unwrap(Connection.class), is(instanceOf(Connection.class)));
-		assertThat(target.isWrapperFor(MetadataCachedConnectionWrapper.class), is(true));
-		assertThat(target.unwrap(MetadataCachedConnectionWrapper.class),
-				is(instanceOf(MetadataCachedConnectionWrapper.class)));
-		assertThat(target.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(true));
+		assertThat(target.isWrapperFor(MetadataCachedConnectionWrapper.class), is(false));
+		assertThat(target.isWrapperFor(SchemaFixedConnectionWrapper.class), is(true));
+		assertThat(target.unwrap(SchemaFixedConnectionWrapper.class),
+				is(instanceOf(SchemaFixedConnectionWrapper.class)));
 	}
 
 }

@@ -33,6 +33,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is("PUBLIC"));
 			assertThat(conn.getAutoCommit(), is(false));
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 	}
@@ -100,6 +101,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is(schema));
 			assertThat(conn.getAutoCommit(), is(false));
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 
@@ -111,6 +113,7 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getSchema(), is(ctx.schema()));
 			assertThat(conn.getAutoCommit(), is(ctx.autoCommit()));
 			assertThat(conn.isReadOnly(), is(ctx.readOnly()));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(false));
 			assertThat(conn.getTransactionIsolation(), is(ctx.transactionIsolation()));
 		}
 	}
@@ -233,6 +236,44 @@ public class JdbcConnectionSupplierImplTest {
 			assertThat(conn.getAutoCommit(), is(autoCommit));
 			// assertThat(conn.isReadOnly(), is(readonly)); // H2はreadonlyオプションが適用されないためコメントアウト
 			assertThat(conn.isReadOnly(), is(false));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	public void testSetDefaultCacheSchema() throws Exception {
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+		var cache = true;
+
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
+		supplier.setDefaultCacheSchema(cache);
+		try (var conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(url));
+			assertThat(conn.getSchema(), is(schema));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(true));
+			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
+		}
+	}
+
+	@Test
+	public void testSetDefaultFixSchema() throws Exception {
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var schema = "PUBLIC";
+		var fixed = true;
+
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
+		supplier.setDefaultFixSchema(fixed);
+		try (var conn = supplier.getConnection()) {
+			assertThat(conn.getMetaData().getURL(), is(url));
+			assertThat(conn.getSchema(), is(schema));
+			assertThat(conn.getAutoCommit(), is(false));
+			assertThat(conn.isWrapperFor(MetadataCachedConnectionWrapper.class), is(false));
 			assertThat(conn.getTransactionIsolation(), is(Connection.TRANSACTION_READ_COMMITTED));
 		}
 	}

@@ -43,6 +43,14 @@ public class MariaDb10DialectTest {
 			}
 
 			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
+			}
+
+			@Override
 			public String getDatabaseName() {
 				return "MariaDB-5.0";
 			}
@@ -69,6 +77,14 @@ public class MariaDb10DialectTest {
 			}
 
 			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
+			}
+
+			@Override
 			public String getDatabaseName() {
 				return "MariaDB-10.0";
 			}
@@ -92,6 +108,14 @@ public class MariaDb10DialectTest {
 			@Override
 			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
+			}
+
+			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
 			}
 
 			@Override

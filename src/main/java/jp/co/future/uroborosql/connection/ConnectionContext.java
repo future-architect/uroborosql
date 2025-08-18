@@ -25,6 +25,10 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 	public static String PROPS_TRANSACTION_ISOLATION = "transactionisolation";
 	/** プロパティ：スキーマ名のキャッシュ */
 	private static String PROPS_CACHE_SCHEMA = "__cache_schema__";
+	/** プロパティ：スキーマ名の固定 */
+	private static String PROPS_FIX_SCHEMA = "__fix_schema__";
+	/** プロパティ：固定したスキーマ名 */
+	private static String PROPS_FIXED_SCHEMA_NAME = "__fixed_schema_name__";
 
 	/**
 	 * コンストラクタ
@@ -134,6 +138,50 @@ public abstract class ConnectionContext extends ConcurrentHashMap<String, Object
 	@SuppressWarnings("unchecked")
 	public <T extends ConnectionContext> T cacheSchema(final boolean cache) {
 		put(PROPS_CACHE_SCHEMA, cache);
+		return (T) this;
+	}
+
+	/**
+	 * スキーマ名の固定オプションを取得
+	 *
+	 * @return スキーマ名を固定する場合は<code>true</code>. 初期値は<code>false</code>
+	 */
+	public boolean fixSchema() {
+		return (boolean) getOrDefault(PROPS_FIX_SCHEMA, false);
+	}
+
+	/**
+	 * スキーマ名の固定オプションを指定
+	 *
+	 * @param <T> {@link ConnectionContext}の具象型
+	 * @param fixed スキーマ名を固定する場合は<code>true</code>
+	 * @return {@link ConnectionContext}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ConnectionContext> T fixSchema(final boolean fixed) {
+		put(PROPS_FIX_SCHEMA, fixed);
+		return (T) this;
+	}
+
+	/**
+	 * 固定したスキーマ名を取得
+	 *
+	 * @return 固定したスキーマ名
+	 */
+	public String fixedSchemaName() {
+		return (String) getOrDefault(PROPS_FIXED_SCHEMA_NAME, null);
+	}
+
+	/**
+	 * 固定したスキーマ名を指定
+	 *
+	 * @param <T> {@link ConnectionContext}の具象型
+	 * @param schemaName 固定したスキーマ名
+	 * @return {@link ConnectionContext}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ConnectionContext> T fixedSchemaName(final String schemaName) {
+		put(PROPS_FIXED_SCHEMA_NAME, schemaName);
 		return (T) this;
 	}
 

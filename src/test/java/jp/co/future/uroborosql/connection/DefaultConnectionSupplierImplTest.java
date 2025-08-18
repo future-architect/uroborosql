@@ -8,6 +8,8 @@ import java.sql.DriverManager;
 
 import org.junit.jupiter.api.Test;
 
+import jp.co.future.uroborosql.connection.DefaultConnectionSupplierImpl.SchemaOption;
+
 /**
  * Testcase of {@link DefaultConnectionSupplierImpl}
  *
@@ -34,9 +36,21 @@ public class DefaultConnectionSupplierImplTest {
 		var password = "";
 		var conn = DriverManager.getConnection(url, user, password);
 
-		var supplier = new DefaultConnectionSupplierImpl(conn, true);
+		var supplier = new DefaultConnectionSupplierImpl(conn, SchemaOption.CACHE);
 		assertThat(supplier.getConnection().isWrapperFor(CloseIgnoringConnectionWrapper.class), is(true));
 		assertThat(supplier.getConnection().unwrap(MetadataCachedConnectionWrapper.class).isCacheSchema(), is(true));
+	}
+
+	@Test
+	public void testDefaultConnectionSupplierImplWithFix() throws Exception {
+		var url = "jdbc:h2:mem:" + this.getClass().getSimpleName();
+		var user = "";
+		var password = "";
+		var conn = DriverManager.getConnection(url, user, password);
+
+		var supplier = new DefaultConnectionSupplierImpl(conn, SchemaOption.FIX);
+		assertThat(supplier.getConnection().isWrapperFor(CloseIgnoringConnectionWrapper.class), is(true));
+		assertThat(supplier.getConnection().isWrapperFor(SchemaFixedConnectionWrapper.class), is(true));
 	}
 
 	@Test

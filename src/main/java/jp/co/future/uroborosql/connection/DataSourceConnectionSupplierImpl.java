@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -57,7 +56,6 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	public DataSourceConnectionSupplierImpl(final DataSource defaultDataSource) {
 		this();
 		this.datasources.put(this.defaultConnectionContext.dataSourceName(), defaultDataSource);
-
 	}
 
 	/**
@@ -86,7 +84,19 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 					DataSourceConnectionSupplierImpl::getNewDataSource);
 			final Connection connection;
 			synchronized (ds) {
-				connection = new MetadataCachedConnectionWrapper(ds.getConnection(), ctx.cacheSchema());
+				var original = ds.getConnection();
+				if (ctx.fixSchema()) {
+					var schemaName = ctx.fixedSchemaName();
+					if (schemaName == null) {
+						schemaName = original.getSchema();
+						if (schemaName != null) {
+							ctx.fixedSchemaName(schemaName);
+						}
+					}
+					connection = new SchemaFixedConnectionWrapper(original, schemaName);
+				} else {
+					connection = new MetadataCachedConnectionWrapper(original, ctx.cacheSchema());
+				}
 			}
 			if (ctx.autoCommit() != connection.getAutoCommit()) {
 				connection.setAutoCommit(ctx.autoCommit());
@@ -112,7 +122,7 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	private static DataSource getNewDataSource(final String dataSourceName) {
 		try {
-			Context context = new InitialContext();
+			var context = new InitialContext();
 			return (DataSource) context.lookup(dataSourceName);
 		} catch (NamingException ex) {
 			throw new UroborosqlRuntimeException("DataSource[" + dataSourceName + "] can not be acquired.", ex);
@@ -201,6 +211,46 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	 */
 	public void setDefaultTransactionIsolation(final int transactionIsolation) {
 		defaultConnectionContext.transactionIsolation(transactionIsolation);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するスキーマ名のキャッシュオプションの取得
+	 *
+	 * @return スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	public boolean isDefaultCacheSchema() {
+		return defaultConnectionContext.cacheSchema();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultCacheSchema(boolean)
+	 */
+	@Override
+	public void setDefaultCacheSchema(final boolean cache) {
+		defaultConnectionContext.cacheSchema(cache);
+	}
+
+	/**
+	 * {@link DataSourceConnectionSupplierImpl#setDefaultDataSourceName(String)}
+	 * で指定したデータソースに対するスキーマ名の固定オプションの取得
+	 *
+	 * @return スキーマ名を固定する場合は<code>true</code>
+	 */
+	public boolean isDefaultFixSchema() {
+		return defaultConnectionContext.fixSchema();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultFixSchema(boolean)
+	 */
+	@Override
+	public void setDefaultFixSchema(final boolean fixed) {
+		defaultConnectionContext.fixSchema(fixed);
 	}
 
 }

@@ -43,6 +43,14 @@ public class Oracle21DialectTest {
 			}
 
 			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
+			}
+
+			@Override
 			public String getDatabaseName() {
 				return "Oracle-21.1";
 			}
@@ -69,6 +77,14 @@ public class Oracle21DialectTest {
 			}
 
 			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
+			}
+
+			@Override
 			public String getDatabaseName() {
 				return "Oracle-19.1";
 			}
@@ -92,6 +108,14 @@ public class Oracle21DialectTest {
 			@Override
 			public Connection getConnection(final ConnectionContext ctx) {
 				return null;
+			}
+
+			@Override
+			public void setDefaultCacheSchema(final boolean cache) {
+			}
+
+			@Override
+			public void setDefaultFixSchema(final boolean fixed) {
 			}
 
 			@Override
