@@ -244,7 +244,7 @@ public class JdbcConnectionSupplierImplTest {
 		String schema = "PUBLIC";
 		boolean cache = true;
 
-		JdbcConnectionSupplierImpl supplier = new JdbcConnectionSupplierImpl(
+		ConnectionSupplier supplier = new JdbcConnectionSupplierImpl(
 				ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultCacheSchema(cache);
 		try (Connection conn = supplier.getConnection()) {
