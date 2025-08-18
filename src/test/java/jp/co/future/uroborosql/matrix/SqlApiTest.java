@@ -21,7 +21,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import jp.co.future.uroborosql.connection.JdbcConnectionSupplierImpl;
 import jp.co.future.uroborosql.exception.UroborosqlRuntimeException;
 import jp.co.future.uroborosql.model.Product;
 
@@ -73,8 +72,7 @@ class SqlApiTest extends AbstractMatrixTest {
 	 */
 	@Test
 	void testProductQueryWithCacheSchema() throws Exception {
-		var supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
-		supplier.setDefaultCacheSchema(true);
+		config.getConnectionSupplier().setDefaultCacheSchema(true);
 
 		truncateTable("PRODUCT");
 		var products = agent.query(Product.class)
@@ -118,8 +116,7 @@ class SqlApiTest extends AbstractMatrixTest {
 	 */
 	@Test
 	void testProductQueryWithFixSchema() throws Exception {
-		var supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
-		supplier.setDefaultFixSchema(true);
+		config.getConnectionSupplier().setDefaultFixSchema(true);
 
 		truncateTable("PRODUCT");
 		var products = agent.query(Product.class)

@@ -224,10 +224,11 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	}
 
 	/**
-	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 * {@inheritDoc}
 	 *
-	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultCacheSchema(boolean)
 	 */
+	@Override
 	public void setDefaultCacheSchema(final boolean cache) {
 		defaultConnectionContext.cacheSchema(cache);
 	}
@@ -243,10 +244,11 @@ public class DataSourceConnectionSupplierImpl implements ConnectionSupplier {
 	}
 
 	/**
-	 * デフォルトのDB接続情報にスキーマ名の固定オプションを指定
+	 * {@inheritDoc}
 	 *
-	 * @param fixed スキーマ名を固定する場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultFixSchema(boolean)
 	 */
+	@Override
 	public void setDefaultFixSchema(final boolean fixed) {
 		defaultConnectionContext.fixSchema(fixed);
 	}

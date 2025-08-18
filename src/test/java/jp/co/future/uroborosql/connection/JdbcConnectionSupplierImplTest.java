@@ -248,8 +248,7 @@ public class JdbcConnectionSupplierImplTest {
 		var schema = "PUBLIC";
 		var cache = true;
 
-		var supplier = new JdbcConnectionSupplierImpl(
-				ConnectionContextBuilder.jdbc(url, user, password));
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultCacheSchema(cache);
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));
@@ -268,8 +267,7 @@ public class JdbcConnectionSupplierImplTest {
 		var schema = "PUBLIC";
 		var fixed = true;
 
-		var supplier = new JdbcConnectionSupplierImpl(
-				ConnectionContextBuilder.jdbc(url, user, password));
+		var supplier = new JdbcConnectionSupplierImpl(ConnectionContextBuilder.jdbc(url, user, password));
 		supplier.setDefaultFixSchema(fixed);
 		try (var conn = supplier.getConnection()) {
 			assertThat(conn.getMetaData().getURL(), is(url));

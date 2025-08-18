@@ -36,7 +36,7 @@ public class MetadataCachedConnectionWrapperTest {
 	public void setUp() throws Exception {
 		config = UroboroSQL.builder("jdbc:h2:mem:" + this.getClass().getSimpleName() + ";MODE=DB2",
 				"sa", "sa").build();
-		var supplier = (JdbcConnectionSupplierImpl) config.getConnectionSupplier();
+		var supplier = config.getConnectionSupplier();
 		supplier.setDefaultCacheSchema(true);
 		target = supplier.getConnection();
 	}

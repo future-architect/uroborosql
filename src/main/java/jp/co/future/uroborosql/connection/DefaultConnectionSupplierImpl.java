@@ -89,11 +89,12 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 	}
 
 	/**
-	 * 保持しているConnectionにスキーマ名のキャッシュオプションを指定
+	 * {@inheritDoc}
 	 *
-	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultCacheSchema(boolean)
 	 */
-	public void setCacheSchema(final boolean cache) {
+	@Override
+	public void setDefaultCacheSchema(final boolean cache) {
 		try {
 			if (connection.isWrapperFor(MetadataCachedConnectionWrapper.class)) {
 				connection.unwrap(MetadataCachedConnectionWrapper.class).setCacheSchema(cache);
@@ -103,5 +104,15 @@ public class DefaultConnectionSupplierImpl implements ConnectionSupplier {
 		} catch (SQLException ex) {
 			throw new IllegalStateException(ex);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.connection.ConnectionSupplier#setDefaultFixSchema(boolean)
+	 */
+	@Override
+	public void setDefaultFixSchema(final boolean fixed) {
+		throw new UnsupportedOperationException();
 	}
 }

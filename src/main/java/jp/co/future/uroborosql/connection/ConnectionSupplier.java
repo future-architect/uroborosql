@@ -31,6 +31,20 @@ public interface ConnectionSupplier {
 	Connection getConnection(ConnectionContext ctx);
 
 	/**
+	 * デフォルトのDB接続情報にスキーマ名のキャッシュオプションを指定
+	 *
+	 * @param cache スキーマ名をキャッシュする場合は<code>true</code>
+	 */
+	void setDefaultCacheSchema(final boolean cache);
+
+	/**
+	 * デフォルトのDB接続情報にスキーマ名の固定オプションを指定
+	 *
+	 * @param fixed スキーマ名を固定する場合は<code>true</code>
+	 */
+	void setDefaultFixSchema(final boolean fixed);
+
+	/**
 	 * 接続しているDBプロダクト名+ バージョンを取得する
 	 *
 	 * @return DatabaseName + "-" + DatabaseVersion
