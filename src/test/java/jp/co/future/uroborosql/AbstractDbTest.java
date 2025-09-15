@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -128,7 +129,7 @@ public class AbstractDbTest {
 		var expected = new String(Files.readAllBytes(Paths.get(expectedFilePath)), StandardCharsets.UTF_8);
 		var actual = new String(Files.readAllBytes(Paths.get(actualFilePath)), StandardCharsets.UTF_8);
 
-		assertEquals(expected, actual);
+		assertThat(actual, is(expected));
 	}
 
 }
