@@ -4,8 +4,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Paths;
@@ -31,14 +29,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.collect();
 
 		products.forEach(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), is(not(nullValue())));
+			assertThat(p.getProductName(), is(not(nullValue())));
+			assertThat(p.getProductKanaName(), is(not(nullValue())));
+			assertThat(p.getJanCode(), is(not(nullValue())));
+			assertThat(p.getProductDescription(), is(not(nullValue())));
+			assertThat(p.getInsDatetime(), is(not(nullValue())));
+			assertThat(p.getUpdDatetime(), is(not(nullValue())));
+			assertThat(p.getVersionNo(), is(not(nullValue())));
 		});
 		assertThat(products.size(), is(2));
 	}
@@ -51,14 +49,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		agent.query(Product.class)
 				.in("product_id", 0, 1)
 				.stream().forEach(p -> {
-					assertNotNull(p.getProductId());
-					assertNotNull(p.getProductName());
-					assertNotNull(p.getProductKanaName());
-					assertNotNull(p.getJanCode());
-					assertNotNull(p.getProductDescription());
-					assertNotNull(p.getInsDatetime());
-					assertNotNull(p.getUpdDatetime());
-					assertNotNull(p.getVersionNo());
+					assertThat(p.getProductId(), is(not(nullValue())));
+					assertThat(p.getProductName(), is(not(nullValue())));
+					assertThat(p.getProductKanaName(), is(not(nullValue())));
+					assertThat(p.getJanCode(), is(not(nullValue())));
+					assertThat(p.getProductDescription(), is(not(nullValue())));
+					assertThat(p.getInsDatetime(), is(not(nullValue())));
+					assertThat(p.getUpdDatetime(), is(not(nullValue())));
+					assertThat(p.getVersionNo(), is(not(nullValue())));
 				});
 		assertThat(agent.query(Product.class).in("product_id", 0, 1).count(), is(2L));
 	}
@@ -75,14 +73,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product.isPresent(), is(true));
 
 		product.ifPresent(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), is(not(nullValue())));
+			assertThat(p.getProductName(), is(not(nullValue())));
+			assertThat(p.getProductKanaName(), is(not(nullValue())));
+			assertThat(p.getJanCode(), is(not(nullValue())));
+			assertThat(p.getProductDescription(), is(not(nullValue())));
+			assertThat(p.getInsDatetime(), is(not(nullValue())));
+			assertThat(p.getUpdDatetime(), is(not(nullValue())));
+			assertThat(p.getVersionNo(), is(not(nullValue())));
 		});
 
 		var empty = agent.query(Product.class)
@@ -112,14 +110,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 		assertThat(product.isPresent(), is(true));
 
 		product.ifPresent(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), is(not(nullValue())));
+			assertThat(p.getProductName(), is(not(nullValue())));
+			assertThat(p.getProductKanaName(), is(not(nullValue())));
+			assertThat(p.getJanCode(), is(not(nullValue())));
+			assertThat(p.getProductDescription(), is(not(nullValue())));
+			assertThat(p.getInsDatetime(), is(not(nullValue())));
+			assertThat(p.getUpdDatetime(), is(not(nullValue())));
+			assertThat(p.getVersionNo(), is(not(nullValue())));
 		});
 
 		var empty = agent.query(Product.class)
@@ -139,14 +137,14 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.collect();
 
 		products.forEach(p -> {
-			assertNotNull(p.getProductId());
-			assertNotNull(p.getProductName());
-			assertNotNull(p.getProductKanaName());
-			assertNotNull(p.getJanCode());
-			assertNotNull(p.getProductDescription());
-			assertNotNull(p.getInsDatetime());
-			assertNotNull(p.getUpdDatetime());
-			assertNotNull(p.getVersionNo());
+			assertThat(p.getProductId(), is(not(nullValue())));
+			assertThat(p.getProductName(), is(not(nullValue())));
+			assertThat(p.getProductKanaName(), is(not(nullValue())));
+			assertThat(p.getJanCode(), is(not(nullValue())));
+			assertThat(p.getProductDescription(), is(not(nullValue())));
+			assertThat(p.getInsDatetime(), is(not(nullValue())));
+			assertThat(p.getUpdDatetime(), is(not(nullValue())));
+			assertThat(p.getVersionNo(), is(not(nullValue())));
 		});
 		assertThat(products.size(), is(1));
 	}
@@ -162,7 +160,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.select("productName", String.class)
 				.findFirst()
 				.orElseThrow();
-		assertEquals(productName, "商品名1");
+		assertThat(productName, is("商品名1"));
 
 		// snake case
 		var janCode = agent.query(Product.class)
@@ -170,15 +168,15 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 				.select("jan_code", String.class)
 				.findFirst()
 				.orElseThrow();
-		assertEquals(janCode, "1234567890124");
+		assertThat(janCode, is("1234567890124"));
 
 		// multiple case
 		List<String> productNames = agent.query(Product.class)
 				.select("productName", String.class)
 				.collect(Collectors.toList());
-		assertEquals(productNames.size(), 2);
-		assertEquals(productNames.get(0), "商品名0");
-		assertEquals(productNames.get(1), "商品名1");
+		assertThat(productNames.size(), is(2));
+		assertThat(productNames.get(0), is("商品名0"));
+		assertThat(productNames.get(1), is("商品名1"));
 
 		// exception case
 		try {
@@ -187,7 +185,7 @@ public class SqlEntityQueryTest extends AbstractDbTest {
 					.select("noMatchField", String.class);
 			fail();
 		} catch (UroborosqlRuntimeException ex) {
-			assertEquals("field:noMatchField not found in Product.", ex.getMessage());
+			assertThat(ex.getMessage(), is("field:noMatchField not found in Product."));
 		} catch (Exception ex) {
 			fail();
 		}

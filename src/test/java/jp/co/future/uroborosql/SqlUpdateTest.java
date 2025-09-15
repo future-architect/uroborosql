@@ -1,9 +1,8 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +35,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("jan_code", "1234567890123", Types.CHAR);
 
 		var updateCount = agent.update(ctx);
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -47,7 +45,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
