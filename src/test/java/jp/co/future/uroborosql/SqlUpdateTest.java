@@ -157,8 +157,8 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var products = agent.query(Product.class)
 				.asc("product_id")
 				.collect();
-		assertThat("商品名1_updated", is(products.get(0).getProductName()));
-		assertThat("商品名0_updated", is(products.get(1).getProductName()));
+		assertThat(products.get(0).getProductName(), is("商品名1_updated"));
+		assertThat(products.get(1).getProductName(), is("商品名0_updated"));
 	}
 
 	/**
@@ -186,9 +186,9 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var products = agent.query(Product.class)
 				.asc("product_id")
 				.collect();
-		assertThat(3, is(products.size()));
-		assertThat("商品名1_updated", is(products.get(0).getProductName()));
-		assertThat("商品名0_updated", is(products.get(1).getProductName()));
+		assertThat(products.size(), is(3));
+		assertThat(products.get(0).getProductName(), is("商品名1_updated"));
+		assertThat(products.get(1).getProductName(), is("商品名0_updated"));
 		assertThat(products.get(2).getProductName(), is("商品名0"));
 	}
 

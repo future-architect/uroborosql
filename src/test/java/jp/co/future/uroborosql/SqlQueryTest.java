@@ -448,7 +448,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -473,7 +473,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -481,7 +481,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -514,7 +514,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -546,7 +546,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -554,7 +554,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -603,7 +603,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		try {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3)).findOne();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -673,7 +673,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne();
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -706,7 +706,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(CaseFormat.LOWER_SNAKE_CASE);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -732,7 +732,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one(CaseFormat.LOWER_SNAKE_CASE);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -740,7 +740,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one(CaseFormat.LOWER_SNAKE_CASE);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -790,7 +790,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne(CaseFormat.PASCAL_CASE);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -823,7 +823,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(Product.class);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -904,7 +904,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(Product.class);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -912,7 +912,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one(Product.class);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -953,7 +953,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne(Product.class);
-			assertThat(false, is(true));
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -1164,11 +1164,11 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		try {
 			agent.query("example/select_product").stream((Class<?>) null);
-			assertThat(false, is(true));
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("Argument 'type' is required."));
 		} catch (Exception ex) {
-			assertThat(false, is(true));
+			fail();
 		}
 	}
 
@@ -1222,11 +1222,11 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.select("productNameNothing", String.class)
 					.collect(Collectors.toList());
-			assertThat(false, is(true));
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("PRODUCT_NAME_NOTHING not found in query result."));
 		} catch (Exception ex) {
-			assertThat(false, is(true));
+			fail();
 		}
 	}
 
@@ -1338,20 +1338,20 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 例外
 		try {
 			agent.queryWith("select 'abc'").select(null);
-			assertThat(false, is(true));
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("Argument 'type' is required."));
 		} catch (Exception ex) {
-			assertThat(false, is(true));
+			fail();
 		}
 
 		try {
 			agent.queryWith("select 'abc'").select(Object.class);
-			assertThat(false, is(true));
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("java.lang.Object is not supported."));
 		} catch (Exception ex) {
-			assertThat(false, is(true));
+			fail();
 		}
 	}
 
