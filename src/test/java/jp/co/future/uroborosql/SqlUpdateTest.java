@@ -189,7 +189,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		assertThat(3, is(products.size()));
 		assertThat("商品名1_updated", is(products.get(0).getProductName()));
 		assertThat("商品名0_updated", is(products.get(1).getProductName()));
-		assertThat("商品名0", is(products.get(2).getProductName()));
+		assertThat(products.get(2).getProductName(), is("商品名0"));
 	}
 
 	/**
