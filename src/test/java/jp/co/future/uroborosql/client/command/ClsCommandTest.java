@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,7 +58,7 @@ public class ClsCommandTest extends ReaderTestSupport {
 	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var flag = command.execute(reader, "cls".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 	}
 
 	@Test

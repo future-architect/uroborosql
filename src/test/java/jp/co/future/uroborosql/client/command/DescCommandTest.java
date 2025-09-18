@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,7 +59,7 @@ public class DescCommandTest extends ReaderTestSupport {
 	void testExecute() throws Exception {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 		var flag = command.execute(reader, "desc PRODUCT".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains(
 				"|TABLE_NAME|COLUMN_NAME        |TYPE_NAME|COLUMN_SIZE|DECIMAL_DIGITS|IS_NULLABLE|COLUMN_DEF|REMARKS|");
 	}

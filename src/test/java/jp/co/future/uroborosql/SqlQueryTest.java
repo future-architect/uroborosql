@@ -2,12 +2,10 @@ package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
@@ -85,14 +83,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
-		assertNotNull(rs, "ResultSetが取得できませんでした。");
-		assertTrue(rs.next(), "結果が0件です。");
-		assertEquals("0", rs.getString("PRODUCT_ID"));
-		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", rs.getString("JAN_CODE"));
-		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse(rs.next(), "結果が複数件です。");
+		assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+		assertThat("結果が0件です。", rs.next(), is(true));
+		assertThat(rs.getString("PRODUCT_ID"), is("0"));
+		assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+		assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+		assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+		assertThat("結果が複数件です。", rs.next(), is(false));
 	}
 
 	/**
@@ -108,14 +106,14 @@ public class SqlQueryTest extends AbstractDbTest {
 			try (var rs = agent.query("example/select_product")
 					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 					.resultSet()) {
-				assertNotNull(rs, "ResultSetが取得できませんでした。");
-				assertTrue(rs.next(), "結果が0件です。");
-				assertEquals("0", rs.getString("PRODUCT_ID"));
-				assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-				assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-				assertEquals("1234567890123", rs.getString("JAN_CODE"));
-				assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-				assertFalse(rs.next(), "結果が複数件です。");
+				assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+				assertThat("結果が0件です。", rs.next(), is(true));
+				assertThat(rs.getString("PRODUCT_ID"), is("0"));
+				assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+				assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+				assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+				assertThat("結果が複数件です。", rs.next(), is(false));
 			} catch (SQLException ex) {
 				fail(ex);
 			}
@@ -124,14 +122,14 @@ public class SqlQueryTest extends AbstractDbTest {
 			try (var rs = agent.query("example/select_product")
 					.param("product_id", List.of(new BigDecimal("0"), new BigDecimal("2")))
 					.resultSet()) {
-				assertNotNull(rs, "ResultSetが取得できませんでした。");
-				assertTrue(rs.next(), "結果が0件です。");
-				assertEquals("0", rs.getString("PRODUCT_ID"));
-				assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-				assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-				assertEquals("1234567890123", rs.getString("JAN_CODE"));
-				assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-				assertFalse(rs.next(), "結果が複数件です。");
+				assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+				assertThat("結果が0件です。", rs.next(), is(true));
+				assertThat(rs.getString("PRODUCT_ID"), is("0"));
+				assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+				assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+				assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+				assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+				assertThat("結果が複数件です。", rs.next(), is(false));
 			} catch (SQLException ex) {
 				fail(ex);
 			}
@@ -154,14 +152,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.setSqlId("test_sql_id");
 
 		var rs = agent.query(ctx);
-		assertNotNull(rs, "ResultSetが取得できませんでした。");
-		assertTrue(rs.next(), "結果が0件です。");
-		assertEquals("0", rs.getString("PRODUCT_ID"));
-		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", rs.getString("JAN_CODE"));
-		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse(rs.next(), "結果が複数件です。");
+		assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+		assertThat("結果が0件です。", rs.next(), is(true));
+		assertThat(rs.getString("PRODUCT_ID"), is("0"));
+		assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+		assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+		assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+		assertThat("結果が複数件です。", rs.next(), is(false));
 	}
 
 	/**
@@ -181,14 +179,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("maxRowCount", 1);
 
 		var rs = agent.query(ctx);
-		assertNotNull(rs, "ResultSetが取得できませんでした。");
-		assertTrue(rs.next(), "結果が0件です。");
-		assertEquals("0", rs.getString("PRODUCT_ID"));
-		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", rs.getString("JAN_CODE"));
-		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
-		assertFalse(rs.next(), "結果が複数件です。");
+		assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+		assertThat("結果が0件です。", rs.next(), is(true));
+		assertThat(rs.getString("PRODUCT_ID"), is("0"));
+		assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+		assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+		assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
+		assertThat("結果が複数件です。", rs.next(), is(false));
 	}
 
 	/**
@@ -257,13 +255,13 @@ public class SqlQueryTest extends AbstractDbTest {
 						List.of(0, 1, 2, 3));
 
 		var rs = agent.query(ctx);
-		assertNotNull(rs, "ResultSetが取得できませんでした。");
-		assertTrue(rs.next(), "結果が0件です。");
-		assertEquals("0", rs.getString("PRODUCT_ID"));
-		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", rs.getString("JAN_CODE"));
-		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+		assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+		assertThat("結果が0件です。", rs.next(), is(true));
+		assertThat(rs.getString("PRODUCT_ID"), is("0"));
+		assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+		assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+		assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 	}
 
 	/**
@@ -277,13 +275,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		var rs = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.resultSet();
-		assertNotNull(rs, "ResultSetが取得できませんでした。");
-		assertTrue(rs.next(), "結果が0件です。");
-		assertEquals("0", rs.getString("PRODUCT_ID"));
-		assertEquals("商品名0", rs.getString("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", rs.getString("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", rs.getString("JAN_CODE"));
-		assertEquals("0番目の商品", rs.getString("PRODUCT_DESCRIPTION"));
+		assertThat("ResultSetが取得できませんでした。", rs, is(not(nullValue())));
+		assertThat("結果が0件です。", rs.next(), is(true));
+		assertThat(rs.getString("PRODUCT_ID"), is("0"));
+		assertThat(rs.getString("PRODUCT_NAME"), is("商品名0"));
+		assertThat(rs.getString("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(rs.getString("JAN_CODE"), is("1234567890123"));
+		assertThat(rs.getString("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 	}
 
 	/**
@@ -297,13 +295,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		var ans = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.collect();
-		assertEquals(2, ans.size(), "結果の件数が一致しません。");
+		assertThat("結果の件数が一致しません。", ans.size(), is(2));
 		var map = ans.get(0);
-		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
-		assertEquals("商品名0", map.get("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", map.get("JAN_CODE"));
-		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
+		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
+		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JAN_CODE"), is("1234567890123"));
+		assertThat(map.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 	}
 
 	/**
@@ -342,13 +340,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		var ans = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.collect(CaseFormat.LOWER_SNAKE_CASE);
-		assertEquals(2, ans.size(), "結果の件数が一致しません。");
+		assertThat("結果の件数が一致しません。", ans.size(), is(2));
 		var map = ans.get(0);
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -362,13 +360,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Product> ans = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.collect(Product.class);
-		assertEquals(2, ans.size(), "結果の件数が一致しません。");
+		assertThat("結果の件数が一致しません。", ans.size(), is(2));
 		var product = ans.get(0);
-		assertEquals(0, product.getProductId());
-		assertEquals("商品名0", product.getProductName());
-		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
-		assertEquals("1234567890123", product.getJanCode());
-		assertEquals("0番目の商品", product.getProductDescription());
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名0"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("0番目の商品"));
 	}
 
 	/**
@@ -382,7 +380,7 @@ public class SqlQueryTest extends AbstractDbTest {
 		List<Integer> ans = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.collect(Integer.class);
-		assertEquals(2, ans.size(), "結果の件数が一致しません。");
+		assertThat("結果の件数が一致しません。", ans.size(), is(2));
 		assertThat(ans.get(0), is(0));
 	}
 
@@ -429,13 +427,13 @@ public class SqlQueryTest extends AbstractDbTest {
 		var ans = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.collect();
-		assertEquals(2, ans.size(), "結果の件数が一致しません。");
+		assertThat("結果の件数が一致しません。", ans.size(), is(2));
 		var map = ans.get(0);
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -450,18 +448,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first();
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.first();
-		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
-		assertEquals("商品名0", map.get("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", map.get("JAN_CODE"));
-		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
+		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
+		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JAN_CODE"), is("1234567890123"));
+		assertThat(map.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 	}
 
 	/**
@@ -475,7 +473,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one();
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -483,18 +481,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one();
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.one();
-		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
-		assertEquals("商品名0", map.get("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", map.get("JAN_CODE"));
-		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
+		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
+		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JAN_CODE"), is("1234567890123"));
+		assertThat(map.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 	}
 
 	/**
@@ -516,18 +514,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first();
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.first();
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -548,7 +546,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one();
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -556,18 +554,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one();
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.one();
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -580,18 +578,18 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst();
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
-		assertEquals("商品名0", map.get("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", map.get("JAN_CODE"));
-		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
+		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
+		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JAN_CODE"), is("1234567890123"));
+		assertThat(map.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findFirst();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -605,25 +603,25 @@ public class SqlQueryTest extends AbstractDbTest {
 		try {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3)).findOne();
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0)).findOne();
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("PRODUCT_ID"));
-		assertEquals("商品名0", map.get("PRODUCT_NAME"));
-		assertEquals("ショウヒンメイゼロ", map.get("PRODUCT_KANA_NAME"));
-		assertEquals("1234567890123", map.get("JAN_CODE"));
-		assertEquals("0番目の商品", map.get("PRODUCT_DESCRIPTION"));
+		assertThat(map.get("PRODUCT_ID"), is(new BigDecimal("0")));
+		assertThat(map.get("PRODUCT_NAME"), is("商品名0"));
+		assertThat(map.get("PRODUCT_KANA_NAME"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JAN_CODE"), is("1234567890123"));
+		assertThat(map.get("PRODUCT_DESCRIPTION"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findOne();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -643,18 +641,18 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst();
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findFirst();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -675,25 +673,25 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne();
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.findOne();
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findOne();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -708,18 +706,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(CaseFormat.LOWER_SNAKE_CASE);
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3))
 				.first(CaseFormat.LOWER_SNAKE_CASE);
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -734,7 +732,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.one(CaseFormat.LOWER_SNAKE_CASE);
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -742,18 +740,18 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one(CaseFormat.LOWER_SNAKE_CASE);
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		var map = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.one(CaseFormat.LOWER_SNAKE_CASE);
-		assertEquals(new BigDecimal("0"), map.get("product_id"));
-		assertEquals("商品名0", map.get("product_name"));
-		assertEquals("ショウヒンメイゼロ", map.get("product_kana_name"));
-		assertEquals("1234567890123", map.get("jan_code"));
-		assertEquals("0番目の商品", map.get("product_description"));
+		assertThat(map.get("product_id"), is(new BigDecimal("0")));
+		assertThat(map.get("product_name"), is("商品名0"));
+		assertThat(map.get("product_kana_name"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("jan_code"), is("1234567890123"));
+		assertThat(map.get("product_description"), is("0番目の商品"));
 	}
 
 	/**
@@ -766,18 +764,18 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0, 1, 2, 3)).findFirst(CaseFormat.PASCAL_CASE);
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("ProductId"));
-		assertEquals("商品名0", map.get("ProductName"));
-		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
-		assertEquals("1234567890123", map.get("JanCode"));
-		assertEquals("0番目の商品", map.get("ProductDescription"));
+		assertThat(map.get("ProductId"), is(new BigDecimal("0")));
+		assertThat(map.get("ProductName"), is("商品名0"));
+		assertThat(map.get("ProductKanaName"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JanCode"), is("1234567890123"));
+		assertThat(map.get("ProductDescription"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findFirst();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -792,25 +790,25 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne(CaseFormat.PASCAL_CASE);
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		var optional = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.findOne(CaseFormat.PASCAL_CASE);
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var map = optional.orElseThrow();
-		assertEquals(new BigDecimal("0"), map.get("ProductId"));
-		assertEquals("商品名0", map.get("ProductName"));
-		assertEquals("ショウヒンメイゼロ", map.get("ProductKanaName"));
-		assertEquals("1234567890123", map.get("JanCode"));
-		assertEquals("0番目の商品", map.get("ProductDescription"));
+		assertThat(map.get("ProductId"), is(new BigDecimal("0")));
+		assertThat(map.get("ProductName"), is("商品名0"));
+		assertThat(map.get("ProductKanaName"), is("ショウヒンメイゼロ"));
+		assertThat(map.get("JanCode"), is("1234567890123"));
+		assertThat(map.get("ProductDescription"), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4)).findOne();
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -825,7 +823,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(Product.class);
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -833,11 +831,11 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1, 2, 3))
 				.first(Product.class);
 
-		assertEquals(0, product.getProductId());
-		assertEquals("商品名0", product.getProductName());
-		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
-		assertEquals("1234567890123", product.getJanCode());
-		assertEquals("0番目の商品", product.getProductDescription());
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名0"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("0番目の商品"));
 	}
 
 	/**
@@ -865,21 +863,21 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1, 2, 3))
 				.findFirst(Product.class);
 
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var product = optional.orElseThrow();
 
-		assertEquals(0, product.getProductId());
-		assertEquals("商品名0", product.getProductName());
-		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
-		assertEquals("1234567890123", product.getJanCode());
-		assertEquals("0番目の商品", product.getProductDescription());
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名0"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4))
 				.findFirst(Product.class);
 
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -906,7 +904,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(10))
 					.first(Product.class);
-			assertTrue(false);
+			fail();
 		} catch (DataNotFoundException e) {
 			// OK
 		}
@@ -914,7 +912,7 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.one(Product.class);
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
@@ -922,11 +920,11 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0))
 				.one(Product.class);
 
-		assertEquals(0, product.getProductId());
-		assertEquals("商品名0", product.getProductName());
-		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
-		assertEquals("1234567890123", product.getJanCode());
-		assertEquals("0番目の商品", product.getProductDescription());
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名0"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("0番目の商品"));
 	}
 
 	/**
@@ -955,28 +953,28 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1, 2, 3))
 					.findOne(Product.class);
-			assertTrue(false);
+			fail();
 		} catch (DataNonUniqueException e) {
 			// OK
 		}
 		Optional<Product> optional = agent.query("example/select_product")
 				.param("product_id", List.of(0))
 				.findOne(Product.class);
-		assertTrue(optional.isPresent());
+		assertThat(optional.isPresent(), is(true));
 
 		var product = optional.orElseThrow();
 
-		assertEquals(0, product.getProductId());
-		assertEquals("商品名0", product.getProductName());
-		assertEquals("ショウヒンメイゼロ", product.getProductKanaName());
-		assertEquals("1234567890123", product.getJanCode());
-		assertEquals("0番目の商品", product.getProductDescription());
+		assertThat(product.getProductId(), is(0));
+		assertThat(product.getProductName(), is("商品名0"));
+		assertThat(product.getProductKanaName(), is("ショウヒンメイゼロ"));
+		assertThat(product.getJanCode(), is("1234567890123"));
+		assertThat(product.getProductDescription(), is("0番目の商品"));
 
 		optional = agent.query("example/select_product")
 				.param("product_id", List.of(4))
 				.findOne(Product.class);
 
-		assertFalse(optional.isPresent());
+		assertThat(optional.isPresent(), is(false));
 	}
 
 	/**
@@ -1016,14 +1014,14 @@ public class SqlQueryTest extends AbstractDbTest {
 			}
 			return record;
 		}).forEach(m -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
+			assertThat(m.containsKey("PRODUCT_ID"), is(true));
+			assertThat(m.containsKey("PRODUCT_NAME"), is(true));
+			assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
+			assertThat(m.containsKey("JAN_CODE"), is(true));
+			assertThat(m.containsKey("PRODUCT_DESCRIPTION"), is(true));
+			assertThat(m.containsKey("INS_DATETIME"), is(true));
+			assertThat(m.containsKey("UPD_DATETIME"), is(true));
+			assertThat(m.containsKey("VERSION_NO"), is(true));
 		});
 	}
 
@@ -1038,14 +1036,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product")
 				.param("product_id", List.of(0, 1))
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("PRODUCT_ID"));
-					assertTrue(m.containsKey("PRODUCT_NAME"));
-					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-					assertTrue(m.containsKey("JAN_CODE"));
-					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-					assertTrue(m.containsKey("INS_DATETIME"));
-					assertTrue(m.containsKey("UPD_DATETIME"));
-					assertTrue(m.containsKey("VERSION_NO"));
+					assertThat(m.containsKey("PRODUCT_ID"), is(true));
+					assertThat(m.containsKey("PRODUCT_NAME"), is(true));
+					assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
+					assertThat(m.containsKey("JAN_CODE"), is(true));
+					assertThat(m.containsKey("PRODUCT_DESCRIPTION"), is(true));
+					assertThat(m.containsKey("INS_DATETIME"), is(true));
+					assertThat(m.containsKey("UPD_DATETIME"), is(true));
+					assertThat(m.containsKey("VERSION_NO"), is(true));
 				});
 		assertThat(agent.query("example/select_product")
 				.param("product_id", List.of(0, 1)).stream().count(),
@@ -1064,14 +1062,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product")
 				.param("product_id", List.of(0, 1))
 				.stream(CaseFormat.LOWER_SNAKE_CASE).forEach(m -> {
-					assertTrue(m.containsKey("product_id"));
-					assertTrue(m.containsKey("product_name"));
-					assertTrue(m.containsKey("product_kana_name"));
-					assertTrue(m.containsKey("jan_code"));
-					assertTrue(m.containsKey("product_description"));
-					assertTrue(m.containsKey("ins_datetime"));
-					assertTrue(m.containsKey("upd_datetime"));
-					assertTrue(m.containsKey("version_no"));
+					assertThat(m.containsKey("product_id"), is(true));
+					assertThat(m.containsKey("product_name"), is(true));
+					assertThat(m.containsKey("product_kana_name"), is(true));
+					assertThat(m.containsKey("jan_code"), is(true));
+					assertThat(m.containsKey("product_description"), is(true));
+					assertThat(m.containsKey("ins_datetime"), is(true));
+					assertThat(m.containsKey("upd_datetime"), is(true));
+					assertThat(m.containsKey("version_no"), is(true));
 				});
 		assertThat(agent.query("example/select_product")
 				.param("product_id", List.of(0, 1)).stream().count(),
@@ -1096,14 +1094,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product")
 				.param("product_id", List.of(0, 1))
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("product_id"));
-					assertTrue(m.containsKey("product_name"));
-					assertTrue(m.containsKey("product_kana_name"));
-					assertTrue(m.containsKey("jan_code"));
-					assertTrue(m.containsKey("product_description"));
-					assertTrue(m.containsKey("ins_datetime"));
-					assertTrue(m.containsKey("upd_datetime"));
-					assertTrue(m.containsKey("version_no"));
+					assertThat(m.containsKey("product_id"), is(true));
+					assertThat(m.containsKey("product_name"), is(true));
+					assertThat(m.containsKey("product_kana_name"), is(true));
+					assertThat(m.containsKey("jan_code"), is(true));
+					assertThat(m.containsKey("product_description"), is(true));
+					assertThat(m.containsKey("ins_datetime"), is(true));
+					assertThat(m.containsKey("upd_datetime"), is(true));
+					assertThat(m.containsKey("version_no"), is(true));
 				});
 		assertThat(agent.query("example/select_product")
 				.param("product_id", List.of(0, 1)).stream().count(),
@@ -1125,14 +1123,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		agent.query("example/select_product_param_camel")
 				.paramBean(bean)
 				.stream().forEach(m -> {
-					assertTrue(m.containsKey("PRODUCT_ID"));
-					assertTrue(m.containsKey("PRODUCT_NAME"));
-					assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-					assertTrue(m.containsKey("JAN_CODE"));
-					assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-					assertTrue(m.containsKey("INS_DATETIME"));
-					assertTrue(m.containsKey("UPD_DATETIME"));
-					assertTrue(m.containsKey("VERSION_NO"));
+					assertThat(m.containsKey("PRODUCT_ID"), is(true));
+					assertThat(m.containsKey("PRODUCT_NAME"), is(true));
+					assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
+					assertThat(m.containsKey("JAN_CODE"), is(true));
+					assertThat(m.containsKey("PRODUCT_DESCRIPTION"), is(true));
+					assertThat(m.containsKey("INS_DATETIME"), is(true));
+					assertThat(m.containsKey("UPD_DATETIME"), is(true));
+					assertThat(m.containsKey("VERSION_NO"), is(true));
 				});
 
 		assertThat(agent.query("example/select_product_param_camel").paramBean(bean).stream().count(), is(2L));
@@ -1151,14 +1149,14 @@ public class SqlQueryTest extends AbstractDbTest {
 				.param("product_id", List.of(0, 1))
 				.stream(Product.class)
 				.forEach(p -> {
-					assertNotNull(p.getProductId());
-					assertNotNull(p.getProductName());
-					assertNotNull(p.getProductKanaName());
-					assertNotNull(p.getJanCode());
-					assertNotNull(p.getProductDescription());
-					assertNotNull(p.getInsDatetime());
-					assertNotNull(p.getUpdDatetime());
-					assertNotNull(p.getVersionNo());
+					assertThat(p.getProductId(), is(not(nullValue())));
+					assertThat(p.getProductName(), is(not(nullValue())));
+					assertThat(p.getProductKanaName(), is(not(nullValue())));
+					assertThat(p.getJanCode(), is(not(nullValue())));
+					assertThat(p.getProductDescription(), is(not(nullValue())));
+					assertThat(p.getInsDatetime(), is(not(nullValue())));
+					assertThat(p.getUpdDatetime(), is(not(nullValue())));
+					assertThat(p.getVersionNo(), is(not(nullValue())));
 				});
 		assertThat(agent.query("example/select_product")
 				.param("product_id", List.of(0, 1)).stream().count(),
@@ -1166,11 +1164,11 @@ public class SqlQueryTest extends AbstractDbTest {
 
 		try {
 			agent.query("example/select_product").stream((Class<?>) null);
-			assertTrue(false);
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("Argument 'type' is required."));
 		} catch (Exception ex) {
-			assertTrue(false);
+			fail();
 		}
 	}
 
@@ -1224,11 +1222,11 @@ public class SqlQueryTest extends AbstractDbTest {
 			agent.query("example/select_product")
 					.select("productNameNothing", String.class)
 					.collect(Collectors.toList());
-			assertTrue(false);
+			fail();
 		} catch (UroborosqlRuntimeException ex) {
 			assertThat(ex.getMessage(), is("PRODUCT_NAME_NOTHING not found in query result."));
 		} catch (Exception ex) {
-			assertTrue(false);
+			fail();
 		}
 	}
 
@@ -1340,20 +1338,20 @@ public class SqlQueryTest extends AbstractDbTest {
 		// 例外
 		try {
 			agent.queryWith("select 'abc'").select(null);
-			assertTrue(false);
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("Argument 'type' is required."));
 		} catch (Exception ex) {
-			assertTrue(false);
+			fail();
 		}
 
 		try {
 			agent.queryWith("select 'abc'").select(Object.class);
-			assertTrue(false);
+			fail();
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), is("java.lang.Object is not supported."));
 		} catch (Exception ex) {
-			assertTrue(false);
+			fail();
 		}
 	}
 
@@ -1372,14 +1370,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		assertThat(ans.size(), is(2));
 
 		ans.forEach(m -> {
-			assertTrue(m.containsKey("productId"));
-			assertTrue(m.containsKey("productName"));
-			assertTrue(m.containsKey("productKanaName"));
-			assertTrue(m.containsKey("janCode"));
-			assertTrue(m.containsKey("productDescription"));
-			assertTrue(m.containsKey("insDatetime"));
-			assertTrue(m.containsKey("updDatetime"));
-			assertTrue(m.containsKey("versionNo"));
+			assertThat(m.containsKey("productId"), is(true));
+			assertThat(m.containsKey("productName"), is(true));
+			assertThat(m.containsKey("productKanaName"), is(true));
+			assertThat(m.containsKey("janCode"), is(true));
+			assertThat(m.containsKey("productDescription"), is(true));
+			assertThat(m.containsKey("insDatetime"), is(true));
+			assertThat(m.containsKey("updDatetime"), is(true));
+			assertThat(m.containsKey("versionNo"), is(true));
 		});
 
 		var ctx2 = agent.context().setSqlName("example/select_product");
@@ -1388,14 +1386,14 @@ public class SqlQueryTest extends AbstractDbTest {
 		var ans2 = agent.query(ctx2, CaseFormat.UPPER_SNAKE_CASE);
 		assertThat(ans2.size(), is(2));
 		ans2.forEach(m -> {
-			assertTrue(m.containsKey("PRODUCT_ID"));
-			assertTrue(m.containsKey("PRODUCT_NAME"));
-			assertTrue(m.containsKey("PRODUCT_KANA_NAME"));
-			assertTrue(m.containsKey("JAN_CODE"));
-			assertTrue(m.containsKey("PRODUCT_DESCRIPTION"));
-			assertTrue(m.containsKey("INS_DATETIME"));
-			assertTrue(m.containsKey("UPD_DATETIME"));
-			assertTrue(m.containsKey("VERSION_NO"));
+			assertThat(m.containsKey("PRODUCT_ID"), is(true));
+			assertThat(m.containsKey("PRODUCT_NAME"), is(true));
+			assertThat(m.containsKey("PRODUCT_KANA_NAME"), is(true));
+			assertThat(m.containsKey("JAN_CODE"), is(true));
+			assertThat(m.containsKey("PRODUCT_DESCRIPTION"), is(true));
+			assertThat(m.containsKey("INS_DATETIME"), is(true));
+			assertThat(m.containsKey("UPD_DATETIME"), is(true));
+			assertThat(m.containsKey("VERSION_NO"), is(true));
 		});
 	}
 

@@ -1,8 +1,8 @@
 package jp.co.future.uroborosql.event.subscriber;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -131,7 +131,7 @@ public class SecretResultSetTest extends AbstractDbTest {
 			assertThat(rs.getConcurrency(), is(1007));
 			assertThat(rs.getMetaData().getColumnCount(), is(8));
 			rs.clearWarnings();
-			assertNull(rs.getWarnings());
+			assertThat(rs.getWarnings(), is(nullValue()));
 		}
 	}
 
@@ -145,8 +145,8 @@ public class SecretResultSetTest extends AbstractDbTest {
 			rs.updateNull("PRODUCT_KANA_NAME");
 			rs.updateNull(2);
 			rs.updateRow();
-			assertNull(rs.getString("PRODUCT_KANA_NAME"));
-			assertNull(rs.getString(2));
+			assertThat(rs.getString("PRODUCT_KANA_NAME"), is(nullValue()));
+			assertThat(rs.getString(2), is(nullValue()));
 
 			rs.updateBoolean("PRODUCT_KANA_NAME", true);
 			rs.updateBoolean(2, false);

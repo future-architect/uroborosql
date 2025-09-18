@@ -3,8 +3,6 @@ package jp.co.future.uroborosql;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -181,7 +179,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(true, config.getSqlResourceManager().existSql("example/insert_product"));
+		assertThat(config.getSqlResourceManager().existSql("example/insert_product"), is(true));
 	}
 
 	@Test
@@ -203,7 +201,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(true, config.getSqlResourceManager().existSql("example/insert_product"));
+		assertThat(config.getSqlResourceManager().existSql("example/insert_product"), is(true));
 	}
 
 	@Test
@@ -225,7 +223,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+		assertThat(config.getDialect().getDatabaseName(), is(new H2Dialect().getDatabaseName()));
 	}
 
 	@Test
@@ -322,20 +320,20 @@ public class UroboroSQLTest {
 			agent.query("example/select_product")
 					.param("product_id", List.of(0, 1))
 					.stream().forEach(m -> {
-						assertTrue(m.containsKey("productId"));
-						assertTrue(m.containsKey("productName"));
-						assertTrue(m.containsKey("productKanaName"));
-						assertTrue(m.containsKey("janCode"));
-						assertTrue(m.containsKey("productDescription"));
-						assertTrue(m.containsKey("insDatetime"));
-						assertTrue(m.containsKey("updDatetime"));
-						assertTrue(m.containsKey("versionNo"));
+						assertThat(m.containsKey("productId"), is(true));
+						assertThat(m.containsKey("productName"), is(true));
+						assertThat(m.containsKey("productKanaName"), is(true));
+						assertThat(m.containsKey("janCode"), is(true));
+						assertThat(m.containsKey("productDescription"), is(true));
+						assertThat(m.containsKey("insDatetime"), is(true));
+						assertThat(m.containsKey("updDatetime"), is(true));
+						assertThat(m.containsKey("versionNo"), is(true));
 					});
 
 			agent.rollback();
 		}
 
-		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+		assertThat(config.getDialect().getDatabaseName(), is(new H2Dialect().getDatabaseName()));
 	}
 
 	@Test
@@ -348,7 +346,7 @@ public class UroboroSQLTest {
 			agent.rollback();
 		}
 
-		assertEquals(new H2Dialect().getDatabaseName(), config.getDialect().getDatabaseName());
+		assertThat(config.getDialect().getDatabaseName(), is(new H2Dialect().getDatabaseName()));
 	}
 
 	@Test

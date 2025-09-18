@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class SqlFunctionTest {
 
 		Ognl.parseExpression("SF.isEmpty(val1)");
 
-		assertTrue((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null));
+		assertThat((boolean) Ognl.getValue("SF.isEmpty(val1)", context, root, null), is(true));
 	}
 
 	@Test

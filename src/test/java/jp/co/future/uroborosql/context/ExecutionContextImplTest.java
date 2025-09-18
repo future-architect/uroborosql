@@ -4,9 +4,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -59,59 +56,46 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstAndKeyWordWhenWhereClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test where[LF][LF][LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where[LF] aaa = 1"),
-				ctx11.getExecutableSql());
+		assertThat(
+				ctx11.getExecutableSql(), is(replaceLineSep("select * from test where[LF] aaa = 1")));
 		var ctx12 = getExecutionContext("select * from test[LF]where[LF][LF][LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where[LF] aaa = 1"),
-				ctx12.getExecutableSql());
+		assertThat(
+				ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF] aaa = 1")));
 
 		var ctx21 = getExecutionContext("select * from test where[LF]      and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where[LF]      aaa = 1"),
-				ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test where[LF]      aaa = 1")));
 		var ctx22 = getExecutionContext("select * from test[LF]where[LF]      and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where[LF]      aaa = 1"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]where[LF]      aaa = 1")));
 
 		var ctx31 = getExecutionContext("select * from test where /* comment */ and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where /* comment */ aaa = 1"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test where /* comment */ aaa = 1")));
 		var ctx32 = getExecutionContext("select * from test[LF]where /* comment */ and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ aaa = 1"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* comment */ aaa = 1")));
 
 		var ctx41 = getExecutionContext("select * from test where -- /* comment */  [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(), is(replaceLineSep("select * from test where -- /* comment */  [LF] aaa = 1")));
 		var ctx42 = getExecutionContext("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] aaa = 1"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(), is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] aaa = 1")));
 
 		var ctx51 = getExecutionContext("select * from test where -- /* comment */  [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(), is(replaceLineSep("select * from test where -- /* comment */  [LF] order = 1")));
 		var ctx52 = getExecutionContext("select * from test[LF]where -- /* comment */  [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] order = 1"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(), is(replaceLineSep("select * from test[LF]where -- /* comment */  [LF] order = 1")));
 
 		var ctx61 = getExecutionContext("select * from test where /* comment */ --comment [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(), is(replaceLineSep("select * from test where /* comment */ --comment [LF] order = 1")));
 		var ctx62 = getExecutionContext(
 				"select * from test[LF]where /* comment */ --comment [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] order = 1")));
 		var ctx63 = getExecutionContext(
 				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1"),
-				ctx63.getExecutableSql());
+		assertThat(ctx63.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] order = 1")));
 		var ctx64 = getExecutionContext(
 				"select * from test[LF]where /* comment */ --comment [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] aaa = 1"),
-				ctx64.getExecutableSql());
+		assertThat(ctx64.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* comment */ --comment [LF] aaa = 1")));
 		var ctx65 = getExecutionContext(
 				"select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] and aaa = 1");
-		assertEquals(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] aaa = 1"),
-				ctx65.getExecutableSql());
+		assertThat(ctx65.getExecutableSql(), is(replaceLineSep("select * from test[LF]where /* [LF]comment[LF] */ --comment [LF] aaa = 1")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep("select * from test[LF]where -- /* comment */  [LF] and aaa = 1");
@@ -128,39 +112,34 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstCommaWhenSelectClause() throws Exception {
 		var ctx1 = getExecutionContext("select ,aaa,bbb,ccc from test");
-		assertEquals(replaceLineSep("select aaa,bbb,ccc from test"), ctx1.getExecutableSql());
+		assertThat(ctx1.getExecutableSql(), is(replaceLineSep("select aaa,bbb,ccc from test")));
 
 		var ctx2 = getExecutionContext("select , aaa, bbb, ccc from test");
-		assertEquals(replaceLineSep("select  aaa, bbb, ccc from test"), ctx2.getExecutableSql());
+		assertThat(ctx2.getExecutableSql(), is(replaceLineSep("select  aaa, bbb, ccc from test")));
 
 		var ctx3 = getExecutionContext("select[LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select[LF] aaa[LF], bbb[LF], ccc from test"), ctx3.getExecutableSql());
+		assertThat(ctx3.getExecutableSql(), is(replaceLineSep("select[LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var ctx4 = getExecutionContext("select /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx4.getExecutableSql());
+		assertThat(ctx4.getExecutableSql(), is(replaceLineSep("select /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var ctx5 = getExecutionContext("select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep("select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx5.getExecutableSql());
+		assertThat(ctx5.getExecutableSql(), is(replaceLineSep("select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var ctx6 = getExecutionContext(
 				"with dummy as ( select * from dummy ) select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep(
-				"with dummy as ( select * from dummy ) select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx6.getExecutableSql());
+		assertThat(ctx6.getExecutableSql(), is(replaceLineSep(
+				"with dummy as ( select * from dummy ) select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var ctx7 = getExecutionContext(
 				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep(
-				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx7.getExecutableSql());
+		assertThat(ctx7.getExecutableSql(), is(replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select -- /* comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var ctx8 = getExecutionContext(
 				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF], aaa[LF], bbb[LF], ccc from test");
-		assertEquals(replaceLineSep(
-				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test"),
-				ctx8.getExecutableSql());
+		assertThat(ctx8.getExecutableSql(), is(replaceLineSep(
+				"with dummy as ( select * from dummy )[LF]select /* コメント:japanese comment */ [LF] aaa[LF], bbb[LF], ccc from test")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep(
@@ -178,41 +157,35 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstCommaWhenOrderByClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test order by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by aaa, bbb"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test order by aaa, bbb")));
 		var ctx12 = getExecutionContext("select * from test[LF]order by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by aaa, bbb"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by aaa, bbb")));
 
 		var ctx21 = getExecutionContext("select * from test order by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by  aaa, bbb"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test order by  aaa, bbb")));
 		var ctx22 = getExecutionContext("select * from test[LF]order by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by  aaa, bbb"), ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by  aaa, bbb")));
 
 		var ctx31 = getExecutionContext("select * from test order by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by[LF] aaa, bbb"), ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test order by[LF] aaa, bbb")));
 		var ctx32 = getExecutionContext("select * from test[LF]order by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by[LF] aaa, bbb"), ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by[LF] aaa, bbb")));
 
 		var ctx41 = getExecutionContext("select * from test order by /* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by /* comment */[LF] aaa, bbb"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(), is(replaceLineSep("select * from test order by /* comment */[LF] aaa, bbb")));
 		var ctx42 = getExecutionContext("select * from test[LF]order by /* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by /* comment */[LF] aaa, bbb"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by /* comment */[LF] aaa, bbb")));
 
 		var ctx51 = getExecutionContext("select * from test order by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order by --/* comment */[LF] aaa, bbb"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(), is(replaceLineSep("select * from test order by --/* comment */[LF] aaa, bbb")));
 		var ctx52 = getExecutionContext("select * from test[LF]order by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order by --/* comment */[LF] aaa, bbb"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(), is(replaceLineSep("select * from test[LF]order by --/* comment */[LF] aaa, bbb")));
 
 		var ctx61 = getExecutionContext("select * from test order     by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test order     by --/* comment */[LF] aaa, bbb"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(), is(replaceLineSep("select * from test order     by --/* comment */[LF] aaa, bbb")));
 		var ctx62 = getExecutionContext(
 				"select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(), is(replaceLineSep("select * from test[LF]order     by --/* comment */[LF] aaa, bbb")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep("select * from test[LF]order     by --/* comment */[LF], aaa, bbb");
@@ -229,43 +202,37 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstCommaWhenGroupByClause() throws Exception {
 		var ctx11 = getExecutionContext("select * from test group by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by aaa, bbb"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("select * from test group by aaa, bbb")));
 		var ctx12 = getExecutionContext("select * from test[LF]group by ,aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by aaa, bbb"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by aaa, bbb")));
 
 		var ctx21 = getExecutionContext("select * from test group by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by  aaa, bbb"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("select * from test group by  aaa, bbb")));
 		var ctx22 = getExecutionContext("select * from test[LF]group by , aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by  aaa, bbb"), ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by  aaa, bbb")));
 
 		var ctx31 = getExecutionContext("select * from test group by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by[LF] aaa, bbb"), ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("select * from test group by[LF] aaa, bbb")));
 		var ctx32 = getExecutionContext("select * from test[LF]group by[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by[LF] aaa, bbb"), ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by[LF] aaa, bbb")));
 
 		var ctx41 = getExecutionContext("select * from test group by /* comment */  [LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by /* comment */  [LF] aaa, bbb"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(), is(replaceLineSep("select * from test group by /* comment */  [LF] aaa, bbb")));
 		var ctx42 = getExecutionContext("select * from test[LF]group by /* comment */  [LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by /* comment */  [LF] aaa, bbb"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by /* comment */  [LF] aaa, bbb")));
 
 		var ctx51 = getExecutionContext("select * from test group by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(), is(replaceLineSep("select * from test group by /* comment */ --aaa[LF] aaa, bbb")));
 		var ctx52 = getExecutionContext(
 				"select * from test[LF]group by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(), is(replaceLineSep("select * from test[LF]group by /* comment */ --aaa[LF] aaa, bbb")));
 
 		var ctx61 = getExecutionContext(
 				"select * from test group     by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test group     by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(), is(replaceLineSep("select * from test group     by /* comment */ --aaa[LF] aaa, bbb")));
 		var ctx62 = getExecutionContext(
 				"select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
-		assertEquals(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(), is(replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF] aaa, bbb")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep("select * from test[LF]group     by /* comment */ --aaa[LF], aaa, bbb");
@@ -282,52 +249,45 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstCommaWhenStartBracket() throws Exception {
 		var ctx11 = getExecutionContext("insert into (,aaa,bbb,ccc) values (,111,222,333)");
-		assertEquals(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)"), ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("insert into (aaa,bbb,ccc) values (111,222,333)")));
 		var ctx12 = getExecutionContext("insert into[LF](,aaa,bbb,ccc) values (,111,222,333)");
-		assertEquals(replaceLineSep("insert into[LF](aaa,bbb,ccc) values (111,222,333)"), ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("insert into[LF](aaa,bbb,ccc) values (111,222,333)")));
 
 		var ctx21 = getExecutionContext("insert into (, aaa, bbb, ccc) values (,111 ,222 ,333)");
-		assertEquals(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)"), ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("insert into ( aaa, bbb, ccc) values (111 ,222 ,333)")));
 		var ctx22 = getExecutionContext("insert into[LF](, aaa, bbb, ccc) values (,111 ,222 ,333)");
-		assertEquals(replaceLineSep("insert into[LF]( aaa, bbb, ccc) values (111 ,222 ,333)"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("insert into[LF]( aaa, bbb, ccc) values (111 ,222 ,333)")));
 
 		var ctx31 = getExecutionContext(
 				"insert into ([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(
+				replaceLineSep("insert into ([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
 		var ctx32 = getExecutionContext(
 				"insert into[LF]([LF], aaa[LF], bbb[LF], ccc[LF]) values (,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
-				replaceLineSep("insert into[LF]([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(
+				replaceLineSep("insert into[LF]([LF] aaa[LF], bbb[LF], ccc[LF]) values ([LF]111,[LF]222,[LF]333[LF])")));
 
 		var ctx41 = getExecutionContext(
 				"insert into ([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
+		assertThat(ctx41.getExecutableSql(), is(
 				replaceLineSep(
-						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
-				ctx41.getExecutableSql());
+						"insert into ([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
 		var ctx42 = getExecutionContext(
 				"insert into[LF]([LF]/* comment */, aaa[LF], bbb[LF], ccc[LF]) values (/* comment */,[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
+		assertThat(ctx42.getExecutableSql(), is(
 				replaceLineSep(
-						"insert into[LF]([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])"),
-				ctx42.getExecutableSql());
+						"insert into[LF]([LF]/* comment */ aaa[LF], bbb[LF], ccc[LF]) values (/* comment */[LF]111,[LF]222,[LF]333[LF])")));
 
 		var ctx51 = getExecutionContext(
 				"insert into (--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
+		assertThat(ctx51.getExecutableSql(), is(
 				replaceLineSep(
-						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
-				ctx51.getExecutableSql());
+						"insert into (--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])")));
 		var ctx52 = getExecutionContext(
 				"insert into[LF](--comment[LF], aaa[LF], bbb[LF], ccc[LF]) values (,/*comment*/[LF]111,[LF]222,[LF]333[LF])");
-		assertEquals(
+		assertThat(ctx52.getExecutableSql(), is(
 				replaceLineSep(
-						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])"),
-				ctx52.getExecutableSql());
+						"insert into[LF](--comment[LF] aaa[LF], bbb[LF], ccc[LF]) values (/*comment*/[LF]111,[LF]222,[LF]333[LF])")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep(
@@ -345,57 +305,44 @@ public class ExecutionContextImplTest {
 	@Test
 	void removeFirstCommaWhenSetClause() throws Exception {
 		var ctx11 = getExecutionContext("update test set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(replaceLineSep("update test set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		var ctx12 = getExecutionContext("update test[LF]set ,aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(replaceLineSep("update test[LF]set aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		var ctx21 = getExecutionContext("update test set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx21.getExecutableSql());
+		assertThat(ctx21.getExecutableSql(), is(replaceLineSep("update test set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		var ctx22 = getExecutionContext(
 				"update test[LF]set , aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx22.getExecutableSql());
+		assertThat(ctx22.getExecutableSql(), is(replaceLineSep("update test[LF]set  aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		var ctx31 = getExecutionContext("update test set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx31.getExecutableSql());
+		assertThat(ctx31.getExecutableSql(), is(replaceLineSep("update test set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		var ctx32 = getExecutionContext(
 				"update test[LF]set[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx32.getExecutableSql());
+		assertThat(ctx32.getExecutableSql(), is(replaceLineSep("update test[LF]set[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		var ctx41 = getExecutionContext(
 				"update test set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx41.getExecutableSql());
+		assertThat(ctx41.getExecutableSql(), is(replaceLineSep("update test set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		var ctx42 = getExecutionContext(
 				"update test[LF]set /* comment */[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx42.getExecutableSql());
+		assertThat(ctx42.getExecutableSql(), is(replaceLineSep("update test[LF]set /* comment */[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		var ctx51 = getExecutionContext(
 				"update test set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx51.getExecutableSql());
+		assertThat(ctx51.getExecutableSql(), is(replaceLineSep("update test set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 		var ctx52 = getExecutionContext(
 				"update test[LF]set --comment[LF],aaa = 111, bbb = 222, ccc = 333 where 1 = 1");
-		assertEquals(replaceLineSep("update test[LF]set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1"),
-				ctx52.getExecutableSql());
+		assertThat(ctx52.getExecutableSql(), is(replaceLineSep("update test[LF]set --comment[LF]aaa = 111, bbb = 222, ccc = 333 where 1 = 1")));
 
 		var ctx61 = getExecutionContext("select , aaa, code_set, bbb, ccc from test where 1 = 1");
-		assertEquals(replaceLineSep("select  aaa, code_set, bbb, ccc from test where 1 = 1"),
-				ctx61.getExecutableSql());
+		assertThat(ctx61.getExecutableSql(), is(replaceLineSep("select  aaa, code_set, bbb, ccc from test where 1 = 1")));
 		var ctx62 = getExecutionContext(
 				"select[LF], aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1");
-		assertEquals(replaceLineSep("select[LF] aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1"),
-				ctx62.getExecutableSql());
+		assertThat(ctx62.getExecutableSql(), is(replaceLineSep("select[LF] aaa[LF], code_set[LF], bbb[LF], ccc[LF]from test[LF]where 1 = 1")));
 		var ctx63 = getExecutionContext(
 				"select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
-		assertEquals(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1"),
-				ctx63.getExecutableSql());
+		assertThat(ctx63.getExecutableSql(), is(replaceLineSep("select[LF] aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1")));
 
 		var startTime = Instant.now(Clock.systemDefaultZone());
 		var sql = replaceLineSep("select[LF], aaa,[LF]code_set,[LF]bbb,[LF]ccc[LF]from[LF]test[LF]where[LF]1 = 1");
@@ -413,22 +360,21 @@ public class ExecutionContextImplTest {
 	void dontRemoveFirstComma() throws Exception {
 		var ctx11 = getExecutionContext(
 				"SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)");
-		assertEquals("SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)",
-				ctx11.getExecutableSql());
+		assertThat(ctx11.getExecutableSql(), is(
+				"SELECT /* _SQL_ID_ */ setval(/*sequenceName*/'', /*initialValue*/1, false)"));
 
 		var ctx12 = getExecutionContext(
 				"SELECT /* _SQL_ID_ */ test.col1, TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test WHERE test.month = /*BIND_1*/'M'");
-		assertEquals(
-				"SELECT /* _SQL_ID_ */ test.col1, TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test WHERE test.month = /*BIND_1*/'M'",
-				ctx12.getExecutableSql());
+		assertThat(ctx12.getExecutableSql(), is(
+				"SELECT /* _SQL_ID_ */ test.col1, TO_CHAR(FNC_ADD_MONTHS(TO_DATE(/*BIND_0*/'M', 'YYYYMMDD'), - 3), 'YYYYMMDD') AS ymd FROM test WHERE test.month = /*BIND_1*/'M'"));
 	}
 
 	@Test
 	void testHasParam() throws Exception {
 		var ctx = getExecutionContext("select * from dummy");
 		ctx.param("key1", "value1");
-		assertTrue(ctx.hasParam("key1"));
-		assertFalse(ctx.hasParam("key2"));
+		assertThat(ctx.hasParam("key1"), is(true));
+		assertThat(ctx.hasParam("key2"), is(false));
 	}
 
 	@Test
@@ -671,7 +617,7 @@ public class ExecutionContextImplTest {
 	@Test
 	void testContext() {
 		var ctx = config.context().setSql("select * from test");
-		assertEquals(ctx, ctx.context());
+		assertThat(ctx.context(), is(ctx));
 	}
 
 	@Test

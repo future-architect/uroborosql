@@ -4,8 +4,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -43,8 +41,8 @@ public class AbstractSqlFluentTest {
 			SqlQuery query = null;
 			query = agent.query("select * from dummy");
 			query.param("key1", "value1");
-			assertTrue(query.hasParam("key1"));
-			assertFalse(query.hasParam("key2"));
+			assertThat(query.hasParam("key1"), is(true));
+			assertThat(query.hasParam("key2"), is(false));
 		}
 	}
 

@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.event.subscriber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
@@ -81,7 +80,7 @@ public class SecretColumnEventSubscriberTest extends AbstractDbTest {
 					.resultSet();
 
 			while (result.next()) {
-				assertEquals(result.getString("PRODUCT_NAME"), "3EniRr6_Jb2c-kVG0I0CgA");
+				assertThat(result.getString("PRODUCT_NAME"), is("3EniRr6_Jb2c-kVG0I0CgA"));
 			}
 			result.close();
 		}

@@ -1,9 +1,9 @@
 package jp.co.future.uroborosql;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.nio.file.Paths;
@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +36,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("jan_code", "1234567890123", Types.CHAR);
 
 		var updateCount = agent.update(ctx);
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -47,7 +46,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -61,7 +60,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var updateCount = agent.update("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"), JDBCType.DECIMAL)
 				.param("jan_code", "1234567890123", Types.CHAR).count();
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -71,7 +70,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -89,7 +88,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_name", productName)
 				.param("jan_code", "1234567890123")
 				.count();
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -99,7 +98,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -113,7 +112,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var updateCount = agent.updateChained("example/selectinsert_product")
 				.param("product_id", new BigDecimal("0"))
 				.param("jan_code", "1234567890123").count();
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		var expectedDataList = getDataFromFile(Paths.get(
@@ -123,7 +122,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.stream(new MapResultSetConverter(agent.getSqlConfig(), CaseFormat.LOWER_SNAKE_CASE))
 				.collect(Collectors.toList());
 
-		assertEquals(expectedDataList.toString(), actualDataList.toString());
+		assertThat(actualDataList.toString(), is(expectedDataList.toString()));
 	}
 
 	/**
@@ -144,22 +143,22 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_description", "2番目の商品")
 				.param("ins_datetime", ZonedDateTime.now())
 				.count();
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
 		// 検証処理
 		if (agent.find(Product.class, 2).isEmpty()) {
-			Assert.fail();
+			fail();
 		}
 		var productRegistWorks = agent.queryWith("select * from product_regist_work")
 				.collect();
 
-		assertEquals(productRegistWorks.size(), 2);
+		assertThat(productRegistWorks.size(), is(2));
 
 		var products = agent.query(Product.class)
 				.asc("product_id")
 				.collect();
-		assertEquals(products.get(0).getProductName(), "商品名1_updated");
-		assertEquals(products.get(1).getProductName(), "商品名0_updated");
+		assertThat(products.get(0).getProductName(), is("商品名1_updated"));
+		assertThat(products.get(1).getProductName(), is("商品名0_updated"));
 	}
 
 	/**
@@ -181,16 +180,16 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_id", new BigDecimal("3"))
 				.param("jan_code", "1234567890123")
 				.count();
-		assertEquals(2, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(2)); // データの登録に失敗しました。
 
 		// 検証処理
 		var products = agent.query(Product.class)
 				.asc("product_id")
 				.collect();
-		assertEquals(products.size(), 3);
-		assertEquals(products.get(0).getProductName(), "商品名1_updated");
-		assertEquals(products.get(1).getProductName(), "商品名0_updated");
-		assertEquals(products.get(2).getProductName(), "商品名0");
+		assertThat(products.size(), is(3));
+		assertThat(products.get(0).getProductName(), is("商品名1_updated"));
+		assertThat(products.get(1).getProductName(), is("商品名0_updated"));
+		assertThat(products.get(2).getProductName(), is("商品名0"));
 	}
 
 	/**
@@ -206,12 +205,12 @@ public class SqlUpdateTest extends AbstractDbTest {
 				.param("product_id", 1, JDBCType.INTEGER)
 				.param("jan_code", null, Types.CHAR)
 				.count();
-		assertEquals(1, updateCount, "データの登録に失敗しました。");
+		assertThat(updateCount, is(1)); // データの登録に失敗しました。
 
-		assertNull(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
+		assertThat(agent.queryWith("select jan_code from product where product_id = /*product_id*/")
 				.param("product_id", 1, JDBCType.INTEGER)
 				.one()
-				.get("JAN_CODE"));
+				.get("JAN_CODE"), is(nullValue()));
 	}
 
 	/**

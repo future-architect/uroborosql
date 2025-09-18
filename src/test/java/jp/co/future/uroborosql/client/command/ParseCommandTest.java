@@ -1,6 +1,7 @@
 package jp.co.future.uroborosql.client.command;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.sql.DriverManager;
 import java.util.List;
@@ -67,7 +68,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		var sqlName = "test/PARSE_TEST";
 		var commandLine = "parse" + " " + sqlName;
 		var flag = command.execute(reader, commandLine.split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("SQL :");
 
@@ -106,7 +107,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		var flag = command.execute(reader, "parse test/NOTFOUND".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName : test/NOTFOUND not found.");
 	}
@@ -116,7 +117,7 @@ public class ParseCommandTest extends ReaderTestSupport {
 		reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
 
 		var flag = command.execute(reader, "parse".split("\\s+"), sqlConfig, new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("PARSE:");
 		assertConsoleOutputContains("sqlName must be specified.");
 	}

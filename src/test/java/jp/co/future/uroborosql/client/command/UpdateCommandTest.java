@@ -2,7 +2,6 @@ package jp.co.future.uroborosql.client.command;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -86,17 +85,17 @@ public class UpdateCommandTest extends ReaderTestSupport {
 						.split("\\s+"),
 				sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("update sql[example/insert_product] end. row count=1");
 
 		command.execute(reader, "update example/insert_product product_id=111".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("Error : ");
 
 		command.execute(reader, "update example/insert_product_not_found".split("\\s+"), sqlConfig,
 				new Properties());
-		assertTrue(flag);
+		assertThat(flag, is(true));
 		assertConsoleOutputContains("SQL not found. sql=example/insert_product_not_found");
 	}
 
