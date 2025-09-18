@@ -152,7 +152,7 @@ public class SqlUpdateTest extends AbstractDbTest {
 		var productRegistWorks = agent.queryWith("select * from product_regist_work")
 				.collect();
 
-		assertThat(2, is(productRegistWorks.size()));
+		assertThat(productRegistWorks.size(), is(2));
 
 		var products = agent.query(Product.class)
 				.asc("product_id")
