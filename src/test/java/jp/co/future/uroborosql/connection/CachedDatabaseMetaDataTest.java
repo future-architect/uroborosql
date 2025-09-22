@@ -149,19 +149,19 @@ public class CachedDatabaseMetaDataTest {
 		assertThat(cachedMetaData.getExtraNameCharacters(), is(notNullValue()));
 		
 		// Test support methods
-		cachedMetaData.supportsAlterTableWithAddColumn();
-		cachedMetaData.supportsAlterTableWithDropColumn();
-		cachedMetaData.supportsColumnAliasing();
-		cachedMetaData.nullPlusNonNullIsNull();
-		cachedMetaData.supportsConvert();
-		cachedMetaData.supportsConvert(java.sql.Types.VARCHAR, java.sql.Types.INTEGER);
-		cachedMetaData.supportsTableCorrelationNames();
-		cachedMetaData.supportsDifferentTableCorrelationNames();
-		cachedMetaData.supportsExpressionsInOrderBy();
-		cachedMetaData.supportsOrderByUnrelated();
-		cachedMetaData.supportsGroupBy();
-		cachedMetaData.supportsGroupByUnrelated();
-		cachedMetaData.supportsGroupByBeyondSelect();
+		assertThat(cachedMetaData.supportsAlterTableWithAddColumn(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsAlterTableWithDropColumn(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsColumnAliasing(), is(notNullValue()));
+		assertThat(cachedMetaData.nullPlusNonNullIsNull(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsConvert(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsConvert(java.sql.Types.VARCHAR, java.sql.Types.INTEGER), is(notNullValue()));
+		assertThat(cachedMetaData.supportsTableCorrelationNames(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsDifferentTableCorrelationNames(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsExpressionsInOrderBy(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsOrderByUnrelated(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsGroupBy(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsGroupByUnrelated(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsGroupByBeyondSelect(), is(notNullValue()));
 	}
 
 	@Test
