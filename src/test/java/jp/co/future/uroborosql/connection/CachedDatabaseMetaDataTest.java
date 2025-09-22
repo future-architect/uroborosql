@@ -141,12 +141,12 @@ public class CachedDatabaseMetaDataTest {
 		// Test string methods
 		assertThat(cachedMetaData.getIdentifierQuoteString(), is(notNullValue()));
 		assertThat(cachedMetaData.getSQLKeywords(), is(notNullValue()));
-		cachedMetaData.getNumericFunctions();
-		cachedMetaData.getStringFunctions();
-		cachedMetaData.getSystemFunctions();
-		cachedMetaData.getTimeDateFunctions();
-		cachedMetaData.getSearchStringEscape();
-		cachedMetaData.getExtraNameCharacters();
+		assertThat(cachedMetaData.getNumericFunctions(), is(notNullValue()));
+		assertThat(cachedMetaData.getStringFunctions(), is(notNullValue()));
+		assertThat(cachedMetaData.getSystemFunctions(), is(notNullValue()));
+		assertThat(cachedMetaData.getTimeDateFunctions(), is(notNullValue()));
+		assertThat(cachedMetaData.getSearchStringEscape(), is(notNullValue()));
+		assertThat(cachedMetaData.getExtraNameCharacters(), is(notNullValue()));
 		
 		// Test support methods
 		cachedMetaData.supportsAlterTableWithAddColumn();
@@ -184,7 +184,9 @@ public class CachedDatabaseMetaDataTest {
 		}
 		
 		try {
-			cachedMetaData.getPrimaryKeys(null, null, "TEST_TABLE");
+			ResultSet rs = cachedMetaData.getPrimaryKeys(null, null, "TEST_TABLE");
+			assertThat(rs, is(notNullValue()));
+			rs.close();
 		} catch (SQLException e) {
 			// Some databases might not support this, which is fine for coverage
 		}
@@ -205,8 +207,8 @@ public class CachedDatabaseMetaDataTest {
 		assertThat(cachedMetaData.supportsANSI92FullSQL(), is(notNullValue()));
 		assertThat(cachedMetaData.supportsIntegrityEnhancementFacility(), is(notNullValue()));
 		assertThat(cachedMetaData.supportsOuterJoins(), is(notNullValue()));
-		cachedMetaData.supportsFullOuterJoins();
-		cachedMetaData.supportsLimitedOuterJoins();
+		assertThat(cachedMetaData.supportsFullOuterJoins(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsLimitedOuterJoins(), is(notNullValue()));
 	}
 
 	@Test 
@@ -227,11 +229,11 @@ public class CachedDatabaseMetaDataTest {
 		assertThat(cachedMetaData.ownUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 		assertThat(cachedMetaData.ownDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 		assertThat(cachedMetaData.ownInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
-		cachedMetaData.othersUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.othersDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.othersInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.updatesAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.deletesAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.insertsAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY);
+		assertThat(cachedMetaData.othersUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.othersDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.othersInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.updatesAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.deletesAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.insertsAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 	}
 }
