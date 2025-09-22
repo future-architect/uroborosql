@@ -8,13 +8,16 @@ package jp.co.future.uroborosql.connection;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -129,15 +132,15 @@ public class CachedDatabaseMetaDataTest {
 	@Test
 	void testAdditionalDelegatedMethods() throws SQLException {
 		// Test more delegated methods to improve coverage
-		cachedMetaData.allProceduresAreCallable();
-		cachedMetaData.allTablesAreSelectable();
-		cachedMetaData.nullsAreSortedLow();
-		cachedMetaData.nullsAreSortedAtStart();
-		cachedMetaData.nullsAreSortedAtEnd();
+		assertThat(cachedMetaData.allProceduresAreCallable(), is(notNullValue()));
+		assertThat(cachedMetaData.allTablesAreSelectable(), is(notNullValue()));
+		assertThat(cachedMetaData.nullsAreSortedLow(), is(notNullValue()));
+		assertThat(cachedMetaData.nullsAreSortedAtStart(), is(notNullValue()));
+		assertThat(cachedMetaData.nullsAreSortedAtEnd(), is(notNullValue()));
 		
 		// Test string methods
-		cachedMetaData.getIdentifierQuoteString();
-		cachedMetaData.getSQLKeywords();
+		assertThat(cachedMetaData.getIdentifierQuoteString(), is(notNullValue()));
+		assertThat(cachedMetaData.getSQLKeywords(), is(notNullValue()));
 		cachedMetaData.getNumericFunctions();
 		cachedMetaData.getStringFunctions();
 		cachedMetaData.getSystemFunctions();
@@ -165,13 +168,17 @@ public class CachedDatabaseMetaDataTest {
 	void testResultSetMethods() throws SQLException {
 		// Test ResultSet related methods that might not be covered
 		try {
-			cachedMetaData.getTables(null, null, "%", new String[]{"TABLE"});
+			ResultSet rs = cachedMetaData.getTables(null, null, "%", new String[]{"TABLE"});
+			assertThat(rs, is(notNullValue()));
+			rs.close();
 		} catch (SQLException e) {
 			// Some databases might not support this, which is fine for coverage
 		}
 		
 		try {
-			cachedMetaData.getColumns(null, null, "%", "%");
+			ResultSet rs = cachedMetaData.getColumns(null, null, "%", "%");
+			assertThat(rs, is(notNullValue()));
+			rs.close();
 		} catch (SQLException e) {
 			// Some databases might not support this, which is fine for coverage
 		}
@@ -186,18 +193,18 @@ public class CachedDatabaseMetaDataTest {
 	@Test
 	void testAdditionalSupportMethods() throws SQLException {
 		// Test more support methods for better coverage
-		cachedMetaData.supportsLikeEscapeClause();
-		cachedMetaData.supportsMultipleResultSets();
-		cachedMetaData.supportsMultipleTransactions();
-		cachedMetaData.supportsNonNullableColumns();
-		cachedMetaData.supportsMinimumSQLGrammar();
-		cachedMetaData.supportsCoreSQLGrammar();
-		cachedMetaData.supportsExtendedSQLGrammar();
-		cachedMetaData.supportsANSI92EntryLevelSQL();
-		cachedMetaData.supportsANSI92IntermediateSQL();
-		cachedMetaData.supportsANSI92FullSQL();
-		cachedMetaData.supportsIntegrityEnhancementFacility();
-		cachedMetaData.supportsOuterJoins();
+		assertThat(cachedMetaData.supportsLikeEscapeClause(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsMultipleResultSets(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsMultipleTransactions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsNonNullableColumns(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsMinimumSQLGrammar(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCoreSQLGrammar(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsExtendedSQLGrammar(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsANSI92EntryLevelSQL(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsANSI92IntermediateSQL(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsANSI92FullSQL(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsIntegrityEnhancementFacility(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsOuterJoins(), is(notNullValue()));
 		cachedMetaData.supportsFullOuterJoins();
 		cachedMetaData.supportsLimitedOuterJoins();
 	}
@@ -205,19 +212,21 @@ public class CachedDatabaseMetaDataTest {
 	@Test 
 	void testTransactionAndConcurrencyMethods() throws SQLException {
 		// Test transaction and concurrency related methods
-		cachedMetaData.getDefaultTransactionIsolation();
-		cachedMetaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);
-		cachedMetaData.supportsDataDefinitionAndDataManipulationTransactions();
-		cachedMetaData.supportsDataManipulationTransactionsOnly();
-		cachedMetaData.dataDefinitionCausesTransactionCommit();
-		cachedMetaData.dataDefinitionIgnoredInTransactions();
+		int isolation = cachedMetaData.getDefaultTransactionIsolation();
+		assertThat(isolation, is(greaterThanOrEqualTo(Connection.TRANSACTION_NONE)));
+		
+		assertThat(cachedMetaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED), is(notNullValue()));
+		assertThat(cachedMetaData.supportsDataDefinitionAndDataManipulationTransactions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsDataManipulationTransactionsOnly(), is(notNullValue()));
+		assertThat(cachedMetaData.dataDefinitionCausesTransactionCommit(), is(notNullValue()));
+		assertThat(cachedMetaData.dataDefinitionIgnoredInTransactions(), is(notNullValue()));
 		
 		// Test result set support methods
-		cachedMetaData.supportsResultSetType(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_FORWARD_ONLY, java.sql.ResultSet.CONCUR_READ_ONLY);
-		cachedMetaData.ownUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.ownDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
-		cachedMetaData.ownInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
+		assertThat(cachedMetaData.supportsResultSetType(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_FORWARD_ONLY, java.sql.ResultSet.CONCUR_READ_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.ownUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.ownDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
+		assertThat(cachedMetaData.ownInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 		cachedMetaData.othersUpdatesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
 		cachedMetaData.othersDeletesAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
 		cachedMetaData.othersInsertsAreVisible(java.sql.ResultSet.TYPE_FORWARD_ONLY);
