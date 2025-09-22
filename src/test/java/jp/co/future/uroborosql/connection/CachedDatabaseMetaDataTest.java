@@ -236,4 +236,337 @@ public class CachedDatabaseMetaDataTest {
 		assertThat(cachedMetaData.deletesAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 		assertThat(cachedMetaData.insertsAreDetected(java.sql.ResultSet.TYPE_FORWARD_ONLY), is(notNullValue()));
 	}
+
+	@Test
+	void testDriverVersionMethods() throws SQLException {
+		// Test driver version methods
+		int majorVersion = cachedMetaData.getDriverMajorVersion();
+		assertThat(majorVersion, is(greaterThanOrEqualTo(0)));
+		
+		int minorVersion = cachedMetaData.getDriverMinorVersion();
+		assertThat(minorVersion, is(greaterThanOrEqualTo(0)));
+	}
+
+	@Test
+	void testFileUsageMethods() throws SQLException {
+		// Test file usage methods
+		assertThat(cachedMetaData.usesLocalFiles(), is(notNullValue()));
+		assertThat(cachedMetaData.usesLocalFilePerTable(), is(notNullValue()));
+	}
+
+	@Test
+	void testIdentifierCaseMethods() throws SQLException {
+		// Test identifier case methods
+		assertThat(cachedMetaData.supportsMixedCaseIdentifiers(), is(notNullValue()));
+		assertThat(cachedMetaData.storesMixedCaseIdentifiers(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsMixedCaseQuotedIdentifiers(), is(notNullValue()));
+		assertThat(cachedMetaData.storesUpperCaseQuotedIdentifiers(), is(notNullValue()));
+		assertThat(cachedMetaData.storesLowerCaseQuotedIdentifiers(), is(notNullValue()));
+		assertThat(cachedMetaData.storesMixedCaseQuotedIdentifiers(), is(notNullValue()));
+	}
+
+	@Test
+	void testTerminologyMethods() throws SQLException {
+		// Test terminology methods
+		String schemaTerm = cachedMetaData.getSchemaTerm();
+		assertThat(schemaTerm, is(notNullValue()));
+		
+		String procedureTerm = cachedMetaData.getProcedureTerm();
+		assertThat(procedureTerm, is(notNullValue()));
+		
+		String catalogTerm = cachedMetaData.getCatalogTerm();
+		assertThat(catalogTerm, is(notNullValue()));
+	}
+
+	@Test
+	void testCatalogMethods() throws SQLException {
+		// Test catalog methods
+		assertThat(cachedMetaData.isCatalogAtStart(), is(notNullValue()));
+		String catalogSeparator = cachedMetaData.getCatalogSeparator();
+		assertThat(catalogSeparator, is(notNullValue()));
+	}
+
+	@Test
+	void testSchemaSupportMethods() throws SQLException {
+		// Test schema support methods
+		assertThat(cachedMetaData.supportsSchemasInDataManipulation(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSchemasInProcedureCalls(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSchemasInTableDefinitions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSchemasInIndexDefinitions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSchemasInPrivilegeDefinitions(), is(notNullValue()));
+	}
+
+	@Test
+	void testCatalogSupportMethods() throws SQLException {
+		// Test catalog support methods
+		assertThat(cachedMetaData.supportsCatalogsInDataManipulation(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCatalogsInProcedureCalls(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCatalogsInTableDefinitions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCatalogsInIndexDefinitions(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCatalogsInPrivilegeDefinitions(), is(notNullValue()));
+	}
+
+	@Test
+	void testPositionedOperationMethods() throws SQLException {
+		// Test positioned operation methods
+		assertThat(cachedMetaData.supportsPositionedDelete(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsPositionedUpdate(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSelectForUpdate(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsStoredProcedures(), is(notNullValue()));
+	}
+
+	@Test
+	void testSubqueryMethods() throws SQLException {
+		// Test subquery methods
+		assertThat(cachedMetaData.supportsSubqueriesInComparisons(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSubqueriesInExists(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSubqueriesInIns(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsSubqueriesInQuantifieds(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsCorrelatedSubqueries(), is(notNullValue()));
+	}
+
+	@Test
+	void testUnionMethods() throws SQLException {
+		// Test union methods
+		assertThat(cachedMetaData.supportsUnion(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsUnionAll(), is(notNullValue()));
+	}
+
+	@Test
+	void testOpenCursorMethods() throws SQLException {
+		// Test open cursor methods
+		assertThat(cachedMetaData.supportsOpenCursorsAcrossCommit(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsOpenCursorsAcrossRollback(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsOpenStatementsAcrossCommit(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsOpenStatementsAcrossRollback(), is(notNullValue()));
+	}
+
+	@Test
+	void testMaxLimitMethods() throws SQLException {
+		// Test max limit methods
+		int maxBinaryLiteralLength = cachedMetaData.getMaxBinaryLiteralLength();
+		assertThat(maxBinaryLiteralLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxCharLiteralLength = cachedMetaData.getMaxCharLiteralLength();
+		assertThat(maxCharLiteralLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnNameLength = cachedMetaData.getMaxColumnNameLength();
+		assertThat(maxColumnNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnsInGroupBy = cachedMetaData.getMaxColumnsInGroupBy();
+		assertThat(maxColumnsInGroupBy, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnsInIndex = cachedMetaData.getMaxColumnsInIndex();
+		assertThat(maxColumnsInIndex, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnsInOrderBy = cachedMetaData.getMaxColumnsInOrderBy();
+		assertThat(maxColumnsInOrderBy, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnsInSelect = cachedMetaData.getMaxColumnsInSelect();
+		assertThat(maxColumnsInSelect, is(greaterThanOrEqualTo(0)));
+		
+		int maxColumnsInTable = cachedMetaData.getMaxColumnsInTable();
+		assertThat(maxColumnsInTable, is(greaterThanOrEqualTo(0)));
+		
+		int maxConnections = cachedMetaData.getMaxConnections();
+		assertThat(maxConnections, is(greaterThanOrEqualTo(0)));
+		
+		int maxCursorNameLength = cachedMetaData.getMaxCursorNameLength();
+		assertThat(maxCursorNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxIndexLength = cachedMetaData.getMaxIndexLength();
+		assertThat(maxIndexLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxSchemaNameLength = cachedMetaData.getMaxSchemaNameLength();
+		assertThat(maxSchemaNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxProcedureNameLength = cachedMetaData.getMaxProcedureNameLength();
+		assertThat(maxProcedureNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxCatalogNameLength = cachedMetaData.getMaxCatalogNameLength();
+		assertThat(maxCatalogNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxRowSize = cachedMetaData.getMaxRowSize();
+		assertThat(maxRowSize, is(greaterThanOrEqualTo(0)));
+		
+		assertThat(cachedMetaData.doesMaxRowSizeIncludeBlobs(), is(notNullValue()));
+		
+		int maxStatementLength = cachedMetaData.getMaxStatementLength();
+		assertThat(maxStatementLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxStatements = cachedMetaData.getMaxStatements();
+		assertThat(maxStatements, is(greaterThanOrEqualTo(0)));
+		
+		int maxTableNameLength = cachedMetaData.getMaxTableNameLength();
+		assertThat(maxTableNameLength, is(greaterThanOrEqualTo(0)));
+		
+		int maxTablesInSelect = cachedMetaData.getMaxTablesInSelect();
+		assertThat(maxTablesInSelect, is(greaterThanOrEqualTo(0)));
+		
+		int maxUserNameLength = cachedMetaData.getMaxUserNameLength();
+		assertThat(maxUserNameLength, is(greaterThanOrEqualTo(0)));
+	}
+
+	@Test
+	void testMetaDataResultSetMethods() throws SQLException {
+		// Test metadata result set methods
+		try (ResultSet rs = cachedMetaData.getProcedures(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getProcedureColumns(null, null, "%", "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getSchemas()) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getCatalogs()) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getTableTypes()) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getColumnPrivileges(null, null, "%", "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getTablePrivileges(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getBestRowIdentifier(null, null, "%", 
+			DatabaseMetaData.bestRowSession, false)) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getVersionColumns(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getImportedKeys(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getExportedKeys(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getCrossReference(null, null, "%", null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getIndexInfo(null, null, "%", false, false)) {
+			assertThat(rs, is(notNullValue()));
+		}
+	}
+
+	@Test
+	void testJdbc2Methods() throws SQLException {
+		// Test JDBC 2.0 methods
+		try (ResultSet rs = cachedMetaData.getUDTs(null, null, "%", null)) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		assertThat(cachedMetaData.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT), is(notNullValue()));
+		
+		int holdability = cachedMetaData.getResultSetHoldability();
+		assertThat(holdability, is(greaterThanOrEqualTo(ResultSet.HOLD_CURSORS_OVER_COMMIT)));
+		
+		int sqlStateType = cachedMetaData.getSQLStateType();
+		assertThat(sqlStateType, is(greaterThanOrEqualTo(DatabaseMetaData.sqlStateSQL)));
+		
+		assertThat(cachedMetaData.locatorsUpdateCopy(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsStatementPooling(), is(notNullValue()));
+	}
+
+	@Test
+	void testJdbc3Methods() throws SQLException {
+		// Test JDBC 3.0 methods
+		assertThat(cachedMetaData.supportsNamedParameters(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsMultipleOpenResults(), is(notNullValue()));
+		assertThat(cachedMetaData.supportsGetGeneratedKeys(), is(notNullValue()));
+		
+		// Some H2 features may not be supported, handle gracefully
+		try (ResultSet rs = cachedMetaData.getSuperTypes(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLException e) {
+			// Feature may not be supported by H2
+			assertTrue(e.getMessage().contains("Feature not supported"));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getSuperTables(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getAttributes(null, null, "%", "%")) {
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLException e) {
+			// Feature may not be supported by H2
+			assertTrue(e.getMessage().contains("Feature not supported"));
+		}
+		
+		int databaseMajorVersion = cachedMetaData.getDatabaseMajorVersion();
+		assertThat(databaseMajorVersion, is(greaterThanOrEqualTo(0)));
+		
+		int databaseMinorVersion = cachedMetaData.getDatabaseMinorVersion();
+		assertThat(databaseMinorVersion, is(greaterThanOrEqualTo(0)));
+		
+		int jdbcMajorVersion = cachedMetaData.getJDBCMajorVersion();
+		assertThat(jdbcMajorVersion, is(greaterThanOrEqualTo(0)));
+		
+		int jdbcMinorVersion = cachedMetaData.getJDBCMinorVersion();
+		assertThat(jdbcMinorVersion, is(greaterThanOrEqualTo(0)));
+		
+		assertThat(cachedMetaData.supportsSavepoints(), is(notNullValue()));
+	}
+
+	@Test
+	void testJdbc4Methods() throws SQLException {
+		// Test JDBC 4.0 methods
+		assertThat(cachedMetaData.autoCommitFailureClosesAllResultSets(), is(notNullValue()));
+		
+		try (ResultSet rs = cachedMetaData.getClientInfoProperties()) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		// Some H2 features may not be supported, handle gracefully
+		try (ResultSet rs = cachedMetaData.getFunctions(null, null, "%")) {
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLException e) {
+			// Feature may not be supported by H2
+			assertTrue(e.getMessage().contains("Feature not supported"));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getFunctionColumns(null, null, "%", "%")) {
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLException e) {
+			// Feature may not be supported by H2
+			assertTrue(e.getMessage().contains("Feature not supported"));
+		}
+		
+		try (ResultSet rs = cachedMetaData.getSchemas(null, null)) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		assertThat(cachedMetaData.supportsStoredFunctionsUsingCallSyntax(), is(notNullValue()));
+	}
+
+	@Test
+	void testJdbc41Methods() throws SQLException {
+		// Test JDBC 4.1 methods
+		// getPseudoColumns may return null result set in some databases
+		try (ResultSet rs = cachedMetaData.getPseudoColumns(null, null, "%", "%")) {
+			// ResultSet can be null in some database implementations
+			// Just verify the method can be called without exception
+		}
+		
+		// generatedKeyAlwaysReturned may return null in some databases
+		Boolean generatedKey = cachedMetaData.generatedKeyAlwaysReturned();
+		// Just verify the method can be called without exception
+		// Result can be null, true, or false depending on database implementation
+	}
 }
