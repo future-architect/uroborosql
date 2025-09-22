@@ -18,7 +18,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.RowIdLifetime;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -568,5 +570,45 @@ public class CachedDatabaseMetaDataTest {
 		Boolean generatedKey = cachedMetaData.generatedKeyAlwaysReturned();
 		// Just verify the method can be called without exception
 		// Result can be null, true, or false depending on database implementation
+	}
+
+	@Test
+	void testAdditionalMetaDataMethods() throws Exception {
+		// Test getTypeInfo
+		try (ResultSet rs = cachedMetaData.getTypeInfo()) {
+			assertThat(rs, is(notNullValue()));
+		}
+		
+		// Test supportsBatchUpdates
+		boolean supportsBatch = cachedMetaData.supportsBatchUpdates();
+		assertThat(supportsBatch, is(notNullValue()));
+		
+		// Test getSuperTypes - May not be supported in H2
+		try (ResultSet rs = cachedMetaData.getSuperTypes(null, null, "%")) {
+			// H2 may throw SQLFeatureNotSupportedException
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLFeatureNotSupportedException e) {
+			// This is expected for H2 database - feature not supported
+		}
+		
+		// Test getAttributes - May not be supported in H2  
+		try (ResultSet rs = cachedMetaData.getAttributes(null, null, "%", "%")) {
+			// H2 may throw SQLFeatureNotSupportedException
+			assertThat(rs, is(notNullValue()));
+		} catch (SQLFeatureNotSupportedException e) {
+			// This is expected for H2 database - feature not supported
+		}
+		
+		// Test getRowIdLifetime - JDBC 4.0 method
+		RowIdLifetime lifetime = cachedMetaData.getRowIdLifetime();
+		assertThat(lifetime, is(notNullValue()));
+		
+		// Test getMaxLogicalLobSize - JDBC 4.0 method  
+		long maxLobSize = cachedMetaData.getMaxLogicalLobSize();
+		assertThat(maxLobSize >= 0, is(true));
+		
+		// Test supportsRefCursors - JDBC 4.0 method
+		boolean supportsRefCursors = cachedMetaData.supportsRefCursors();
+		assertThat(supportsRefCursors, is(notNullValue()));
 	}
 }
