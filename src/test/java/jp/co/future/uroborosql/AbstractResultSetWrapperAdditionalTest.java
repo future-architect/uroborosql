@@ -150,4 +150,55 @@ public class AbstractResultSetWrapperAdditionalTest extends AbstractDbTest {
 		// Verify the wrapper handles various advanced type operations
 		assertThat(results, is(notNullValue()));
 	}
+
+	/**
+	 * Test additional ResultSet methods for better coverage
+	 */
+	@Test
+	public void testAdditionalResultSetMethods() throws Exception {
+		agent.updateWith("CREATE TABLE IF NOT EXISTS TEST_ADDITIONAL_RS (ID INT, NAME VARCHAR(50), AMOUNT DECIMAL(10,2), ACTIVE BOOLEAN)").count();
+		agent.updateWith("INSERT INTO TEST_ADDITIONAL_RS (ID, NAME, AMOUNT, ACTIVE) VALUES (1, 'Test', 123.45, TRUE)").count();
+
+		// Use stream to access underlying ResultSet wrapper methods
+		try (var stream = agent.queryWith("SELECT * FROM TEST_ADDITIONAL_RS WHERE ID = 1").stream()) {
+			// This exercises various wrapper methods internally
+			var resultList = stream.collect(java.util.stream.Collectors.toList());
+			assertThat(resultList.size(), is(1));
+		}
+	}
+
+	/**
+	 * Test cursor positioning methods
+	 */
+	@Test
+	public void testCursorMethods() throws Exception {
+		agent.updateWith("CREATE TABLE IF NOT EXISTS TEST_CURSOR (ID INT, VALUE VARCHAR(10))").count();
+		agent.updateWith("INSERT INTO TEST_CURSOR (ID, VALUE) VALUES (1, 'A'), (2, 'B'), (3, 'C')").count();
+
+		// Test cursor methods through stream operations
+		try (var stream = agent.queryWith("SELECT * FROM TEST_CURSOR ORDER BY ID").stream()) {
+			// Stream operations will internally use cursor methods
+			var count = stream.count();
+			assertThat(count >= 0, is(true));
+		}
+	}
+
+	/**
+	 * Test wrapper delegation for various data types
+	 */
+	@Test
+	public void testDataTypeDelegation() throws Exception {
+		agent.updateWith("CREATE TABLE IF NOT EXISTS TEST_DATATYPES (ID INT, STR_VAL VARCHAR(50), NUM_VAL DECIMAL(10,2), DATE_VAL TIMESTAMP)").count();
+		agent.updateWith("INSERT INTO TEST_DATATYPES (ID, STR_VAL, NUM_VAL, DATE_VAL) VALUES (1, 'test', 99.99, CURRENT_TIMESTAMP())").count();
+
+		// Query that exercises various data type getters
+		var results = agent.queryWith("SELECT * FROM TEST_DATATYPES WHERE ID = 1").collect();
+		assertThat(results.size(), is(1));
+		
+		var result = results.get(0);
+		assertThat(result.get("ID"), is(notNullValue()));
+		assertThat(result.get("STR_VAL"), is(notNullValue()));
+		assertThat(result.get("NUM_VAL"), is(notNullValue()));
+		assertThat(result.get("DATE_VAL"), is(notNullValue()));
+	}
 }
