@@ -47,14 +47,14 @@ UroboroSQLは既存のイベントサブスクライバー機構を持ってい�
 1. **実行回数カウンター** (`Counter`)
    - メトリクス名: `uroborosql.sql.executions`
    - タグ:
-     - `sql.type`: SQL種別（query, update, batch, procedure）
+     - `sql.kind`: SQL種別（`ExecutionContext.getSqlKind()`で取得した`SqlKind` Enumの値を使用）
      - `sql.name`: SQL名（オプション、設定可能）
      - `sql.id`: SQL-ID（オプション、設定可能）
 
 2. **実行時間タイマー** (`Timer`)
    - メトリクス名: `uroborosql.sql.duration`
    - タグ:
-     - `sql.type`: SQL種別（query, update, batch, procedure）
+     - `sql.kind`: SQL種別（`ExecutionContext.getSqlKind()`で取得した`SqlKind` Enumの値を使用）
      - `sql.name`: SQL名（オプション、設定可能）
      - `sql.id`: SQL-ID（オプション、設定可能）
    - 統計情報: 合計時間、カウント、最大値、パーセンタイル等
@@ -62,26 +62,48 @@ UroboroSQLは既存のイベントサブスクライバー機構を持ってい�
 3. **処理行数ゲージ/サマリー** (`DistributionSummary`)
    - メトリクス名: `uroborosql.sql.rows`
    - タグ:
-     - `sql.type`: SQL種別（query, update, batch, procedure）
+     - `sql.kind`: SQL種別（`ExecutionContext.getSqlKind()`で取得した`SqlKind` Enumの値を使用）
      - `sql.name`: SQL名（オプション、設定可能）
      - `sql.id`: SQL-ID（オプション、設定可能）
 
 #### 2.3 実行時間の計測
 
-既存のイベント機構では実行時間が直接提供されていないため、以下の対応が必要：
+**採用方針**: ExecutionContextに実行時間を記録（オプション1を採用）
 
-**オプション1: ExecutionContextに実行時間を記録**
-- `ExecutionContext`に開始時刻と終了時刻を記録するフィールドを追加
-- SQL実行前後で時刻を記録
-- イベントから`ExecutionContext`経由で実行時間を取得
+既存の`SqlAgentImpl`の実装では、パフォーマンスログ用に実行時間の計測を行っている：
 
-**オプション2: イベントに実行時間を追加**
-- `AfterSqlQueryEvent`等のイベントクラスに実行時間フィールドを追加
-- イベント発行時に実行時間を設定
+```java
+// SqlAgentImpl#query等のメソッド内
+var startTime = PERFORMANCE_LOG.isDebugEnabled() ? Instant.now(getSqlConfig().getClock()) : null;
+try {
+    // SQL実行
+} finally {
+    debugWith(PERFORMANCE_LOG)
+        .addArgument(() -> formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())))
+        .log();
+}
+```
 
-**推奨**: オプション1（既存のExecutionContextを拡張）
-- 既存のイベントクラスの変更を最小限に抑える
+この既存の仕組みを活用し、以下の対応を実施：
+
+1. **ExecutionContextの拡張**
+   - `ExecutionContext`に`startTime`フィールドと`endTime`フィールドを追加
+   - `getExecutionTime()`メソッドを追加（Duration型を返す）
+   - `setStartTime(Instant)`/`setEndTime(Instant)`メソッドを追加
+
+2. **SqlAgentImpl内での時刻設定**
+   - 既存のパフォーマンスログ用の`startTime`取得時に、同時に`ExecutionContext`にも設定
+   - finally句での処理時に`endTime`を設定
+   - この変更により、`PERFORMANCE_LOG.isDebugEnabled()`に関係なく、常に実行時間を取得可能にする
+
+3. **Micrometer統合での利用**
+   - イベントリスナー内で`ExecutionContext.getExecutionTime()`を呼び出して実行時間を取得
+   - Timerメトリクスに記録
+
+**メリット**:
+- 既存のイベントクラスの変更が不要
 - ExecutionContextは既に各種情報を保持する設計になっている
+- 既存のパフォーマンスログの仕組みを活用できる
 
 #### 2.4 設定オプション
 
@@ -148,8 +170,8 @@ try (SqlAgent agent = config.agent()) {
 }
 
 // メトリクスの確認
-// registry.counter("uroborosql.sql.executions", "sql.type", "query").count()
-// registry.timer("uroborosql.sql.duration", "sql.type", "query").mean()
+// registry.counter("uroborosql.sql.executions", "sql.kind", "SELECT").count()
+// registry.timer("uroborosql.sql.duration", "sql.kind", "SELECT").mean()
 ```
 
 ## セキュリティ・パフォーマンス考慮事項
@@ -157,7 +179,7 @@ try (SqlAgent agent = config.agent()) {
 ### カーディナリティ問題
 - デフォルトではSQL名やSQL-IDをタグに含めない
 - これらのタグは動的に増加する可能性があるため、明示的に有効化が必要
-- 代わりに`sql.type`という限定的なタグのみをデフォルトで使用
+- 代わりに`sql.kind`（`SqlKind` Enumの値）という限定的なタグのみをデフォルトで使用
 
 ### パフォーマンス影響
 - メトリクス記録は非同期または軽量な操作のみ
