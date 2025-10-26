@@ -14,6 +14,7 @@ import java.util.Objects;
 import jp.co.future.uroborosql.context.ExecutionContext;
 import jp.co.future.uroborosql.fluent.ExtractionCondition;
 import jp.co.future.uroborosql.mapping.TableMetadata;
+import jp.co.future.uroborosql.utils.BeanAccessor;
 import jp.co.future.uroborosql.utils.CaseFormat;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
@@ -91,6 +92,17 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	 */
 	protected String getWhereClause() {
 		var where = new StringBuilder();
+		
+		// MultiColumnIn operator の特別処理
+		if (this.useOperator) {
+			var multiColumnInParam = context().getParam(PREFIX + "multiColumnIn");
+			if (multiColumnInParam != null && multiColumnInParam.getValue() instanceof MultiColumnIn) {
+				var ope = (MultiColumnIn<?>) multiColumnInParam.getValue();
+				where.append("\t").append("AND ");
+				where.append(buildMultiColumnInClause(ope)).append(System.lineSeparator());
+			}
+		}
+		
 		for (var col : this.tableMetadata.getColumns()) {
 			var camelColName = col.getCamelColumnName();
 
@@ -129,6 +141,85 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 		} else {
 			return "";
 		}
+	}
+
+	/**
+	 * MultiColumnIn用のWHERE句を生成する
+	 *
+	 * @param ope MultiColumnIn Operator
+	 * @return WHERE句の文字列
+	 */
+	private String buildMultiColumnInClause(final MultiColumnIn<?> ope) {
+		var columnNames = ope.getColumnNames();
+		var beans = ope.getBeans();
+		var beansList = new ArrayList<>();
+		beans.forEach(beansList::add);
+		
+		if (columnNames.isEmpty() || beansList.isEmpty()) {
+			return "1 = 0"; // 空の場合は常に偽の条件を返す
+		}
+		
+		// カラム名リストの構築
+		var columns = new StringBuilder("(");
+		var firstCol = true;
+		for (var columnName : columnNames) {
+			var column = this.tableMetadata.getColumn(columnName);
+			if (column != null) {
+				if (!firstCol) {
+					columns.append(", ");
+				}
+				columns.append(column.getColumnIdentifier());
+				firstCol = false;
+			}
+		}
+		columns.append(")");
+		
+		// タプルリストの構築
+		var tuples = new StringBuilder("(");
+		var firstBean = true;
+		var rowIndex = 0;
+		
+		for (var bean : beansList) {
+			if (!firstBean) {
+				tuples.append(", ");
+			}
+			
+			// 各Beanからフィールド値を取得してタプルを作成
+			var fields = BeanAccessor.fields(bean.getClass());
+			var tuple = new StringBuilder("(");
+			var firstField = true;
+			var colIndex = 0;
+			
+			for (var field : fields) {
+				var fieldName = CaseFormat.CAMEL_CASE.convert(field.getName());
+				var column = this.tableMetadata.getColumn(fieldName);
+				if (column != null) {
+					if (!firstField) {
+						tuple.append(", ");
+					}
+					
+					// パラメータをコンテキストに追加
+					var paramName = ope.getParamNamePrefix() + "_" + rowIndex + "_" + colIndex;
+					var value = BeanAccessor.value(field, bean);
+					context().param(paramName, value);
+					
+					// パラメータバインド用のマーカーを追加
+					tuple.append("/*").append(paramName).append("*/''");
+					
+					firstField = false;
+					colIndex++;
+				}
+			}
+			tuple.append(")");
+			tuples.append(tuple);
+			
+			firstBean = false;
+			rowIndex++;
+		}
+		tuples.append(")");
+		
+		// 完全な条件式を返す
+		return columns + " " + ope.getOperator() + " " + tuples;
 	}
 
 	/**
@@ -285,6 +376,19 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 	@Override
 	public <V> T notIn(final String col, final Iterable<V> valueList) {
 		context().param(PREFIX + CaseFormat.CAMEL_CASE.convert(col), new NotIn<>(col, valueList));
+		this.useOperator = true;
+		return (T) this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.fluent.ExtractionCondition#in(java.lang.Iterable)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> T in(final Iterable<V> beans) {
+		context().param(PREFIX + "multiColumnIn", new MultiColumnIn<>(beans, this.tableMetadata));
 		this.useOperator = true;
 		return (T) this;
 	}
@@ -928,6 +1032,106 @@ abstract class AbstractExtractionCondition<T extends ExtractionCondition<T>> imp
 		@Override
 		public String getOperator() {
 			return "NOT IN";
+		}
+	}
+
+	/**
+	 * Multi-Column In Operator
+	 */
+	public static class MultiColumnIn<V> extends Operator {
+		protected final Iterable<V> beans;
+		protected final TableMetadata metadata;
+		protected final List<String> columnNames;
+		protected final String paramNamePrefix;
+
+		/**
+		 * Constructor
+		 *
+		 * @param beans Beanの集合
+		 * @param metadata テーブルメタデータ
+		 */
+		public MultiColumnIn(final Iterable<V> beans, final TableMetadata metadata) {
+			super("");
+			this.beans = beans;
+			this.metadata = metadata;
+			this.columnNames = new ArrayList<>();
+			this.paramNamePrefix = "multiColumnIn";
+			
+			// Beanからカラム名を抽出
+			var beansList = new ArrayList<V>();
+			beans.forEach(beansList::add);
+			
+			if (!beansList.isEmpty()) {
+				var firstBean = beansList.get(0);
+				var fields = BeanAccessor.fields(firstBean.getClass());
+				
+				// カラム名を収集
+				for (var field : fields) {
+					var fieldName = CaseFormat.CAMEL_CASE.convert(field.getName());
+					var column = metadata.getColumn(fieldName);
+					if (column != null) {
+						columnNames.add(fieldName);
+					}
+				}
+			}
+		}
+
+		/**
+		 * Beanの集合を取得する
+		 *
+		 * @return Beanの集合
+		 */
+		public Iterable<V> getBeans() {
+			return beans;
+		}
+
+		/**
+		 * カラム名のリストを取得する
+		 *
+		 * @return カラム名のリスト
+		 */
+		public List<String> getColumnNames() {
+			return columnNames;
+		}
+
+		/**
+		 * パラメータ名プレフィックスを取得する
+		 *
+		 * @return パラメータ名プレフィックス
+		 */
+		public String getParamNamePrefix() {
+			return paramNamePrefix;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#useColumnIdentifier()
+		 */
+		@Override
+		public boolean useColumnIdentifier() {
+			return false;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#getOperator()
+		 */
+		@Override
+		public String getOperator() {
+			return "IN";
+		}
+
+		/**
+		 * {@inheritDoc}
+		 *
+		 * @see jp.co.future.uroborosql.AbstractExtractionCondition.Operator#toConditionString()
+		 */
+		@Override
+		public String toConditionString() {
+			// toConditionStringは使用しないため空文字を返す
+			return "";
 		}
 	}
 
