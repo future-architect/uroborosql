@@ -6,7 +6,6 @@
  */
 package jp.co.future.uroborosql;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
