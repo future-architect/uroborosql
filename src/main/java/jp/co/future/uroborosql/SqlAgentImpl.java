@@ -1414,6 +1414,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 							setSavepoint(RETRY_SAVEPOINT_NAME);
 						}
 						rs = stmt.executeQuery();
+						// Query実行後の終了時刻を記録
+						executionContext.setEndTime(Instant.now(getSqlConfig().getClock()));
 						// Query実行後イベント発行
 						if (getSqlConfig().getEventListenerHolder().hasAfterSqlQueryListener()) {
 							var eventObj = new AfterSqlQueryEvent(executionContext, rs, stmt.getConnection(), stmt);
@@ -1566,6 +1568,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					var count = stmt.executeUpdate();
+					// Update実行後の終了時刻を記録
+					executionContext.setEndTime(Instant.now(getSqlConfig().getClock()));
 					// Update実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasAfterSqlUpdateListener()) {
 						var eventObj = new AfterSqlUpdateEvent(executionContext, count, stmt.getConnection(), stmt);
@@ -1693,6 +1697,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					var counts = stmt.executeBatch();
+					// Batch実行後の終了時刻を記録
+					executionContext.setEndTime(Instant.now(getSqlConfig().getClock()));
 					// Batch実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasAfterSqlBatchListener()) {
 						var eventObj = new AfterSqlBatchEvent(executionContext, counts, stmt.getConnection(), stmt);
@@ -1815,6 +1821,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 						setSavepoint(RETRY_SAVEPOINT_NAME);
 					}
 					var result = callableStatement.execute();
+					// Procedure実行後の終了時刻を記録
+					executionContext.setEndTime(Instant.now(getSqlConfig().getClock()));
 					// Procedure実行後イベント発行
 					if (getSqlConfig().getEventListenerHolder().hasAfterProcedureListener()) {
 						var eventObj = new AfterProcedureEvent(executionContext, result,
