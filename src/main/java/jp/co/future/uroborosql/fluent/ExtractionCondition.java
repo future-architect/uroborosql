@@ -137,17 +137,6 @@ public interface ExtractionCondition<T> {
 	<V> T notIn(String col, Iterable<V> valueList);
 
 	/**
-	 * Where句に 複数カラムの in 条件を追加する.<br>
-	 * 引数のbeansから全てのフィールドを抽出し、複数カラムのIN句を生成する.<br>
-	 * 例: (col1, col2) IN ((val1_1, val1_2), (val2_1, val2_2))
-	 *
-	 * @param <V> Bean型
-	 * @param beans 値を持つBeanの集合
-	 * @return T
-	 */
-	<V> T in(Iterable<V> beans);
-
-	/**
 	 * Where句に like 条件を追加する. 検索文字列はエスケープしない.
 	 *
 	 * @param col bind column name
