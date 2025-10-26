@@ -163,6 +163,12 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 	/** 更新処理実行時に通常の更新SQL発行の代わりに移譲する処理. */
 	private Function<ExecutionContext, Integer> updateDelegate;
 
+	/** SQL実行開始時刻 */
+	private java.time.Instant startTime;
+
+	/** SQL実行終了時刻 */
+	private java.time.Instant endTime;
+
 	/**
 	 * コンストラクタ。
 	 */
@@ -1253,6 +1259,48 @@ public class ExecutionContextImpl implements ExecutionContext, SqlConfigAware, S
 	@Override
 	public Clock getClock() {
 		return getSqlConfig().getClock();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getStartTime()
+	 */
+	@Override
+	public java.time.Instant getStartTime() {
+		return this.startTime;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setStartTime(java.time.Instant)
+	 */
+	@Override
+	public ExecutionContext setStartTime(final java.time.Instant startTime) {
+		this.startTime = startTime;
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#getEndTime()
+	 */
+	@Override
+	public java.time.Instant getEndTime() {
+		return this.endTime;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @see jp.co.future.uroborosql.context.ExecutionContext#setEndTime(java.time.Instant)
+	 */
+	@Override
+	public ExecutionContext setEndTime(final java.time.Instant endTime) {
+		this.endTime = endTime;
+		return this;
 	}
 
 }

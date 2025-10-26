@@ -1391,7 +1391,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 				.setMessage("Execute query sql. sqlName: {}")
 				.addArgument(executionContext.getSqlName())
 				.log();
-		var startTime = PERFORMANCE_LOG.isDebugEnabled() ? Instant.now(getSqlConfig().getClock()) : null;
+		var startTime = Instant.now(getSqlConfig().getClock());
+		executionContext.setStartTime(startTime);
 
 		try {
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
@@ -1471,11 +1472,13 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return null;
 		} finally {
 			// 後処理
+			var endTime = Instant.now(getSqlConfig().getClock());
+			executionContext.setEndTime(endTime);
 			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
-					.addArgument(() -> formatElapsedTime(startTime, Instant.now(getSqlConfig().getClock())))
+					.addArgument(() -> formatElapsedTime(startTime, endTime))
 					.log();
 		}
 	}
@@ -1534,7 +1537,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return executionContext.getUpdateDelegate().apply(executionContext);
 		}
 
-		Instant startTime = null;
+		Instant startTime = Instant.now(getSqlConfig().getClock());
+		executionContext.setStartTime(startTime);
 
 		try (var stmt = getPreparedStatement(executionContext)) {
 
@@ -1545,10 +1549,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.setMessage("Execute update sql. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
-
-			if (PERFORMANCE_LOG.isDebugEnabled()) {
-				startTime = Instant.now(getSqlConfig().getClock());
-			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
@@ -1630,12 +1630,13 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return 0;
 		} finally {
 			// 後処理
-			var curStartTime = startTime;
+			var endTime = Instant.now(getSqlConfig().getClock());
+			executionContext.setEndTime(endTime);
 			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
-					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.addArgument(() -> formatElapsedTime(startTime, endTime))
 					.log();
 		}
 	}
@@ -1663,7 +1664,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return new int[] { executionContext.getUpdateDelegate().apply(executionContext) };
 		}
 
-		Instant startTime = null;
+		Instant startTime = Instant.now(getSqlConfig().getClock());
+		executionContext.setStartTime(startTime);
 
 		try (var stmt = getPreparedStatement(executionContext)) {
 
@@ -1674,9 +1676,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.setMessage("Execute batch sql. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
-			if (PERFORMANCE_LOG.isDebugEnabled()) {
-				startTime = Instant.now(getSqlConfig().getClock());
-			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
@@ -1757,12 +1756,13 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			return null;
 		} finally {
 			// 後処理
-			var curStartTime = startTime;
+			var endTime = Instant.now(getSqlConfig().getClock());
+			executionContext.setEndTime(endTime);
 			debugWith(PERFORMANCE_LOG)
 					.setMessage("SQL execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
-					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.addArgument(() -> formatElapsedTime(startTime, endTime))
 					.log();
 			releaseParameterLogging();
 		}
@@ -1785,7 +1785,8 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 		// コンテキスト変換
 		transformContext(executionContext);
 
-		Instant startTime = null;
+		Instant startTime = Instant.now(getSqlConfig().getClock());
+		executionContext.setStartTime(startTime);
 
 		try (var callableStatement = getCallableStatement(executionContext)) {
 
@@ -1796,9 +1797,6 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 					.setMessage("Execute stored procedure. sqlName: {}")
 					.addArgument(executionContext.getSqlName())
 					.log();
-			if (PERFORMANCE_LOG.isDebugEnabled()) {
-				startTime = Instant.now(getSqlConfig().getClock());
-			}
 
 			// デフォルト最大リトライ回数を取得し、個別指定（ExecutionContextの値）があれば上書き
 			var maxRetryCount = executionContext.getMaxRetryCount() >= 0
@@ -1867,12 +1865,13 @@ public class SqlAgentImpl implements SqlAgent, ServiceLoggingSupport, Performanc
 			handleException(executionContext, ex);
 		} finally {
 			// 後処理
-			var curStartTime = startTime;
+			var endTime = Instant.now(getSqlConfig().getClock());
+			executionContext.setEndTime(endTime);
 			debugWith(PERFORMANCE_LOG)
 					.setMessage("Stored procedure execution time [{}({})] : [{}]")
 					.addArgument(() -> generateSqlName(executionContext))
 					.addArgument(executionContext.getSqlKind())
-					.addArgument(() -> formatElapsedTime(curStartTime, Instant.now(getSqlConfig().getClock())))
+					.addArgument(() -> formatElapsedTime(startTime, endTime))
 					.log();
 		}
 		return null;
