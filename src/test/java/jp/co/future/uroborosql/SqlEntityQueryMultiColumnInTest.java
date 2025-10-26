@@ -6,6 +6,7 @@
  */
 package jp.co.future.uroborosql;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -65,6 +66,8 @@ public class SqlEntityQueryMultiColumnInTest extends AbstractDbTest {
 				.collect();
 
 		assertThat(products.size(), is(2));
+		assertThat(products.get(0).getProductId(), is(0));
+		assertThat(products.get(1).getProductId(), is(1));
 	}
 
 	@Test
@@ -96,5 +99,59 @@ public class SqlEntityQueryMultiColumnInTest extends AbstractDbTest {
 
 		assertThat(products.size(), is(1));
 		assertThat(products.get(0).getProductId(), is(0));
+		assertThat(products.get(0).getProductName(), is("商品名0"));
+	}
+
+	@Test
+	void testMultiColumnInCount() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// count()と組み合わせ
+		var inParams = List.of(
+				new ProductInParam(0, "商品名0"),
+				new ProductInParam(1, "商品名1"));
+
+		var count = agent.query(Product.class)
+				.in(inParams)
+				.count();
+
+		assertThat(count, is(2L));
+	}
+
+	@Test
+	void testMultiColumnInFirst() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// first()と組み合わせ
+		var inParams = List.of(
+				new ProductInParam(0, "商品名0"),
+				new ProductInParam(1, "商品名1"));
+
+		var product = agent.query(Product.class)
+				.in(inParams)
+				.first();
+
+		assertThat(product.isPresent(), is(true));
+		assertThat(product.get().getProductId(), is(0));
+	}
+
+	@Test
+	void testMultiColumnInWithOtherConditions() {
+		// 事前条件
+		cleanInsert(Paths.get("src/test/resources/data/setup", "testExecuteQuery.ltsv"));
+
+		// 他の条件と組み合わせ
+		var inParams = List.of(
+				new ProductInParam(0, "商品名0"),
+				new ProductInParam(1, "商品名1"));
+
+		var products = agent.query(Product.class)
+				.in(inParams)
+				.greaterEqual("productId", 0)
+				.collect();
+
+		assertThat(products.size(), is(2));
 	}
 }
