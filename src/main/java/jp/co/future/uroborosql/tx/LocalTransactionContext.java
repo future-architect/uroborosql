@@ -126,7 +126,11 @@ class LocalTransactionContext implements TransactionContext {
 		case ENTITY_BULK_INSERT:
 		case ENTITY_BATCH_INSERT:
 			if (updatable) {
-				if (executionContext.hasGeneratedKeyColumns()) {
+				// バッチ処理の場合、Dialectがバッチでの自動生成キー取得をサポートしているか確認
+				var isBatchOperation = executionContext.getSqlKind().name().contains("BATCH");
+				var supportsBatchKeys = sqlConfig.getDialect().supportsBatchGeneratedKeys();
+				
+				if (executionContext.hasGeneratedKeyColumns() && (!isBatchOperation || supportsBatchKeys)) {
 					stmt = conn.prepareStatement(executionContext.getExecutableSql(),
 							executionContext.getGeneratedKeyColumns());
 				} else {
