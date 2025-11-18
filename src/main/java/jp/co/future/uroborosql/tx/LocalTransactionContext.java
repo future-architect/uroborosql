@@ -127,7 +127,8 @@ class LocalTransactionContext implements TransactionContext {
 		case ENTITY_BATCH_INSERT:
 			if (updatable) {
 				// バッチ処理の場合、Dialectがバッチでの自動生成キー取得をサポートしているか確認
-				var isBatchOperation = executionContext.getSqlKind().name().contains("BATCH");
+				var isBatchOperation = executionContext.getSqlKind() == jp.co.future.uroborosql.enums.SqlKind.BATCH_INSERT
+						|| executionContext.getSqlKind() == jp.co.future.uroborosql.enums.SqlKind.ENTITY_BATCH_INSERT;
 				var supportsBatchKeys = sqlConfig.getDialect().supportsBatchGeneratedKeys();
 				
 				if (executionContext.hasGeneratedKeyColumns() && (!isBatchOperation || supportsBatchKeys)) {
