@@ -355,8 +355,18 @@ class SqlApiTest extends AbstractMatrixTest {
 		
 		assertThat(insertedProducts.size(), is(3));
 		
-		// SQL Serverの場合、返されたエンティティに自動生成されたIDは設定されない（これは期待される動作）
-		if (!config.getDialect().supportsBatchGeneratedKeys()) {
+		// バッチでの自動生成キー取得をサポートしている場合、returnedProductsとinsertedProductsのIDが一致することを確認
+		if (config.getDialect().supportsBatchGeneratedKeys()) {
+			for (var i = 0; i < returnedProducts.size(); i++) {
+				var returnedProduct = returnedProducts.get(i);
+				var insertedProduct = insertedProducts.stream()
+						.filter(p -> p.getProductId().equals(returnedProduct.getProductId()))
+						.findFirst()
+						.orElseThrow();
+				assertThat(returnedProduct.getProductId(), is(insertedProduct.getProductId()));
+			}
+		} else {
+			// SQL Serverの場合、返されたエンティティに自動生成されたIDは設定されない（これは期待される動作）
 			log.atInfo()
 					.setMessage("Batch insert and return succeeded on {} without generated key population")
 					.addArgument(config.getDialect().getDatabaseName())
