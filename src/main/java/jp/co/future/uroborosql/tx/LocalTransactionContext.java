@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.connection.ConnectionContext;
 import jp.co.future.uroborosql.context.ExecutionContext;
+import jp.co.future.uroborosql.enums.SqlKind;
 import jp.co.future.uroborosql.event.AfterCommitEvent;
 import jp.co.future.uroborosql.event.AfterCreateCallableStatementEvent;
 import jp.co.future.uroborosql.event.AfterCreatePreparedStatementEvent;
@@ -127,11 +128,11 @@ class LocalTransactionContext implements TransactionContext {
 		case ENTITY_BATCH_INSERT:
 			if (updatable) {
 				// バッチ処理の場合、Dialectがバッチでの自動生成キー取得をサポートしているか確認
-				var isBatchOperation = executionContext.getSqlKind() == jp.co.future.uroborosql.enums.SqlKind.BATCH_INSERT
-						|| executionContext.getSqlKind() == jp.co.future.uroborosql.enums.SqlKind.ENTITY_BATCH_INSERT;
+				var isBatchOperation = (executionContext.getSqlKind() == SqlKind.BATCH_INSERT
+						|| executionContext.getSqlKind() == SqlKind.ENTITY_BATCH_INSERT);
 				var supportsBatchKeys = sqlConfig.getDialect().supportsBatchGeneratedKeys();
-				
-				if (executionContext.hasGeneratedKeyColumns() && (!isBatchOperation || supportsBatchKeys)) {
+
+				if ((supportsBatchKeys || !isBatchOperation) && executionContext.hasGeneratedKeyColumns()) {
 					stmt = conn.prepareStatement(executionContext.getExecutableSql(),
 							executionContext.getGeneratedKeyColumns());
 				} else {
