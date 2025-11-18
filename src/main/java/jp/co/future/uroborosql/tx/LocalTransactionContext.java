@@ -128,8 +128,12 @@ class LocalTransactionContext implements TransactionContext {
 		case ENTITY_BATCH_INSERT:
 			if (updatable) {
 				// バッチ処理の場合、Dialectがバッチでの自動生成キー取得をサポートしているか確認
+				// Treat all grouped insert kinds as "batch" for clarity, though only BATCH_INSERT and ENTITY_BATCH_INSERT use executeBatch().
+				// BULK_INSERT and ENTITY_BULK_INSERT use executeUpdate() and are not subject to batch generated key restrictions.
 				var isBatchOperation = (executionContext.getSqlKind() == SqlKind.BATCH_INSERT
-						|| executionContext.getSqlKind() == SqlKind.ENTITY_BATCH_INSERT);
+						|| executionContext.getSqlKind() == SqlKind.ENTITY_BATCH_INSERT
+						|| executionContext.getSqlKind() == SqlKind.BULK_INSERT
+						|| executionContext.getSqlKind() == SqlKind.ENTITY_BULK_INSERT);
 				var supportsBatchKeys = sqlConfig.getDialect().supportsBatchGeneratedKeys();
 
 				if ((supportsBatchKeys || !isBatchOperation) && executionContext.hasGeneratedKeyColumns()) {
