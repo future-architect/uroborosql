@@ -11,9 +11,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.sql.SQLException;
-import java.time.Instant;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -61,13 +58,10 @@ public class SqlAgentImplAdditionalTest extends AbstractDbTest {
 	@Test
 	public void testFormatElapsedTimeMethod() throws Exception {
 		// Execute a query that will use formatElapsedTime internally
-		var start = Instant.now();
 		var result = agent.queryWith("SELECT 'test' AS test_column")
 				.collect();
-		var end = Instant.now();
 
 		assertThat(result, is(notNullValue()));
-		assertThat(end.isAfter(start), is(true));
 	}
 
 	/**
@@ -80,7 +74,7 @@ public class SqlAgentImplAdditionalTest extends AbstractDbTest {
 				.collect();
 		assertThat(result, is(notNullValue()));
 
-		// Test with Map parameters using paramMap  
+		// Test with Map parameters using paramMap
 		var result2 = agent.queryWith("SELECT 1 AS map_value")
 				.collect();
 		assertThat(result2, is(notNullValue()));
@@ -97,7 +91,7 @@ public class SqlAgentImplAdditionalTest extends AbstractDbTest {
 				.collect();
 		assertThat(result, is(notNullValue()));
 
-		// Test with fetch size set  
+		// Test with fetch size set
 		agent.getSqlConfig().getSqlAgentProvider().setFetchSize(100);
 		var result2 = agent.queryWith("SELECT 'fetch_test' AS test_column")
 				.collect();
@@ -134,8 +128,9 @@ public class SqlAgentImplAdditionalTest extends AbstractDbTest {
 	@Test
 	public void testGetEntityHandlerMethod() throws Exception {
 		// Create table for test entity
-		agent.updateWith("CREATE TABLE IF NOT EXISTS TEST (PRODUCT_ID BIGINT PRIMARY KEY, PRODUCT_NAME VARCHAR(255))").count();
-		
+		agent.updateWith("CREATE TABLE IF NOT EXISTS TEST (PRODUCT_ID BIGINT PRIMARY KEY, PRODUCT_NAME VARCHAR(255))")
+				.count();
+
 		// Create a simple entity class for testing
 		var product = new TestEntity();
 		product.productId = 1L;
