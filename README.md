@@ -25,7 +25,7 @@ for Japanese, see [README.ja.md](https://github.com/future-architect/uroborosql/
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 <dependency>
     <groupId>org.springframework</groupId>
@@ -40,7 +40,7 @@ or
 <dependency>
     <groupId>jp.co.future</groupId>
     <artifactId>uroborosql</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 <dependency>
     <groupId>ognl</groupId>
@@ -52,14 +52,14 @@ or
 ### for Gradle
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.8'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.9'
 compile group: 'org.springframework', name: 'spring-expression', version: '5.3.20'
 ```
 
 or
 
 ```gradle
-compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.8'
+compile group: 'jp.co.future', name: 'uroborosql', version: '1.0.9'
 compile group: 'ognl', name: 'ognl', version: '3.1.23'
 ```
 
