@@ -168,6 +168,15 @@ public interface Dialect {
 		return false;
 	}
 
+	/**
+	 * バッチ処理での自動生成キーの取得をサポートしているか.
+	 *
+	 * @return バッチ処理での自動生成キーの取得をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsBatchGeneratedKeys() {
+		return true;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**

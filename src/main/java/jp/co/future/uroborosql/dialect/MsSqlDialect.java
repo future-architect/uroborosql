@@ -155,4 +155,16 @@ public class MsSqlDialect extends AbstractDialect {
 	public Set<String> getPessimisticLockingErrorCodes() {
 		return pessimisticLockingErrorCodes;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLServerのJDBCドライバーはexecuteBatch()実行時にgetGeneratedKeys()をサポートしていない
+	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsBatchGeneratedKeys()
+	 */
+	@Override
+	public boolean supportsBatchGeneratedKeys() {
+		return false;
+	}
 }

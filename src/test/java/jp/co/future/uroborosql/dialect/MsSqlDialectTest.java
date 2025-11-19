@@ -105,6 +105,7 @@ public class MsSqlDialectTest {
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(true));
 		assertThat(dialect.supportsUpdateChained(), is(true));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(true));
+		assertThat(dialect.supportsBatchGeneratedKeys(), is(false));
 	}
 
 	@Test

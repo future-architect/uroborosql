@@ -428,7 +428,7 @@ public class SqlEntityUpdateTest extends AbstractDbTest {
 				fail();
 			} catch (OptimisticLockException ex) {
 				var sql = String.format(
-						"UPDATE /* mapping @ Product */ PUBLIC.PRODUCT SET %n\t  \"PRODUCT_ID\" = ?/*productId*/%n\t, \"PRODUCT_NAME\" = ?/*productName*/%n\t, \"PRODUCT_KANA_NAME\" = ?/*productKanaName*/%n\t, \"JAN_CODE\" = ?/*janCode*/%n\t, \"PRODUCT_DESCRIPTION\" = ?/*productDescription*/%n\t, \"INS_DATETIME\" = ?/*insDatetime*/%n\t, \"UPD_DATETIME\" = ?/*updDatetime*/%n\t, \"VERSION_NO\" = \"VERSION_NO\" + 1%nWHERE%n\t    \"PRODUCT_ID\" = ?/*productId*/%n\tAND \"VERSION_NO\" = ?/*versionNo*/");
+						"UPDATE /* mapping @ Product */ PUBLIC.PRODUCT SET %n\t \"PRODUCT_NAME\" = ?/*productName*/%n\t, \"PRODUCT_KANA_NAME\" = ?/*productKanaName*/%n\t, \"JAN_CODE\" = ?/*janCode*/%n\t, \"PRODUCT_DESCRIPTION\" = ?/*productDescription*/%n\t, \"INS_DATETIME\" = ?/*insDatetime*/%n\t, \"UPD_DATETIME\" = ?/*updDatetime*/%n\t, \"VERSION_NO\" = \"VERSION_NO\" + 1%nWHERE%n\t    \"PRODUCT_ID\" = ?/*productId*/%n\tAND \"VERSION_NO\" = ?/*versionNo*/");
 				var entityCount = 2;
 				var updateCount = 1;
 				assertThat(ex.getMessage(), is(
