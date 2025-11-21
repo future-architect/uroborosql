@@ -1,0 +1,15 @@
+--- src/test/java/jp/co/future/uroborosql/event/subscriber/MicrometerEventSubscriberTest.java
++++ src/test/java/jp/co/future/uroborosql/event/subscriber/MicrometerEventSubscriberTest.java
+@@ -75,6 +75,12 @@ public class MicrometerEventSubscriberTest extends AbstractDbTest {
+ 
+ agent.update(ctx);
+ 
++// Debug: List all meters
++System.out.println("All meters after update:");
++meterRegistry.getMeters().forEach(m -> {
++System.out.println("  " + m.getId().getName() + " tags: " + m.getId().getTags());
++});
++
+ // 実行回数カウンターを確認
+ var counter = meterRegistry.counter("uroborosql.sql.executions",
+ "sql.kind", SqlKind.INSERT.name());

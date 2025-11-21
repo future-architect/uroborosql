@@ -315,4 +315,56 @@ public interface ExecutionContext
 	 * @return SqlConfigが保持するClock
 	 */
 	Clock getClock();
+
+	/**
+	 * SQL実行開始時刻を取得する.
+	 *
+	 * @return SQL実行開始時刻. 未設定の場合は<code>null</code>
+	 */
+	default java.time.Instant getStartTime() {
+		return null;
+	}
+
+	/**
+	 * SQL実行開始時刻を設定する.
+	 *
+	 * @param startTime SQL実行開始時刻
+	 * @return 自身のExecutionContext
+	 */
+	default ExecutionContext setStartTime(final java.time.Instant startTime) {
+		return this;
+	}
+
+	/**
+	 * SQL実行終了時刻を取得する.
+	 *
+	 * @return SQL実行終了時刻. 未設定の場合は<code>null</code>
+	 */
+	default java.time.Instant getEndTime() {
+		return null;
+	}
+
+	/**
+	 * SQL実行終了時刻を設定する.
+	 *
+	 * @param endTime SQL実行終了時刻
+	 * @return 自身のExecutionContext
+	 */
+	default ExecutionContext setEndTime(final java.time.Instant endTime) {
+		return this;
+	}
+
+	/**
+	 * SQL実行時間を取得する.
+	 *
+	 * @return SQL実行時間. 開始時刻または終了時刻が未設定の場合は<code>null</code>
+	 */
+	default java.time.Duration getExecutionTime() {
+		var start = getStartTime();
+		var end = getEndTime();
+		if (start != null && end != null) {
+			return java.time.Duration.between(start, end);
+		}
+		return null;
+	}
 }
