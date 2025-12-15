@@ -158,16 +158,14 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	protected int setInParameter(final PreparedStatement preparedStatement, final int index,
 			final BindParameterMapperManager parameterMapperManager) throws SQLException {
 		var parameterIndex = index;
+		parameterLog(parameterIndex);
 		if (value instanceof Iterable) {
 			for (var e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
 				parameterIndex++;
 			}
-			// Log once for the entire Iterable parameter using the starting index
-			parameterLog(index);
 		} else {
 			setParameterObject(preparedStatement, parameterIndex, value, parameterMapperManager);
-			parameterLog(parameterIndex);
 			parameterIndex++;
 		}
 
