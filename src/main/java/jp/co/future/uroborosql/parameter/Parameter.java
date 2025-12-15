@@ -163,6 +163,7 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
 				parameterIndex++;
 			}
+			// Log once for the entire Iterable parameter using the starting index
 			parameterLog(index);
 		} else {
 			setParameterObject(preparedStatement, parameterIndex, value, parameterMapperManager);
