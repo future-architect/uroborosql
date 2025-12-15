@@ -161,13 +161,11 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 		if (value instanceof Iterable) {
 			for (var e : (Iterable<?>) value) {
 				setParameterObject(preparedStatement, parameterIndex, e, parameterMapperManager);
-
-				parameterLog(parameterIndex);
 				parameterIndex++;
 			}
+			parameterLog(index);
 		} else {
 			setParameterObject(preparedStatement, parameterIndex, value, parameterMapperManager);
-
 			parameterLog(parameterIndex);
 			parameterIndex++;
 		}
@@ -181,8 +179,8 @@ public class Parameter implements ServiceLoggingSupport, SqlLoggingSupport {
 	 * @param index パラメータインデックス
 	 */
 	protected void parameterLog(final int index) {
-		if (SQL_LOG.isDebugEnabled() && !isSuppressParameterLogging()) {
-			debugWith(SQL_LOG)
+		if (SQL_LOG.isTraceEnabled() && !isSuppressParameterLogging()) {
+			traceWith(SQL_LOG)
 					.setMessage("Set the parameter.[INDEX[{}], {}]")
 					.addArgument(index)
 					.addArgument(this)
