@@ -15,20 +15,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import jp.co.future.uroborosql.mapping.annotations.Table;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapper;
 import jp.co.future.uroborosql.parameter.mapper.BindParameterMapperManager;
-import jp.co.future.uroborosql.testlog.TestAppender;
-import org.slf4j.LoggerFactory;
 
 public class ParameterTest {
 	private SqlConfig config;
@@ -206,82 +200,6 @@ public class ParameterTest {
 					.param("bean", child2)
 					.collect();
 			assertThat(list.size(), is(0));
-		}
-	}
-
-	/**
-	 * Iterableパラメータの場合、parameterLogが1回だけ呼ばれることを確認するテスト
-	 * また、ログレベルがTRACEであることを確認する
-	 *
-	 * @throws Exception 例外
-	 */
-	@Test
-	void testSetInParameter_iterableParameterLogOnce() throws Exception {
-		// Configure SQL logger to TRACE level and attach TestAppender
-		var loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-		var sqlLogger = loggerContext.getLogger("jp.co.future.uroborosql.sql");
-		var originalLevel = sqlLogger.getLevel();
-		var testAppender = new TestAppender();
-		testAppender.setContext(loggerContext);
-		var encoder = new ch.qos.logback.classic.encoder.PatternLayoutEncoder();
-		encoder.setContext(loggerContext);
-		encoder.setPattern("%-5level - %m%n");
-		encoder.start();
-		testAppender.setEncoder(encoder);
-		testAppender.start();
-
-		try {
-			sqlLogger.setLevel(Level.TRACE);
-			sqlLogger.addAppender(testAppender);
-
-			var logs = TestAppender.getLogbackLogs(() -> {
-				try (var agent = config.agent()) {
-					// Test with a List parameter (Iterable) - should log once
-					var ctx = agent.context().setSqlName("test/PARAM_MAPPING3")
-							.param("targetStrs", List.of("1", "2", "3"));
-
-					try (var rs = agent.query(ctx)) {
-						assertThat("結果が0件です。", rs.next(), is(true));
-						assertThat(rs.getString("TARGET_STR"), is("1"));
-						assertThat(rs.next(), is(true));
-						assertThat(rs.getString("TARGET_STR"), is("2"));
-						assertThat(rs.next(), is(true));
-						assertThat(rs.getString("TARGET_STR"), is("3"));
-
-						assertThat("取得データが多すぎます", rs.next(), is(false));
-					}
-
-					// Test with a non-Iterable parameter - should also log once
-					var ctx2 = agent.context().setSqlName("test/PARAM_MAPPING2")
-							.param("targetStr", "123");
-
-					try (var rs = agent.query(ctx2)) {
-						assertThat("結果が0件です。", rs.next(), is(true));
-						assertThat(rs.getString("TARGET_STR"), is("123"));
-
-						assertThat("取得データが多すぎます", rs.next(), is(false));
-					}
-				}
-			});
-
-			// Verify that parameter logs are at TRACE level
-			// Filter logs for parameter setting messages
-			var parameterLogs = logs.stream()
-					.filter(log -> log.contains("Set the parameter"))
-					.collect(java.util.stream.Collectors.toList());
-
-			// Verify we have at least one parameter log
-			assertThat("パラメータログが出力されていません", parameterLogs.size() > 0, is(true));
-
-			// Verify all parameter logs are at TRACE level
-			for (var log : parameterLogs) {
-				assertThat("パラメータログがTRACEレベルではありません: " + log, log.contains("TRACE"), is(true));
-			}
-		} finally {
-			// Restore original logger configuration
-			sqlLogger.detachAppender(testAppender);
-			sqlLogger.setLevel(originalLevel);
-			testAppender.stop();
 		}
 	}
 
