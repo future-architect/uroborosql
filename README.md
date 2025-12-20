@@ -3,9 +3,9 @@
 uroboroSQL
 ==========
 
-<img src="https://future-architect.github.io/uroborosql-doc//images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
+<img src="https://future-architect.github.io/uroborosql-doc/images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
 
-UroboroSQL is a simple SQL execution library that can utilize 2-way-SQL compatible with Java 8.
+UroboroSQL is a simple SQL execution library that can utilize 2-way-SQL compatible with Java 11.
 
 UroboroSQL mainly adopts a SQL-centered design concept. The concept does not focus on Java to assemble SQL, but is based on an idea of making up for weaknesses of SQL with Java.
 
@@ -85,11 +85,11 @@ FROM
   DEPARTMENT DEPT
 WHERE
   1    = 1
-/*IF SF.isNotEmpty(dept_no)*/
-AND DEPT.DEPT_NO = /*dept_no*/1
+/*IF SF.isNotEmpty(deptNo)*/
+  AND DEPT.DEPT_NO = /*deptNo*/1
 /*END*/
-/*IF SF.isNotEmpty(dept_name)*/
-AND DEPT.DEPT_NAME = /*dept_name*/'sample'
+/*IF SF.isNotEmpty(deptName)*/
+  AND DEPT.DEPT_NAME = /*deptName*/'sample'
 /*END*/
 
 ```
@@ -97,16 +97,15 @@ AND DEPT.DEPT_NAME = /*dept_name*/'sample'
 ```sql
 /* department/insert_department.sql */
 
-INSERT
-/* _SQL_ID_ */
+INSERT /* _SQL_ID_ */
 INTO
   DEPARTMENT
 (
   DEPT_NO
 , DEPT_NAME
 ) VALUES (
-  /*dept_no*/1
-, /*dept_name*/'sample'
+  /*deptNo*/1
+, /*deptName*/'sample'
 )
 ```
 
@@ -117,13 +116,13 @@ SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa"
 try (SqlAgent agent = config.agent()) {
   // SELECT
   List<Map<String, Object>> departments = agent.query("department/select_department")
-      .param("dept_no", 1001)
+      .param("deptNo", 1001)
       .collect();
 
   // INSERT
   int count = agent.update("department/insert_department")
-      .param("dept_no", 1001)
-      .param("dept_name", "sales")
+      .param("deptNo", 1001)
+      .param("deptName", "sales")
       .count();
 }
 ```

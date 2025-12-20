@@ -3,9 +3,9 @@
 uroboroSQL
 ==========
 
-<img src="https://future-architect.github.io/uroborosql-doc//images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
+<img src="https://future-architect.github.io/uroborosql-doc/images/logo.png" style="max-width: 600px;" alt="uroboroSQL" />
 
-uroboroSQLは、Java8対応の2Way-SQLが利用可能なシンプルなSQL実行ライブラリです。
+uroboroSQLは、Java11対応の2Way-SQLが利用可能なシンプルなSQL実行ライブラリです。
 
 uroboroSQLは主にSQL中心の設計コンセプトを採用しています。Javaを中心に考えてSQLを組み立てるという思想ではなく、SQLに足りないところをJavaで補うという思想です。
 
@@ -77,34 +77,32 @@ compile group: 'ognl', name: 'ognl', version: '3.1.23'
 /* department/select_department.sql */
 
 SELECT /* _SQL_ID_ */
- DEPT.DEPT_NO AS DEPT_NO
+  DEPT.DEPT_NO AS DEPT_NO
 , DEPT.DEPT_NAME AS DEPT_NAME
 FROM
- DEPARTMENT DEPT
+  DEPARTMENT DEPT
 WHERE
- 1    = 1
-/*IF SF.isNotEmpty(dept_no)*/
-AND DEPT.DEPT_NO = /*dept_no*/1
+  1    = 1
+/*IF SF.isNotEmpty(deptNo)*/
+  AND DEPT.DEPT_NO = /*deptNo*/1
 /*END*/
-/*IF SF.isNotEmpty(dept_name)*/
-AND DEPT.DEPT_NAME = /*dept_name*/'sample'
+/*IF SF.isNotEmpty(deptName)*/
+  AND DEPT.DEPT_NAME = /*deptName*/'sample'
 /*END*/
-
 ```
 
 ```sql
 /* department/insert_department.sql */
 
-INSERT
-/* _SQL_ID_ */
+INSERT /* _SQL_ID_ */
 INTO
  DEPARTMENT
 (
  DEPT_NO
 , DEPT_NAME
 ) VALUES (
- /*dept_no*/1
-, /*dept_name*/'sample'
+ /*deptNo*/1
+, /*deptName*/'sample'
 )
 ```
 
@@ -115,13 +113,13 @@ SqlConfig config = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa"
 try (SqlAgent agent = config.agent()) {
   // SELECT
   List<Map<String, Object>> departments = agent.query("department/select_department")
-      .param("dept_no", 1001)
+      .param("deptNo", 1001)
       .collect();
 
   // INSERT
   int count = agent.update("department/insert_department")
-      .param("dept_no", 1001)
-      .param("dept_name", "sales")
+      .param("deptNo", 1001)
+      .param("deptName", "sales")
       .count();
 }
 ```
