@@ -20,13 +20,13 @@ jobs:
         with:
           java-version: ${{ env.JDK_VERSION }}
           distribution: ${{ env.JDK_DISTRIBUTION }}
-          cache: 'maven'
+          cache: "maven"
 
       - name: ⚙️ Build with Maven
-        run: mvn --batch-mode --update-snapshots --no-transfer-progress verify jacoco:report
+        run: mvn --batch-mode --update-snapshots --no-transfer-progress clean verify jacoco:report
 
       - name: 🚀 Coveralls Coverage Report
-        run: mvn --no-transfer-progress -DrepoToken=${{ secrets.COVERALL_REPO_SECRET }} coveralls:report 
+        run: mvn --no-transfer-progress -DrepoToken=${{ secrets.COVERALL_REPO_SECRET }} coveralls:report
 
   integration-test:
     needs: build
@@ -46,7 +46,7 @@ jobs:
         with:
           java-version: ${{ env.JDK_VERSION }}
           distribution: ${{ env.JDK_DISTRIBUTION }}
-          cache: 'maven'
+          cache: "maven"
 
       - name: ⚙️ Matrix Test with Maven
-        run: mvn --batch-mode --update-snapshots --no-transfer-progress -P${{ matrix.db }} -Dgroups=matrix test
+        run: mvn --batch-mode --update-snapshots --no-transfer-progress -P${{ matrix.db }} -Dgroups=matrix clean test
