@@ -16,13 +16,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -77,9 +77,14 @@ public class AbstractMatrixTest {
 	public void tearDown() throws Exception {
 		if (agent != null) {
 			agent.close();
+			agent = null;
 		}
 		if (dataSource != null) {
 			dataSource.close();
+			dataSource = null;
+		}
+		if (config != null) {
+			config = null;
 		}
 	}
 
