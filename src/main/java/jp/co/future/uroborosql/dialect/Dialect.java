@@ -177,6 +177,15 @@ public interface Dialect {
 		return true;
 	}
 
+	/**
+	 * {@link java.sql.Connection#releaseSavepoint(java.sql.Savepoint)} をサポートしているか.
+	 *
+	 * @return Savepointの解放をサポートしている場合<code>true</code>
+	 */
+	default boolean supportsReleaseSavepoint() {
+		return true;
+	}
+
 	String getSequenceNextValSql(String sequenceName);
 
 	/**

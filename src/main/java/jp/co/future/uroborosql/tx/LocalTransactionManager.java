@@ -12,8 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Deque;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -355,7 +355,9 @@ public class LocalTransactionManager implements TransactionManager {
 	public <R> R savepointScope(final Supplier<R> supplier) {
 		var txCtx = currentTxContext(false)
 				.orElseThrow(() -> new UroborosqlRuntimeException("UnmanagedConnection cannot use savepoint."));
-		var savepointName = UUID.randomUUID().toString();
+
+		var rng = ThreadLocalRandom.current();
+		var savepointName = String.format("SP%010d", rng.nextLong(10_000_000_000L));
 		txCtx.setSavepoint(savepointName);
 		try {
 			return supplier.get();

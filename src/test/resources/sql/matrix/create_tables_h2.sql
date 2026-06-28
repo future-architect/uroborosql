@@ -1,3 +1,5 @@
+drop table if exists PRODUCT;
+
 create table if not exists PRODUCT (
 	PRODUCT_ID			NUMERIC(10, 0) AUTO_INCREMENT NOT NULL,
 	PRODUCT_NAME		VARCHAR(100),
@@ -42,6 +44,8 @@ comment on column COLUMN_TYPE_TEST.COL_BOOLEAN is 'column boolean';
 comment on column COLUMN_TYPE_TEST.COL_TIMESTAMP is 'column timestamp';
 comment on column COLUMN_TYPE_TEST.COL_DATE is 'column date';
 comment on column COLUMN_TYPE_TEST.COL_TIME is 'column time';
+
+drop table if exists COLUMN_TYPE_ARRAY;
 
 create table if not exists COLUMN_TYPE_ARRAY (
 	COL_STR_ARRAY			ARRAY,

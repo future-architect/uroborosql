@@ -1,3 +1,6 @@
+
+drop table if exists PRODUCT;
+
 create table PRODUCT (
 	PRODUCT_ID			NUMERIC(10, 0) IDENTITY(1, 1) NOT NULL PRIMARY KEY,
 	PRODUCT_NAME		NVARCHAR(100),
@@ -10,6 +13,8 @@ create table PRODUCT (
 )
 ;
 
+drop table if exists PRODUCT_REGIST_WORK;
+
 create table PRODUCT_REGIST_WORK (
 	PRODUCT_NAME		NVARCHAR(100),
 	PRODUCT_KANA_NAME	NVARCHAR(100),
@@ -18,6 +23,8 @@ create table PRODUCT_REGIST_WORK (
 	INS_DATETIME		DATETIME
 )
 ;
+
+drop table if exists COLUMN_TYPE_TEST;
 
 create table COLUMN_TYPE_TEST (
 	COL_VARCHAR			NVARCHAR(100),

@@ -22,9 +22,13 @@ import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 @Tag("matrix")
@@ -36,6 +40,7 @@ public class AbstractMatrixTest {
 
 	protected SqlConfig config;
 	protected SqlAgent agent;
+	private HikariDataSource dataSource;
 
 	static {
 		jdbcProps = new Properties();
@@ -61,8 +66,14 @@ public class AbstractMatrixTest {
 				.addArgument(url)
 				.log();
 
-		config = UroboroSQL.builder(url, null, null).build();
+		dataSource = new HikariDataSource();
+		dataSource.setJdbcUrl(url);
+		dataSource.setMaximumPoolSize(10);
+
+		config = UroboroSQL.builder(dataSource).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 		agent = config.agent();
 	}
 
@@ -70,6 +81,14 @@ public class AbstractMatrixTest {
 	public void tearDown() throws Exception {
 		if (agent != null) {
 			agent.close();
+			agent = null;
+		}
+		if (dataSource != null) {
+			dataSource.close();
+			dataSource = null;
+		}
+		if (config != null) {
+			config = null;
 		}
 	}
 

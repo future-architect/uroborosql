@@ -367,4 +367,96 @@ class SqlApiTest extends AbstractMatrixTest {
 		}
 	}
 
+	/**
+	 * savepointScopeの正常終了のテストケース。
+	 * savepointScope内の処理が成功した場合、セーブポイントは解放され両方のレコードが残る。
+	 */
+	@Test
+	void testSavepointScopeSuccess() throws Exception {
+		agent.required(() -> {
+			truncateTable("PRODUCT");
+			// 1件目の挿入
+			agent.update("example/insert_product")
+					.param("product_id", 1)
+					.param("product_name", "商品１")
+					.param("product_kana_name", "ショウヒン１")
+					.param("jan_code", "1234567890001")
+					.param("product_description", "商品１説明")
+					.param("ins_datetime", Optional.empty())
+					.param("upd_datetime", Optional.empty())
+					.param("version_no", 1)
+					.count();
+
+			// savepointScope内で2件目の挿入（正常終了）
+			agent.savepointScope(() -> {
+				agent.update("example/insert_product")
+						.param("product_id", 2)
+						.param("product_name", "商品２")
+						.param("product_kana_name", "ショウヒン２")
+						.param("jan_code", "1234567890002")
+						.param("product_description", "商品２説明")
+						.param("ins_datetime", Optional.empty())
+						.param("upd_datetime", Optional.empty())
+						.param("version_no", 1)
+						.count();
+			});
+
+			// savepointScope正常終了後は両方のレコードが存在する
+			var products = agent.query(Product.class)
+					.asc("product_id")
+					.collect();
+			assertThat(products.size(), is(2));
+			assertThat(products.get(0).getProductId(), is(1));
+			assertThat(products.get(1).getProductId(), is(2));
+		});
+	}
+
+	/**
+	 * savepointScopeの例外時ロールバックのテストケース。
+	 * savepointScope内で例外が発生した場合、セーブポイントまでロールバックされるが外側のトランザクションは継続する。
+	 */
+	@Test
+	void testSavepointScopeRollback() throws Exception {
+		agent.required(() -> {
+			truncateTable("PRODUCT");
+			// 1件目の挿入
+			agent.update("example/insert_product")
+					.param("product_id", 1)
+					.param("product_name", "商品１")
+					.param("product_kana_name", "ショウヒン１")
+					.param("jan_code", "1234567890001")
+					.param("product_description", "商品１説明")
+					.param("ins_datetime", Optional.empty())
+					.param("upd_datetime", Optional.empty())
+					.param("version_no", 1)
+					.count();
+
+			// savepointScope内で2件目の挿入後に例外（セーブポイントまでロールバック）
+			try {
+				agent.savepointScope(() -> {
+					agent.update("example/insert_product")
+							.param("product_id", 2)
+							.param("product_name", "商品２")
+							.param("product_kana_name", "ショウヒン２")
+							.param("jan_code", "1234567890002")
+							.param("product_description", "商品２説明")
+							.param("ins_datetime", Optional.empty())
+							.param("upd_datetime", Optional.empty())
+							.param("version_no", 1)
+							.count();
+					throw new RuntimeException("test exception");
+				});
+			} catch (RuntimeException e) {
+				assertThat(e.getMessage(), is("test exception"));
+			}
+
+			// セーブポイントまでロールバックされたため、1件目のみ存在する
+			var products = agent.query(Product.class)
+					.asc("product_id")
+					.collect();
+			assertThat(products.size(), is(1));
+			assertThat(products.get(0).getProductId(), is(1));
+		});
+	}
+
 }
