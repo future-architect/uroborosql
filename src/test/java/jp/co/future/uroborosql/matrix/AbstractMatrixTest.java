@@ -27,6 +27,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import jp.co.future.uroborosql.mapping.DefaultEntityHandler;
+import jp.co.future.uroborosql.mapping.MappingUtils;
 import jp.co.future.uroborosql.utils.ObjectUtils;
 
 @Tag("matrix")
@@ -70,6 +72,8 @@ public class AbstractMatrixTest {
 
 		config = UroboroSQL.builder(dataSource).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
+		DefaultEntityHandler.clearCache();
+		MappingUtils.clearCache();
 		agent = config.agent();
 	}
 
