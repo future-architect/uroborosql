@@ -357,7 +357,7 @@ public class LocalTransactionManager implements TransactionManager {
 				.orElseThrow(() -> new UroborosqlRuntimeException("UnmanagedConnection cannot use savepoint."));
 
 		var rng = ThreadLocalRandom.current();
-		var savepointName = String.format("SP%10d", rng.nextLong(10_000_000_000L));
+		var savepointName = String.format("SP%010d", rng.nextLong(10_000_000_000L));
 		txCtx.setSavepoint(savepointName);
 		try {
 			return supplier.get();
