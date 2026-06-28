@@ -1,3 +1,5 @@
+drop table if exists PRODUCT;
+
 create table if not exists PRODUCT (
 	PRODUCT_ID			INT AUTO_INCREMENT NOT NULL,
 	PRODUCT_NAME		VARCHAR(100),
@@ -11,6 +13,8 @@ create table if not exists PRODUCT (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ;
 
+drop table if exists PRODUCT_REGIST_WORK;
+
 create table if not exists PRODUCT_REGIST_WORK (
 	PRODUCT_NAME		VARCHAR(100),
 	PRODUCT_KANA_NAME	VARCHAR(100),
@@ -19,6 +23,8 @@ create table if not exists PRODUCT_REGIST_WORK (
 	INS_DATETIME		DATETIME
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ;
+
+drop table if exists COLUMN_TYPE_TEST;
 
 create table if not exists COLUMN_TYPE_TEST (
 	COL_VARCHAR			VARCHAR(100),

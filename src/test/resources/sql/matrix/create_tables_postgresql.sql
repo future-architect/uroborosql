@@ -1,3 +1,5 @@
+drop table if exists PRODUCT;
+
 create table if not exists PRODUCT (
 	PRODUCT_ID			SERIAL NOT NULL,
 	PRODUCT_NAME		VARCHAR(100),
@@ -14,6 +16,8 @@ create table if not exists PRODUCT (
 create index if not exists IX_PRODUCT ON PRODUCT (JAN_CODE)
 ;
 
+drop table if exists PRODUCT_REGIST_WORK;
+
 create table if not exists PRODUCT_REGIST_WORK (
 	PRODUCT_NAME		VARCHAR(100),
 	PRODUCT_KANA_NAME	VARCHAR(100),
@@ -22,6 +26,8 @@ create table if not exists PRODUCT_REGIST_WORK (
 	INS_DATETIME		TIMESTAMP(9)
 )
 ;
+
+drop table if exists COLUMN_TYPE_TEST;
 
 create table if not exists COLUMN_TYPE_TEST (
 	COL_VARCHAR			VARCHAR(100),
