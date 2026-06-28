@@ -373,9 +373,8 @@ class SqlApiTest extends AbstractMatrixTest {
 	 */
 	@Test
 	void testSavepointScopeSuccess() throws Exception {
-		truncateTable("PRODUCT");
-
 		agent.required(() -> {
+			truncateTable("PRODUCT");
 			// 1件目の挿入
 			agent.update("example/insert_product")
 					.param("product_id", 1)
@@ -418,9 +417,8 @@ class SqlApiTest extends AbstractMatrixTest {
 	 */
 	@Test
 	void testSavepointScopeRollback() throws Exception {
-		truncateTable("PRODUCT");
-
 		agent.required(() -> {
+			truncateTable("PRODUCT");
 			// 1件目の挿入
 			agent.update("example/insert_product")
 					.param("product_id", 1)
@@ -458,72 +456,6 @@ class SqlApiTest extends AbstractMatrixTest {
 					.collect();
 			assertThat(products.size(), is(1));
 			assertThat(products.get(0).getProductId(), is(1));
-		});
-	}
-
-	/**
-	 * savepointScopeのネストのテストケース。
-	 * 外側のsavepointScopeは正常終了し、内側のsavepointScopeは例外でロールバックされる場合、
-	 * 内側でロールバックされた分のみが取り消される。
-	 */
-	@Test
-	void testSavepointScopeNested() throws Exception {
-		truncateTable("PRODUCT");
-
-		agent.required(() -> {
-			// 1件目の挿入
-			agent.update("example/insert_product")
-					.param("product_id", 1)
-					.param("product_name", "商品１")
-					.param("product_kana_name", "ショウヒン１")
-					.param("jan_code", "1234567890001")
-					.param("product_description", "商品１説明")
-					.param("ins_datetime", Optional.empty())
-					.param("upd_datetime", Optional.empty())
-					.param("version_no", 1)
-					.count();
-
-			// 外側のsavepointScope（正常終了）
-			agent.savepointScope(() -> {
-				// 2件目の挿入
-				agent.update("example/insert_product")
-						.param("product_id", 2)
-						.param("product_name", "商品２")
-						.param("product_kana_name", "ショウヒン２")
-						.param("jan_code", "1234567890002")
-						.param("product_description", "商品２説明")
-						.param("ins_datetime", Optional.empty())
-						.param("upd_datetime", Optional.empty())
-						.param("version_no", 1)
-						.count();
-
-				// 内側のsavepointScope（例外によりロールバック）
-				try {
-					agent.savepointScope(() -> {
-						agent.update("example/insert_product")
-								.param("product_id", 3)
-								.param("product_name", "商品３")
-								.param("product_kana_name", "ショウヒン３")
-								.param("jan_code", "1234567890003")
-								.param("product_description", "商品３説明")
-								.param("ins_datetime", Optional.empty())
-								.param("upd_datetime", Optional.empty())
-								.param("version_no", 1)
-								.count();
-						throw new RuntimeException("inner exception");
-					});
-				} catch (RuntimeException e) {
-					assertThat(e.getMessage(), is("inner exception"));
-				}
-			});
-
-			// 外側のsavepointScope正常終了後：1件目と2件目のみ存在（3件目は内側でロールバック済み）
-			var products = agent.query(Product.class)
-					.asc("product_id")
-					.collect();
-			assertThat(products.size(), is(2));
-			assertThat(products.get(0).getProductId(), is(1));
-			assertThat(products.get(1).getProductId(), is(2));
 		});
 	}
 

@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -36,6 +38,7 @@ public class AbstractMatrixTest {
 
 	protected SqlConfig config;
 	protected SqlAgent agent;
+	private HikariDataSource dataSource;
 
 	static {
 		jdbcProps = new Properties();
@@ -61,7 +64,11 @@ public class AbstractMatrixTest {
 				.addArgument(url)
 				.log();
 
-		config = UroboroSQL.builder(url, null, null).build();
+		dataSource = new HikariDataSource();
+		dataSource.setJdbcUrl(url);
+		dataSource.setMaximumPoolSize(10);
+
+		config = UroboroSQL.builder(dataSource).build();
 		config.getSqlAgentProvider().setFetchSize(1000);
 		agent = config.agent();
 	}
@@ -70,6 +77,9 @@ public class AbstractMatrixTest {
 	public void tearDown() throws Exception {
 		if (agent != null) {
 			agent.close();
+		}
+		if (dataSource != null) {
+			dataSource.close();
 		}
 	}
 

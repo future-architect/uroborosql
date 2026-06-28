@@ -169,6 +169,7 @@ public class Oracle11DialectTest {
 		assertThat(dialect.supportsForUpdateNoWait(), is(true));
 		assertThat(dialect.supportsForUpdateWait(), is(true));
 		assertThat(dialect.supportsOptimizerHints(), is(true));
+		assertThat(dialect.supportsReleaseSavepoint(), is(false));
 		assertThat(dialect.supportsEntityBulkUpdateOptimisticLock(), is(false));
 		assertThat(dialect.supportsUpdateChained(), is(false));
 		assertThat(dialect.needsStrictSqlTypeForNullSetting(), is(false));

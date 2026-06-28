@@ -335,7 +335,7 @@ class LocalTransactionContext implements TransactionContext {
 			subList.clear();
 		}
 
-		if (savepoint != null && connection != null) {
+		if (savepoint != null && connection != null && sqlConfig.getDialect().supportsReleaseSavepoint()) {
 			try {
 				connection.releaseSavepoint(savepoint);
 			} catch (SQLException ex) {

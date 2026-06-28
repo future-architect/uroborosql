@@ -91,6 +91,16 @@ public class MsSqlDialect extends AbstractDialect {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @see jp.co.future.uroborosql.dialect.Dialect#supportsReleaseSavepoint()
+	 */
+	@Override
+	public boolean supportsReleaseSavepoint() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @see jp.co.future.uroborosql.dialect.Dialect#needsStrictSqlTypeForNullSetting()
 	 */
 	@Override
