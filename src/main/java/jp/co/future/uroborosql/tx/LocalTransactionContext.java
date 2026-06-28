@@ -335,6 +335,8 @@ class LocalTransactionContext implements TransactionContext {
 			subList.clear();
 		}
 
+		// OracleやSqlServerなどConnection#releaseSavepointをサポートしないドライバーの場合は何もしない
+		// その場合は、Collection#commitやrollbackのタイミングでSavepointも解放される
 		if (savepoint != null && connection != null && sqlConfig.getDialect().supportsReleaseSavepoint()) {
 			try {
 				connection.releaseSavepoint(savepoint);
