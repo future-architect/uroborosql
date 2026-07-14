@@ -61,7 +61,7 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLoggin
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		try {
-			if (EVENT_LOG.isDebugEnabled()) {
+			if (!isSuppressLogging() && EVENT_LOG.isDebugEnabled()) {
 				var result = evt.getResult();
 				int resultCount;
 				if (result == null) {
