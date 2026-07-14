@@ -63,7 +63,9 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLoggin
 		try {
 			var result = evt.getResult();
 			int resultCount;
-			if (result != null && result.getClass().isArray()) {
+			if (result == null) {
+				resultCount = 1;
+			} else if (result.getClass().isArray()) {
 				resultCount = Array.getLength(result);
 			} else if (result instanceof Collection) {
 				resultCount = ((Collection<?>) result).size();
@@ -80,7 +82,9 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLoggin
 					.addArgument(evt.occurredOn())
 					.log();
 			traceWith(EVENT_LOG)
-					.setMessage("End Transaction result:{}")
+					.setMessage("End Transaction - connection:{}, transactionLevel:{}, result:{}")
+					.addArgument(evt.getTransactionContext().getConnection())
+					.addArgument(evt.getTransactionLevel())
 					.addArgument(result)
 					.log();
 		} catch (SQLException ex) {
