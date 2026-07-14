@@ -61,31 +61,31 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLoggin
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		try {
-			var result = evt.getResult();
-			int resultCount;
-			if (result == null) {
-				resultCount = 1;
-			} else if (result.getClass().isArray()) {
-				resultCount = Array.getLength(result);
-			} else if (result instanceof Collection) {
-				resultCount = ((Collection<?>) result).size();
-			} else {
-				resultCount = 1;
+			if (EVENT_LOG.isDebugEnabled()) {
+				var result = evt.getResult();
+				int resultCount;
+				if (result == null) {
+					resultCount = 0;
+				} else if (result.getClass().isArray()) {
+					resultCount = Array.getLength(result);
+				} else if (result instanceof Collection) {
+					resultCount = ((Collection<?>) result).size();
+				} else {
+					resultCount = 1;
+				}
+				debugWith(EVENT_LOG)
+						.setMessage(
+								"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, resultCount:{}, occurredOn:{}")
+						.addArgument(evt.getTransactionContext().getConnection())
+						.addArgument(evt.isRequiredNew())
+						.addArgument(evt.getTransactionLevel())
+						.addArgument(resultCount)
+						.addArgument(evt.occurredOn())
+						.log();
 			}
-			debugWith(EVENT_LOG)
-					.setMessage(
-							"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, resultCount:{}, occurredOn:{}")
-					.addArgument(evt.getTransactionContext().getConnection())
-					.addArgument(evt.isRequiredNew())
-					.addArgument(evt.getTransactionLevel())
-					.addArgument(resultCount)
-					.addArgument(evt.occurredOn())
-					.log();
 			traceWith(EVENT_LOG)
-					.setMessage("End Transaction - connection:{}, transactionLevel:{}, result:{}")
-					.addArgument(evt.getTransactionContext().getConnection())
-					.addArgument(evt.getTransactionLevel())
-					.addArgument(result)
+					.setMessage("End Transaction result:{}")
+					.addArgument(evt::getResult)
 					.log();
 		} catch (SQLException ex) {
 			errorWith(EVENT_LOG)
