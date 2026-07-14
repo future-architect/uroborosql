@@ -6,7 +6,9 @@
  */
 package jp.co.future.uroborosql.event.subscriber;
 
+import java.lang.reflect.Array;
 import java.sql.SQLException;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 
@@ -59,14 +61,27 @@ public class DebugEventSubscriber extends EventSubscriber implements EventLoggin
 
 	void beforeEndTransaction(final BeforeEndTransactionEvent evt) {
 		try {
+			var result = evt.getResult();
+			int resultCount;
+			if (result != null && result.getClass().isArray()) {
+				resultCount = Array.getLength(result);
+			} else if (result instanceof Collection) {
+				resultCount = ((Collection<?>) result).size();
+			} else {
+				resultCount = 1;
+			}
 			debugWith(EVENT_LOG)
 					.setMessage(
-							"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, result:{}, occurredOn:{}")
+							"End Transaction - connection:{}, requiredNew:{}, transactionLevel:{}, resultCount:{}, occurredOn:{}")
 					.addArgument(evt.getTransactionContext().getConnection())
 					.addArgument(evt.isRequiredNew())
 					.addArgument(evt.getTransactionLevel())
-					.addArgument(evt.getResult())
+					.addArgument(resultCount)
 					.addArgument(evt.occurredOn())
+					.log();
+			traceWith(EVENT_LOG)
+					.setMessage("End Transaction result:{}")
+					.addArgument(result)
 					.log();
 		} catch (SQLException ex) {
 			errorWith(EVENT_LOG)
