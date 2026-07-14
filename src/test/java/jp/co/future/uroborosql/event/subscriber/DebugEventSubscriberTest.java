@@ -1,5 +1,7 @@
 package jp.co.future.uroborosql.event.subscriber;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -14,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -146,6 +149,48 @@ public class DebugEventSubscriberTest extends AbstractDbTest {
 						Paths.get("src/test/resources/data/expected/DebugEventSubscriber",
 								"testExecuteBatchEvent.txt"),
 						StandardCharsets.UTF_8)));
+	}
+
+	@Test
+	void testBeforeEndTransactionResultCountWithPrimitiveArray() throws Exception {
+		var log = TestAppender.getLogbackLogs(() -> {
+			agent.requiresNew(() -> new int[] { 1, 2, 3 });
+		});
+
+		log = log.stream()
+				.map(l -> l.replaceAll("connection:conn\\d+:", "connection:conn:"))
+				.map(l -> l.replaceAll("occurredOn:.+", "occurredOn:99999"))
+				.collect(Collectors.toList());
+
+		assertThat(log, hasItem(containsString("resultCount:3")));
+	}
+
+	@Test
+	void testBeforeEndTransactionResultCountWithCollection() throws Exception {
+		var log = TestAppender.getLogbackLogs(() -> {
+			agent.requiresNew(() -> List.of("a", "b", "c", "d"));
+		});
+
+		log = log.stream()
+				.map(l -> l.replaceAll("connection:conn\\d+:", "connection:conn:"))
+				.map(l -> l.replaceAll("occurredOn:.+", "occurredOn:99999"))
+				.collect(Collectors.toList());
+
+		assertThat(log, hasItem(containsString("resultCount:4")));
+	}
+
+	@Test
+	void testBeforeEndTransactionResultCountWithRegularObject() throws Exception {
+		var log = TestAppender.getLogbackLogs(() -> {
+			agent.requiresNew(() -> "hello");
+		});
+
+		log = log.stream()
+				.map(l -> l.replaceAll("connection:conn\\d+:", "connection:conn:"))
+				.map(l -> l.replaceAll("occurredOn:.+", "occurredOn:99999"))
+				.collect(Collectors.toList());
+
+		assertThat(log, hasItem(containsString("resultCount:1")));
 	}
 
 }
